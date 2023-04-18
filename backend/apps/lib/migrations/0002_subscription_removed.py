@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0001_squashed_0010_auto_20180105_1858'),
+        ("lib", "0001_squashed_0010_auto_20180105_1858"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='subscription',
-            name='removed',
+            model_name="subscription",
+            name="removed",
             field=models.BooleanField(db_index=True, default=False),
         ),
     ]

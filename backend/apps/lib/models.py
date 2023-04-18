@@ -1,26 +1,32 @@
 from hashlib import sha256
+from uuid import uuid4
 
 import reversion
+from apps.lib.abstract_models import ALLOWED_EXTENSIONS
+from apps.lib.permissions import CommentViewPermission
+from apps.lib.tasks import check_asset_associations, generate_thumbnails
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.core.validators import FileExtensionValidator
 from django.db import models
-from django.db.models import DateTimeField, Model, SlugField, CASCADE, ForeignKey, SET_NULL, \
-    UUIDField, JSONField
+from django.db.models import (
+    CASCADE,
+    SET_NULL,
+    DateTimeField,
+    ForeignKey,
+    JSONField,
+    Model,
+    SlugField,
+    UUIDField,
+)
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils import timezone
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.signals import saved_file
-from uuid import uuid4
-
 from short_stuff import unslugify
-
-from apps.lib.abstract_models import ALLOWED_EXTENSIONS
-from apps.lib.permissions import CommentViewPermission
-from apps.lib.tasks import generate_thumbnails, check_asset_associations
 from shortcuts import disable_on_load
 
 
@@ -35,21 +41,40 @@ class Comment(models.Model):
     edited = models.BooleanField(default=False)
     object_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
     content_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True, related_name='+',
+        ContentType,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        db_index=True,
+        related_name="+",
     )
-    content_object = GenericForeignKey('content_type', 'object_id')
+    content_object = GenericForeignKey("content_type", "object_id")
     top_content_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, null=True, blank=False, db_index=True, related_name='+',
+        ContentType,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=False,
+        db_index=True,
+        related_name="+",
     )
     # The content of this data is user specified. DO NOT TRUST IT.
     extra_data = JSONField(default=dict, blank=True)
     top_object_id = models.PositiveIntegerField(null=True, blank=False, db_index=True)
-    top = GenericForeignKey('top_content_type', 'top_object_id')
+    top = GenericForeignKey("top_content_type", "top_object_id")
     # This field to be removed once data is verified to be working right in production.
-    parent = models.ForeignKey('Comment', related_name='children', null=True, blank=True, on_delete=models.CASCADE)
-    subscriptions = GenericRelation('lib.Subscription')
+    parent = models.ForeignKey(
+        "Comment",
+        related_name="children",
+        null=True,
+        blank=True,
+        on_delete=models.CASCADE,
+    )
+    subscriptions = GenericRelation("lib.Subscription")
     comments = GenericRelation(
-        'self', related_query_name='message', content_type_field='content_type', object_id_field='object_id'
+        "self",
+        related_query_name="message",
+        content_type_field="content_type",
+        object_id_field="object_id",
     )
 
     comment_permissions = [CommentViewPermission]
@@ -60,21 +85,25 @@ class Comment(models.Model):
             self.edited = True
         if self.deleted:
             self.edited = False
-        if getattr(self.top, 'preserve_comments', False):
+        if getattr(self.top, "preserve_comments", False):
             with reversion.create_revision():
                 super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
 
     def __str__(self):
-        return "({}) Comment by {} on {}".format(self.id, self.user.username, self.created_on)
+        return "({}) Comment by {} on {}".format(
+            self.id, self.user.username, self.created_on
+        )
 
     def notification_serialize(self, context):
         from apps.lib.serializers import CommentSerializer
+
         return CommentSerializer(self, context=context).data
 
     class Meta:
-        ordering = ('created_on',)
+        ordering = ("created_on",)
+
 
 reversion.register(Comment)
 
@@ -119,55 +148,66 @@ AUTO_CLOSED = 38
 REVISION_APPROVED = 39
 
 ORDER_NOTIFICATION_TYPES = (
-    DISPUTE, SALE_UPDATE, ORDER_UPDATE, RENEWAL_FIXED, RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED,
-    REVISION_UPLOADED, TRANSFER_FAILED, REFUND, REFERENCE_UPLOADED, WAITLIST_UPDATED, TIP_RECEIVED,
-    AUTO_CLOSED, REVISION_APPROVED,
+    DISPUTE,
+    SALE_UPDATE,
+    ORDER_UPDATE,
+    RENEWAL_FIXED,
+    RENEWAL_FAILURE,
+    SUBSCRIPTION_DEACTIVATED,
+    REVISION_UPLOADED,
+    TRANSFER_FAILED,
+    REFUND,
+    REFERENCE_UPLOADED,
+    WAITLIST_UPDATED,
+    TIP_RECEIVED,
+    AUTO_CLOSED,
+    REVISION_APPROVED,
 )
 
 EVENT_TYPES = (
-    (NEW_CHARACTER, 'New Character'),
-    (WATCHING, 'New Watcher'),
-    (CHAR_TAG, 'Character Tagged'),
-    (COMMENT, 'New Comment'),
-    (COMMISSIONS_OPEN, 'Commission Slots Available'),
-    (NEW_PRODUCT, 'New Product'),
-    (NEW_AUCTION, 'New Auction'),
-    (ORDER_UPDATE, 'Update'),
-    (REVISION_UPLOADED, 'Revision Uploaded'),
-    (SALE_UPDATE, 'Sale Update'),
-    (DISPUTE, 'Dispute Filed'),
-    (REFUND, 'Refund Processed'),
-    (NEW_CHAR_SUBMISSION, 'New Submission of Character'),
-    (FAVORITE, 'New Favorite'),
-    (SUBMISSION_TAG, 'Submission Tagged'),
-    (SUBMISSION_CHAR_TAG, 'Submission tagged with Character'),
-    (ARTIST_TAG, 'Tagged as the artist of a submission'),
-    (SUBMISSION_ARTIST_TAG, 'Tagged the artist of a submission'),
-    (ANNOUNCEMENT, 'Announcement'),
-    (SYSTEM_ANNOUNCEMENT, 'System-wide announcement'),
-    (RENEWAL_FAILURE, 'Renewal Failure'),
-    (SUBSCRIPTION_DEACTIVATED, 'Subscription Deactivated'),
-    (NEW_JOURNAL, 'New Journal Posted'),
-    (TRANSFER_FAILED, 'Bank Transfer Failed'),
-    (WAITLIST_UPDATED, 'Wait list updated'),
-    (TIP_RECEIVED, 'Tip Received'),
-    (AUTO_CLOSED, 'Commissions automatically closed'),
-    (REVISION_APPROVED, 'WIP Approved'),
+    (NEW_CHARACTER, "New Character"),
+    (WATCHING, "New Watcher"),
+    (CHAR_TAG, "Character Tagged"),
+    (COMMENT, "New Comment"),
+    (COMMISSIONS_OPEN, "Commission Slots Available"),
+    (NEW_PRODUCT, "New Product"),
+    (NEW_AUCTION, "New Auction"),
+    (ORDER_UPDATE, "Update"),
+    (REVISION_UPLOADED, "Revision Uploaded"),
+    (SALE_UPDATE, "Sale Update"),
+    (DISPUTE, "Dispute Filed"),
+    (REFUND, "Refund Processed"),
+    (NEW_CHAR_SUBMISSION, "New Submission of Character"),
+    (FAVORITE, "New Favorite"),
+    (SUBMISSION_TAG, "Submission Tagged"),
+    (SUBMISSION_CHAR_TAG, "Submission tagged with Character"),
+    (ARTIST_TAG, "Tagged as the artist of a submission"),
+    (SUBMISSION_ARTIST_TAG, "Tagged the artist of a submission"),
+    (ANNOUNCEMENT, "Announcement"),
+    (SYSTEM_ANNOUNCEMENT, "System-wide announcement"),
+    (RENEWAL_FAILURE, "Renewal Failure"),
+    (SUBSCRIPTION_DEACTIVATED, "Subscription Deactivated"),
+    (NEW_JOURNAL, "New Journal Posted"),
+    (TRANSFER_FAILED, "Bank Transfer Failed"),
+    (WAITLIST_UPDATED, "Wait list updated"),
+    (TIP_RECEIVED, "Tip Received"),
+    (AUTO_CLOSED, "Commissions automatically closed"),
+    (REVISION_APPROVED, "WIP Approved"),
 )
 
 EMAIL_SUBJECTS = {
-    COMMISSIONS_OPEN: 'Commissions are open for {{ target.username }}!',
-    ORDER_UPDATE: 'Order #{{ target.order.id}} [{{target.name}}] has been updated!',
-    REVISION_UPLOADED: 'New revision for order #{{ target.order.id }} [{{target.name}}]!',
-    REFERENCE_UPLOADED: 'New reference for order #{{ target.order.id }} [{{target.name}}]!',
-    SALE_UPDATE: '{% if target.status == 1 %}New Sale!{% elif target.status == 11 %}Your sale was cancelled.{% else %}Sale #{{ target.order.id }} [{{target.name}}] has been updated!{% endif %}'
-                 ' #{{target.id}}',
-    REFUND: 'A refund was issued for Order #{{ target.order.id }} [{{target.name}}]',
-    COMMENT: '{% if data.subject %}{{ data.subject }}{% else %}New comment on {{ data.name }}{% endif %}',
-    RENEWAL_FAILURE: 'Issue with your subscription',
-    SUBSCRIPTION_DEACTIVATED: 'Your subscription has been deactivated.',
-    RENEWAL_FIXED: 'Subscription renewed successfully',
-    TRANSFER_FAILED: 'Bank transfer failed.',
+    COMMISSIONS_OPEN: "Commissions are open for {{ target.username }}!",
+    ORDER_UPDATE: "Order #{{ target.order.id}} [{{target.name}}] has been updated!",
+    REVISION_UPLOADED: "New revision for order #{{ target.order.id }} [{{target.name}}]!",
+    REFERENCE_UPLOADED: "New reference for order #{{ target.order.id }} [{{target.name}}]!",
+    SALE_UPDATE: "{% if target.status == 1 %}New Sale!{% elif target.status == 11 %}Your sale was cancelled.{% else %}Sale #{{ target.order.id }} [{{target.name}}] has been updated!{% endif %}"
+    " #{{target.id}}",
+    REFUND: "A refund was issued for Order #{{ target.order.id }} [{{target.name}}]",
+    COMMENT: "{% if data.subject %}{{ data.subject }}{% else %}New comment on {{ data.name }}{% endif %}",
+    RENEWAL_FAILURE: "Issue with your subscription",
+    SUBSCRIPTION_DEACTIVATED: "Your subscription has been deactivated.",
+    RENEWAL_FIXED: "Subscription renewed successfully",
+    TRANSFER_FAILED: "Bank transfer failed.",
     REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!",
     WAITLIST_UPDATED: "A new order has been added to your waitlist!",
     AUTO_CLOSED: "Your commissions have been automatically closed.",
@@ -180,8 +220,10 @@ class Event(models.Model):
     data = JSONField(default=dict)
     date = models.DateTimeField(auto_now_add=True)
     object_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True)
-    target = GenericForeignKey('content_type', 'object_id')
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True
+    )
+    target = GenericForeignKey("content_type", "object_id")
     recalled = models.BooleanField(default=False, db_index=True)
 
 
@@ -189,8 +231,10 @@ class Subscription(models.Model):
     type = models.IntegerField(db_index=True, choices=EVENT_TYPES)
     subscriber = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     object_id = models.PositiveIntegerField(null=True, blank=True, db_index=True)
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True)
-    target = GenericForeignKey('content_type', 'object_id')
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True, db_index=True
+    )
+    target = GenericForeignKey("content_type", "object_id")
     implicit = models.BooleanField(default=True, db_index=True)
     email = models.BooleanField(default=False, db_index=True)
     telegram = models.BooleanField(default=False, db_index=True)
@@ -198,12 +242,12 @@ class Subscription(models.Model):
     until = models.DateField(null=True, db_index=True)
 
     class Meta:
-        unique_together = ('type', 'subscriber', 'object_id', 'content_type')
+        unique_together = ("type", "subscriber", "object_id", "content_type")
 
 
 class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
-    event = models.ForeignKey(Event, on_delete=CASCADE, related_name='notifications')
+    event = models.ForeignKey(Event, on_delete=CASCADE, related_name="notifications")
     read = models.BooleanField(default=False, db_index=True)
 
 
@@ -212,8 +256,13 @@ class Tag(Model):
 
     def self_clean(self):
         from apps.lib.utils import translate_related_names
+
         fields = self._meta.get_fields()
-        names = [field.related_name for field in fields if getattr(field, 'related_name', None)]
+        names = [
+            field.related_name
+            for field in fields
+            if getattr(field, "related_name", None)
+        ]
         names = translate_related_names(names)
         if not any([getattr(self, name).all().exists() for name in names]):
             self.delete()
@@ -225,20 +274,22 @@ class Tag(Model):
 class GenericReference(Model):
     object_id = UUIDField(db_index=True)
     content_type = ForeignKey(ContentType, on_delete=SET_NULL, null=True, blank=False)
-    target = GenericForeignKey('content_type', 'object_id')
+    target = GenericForeignKey("content_type", "object_id")
 
     def notification_serialize(self, context):
         from apps.lib.serializers import get_link
+
         return {
-            'model': self.target and self.target.__class__.__name__, 'id': self.target and self.target.pk,
-            'link': get_link(self.target, context=context),
+            "model": self.target and self.target.__class__.__name__,
+            "id": self.target and self.target.pk,
+            "link": get_link(self.target, context=context),
         }
 
     def __str__(self):
-        return f'::ref#{self.id}:: {self.target}'
+        return f"::ref#{self.id}:: {self.target}"
 
     class Meta:
-        unique_together = (('object_id', 'content_type'),)
+        unique_together = (("object_id", "content_type"),)
 
 
 def ref_for_instance(instance: Model) -> GenericReference:
@@ -256,8 +307,8 @@ def ref_for_instance(instance: Model) -> GenericReference:
 
 def _comment_transform(old_data, new_data):
     return {
-        'comments': old_data['comments'] + new_data['comments'],
-        'subcomments': old_data['subcomments'] + new_data['subcomments']
+        "comments": old_data["comments"] + new_data["comments"],
+        "subcomments": old_data["subcomments"] + new_data["subcomments"],
     }
 
 
@@ -284,20 +335,26 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             subscription.removed = False
             subscription.implicit = True
             subscription.save()
-        from apps.lib.utils import notify, mark_modified, mark_read
+        from apps.lib.utils import mark_modified, mark_read, notify
+
         primary_target = instance.content_object
         # Notify who is subscribed to the parent comment or the top level if there isn't one.
         notify(
-            COMMENT, primary_target, data={
-                'comments': [instance.id],
-                'subcomments': []
-            },
-            unique=True, mark_unread=True,
+            COMMENT,
+            primary_target,
+            data={"comments": [instance.id], "subcomments": []},
+            unique=True,
+            mark_unread=True,
             transform=_comment_transform,
             exclude=[instance.user],
             force_create=True,
         )
-        mark_modified(obj=instance.top, **getattr(instance.top, 'modified_kwargs', lambda x: {})(instance.extra_data))
+        mark_modified(
+            obj=instance.top,
+            **getattr(instance.top, "modified_kwargs", lambda x: {})(
+                instance.extra_data
+            ),
+        )
         mark_read(obj=instance.top, user=instance.user)
         # Notify whoever is subscribed to top level, if that's not what we already notified.
         target = instance
@@ -305,17 +362,20 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             target = target.content_object
         if target != primary_target:
             notify(
-                COMMENT, target, data={
+                COMMENT,
+                target,
+                data={
                     # Subcomment, so not marking a direct comment.
-                    'comments': [],
-                    'subcomments': [instance.id]
+                    "comments": [],
+                    "subcomments": [instance.id],
                 },
-                unique=True, mark_unread=True,
+                unique=True,
+                mark_unread=True,
                 transform=_comment_transform,
                 exclude=[instance.user],
                 force_create=True,
             )
-        if hasattr(target, 'new_comment'):
+        if hasattr(target, "new_comment"):
             target.new_comment(instance)
 
 
@@ -323,8 +383,8 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
 @disable_on_load
 def generate_thumbnails_async(sender, fieldfile, **kwargs):
     generate_thumbnails(
-        model=sender, pk=fieldfile.instance.pk,
-        field=fieldfile.field.name)
+        model=sender, pk=fieldfile.instance.pk, field=fieldfile.field.name
+    )
 
 
 # Additional signal for comment in utils, pre_save, since it would be recursive otherwise.
@@ -332,17 +392,21 @@ def generate_thumbnails_async(sender, fieldfile, **kwargs):
 
 class Asset(Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
-    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    file = ThumbnailerImageField(
-        upload_to='art/%Y/%m/%d/', validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)]
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
     )
-    hash = models.BinaryField(max_length=32, default=b'', db_index=True)
+    file = ThumbnailerImageField(
+        upload_to="art/%Y/%m/%d/",
+        validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
+    )
+    hash = models.BinaryField(max_length=32, default=b"", db_index=True)
     created_on = DateTimeField(default=timezone.now)
     edited_on = DateTimeField(auto_now=True)
 
     def can_reference(self, request):
         from apps.lib.utils import get_all_foreign_references
-        if cache.get(f'upload_grant_{request.session.session_key}-to-{self.id}'):
+
+        if cache.get(f"upload_grant_{request.session.session_key}-to-{self.id}"):
             return True
         user = request.user
         if not user.is_authenticated:
@@ -352,26 +416,28 @@ class Asset(Model):
             return True
         # noinspection PyTypeChecker
         for item in get_all_foreign_references(self):
-            if getattr(item, 'can_reference_asset', lambda x: False)(user):
+            if getattr(item, "can_reference_asset", lambda x: False)(user):
                 return True
         return False
 
     def delete(self, using=None, keep_parents=False, cleanup=False):
         if not cleanup:
-            raise AssertionError('Never attempt to delete an asset directly. Use the purge_asset task.')
+            raise AssertionError(
+                "Never attempt to delete an asset directly. Use the purge_asset task."
+            )
         super().delete(using=using, keep_parents=keep_parents)
 
 
 class ReadMarker(Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
-    user = models.ForeignKey('profiles.User', on_delete=CASCADE)
+    user = models.ForeignKey("profiles.User", on_delete=CASCADE)
     last_read_on = models.DateTimeField(default=None, db_index=True)
     content_type = models.ForeignKey(ContentType, on_delete=CASCADE)
     object_id = models.UUIDField(db_index=True)
-    target = GenericForeignKey('content_type', 'object_id')
+    target = GenericForeignKey("content_type", "object_id")
 
     class Meta:
-        unique_together = ('content_type', 'object_id', 'user')
+        unique_together = ("content_type", "object_id", "user")
 
 
 class ModifiedMarker(Model):
@@ -379,13 +445,13 @@ class ModifiedMarker(Model):
     modified_on = models.DateTimeField(db_index=True)
     content_type = models.ForeignKey(ContentType, on_delete=CASCADE)
     object_id = models.UUIDField(db_index=True)
-    target = GenericForeignKey('content_type', 'object_id')
+    target = GenericForeignKey("content_type", "object_id")
     # Efficiency shortcuts for deeply nested items.
-    order = models.ForeignKey('sales.Order', on_delete=CASCADE, null=True)
-    deliverable = models.ForeignKey('sales.Deliverable', on_delete=CASCADE, null=True)
+    order = models.ForeignKey("sales.Order", on_delete=CASCADE, null=True)
+    deliverable = models.ForeignKey("sales.Deliverable", on_delete=CASCADE, null=True)
 
     class Meta:
-        unique_together = ('content_type', 'object_id')
+        unique_together = ("content_type", "object_id")
 
 
 @receiver(post_save, sender=Asset)
@@ -400,17 +466,20 @@ def cleanup_old_asset(sender, instance, created=False, **kwargs):
 class Note(Model):
     created_on = DateTimeField(default=timezone.now, db_index=True)
     text = models.TextField()
-    hash = models.BinaryField(max_length=32, default=b'', db_index=True, unique=True)
+    hash = models.BinaryField(max_length=32, default=b"", db_index=True, unique=True)
 
     def save(
-        self, **kwargs,
+        self,
+        **kwargs,
     ):
         if not self.hash:
-            self.hash = sha256(self.text.encode('utf-8')).digest()
+            self.hash = sha256(self.text.encode("utf-8")).digest()
         super().save(
             **kwargs,
         )
 
 
 def note_for_text(text):
-    return Note.objects.get_or_create(hash=sha256(text.encode('utf-8')).digest(), defaults={'text': text})[0]
+    return Note.objects.get_or_create(
+        hash=sha256(text.encode("utf-8")).digest(), defaults={"text": text}
+    )[0]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0029_auto_20180719_1644'),
+        ("sales", "0029_auto_20180719_1644"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='paymentrecord',
-            name='finalize_on',
+            model_name="paymentrecord",
+            name="finalize_on",
             field=models.DateField(db_index=True, default=None, null=True),
         ),
     ]

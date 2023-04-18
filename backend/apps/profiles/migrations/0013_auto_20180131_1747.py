@@ -6,26 +6,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0009_auto_20180125_1512'),
-        ('profiles', '0012_auto_20180126_1645'),
+        ("lib", "0009_auto_20180125_1512"),
+        ("profiles", "0012_auto_20180126_1645"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='blacklist',
-            field=models.ManyToManyField(blank=True, to='lib.Tag'),
+            model_name="user",
+            name="blacklist",
+            field=models.ManyToManyField(blank=True, to="lib.Tag"),
         ),
         migrations.AlterField(
-            model_name='character',
-            name='tags',
-            field=models.ManyToManyField(blank=True, related_name='characters', to='lib.Tag'),
+            model_name="character",
+            name="tags",
+            field=models.ManyToManyField(
+                blank=True, related_name="characters", to="lib.Tag"
+            ),
         ),
         migrations.AlterField(
-            model_name='imageasset',
-            name='tags',
-            field=models.ManyToManyField(blank=True, related_name='assets', to='lib.Tag'),
+            model_name="imageasset",
+            name="tags",
+            field=models.ManyToManyField(
+                blank=True, related_name="assets", to="lib.Tag"
+            ),
         ),
     ]

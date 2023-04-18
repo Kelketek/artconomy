@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0105_auto_20201230_1041'),
+        ("profiles", "0105_auto_20201230_1041"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='stripe_token',
-            field=models.CharField(db_index=True, default='', max_length=50),
+            model_name="user",
+            name="stripe_token",
+            field=models.CharField(db_index=True, default="", max_length=50),
         ),
     ]

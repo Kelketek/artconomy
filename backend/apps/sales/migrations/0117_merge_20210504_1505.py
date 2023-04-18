@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0116_prefactor_reserve_fees'),
-        ('sales', '0106_auto_20210327_1410'),
+        ("sales", "0116_prefactor_reserve_fees"),
+        ("sales", "0106_auto_20210327_1410"),
     ]
 
-    operations = [
-    ]
+    operations = []

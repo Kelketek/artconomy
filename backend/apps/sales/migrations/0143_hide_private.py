@@ -4,16 +4,13 @@ from django.db import migrations
 
 
 def auto_hide(apps, schema):
-    Order = apps.get_model('sales', 'Order')
+    Order = apps.get_model("sales", "Order")
     Order.objects.filter(private=True).update(hide_details=True)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0142_order_hide_details'),
+        ("sales", "0142_order_hide_details"),
     ]
 
-    operations = [
-        migrations.RunPython(auto_hide, reverse_code=lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(auto_hide, reverse_code=lambda x, y: None)]

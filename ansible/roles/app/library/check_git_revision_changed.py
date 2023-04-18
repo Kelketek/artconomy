@@ -1,9 +1,8 @@
 #!/usr/bin/python3
 #   WANT_JSON
 import json
-import subprocess
-
 import os
+import subprocess
 import sys
 
 changed = True

@@ -4,15 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0055_auto_20180917_2355'),
+        ("profiles", "0055_auto_20180917_2355"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='stars',
-            field=models.DecimalField(blank=True, db_index=True, decimal_places=2, default=None, max_digits=3, null=True),
+            model_name="user",
+            name="stars",
+            field=models.DecimalField(
+                blank=True,
+                db_index=True,
+                decimal_places=2,
+                default=None,
+                max_digits=3,
+                null=True,
+            ),
         ),
     ]

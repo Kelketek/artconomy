@@ -4,19 +4,18 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0175_create_notes'),
+        ("sales", "0175_create_notes"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='deliverable',
-            name='commission_info',
+            model_name="deliverable",
+            name="commission_info",
         ),
         migrations.RenameField(
-            model_name='deliverable',
-            old_name='commission_info_note',
-            new_name='commission_info',
+            model_name="deliverable",
+            old_name="commission_info_note",
+            new_name="commission_info",
         ),
     ]

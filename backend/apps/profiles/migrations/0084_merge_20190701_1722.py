@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0083_set_max_rating'),
-        ('profiles', '0071_remove_character_transfer'),
+        ("profiles", "0083_set_max_rating"),
+        ("profiles", "0071_remove_character_transfer"),
     ]
 
-    operations = [
-    ]
+    operations = []

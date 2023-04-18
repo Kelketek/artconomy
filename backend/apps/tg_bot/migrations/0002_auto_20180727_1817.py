@@ -2,17 +2,16 @@
 
 from django.db import migrations
 
-
 # Undo a mistake with the superclass. Thankfully we never really did this yet in production.
 
-class Migration(migrations.Migration):
 
+class Migration(migrations.Migration):
     dependencies = [
-        ('tg_bot', '0001_initial'),
+        ("tg_bot", "0001_initial"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='TelegramDevice',
+            name="TelegramDevice",
         ),
     ]

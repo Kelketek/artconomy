@@ -5,20 +5,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0029_character_transfer'),
+        ("profiles", "0029_character_transfer"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='character',
-            name='shared_with',
-            field=models.ManyToManyField(blank=True, related_name='shared_characters', to=settings.AUTH_USER_MODEL),
+            model_name="character",
+            name="shared_with",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="shared_characters",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AddField(
-            model_name='imageasset',
-            name='shared_with',
-            field=models.ManyToManyField(blank=True, related_name='shared_assets', to=settings.AUTH_USER_MODEL),
+            model_name="imageasset",
+            name="shared_with",
+            field=models.ManyToManyField(
+                blank=True, related_name="shared_assets", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

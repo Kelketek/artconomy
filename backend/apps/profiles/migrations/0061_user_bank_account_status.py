@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0060_auto_20180919_2059'),
+        ("profiles", "0060_auto_20180919_2059"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='bank_account_status',
-            field=models.IntegerField(blank=True, choices=[(1, 'Has US Bank account'), (2, 'No US Bank account')], db_index=True, default=None, null=True),
+            model_name="user",
+            name="bank_account_status",
+            field=models.IntegerField(
+                blank=True,
+                choices=[(1, "Has US Bank account"), (2, "No US Bank account")],
+                db_index=True,
+                default=None,
+                null=True,
+            ),
         ),
     ]

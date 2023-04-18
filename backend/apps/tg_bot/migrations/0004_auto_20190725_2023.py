@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('tg_bot', '0003_telegramdevice'),
+        ("tg_bot", "0003_telegramdevice"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='telegramdevice',
-            name='confirmed',
-            field=models.BooleanField(default=False, help_text='Is this device ready for use?'),
+            model_name="telegramdevice",
+            name="confirmed",
+            field=models.BooleanField(
+                default=False, help_text="Is this device ready for use?"
+            ),
         ),
     ]

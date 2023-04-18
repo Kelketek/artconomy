@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0118_service_plan_fields'),
+        ("profiles", "0118_service_plan_fields"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='landscape_enabled',
+            model_name="user",
+            name="landscape_enabled",
             field=models.BooleanField(db_index=True, default=False, null=True),
         ),
     ]

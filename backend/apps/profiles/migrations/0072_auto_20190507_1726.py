@@ -6,21 +6,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0071_auto_20190417_1604'),
-        ('sales', '0043_auto_20190701_1331'),
+        ("profiles", "0071_auto_20190417_1604"),
+        ("sales", "0043_auto_20190701_1331"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='guest',
+            model_name="user",
+            name="guest",
             field=models.BooleanField(db_index=True, default=False),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='username',
-            field=models.CharField(db_index=True, max_length=40, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator(), apps.profiles.models.banned_named_validator]),
+            model_name="user",
+            name="username",
+            field=models.CharField(
+                db_index=True,
+                max_length=40,
+                unique=True,
+                validators=[
+                    django.contrib.auth.validators.UnicodeUsernameValidator(),
+                    apps.profiles.models.banned_named_validator,
+                ],
+            ),
         ),
     ]

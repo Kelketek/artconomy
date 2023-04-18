@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0126_merge_20221103_1021'),
+        ("profiles", "0126_merge_20221103_1021"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='discord_id',
-            field=models.CharField(db_index=True, default='', max_length=30),
+            model_name="user",
+            name="discord_id",
+            field=models.CharField(db_index=True, default="", max_length=30),
         ),
     ]

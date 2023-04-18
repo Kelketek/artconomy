@@ -4,18 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0070_message_edited'),
+        ("profiles", "0070_message_edited"),
     ]
 
     run_before = [
-        ('sales', '0043_auto_20190701_1331'),
+        ("sales", "0043_auto_20190701_1331"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='character',
-            name='transfer',
+            model_name="character",
+            name="transfer",
         ),
     ]

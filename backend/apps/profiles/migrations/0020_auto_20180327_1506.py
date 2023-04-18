@@ -4,20 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0019_auto_20180326_1420'),
+        ("profiles", "0019_auto_20180326_1420"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='artist_tagging_disabled',
+            model_name="user",
+            name="artist_tagging_disabled",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='imageasset',
-            name='characters',
-            field=models.ManyToManyField(blank=True, related_name='assets', to='profiles.Character'),
+            model_name="imageasset",
+            name="characters",
+            field=models.ManyToManyField(
+                blank=True, related_name="assets", to="profiles.Character"
+            ),
         ),
     ]

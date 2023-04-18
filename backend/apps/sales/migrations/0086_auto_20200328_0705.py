@@ -2,7 +2,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-
 # Status types
 from short_stuff import slugify
 
@@ -11,9 +10,9 @@ FAILURE = 1
 PENDING = 2
 
 STATUSES = (
-    (SUCCESS, 'Successful'),
-    (FAILURE, 'Failed'),
-    (PENDING, 'Pending'),
+    (SUCCESS, "Successful"),
+    (FAILURE, "Failed"),
+    (PENDING, "Pending"),
 )
 
 # Account types
@@ -45,19 +44,19 @@ MONEY_HOLE = 311
 CASH_DEPOSIT = 407
 
 ACCOUNT_TYPES = (
-    (CARD, 'Credit Card'),
-    (BANK, 'Bank Account'),
-    (ESCROW, 'Escrow'),
-    (HOLDINGS, 'Finalized Earnings, available for withdraw'),
-    (RESERVE, 'Contingency reserve'),
-    (UNPROCESSED_EARNINGS, 'Unannotated earnings'),
-    (CARD_TRANSACTION_FEES, 'Card transaction fees'),
-    (CARD_MISC_FEES, 'Other card fees'),
-    (CASH_DEPOSIT, 'Cash deposit'),
-    (ACH_TRANSACTION_FEES, 'ACH Transaction fees'),
-    (ACH_MISC_FEES, 'Other ACH fees'),
-    (MONEY_HOLE_STAGE, 'Tax staging'),
-    (MONEY_HOLE, 'Tax')
+    (CARD, "Credit Card"),
+    (BANK, "Bank Account"),
+    (ESCROW, "Escrow"),
+    (HOLDINGS, "Finalized Earnings, available for withdraw"),
+    (RESERVE, "Contingency reserve"),
+    (UNPROCESSED_EARNINGS, "Unannotated earnings"),
+    (CARD_TRANSACTION_FEES, "Card transaction fees"),
+    (CARD_MISC_FEES, "Other card fees"),
+    (CASH_DEPOSIT, "Cash deposit"),
+    (ACH_TRANSACTION_FEES, "ACH Transaction fees"),
+    (ACH_MISC_FEES, "Other ACH fees"),
+    (MONEY_HOLE_STAGE, "Tax staging"),
+    (MONEY_HOLE, "Tax"),
 )
 
 # Transaction types
@@ -86,20 +85,20 @@ EXTRA_ITEM = 415
 MANUAL_PAYOUT = 416
 
 CATEGORIES = (
-    (SHIELD_FEE, 'Artconomy Service Fee'),
-    (ESCROW_HOLD, 'Escrow hold'),
-    (ESCROW_RELEASE, 'Escrow release'),
-    (ESCROW_REFUND, 'Escrow refund'),
-    (SUBSCRIPTION_DUES, 'Subscription dues'),
-    (SUBSCRIPTION_REFUND, 'Refund for subscription dues'),
-    (CASH_WITHDRAW, 'Cash withdrawal'),
-    (THIRD_PARTY_FEE, 'Third party fee'),
-    (PREMIUM_BONUS, 'Premium service bonus'),
-    (INTERNAL_TRANSFER, 'Internal Transfer'),
-    (THIRD_PARTY_REFUND, 'Third party refund'),
-    (CORRECTION, 'Correction'),
-    (TAX, 'Tax'),
-    (MANUAL_PAYOUT, 'Manual Payout')
+    (SHIELD_FEE, "Artconomy Service Fee"),
+    (ESCROW_HOLD, "Escrow hold"),
+    (ESCROW_RELEASE, "Escrow release"),
+    (ESCROW_REFUND, "Escrow refund"),
+    (SUBSCRIPTION_DUES, "Subscription dues"),
+    (SUBSCRIPTION_REFUND, "Refund for subscription dues"),
+    (CASH_WITHDRAW, "Cash withdrawal"),
+    (THIRD_PARTY_FEE, "Third party fee"),
+    (PREMIUM_BONUS, "Premium service bonus"),
+    (INTERNAL_TRANSFER, "Internal Transfer"),
+    (THIRD_PARTY_REFUND, "Third party refund"),
+    (CORRECTION, "Correction"),
+    (TAX, "Tax"),
+    (MANUAL_PAYOUT, "Manual Payout"),
 )
 
 # Order status
@@ -107,9 +106,9 @@ COMPLETED = 8
 
 
 def annotate_payouts(apps, schema):
-    GenericReference = apps.get_model('lib', 'GenericReference')
-    Order = apps.get_model('sales', 'Order')
-    TransactionRecord = apps.get_model('sales', 'TransactionRecord')
+    GenericReference = apps.get_model("lib", "GenericReference")
+    Order = apps.get_model("sales", "Order")
+    TransactionRecord = apps.get_model("sales", "TransactionRecord")
     order_content_type_id = ContentType.objects.get_for_model(Order).id
 
     def ref_for_instance(object_id: int, content_type_id: int):
@@ -119,27 +118,42 @@ def annotate_payouts(apps, schema):
         )
         return result
 
-    user_ids = TransactionRecord.objects.filter(
-        status=SUCCESS, category=CASH_WITHDRAW, source=HOLDINGS).values_list(
-            'payee', flat=True,
-    ).distinct()
+    user_ids = (
+        TransactionRecord.objects.filter(
+            status=SUCCESS, category=CASH_WITHDRAW, source=HOLDINGS
+        )
+        .values_list(
+            "payee",
+            flat=True,
+        )
+        .distinct()
+    )
     for user_id in user_ids:
         references = [
             ref_for_instance(sale.id, order_content_type_id)
-            for sale in Order.objects.filter(seller_id=user_id, status=COMPLETED, escrow_disabled=False)
+            for sale in Order.objects.filter(
+                seller_id=user_id, status=COMPLETED, escrow_disabled=False
+            )
         ]
         transactions = TransactionRecord.objects.filter(
-            targets__in=references, source=ESCROW, destination=HOLDINGS,
-        ).order_by('created_on')
+            targets__in=references,
+            source=ESCROW,
+            destination=HOLDINGS,
+        ).order_by("created_on")
         for transaction in transactions:
             payout_transactions = TransactionRecord.objects.filter(
-                payer=transaction.payee, source=HOLDINGS, destination=BANK, status__in=[SUCCESS, PENDING],
+                payer=transaction.payee,
+                source=HOLDINGS,
+                destination=BANK,
+                status__in=[SUCCESS, PENDING],
                 created_on__gte=transaction.created_on.replace(microsecond=0),
-            ).order_by('created_on')
+            ).order_by("created_on")
             payout_transaction = payout_transactions.first()
             if not payout_transaction:
                 continue
-            order_targets = transaction.targets.filter(content_type_id=order_content_type_id)
+            order_targets = transaction.targets.filter(
+                content_type_id=order_content_type_id
+            )
             payout_transaction.targets.add(*order_targets)
             for target in order_targets:
                 order = Order.objects.get(id=target.object_id)
@@ -148,9 +162,9 @@ def annotate_payouts(apps, schema):
 
 
 def clear_payouts(apps, schema):
-    Order = apps.get_model('sales', 'Order')
+    Order = apps.get_model("sales", "Order")
     content_type_id = ContentType.objects.get_for_model(Order).id
-    TransactionRecord = apps.get_model('sales', 'TransactionRecord')
+    TransactionRecord = apps.get_model("sales", "TransactionRecord")
     TransactionRecord.targets.through.objects.filter(
         transactionrecord__category=CASH_WITHDRAW,
         transactionrecord__status=SUCCESS,
@@ -161,11 +175,8 @@ def clear_payouts(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0085_auto_20200326_1050'),
+        ("sales", "0085_auto_20200326_1050"),
     ]
 
-    operations = [
-        migrations.RunPython(annotate_payouts, reverse_code=clear_payouts)
-    ]
+    operations = [migrations.RunPython(annotate_payouts, reverse_code=clear_payouts)]

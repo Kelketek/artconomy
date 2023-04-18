@@ -4,42 +4,41 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0087_set_sender_participant'),
+        ("profiles", "0087_set_sender_participant"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='conversation',
-            name='body',
+            model_name="conversation",
+            name="body",
         ),
         migrations.RemoveField(
-            model_name='conversation',
-            name='edited',
+            model_name="conversation",
+            name="edited",
         ),
         migrations.RemoveField(
-            model_name='conversation',
-            name='edited_on',
+            model_name="conversation",
+            name="edited_on",
         ),
         migrations.RemoveField(
-            model_name='conversation',
-            name='last_activity',
+            model_name="conversation",
+            name="last_activity",
         ),
         migrations.RemoveField(
-            model_name='conversation',
-            name='sender',
+            model_name="conversation",
+            name="sender",
         ),
         migrations.RemoveField(
-            model_name='conversation',
-            name='sender_left',
+            model_name="conversation",
+            name="sender_left",
         ),
         migrations.RemoveField(
-            model_name='conversation',
-            name='sender_read',
+            model_name="conversation",
+            name="sender_read",
         ),
         migrations.RemoveField(
-            model_name='conversation',
-            name='subject',
+            model_name="conversation",
+            name="subject",
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0037_auto_20180516_1926'),
+        ("profiles", "0037_auto_20180516_1926"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='commission_info',
-            field=models.CharField(blank=True, default='', max_length=5000),
+            model_name="user",
+            name="commission_info",
+            field=models.CharField(blank=True, default="", max_length=5000),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0095_user_trust_level'),
+        ("profiles", "0095_user_trust_level"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='notes',
-            field=models.TextField(default=''),
+            model_name="user",
+            name="notes",
+            field=models.TextField(default=""),
         ),
     ]

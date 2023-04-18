@@ -7,15 +7,15 @@ CANCELLED = 6
 
 
 def set_cancel_date(apps, schema):
-    Deliverable = apps.get_model('sales', 'Deliverable')
-    Deliverable.objects.filter(status=CANCELLED, cancelled_on__isnull=True).update(cancelled_on=timezone.now())
+    Deliverable = apps.get_model("sales", "Deliverable")
+    Deliverable.objects.filter(status=CANCELLED, cancelled_on__isnull=True).update(
+        cancelled_on=timezone.now()
+    )
+
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0101_deliverable_cancelled_on'),
+        ("sales", "0101_deliverable_cancelled_on"),
     ]
 
-    operations = [
-        migrations.RunPython(set_cancel_date, reverse_code=lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(set_cancel_date, reverse_code=lambda x, y: None)]

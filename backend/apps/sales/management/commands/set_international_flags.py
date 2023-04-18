@@ -1,8 +1,7 @@
+from apps.sales.constants import NEW, PAYMENT_PENDING, WAITING
+from apps.sales.models import Deliverable, StripeAccount, User
 from django.conf import settings
 from django.core.management import BaseCommand
-
-from apps.sales.constants import NEW, PAYMENT_PENDING, WAITING
-from apps.sales.models import User, StripeAccount, Deliverable
 
 
 class Command(BaseCommand):
@@ -14,10 +13,11 @@ class Command(BaseCommand):
                     product.international = international
                     product.save()
                 for deliverable in Deliverable.objects.filter(
-                        order__seller=user, status__in=[NEW, PAYMENT_PENDING, WAITING],
+                    order__seller=user,
+                    status__in=[NEW, PAYMENT_PENDING, WAITING],
                 ):
                     deliverable.international = international
                     deliverable.save()
             except StripeAccount.DoesNotExist:
-                print(f'Skipping for {user}')
+                print(f"Skipping for {user}")
                 continue

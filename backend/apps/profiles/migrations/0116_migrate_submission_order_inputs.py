@@ -4,17 +4,16 @@ from django.db import migrations
 
 
 def migrate_revisions(apps, schema):
-    Submission = apps.get_model('profiles', 'Submission')
+    Submission = apps.get_model("profiles", "Submission")
     for submission in Submission.objects.exclude(deliverable=None):
         submission.revision = submission.deliverable.revision_set.last()
         submission.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0115_submission_revision'),
-        ('sales', '0123_remove_transactionrecord_remote_id'),
+        ("profiles", "0115_submission_revision"),
+        ("sales", "0123_remove_transactionrecord_remote_id"),
     ]
 
     operations = [

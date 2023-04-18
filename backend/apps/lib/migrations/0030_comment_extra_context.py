@@ -5,16 +5,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0029_auto_20200324_1542'),
-        ('sales', '0095_auto_20200616_1535'),
+        ("lib", "0029_auto_20200324_1542"),
+        ("sales", "0095_auto_20200616_1535"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='comment',
-            name='extra_data',
-            field=django.contrib.postgres.fields.jsonb.JSONField(blank=True, default=dict),
+            model_name="comment",
+            name="extra_data",
+            field=django.contrib.postgres.fields.jsonb.JSONField(
+                blank=True, default=dict
+            ),
         ),
     ]

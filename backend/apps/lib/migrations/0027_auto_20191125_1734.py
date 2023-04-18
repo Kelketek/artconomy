@@ -3,29 +3,28 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
 
-
 def set_top_values(apps, schema):
-    Comment = apps.get_model('lib', 'Comment')
+    Comment = apps.get_model("lib", "Comment")
     content_type_id = ContentType.objects.get_for_model(Comment).id
 
     def set_top(target_object_id, target_content_type_id, comment):
         # Recursive setting of top. Now we can get all comments for an object regardless of how deeply nested they are.
-        for comment in Comment.objects.filter(object_id=comment.id, content_type_id=content_type_id):
+        for comment in Comment.objects.filter(
+            object_id=comment.id, content_type_id=content_type_id
+        ):
             set_top(target_object_id, target_content_type_id, comment)
         comment.top_content_type_id = target_content_type_id
         comment.top_object_id = target_object_id
         comment.save()
+
     # Find all comments that are not children of another comment.
     for thread_start in Comment.objects.exclude(content_type_id=content_type_id):
         set_top(thread_start.object_id, thread_start.content_type_id, thread_start)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0026_auto_20191125_1734'),
+        ("lib", "0026_auto_20191125_1734"),
     ]
 
-    operations = [
-        migrations.RunPython(set_top_values, reverse_code=lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(set_top_values, reverse_code=lambda x, y: None)]

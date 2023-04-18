@@ -5,11 +5,9 @@ from django.db import migrations
 
 # Empty migration obviated by upstream change.
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0043_auto_20190516_1848'),
-        ('profiles', '0073_auto_20190516_1847'),
+        ("sales", "0043_auto_20190516_1848"),
+        ("profiles", "0073_auto_20190516_1847"),
     ]
 
-    operations = [
-    ]
+    operations = []

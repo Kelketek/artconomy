@@ -2,8 +2,53 @@ from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
 
+from apps.lib.abstract_models import ADULT, GENERAL, MATURE
+from apps.lib.models import (
+    COMMENT,
+    ORDER_UPDATE,
+    SALE_UPDATE,
+    WAITLIST_UPDATED,
+    Event,
+    Subscription,
+)
+from apps.lib.test_resources import APITestCase
+from apps.lib.tests.factories import AssetFactory
+from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
+from apps.profiles.tests.factories import (
+    CharacterFactory,
+    SubmissionFactory,
+    UserFactory,
+)
+from apps.profiles.utils import create_guest_user
+from apps.sales.constants import (
+    ADD_ON,
+    BASE_PRICE,
+    COMPLETED,
+    DISPUTED,
+    ESCROW,
+    EXTRA,
+    IN_PROGRESS,
+    LIMBO,
+    NEW,
+    PAYMENT_PENDING,
+    QUEUED,
+    REVIEW,
+    SHIELD,
+    TIP,
+    UNPROCESSED_EARNINGS,
+)
+from apps.sales.models import Deliverable, Order, Revision
+from apps.sales.tests.factories import (
+    DeliverableFactory,
+    LineItemFactory,
+    ProductFactory,
+    RevisionFactory,
+    StripeAccountFactory,
+    add_adjustment,
+)
+from apps.sales.tests.test_utils import TransactionCheckMixin
 from dateutil.relativedelta import relativedelta
-from ddt import ddt, data
+from ddt import data, ddt
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.core.cache import cache
@@ -13,20 +58,6 @@ from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
-
-from apps.lib.abstract_models import ADULT, MATURE, GENERAL
-from apps.lib.models import Event, SALE_UPDATE, ORDER_UPDATE, WAITLIST_UPDATED, Subscription, COMMENT
-from apps.lib.test_resources import APITestCase
-from apps.lib.tests.factories import AssetFactory
-from apps.profiles.models import User, IN_SUPPORTED_COUNTRY
-from apps.profiles.tests.factories import UserFactory, CharacterFactory, SubmissionFactory
-from apps.profiles.utils import create_guest_user
-from apps.sales.models import Deliverable, Order, Revision
-from apps.sales.constants import BASE_PRICE, ADD_ON, SHIELD, TIP, EXTRA, COMPLETED, NEW, PAYMENT_PENDING, QUEUED, \
-    IN_PROGRESS, REVIEW, DISPUTED, ESCROW, UNPROCESSED_EARNINGS, LIMBO
-from apps.sales.tests.factories import ProductFactory, DeliverableFactory, add_adjustment, RevisionFactory, \
-    LineItemFactory, StripeAccountFactory
-from apps.sales.tests.test_utils import TransactionCheckMixin
 
 
 @ddt
@@ -38,26 +69,32 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         characters = [
             CharacterFactory.create(user=user),
             CharacterFactory.create(user=user, private=True),
-            CharacterFactory.create(user=user2, open_requests=True)
+            CharacterFactory.create(user=user2, open_requests=True),
         ]
         character_ids = [character.id for character in characters]
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'characters': character_ids
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "characters": character_ids,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
-        order = Order.objects.get(id=response.data['id'])
+        deliverable = Deliverable.objects.get(
+            id=response.data["default_path"]["params"]["deliverableId"]
+        )
+        order = Order.objects.get(id=response.data["id"])
         for character in characters:
-            self.assertTrue(character.shared_with.filter(username=order.seller.username).exists())
+            self.assertTrue(
+                character.shared_with.filter(username=order.seller.username).exists()
+            )
         self.assertEqual(order.deliverables.get().product, product)
         self.assertEqual(deliverable.status, NEW)
-        self.assertEqual(deliverable.details, 'Draw me some porn!')
+        self.assertEqual(deliverable.details, "Draw me some porn!")
         # These should be set at the point of payment.
         self.assertEqual(deliverable.task_weight, 0)
         self.assertEqual(deliverable.expected_turnaround, 0)
@@ -68,17 +105,23 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
         asset_ids = [AssetFactory.create(uploaded_by=user).id for _ in range(3)]
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'references': asset_ids,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "references": asset_ids,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
+        deliverable = Deliverable.objects.get(
+            id=response.data["default_path"]["params"]["deliverableId"]
+        )
         for asset_id in asset_ids:
-            self.assertTrue(deliverable.reference_set.filter(file__id=asset_id).exists())
+            self.assertTrue(
+                deliverable.reference_set.filter(file__id=asset_id).exists()
+            )
 
     def test_place_order_unowned_references(self):
         user = UserFactory.create()
@@ -86,18 +129,22 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
         asset_ids = [AssetFactory.create().id for _ in range(1)]
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'references': asset_ids,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "references": asset_ids,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data['references'],
-            ['Either you do not have permission to use those assets for reference, those asset IDs are invalid, '
-             'or they have expired. Please try re-uploading.'],
+            response.data["references"],
+            [
+                "Either you do not have permission to use those assets for reference, those asset IDs are invalid, "
+                "or they have expired. Please try re-uploading."
+            ],
         )
 
     def test_place_order_invalid_references(self):
@@ -106,18 +153,22 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
         asset_ids = [AssetFactory.create().id for _ in range(1)]
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'references': [str(uuid4()), str(uuid4())],
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "references": [str(uuid4()), str(uuid4())],
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
-            response.data['references'],
-            ['Either you do not have permission to use those assets for reference, those asset IDs are invalid, '
-             'or they have expired. Please try re-uploading.'],
+            response.data["references"],
+            [
+                "Either you do not have permission to use those assets for reference, those asset IDs are invalid, "
+                "or they have expired. Please try re-uploading."
+            ],
         )
 
     def test_place_order_references_disallowed(self):
@@ -126,48 +177,64 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
         asset_ids = [AssetFactory.create(uploaded_by=None).id for _ in range(3)]
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'references': asset_ids,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "references": asset_ids,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('references', response.data)
+        self.assertIn("references", response.data)
 
     def test_place_order_references_anon(self):
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
         asset_ids = [str(AssetFactory.create(uploaded_by=None).id) for _ in range(3)]
         # Forcibly set the cache key here.
         for asset_id in asset_ids:
-            cache.set(f'upload_grant_{self.client.session.session_key}-to-{asset_id}', True, timeout=10)
+            cache.set(
+                f"upload_grant_{self.client.session.session_key}-to-{asset_id}",
+                True,
+                timeout=10,
+            )
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'email': 'test@example.com',
-                'rating': ADULT,
-                'references': asset_ids,
-            }
+                "details": "Draw me some porn!",
+                "email": "test@example.com",
+                "rating": ADULT,
+                "references": asset_ids,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
+        deliverable = Deliverable.objects.get(
+            id=response.data["default_path"]["params"]["deliverableId"]
+        )
         for asset_id in asset_ids:
-            self.assertTrue(deliverable.reference_set.filter(file__id=asset_id).exists())
+            self.assertTrue(
+                deliverable.reference_set.filter(file__id=asset_id).exists()
+            )
 
     def test_place_order_inventory_product(self):
         user = UserFactory.create()
         self.login(user)
-        product = ProductFactory.create(task_weight=5, expected_turnaround=3, track_inventory=True)
+        product = ProductFactory.create(
+            task_weight=5, expected_turnaround=3, track_inventory=True
+        )
         product.inventory.count = 1
         product.inventory.save()
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -176,65 +243,80 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['status'], NEW)
+        self.assertEqual(response.data["status"], NEW)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
-        self.assertEqual(response.data['status'], LIMBO)
+        self.assertEqual(response.data["status"], LIMBO)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @override_settings(DEFAULT_COUNTRY='US')
+    @override_settings(DEFAULT_COUNTRY="US")
     def test_place_order_escrow_upgradable(self):
         user = UserFactory.create()
         self.login(user)
         artist = UserFactory.create()
-        StripeAccountFactory.create(user=artist, active=True, country='US')
+        StripeAccountFactory.create(user=artist, active=True, country="US")
         artist.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         artist.artist_profile.save()
         product = ProductFactory.create(
-            task_weight=5, expected_turnaround=3, escrow_enabled=False, escrow_upgradable=True,
+            task_weight=5,
+            expected_turnaround=3,
+            escrow_enabled=False,
+            escrow_upgradable=True,
         )
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Deliverable.objects.get(order_id=response.data['id']).escrow_enabled, False)
+        self.assertEqual(
+            Deliverable.objects.get(order_id=response.data["id"]).escrow_enabled, False
+        )
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
-            {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'escrow_upgrade': True
-            }
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {"details": "Draw me some porn!", "rating": ADULT, "escrow_upgrade": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Deliverable.objects.get(order_id=response.data['id']).escrow_enabled, True)
+        self.assertEqual(
+            Deliverable.objects.get(order_id=response.data["id"]).escrow_enabled, True
+        )
 
     def test_place_order_waitlisted_product(self):
         user = UserFactory.create()
         self.login(user)
-        product = ProductFactory.create(task_weight=5, expected_turnaround=3, wait_list=True)
+        product = ProductFactory.create(
+            task_weight=5, expected_turnaround=3, wait_list=True
+        )
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertFalse(Event.objects.filter(type=SALE_UPDATE).exists())
@@ -242,68 +324,84 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertTrue(Event.objects.filter(type=ORDER_UPDATE).exists())
         product.user.refresh_from_db()
         self.assertEqual(product.user.artist_profile.load, 0)
-        self.assertTrue(Order.objects.get(id=response.data['id']).deliverables.first().invoice.total())
+        self.assertTrue(
+            Order.objects.get(id=response.data["id"])
+            .deliverables.first()
+            .invoice.total()
+        )
 
     def test_place_order_waitlisted_product_email(self):
         user = UserFactory.create()
         self.login(user)
-        product = ProductFactory.create(task_weight=5, expected_turnaround=3, wait_list=True)
+        product = ProductFactory.create(
+            task_weight=5, expected_turnaround=3, wait_list=True
+        )
         self.assertEqual(len(mail.outbox), 0)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(mail.outbox), 2)
 
-    @patch('apps.sales.views.main.login')
+    @patch("apps.sales.views.main.login")
     def test_place_order_table_product(self, mock_login):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         product = ProductFactory.create(table_product=True)
         self.assertEqual(len(mail.outbox), 0)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'email': 'test_table_order@example.com',
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "email": "test_table_order@example.com",
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         mock_login.assert_not_called()
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(mail.outbox), 2)
-        User.objects.get(guest_email='test_table_order@example.com', guest=True)
-        deliverable = Order.objects.get(id=response.data['id']).deliverables.get()
+        User.objects.get(guest_email="test_table_order@example.com", guest=True)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
         self.assertTrue(deliverable.table_order)
 
     def test_place_order_inventory_product_out_of_stock(self):
         user = UserFactory.create()
         self.login(user)
-        product = ProductFactory.create(task_weight=5, expected_turnaround=3, track_inventory=True)
+        product = ProductFactory.create(
+            task_weight=5, expected_turnaround=3, track_inventory=True
+        )
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data['detail'], 'This product is not in stock.')
+        self.assertEqual(response.data["detail"], "This product is not in stock.")
         self.assertEqual(Order.objects.all().count(), 0)
 
     def test_place_order_own_product(self):
         product = ProductFactory.create()
         self.login(product.user)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -314,19 +412,23 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         characters = [
             CharacterFactory.create(user=user).id,
             CharacterFactory.create(user=user, private=True).id,
-            CharacterFactory.create(user=user2, open_requests=True).id
+            CharacterFactory.create(user=user2, open_requests=True).id,
         ]
         product = ProductFactory.create(task_weight=500)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'characters': characters,
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "characters": characters,
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data['detail'], 'This product is not available at this time.')
+        self.assertEqual(
+            response.data["detail"], "This product is not available at this time."
+        )
 
     def test_place_order_hidden(self):
         user = UserFactory.create()
@@ -335,46 +437,50 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         characters = [
             CharacterFactory.create(user=user).id,
             CharacterFactory.create(user=user, private=True).id,
-            CharacterFactory.create(user=user2, open_requests=True).id
+            CharacterFactory.create(user=user2, open_requests=True).id,
         ]
         product = ProductFactory.create(hidden=True)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'characters': characters,
-                'rating': ADULT,
-            }
+                "details": "Draw me some porn!",
+                "characters": characters,
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(response.data['detail'], 'This product is not available at this time.')
+        self.assertEqual(
+            response.data["detail"], "This product is not available at this time."
+        )
 
     def test_deliverable_view_seller(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['id'], deliverable.id)
+        self.assertEqual(response.data["id"], deliverable.id)
 
     def test_deliverable_view_buyer(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(order__buyer=user)
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['id'], deliverable.id)
+        self.assertEqual(response.data["id"], deliverable.id)
 
     def test_deliverable_view_outsider(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create()
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -383,7 +489,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
@@ -393,31 +499,33 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': ADD_ON,
-                'amount': '2.03',
-                'percentage': 0,
-            }
+                "type": ADD_ON,
+                "amount": "2.03",
+                "percentage": 0,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=ADD_ON)
-        self.assertEqual(line_item.amount, Money('2.03', 'USD'))
+        self.assertEqual(line_item.amount, Money("2.03", "USD"))
         self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user)
 
     def test_add_line_item_too_low(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, product__base_price=Money('15.00', 'USD'))
+        deliverable = DeliverableFactory.create(
+            order__seller=user, product__base_price=Money("15.00", "USD")
+        )
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': ADD_ON,
-                'amount': '-14.50',
-                'percentage': 0,
-            }
+                "type": ADD_ON,
+                "amount": "-14.50",
+                "percentage": 0,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         deliverable.refresh_from_db()
@@ -429,29 +537,31 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': ADD_ON,
-                'amount': '2.03',
-                'percentage': 0,
-            }
+                "type": ADD_ON,
+                "amount": "2.03",
+                "percentage": 0,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn('type', response.data)
+        self.assertIn("type", response.data)
 
     def test_no_base_percentage(self):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
-        LineItemFactory.create(invoice=deliverable.invoice, type=TIP, amount=Money('5.00', 'USD'))
+        LineItemFactory.create(
+            invoice=deliverable.invoice, type=TIP, amount=Money("5.00", "USD")
+        )
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': BASE_PRICE,
-                'amount': '2.03',
-                'percentage': 5,
-            }
+                "type": BASE_PRICE,
+                "amount": "2.03",
+                "percentage": 5,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -459,22 +569,24 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         user2 = UserFactory.create()
         self.login(user2)
-        deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user, product=None)
+        deliverable = DeliverableFactory.create(
+            order__seller=user2, order__buyer=user, product=None
+        )
         line_item = LineItemFactory.create(
-            percentage=Decimal('0'),
+            percentage=Decimal("0"),
             type=BASE_PRICE,
-            amount=Money('100', 'USD'),
+            amount=Money("100", "USD"),
             invoice=deliverable.invoice,
         )
         response = self.client.patch(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
             {
-                'amount': '15.00',
-            }
+                "amount": "15.00",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(line_item.amount, Money('15.00', 'USD'))
+        self.assertEqual(line_item.amount, Money("15.00", "USD"))
 
     def test_update_base_price_with_product_fails(self):
         user = UserFactory.create()
@@ -483,10 +595,10 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
         line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
             {
-                'amount': '15.00',
-            }
+                "amount": "15.00",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -496,12 +608,12 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user2)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': ADD_ON,
-                'amount': '2.03',
-                'percentage': 0,
-            }
+                "type": ADD_ON,
+                "amount": "2.03",
+                "percentage": 0,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -509,12 +621,12 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': ADD_ON,
-                'amount': '2.03',
-                'percentage': 0,
-            }
+                "type": ADD_ON,
+                "amount": "2.03",
+                "percentage": 0,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -524,17 +636,17 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(staffer)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': ADD_ON,
-                'amount': '2.03',
-                'percentage': 0,
-            }
+                "type": ADD_ON,
+                "amount": "2.03",
+                "percentage": 0,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=ADD_ON)
-        self.assertEqual(line_item.amount, Money('2.03', 'USD'))
+        self.assertEqual(line_item.amount, Money("2.03", "USD"))
         self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user)
 
@@ -544,95 +656,95 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(staffer)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
             {
-                'type': EXTRA,
-                'amount': '2.03',
-                'percentage': 0,
-            }
+                "type": EXTRA,
+                "amount": "2.03",
+                "percentage": 0,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=EXTRA)
-        self.assertEqual(line_item.amount, Money('2.03', 'USD'))
+        self.assertEqual(line_item.amount, Money("2.03", "USD"))
         self.assertEqual(line_item.destination_account, UNPROCESSED_EARNINGS)
         self.assertEqual(line_item.destination_user, None)
 
     def test_edit_line_item(self):
         deliverable = DeliverableFactory.create()
-        line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
+        line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
             {
                 # Should be ignored.
-                'type': SHIELD,
-                'amount': '2.03',
-            }
+                "type": SHIELD,
+                "amount": "2.03",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         line_item.refresh_from_db()
-        self.assertEqual(line_item.amount, Money('2.03', 'USD'))
+        self.assertEqual(line_item.amount, Money("2.03", "USD"))
 
     def test_edit_line_item_buyer_fail(self):
         deliverable = DeliverableFactory.create()
-        line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
+        line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.buyer)
         response = self.client.patch(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
             {
                 # Should be ignored.
-                'type': SHIELD,
-                'amount': '2.03',
-            }
+                "type": SHIELD,
+                "amount": "2.03",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         line_item.refresh_from_db()
-        self.assertEqual(line_item.amount, Money('5.00', 'USD'))
+        self.assertEqual(line_item.amount, Money("5.00", "USD"))
 
     def test_edit_line_item_wrong_status(self):
         deliverable = DeliverableFactory.create(status=QUEUED)
-        line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
+        line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
             {
                 # Should be ignored.
-                'type': SHIELD,
-                'amount': '2.03'
-            }
+                "type": SHIELD,
+                "amount": "2.03",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         line_item.refresh_from_db()
-        self.assertEqual(line_item.amount, Money('5.00', 'USD'))
+        self.assertEqual(line_item.amount, Money("5.00", "USD"))
 
     def test_delete_line_item(self):
         deliverable = DeliverableFactory.create()
-        line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
+        line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_extra_line_item(self):
         deliverable = DeliverableFactory.create()
-        line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
+        line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         line_item.type = EXTRA
         line_item.save()
         staff = UserFactory.create(is_staff=True)
         self.login(staff)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_line_item_buyer_fail(self):
         deliverable = DeliverableFactory.create()
-        line_item = add_adjustment(deliverable, Money('5.00', 'USD'))
+        line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.buyer)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -641,10 +753,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user, status=QUEUED)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/cancel/',
-            {
-                'stream_link': 'https://streaming.artconomy.com/'
-            }
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/cancel/",
+            {"stream_link": "https://streaming.artconomy.com/"},
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -652,98 +762,105 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(status=QUEUED, revisions_hidden=False)
         self.login(deliverable.order.buyer)
         revision = RevisionFactory.create(deliverable=deliverable)
-        submission = SubmissionFactory.create(deliverable=deliverable, revision=revision)
+        submission = SubmissionFactory.create(
+            deliverable=deliverable, revision=revision
+        )
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['submissions'][0], {'owner_id': submission.owner.id, 'id': submission.id})
+        self.assertEqual(
+            response.data[0]["submissions"][0],
+            {"owner_id": submission.owner.id, "id": submission.id},
+        )
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_revision_upload(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__seller=user, status=QUEUED, revisions=1, rating=ADULT, arbitrator=UserFactory.create(),
+            order__seller=user,
+            status=QUEUED,
+            revisions=1,
+            rating=ADULT,
+            arbitrator=UserFactory.create(),
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-            }
+                "file": str(asset.id),
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['deliverable'], deliverable.id)
-        self.assertEqual(response.data['owner'], user.username)
-        self.assertEqual(response.data['rating'], ADULT)
+        self.assertEqual(response.data["deliverable"], deliverable.id)
+        self.assertEqual(response.data["owner"], user.username)
+        self.assertEqual(response.data["rating"], ADULT)
         deliverable.refresh_from_db()
         self.assertIsNone(deliverable.auto_finalize_on)
         self.assertEqual(deliverable.status, IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-                'rating': ADULT,
-            }
+                "file": str(asset.id),
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['deliverable'], deliverable.id)
-        self.assertEqual(response.data['owner'], user.username)
-        self.assertEqual(response.data['rating'], ADULT)
+        self.assertEqual(response.data["deliverable"], deliverable.id)
+        self.assertEqual(response.data["owner"], user.username)
+        self.assertEqual(response.data["rating"], ADULT)
         # Filling revisions should not mark as complete automatically.
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.auto_finalize_on, None)
         self.assertEqual(deliverable.status, IN_PROGRESS)
         subscription = Subscription.objects.get(
-            object_id=response.data['id'],
+            object_id=response.data["id"],
             content_type=ContentType.objects.get_for_model(Revision),
             type=COMMENT,
             subscriber=user,
         )
         self.assertTrue(subscription.email)
         subscription = Subscription.objects.get(
-            object_id=response.data['id'],
+            object_id=response.data["id"],
             content_type=ContentType.objects.get_for_model(Revision),
             type=COMMENT,
             subscriber=deliverable.order.buyer,
         )
         self.assertTrue(subscription.email)
         subscription = Subscription.objects.get(
-            object_id=response.data['id'],
+            object_id=response.data["id"],
             content_type=ContentType.objects.get_for_model(Revision),
             type=COMMENT,
             subscriber=deliverable.arbitrator,
         )
         self.assertTrue(subscription.email)
 
-
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_final_revision_upload(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS, revisions=1, rating=MATURE)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=IN_PROGRESS, revisions=1, rating=MATURE
+        )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
-            {
-                'file': str(asset.id),
-                'final': True
-            }
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            {"file": str(asset.id), "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['deliverable'], deliverable.id)
-        self.assertEqual(response.data['owner'], user.username)
-        self.assertEqual(response.data['rating'], MATURE)
+        self.assertEqual(response.data["deliverable"], deliverable.id)
+        self.assertEqual(response.data["owner"], user.username)
+        self.assertEqual(response.data["rating"], MATURE)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.auto_finalize_on, date(2012, 8, 6))
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-            }
+                "file": str(asset.id),
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -751,67 +868,69 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.auto_finalize_on, date(2012, 8, 6))
         self.assertEqual(deliverable.status, REVIEW)
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_final_revision_upload_dispute(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=DISPUTED, revisions=1)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=DISPUTED, revisions=1
+        )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
-            {
-                'file': str(asset.id),
-                'final': True
-            }
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            {"file": str(asset.id), "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['deliverable'], deliverable.id)
-        self.assertEqual(response.data['owner'], user.username)
-        self.assertEqual(response.data['rating'], GENERAL)
+        self.assertEqual(response.data["deliverable"], deliverable.id)
+        self.assertEqual(response.data["owner"], user.username)
+        self.assertEqual(response.data["rating"], GENERAL)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, DISPUTED)
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_final_revision_upload_escrow_disabled(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__seller=user, status=IN_PROGRESS, revisions=1, escrow_enabled=False, rating=ADULT,
+            order__seller=user,
+            status=IN_PROGRESS,
+            revisions=1,
+            escrow_enabled=False,
+            rating=ADULT,
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
-            {
-                'file': str(asset.id),
-                'final': True
-            }
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            {"file": str(asset.id), "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['deliverable'], deliverable.id)
-        self.assertEqual(response.data['owner'], user.username)
-        self.assertEqual(response.data['rating'], ADULT)
+        self.assertEqual(response.data["deliverable"], deliverable.id)
+        self.assertEqual(response.data["owner"], user.username)
+        self.assertEqual(response.data["rating"], ADULT)
         deliverable.refresh_from_db()
         self.assertIsNone(deliverable.auto_finalize_on)
         self.assertEqual(deliverable.status, COMPLETED)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-            }
+                "file": str(asset.id),
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_order_mark_complete(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS, revisions=1)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=IN_PROGRESS, revisions=1
+        )
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, IN_PROGRESS)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/'
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
@@ -822,74 +941,89 @@ class TestOrder(TransactionCheckMixin, APITestCase):
     def test_order_mark_completed_payment_pending(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=PAYMENT_PENDING, revisions=1, final_uploaded=False)
+        deliverable = DeliverableFactory.create(
+            order__seller=user,
+            status=PAYMENT_PENDING,
+            revisions=1,
+            final_uploaded=False,
+        )
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/'
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, PAYMENT_PENDING)
         self.assertTrue(deliverable.final_uploaded)
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_order_mark_complete_escrow_disabled(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS, revisions=1, escrow_enabled=False)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=IN_PROGRESS, revisions=1, escrow_enabled=False
+        )
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, IN_PROGRESS)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/'
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, COMPLETED)
         self.assertIsNone(deliverable.auto_finalize_on)
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_order_mark_complete_no_revisions(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS, revisions=1, escrow_enabled=False)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=IN_PROGRESS, revisions=1, escrow_enabled=False
+        )
         self.assertEqual(deliverable.status, IN_PROGRESS)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/'
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, IN_PROGRESS)
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_order_reopen(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__seller=user, status=REVIEW, revisions=1, auto_finalize_on=date(2012, 8, 6)
+            order__seller=user,
+            status=REVIEW,
+            revisions=1,
+            auto_finalize_on=date(2012, 8, 6),
         )
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/reopen/'
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/reopen/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, IN_PROGRESS)
         self.assertIsNone(deliverable.auto_finalize_on)
 
-    @freeze_time('2012-08-01 12:00:00')
+    @freeze_time("2012-08-01 12:00:00")
     def test_order_reopen_escrow_disabled(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__seller=user, status=COMPLETED, revisions=1, escrow_enabled=False,
+            order__seller=user,
+            status=COMPLETED,
+            revisions=1,
+            escrow_enabled=False,
         )
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/reopen/'
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/reopen/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
@@ -902,11 +1036,11 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(order__buyer=user, status=IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-                'rating': ADULT,
-            }
+                "file": str(asset.id),
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -916,11 +1050,11 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(status=IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-                'rating': ADULT,
-            }
+                "file": str(asset.id),
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -928,65 +1062,67 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         staffer = UserFactory.create(is_staff=True)
         self.login(staffer)
-        deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS, rating=ADULT)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=IN_PROGRESS, rating=ADULT
+        )
         asset = AssetFactory.create(uploaded_by=staffer)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-            }
+                "file": str(asset.id),
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data['deliverable'], deliverable.id)
-        self.assertEqual(response.data['owner'], staffer.username)
-        self.assertEqual(response.data['rating'], ADULT)
+        self.assertEqual(response.data["deliverable"], deliverable.id)
+        self.assertEqual(response.data["owner"], staffer.username)
+        self.assertEqual(response.data["rating"], ADULT)
 
     def test_revision_upload_final(self):
         user = UserFactory.create()
         self.login(user)
         deliverable = DeliverableFactory.create(
-            order__seller=user, status=IN_PROGRESS, revisions=1, revisions_hidden=True, rating=ADULT,
+            order__seller=user,
+            status=IN_PROGRESS,
+            revisions=1,
+            revisions_hidden=True,
+            rating=ADULT,
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-            }
-        )
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        deliverable.refresh_from_db()
-        self.assertEqual(deliverable.status, IN_PROGRESS)
-        asset = AssetFactory.create(uploaded_by=user)
-        response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
-            {
-                'file': str(asset.id),
-                'rating': ADULT,
-            }
+                "file": str(asset.id),
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-                'rating': ADULT,
-                'final': True
-            }
+                "file": str(asset.id),
+                "rating": ADULT,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, IN_PROGRESS)
+        asset = AssetFactory.create(uploaded_by=user)
+        response = self.client.post(
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            {"file": str(asset.id), "rating": ADULT, "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, REVIEW)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
             {
-                'file': str(asset.id),
-                'rating': ADULT,
-            }
+                "file": str(asset.id),
+                "rating": ADULT,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1000,7 +1136,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         deliverable.refresh_from_db()
@@ -1009,10 +1145,12 @@ class TestOrder(TransactionCheckMixin, APITestCase):
     def test_delete_revision_reactivate(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, status=REVIEW, final_uploaded=True)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, status=REVIEW, final_uploaded=True
+        )
         revision = RevisionFactory.create(deliverable=deliverable)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
         )
         deliverable.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -1026,7 +1164,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(order__seller=user, status=order_status)
         revision = RevisionFactory.create(deliverable=deliverable)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1037,7 +1175,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1050,7 +1188,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1061,7 +1199,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1075,7 +1213,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         deliverable.refresh_from_db()
@@ -1083,43 +1221,54 @@ class TestOrder(TransactionCheckMixin, APITestCase):
 
     @freeze_time()
     def test_approve_revision(self):
-        deliverable = DeliverableFactory.create(status=IN_PROGRESS, revisions_hidden=False)
+        deliverable = DeliverableFactory.create(
+            status=IN_PROGRESS, revisions_hidden=False
+        )
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/approve/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/approve/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         revision.refresh_from_db()
         self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].subject, f'Your WIP/Revision for Sale #{deliverable.order.id} [{deliverable.name}] has been approved!')
+        self.assertEqual(
+            mail.outbox[0].subject,
+            f"Your WIP/Revision for Sale #{deliverable.order.id} [{deliverable.name}] has been approved!",
+        )
         self.assertEqual(revision.approved_on, timezone.now())
 
     def test_list_revisions_hidden(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__buyer=user, revisions_hidden=True)
+        deliverable = DeliverableFactory.create(
+            order__buyer=user, revisions_hidden=True
+        )
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_list_revisions_unhidden(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__buyer=user, revisions_hidden=False)
+        deliverable = DeliverableFactory.create(
+            order__buyer=user, revisions_hidden=False
+        )
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_list_revisions_hidden_seller(self):
         user = UserFactory.create()
         self.login(user)
-        deliverable = DeliverableFactory.create(order__seller=user, revisions_hidden=True)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, revisions_hidden=True
+        )
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1127,9 +1276,9 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         self.login(deliverable.order.buyer)
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
         )
-        self.assertIsNone(response.data['stars'])
+        self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_seller(self):
@@ -1137,9 +1286,9 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = LineItemFactory.create(invoice=deliverable.invoice)
         self.login(deliverable.order.seller)
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/",
         )
-        self.assertIsNone(response.data['stars'])
+        self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_staff_buyer_end(self):
@@ -1147,32 +1296,32 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = LineItemFactory.create(invoice=deliverable.invoice)
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/",
         )
-        self.assertIsNone(response.data['stars'])
+        self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_staff_seller_end(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
         )
-        self.assertIsNone(response.data['stars'])
+        self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_outsider(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         self.login(UserFactory.create())
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_order_get_rating_not_logged_in(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1185,12 +1334,14 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         ]
         product = ProductFactory.create()
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'characters': characters
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "characters": characters,
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -1201,35 +1352,41 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         ]
         product = ProductFactory.create()
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'characters': characters,
-                'rating': ADULT,
-                'email': 'stuff@example.com',
-            }
+                "details": "Draw me some porn!",
+                "characters": characters,
+                "rating": ADULT,
+                "email": "stuff@example.com",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
+        deliverable = Deliverable.objects.get(
+            id=response.data["default_path"]["params"]["deliverableId"]
+        )
         self.assertEqual(deliverable.characters.all().count(), 0)
-        self.assertEqual(deliverable.order.buyer.guest_email, 'stuff@example.com')
+        self.assertEqual(deliverable.order.buyer.guest_email, "stuff@example.com")
 
     def test_place_order_guest_user(self):
-        user = create_guest_user('stuff@example.com')
-        user.set_password('Test')
+        user = create_guest_user("stuff@example.com")
+        user.set_password("Test")
         user.save()
         product = ProductFactory.create()
         self.login(user)
         response = self.client.post(
-            f'/api/sales/v1/account/{product.user.username}/products/{product.id}/order/',
+            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/order/",
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'email': 'stuff@example.com',
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "stuff@example.com",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
+        deliverable = Deliverable.objects.get(
+            id=response.data["default_path"]["params"]["deliverableId"]
+        )
         self.assertEqual(deliverable.characters.all().count(), 0)
         self.assertEqual(deliverable.order.buyer, user)
 
@@ -1239,33 +1396,37 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product.user.blocking.add(user)
         self.login(user)
         response = self.client.post(
-            f'/api/sales/v1/account/{product.user.username}/products/{product.id}/order/',
+            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/order/",
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'email': 'stuff@example.com',
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "stuff@example.com",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_place_order_guest_user_new_email(self):
-        user = create_guest_user('stuff@example.com')
-        user.set_password('Test')
+        user = create_guest_user("stuff@example.com")
+        user.set_password("Test")
         user.save()
         product = ProductFactory.create()
         self.login(user)
         response = self.client.post(
-            '/api/sales/v1/account/{}/products/{}/order/'.format(product.user.username, product.id),
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
             {
-                'details': 'Draw me some porn!',
-                'rating': ADULT,
-                'email': 'stuff2@example.com',
-            }
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "stuff2@example.com",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        deliverable = Deliverable.objects.get(id=response.data['default_path']['params']['deliverableId'])
+        deliverable = Deliverable.objects.get(
+            id=response.data["default_path"]["params"]["deliverableId"]
+        )
         self.assertEqual(deliverable.characters.all().count(), 0)
-        self.assertEqual(deliverable.order.buyer.guest_email, 'stuff2@example.com')
+        self.assertEqual(deliverable.order.buyer.guest_email, "stuff2@example.com")
         user.refresh_from_db()
         self.assertNotEqual(deliverable.order.buyer, user)
 
@@ -1275,17 +1436,17 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.characters.add(character)
         self.login(deliverable.order.buyer)
         response = self.client.get(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/characters/',
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/characters/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]['character']['id'], character.id)
+        self.assertEqual(response.data[0]["character"]["id"], character.id)
 
     def test_adjust_task_weight(self):
         deliverable = DeliverableFactory.create(adjustment_task_weight=0)
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f'/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/',
-            {'adjustment_task_weight': 4},
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            {"adjustment_task_weight": 4},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['adjustment_task_weight'], 4)
+        self.assertEqual(response.data["adjustment_task_weight"], 4)

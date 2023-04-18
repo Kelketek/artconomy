@@ -4,12 +4,14 @@ from django.db import migrations
 
 
 def get_transfer_fields(model):
-    return [field.name for field in model._meta.fields if field.name not in ['user', 'id']]
+    return [
+        field.name for field in model._meta.fields if field.name not in ["user", "id"]
+    ]
 
 
 def load_artist_profiles(apps, schema):
-    User = apps.get_model('profiles', 'User')
-    ArtistProfile = apps.get_model('profiles', 'ArtistProfile')
+    User = apps.get_model("profiles", "User")
+    ArtistProfile = apps.get_model("profiles", "ArtistProfile")
     transfer = get_transfer_fields(ArtistProfile)
     profiles = []
     for user in User.objects.all():
@@ -21,7 +23,7 @@ def load_artist_profiles(apps, schema):
 
 
 def offload_artist_profiles(apps, schema):
-    ArtistProfile = apps.get_model('profiles', 'ArtistProfile')
+    ArtistProfile = apps.get_model("profiles", "ArtistProfile")
     transfer = get_transfer_fields(ArtistProfile)
     for profile in ArtistProfile.objects.all():
         for name in transfer:
@@ -30,11 +32,8 @@ def offload_artist_profiles(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0077_artistprofile'),
+        ("profiles", "0077_artistprofile"),
     ]
 
-    operations = [
-        migrations.RunPython(load_artist_profiles, offload_artist_profiles)
-    ]
+    operations = [migrations.RunPython(load_artist_profiles, offload_artist_profiles)]

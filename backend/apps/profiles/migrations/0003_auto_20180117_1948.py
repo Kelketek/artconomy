@@ -7,19 +7,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0002_auto_20180115_1537'),
+        ("profiles", "0002_auto_20180115_1537"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='imageasset',
-            name='artist',
+            model_name="imageasset",
+            name="artist",
         ),
         migrations.AddField(
-            model_name='imageasset',
-            name='artist',
-            field=models.ManyToManyField(blank=True, related_name='art', to=settings.AUTH_USER_MODEL),
+            model_name="imageasset",
+            name="artist",
+            field=models.ManyToManyField(
+                blank=True, related_name="art", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

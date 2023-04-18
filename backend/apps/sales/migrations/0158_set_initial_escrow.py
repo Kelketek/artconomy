@@ -4,18 +4,19 @@ from django.db import migrations
 
 
 def set_initial_escrow(apps, schema):
-    User = apps.get_model('profiles', 'User')
-    Product = apps.get_model('sales', 'Product')
+    User = apps.get_model("profiles", "User")
+    Product = apps.get_model("sales", "Product")
     for user in User.objects.all():
-        if hasattr(user, 'artist_profile'):
-            user.products.all().update(escrow_enabled=user.artist_profile.escrow_enabled)
+        if hasattr(user, "artist_profile"):
+            user.products.all().update(
+                escrow_enabled=user.artist_profile.escrow_enabled
+            )
     Product.objects.filter(table_product=True).update(escrow_enabled=True)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0157_product_escrow_settings'),
+        ("sales", "0157_product_escrow_settings"),
     ]
 
     operations = [

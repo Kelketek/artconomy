@@ -6,20 +6,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0003_product_tags'),
+        ("sales", "0003_product_tags"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='creditcardtoken',
-            name='cvv_verified',
+            model_name="creditcardtoken",
+            name="cvv_verified",
             field=models.BooleanField(db_index=True, default=False),
         ),
         migrations.AlterField(
-            model_name='creditcardtoken',
-            name='active',
+            model_name="creditcardtoken",
+            name="active",
             field=models.BooleanField(db_index=True, default=True),
         ),
     ]

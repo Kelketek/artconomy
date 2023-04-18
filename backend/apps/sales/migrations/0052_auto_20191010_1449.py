@@ -2,20 +2,17 @@
 
 from django.db import migrations
 
-
 ORDER_TOKEN_ISSUED = 31
 
+
 def clear_token_events(apps, schema):
-    Event = apps.get_model('lib', 'Event')
+    Event = apps.get_model("lib", "Event")
     Event.objects.filter(type=ORDER_TOKEN_ISSUED).delete()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0051_auto_20190725_2206'),
+        ("sales", "0051_auto_20190725_2206"),
     ]
 
-    operations = [
-        migrations.RunPython(clear_token_events, lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(clear_token_events, lambda x, y: None)]

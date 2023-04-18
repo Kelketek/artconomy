@@ -6,15 +6,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0008_imageasset_tags'),
+        ("profiles", "0008_imageasset_tags"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='character',
-            name='tags',
-            field=models.ManyToManyField(to='profiles.Tag'),
+            model_name="character",
+            name="tags",
+            field=models.ManyToManyField(to="profiles.Tag"),
         ),
     ]

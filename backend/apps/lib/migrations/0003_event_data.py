@@ -7,15 +7,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0002_subscription_removed'),
+        ("lib", "0002_subscription_removed"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='event',
-            name='data',
+            model_name="event",
+            name="data",
             field=django.contrib.postgres.fields.jsonb.JSONField(default=None),
         ),
     ]

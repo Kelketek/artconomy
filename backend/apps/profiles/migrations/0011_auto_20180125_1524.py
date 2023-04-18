@@ -6,24 +6,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0010_auto_20180125_1502'),
-        ('lib', '0009_auto_20180125_1512')
+        ("profiles", "0010_auto_20180125_1502"),
+        ("lib", "0009_auto_20180125_1512"),
     ]
 
-    database_operations = [
-    ]
+    database_operations = []
 
     state_operations = [
-        migrations.AlterField('Character', 'tags', field=models.ManyToManyField(to='lib.Tag')),
-        migrations.AlterField('ImageAsset', 'tags', field=models.ManyToManyField(to='lib.Tag')),
-        migrations.DeleteModel('Tag'),
+        migrations.AlterField(
+            "Character", "tags", field=models.ManyToManyField(to="lib.Tag")
+        ),
+        migrations.AlterField(
+            "ImageAsset", "tags", field=models.ManyToManyField(to="lib.Tag")
+        ),
+        migrations.DeleteModel("Tag"),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
-            database_operations=database_operations,
-            state_operations=state_operations
+            database_operations=database_operations, state_operations=state_operations
         )
     ]

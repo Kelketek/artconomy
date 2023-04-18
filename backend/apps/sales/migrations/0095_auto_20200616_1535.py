@@ -2,12 +2,12 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-
 REFERENCE_UPLOADED = 35
 
+
 def subscribe_references(apps, schema):
-    Subscription = apps.get_model('lib', 'Subscription')
-    Deliverable = apps.get_model('sales', 'Deliverable')
+    Subscription = apps.get_model("lib", "Subscription")
+    Deliverable = apps.get_model("sales", "Deliverable")
     deliverable_type = ContentType.objects.get_for_model(Deliverable)
     for deliverable in Deliverable.objects.all():
         Subscription.objects.get_or_create(
@@ -28,11 +28,8 @@ def subscribe_references(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0094_reference'),
+        ("sales", "0094_reference"),
     ]
 
-    operations = [
-        migrations.RunPython(subscribe_references)
-    ]
+    operations = [migrations.RunPython(subscribe_references)]

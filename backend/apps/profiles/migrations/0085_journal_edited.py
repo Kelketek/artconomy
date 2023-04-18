@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0084_merge_20190701_1722'),
+        ("profiles", "0084_merge_20190701_1722"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='journal',
-            name='edited',
+            model_name="journal",
+            name="edited",
             field=models.BooleanField(default=False),
         ),
     ]

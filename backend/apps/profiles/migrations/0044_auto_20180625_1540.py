@@ -5,15 +5,22 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0043_auto_20180621_1510'),
+        ("profiles", "0043_auto_20180621_1510"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='character',
-            name='name',
-            field=models.CharField(max_length=150, validators=[django.core.validators.RegexValidator('^[^/\\\\?%&+#]+$', message='Names may not contain /, \\, ?, #, or &.')]),
+            model_name="character",
+            name="name",
+            field=models.CharField(
+                max_length=150,
+                validators=[
+                    django.core.validators.RegexValidator(
+                        "^[^/\\\\?%&+#]+$",
+                        message="Names may not contain /, \\, ?, #, or &.",
+                    )
+                ],
+            ),
         ),
     ]

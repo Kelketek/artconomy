@@ -4,7 +4,7 @@ from django.db import migrations
 
 
 def guess_rating(apps, schema):
-    Order = apps.get_model('sales.Order')
+    Order = apps.get_model("sales.Order")
     for order in Order.objects.all():
         submission = order.outputs.all().first()
         if submission:
@@ -26,11 +26,8 @@ def guess_rating(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0059_auto_20191031_0805'),
+        ("sales", "0059_auto_20191031_0805"),
     ]
 
-    operations = [
-        migrations.RunPython(guess_rating, lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(guess_rating, lambda x, y: None)]

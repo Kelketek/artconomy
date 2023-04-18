@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0070_message_edited'),
+        ("profiles", "0070_message_edited"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='bank_account_status',
-            field=models.IntegerField(blank=True, choices=[(0, 'Unset'), (1, 'Has US Bank account'), (2, 'No US Bank account')], db_index=True, default=0),
+            model_name="user",
+            name="bank_account_status",
+            field=models.IntegerField(
+                blank=True,
+                choices=[
+                    (0, "Unset"),
+                    (1, "Has US Bank account"),
+                    (2, "No US Bank account"),
+                ],
+                db_index=True,
+                default=0,
+            ),
         ),
     ]

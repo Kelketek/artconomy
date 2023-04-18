@@ -7,31 +7,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0004_auto_20180117_1951'),
+        ("profiles", "0004_auto_20180117_1951"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='tag',
-            name='category',
+            model_name="tag",
+            name="category",
         ),
         migrations.RemoveField(
-            model_name='tag',
-            name='description',
+            model_name="tag",
+            name="description",
         ),
         migrations.AlterField(
-            model_name='imageasset',
-            name='tags',
-            field=models.ManyToManyField(blank=True, related_name='assets', to='profiles.Tag'),
+            model_name="imageasset",
+            name="tags",
+            field=models.ManyToManyField(
+                blank=True, related_name="assets", to="profiles.Tag"
+            ),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='username',
-            field=models.CharField(db_index=True, max_length=30, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator()]),
+            model_name="user",
+            name="username",
+            field=models.CharField(
+                db_index=True,
+                max_length=30,
+                unique=True,
+                validators=[django.contrib.auth.validators.UnicodeUsernameValidator()],
+            ),
         ),
         migrations.DeleteModel(
-            name='Category',
+            name="Category",
         ),
     ]

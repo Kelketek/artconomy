@@ -4,16 +4,15 @@ from django.db import migrations
 
 
 def set_initial_products(apps, schema):
-    Deliverable = apps.get_model('sales', 'Deliverable')
+    Deliverable = apps.get_model("sales", "Deliverable")
     for deliverable in Deliverable.objects.all():
         deliverable.product = deliverable.order.product
         deliverable.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0098_auto_20200714_0735'),
+        ("sales", "0098_auto_20200714_0735"),
     ]
 
     operations = [

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0012_auto_20180402_1832'),
+        ("sales", "0012_auto_20180402_1832"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='parallel',
+            model_name="product",
+            name="parallel",
             field=models.IntegerField(blank=True, default=0),
         ),
     ]

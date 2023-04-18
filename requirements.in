@@ -2,6 +2,8 @@
 aiofile
 # OAuth2 library used for our custom Discord Integration-- the non-bot part
 authlib
+# Handles formatting of Python code.
+black
 # BeautifulSoup is an HTML/XML processing library which we primarily use to manipulate HTML structures before
 # extracting their text for the text version of emails
 bs4
@@ -77,6 +79,8 @@ factory-boy
 freezegun
 # After using bs4 to massage the markup, we use html2text to convert a section of HTML to markdown-style text.
 html2text
+# Sorts imports in Python files.
+isort
 # Not actually used by the project itself, but helpful anywhere we're using the Django console-- iPython is a massively
 # improved Python REPL. Django replaces the standard interactive Python interface with this when present.
 ipython

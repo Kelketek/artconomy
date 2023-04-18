@@ -4,15 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0033_user_watching'),
+        ("profiles", "0033_user_watching"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='commissions_disabled',
-            field=models.BooleanField(db_index=True, default=False, help_text='Internal check for commissions that prevents taking on more work when max load is exceeded.'),
+            model_name="user",
+            name="commissions_disabled",
+            field=models.BooleanField(
+                db_index=True,
+                default=False,
+                help_text="Internal check for commissions that prevents taking on more work when max load is exceeded.",
+            ),
         ),
     ]

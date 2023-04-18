@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0103_repair_payouts'),
+        ("sales", "0103_repair_payouts"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='catalog_enabled',
+            model_name="product",
+            name="catalog_enabled",
             field=models.BooleanField(db_index=True, default=True),
         ),
     ]

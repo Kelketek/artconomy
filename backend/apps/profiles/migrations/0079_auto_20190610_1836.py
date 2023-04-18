@@ -4,50 +4,49 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0078_auto_20190610_1803'),
+        ("profiles", "0078_auto_20190610_1803"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='artist_tagging_disabled',
+            model_name="user",
+            name="artist_tagging_disabled",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='bank_account_status',
+            model_name="user",
+            name="bank_account_status",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='commission_info',
+            model_name="user",
+            name="commission_info",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='commissions_closed',
+            model_name="user",
+            name="commissions_closed",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='commissions_disabled',
+            model_name="user",
+            name="commissions_disabled",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='dwolla_url',
+            model_name="user",
+            name="dwolla_url",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='escrow_disabled',
+            model_name="user",
+            name="escrow_disabled",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='has_products',
+            model_name="user",
+            name="has_products",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='load',
+            model_name="user",
+            name="load",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='max_load',
+            model_name="user",
+            name="max_load",
         ),
     ]

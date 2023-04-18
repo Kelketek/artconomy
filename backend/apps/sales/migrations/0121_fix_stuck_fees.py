@@ -7,16 +7,15 @@ THIRD_PARTY_FEE = 408
 
 
 def fix_stuck_fees(apps, schema):
-    TransactionRecord = apps.get_model('sales', 'TransactionRecord')
-    TransactionRecord.objects.filter(category=THIRD_PARTY_FEE).update(finalized_on=F('created_on'))
+    TransactionRecord = apps.get_model("sales", "TransactionRecord")
+    TransactionRecord.objects.filter(category=THIRD_PARTY_FEE).update(
+        finalized_on=F("created_on")
+    )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0120_auto_20210906_1336'),
+        ("sales", "0120_auto_20210906_1336"),
     ]
 
-    operations = [
-        migrations.RunPython(fix_stuck_fees, reverse_code=lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(fix_stuck_fees, reverse_code=lambda x, y: None)]

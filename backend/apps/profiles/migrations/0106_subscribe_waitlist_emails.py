@@ -6,7 +6,7 @@ WAITLIST_UPDATED = 36
 
 
 def update_email_setting(apps, value: bool):
-    Subscription = apps.get_model('lib', 'Subscription')
+    Subscription = apps.get_model("lib", "Subscription")
     Subscription.objects.filter(type=WAITLIST_UPDATED).update(email=value)
 
 
@@ -15,11 +15,8 @@ disable_emails = lambda apps, schema: update_email_setting(apps, False)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0105_auto_20201230_1041'),
+        ("profiles", "0105_auto_20201230_1041"),
     ]
 
-    operations = [
-        migrations.RunPython(enable_emails, reverse_code=disable_emails)
-    ]
+    operations = [migrations.RunPython(enable_emails, reverse_code=disable_emails)]

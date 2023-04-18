@@ -3,33 +3,71 @@ from collections import defaultdict
 from decimal import ROUND_CEILING, localcontext
 from typing import Dict, Union
 
+from apps.lib.models import (
+    AUTO_CLOSED,
+    RENEWAL_FAILURE,
+    RENEWAL_FIXED,
+    SUBSCRIPTION_DEACTIVATED,
+    ref_for_instance,
+)
+from apps.lib.utils import notify, require_lock, send_transaction_email
+from apps.profiles.models import User
+from apps.sales.constants import (
+    ACH_TRANSACTION_FEES,
+    BANK,
+    CANCELLED,
+    CARD,
+    CASH_WITHDRAW,
+    DRAFT,
+    FAILURE,
+    HOLDINGS,
+    LIMBO,
+    MISSED,
+    NEW,
+    OPEN,
+    PAID,
+    PAYOUT_MIRROR_DESTINATION,
+    PAYOUT_MIRROR_SOURCE,
+    PENDING,
+    REVIEW,
+    SUCCESS,
+    THIRD_PARTY_FEE,
+    UNPROCESSED_EARNINGS,
+    VOID,
+)
+from apps.sales.line_item_funcs import divide_amount
+from apps.sales.models import (
+    CreditCardToken,
+    Deliverable,
+    Invoice,
+    ServicePlan,
+    StripeAccount,
+    TransactionRecord,
+)
+from apps.sales.stripe import money_to_stripe, stripe
+from apps.sales.utils import (
+    account_balance,
+    add_service_plan_line,
+    cancel_deliverable,
+    destroy_deliverable,
+    fetch_prefixed,
+    finalize_deliverable,
+    get_term_invoice,
+    invoice_post_payment,
+    update_downstream_pricing,
+)
+from conf.celery_config import celery_app
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q, Count, F
+from django.db.models import Count, F, Q
 from django.utils import timezone
 from django.utils.datetime_safe import date, datetime
 from moneyed import Money
 from pytz import UTC
 from stripe.error import CardError
-
-from apps.lib.models import RENEWAL_FAILURE, SUBSCRIPTION_DEACTIVATED, RENEWAL_FIXED, ref_for_instance, \
-    AUTO_CLOSED
-from apps.lib.utils import notify, send_transaction_email, require_lock
-from apps.profiles.models import User
-from apps.sales.models import CreditCardToken, TransactionRecord, Deliverable, StripeAccount, ServicePlan, Invoice
-from apps.sales.constants import NEW, REVIEW, CANCELLED, UNPROCESSED_EARNINGS, \
-    HOLDINGS, SUCCESS, CASH_WITHDRAW, BANK, PENDING, ACH_TRANSACTION_FEES, THIRD_PARTY_FEE, CARD, FAILURE, \
-    PAYOUT_MIRROR_SOURCE, PAYOUT_MIRROR_DESTINATION, PAID, VOID, DRAFT, OPEN, MISSED, LIMBO
-from apps.sales.stripe import stripe, money_to_stripe
-from apps.sales.utils import finalize_deliverable, account_balance, destroy_deliverable, \
-    fetch_prefixed, get_term_invoice, invoice_post_payment, add_service_plan_line, update_downstream_pricing, \
-    cancel_deliverable
-from apps.sales.line_item_funcs import divide_amount
-from conf.celery_config import celery_app
-
 
 logger = logging.getLogger(__name__)
 
@@ -44,15 +82,16 @@ def zero_invoice_check(invoice: Invoice):
         # This invoice is a zero invoice. This might happen for a plan with no monthly subscription fee where
         # No orders are processed.
         invoice_post_payment(
-            invoice, {
-                'amount': total,
-                'successful': True,
-                'attempt': {
-                    'cash': True,
-                    'amount': total,
-                    'card_id': None,
+            invoice,
+            {
+                "amount": total,
+                "successful": True,
+                "attempt": {
+                    "cash": True,
+                    "amount": total,
+                    "card_id": None,
                 },
-            }
+            },
         )
         return True
     return False
@@ -60,20 +99,21 @@ def zero_invoice_check(invoice: Invoice):
 
 def renew_stripe_card(*, invoice, price, user, card):
     from apps.sales.models import Invoice
+
     if zero_invoice_check(invoice):
         return
     with stripe as stripe_api:
         amount, currency = money_to_stripe(price)
         kwargs = {
-            'amount': amount,
-            'currency': currency,
-            'payment_method': card.stripe_token,
-            'customer': user.stripe_token,
-            'confirm': True,
-            'off_session': True,
+            "amount": amount,
+            "currency": currency,
+            "payment_method": card.stripe_token,
+            "customer": user.stripe_token,
+            "confirm": True,
+            "off_session": True,
             # TODO: Needs to change per service name, or else be omitted since we'll be swapping methods for tracking
             # subscriptions anyway.
-            'metadata': {'service': 'landscape', 'invoice_id': invoice.id}
+            "metadata": {"service": "landscape", "invoice_id": invoice.id},
         }
         try:
             # This... might cause a race condition? Seems unlikely, but if we have a bug later, it would be because
@@ -81,14 +121,19 @@ def renew_stripe_card(*, invoice, price, user, card):
             #
             # Using the update method here to be absolutely certain we don't change anything else about the invoice
             # that might clobber what the webhook is doing.
-            Invoice.objects.filter(id=invoice.id).update(current_intent=stripe_api.PaymentIntent.create(**kwargs)['id'])
+            Invoice.objects.filter(id=invoice.id).update(
+                current_intent=stripe_api.PaymentIntent.create(**kwargs)["id"]
+            )
             return True
         except CardError as err:
             notify(
-                RENEWAL_FAILURE, user, data={
-                    'error': "Card ending in {} -- {}".format(card.last_four, err),
-                    'invoice_id': invoice.id,
-                }, unique=True
+                RENEWAL_FAILURE,
+                user,
+                data={
+                    "error": "Card ending in {} -- {}".format(card.last_four, err),
+                    "invoice_id": invoice.id,
+                },
+                unique=True,
             )
             return False
 
@@ -103,7 +148,8 @@ def renew(user_id, card_id=None):
         # This should never happen.
         logger.error(
             "!!! {}({}) has NONE for service_plan_paid_through with subscription enabled!".format(
-                user.username, user.id,
+                user.username,
+                user.id,
             )
         )
         return
@@ -120,13 +166,21 @@ def renew(user_id, card_id=None):
         return
     if card is None:
         # noinspection PyUnresolvedReferences
-        cards = user.credit_cards.filter(active=True).order_by('-created_on')
+        cards = user.credit_cards.filter(active=True).order_by("-created_on")
         if not cards.exists():
-            logger.info("{}({}) can't renew due to no card on file.".format(user.username, user.id))
-            notify(RENEWAL_FAILURE, user, data={'error': 'No card on file!'}, unique=True)
+            logger.info(
+                "{}({}) can't renew due to no card on file.".format(
+                    user.username, user.id
+                )
+            )
+            notify(
+                RENEWAL_FAILURE, user, data={"error": "No card on file!"}, unique=True
+            )
             return
         card = cards[0]
-    success = renew_stripe_card(invoice=invoice, user=user, card=card, price=invoice.total())
+    success = renew_stripe_card(
+        invoice=invoice, user=user, card=card, price=invoice.total()
+    )
     if not success:
         return
     if card_id or (paid_through < timezone.now().date()):
@@ -139,7 +193,7 @@ def renew(user_id, card_id=None):
 @celery_app.task
 def deactivate(user_id: int):
     user = User.objects.get(id=user_id)
-    logger.info('Deactivated {}({})'.format(user.username, user.id))
+    logger.info("Deactivated {}({})".format(user.username, user.id))
     notify(SUBSCRIPTION_DEACTIVATED, user, unique=True)
     default_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME)
     user.service_plan = default_plan
@@ -159,8 +213,10 @@ def deactivate(user_id: int):
 def run_billing():
     # Anyone we've not been able to renew for five days, assume won't be renewing automatically.
     users = User.objects.filter(
-        Q(service_plan__isnull=False,
-          service_plan_paid_through__lte=timezone.now().date() - relativedelta(days=settings.TERM_GRACE_DAYS),
+        Q(
+            service_plan__isnull=False,
+            service_plan_paid_through__lte=timezone.now().date()
+            - relativedelta(days=settings.TERM_GRACE_DAYS),
         )
     ).exclude(
         # We assume that the default plan is a free plan.
@@ -169,9 +225,14 @@ def run_billing():
     for user in users:
         deactivate.delay(user.id)
     users = User.objects.filter(
-        service_plan__isnull=False, service_plan_paid_through__lte=timezone.now().date(),
-        service_plan_paid_through__gt=timezone.now().date() - relativedelta(days=settings.TERM_GRACE_DAYS + 1)
-    ).exclude(Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME) & Q(service_plan__hidden=False))
+        service_plan__isnull=False,
+        service_plan_paid_through__lte=timezone.now().date(),
+        service_plan_paid_through__gt=timezone.now().date()
+        - relativedelta(days=settings.TERM_GRACE_DAYS + 1),
+    ).exclude(
+        Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME)
+        & Q(service_plan__hidden=False)
+    )
     for user in users:
         renew.delay(user.id)
 
@@ -193,14 +254,16 @@ def auto_finalize(order_id):
 
 @celery_app.task
 def auto_finalize_run():
-    for deliverable in Deliverable.objects.filter(status=REVIEW, auto_finalize_on__lte=timezone.now().date()):
+    for deliverable in Deliverable.objects.filter(
+        status=REVIEW, auto_finalize_on__lte=timezone.now().date()
+    ):
         auto_finalize.delay(deliverable.id)
 
 
 RecordMap = Dict[Union[Deliverable, None], TransactionRecord]
 
 
-@require_lock(TransactionRecord, 'ACCESS EXCLUSIVE')
+@require_lock(TransactionRecord, "ACCESS EXCLUSIVE")
 def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap:
     invoices = Invoice.objects.select_for_update(skip_locked=True).filter(
         issued_by=user,
@@ -221,7 +284,7 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
         )
         sub_amount = sum(sub_record.amount for sub_record in records)
         amount -= sub_amount
-        assert amount >= Money('0', amount.currency.code)
+        assert amount >= Money("0", amount.currency.code)
         record = TransactionRecord.objects.create(
             amount=sub_amount,
             source=HOLDINGS,
@@ -230,7 +293,7 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
             category=CASH_WITHDRAW,
             destination=BANK,
             status=PENDING,
-            response_message='Failed to connect to server',
+            response_message="Failed to connect to server",
         )
         for sub_record in records:
             record.targets.add(*sub_record.targets.all())
@@ -247,7 +310,7 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
         category=CASH_WITHDRAW,
         destination=BANK,
         status=PENDING,
-        note='Remaining amount, not connected to any invoice. May need annotations later.'
+        note="Remaining amount, not connected to any invoice. May need annotations later.",
     )
     record.targets.add(bank_ref)
     record_map[None] = record
@@ -256,29 +319,30 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
 
 @celery_app.task
 def stripe_transfer(record_id, stripe_id, invoice_id=None):
-    base_settings = {
-        'metadata': {}
-    }
+    base_settings = {"metadata": {}}
     stripe_account = StripeAccount.objects.get(id=stripe_id)
     invoice = None
     if invoice_id:
         invoice = Invoice.objects.get(id=invoice_id)
-        base_settings['metadata'] = {'invoice_id': invoice.id}
-        base_settings['transfer_group'] = f'ACInvoice#{invoice.id}'
+        base_settings["metadata"] = {"invoice_id": invoice.id}
+        base_settings["transfer_group"] = f"ACInvoice#{invoice.id}"
         source_record = TransactionRecord.objects.filter(
-            source=CARD, targets=ref_for_instance(invoice),
+            source=CARD,
+            targets=ref_for_instance(invoice),
             status=SUCCESS,
         ).first()
         if source_record:
             try:
-                base_settings['source_transaction'] = fetch_prefixed('ch_', source_record.remote_ids)
+                base_settings["source_transaction"] = fetch_prefixed(
+                    "ch_", source_record.remote_ids
+                )
             except ValueError:
                 pass
         assert invoice.issued_by == stripe_account.user
     record = TransactionRecord.objects.get(id=record_id)
-    base_settings['amount'], base_settings['currency'] = money_to_stripe(record.amount)
-    base_settings['destination'] = stripe_account.token
-    base_settings['metadata'] = {'reference_transaction': record.id}
+    base_settings["amount"], base_settings["currency"] = money_to_stripe(record.amount)
+    base_settings["destination"] = stripe_account.token
+    base_settings["metadata"] = {"reference_transaction": record.id}
     assert record.payee == stripe_account.user
     with stripe as stripe_api:
         try:
@@ -286,9 +350,15 @@ def stripe_transfer(record_id, stripe_id, invoice_id=None):
                 **base_settings,
             )
             record.status = PENDING
-            record.remote_ids = [transfer['destination_payment'], transfer['id'], transfer['balance_transaction']]
-            record.remote_ids = [remote_id for remote_id in record.remote_ids if remote_id]
-            record.response_message = ''
+            record.remote_ids = [
+                transfer["destination_payment"],
+                transfer["id"],
+                transfer["balance_transaction"],
+            ]
+            record.remote_ids = [
+                remote_id for remote_id in record.remote_ids if remote_id
+            ]
+            record.response_message = ""
             record.save()
         except Exception as err:
             record.response_message = str(err)
@@ -304,15 +374,15 @@ def withdraw_all(user_id):
     user = User.objects.get(id=user_id)
     if not user.artist_profile.auto_withdraw:
         return
-    if not hasattr(user, 'stripe_account'):
+    if not hasattr(user, "stripe_account"):
         return
     banks = [user.stripe_account]
-    with cache.lock(f'account_user__{user.id}'):
+    with cache.lock(f"account_user__{user.id}"):
         balance = account_balance(user, HOLDINGS)
         if balance <= 0:
             return
         with transaction.atomic():
-            record_map = record_to_invoice_map(user, banks[0], Money(balance, 'USD'))
+            record_map = record_to_invoice_map(user, banks[0], Money(balance, "USD"))
             for invoice, record in record_map.items():
                 if invoice:
                     invoice.payout_sent = True
@@ -326,9 +396,12 @@ def remind_sale(order_id):
     if not deliverable.status == NEW:
         return
     send_transaction_email(
-        'Your commissioner is awaiting your response!', 'sale_reminder.html', deliverable.order.seller, {
-            'deliverable': deliverable,
-        }
+        "Your commissioner is awaiting your response!",
+        "sale_reminder.html",
+        deliverable.order.seller,
+        {
+            "deliverable": deliverable,
+        },
     )
 
 
@@ -336,7 +409,8 @@ def remind_sale(order_id):
 def remind_sales():
     to_remind = []
     deliverables = Deliverable.objects.filter(
-        status=NEW, auto_cancel_on__gte=timezone.now(),
+        status=NEW,
+        auto_cancel_on__gte=timezone.now(),
         auto_cancel_on__isnull=False,
     )
     for deliverable in deliverables:
@@ -367,16 +441,34 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
 
     Stripe calculates its timezones on UTC.
     """
-    start_datetime = datetime(year=year, month=month, day=1, hour=0, minute=0, second=0, microsecond=0, tzinfo=UTC)
+    start_datetime = datetime(
+        year=year,
+        month=month,
+        day=1,
+        hour=0,
+        minute=0,
+        second=0,
+        microsecond=0,
+        tzinfo=UTC,
+    )
     end_datetime = min(datetime.now(tz=UTC), start_datetime + relativedelta(months=1))
-    target_transactions = list(TransactionRecord.objects.filter(
-        finalized_on__gte=start_datetime, finalized_on__lt=end_datetime, status=SUCCESS,
-        source=HOLDINGS, destination=BANK,
-        targets__content_type=ContentType.objects.get_for_model(StripeAccount)
-    ).distinct().order_by('finalized_on'))
+    target_transactions = list(
+        TransactionRecord.objects.filter(
+            finalized_on__gte=start_datetime,
+            finalized_on__lt=end_datetime,
+            status=SUCCESS,
+            source=HOLDINGS,
+            destination=BANK,
+            targets__content_type=ContentType.objects.get_for_model(StripeAccount),
+        )
+        .distinct()
+        .order_by("finalized_on")
+    )
     if not len(target_transactions):
         return
-    total_volume = sum([target_transaction.amount for target_transaction in target_transactions])
+    total_volume = sum(
+        [target_transaction.amount for target_transaction in target_transactions]
+    )
     # Need to track all fees for each user since we'll add to them multiple times.
     user_fees_map = defaultdict(list)
     # Need to know which transactions were cross-border since they incur additional fees.
@@ -409,29 +501,40 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
         fee_record.targets.add(*record.targets.all(), ref_for_instance(record))
         user_fees_map[record.payer].append(fee_record)
         fee_record.targets.add(*record.targets.all())
-        cross_border = TransactionRecord.objects.filter(
-            targets=ref_for_instance(record),
-            source=PAYOUT_MIRROR_SOURCE,
-            destination=PAYOUT_MIRROR_DESTINATION,
-        ).exclude(amount_currency='USD').exists()
+        cross_border = (
+            TransactionRecord.objects.filter(
+                targets=ref_for_instance(record),
+                source=PAYOUT_MIRROR_SOURCE,
+                destination=PAYOUT_MIRROR_DESTINATION,
+            )
+            .exclude(amount_currency="USD")
+            .exists()
+        )
         if cross_border:
             cross_border_fees_list.append(fee_record)
             cross_border_transactions.append(record)
     # Each user has a $2 fee per month if they have a payout. This is part of the 'connect' fee. It's going to be
     # a challenge to find a way to mitigate the cost of this, but we can at least account for it to start.
     for key, values in user_fees_map.items():
-        fee_list = divide_amount(settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE, len(values))
+        fee_list = divide_amount(
+            settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE, len(values)
+        )
         for value in values:
-            value.amount += (fee_list.pop(0) + settings.STRIPE_PAYOUT_STATIC)
+            value.amount += fee_list.pop(0) + settings.STRIPE_PAYOUT_STATIC
             value.save()
     if not cross_border_transactions:
         return
     cross_border_total = sum(
-        [cross_border_transaction.amount for cross_border_transaction in cross_border_transactions],
+        [
+            cross_border_transaction.amount
+            for cross_border_transaction in cross_border_transactions
+        ],
     )
     with localcontext() as ctx:
         ctx.rounding = ROUND_CEILING
-        cross_border_fee = (cross_border_total * (settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE / 100)).round(2)
+        cross_border_fee = (
+            cross_border_total * (settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE / 100)
+        ).round(2)
     fee_list = divide_amount(cross_border_fee, len(cross_border_transactions))
     for fee_record in cross_border_fees_list:
         fee_record.amount += fee_list.pop(0)
@@ -448,7 +551,9 @@ def annotate_connect_fees():
     if target_date.day == 1:
         # Also do last month's to finish it off.
         target_date -= relativedelta(months=1)
-        annotate_connect_fees_for_year_month(month=target_date.month, year=target_date.year)
+        annotate_connect_fees_for_year_month(
+            month=target_date.month, year=target_date.year
+        )
 
 
 @celery_app.task
@@ -462,7 +567,10 @@ def clear_deliverable(deliverable_id):
 
 @celery_app.task
 def clear_cancelled_deliverables():
-    to_destroy = Deliverable.objects.filter(status__in=[CANCELLED, MISSED], cancelled_on__lte=timezone.now() - relativedelta(weeks=2))
+    to_destroy = Deliverable.objects.filter(
+        status__in=[CANCELLED, MISSED],
+        cancelled_on__lte=timezone.now() - relativedelta(weeks=2),
+    )
     for deliverable in to_destroy:
         clear_deliverable(deliverable.id)
 
@@ -473,12 +581,15 @@ def cancel_abandoned_orders():
     Cancels all orders that have been abandoned-- either in Limbo or from non-interaction.
     """
     abandoned = Deliverable.objects.filter(
-        status=LIMBO, created_on__lte=timezone.now() - relativedelta(days=settings.LIMBO_DAYS),
+        status=LIMBO,
+        created_on__lte=timezone.now() - relativedelta(days=settings.LIMBO_DAYS),
     )
     for deliverable in abandoned:
         cancel_deliverable(deliverable, None)
     auto_cancelled = Deliverable.objects.filter(
-        status=NEW, auto_cancel_on__lte=timezone.now(), auto_cancel_on__isnull=False,
+        status=NEW,
+        auto_cancel_on__lte=timezone.now(),
+        auto_cancel_on__isnull=False,
     )
     users = set()
     for deliverable in auto_cancelled:
@@ -491,11 +602,16 @@ def cancel_abandoned_orders():
             user.artist_profile.save()
             if previously_available:
                 notify(
-                    AUTO_CLOSED, user, data={'abandoned': True},
-                    unique=True, mark_unread=True
+                    AUTO_CLOSED,
+                    user,
+                    data={"abandoned": True},
+                    unique=True,
+                    mark_unread=True,
                 )
 
 
 @celery_app.task
 def destroy_expired_invoices():
-    Invoice.objects.filter(status__in=[VOID, DRAFT, OPEN], expires_on__lte=timezone.now()).delete()
+    Invoice.objects.filter(
+        status__in=[VOID, DRAFT, OPEN], expires_on__lte=timezone.now()
+    ).delete()

@@ -2,17 +2,17 @@
 
 from django.db import migrations
 
+
 def set_starting_price(apps, schema):
-    Product = apps.get_model('sales', 'Product')
+    Product = apps.get_model("sales", "Product")
     for product in Product.objects.all():
         product.starting_price = product.base_price
         product.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0078_auto_20200220_0218'),
+        ("sales", "0078_auto_20200220_0218"),
     ]
 
     operations = [

@@ -4,28 +4,27 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0019_auto_20180503_2000'),
+        ("sales", "0019_auto_20180503_2000"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='rating',
-            name='rating_set',
+            model_name="rating",
+            name="rating_set",
         ),
         migrations.RemoveField(
-            model_name='ratingset',
-            name='rater',
+            model_name="ratingset",
+            name="rater",
         ),
         migrations.RemoveField(
-            model_name='ratingset',
-            name='target',
+            model_name="ratingset",
+            name="target",
         ),
         migrations.DeleteModel(
-            name='Rating',
+            name="Rating",
         ),
         migrations.DeleteModel(
-            name='RatingSet',
+            name="RatingSet",
         ),
     ]

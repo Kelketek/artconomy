@@ -5,15 +5,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0035_auto_20180510_1958'),
+        ("profiles", "0035_auto_20180510_1958"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='blocking',
-            field=models.ManyToManyField(blank=True, related_name='blocked_by', to=settings.AUTH_USER_MODEL),
+            model_name="user",
+            name="blocking",
+            field=models.ManyToManyField(
+                blank=True, related_name="blocked_by", to=settings.AUTH_USER_MODEL
+            ),
         ),
     ]

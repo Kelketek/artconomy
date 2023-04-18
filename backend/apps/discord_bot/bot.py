@@ -1,7 +1,6 @@
 import interactions
-from django.conf import settings
-
 from apps.lib.consumers import aprint
+from django.conf import settings
 
 bot = interactions.Client(token=settings.DISCORD_BOT_KEY)
 

@@ -6,27 +6,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0008_auto_20180118_1516'),
-        ('profiles', '0010_auto_20180125_1502')
+        ("lib", "0008_auto_20180118_1516"),
+        ("profiles", "0010_auto_20180125_1502"),
     ]
 
-    database_operations = [
-    ]
+    database_operations = []
 
     state_operations = [
         migrations.CreateModel(
-            name='Tag',
+            name="Tag",
             fields=[
-                ('name', models.SlugField(db_index=True, unique=True, primary_key=True)),
+                (
+                    "name",
+                    models.SlugField(db_index=True, unique=True, primary_key=True),
+                ),
             ],
         ),
     ]
 
     operations = [
         migrations.SeparateDatabaseAndState(
-            database_operations=database_operations,
-            state_operations=state_operations
+            database_operations=database_operations, state_operations=state_operations
         )
     ]

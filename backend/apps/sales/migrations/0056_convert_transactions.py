@@ -2,8 +2,8 @@
 from decimal import Decimal
 from enum import Enum
 
-from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 from django.db.models import Sum
 from django.utils import timezone
@@ -66,20 +66,22 @@ class New:
     INTERNAL_TRANSFER = 410
     THIRD_PARTY_REFUND = 411
 
+
 # TODO: account for future Dwolla fees as pending transactions, verify existing ones are pulled from the right place,
 # allow for import of old card fees, and then make sure these outbound transactions from the old bank are accounted for:
 # December 26, 2018: $19.59
 # December 28, 2018: $5.50
 def run_conversion(apps, schema):
-    User = apps.get_model('profiles.User')
-    TransactionRecord = apps.get_model('sales.TransactionRecord')
-    PaymentRecord = apps.get_model('sales.PaymentRecord')
-    Order = apps.get_model('sales.Order')
-    BankAccount = apps.get_model('sales.BankAccount')
+    User = apps.get_model("profiles.User")
+    TransactionRecord = apps.get_model("sales.TransactionRecord")
+    PaymentRecord = apps.get_model("sales.PaymentRecord")
+    Order = apps.get_model("sales.Order")
+    BankAccount = apps.get_model("sales.BankAccount")
     # First set of transactions: These are all the transactions used for orders in order to pay into escrow.
     order_type_id = ContentType.objects.get_for_model(Order).id
     user_type_id = ContentType.objects.get_for_model(User).id
     bank_type_id = ContentType.objects.get_for_model(BankAccount).id
+
     def one_time_events():
         opening_date = timezone.now().replace(month=11, day=27, year=2018)
         TransactionRecord.objects.create(
@@ -88,10 +90,10 @@ def run_conversion(apps, schema):
             category=New.CASH_DEPOSIT,
             source=New.BANK,
             destination=New.HOLDINGS,
-            amount=Decimal('2000.00'),
+            amount=Decimal("2000.00"),
             created_on=opening_date,
             status=New.SUCCESS,
-            note='Initial cushion deposit',
+            note="Initial cushion deposit",
             finalized_on=opening_date,
         )
         TransactionRecord.objects.create(
@@ -100,28 +102,28 @@ def run_conversion(apps, schema):
             source=New.ACH_MISC_FEES,
             destination=New.HOLDINGS,
             category=New.THIRD_PARTY_REFUND,
-            amount=Decimal('15.00'),
+            amount=Decimal("15.00"),
             created_on=timezone.now().replace(month=10, day=15, year=2019),
             finalized_on=opening_date,
             status=New.SUCCESS,
-            note='Dwolla refund for inaccurate charges',
+            note="Dwolla refund for inaccurate charges",
         )
 
         card_fee_events = [
-            (Decimal('27.64'), timezone.now().replace(month=10, day=1, year=2019)),
-            (Decimal('28.79'), timezone.now().replace(month=9, day=3, year=2019)),
-            (Decimal('34.45'), timezone.now().replace(month=8, day=1, year=2019)),
-            (Decimal('28.43'), timezone.now().replace(month=7, day=1, year=2019)),
-            (Decimal('29.15'), timezone.now().replace(month=6, day=3, year=2019)),
-            (Decimal('34.11'), timezone.now().replace(month=5, day=1, year=2019)),
-            (Decimal('49.59'), timezone.now().replace(month=4, day=1, year=2019)),
-            (Decimal('56.37'), timezone.now().replace(month=3, day=1, year=2019)),
-            (Decimal('52.84'), timezone.now().replace(month=2, day=1, year=2019)),
-            (Decimal('56.39'), timezone.now().replace(month=1, day=2, year=2019)),
-            (Decimal('48.50'), timezone.now().replace(month=12, day=3, year=2018)),
-            (Decimal('24.57'), timezone.now().replace(month=11, day=2, year=2018)),
-            (Decimal('53.10'), timezone.now().replace(month=10, day=1, year=2018)),
-            (Decimal('54.93'), timezone.now().replace(month=9, day=4, year=2018)),
+            (Decimal("27.64"), timezone.now().replace(month=10, day=1, year=2019)),
+            (Decimal("28.79"), timezone.now().replace(month=9, day=3, year=2019)),
+            (Decimal("34.45"), timezone.now().replace(month=8, day=1, year=2019)),
+            (Decimal("28.43"), timezone.now().replace(month=7, day=1, year=2019)),
+            (Decimal("29.15"), timezone.now().replace(month=6, day=3, year=2019)),
+            (Decimal("34.11"), timezone.now().replace(month=5, day=1, year=2019)),
+            (Decimal("49.59"), timezone.now().replace(month=4, day=1, year=2019)),
+            (Decimal("56.37"), timezone.now().replace(month=3, day=1, year=2019)),
+            (Decimal("52.84"), timezone.now().replace(month=2, day=1, year=2019)),
+            (Decimal("56.39"), timezone.now().replace(month=1, day=2, year=2019)),
+            (Decimal("48.50"), timezone.now().replace(month=12, day=3, year=2018)),
+            (Decimal("24.57"), timezone.now().replace(month=11, day=2, year=2018)),
+            (Decimal("53.10"), timezone.now().replace(month=10, day=1, year=2018)),
+            (Decimal("54.93"), timezone.now().replace(month=9, day=4, year=2018)),
         ]
         for amount, event_time in card_fee_events:
             TransactionRecord.objects.create(
@@ -135,11 +137,11 @@ def run_conversion(apps, schema):
                 status=New.SUCCESS,
             )
         deposit_events = [
-            (Decimal('34.11'), timezone.now().replace(month=5, day=30, year=2019)),
-            (Decimal('49.59'), timezone.now().replace(month=4, day=16, year=2019)),
-            (Decimal('112.74'), timezone.now().replace(month=3, day=8, year=2019)),
-            (Decimal('52.84'), timezone.now().replace(month=2, day=4, year=2019)),
-            (Decimal('56.39'), timezone.now().replace(month=1, day=7, year=2019)),
+            (Decimal("34.11"), timezone.now().replace(month=5, day=30, year=2019)),
+            (Decimal("49.59"), timezone.now().replace(month=4, day=16, year=2019)),
+            (Decimal("112.74"), timezone.now().replace(month=3, day=8, year=2019)),
+            (Decimal("52.84"), timezone.now().replace(month=2, day=4, year=2019)),
+            (Decimal("56.39"), timezone.now().replace(month=1, day=7, year=2019)),
         ]
         for amount, event_time in deposit_events:
             TransactionRecord.objects.create(
@@ -152,7 +154,7 @@ def run_conversion(apps, schema):
                 amount=amount,
                 created_on=event_time,
                 finalized_on=event_time,
-                note='Deposit to offset fees.'
+                note="Deposit to offset fees.",
             )
         # Erroneous transfer.
         error_time = timezone.now().replace(month=3, day=4, year=2019)
@@ -163,20 +165,22 @@ def run_conversion(apps, schema):
             destination=New.BANK,
             category=New.CASH_WITHDRAW,
             status=New.SUCCESS,
-            amount=Decimal('56.37'),
+            amount=Decimal("56.37"),
             created_on=error_time,
             finalized_on=error_time,
-            note='Erroneous transfer, transferring back.'
+            note="Erroneous transfer, transferring back.",
         )
         # Now, let's zero out all events prior to this since we changed accounts.
         credit = TransactionRecord.objects.filter(
-            created_on__lt=opening_date, destination=New.BANK,
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            created_on__lt=opening_date,
+            destination=New.BANK,
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         debit = TransactionRecord.objects.filter(
-            created_on__lt=opening_date, source=New.BANK,
-        ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
+            created_on__lt=opening_date,
+            source=New.BANK,
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
         total = credit + debit
-        if total < Decimal('0.00'):
+        if total < Decimal("0.00"):
             TransactionRecord.objects.create(
                 payer=None,
                 payee=None,
@@ -187,7 +191,7 @@ def run_conversion(apps, schema):
                 amount=total,
                 created_on=opening_date,
                 finalized_on=opening_date,
-                note='Transferring from one bank account to another, and zeroing out the difference.'
+                note="Transferring from one bank account to another, and zeroing out the difference.",
             )
 
     def convert_bank_connection_fees(records):
@@ -226,13 +230,13 @@ def run_conversion(apps, schema):
                 response_message=record.response_message,
                 status=status,
                 finalized_on=record.created_on if status == New.SUCCESS else None,
-                note='Finalized on date may be inaccurate due to missing data during conversion.',
+                note="Finalized on date may be inaccurate due to missing data during conversion.",
             )
-            amount = record.amount.amount * Decimal('.005')
-            if amount < Decimal('.05'):
-                amount = Decimal('.05')
-            elif amount > Decimal('5'):
-                amount = Decimal('5.00')
+            amount = record.amount.amount * Decimal(".005")
+            if amount < Decimal(".05"):
+                amount = Decimal(".05")
+            elif amount > Decimal("5"):
+                amount = Decimal("5.00")
             TransactionRecord.objects.create(
                 payer=None,
                 payee=None,
@@ -281,7 +285,9 @@ def run_conversion(apps, schema):
                 response_message=record.response_message,
             )
 
-    def build_refund(record, refund, difference, reserve_amount, full_fee_amount, hold_amount):
+    def build_refund(
+        record, refund, difference, reserve_amount, full_fee_amount, hold_amount
+    ):
         fee = PaymentRecord.objects.get(
             status=Old.SUCCESS,
             object_id=record.object_id,
@@ -346,12 +352,11 @@ def run_conversion(apps, schema):
             response_message=refund.response_message,
         )
 
-
     def convert_escrow_holds(records):
         for record in records:
             # We've not changed this since opening, so it should work for all past transactions.
-            full_fee_amount = (record.amount * Decimal('.08')) + Money('.75', 'USD')
-            premium_fee_amount = (record.amount * Decimal('.04') + Money('.50', 'USD'))
+            full_fee_amount = (record.amount * Decimal(".08")) + Money(".75", "USD")
+            premium_fee_amount = record.amount * Decimal(".04") + Money(".50", "USD")
             reserve_amount = full_fee_amount - premium_fee_amount
             difference = full_fee_amount - reserve_amount
             hold_amount = record.amount - full_fee_amount
@@ -425,7 +430,14 @@ def run_conversion(apps, schema):
                     source=Old.ESCROW,
                 ).first()
                 if refund:
-                    build_refund(record, refund, difference, reserve_amount, full_fee_amount, hold_amount)
+                    build_refund(
+                        record,
+                        refund,
+                        difference,
+                        reserve_amount,
+                        full_fee_amount,
+                        hold_amount,
+                    )
                 continue
             else:
                 fee = PaymentRecord.objects.get(
@@ -442,7 +454,7 @@ def run_conversion(apps, schema):
                 equal_to_premium = premium_fee_amount == fee.amount
                 if not (equal_to_premium or equal_to_full):
                     raise AssertionError(
-                        f'Nonsense fee! Got {fee.amount}, expected {full_fee_amount} or {premium_fee_amount}!',
+                        f"Nonsense fee! Got {fee.amount}, expected {full_fee_amount} or {premium_fee_amount}!",
                     )
                 part2 = TransactionRecord(
                     status=New.SUCCESS,
@@ -484,18 +496,27 @@ def run_conversion(apps, schema):
                     amount=hold_amount,
                 )
 
-
     convert_escrow_holds(
         PaymentRecord.objects.filter(
-            type=Old.SALE, source=Old.CARD, payee=None, escrow_for__isnull=False, payer__isnull=False,
+            type=Old.SALE,
+            source=Old.CARD,
+            payee=None,
+            escrow_for__isnull=False,
+            payer__isnull=False,
         ),
     )
     convert_failed_refunds(
-        PaymentRecord.objects.filter(type=Old.REFUND, source=Old.ESCROW, status=Old.FAILURE)
+        PaymentRecord.objects.filter(
+            type=Old.REFUND, source=Old.ESCROW, status=Old.FAILURE
+        )
     )
     convert_service_dues(
         PaymentRecord.objects.filter(
-            type=Old.SALE, source=Old.CARD, payee=None, escrow_for=None, content_type_id=user_type_id,
+            type=Old.SALE,
+            source=Old.CARD,
+            payee=None,
+            escrow_for=None,
+            content_type_id=user_type_id,
         )
     )
     convert_disbursements(
@@ -516,18 +537,14 @@ def run_conversion(apps, schema):
     #     one_time_events()
 
 
-
 def clear_transactions(apps, schema):
-    TransactionRecord = apps.get_model('sales.TransactionRecord')
+    TransactionRecord = apps.get_model("sales.TransactionRecord")
     TransactionRecord.objects.all().delete()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0055_auto_20191016_1348'),
+        ("sales", "0055_auto_20191016_1348"),
     ]
 
-    operations = [
-        migrations.RunPython(run_conversion, reverse_code=clear_transactions)
-    ]
+    operations = [migrations.RunPython(run_conversion, reverse_code=clear_transactions)]

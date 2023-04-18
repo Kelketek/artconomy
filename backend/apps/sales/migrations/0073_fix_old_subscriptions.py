@@ -6,8 +6,8 @@ SUBSCRIPTION_DUES = 404
 
 
 def fix_old_subscriptions(apps, schema):
-    TransactionRecord = apps.get_model('sales', 'TransactionRecord')
-    PaymentRecord = apps.get_model('sales', 'PaymentRecord')
+    TransactionRecord = apps.get_model("sales", "TransactionRecord")
+    PaymentRecord = apps.get_model("sales", "PaymentRecord")
     for record in TransactionRecord.objects.filter(category=SUBSCRIPTION_DUES):
         old_record = PaymentRecord.objects.filter(txn_id=record.remote_id).first()
         if not old_record:
@@ -19,9 +19,8 @@ def fix_old_subscriptions(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0072_auto_20200123_1537'),
+        ("sales", "0072_auto_20200123_1537"),
     ]
 
     operations = [

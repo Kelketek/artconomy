@@ -9,14 +9,16 @@ COMPLETED = 8
 
 
 def set_final_uploaded(apps, schema):
-    Order = apps.get_model('sales', 'Order')
+    Order = apps.get_model("sales", "Order")
     Order.objects.filter(status__in=[REVIEW, COMPLETED]).update(final_uploaded=True)
-    Order.objects.exclude(status__in=[NEW, PAYMENT_PENDING]).update(revisions_hidden=False)
+    Order.objects.exclude(status__in=[NEW, PAYMENT_PENDING]).update(
+        revisions_hidden=False
+    )
 
 
 class Migration(migrations.Migration):
     dependencies = [
-        ('sales', '0041_auto_20190404_0237'),
+        ("sales", "0041_auto_20190404_0237"),
     ]
 
     operations = [

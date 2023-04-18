@@ -1,4 +1,4 @@
-from typing import Dict, Tuple, List, TypedDict, Optional
+from typing import Dict, List, Optional, Tuple, TypedDict
 
 import pycountry
 import stripe as stripe_api
@@ -42,26 +42,28 @@ def refund_payment_intent(*, api: stripe_api, intent_token: str, amount: Money):
 
 def create_stripe_account(*, api: stripe_api, country: str):
     data = {
-        'type': 'express',
-        'country': country,
-        'capabilities': {
-            'transfers': {
-                'requested': True,
+        "type": "express",
+        "country": country,
+        "capabilities": {
+            "transfers": {
+                "requested": True,
             }
-        }
+        },
     }
-    if country != 'US':
-        data['tos_acceptance'] = {
-            'service_agreement': 'recipient',
+    if country != "US":
+        data["tos_acceptance"] = {
+            "service_agreement": "recipient",
         }
     return api.Account.create(
         **data,
     )
 
 
-def create_account_link(*, api: stripe_api, refresh_url: str, return_url: str, token: str):
+def create_account_link(
+    *, api: stripe_api, refresh_url: str, return_url: str, token: str
+):
     return api.AccountLink.create(
-        type='account_onboarding',
+        type="account_onboarding",
         return_url=return_url,
         refresh_url=refresh_url,
         account=token,
@@ -77,19 +79,24 @@ class CountryCache(TypedDict):
     cache: Optional[List[CountrySpec]]
 
 
-COUNTRY_CACHE: CountryCache = {'cache': None}
+COUNTRY_CACHE: CountryCache = {"cache": None}
 
 
 def get_country_list(*, api: stripe_api) -> List[CountrySpec]:
-    if COUNTRY_CACHE['cache'] is not None:
-        return COUNTRY_CACHE['cache']
-    specs = api.CountrySpec.retrieve(id='US')
+    if COUNTRY_CACHE["cache"] is not None:
+        return COUNTRY_CACHE["cache"]
+    specs = api.CountrySpec.retrieve(id="US")
     countries = []
-    for country_code in specs['supported_transfer_countries']:
-        countries.append({'value': country_code, 'text': pycountry.countries.get(alpha_2=country_code).name})
-    countries.sort(key=lambda country: country['text'])
-    COUNTRY_CACHE['cache'] = countries
-    return COUNTRY_CACHE['cache']
+    for country_code in specs["supported_transfer_countries"]:
+        countries.append(
+            {
+                "value": country_code,
+                "text": pycountry.countries.get(alpha_2=country_code).name,
+            }
+        )
+    countries.sort(key=lambda country: country["text"])
+    COUNTRY_CACHE["cache"] = countries
+    return COUNTRY_CACHE["cache"]
 
 
 def remote_ids_from_charge(charge_event):

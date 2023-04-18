@@ -5,15 +5,16 @@ from django.db.models import F
 
 
 def recurse_comments(apps, schema):
-    Comment = apps.get_model('lib.Comment')
+    Comment = apps.get_model("lib.Comment")
     content_type = ContentType.objects.get_for_model(Comment)
-    Comment.objects.filter(parent__isnull=False).update(content_type_id=content_type.id, object_id=F('parent_id'))
+    Comment.objects.filter(parent__isnull=False).update(
+        content_type_id=content_type.id, object_id=F("parent_id")
+    )
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0022_auto_20190516_2237'),
+        ("lib", "0022_auto_20190516_2237"),
     ]
 
     operations = [

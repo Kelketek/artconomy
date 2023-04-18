@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0065_auto_20181003_1532'),
+        ("profiles", "0065_auto_20181003_1532"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='offered_mailchimp',
+            model_name="user",
+            name="offered_mailchimp",
             field=models.BooleanField(default=False),
         ),
     ]

@@ -5,25 +5,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0135_populate_order_positions'),
+        ("sales", "0135_populate_order_positions"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='order',
-            name='case_display_position',
-            field=models.FloatField(db_index=True, default=apps.sales.models.get_next_case_position),
+            model_name="order",
+            name="case_display_position",
+            field=models.FloatField(
+                db_index=True, default=apps.sales.models.get_next_case_position
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='order_display_position',
-            field=models.FloatField(db_index=True, default=apps.sales.models.get_next_order_position),
+            model_name="order",
+            name="order_display_position",
+            field=models.FloatField(
+                db_index=True, default=apps.sales.models.get_next_order_position
+            ),
         ),
         migrations.AlterField(
-            model_name='order',
-            name='sale_display_position',
-            field=models.FloatField(db_index=True, default=apps.sales.models.get_next_sale_position),
+            model_name="order",
+            name="sale_display_position",
+            field=models.FloatField(
+                db_index=True, default=apps.sales.models.get_next_sale_position
+            ),
         ),
     ]

@@ -1,28 +1,31 @@
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
 from apps.profiles.models import User, tg_key_gen
+from telegram.ext import CommandHandler, Filters, MessageHandler, Updater
 
 
 def start(update, context):
-    existing = User.objects.filter(tg_chat_id=update.message.chat_id).exclude(tg_chat_id='')
+    existing = User.objects.filter(tg_chat_id=update.message.chat_id).exclude(
+        tg_chat_id=""
+    )
     if existing:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="Welcome back! Your messages from Artconomy for {} will continue now.".format(existing[0].username)
+            text="Welcome back! Your messages from Artconomy for {} will continue now.".format(
+                existing[0].username
+            ),
         )
         return
     if not context.args:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="I'm missing your key. Please add your Telegram via your account settings to start this process."
+            text="I'm missing your key. Please add your Telegram via your account settings to start this process.",
         )
         return
-    args = context.args[0].rsplit('_')
+    args = context.args[0].rsplit("_")
     if len(args) != 2:
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text="The key you sent me appears to be corrupt. Please add your telegram via your account settings to "
-                 "send a starting message with your key."
+            "send a starting message with your key.",
         )
         return
     try:
@@ -31,7 +34,7 @@ def start(update, context):
         context.bot.send_message(
             chat_id=update.message.chat_id,
             text="The key you sent me does not appear to match any account. Please add your telegram via your account "
-                 "settings to send a starting message with your key."
+            "settings to send a starting message with your key.",
         )
         return
     user.tg_chat_id = update.message.chat_id
@@ -40,18 +43,18 @@ def start(update, context):
     context.bot.send_message(
         chat_id=update.message.chat_id,
         text="Hi! I'm the Artconomy bot. I'll send messages for {}'s Two Factor Authentication "
-             "codes. Please visit the site for more information.".format(user.username)
+        "codes. Please visit the site for more information.".format(user.username),
     )
 
 
 def help_message(update, context):
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="Sorry, I didn't understand that. If you're having trouble, please contact support@artconomy.com."
+        text="Sorry, I didn't understand that. If you're having trouble, please contact support@artconomy.com.",
     )
 
 
-start_handler = CommandHandler('start', start)
+start_handler = CommandHandler("start", start)
 help_handler = MessageHandler(Filters.text, help_message)
 unknown_handler = MessageHandler(Filters.command, help_message)
 

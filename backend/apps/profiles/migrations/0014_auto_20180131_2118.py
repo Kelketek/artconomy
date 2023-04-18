@@ -7,19 +7,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0013_auto_20180131_1747'),
+        ("profiles", "0013_auto_20180131_1747"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='refcolor',
-            name='name',
+            model_name="refcolor",
+            name="name",
         ),
         migrations.AlterField(
-            model_name='refcolor',
-            name='color',
-            field=models.CharField(max_length=6, validators=[django.core.validators.RegexValidator('^[0-9a-f]{6}$')]),
+            model_name="refcolor",
+            name="color",
+            field=models.CharField(
+                max_length=6,
+                validators=[django.core.validators.RegexValidator("^[0-9a-f]{6}$")],
+            ),
         ),
     ]

@@ -4,20 +4,21 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0130_auto_20220312_1120'),
+        ("sales", "0130_auto_20220312_1120"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='invoice',
-            name='record_only',
+            model_name="invoice",
+            name="record_only",
             field=models.BooleanField(db_index=True, default=False),
         ),
         migrations.AlterField(
-            model_name='invoice',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Draft'), (1, 'Open'), (2, 'Paid'), (5, 'Void')], default=0),
+            model_name="invoice",
+            name="status",
+            field=models.IntegerField(
+                choices=[(0, "Draft"), (1, "Open"), (2, "Paid"), (5, "Void")], default=0
+            ),
         ),
     ]

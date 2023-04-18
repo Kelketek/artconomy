@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0100_remove_order_product'),
+        ("sales", "0100_remove_order_product"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='deliverable',
-            name='cancelled_on',
+            model_name="deliverable",
+            name="cancelled_on",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

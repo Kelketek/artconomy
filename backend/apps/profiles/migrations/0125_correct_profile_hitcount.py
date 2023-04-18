@@ -4,26 +4,31 @@ from django.db import migrations
 
 
 def migrate_hitcounts(apps, schema):
-    HitCount = apps.get_model('hitcount', 'HitCount')
-    User = apps.get_model('profiles', 'User')
-    ArtistProfile = apps.get_model('profiles', 'ArtistProfile')
+    HitCount = apps.get_model("hitcount", "HitCount")
+    User = apps.get_model("profiles", "User")
+    ArtistProfile = apps.get_model("profiles", "ArtistProfile")
     profile_type = ContentType.objects.get_for_model(ArtistProfile)
     user_type = ContentType.objects.get_for_model(User)
     for profile in ArtistProfile.objects.all():
-        source = HitCount.objects.select_for_update().filter(object_pk=profile.id, content_type_id=profile_type.id).first()
+        source = (
+            HitCount.objects.select_for_update()
+            .filter(object_pk=profile.id, content_type_id=profile_type.id)
+            .first()
+        )
         if not source:
             continue
-        dest, _ = HitCount.objects.select_for_update().get_or_create(object_pk=profile.user.id, content_type_id=user_type.id)
+        dest, _ = HitCount.objects.select_for_update().get_or_create(
+            object_pk=profile.user.id, content_type_id=user_type.id
+        )
         dest.hits += source.hits
         dest.save()
         source.delete()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0124_auto_20220603_2013'),
-        ('lib', '0037_auto_20221030_1740'),
+        ("profiles", "0124_auto_20220603_2013"),
+        ("lib", "0037_auto_20221030_1740"),
     ]
 
     operations = [

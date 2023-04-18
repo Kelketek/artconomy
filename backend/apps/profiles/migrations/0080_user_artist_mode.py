@@ -4,15 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0079_auto_20190610_1836'),
+        ("profiles", "0079_auto_20190610_1836"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='artist_mode',
-            field=models.BooleanField(db_index=True, default=None, null=True, blank=True, help_text='Enable Artist functionality'),
+            model_name="user",
+            name="artist_mode",
+            field=models.BooleanField(
+                db_index=True,
+                default=None,
+                null=True,
+                blank=True,
+                help_text="Enable Artist functionality",
+            ),
         ),
     ]

@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0032_auto_20200722_1419'),
+        ("lib", "0032_auto_20200722_1419"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='comment',
-            name='extra_data',
+            model_name="comment",
+            name="extra_data",
             field=models.JSONField(blank=True, default=dict),
         ),
         migrations.AlterField(
-            model_name='event',
-            name='data',
+            model_name="event",
+            name="data",
             field=models.JSONField(default=dict),
         ),
     ]

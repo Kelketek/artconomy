@@ -6,20 +6,59 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0003_event_data'),
+        ("lib", "0003_event_data"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='event',
-            name='type',
-            field=models.IntegerField(choices=[(0, 'New Submission'), (1, 'New Follower'), (2, 'Character Transfer Request'), (3, 'Character Tag Approval'), (4, 'New Comment'), (5, 'New Character'), (7, 'Commission Slots Available'), (6, 'New Product'), (11, 'New Auction'), (15, 'Dispute Filed'), (8, 'New Submission of Character'), (9, 'New Portfolio Item'), (14, 'New Favorite'), (10, 'Submission Tag Approval'), (12, 'Announcement'), (13, 'System-wide announcement')], db_index=True),
+            model_name="event",
+            name="type",
+            field=models.IntegerField(
+                choices=[
+                    (0, "New Submission"),
+                    (1, "New Follower"),
+                    (2, "Character Transfer Request"),
+                    (3, "Character Tag Approval"),
+                    (4, "New Comment"),
+                    (5, "New Character"),
+                    (7, "Commission Slots Available"),
+                    (6, "New Product"),
+                    (11, "New Auction"),
+                    (15, "Dispute Filed"),
+                    (8, "New Submission of Character"),
+                    (9, "New Portfolio Item"),
+                    (14, "New Favorite"),
+                    (10, "Submission Tag Approval"),
+                    (12, "Announcement"),
+                    (13, "System-wide announcement"),
+                ],
+                db_index=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='subscription',
-            name='type',
-            field=models.IntegerField(choices=[(0, 'New Submission'), (1, 'New Follower'), (2, 'Character Transfer Request'), (3, 'Character Tag Approval'), (4, 'New Comment'), (5, 'New Character'), (7, 'Commission Slots Available'), (6, 'New Product'), (11, 'New Auction'), (15, 'Dispute Filed'), (8, 'New Submission of Character'), (9, 'New Portfolio Item'), (14, 'New Favorite'), (10, 'Submission Tag Approval'), (12, 'Announcement'), (13, 'System-wide announcement')], db_index=True),
+            model_name="subscription",
+            name="type",
+            field=models.IntegerField(
+                choices=[
+                    (0, "New Submission"),
+                    (1, "New Follower"),
+                    (2, "Character Transfer Request"),
+                    (3, "Character Tag Approval"),
+                    (4, "New Comment"),
+                    (5, "New Character"),
+                    (7, "Commission Slots Available"),
+                    (6, "New Product"),
+                    (11, "New Auction"),
+                    (15, "Dispute Filed"),
+                    (8, "New Submission of Character"),
+                    (9, "New Portfolio Item"),
+                    (14, "New Favorite"),
+                    (10, "Submission Tag Approval"),
+                    (12, "Announcement"),
+                    (13, "System-wide announcement"),
+                ],
+                db_index=True,
+            ),
         ),
     ]

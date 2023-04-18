@@ -4,20 +4,28 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0008_bankaccount'),
+        ("sales", "0008_bankaccount"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='paymentrecord',
-            name='finalized',
+            model_name="paymentrecord",
+            name="finalized",
             field=models.BooleanField(db_index=True, default=True),
         ),
         migrations.AlterField(
-            model_name='paymentrecord',
-            name='type',
-            field=models.IntegerField(choices=[(200, 'Sale of good or service'), (205, 'Internal Transfer'), (201, 'Initiated Disbersement'), (202, 'Disbursement completed'), (204, 'Refund')], db_index=True),
+            model_name="paymentrecord",
+            name="type",
+            field=models.IntegerField(
+                choices=[
+                    (200, "Sale of good or service"),
+                    (205, "Internal Transfer"),
+                    (201, "Initiated Disbersement"),
+                    (202, "Disbursement completed"),
+                    (204, "Refund"),
+                ],
+                db_index=True,
+            ),
         ),
     ]

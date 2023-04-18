@@ -3,23 +3,40 @@ import os
 from hashlib import sha256
 from itertools import chain
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING, Type, List, Union
+from typing import TYPE_CHECKING, List, Optional, Type, Union
 from uuid import uuid4
 
 import markdown
+from apps.lib.models import (
+    COMMENT,
+    COMMISSIONS_OPEN,
+    EMAIL_SUBJECTS,
+    NEW_CHARACTER,
+    NEW_JOURNAL,
+    NEW_PRODUCT,
+    STREAMING,
+    Asset,
+    Comment,
+    Event,
+    ModifiedMarker,
+    Notification,
+    ReadMarker,
+    Subscription,
+    Tag,
+)
 from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup
 from channels.layers import get_channel_layer
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import EmailMultiAlternatives
-from django.db import connection, transaction, IntegrityError
-from django.db.models import Q, Model, Subquery, IntegerField
+from django.db import IntegrityError, connection, transaction
+from django.db.models import IntegerField, Model, Q, Subquery
 from django.db.models.signals import pre_delete
 from django.db.transaction import atomic
 from django.dispatch import receiver
 from django.http import HttpRequest
-from django.template import Template, Context
+from django.template import Context, Template
 from django.template.loader import get_template
 from django.utils import timezone
 from django.utils.datetime_safe import date
@@ -31,19 +48,15 @@ from pycountry import countries, subdivisions
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
+from shortcuts import disable_on_load, gen_textifier, make_url
 from telegram import Bot
-
-from apps.lib.models import Subscription, Event, Notification, Tag, Comment, COMMENT, \
-    NEW_PRODUCT, COMMISSIONS_OPEN, NEW_CHARACTER, STREAMING, EMAIL_SUBJECTS, NEW_JOURNAL, ReadMarker, ModifiedMarker, \
-    Asset
-from shortcuts import make_url, disable_on_load, gen_textifier
 
 BOT = None
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:  # pragma: no cover
-    from apps.profiles.models import User, ArtconomyAnonymousUser
     from apps.lib.serializers import NewCommentSerializer
+    from apps.profiles.models import ArtconomyAnonymousUser, User
     from apps.sales.models import Deliverable, Order
 
 
@@ -58,14 +71,14 @@ def countries_tweaked():
     """
     Tweaked listing of countries.
     """
-    us = countries.get(alpha_2='US')
+    us = countries.get(alpha_2="US")
     country_list = []
     for a in countries:
-        if a.alpha_2 == 'TW':
+        if a.alpha_2 == "TW":
             country_list.append((a.alpha_2, "Taiwan"))
         elif a.alpha_2 in settings.COUNTRIES_NOT_SERVED:
             continue
-        elif a.alpha_2 != 'US':
+        elif a.alpha_2 != "US":
             country_list.append((a.alpha_2, a.name))
     country_list.sort(key=lambda x: x[1])
     country_list.insert(0, (us.alpha_2, us.name))
@@ -77,20 +90,22 @@ def country_choices():
 
 
 # Force pycountry to fetch data.
-subdivisions.get(country_code='US')
+subdivisions.get(country_code="US")
 
 subdivision_map = {
-    country.alpha_2:
-        {subdivision.code[3:]: subdivision.name for subdivision in subdivisions.get(country_code=country.alpha_2)}
-        if country.alpha_2 in subdivisions.indices['country_code']
-        else {}
+    country.alpha_2: {
+        subdivision.code[3:]: subdivision.name
+        for subdivision in subdivisions.get(country_code=country.alpha_2)
+    }
+    if country.alpha_2 in subdivisions.indices["country_code"]
+    else {}
     for country in countries
 }
 
 country_map = {country.name.lower(): country for country in countries}
 
-for code, name in ('AE', 'AA', 'AP'):
-    subdivision_map['US'][code] = code
+for code, name in ("AE", "AA", "AP"):
+    subdivision_map["US"][code] = code
 
 
 class RecallNotification(Exception):
@@ -99,8 +114,9 @@ class RecallNotification(Exception):
     For instance, if we're tracking all of the people who commented on a submission
     and the only person who commented removed their comment, we'd want to recall the event altogether.
     """
+
     def __init__(self, *args, **kwargs):
-        self.data = kwargs.pop('data')
+        self.data = kwargs.pop("data")
         super(*args, **kwargs)
 
 
@@ -111,7 +127,9 @@ def recall_notification(event_type, target, data=None, unique_data=False):
     events.update(recalled=True)
 
 
-def update_event(event, data, subscriptions, mark_unread, time_override=None, transform=None):
+def update_event(
+    event, data, subscriptions, mark_unread, time_override=None, transform=None
+):
     event.recalled = False
     if mark_unread or time_override:
         event.date = time_override or timezone.now()
@@ -126,8 +144,10 @@ def update_event(event, data, subscriptions, mark_unread, time_override=None, tr
     event.data = data
     event.save()
     if mark_unread:
-        subscribers = subscriptions.values_list('subscriber_id', flat=True)
-        Notification.objects.filter(user__in=subscribers, event=event).update(read=False)
+        subscribers = subscriptions.values_list("subscriber_id", flat=True)
+        Notification.objects.filter(user__in=subscribers, event=event).update(
+            read=False
+        )
 
 
 def target_params(object_id, content_type):
@@ -139,9 +159,13 @@ def target_params(object_id, content_type):
 
 def get_matching_subscriptions(event_type, object_id, content_type, exclude=None):
     exclude = exclude or []
-    return Subscription.objects.filter(
-        Q(type=event_type, removed=False) & target_params(object_id, content_type)
-    ).exclude(subscriber__in=exclude).filter(Q(until__isnull=True) | Q(until__gte=date.today()))
+    return (
+        Subscription.objects.filter(
+            Q(type=event_type, removed=False) & target_params(object_id, content_type)
+        )
+        .exclude(subscriber__in=exclude)
+        .filter(Q(until__isnull=True) | Q(until__gte=date.today()))
+    )
 
 
 def get_matching_events(event_type, content_type, object_id, data, unique_data=None):
@@ -151,18 +175,18 @@ def get_matching_events(event_type, content_type, object_id, data, unique_data=N
         if unique_data is True:
             query &= Q(data=data)
         else:
-            kwargs = {'data__' + key: value for key, value in unique_data.items()}
+            kwargs = {"data__" + key: value for key, value in unique_data.items()}
             query &= Q(**kwargs)
     return Event.objects.filter(query)
 
 
-def commissions_open_subscription(watcher: 'User', watched: 'User', target_date: date):
+def commissions_open_subscription(watcher: "User", watched: "User", target_date: date):
     content_type = ContentType.objects.get_for_model(watched)
     sub, _ = Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=COMMISSIONS_OPEN
+        type=COMMISSIONS_OPEN,
     )
     sub.until = target_date
     sub.telegram = True
@@ -177,31 +201,31 @@ def watch_subscriptions(watcher, watched):
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=COMMISSIONS_OPEN
+        type=COMMISSIONS_OPEN,
     )
     Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_CHARACTER
+        type=NEW_CHARACTER,
     )
     Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_PRODUCT
+        type=NEW_PRODUCT,
     )
     Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=STREAMING
+        type=STREAMING,
     )
     Subscription.objects.get_or_create(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_JOURNAL
+        type=NEW_JOURNAL,
     )
 
 
@@ -211,31 +235,31 @@ def remove_watch_subscriptions(watcher, watched):
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_CHARACTER
+        type=NEW_CHARACTER,
     ).delete()
     Subscription.objects.filter(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_PRODUCT
+        type=NEW_PRODUCT,
     ).delete()
     Subscription.objects.filter(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=COMMISSIONS_OPEN
+        type=COMMISSIONS_OPEN,
     ).delete()
     Subscription.objects.filter(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=STREAMING
+        type=STREAMING,
     ).delete()
     Subscription.objects.filter(
         subscriber=watcher,
         content_type=content_type,
         object_id=watched.id,
-        type=NEW_JOURNAL
+        type=NEW_JOURNAL,
     ).delete()
 
 
@@ -263,8 +287,17 @@ class FakeRequest:
 
 @atomic
 def notify(
-        event_type, target, data=None, unique=False, unique_data=None, mark_unread=False, time_override=None,
-        transform=None, exclude=None, force_create=False, silent_broadcast=False
+    event_type,
+    target,
+    data=None,
+    unique=False,
+    unique_data=None,
+    mark_unread=False,
+    time_override=None,
+    transform=None,
+    exclude=None,
+    force_create=False,
+    silent_broadcast=False,
 ):
     """
     Send out notifications to people who are subscribed to particular events.
@@ -292,47 +325,60 @@ def notify(
 
     silent_broadcast will not generate any emails or telegram notifications if they otherwise would have been generated.
     """
-    from apps.lib.serializers import NOTIFICATION_TYPE_MAP
-    from apps.lib.serializers import notification_serialize
+    from apps.lib.serializers import NOTIFICATION_TYPE_MAP, notification_serialize
 
     if data is None:
         data = {}
     content_type = target and ContentType.objects.get_for_model(target)
     object_id = target and target.id
-    subscriptions = get_matching_subscriptions(event_type, object_id, content_type, exclude)
+    subscriptions = get_matching_subscriptions(
+        event_type, object_id, content_type, exclude
+    )
 
     if not subscriptions.exists() and not force_create:
         return
 
     event = None
     if unique or unique_data:
-        events = get_matching_events(event_type, content_type, object_id, data, unique_data)
+        events = get_matching_events(
+            event_type, content_type, object_id, data, unique_data
+        )
         if events.exists():
             event = events[0]
             update_event(
-                event, data, subscriptions,
+                event,
+                data,
+                subscriptions,
                 mark_unread=mark_unread,
                 time_override=time_override,
-                transform=transform
+                transform=transform,
             )
     if not event:
         event = Event.objects.create(
-            type=event_type, object_id=target and target.id, content_type=content_type, data=data
+            type=event_type,
+            object_id=target and target.id,
+            content_type=content_type,
+            data=data,
         )
 
     # Send email notifications if needed.
     email_subscriptions = subscriptions.filter(email=True)
     if not silent_broadcast and email_subscriptions.exists():
-        path = Path(settings.BACKEND_ROOT) / 'templates' / 'notifications'
-        template = [file for file in os.listdir(str(path)) if file.startswith(str(event_type))][0]
+        path = Path(settings.BACKEND_ROOT) / "templates" / "notifications"
+        template = [
+            file for file in os.listdir(str(path)) if file.startswith(str(event_type))
+        ][0]
         template_path = path / template
         for subscription in email_subscriptions:
             subject = EMAIL_SUBJECTS[event_type]
-            req_context = {'request': FakeRequest(subscription.subscriber)}
+            req_context = {"request": FakeRequest(subscription.subscriber)}
             ctx = {
-                'data': NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(event, req_context),
-                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber,
-                'raw_target': event.target,
+                "data": NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(
+                    event, req_context
+                ),
+                "target": notification_serialize(event.target, req_context),
+                "user": subscription.subscriber,
+                "raw_target": event.target,
             }
             subject = Template(subject).render(Context(ctx))
             to = [subscription.subscriber.guest_email or subscription.subscriber.email]
@@ -340,51 +386,68 @@ def notify(
             message = get_template(template_path).render(ctx)
             textifier = gen_textifier()
             msg = EmailMultiAlternatives(
-                subject, textifier.handle(message), to=to, from_email=from_email, headers={'Return-Path': settings.RETURN_PATH_EMAIL}
+                subject,
+                textifier.handle(message),
+                to=to,
+                from_email=from_email,
+                headers={"Return-Path": settings.RETURN_PATH_EMAIL},
             )
-            msg.attach_alternative(message, 'text/html')
+            msg.attach_alternative(message, "text/html")
             msg.send()
 
     telegram_subscriptions = subscriptions.filter(telegram=True)
     if not silent_broadcast and telegram_subscriptions.exists():
-        path = Path(settings.BACKEND_ROOT) / 'templates' / 'notifications'
-        template = [file for file in os.listdir(str(path)) if file.startswith('TG_' + str(event_type))][0]
+        path = Path(settings.BACKEND_ROOT) / "templates" / "notifications"
+        template = [
+            file
+            for file in os.listdir(str(path))
+            if file.startswith("TG_" + str(event_type))
+        ][0]
         template_path = path / template
         for subscription in telegram_subscriptions:
             if not subscription.subscriber.tg_chat_id:
                 continue
-            req_context = {'request': FakeRequest(subscription.subscriber)}
+            req_context = {"request": FakeRequest(subscription.subscriber)}
             ctx = {
-                'data': NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(event, req_context),
-                'target': notification_serialize(event.target, req_context), 'user': subscription.subscriber,
-                'base_url': make_url('')
+                "data": NOTIFICATION_TYPE_MAP.get(event_type, lambda x, _: x.data)(
+                    event, req_context
+                ),
+                "target": notification_serialize(event.target, req_context),
+                "user": subscription.subscriber,
+                "base_url": make_url(""),
             }
             message = get_template(template_path).render(ctx)
             try:
-                get_bot().send_message(chat_id=subscription.subscriber.tg_chat_id, parse_mode='Markdown', text=message)
+                get_bot().send_message(
+                    chat_id=subscription.subscriber.tg_chat_id,
+                    parse_mode="Markdown",
+                    text=message,
+                )
             except Exception as err:
                 logger.exception(err)
 
     # We need to make sure anyone who was previously ineligible for a notification who is now eligible can get one.
     # To do that, we must avoid creating any that already exist if we want to leverage bulk_create. This should
     # be a minority case that won't require too much overhead when it happens, but I suppose we will see.
-    existing = Notification.objects.filter(event=event.id).values_list('user_id', flat=True)
+    existing = Notification.objects.filter(event=event.id).values_list(
+        "user_id", flat=True
+    )
     subscriptions = subscriptions.exclude(subscriber_id__in=existing)
     Notification.objects.bulk_create(
         (
-            Notification(
-                event_id=event.id, user_id=subscriber_id
-            )
-            for subscriber_id in subscriptions.values_list('subscriber_id', flat=True)
+            Notification(event_id=event.id, user_id=subscriber_id)
+            for subscriber_id in subscriptions.values_list("subscriber_id", flat=True)
         ),
-        batch_size=1000
+        batch_size=1000,
     )
 
 
 def subscribe(event_type, user, target, implicit=True):
     subscription, created = Subscription.objects.get_or_create(
-        type=event_type, subscriber=user, content_type=ContentType.objects.get_for_model(target),
-        object_id=target.id
+        type=event_type,
+        subscriber=user,
+        content_type=ContentType.objects.get_for_model(target),
+        object_id=target.id,
     )
     subscription.implicit = implicit
     subscription.save()
@@ -398,7 +461,9 @@ def clear_events(sender, instance, **_kwargs):
     To be used as a signal handler elsewhere on models to make sure any events that existed with this
     instance as the target are removed. Use in pre_delete.
     """
-    Event.objects.filter(object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)).delete()
+    Event.objects.filter(
+        object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)
+    ).delete()
 
 
 # This receiver is not in models where it would normally be, since we want to have clear_events available in utils
@@ -409,18 +474,17 @@ remove_order_events = receiver(pre_delete, sender=Comment)(clear_events)
 
 
 def _comment_filter(old_data, comment_id):
-    comments = [comment for comment in old_data['comments'] if comment != comment_id]
-    subcomments = [comment for comment in old_data['subcomments'] if comment != comment_id]
+    comments = [comment for comment in old_data["comments"] if comment != comment_id]
+    subcomments = [
+        comment for comment in old_data["subcomments"] if comment != comment_id
+    ]
     data = {
-        'comments': comments,
-        'subcomments': subcomments,
+        "comments": comments,
+        "subcomments": subcomments,
     }
     if not comments:
         raise RecallNotification(data=data)
-    return {
-        'comments': comments,
-        'subcomments': subcomments
-    }
+    return {"comments": comments, "subcomments": subcomments}
 
 
 def remove_comment(comment_id):
@@ -428,17 +492,26 @@ def remove_comment(comment_id):
     Removes all notifications for a comment.
     """
     events = Event.objects.filter(type=COMMENT).filter(
-        Q(data__comments__contains=comment_id) | Q(data__subcomments__contains=comment_id)
+        Q(data__comments__contains=comment_id)
+        | Q(data__subcomments__contains=comment_id)
     )
     data = comment_id
     for event in events:
-        update_event(event, data, False, Subscription.objects.none(), transform=_comment_filter)
+        update_event(
+            event, data, False, Subscription.objects.none(), transform=_comment_filter
+        )
 
 
-def add_check(instance: Optional[Model], field_name: str, *args, replace: bool = False, fallback_max: int = 200):
+def add_check(
+    instance: Optional[Model],
+    field_name: str,
+    *args,
+    replace: bool = False,
+    fallback_max: int = 200,
+):
     args_length = len(args)
     if instance:
-        max_length = getattr(instance, field_name + '__max')
+        max_length = getattr(instance, field_name + "__max")
     else:
         max_length = fallback_max
     if replace or not instance:
@@ -448,7 +521,9 @@ def add_check(instance: Optional[Model], field_name: str, *args, replace: bool =
     proposed = args_length + current_length
     if proposed > max_length:
         raise ValidationError(
-            'This would exceed the maximum number of entries for this relation. {} > {}'.format(proposed, max_length)
+            "This would exceed the maximum number of entries for this relation. {} > {}".format(
+                proposed, max_length
+            )
         )
 
 
@@ -475,7 +550,7 @@ def ensure_tags(tag_list):
         # Bulk get or create
         # Django's query prepper automatically wraps our arrays in parens, but we need to have them
         # act as individual values, so we have to custom build our placeholders here.
-        formatted_list = ('(%s), ' * len(tag_list)).rsplit(',', 1)[0]
+        formatted_list = ("(%s), " * len(tag_list)).rsplit(",", 1)[0]
         # noinspection SqlType
         statement = f"""
                     INSERT INTO lib_tag (name)
@@ -491,11 +566,14 @@ def ensure_tags(tag_list):
 
 
 def tag_list_cleaner(tag_list):
-    tag_list = [slugify(str(tag).lower().replace(' ', '_')).replace('-', '_')[:50] for tag in tag_list]
+    tag_list = [
+        slugify(str(tag).lower().replace(" ", "_")).replace("-", "_")[:50]
+        for tag in tag_list
+    ]
     return list({tag for tag in tag_list if tag})
 
 
-def add_tags(value, target, field_name: str = 'tags'):
+def add_tags(value, target, field_name: str = "tags"):
     # Slugify, but also do a few tricks to reduce the incidence rate of duplicates.
     tag_list = tag_list_cleaner(value)
     try:
@@ -507,17 +585,18 @@ def add_tags(value, target, field_name: str = 'tags'):
     return tag_list
 
 
-def remove_tags(request, target, field_name='tags'):
-    if 'tags' not in request.data:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={'tags': ['This field is required.']})
-    tag_list = request.data['tags']
+def remove_tags(request, target, field_name="tags"):
+    if "tags" not in request.data:
+        return Response(
+            status=status.HTTP_400_BAD_REQUEST,
+            data={"tags": ["This field is required."]},
+        )
+    tag_list = request.data["tags"]
     qs = Tag.objects.filter(name__in=tag_list)
     if not qs.exists():
         return False, Response(
             status=status.HTTP_400_BAD_REQUEST,
-            data={'tags': [
-                'No tags specified, or the requested tags do not exist.'
-            ]}
+            data={"tags": ["No tags specified, or the requested tags do not exist."]},
         )
     getattr(target, field_name).remove(*qs)
     for tag in qs:
@@ -527,14 +606,14 @@ def remove_tags(request, target, field_name='tags'):
 
 # https://www.caktusgroup.com/blog/2009/05/26/explicit-table-locking-with-postgresql-and-django/
 LOCK_MODES = (
-    'ACCESS SHARE',
-    'ROW SHARE',
-    'ROW EXCLUSIVE',
-    'SHARE UPDATE EXCLUSIVE',
-    'SHARE',
-    'SHARE ROW EXCLUSIVE',
-    'EXCLUSIVE',
-    'ACCESS EXCLUSIVE',
+    "ACCESS SHARE",
+    "ROW SHARE",
+    "ROW EXCLUSIVE",
+    "SHARE UPDATE EXCLUSIVE",
+    "SHARE",
+    "SHARE ROW EXCLUSIVE",
+    "EXCLUSIVE",
+    "ACCESS EXCLUSIVE",
 )
 
 
@@ -551,30 +630,32 @@ def require_lock(model, lock):
     PostgreSQL's LOCK Documentation:
     http://www.postgresql.org/docs/8.3/interactive/sql-lock.html
     """
+
     def require_lock_decorator(view_func):
         def wrapper(*args, **kwargs):
             if lock not in LOCK_MODES:
-                raise ValueError('%s is not a PostgreSQL supported lock mode.' % lock)
+                raise ValueError("%s is not a PostgreSQL supported lock mode." % lock)
             from django.db import connection
+
             cursor = connection.cursor()
             # noinspection PyProtectedMember
-            cursor.execute(
-                'LOCK TABLE %s IN %s MODE' % (model._meta.db_table, lock)
-            )
+            cursor.execute("LOCK TABLE %s IN %s MODE" % (model._meta.db_table, lock))
             return view_func(*args, **kwargs)
+
         return wrapper
+
     return require_lock_decorator
 
 
 def translate_related_names(names):
     new_names = []
     for related_name in names:
-        if not related_name.endswith('+'):
+        if not related_name.endswith("+"):
             new_names.append(related_name)
             continue
-        base_name = related_name.split('_')[0]
+        base_name = related_name.split("_")[0]
         base_name = base_name.lower()
-        base_name += '_set'
+        base_name += "_set"
         new_names.append(base_name)
     return new_names
 
@@ -588,14 +669,16 @@ class MinimumOrZero:
         if value == 0:
             return True
         if value < self.limit:
-            raise ValidationError('Must be zero, or greater than or equal to {}'.format(self.limit))
+            raise ValidationError(
+                "Must be zero, or greater than or equal to {}".format(self.limit)
+            )
 
 
 def default_context():
     return {
-        'title': 'Artconomy-- Easy Online Art Commissions.',
-        'description': 'Artconomy.com makes it easy, safe, and fun for you to get custom art of your '
-                       'original characters!',
+        "title": "Artconomy-- Easy Online Art Commissions.",
+        "description": "Artconomy.com makes it easy, safe, and fun for you to get custom art of your "
+        "original characters!",
     }
 
 
@@ -603,8 +686,8 @@ def demark(text):
     return BeautifulSoup(markdown.markdown(text), features="lxml").get_text()
 
 
-def preview_rating(request, target_rating, real_link, sub_link=''):
-    sub_link = sub_link or make_url('/static/images/logo.png')
+def preview_rating(request, target_rating, real_link, sub_link=""):
+    sub_link = sub_link or make_url("/static/images/logo.png")
     if request.user.is_authenticated:
         if request.max_rating < target_rating:
             return sub_link
@@ -617,16 +700,18 @@ def preview_rating(request, target_rating, real_link, sub_link=''):
 
 
 def get_client_ip(request):
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
-        ip = x_forwarded_for.split(',')[0]
+        ip = x_forwarded_for.split(",")[0]
     else:
-        ip = request.META.get('REMOTE_ADDR')
+        ip = request.META.get("REMOTE_ADDR")
     return ip
 
 
 def send_transaction_email(subject, template_name, user, context):
-    template_path = Path(settings.BACKEND_ROOT) / 'templates' / 'transactional' / template_name
+    template_path = (
+        Path(settings.BACKEND_ROOT) / "templates" / "transactional" / template_name
+    )
     if isinstance(user, str):
         to = [user]
     else:
@@ -635,10 +720,13 @@ def send_transaction_email(subject, template_name, user, context):
     message = get_template(template_path).render(context)
     textifier = gen_textifier()
     msg = EmailMultiAlternatives(
-        subject, textifier.handle(message), to=to, from_email=from_email,
-        headers={'Return-Path': settings.RETURN_PATH_EMAIL}
+        subject,
+        textifier.handle(message),
+        to=to,
+        from_email=from_email,
+        headers={"Return-Path": settings.RETURN_PATH_EMAIL},
     )
-    msg.attach_alternative(message, 'text/html')
+    msg.attach_alternative(message, "text/html")
     msg.send()
 
 
@@ -647,20 +735,24 @@ class SubCount(Subquery):
     """
     Version of Subquery that outputs the count instead of the result. Good for annotation.
     """
+
     template = "(SELECT count(*) FROM (%(subquery)s) _count)"
     output_field = IntegerField()
 
 
 def count_hit(request: HttpRequest, instance: Model):
-    if request.GET.get('view', None):
+    if request.GET.get("view", None):
         hit_count = HitCount.objects.get_for_object(instance)
         HitCountMixin.hit_count(request, hit_count)
 
 
 def fake_destroy_comment(instance):
-    instance.text = ''
+    instance.text = ""
     instance.deleted = True
-    if instance.comments.all().filter(deleted=True).count() == instance.comments.all().count():
+    if (
+        instance.comments.all().filter(deleted=True).count()
+        == instance.comments.all().count()
+    ):
         instance.thread_deleted = True
     instance.save()
 
@@ -673,22 +765,24 @@ def real_destroy_comment(instance):
             if target.deleted and not target.comments.all().exists():
                 target.delete()
     else:
-        instance.text = ''
+        instance.text = ""
         instance.deleted = True
         instance.save()
 
 
 def destroy_comment(instance):
     remove_comment(instance.id)
-    if getattr(instance.top, 'preserve_comments', False):
+    if getattr(instance.top, "preserve_comments", False):
         fake_destroy_comment(instance)
     else:
         real_destroy_comment(instance)
-    if hasattr(instance.top, 'comment_deleted'):
+    if hasattr(instance.top, "comment_deleted"):
         instance.top.comment_deleted(instance)
 
 
-def create_comment(target: Model, serializer: 'NewCommentSerializer', user: 'User') -> Comment:
+def create_comment(
+    target: Model, serializer: "NewCommentSerializer", user: "User"
+) -> Comment:
     if isinstance(target, Comment):
         top = target.top
     else:
@@ -698,14 +792,15 @@ def create_comment(target: Model, serializer: 'NewCommentSerializer', user: 'Use
         content_type=ContentType.objects.get_for_model(target),
         object_id=target.id,
         top_object_id=top.id,
-        top_content_type=ContentType.objects.get_for_model(top)
+        top_content_type=ContentType.objects.get_for_model(top),
     )
 
 
-def check_read(*, obj: Model, user: Union['User', 'ArtconomyAnonymousUser']):
+def check_read(*, obj: Model, user: Union["User", "ArtconomyAnonymousUser"]):
     if not user.is_authenticated:
         return None
-    from apps.sales.models import Order, Deliverable
+    from apps.sales.models import Deliverable, Order
+
     q = Q(content_type=ContentType.objects.get_for_model(obj), object_id=obj.id)
     if isinstance(obj, Order):
         q |= Q(order=obj)
@@ -716,29 +811,37 @@ def check_read(*, obj: Model, user: Union['User', 'ArtconomyAnonymousUser']):
         return True
     q = Q()
     for marker in markers:
-        q |= Q(content_type=marker.content_type, object_id=marker.object_id, last_read_on__gte=marker.modified_on)
+        q |= Q(
+            content_type=marker.content_type,
+            object_id=marker.object_id,
+            last_read_on__gte=marker.modified_on,
+        )
     return ReadMarker.objects.filter(q).filter(user=user).exists()
 
 
-def mark_read(*, obj: Model, user: 'User'):
+def mark_read(*, obj: Model, user: "User"):
     content_type = ContentType.objects.get_for_model(obj)
     ReadMarker.objects.update_or_create(
-        {'last_read_on': timezone.now()},
+        {"last_read_on": timezone.now()},
         user=user,
         content_type=ContentType.objects.get_for_model(obj),
         object_id=obj.id,
     )
-    Notification.objects.filter(event__content_type=content_type, event__object_id=obj.id, user=user).update(read=True)
+    Notification.objects.filter(
+        event__content_type=content_type, event__object_id=obj.id, user=user
+    ).update(read=True)
 
 
-def mark_modified(*, obj: Model, deliverable: 'Deliverable' = None, order: 'Order' = None):
+def mark_modified(
+    *, obj: Model, deliverable: "Deliverable" = None, order: "Order" = None
+):
     kwargs = {}
     if deliverable is not None:
-        kwargs['deliverable'] = deliverable
+        kwargs["deliverable"] = deliverable
     if order is not None:
-        kwargs['order'] = order
+        kwargs["order"] = order
     ModifiedMarker.objects.update_or_create(
-        {'modified_on': timezone.now(), **kwargs},
+        {"modified_on": timezone.now(), **kwargs},
         content_type=ContentType.objects.get_for_model(obj),
         object_id=obj.id,
     )
@@ -746,9 +849,12 @@ def mark_modified(*, obj: Model, deliverable: 'Deliverable' = None, order: 'Orde
 
 # To be used as a post-delete receiver
 def clear_markers(sender: Type[Model], instance: Model, **kwargs):
-    from apps.lib.models import ReadMarker, ModifiedMarker
+    from apps.lib.models import ModifiedMarker, ReadMarker
+
     content_type = ContentType.objects.get_for_model(instance)
-    ModifiedMarker.objects.filter(content_type=content_type, object_id=instance.id).delete()
+    ModifiedMarker.objects.filter(
+        content_type=content_type, object_id=instance.id
+    ).delete()
     ReadMarker.objects.filter(content_type=content_type, object_id=instance.id).delete()
     clear_events_subscriptions_and_comments(instance)
 
@@ -757,18 +863,33 @@ def clear_events_subscriptions_and_comments(target: Model):
     content_type = ContentType.objects.get_for_model(target)
     Subscription.objects.filter(content_type=content_type, object_id=target.id).delete()
     Event.objects.filter(content_type=content_type, object_id=target.id).delete()
-    for comment in Comment.objects.filter(top_content_type=content_type, top_object_id=target.id):
+    for comment in Comment.objects.filter(
+        top_content_type=content_type, top_object_id=target.id
+    ):
         real_destroy_comment(comment)
 
 
-def websocket_send(*, group: str, command: str, payload: Optional[dict] = None, exclude: Optional[List[str]]):
+def websocket_send(
+    *,
+    group: str,
+    command: str,
+    payload: Optional[dict] = None,
+    exclude: Optional[List[str]],
+):
     """
     Broadcasts a message to a specific websocket group.
     """
     layer = get_channel_layer()
     async_to_sync(layer.group_send)(
         group,
-        {'type': 'broadcast', 'contents': {'command': command, 'payload': payload or {}, 'exclude': exclude or []}},
+        {
+            "type": "broadcast",
+            "contents": {
+                "command": command,
+                "payload": payload or {},
+                "exclude": exclude or [],
+            },
+        },
     )
 
 
@@ -778,7 +899,7 @@ def exclude_request(request: Optional[HttpRequest]) -> List[str]:
     """
     if request is None:
         return []
-    window_id = request.META.get('HTTP_X_WINDOW_ID', None)
+    window_id = request.META.get("HTTP_X_WINDOW_ID", None)
     if window_id:
         return [window_id]
     return []
@@ -789,6 +910,7 @@ def update_websocket(signal, model, *serializer_names):
     Used to connect a model to broadcast out changes when updates are made. Attach a signal to have the instance run
     through the specified serializers and broadcasted to the listening clients.
     """
+
     def update_broadcaster(instance: Model, **kwargs):
         if not transaction.get_autocommit():
             # If we're in a transaction, delay this until we're completely finished.
@@ -799,14 +921,18 @@ def update_websocket(signal, model, *serializer_names):
         model_name = model.__name__
         for serializer_name in serializer_names:
             async_to_sync(layer.group_send)(
-                f'{app_label}.{model_name}.update.{serializer_name}.{instance.pk}',
-                {'type': 'update_model', 'contents': {
-                    'model_name': model_name,
-                    'app_label': app_label,
-                    'serializer': serializer_name,
-                    'pk': instance.pk,
-                }}
+                f"{app_label}.{model_name}.update.{serializer_name}.{instance.pk}",
+                {
+                    "type": "update_model",
+                    "contents": {
+                        "model_name": model_name,
+                        "app_label": app_label,
+                        "serializer": serializer_name,
+                        "pk": instance.pk,
+                    },
+                },
             )
+
     # Need to return the function because the name of a receiver has to be defined to run.
     return receiver(signal, sender=model)(update_broadcaster)
 
@@ -829,12 +955,18 @@ def dedup_asset(asset):
     """
     Find any duplicates of this asset and replace them, destroying the asset if needed.
     """
-    replacement = Asset.objects.exclude(id=asset.id).exclude(
-        created_on__gt=asset.created_on,
-    ).filter(hash=asset.hash).order_by('created_on', 'id').first()
+    replacement = (
+        Asset.objects.exclude(id=asset.id)
+        .exclude(
+            created_on__gt=asset.created_on,
+        )
+        .filter(hash=asset.hash)
+        .order_by("created_on", "id")
+        .first()
+    )
     if not replacement:
         return
-    print(f'Replacing {asset} with {replacement}')
+    print(f"Replacing {asset} with {replacement}")
     replace_foreign_references(asset, replacement)
     purge_asset(asset)
 
@@ -849,10 +981,10 @@ def get_related_field_info(field):
     if related_name is None:
         related_name = field.name
         auto = True
-    if related_name == '+':
+    if related_name == "+":
         return None, field
     if not field.one_to_one and auto:
-        related_name += '_set'
+        related_name += "_set"
     return related_name, field
 
 
@@ -863,9 +995,11 @@ def replace_related_for_field(instance, field, replacement):
     related_name, field = get_related_field_info(field)
     if related_name is None:
         # Can't trace it, can't replace it.
-        raise IntegrityError(f'Could not reverse field for replacement: {field}')
+        raise IntegrityError(f"Could not reverse field for replacement: {field}")
     if field.one_to_one:
-        setattr(replacement, related_name + '_id', getattr(instance, related_name + '_id'))
+        setattr(
+            replacement, related_name + "_id", getattr(instance, related_name + "_id")
+        )
         # This may fail if the field is not permitted to be null.
         setattr(instance, related_name, None)
         instance.save()
@@ -875,7 +1009,7 @@ def replace_related_for_field(instance, field, replacement):
         getattr(replacement, related_name).add(*getattr(instance, related_name).all())
         getattr(instance, related_name).clear()
         return
-    raise RuntimeError(f'Unknown related field type, {field}')
+    raise RuntimeError(f"Unknown related field type, {field}")
 
 
 def related_iterable_from_field(instance, field, check_existence=False):
@@ -884,7 +1018,7 @@ def related_iterable_from_field(instance, field, check_existence=False):
         return []
     if field.one_to_one:
         if check_existence:
-            if getattr(instance, related_name + '_id'):
+            if getattr(instance, related_name + "_id"):
                 return [True]
             return []
         # This may be wrong but I'm not using it anywhere yet.
@@ -898,15 +1032,22 @@ def related_iterable_from_field(instance, field, check_existence=False):
                 return [True]
             return []
         return getattr(instance, related_name).all()
-    raise RuntimeError(f'Unknown related field type, {field}')
+    raise RuntimeError(f"Unknown related field type, {field}")
 
 
 def get_all_foreign_references(instance, check_existence=False):
-    check_fields = [field for field in instance._meta.get_fields() if (any(
-        (field.one_to_many, field.many_to_many, field.one_to_one))
-    )]
+    check_fields = [
+        field
+        for field in instance._meta.get_fields()
+        if (any((field.one_to_many, field.many_to_many, field.one_to_one)))
+    ]
     yield from chain.from_iterable(
-        (related_iterable_from_field(instance, field, check_existence=check_existence) for field in check_fields),
+        (
+            related_iterable_from_field(
+                instance, field, check_existence=check_existence
+            )
+            for field in check_fields
+        ),
     )
 
 
@@ -916,9 +1057,11 @@ def replace_foreign_references(instance, replacement):
     Find all places where this instance is referenced and replace them with another instance.
     """
     # Foreign keys first.
-    check_fields = [field for field in instance._meta.get_fields() if (any(
-        (field.one_to_many, field.many_to_many, field.one_to_one))
-    )]
+    check_fields = [
+        field
+        for field in instance._meta.get_fields()
+        if (any((field.one_to_many, field.many_to_many, field.one_to_one)))
+    ]
     for field in check_fields:
         replace_related_for_field(instance, field, replacement)
 
@@ -942,12 +1085,12 @@ def _get_relative_position_value(instance, field_name: str, delta: int, relative
     params = {}
     current_value = getattr(relative_to, field_name)
     if delta > 0:
-        params[f'{field_name}__lt'] = current_value
-        order = f'-{field_name}'
+        params[f"{field_name}__lt"] = current_value
+        order = f"-{field_name}"
         min_change = -1
     else:
-        params[f'{field_name}__gt'] = current_value
-        order = f'{field_name}'
+        params[f"{field_name}__gt"] = current_value
+        order = f"{field_name}"
         min_change = 1
     result = relative_to.__class__.objects.filter(**params).order_by(order).first()
     if not result:
@@ -955,24 +1098,32 @@ def _get_relative_position_value(instance, field_name: str, delta: int, relative
     return getattr(result, field_name)
 
 
-def shift_position(instance, field_name: str, delta: int, current_value: Optional[int]=None, relative_to=None):
+def shift_position(
+    instance,
+    field_name: str,
+    delta: int,
+    current_value: Optional[int] = None,
+    relative_to=None,
+):
     """
     Takes an instance with a positioning field, and bumps it up or down one spot.
     """
     if abs(delta) != 1:
-        raise ValueError('This function may only be used to shift one place.')
+        raise ValueError("This function may only be used to shift one place.")
     params = {}
     if relative_to:
-        current_value = _get_relative_position_value(instance, field_name, delta, relative_to)
+        current_value = _get_relative_position_value(
+            instance, field_name, delta, relative_to
+        )
     elif current_value is None:
         current_value = getattr(instance, field_name)
     if delta > 0:
-        params[f'{field_name}__gt'] = current_value
-        order = f'{field_name}'
+        params[f"{field_name}__gt"] = current_value
+        order = f"{field_name}"
         min_change = 1
     else:
-        params[f'{field_name}__lt'] = current_value
-        order = f'-{field_name}'
+        params[f"{field_name}__lt"] = current_value
+        order = f"-{field_name}"
         min_change = -1
     results = instance.__class__.objects.filter(**params).order_by(order)[:2]
     if len(results) == 0:

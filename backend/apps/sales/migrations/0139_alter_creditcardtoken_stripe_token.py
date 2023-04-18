@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0138_merge_20220707_1021'),
+        ("sales", "0138_merge_20220707_1021"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='creditcardtoken',
-            name='stripe_token',
-            field=models.CharField(blank=True, db_index=True, default=None, max_length=50, null=True),
+            model_name="creditcardtoken",
+            name="stripe_token",
+            field=models.CharField(
+                blank=True, db_index=True, default=None, max_length=50, null=True
+            ),
         ),
     ]

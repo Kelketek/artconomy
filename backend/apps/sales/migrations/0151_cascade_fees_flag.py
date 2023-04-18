@@ -4,25 +4,39 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0150_add_due_date'),
+        ("sales", "0150_add_due_date"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='deliverable',
-            name='cascade_fees',
+            model_name="deliverable",
+            name="cascade_fees",
             field=models.BooleanField(default=True),
         ),
         migrations.AddField(
-            model_name='product',
-            name='cascade_fees',
+            model_name="product",
+            name="cascade_fees",
             field=models.BooleanField(default=True),
         ),
         migrations.AlterField(
-            model_name='lineitem',
-            name='type',
-            field=models.IntegerField(choices=[(0, 'Base Price'), (1, 'Add on or Discount'), (10, 'Deliverable Tracking Fee'), (9, 'Other fee'), (2, 'Shield'), (3, 'Bonus'), (4, 'Tip'), (5, 'Table Service'), (7, 'Extra'), (6, 'Tax'), (8, 'Premium Subscription')], db_index=True),
+            model_name="lineitem",
+            name="type",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Base Price"),
+                    (1, "Add on or Discount"),
+                    (10, "Deliverable Tracking Fee"),
+                    (9, "Other fee"),
+                    (2, "Shield"),
+                    (3, "Bonus"),
+                    (4, "Tip"),
+                    (5, "Table Service"),
+                    (7, "Extra"),
+                    (6, "Tax"),
+                    (8, "Premium Subscription"),
+                ],
+                db_index=True,
+            ),
         ),
     ]

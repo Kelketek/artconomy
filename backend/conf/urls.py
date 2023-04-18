@@ -15,34 +15,36 @@ Including another URLconf
 """
 import re
 import sys
-from django.conf import settings
-from django.urls import re_path, include
-from django.contrib import admin
-from django.core.exceptions import ImproperlyConfigured
-from django.views.static import serve
-from django_otp.admin import OTPAdminSite
 
 import views
-
+from django.conf import settings
+from django.contrib import admin
+from django.core.exceptions import ImproperlyConfigured
+from django.urls import include, re_path
+from django.views.static import serve
+from django_otp.admin import OTPAdminSite
 
 if not settings.DEBUG:
     admin.site.__class__ = OTPAdminSite
 
 
 urlpatterns = [
-    re_path(r'^admin/', admin.site.urls),
-    re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    re_path(r'^profile/', include('apps.profiles.profile_urls', namespace='profile')),
-    re_path(r'^submissions/', include('apps.profiles.submission_urls', namespace='submissions')),
-    re_path(r'^store/', include('apps.sales.store_urls', namespace='store')),
-    re_path(r'^api/profiles/', include('apps.profiles.urls', namespace='profiles')),
-    re_path(r'^api/sales/', include('apps.sales.urls', namespace='sales')),
-    re_path(r'^api/lib/', include('apps.lib.urls', namespace='lib')),
-    re_path(r'^api/tg_bot/', include('apps.tg_bot.urls', namespace='tg_bot')),
-    re_path(r'^api/', views.bad_endpoint, name='api404'),
-    re_path(r'^force-error-email/', views.force_error_email, name='force_error'),
-    re_path(r'^test-telegram/', views.test_telegram, name='test_telegram'),
-    re_path(r'^discord/', include('apps.discord_bot.urls', namespace='discord_bot'))
+    re_path(r"^admin/", admin.site.urls),
+    re_path(r"^api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    re_path(r"^profile/", include("apps.profiles.profile_urls", namespace="profile")),
+    re_path(
+        r"^submissions/",
+        include("apps.profiles.submission_urls", namespace="submissions"),
+    ),
+    re_path(r"^store/", include("apps.sales.store_urls", namespace="store")),
+    re_path(r"^api/profiles/", include("apps.profiles.urls", namespace="profiles")),
+    re_path(r"^api/sales/", include("apps.sales.urls", namespace="sales")),
+    re_path(r"^api/lib/", include("apps.lib.urls", namespace="lib")),
+    re_path(r"^api/tg_bot/", include("apps.tg_bot.urls", namespace="tg_bot")),
+    re_path(r"^api/", views.bad_endpoint, name="api404"),
+    re_path(r"^force-error-email/", views.force_error_email, name="force_error"),
+    re_path(r"^test-telegram/", views.test_telegram, name="test_telegram"),
+    re_path(r"^discord/", include("apps.discord_bot.urls", namespace="discord_bot")),
 ]
 
 
@@ -57,18 +59,20 @@ def static(prefix, view=serve, **kwargs):
     """
     if not prefix:
         raise ImproperlyConfigured("Empty static prefix not permitted")
-    elif '://' in prefix:
+    elif "://" in prefix:
         # No-op if not in debug mode or a non-local prefix.
         return []
     return [
-        re_path(r'^%s(?P<path>.*)$' % re.escape(prefix.lstrip('/')), view, kwargs=kwargs),
+        re_path(
+            r"^%s(?P<path>.*)$" % re.escape(prefix.lstrip("/")), view, kwargs=kwargs
+        ),
     ]
 
 
-if settings.DEBUG or 'test' in sys.argv:
-    urlpatterns += static('/js/', document_root=settings.STATIC_ROOT + '/dist/js/')
-    urlpatterns += static('/css/', document_root=settings.STATIC_ROOT + '/dist/css/')
+if settings.DEBUG or "test" in sys.argv:
+    urlpatterns += static("/js/", document_root=settings.STATIC_ROOT + "/dist/js/")
+    urlpatterns += static("/css/", document_root=settings.STATIC_ROOT + "/dist/css/")
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
-urlpatterns += [re_path(r'^', views.index)]
+urlpatterns += [re_path(r"^", views.index)]

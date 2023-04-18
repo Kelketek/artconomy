@@ -5,9 +5,9 @@ from easy_thumbnails.files import generate_all_aliases
 
 
 def regen_thumbnails(apps, schema):
-    ImageAsset = apps.get_model('profiles', 'ImageAsset')
-    Product = apps.get_model('sales', 'Product')
-    Revision = apps.get_model('sales', 'Revision')
+    ImageAsset = apps.get_model("profiles", "ImageAsset")
+    Product = apps.get_model("sales", "Product")
+    Revision = apps.get_model("sales", "Revision")
     models = [ImageAsset, Revision, Product]
     for model in models:
         for item in model.objects.all():
@@ -18,9 +18,8 @@ def regen_thumbnails(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0018_auto_20180723_1528'),
+        ("lib", "0018_auto_20180723_1528"),
     ]
 
     operations = [

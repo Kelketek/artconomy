@@ -1,6 +1,6 @@
-from django.core.management import BaseCommand
 from apps.tg_bot.bot import init
 from django.conf import settings
+from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):

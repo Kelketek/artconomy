@@ -6,14 +6,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0006_auto_20180118_1632'),
+        ("profiles", "0006_auto_20180118_1632"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='imageasset',
-            name='tags',
+            model_name="imageasset",
+            name="tags",
         ),
     ]

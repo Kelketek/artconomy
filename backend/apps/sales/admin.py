@@ -1,5 +1,25 @@
 from uuid import UUID
 
+from apps.lib.admin import CommentInline
+from apps.lib.models import ref_for_instance
+from apps.sales.models import (
+    CreditCardToken,
+    Deliverable,
+    Invoice,
+    LineItem,
+    LineItemAnnotation,
+    Order,
+    Product,
+    Promo,
+    Rating,
+    Revision,
+    ServicePlan,
+    StripeLocation,
+    StripeReader,
+    TransactionRecord,
+    WebhookRecord,
+)
+from apps.sales.utils import reverse_record
 from django import forms
 from django.conf import settings
 from django.contrib import admin, messages
@@ -11,32 +31,47 @@ from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
-from apps.lib.admin import CommentInline
-from apps.lib.models import ref_for_instance
-from apps.sales.models import Product, Order, Revision, Promo, TransactionRecord, Rating, Deliverable, LineItem, \
-    Invoice, WebhookRecord, LineItemAnnotation, ServicePlan, StripeLocation, StripeReader, CreditCardToken
-from apps.sales.utils import reverse_record
-
 
 class ProductAdmin(admin.ModelAdmin):
-    raw_id_fields = ['user', 'owner', 'primary_submission', 'samples', 'tags', 'file', 'preview']
+    raw_id_fields = [
+        "user",
+        "owner",
+        "primary_submission",
+        "samples",
+        "tags",
+        "file",
+        "preview",
+    ]
 
 
 class OrderAdmin(admin.ModelAdmin):
-    inlines = [
-        CommentInline
-    ]
-    raw_id_fields = ['buyer', 'seller']
-    list_display = ('buyer', 'seller')
+    inlines = [CommentInline]
+    raw_id_fields = ["buyer", "seller"]
+    list_display = ("buyer", "seller")
 
 
 class DeliverableAdmin(admin.ModelAdmin):
-    inlines = [
-        CommentInline
+    inlines = [CommentInline]
+    raw_id_fields = [
+        "arbitrator",
+        "characters",
+        "product",
+        "order",
+        "invoice",
+        "tip_invoice",
     ]
-    raw_id_fields = ['arbitrator', 'characters', 'product', 'order', 'invoice', 'tip_invoice']
-    list_display = ('id', 'name', 'product', 'buyer', 'seller', 'created_on', 'escrow_enabled', 'status', 'link')
-    list_filter = ('escrow_enabled', 'status', 'processor')
+    list_display = (
+        "id",
+        "name",
+        "product",
+        "buyer",
+        "seller",
+        "created_on",
+        "escrow_enabled",
+        "status",
+        "link",
+    )
+    list_filter = ("escrow_enabled", "status", "processor")
 
     def buyer(self, obj):
         return obj.order.buyer
@@ -52,43 +87,55 @@ class DeliverableAdmin(admin.ModelAdmin):
 
 
 class LineItemAnnotationInline(admin.TabularInline):
-    raw_id_fields = ['target']
+    raw_id_fields = ["target"]
     model = LineItemAnnotation
 
 
 line_fields = (
-    'type', 'priority', 'amount', 'frozen_value', 'percentage', 'cascade_percentage', 'back_into_percentage',
-    'cascade_amount', 'destination_user', 'destination_account', 'description',
+    "type",
+    "priority",
+    "amount",
+    "frozen_value",
+    "percentage",
+    "cascade_percentage",
+    "back_into_percentage",
+    "cascade_amount",
+    "destination_user",
+    "destination_account",
+    "description",
 )
 
 
 class LineItemAdmin(admin.ModelAdmin):
-    fields = ('invoice',) + line_fields
-    raw_id_fields = ('invoice', 'destination_user')
+    fields = ("invoice",) + line_fields
+    raw_id_fields = ("invoice", "destination_user")
     inlines = [LineItemAnnotationInline]
 
 
 class LineItemInline(admin.StackedInline):
-    fields = line_fields + ('edit_annotations',)
-    raw_id_fields = ('destination_user',)
-    readonly_fields = ('edit_annotations',)
+    fields = line_fields + ("edit_annotations",)
+    raw_id_fields = ("destination_user",)
+    readonly_fields = ("edit_annotations",)
 
     def edit_annotations(self, obj):
         if not obj.id:
-            return 'Save to edit annotations.'
-        return format_html(f'<a href="{reverse("admin:sales_lineitem_change", args=[obj.id])}">Edit Annotations</a>')
+            return "Save to edit annotations."
+        return format_html(
+            f'<a href="{reverse("admin:sales_lineitem_change", args=[obj.id])}">Edit Annotations</a>'
+        )
 
     model = LineItem
 
 
 class InvoiceAdmin(admin.ModelAdmin):
-    raw_id_fields = ['bill_to', 'issued_by', 'targets']
-    list_display = ('id', 'bill_to', 'status', 'total', 'link')
-    list_filter = ['status']
+    raw_id_fields = ["bill_to", "issued_by", "targets"]
+    list_display = ("id", "bill_to", "status", "total", "link")
+    list_filter = ["status"]
     inlines = [LineItemInline]
 
     def link(self, obj):
         from apps.profiles.models import User
+
         target_user = obj.bill_to or User.objects.first()
         return format_html(
             f'<a href="/profile/{target_user.username}/invoice/{obj.id}/">visit</a>',
@@ -102,25 +149,25 @@ def safe_display(record):
     """
     return (
         f'<a href="{reverse("admin:sales_transactionrecord_change", args=[record.id])}">{record.id}</a> '
-        f'{record.get_category_display()} for {record.amount} from {record.get_source_display()} '
-        f'to {record.get_destination_display()}'
+        f"{record.get_category_display()} for {record.amount} from {record.get_source_display()} "
+        f"to {record.get_destination_display()}"
     )
 
 
 def reverse_message(source: TransactionRecord, destination: TransactionRecord):
     return (
-        f'<p>{safe_display(source)} was reversed in '
+        f"<p>{safe_display(source)} was reversed in "
         f'<a href="{reverse("admin:sales_transactionrecord_change", args=[destination.id])}">{destination.id}</a></p>'
     )
 
 
-@admin.action(description='Reverse these transactions')
+@admin.action(description="Reverse these transactions")
 @atomic
 def reverse_transactions(modeladmin, request, queryset):
     existing = {}
     wrong_status = []
     created = {}
-    for record in queryset.order_by('created_on'):
+    for record in queryset.order_by("created_on"):
         try:
             new, new_record = reverse_record(record)
             if new:
@@ -131,58 +178,75 @@ def reverse_transactions(modeladmin, request, queryset):
             wrong_status.append(record)
     if created:
         entries = [
-            reverse_message(source, destination) for source, destination in created.items()
+            reverse_message(source, destination)
+            for source, destination in created.items()
         ]
         message = f'<p>The following reversions were created successfully:</p>{"".join(entries)}'
-        modeladmin.message_user(request, mark_safe(message), level=messages.SUCCESS, extra_tags='safe')
+        modeladmin.message_user(
+            request, mark_safe(message), level=messages.SUCCESS, extra_tags="safe"
+        )
     if existing:
         entries = [
-            reverse_message(source, destination) for source, destination in existing.items()
+            reverse_message(source, destination)
+            for source, destination in existing.items()
         ]
         message = f'<p>The following reversions already existed:</p>{"".join(entries)}'
-        modeladmin.message_user(request, mark_safe(message), level=messages.WARNING, extra_tags='safe')
+        modeladmin.message_user(
+            request, mark_safe(message), level=messages.WARNING, extra_tags="safe"
+        )
     if wrong_status:
         entries = [
-            f'<p>{safe_display(record)} (status was: {record.get_status_display()})</p>'
+            f"<p>{safe_display(record)} (status was: {record.get_status_display()})</p>"
             for record in wrong_status
         ]
-        message = f'<p>The following records could not be reversed, ' \
-                  f'as they were in the wrong status:</p>{"".join(entries)}'
+        message = (
+            f"<p>The following records could not be reversed, "
+            f'as they were in the wrong status:</p>{"".join(entries)}'
+        )
         modeladmin.message_user(request, mark_safe(message), level=messages.ERROR)
 
 
 class TransactionRecordAdmin(admin.ModelAdmin):
     actions = [reverse_transactions]
-    search_fields = ('id', 'payee__username', 'payer__username')
-    raw_id_fields = ('payer', 'payee', 'targets')
-    list_filter = ('category', 'status', 'source', 'destination')
-    list_display = ('id', 'status', 'category', 'created_on', 'finalized_on', 'paid_by', 'source', 'paid_to', 'destination', 'amount')
-    ordering = ('-created_on',)
+    search_fields = ("id", "payee__username", "payer__username")
+    raw_id_fields = ("payer", "payee", "targets")
+    list_filter = ("category", "status", "source", "destination")
+    list_display = (
+        "id",
+        "status",
+        "category",
+        "created_on",
+        "finalized_on",
+        "paid_by",
+        "source",
+        "paid_to",
+        "destination",
+        "amount",
+    )
+    ordering = ("-created_on",)
 
     def paid_by(self, obj):
         if obj.payer:
             return obj.payer.username
         else:
-            return '(Artconomy)'
+            return "(Artconomy)"
 
     def paid_to(self, obj):
         if obj.payee:
             return obj.payee.username
         else:
-            return '(Artconomy)'
+            return "(Artconomy)"
 
 
 class RatingAdmin(admin.ModelAdmin):
-    raw_id_fields = ['rater', 'target']
+    raw_id_fields = ["rater", "target"]
 
 
 class WebhookRecordAdminForm(forms.ModelForm):
     class Meta:
         model = WebhookRecord
         exclude = []
-        widgets = {
-            'secret': TextInput(attrs={'type': 'password'})
-        }
+        widgets = {"secret": TextInput(attrs={"type": "password"})}
 
 
 class WebhookRecordAdmin(admin.ModelAdmin):
@@ -190,11 +254,11 @@ class WebhookRecordAdmin(admin.ModelAdmin):
 
 
 class RevisionAdmin(admin.ModelAdmin):
-    raw_id_fields = ['owner', 'deliverable', 'file', 'preview']
+    raw_id_fields = ["owner", "deliverable", "file", "preview"]
 
 
 class StripeLocationAdmin(admin.ModelAdmin):
-    readonly_fields = ['stripe_token']
+    readonly_fields = ["stripe_token"]
 
 
 class StripeReaderForm(ModelForm):
@@ -206,27 +270,27 @@ class StripeReaderForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.stripe_token:
-            self.fields['location'].disabled = True
-            self.fields['registration_code'].disabled = True
-            self.fields['registration_code'].required = False
+            self.fields["location"].disabled = True
+            self.fields["registration_code"].disabled = True
+            self.fields["registration_code"].required = False
 
     def save(self, commit: bool = ...):
-        self.instance.registration_code = self.cleaned_data['registration_code']
+        self.instance.registration_code = self.cleaned_data["registration_code"]
         return super().save(commit=commit)
 
     class Meta:
         model = StripeReader
-        fields = ['id', 'name', 'location', 'virtual']
-        readonly_fields = ['id', 'stripe_token']
+        fields = ["id", "name", "location", "virtual"]
+        readonly_fields = ["id", "stripe_token"]
 
 
 class StripeReaderAdmin(admin.ModelAdmin):
-    readonly_fields = ('stripe_token',)
+    readonly_fields = ("stripe_token",)
     form = StripeReaderForm
 
 
 class CreditCardTokenAdmin(admin.ModelAdmin):
-    raw_id_fields = ['user']
+    raw_id_fields = ["user"]
 
 
 admin.site.register(Product, ProductAdmin)

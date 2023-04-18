@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0012_auto_20180510_1417'),
+        ("lib", "0012_auto_20180510_1417"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='subscription',
-            name='email',
+            model_name="subscription",
+            name="email",
             field=models.BooleanField(default=False),
         ),
     ]

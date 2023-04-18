@@ -7,15 +7,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0001_initial_squashed_0023_auto_20180110_1155'),
+        ("sales", "0001_initial_squashed_0023_auto_20180110_1155"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='product',
-            name='max_parallel',
-            field=models.IntegerField(blank=True, default=0, help_text='How many of these you are willing to have in your backlog at one time.', validators=[django.core.validators.MinValueValidator(0)]),
+            model_name="product",
+            name="max_parallel",
+            field=models.IntegerField(
+                blank=True,
+                default=0,
+                help_text="How many of these you are willing to have in your backlog at one time.",
+                validators=[django.core.validators.MinValueValidator(0)],
+            ),
         ),
     ]

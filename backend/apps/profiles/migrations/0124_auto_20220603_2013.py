@@ -5,21 +5,24 @@ from django.db.models import F
 
 
 def hide_tags(apps, schema):
-    Submission = apps.get_model('profiles', 'Submission')
-    ArtistTag = apps.get_model('profiles', 'ArtistTag')
-    candidates = Submission.objects.filter(deliverable__isnull=False, deliverable__order__seller=F('owner'))
+    Submission = apps.get_model("profiles", "Submission")
+    ArtistTag = apps.get_model("profiles", "ArtistTag")
+    candidates = Submission.objects.filter(
+        deliverable__isnull=False, deliverable__order__seller=F("owner")
+    )
     for candidate in candidates:
-        to_hide = Submission.objects.filter(deliverable=candidate.deliverable).exclude(owner=candidate.owner)
+        to_hide = Submission.objects.filter(deliverable=candidate.deliverable).exclude(
+            owner=candidate.owner
+        )
         for submission in to_hide:
-            ArtistTag.objects.filter(submission=submission, user=candidate.owner).update(hidden=True)
+            ArtistTag.objects.filter(
+                submission=submission, user=candidate.owner
+            ).update(hidden=True)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0123_auto_20220507_0643'),
+        ("profiles", "0123_auto_20220507_0643"),
     ]
 
-    operations = [
-        migrations.RunPython(hide_tags)
-    ]
+    operations = [migrations.RunPython(hide_tags)]

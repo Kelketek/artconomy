@@ -4,16 +4,15 @@ from django.db import migrations
 
 
 def set_initial_rating_counts(apps, schema):
-    User = apps.get_model('profiles', 'User')
+    User = apps.get_model("profiles", "User")
     for user in User.objects.all():
         user.rating_count = user.ratings.all().count()
         user.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0102_user_rating_count'),
+        ("profiles", "0102_user_rating_count"),
     ]
 
     operations = [

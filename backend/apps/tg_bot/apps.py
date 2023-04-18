@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class TGBotConfig(AppConfig):
-    name = 'apps.tg_bot'
+    name = "apps.tg_bot"

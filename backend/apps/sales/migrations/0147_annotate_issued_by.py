@@ -4,7 +4,7 @@ from django.db import migrations
 
 
 def annotate_invoices(apps, schema):
-    Deliverable = apps.get_model('sales', 'Deliverable')
+    Deliverable = apps.get_model("sales", "Deliverable")
     for deliverable in Deliverable.objects.all():
         if deliverable.invoice:
             deliverable.invoice.issued_by = deliverable.order.seller
@@ -12,11 +12,8 @@ def annotate_invoices(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0146_auto_20221101_0956'),
+        ("sales", "0146_auto_20221101_0956"),
     ]
 
-    operations = [
-        migrations.RunPython(annotate_invoices)
-    ]
+    operations = [migrations.RunPython(annotate_invoices)]

@@ -4,11 +4,10 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0026_auto_20180404_1925'),
+        ("profiles", "0026_auto_20180404_1925"),
     ]
 
     operations = [
-        migrations.RenameField('ImageAsset', 'uploaded_by', 'owner'),
+        migrations.RenameField("ImageAsset", "uploaded_by", "owner"),
     ]

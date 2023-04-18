@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0039_auto_20190310_1532'),
+        ("sales", "0039_auto_20190310_1532"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='promo',
-            name='expires',
+            model_name="promo",
+            name="expires",
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0107_auto_20210330_1450'),
+        ("sales", "0107_auto_20210330_1450"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='deliverable',
-            name='current_intent',
-            field=models.CharField(db_index=True, default='', max_length=30),
+            model_name="deliverable",
+            name="current_intent",
+            field=models.CharField(db_index=True, default="", max_length=30),
         ),
     ]

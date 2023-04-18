@@ -1,8 +1,7 @@
 from io import BytesIO
 
-from PIL import Image
-
 from apps.profiles.tests.factories import CharacterFactory, SubmissionFactory
+from PIL import Image
 
 
 def gen_characters(user, count=5, submission_count=3):
@@ -21,12 +20,12 @@ def gen_characters(user, count=5, submission_count=3):
 
 
 def gen_image(**params):
-    width = params.get('width', 100)
-    height = params.get('height', width)
-    color = params.get('color', 'blue')
-    image_format = params.get('format', 'JPEG')
+    width = params.get("width", 100)
+    height = params.get("height", width)
+    color = params.get("color", "blue")
+    image_format = params.get("format", "JPEG")
 
-    thumb = Image.new('RGB', (width, height), color)
+    thumb = Image.new("RGB", (width, height), color)
     thumb_io = BytesIO()
     thumb.save(thumb_io, format=image_format)
     return thumb_io.getvalue()

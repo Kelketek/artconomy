@@ -4,44 +4,43 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0071_populate_line_items'),
+        ("sales", "0071_populate_line_items"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='order',
-            name='adjustment',
+            model_name="order",
+            name="adjustment",
         ),
         migrations.RenameField(
-            model_name='product',
-            old_name='price',
-            new_name='base_price',
+            model_name="product",
+            old_name="price",
+            new_name="base_price",
         ),
         migrations.RenameField(
-            model_name='product',
-            old_name='price_currency',
-            new_name='base_price_currency',
+            model_name="product",
+            old_name="price_currency",
+            new_name="base_price_currency",
         ),
         migrations.RemoveField(
-            model_name='order',
-            name='adjustment_currency',
+            model_name="order",
+            name="adjustment_currency",
         ),
         migrations.RemoveField(
-            model_name='order',
-            name='price',
+            model_name="order",
+            name="price",
         ),
         migrations.RemoveField(
-            model_name='order',
-            name='price_currency',
+            model_name="order",
+            name="price_currency",
         ),
         migrations.RemoveField(
-            model_name='order',
-            name='tip',
+            model_name="order",
+            name="tip",
         ),
         migrations.RemoveField(
-            model_name='order',
-            name='tip_currency',
+            model_name="order",
+            name="tip_currency",
         ),
     ]

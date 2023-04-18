@@ -5,15 +5,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0170_alter_transactionrecord_options_revision_approved_on_and_more'),
+        ("sales", "0170_alter_transactionrecord_options_revision_approved_on_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='display_position',
+            model_name="product",
+            name="display_position",
             field=models.FloatField(db_index=True, default=0),
         ),
     ]

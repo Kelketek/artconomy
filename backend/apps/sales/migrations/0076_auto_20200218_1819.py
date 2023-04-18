@@ -4,10 +4,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0075_remove_product_tax_rate'),
+        ("sales", "0075_remove_product_tax_rate"),
     ]
 
-    operations = [
-    ]
+    operations = []

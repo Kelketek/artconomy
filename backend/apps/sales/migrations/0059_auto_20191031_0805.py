@@ -4,20 +4,45 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0058_auto_20191023_1606'),
+        ("sales", "0058_auto_20191023_1606"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='rating',
-            field=models.IntegerField(choices=[(0, 'Clean/Safe for work'), (1, 'Risque/mature, not adult content but not safe for work'), (2, 'Adult content, not safe for work'), (3, 'Offensive/Disturbing to most viewers, not safe for work')], db_index=True, default=0, help_text='The desired content rating of this piece.'),
+            model_name="order",
+            name="rating",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Clean/Safe for work"),
+                    (1, "Risque/mature, not adult content but not safe for work"),
+                    (2, "Adult content, not safe for work"),
+                    (3, "Offensive/Disturbing to most viewers, not safe for work"),
+                ],
+                db_index=True,
+                default=0,
+                help_text="The desired content rating of this piece.",
+            ),
         ),
         migrations.AlterField(
-            model_name='transactionrecord',
-            name='category',
-            field=models.IntegerField(choices=[(400, 'Artconomy Service Fee'), (401, 'Escrow hold'), (402, 'Escrow release'), (403, 'Escrow refund'), (404, 'Subscription dues'), (405, 'Refund for subscription dues'), (406, 'Cash withdrawal'), (407, 'Cash deposit'), (408, 'Third party fee'), (409, 'Premium service bonus'), (410, 'Internal Transfer'), (411, 'Third party refund')], db_index=True),
+            model_name="transactionrecord",
+            name="category",
+            field=models.IntegerField(
+                choices=[
+                    (400, "Artconomy Service Fee"),
+                    (401, "Escrow hold"),
+                    (402, "Escrow release"),
+                    (403, "Escrow refund"),
+                    (404, "Subscription dues"),
+                    (405, "Refund for subscription dues"),
+                    (406, "Cash withdrawal"),
+                    (407, "Cash deposit"),
+                    (408, "Third party fee"),
+                    (409, "Premium service bonus"),
+                    (410, "Internal Transfer"),
+                    (411, "Third party refund"),
+                ],
+                db_index=True,
+            ),
         ),
     ]

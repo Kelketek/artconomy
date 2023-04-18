@@ -28,6 +28,10 @@ test_frontend:
 test_backend:
 	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"
 
+format:
+	${APP_COMMAND} "isort --profile=black ."
+	${APP_COMMAND} "black backend"
+
 upgrade:
 	rm -f requirements.txt && ${APP_COMMAND} "pip-compile --resolver=backtracking requirements.in constraints.in --output-file=requirements.txt"
 	rm -f deploy_requirements.txt && ${APP_COMMAND} "pip-compile --resolver=backtracking deploy_requirements.in"

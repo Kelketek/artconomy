@@ -4,20 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0097_auto_20200317_1659'),
+        ("profiles", "0097_auto_20200317_1659"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='artistprofile',
-            name='artist_of_color',
+            model_name="artistprofile",
+            name="artist_of_color",
             field=models.BooleanField(db_index=True, default=False),
         ),
         migrations.AddField(
-            model_name='artistprofile',
-            name='lgbt',
+            model_name="artistprofile",
+            name="lgbt",
             field=models.BooleanField(db_index=True, default=False),
         ),
     ]

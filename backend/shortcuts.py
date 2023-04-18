@@ -1,11 +1,15 @@
 import bs4
-from django.conf import settings
 import html2text
+from django.conf import settings
 
 
 def make_url(base_url, overrides=None):
     overrides = overrides or {}
-    context = {'proto': settings.DEFAULT_PROTOCOL, 'domain': settings.DEFAULT_DOMAIN, **overrides}
+    context = {
+        "proto": settings.DEFAULT_PROTOCOL,
+        "domain": settings.DEFAULT_DOMAIN,
+        **overrides,
+    }
     return "{proto}://{domain}{base_url}".format(
         base_url=base_url,
         **context,
@@ -14,31 +18,32 @@ def make_url(base_url, overrides=None):
 
 def disable_on_load(signal_handler):
     def wrapper(*args, **kwargs):
-        if kwargs.get('raw'):
+        if kwargs.get("raw"):
             return
         signal_handler(*args, **kwargs)
+
     return wrapper
 
 
 _textifier = html2text.HTML2Text()
 _textifier.ignore_links = False
 _textifier.reference_links = True
-_textifier.body_width = float('inf')
+_textifier.body_width = float("inf")
 
-invalid_tags = (('table', 'div'), ('td', 'span'), ('tr', 'div'))
+invalid_tags = (("table", "div"), ("td", "span"), ("tr", "div"))
 
 
 def strip_tags(html):
-    soup = bs4.BeautifulSoup(html, features='lxml')
+    soup = bs4.BeautifulSoup(html, features="lxml")
     for original, replacement in invalid_tags:
         for tag in soup.findAll(original):
             tag.name = replacement
-    for link in soup.findAll('a'):
+    for link in soup.findAll("a"):
         if not link.text.strip():
             link.decompose()
             continue
         link.string = f'{link.text}: {link["href"]}'
-        link.name = 'span'
+        link.name = "span"
     return soup
 
 

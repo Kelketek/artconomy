@@ -4,15 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0116_migrate_submission_order_inputs'),
-        ('sales', '0125_set_initial_product_ratings'),
+        ("profiles", "0116_migrate_submission_order_inputs"),
+        ("sales", "0125_set_initial_product_ratings"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='artistprofile',
-            name='max_rating',
+            model_name="artistprofile",
+            name="max_rating",
         ),
     ]

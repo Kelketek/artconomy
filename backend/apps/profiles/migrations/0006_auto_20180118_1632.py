@@ -6,19 +6,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0005_auto_20180118_1516'),
+        ("profiles", "0005_auto_20180118_1516"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='tag',
-            name='id',
+            model_name="tag",
+            name="id",
         ),
         migrations.AlterField(
-            model_name='tag',
-            name='name',
+            model_name="tag",
+            name="name",
             field=models.SlugField(primary_key=True, serialize=False, unique=True),
         ),
     ]

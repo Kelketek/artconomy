@@ -5,30 +5,37 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0074_auto_20190516_1848'),
+        ("profiles", "0074_auto_20190516_1848"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='character',
-            old_name='primary_asset',
-            new_name='primary_submission',
+            model_name="character",
+            old_name="primary_asset",
+            new_name="primary_submission",
         ),
         migrations.AlterField(
-            model_name='submission',
-            name='characters',
-            field=models.ManyToManyField(blank=True, related_name='submissions', to='profiles.Character'),
+            model_name="submission",
+            name="characters",
+            field=models.ManyToManyField(
+                blank=True, related_name="submissions", to="profiles.Character"
+            ),
         ),
         migrations.AlterField(
-            model_name='submission',
-            name='shared_with',
-            field=models.ManyToManyField(blank=True, related_name='shared_submissions', to=settings.AUTH_USER_MODEL),
+            model_name="submission",
+            name="shared_with",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="shared_submissions",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='submission',
-            name='tags',
-            field=models.ManyToManyField(blank=True, related_name='submissions', to='lib.Tag'),
+            model_name="submission",
+            name="tags",
+            field=models.ManyToManyField(
+                blank=True, related_name="submissions", to="lib.Tag"
+            ),
         ),
     ]

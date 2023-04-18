@@ -1,5 +1,5 @@
-from django.core.management import BaseCommand
 from apps.discord_bot.bot import bot
+from django.core.management import BaseCommand
 
 
 class Command(BaseCommand):

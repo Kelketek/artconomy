@@ -4,24 +4,25 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0113_artistprofile_public_queue'),
-        ('lib', '0035_remove_portrait_subscriptions'),
+        ("profiles", "0113_artistprofile_public_queue"),
+        ("lib", "0035_remove_portrait_subscriptions"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='user',
-            name='portrait_enabled',
+            model_name="user",
+            name="portrait_enabled",
         ),
         migrations.RemoveField(
-            model_name='user',
-            name='portrait_paid_through',
+            model_name="user",
+            name="portrait_paid_through",
         ),
         migrations.AlterField(
-            model_name='artistprofile',
-            name='public_queue',
-            field=models.BooleanField(default=True, help_text='Allow people to see your queue.'),
+            model_name="artistprofile",
+            name="public_queue",
+            field=models.BooleanField(
+                default=True, help_text="Allow people to see your queue."
+            ),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('contenttypes', '0002_remove_content_type_name'),
-        ('lib', '0028_genericreference'),
+        ("contenttypes", "0002_remove_content_type_name"),
+        ("lib", "0028_genericreference"),
     ]
 
     operations = [
         migrations.AlterUniqueTogether(
-            name='genericreference',
-            unique_together={('object_id', 'content_type')},
+            name="genericreference",
+            unique_together={("object_id", "content_type")},
         ),
     ]

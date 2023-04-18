@@ -4,25 +4,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0025_auto_20180709_1638'),
+        ("sales", "0025_auto_20180709_1638"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='auto_finalize_on',
+            model_name="order",
+            name="auto_finalize_on",
             field=models.DateField(blank=True, db_index=True, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='dispute_available_on',
+            model_name="order",
+            name="dispute_available_on",
             field=models.DateField(blank=True, null=True),
         ),
         migrations.AddField(
-            model_name='order',
-            name='paid_on',
+            model_name="order",
+            name="paid_on",
             field=models.DateTimeField(blank=True, db_index=True, null=True),
         ),
     ]

@@ -6,7 +6,6 @@ from django.views import View
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
-
 if TYPE_CHECKING:
     from apps.sales.models import Invoice
 
@@ -15,15 +14,16 @@ class ObjectControls(BasePermission):
     """
     Checks to make sure a user has permission to edit this object.
     """
-    message = 'You are not authorized to edit this.'
+
+    message = "You are not authorized to edit this."
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
-        user = getattr(obj, 'user', obj)
+        user = getattr(obj, "user", obj)
         if user == request.user:
             return True
-        if hasattr(obj, 'owner'):
+        if hasattr(obj, "owner"):
             if obj.owner == request.user:
                 return True
 
@@ -58,7 +58,9 @@ class SubmissionTagPermission(BasePermission):
     """
     Checks if the user has the ability to tag a submission
     """
-    message = 'Tagging is disabled for that submission.'
+
+    message = "Tagging is disabled for that submission."
+
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
@@ -69,6 +71,7 @@ class SubmissionTagPermission(BasePermission):
         if not obj.owner.taggable:
             return False
         return True
+
 
 class SubmissionViewPermission(BasePermission):
     """
@@ -92,26 +95,32 @@ class SubmissionCommentPermission(BasePermission):
     """
     Checks to see if comments are disabled for an submission.
     """
+
     def has_object_permission(self, request, view, obj):
         if obj.comments_disabled:
             return False
-        if obj.owner.blocking.filter(id=request.user.id).exists() and not request.user.is_staff:
+        if (
+            obj.owner.blocking.filter(id=request.user.id).exists()
+            and not request.user.is_staff
+        ):
             return False
         return True
 
 
 def derive_user(obj):
     from apps.profiles.models import User
+
     if isinstance(obj, User):
         return obj
-    return getattr(obj, 'user', getattr(obj, 'bill_to', None))
+    return getattr(obj, "user", getattr(obj, "bill_to", None))
 
 
 class UserControls(BasePermission):
     """
     Checks to see whether this is a staffer or the current user. Ignore actions if comment is deleted.
     """
-    message = 'You may not affect changes for this account.'
+
+    message = "You may not affect changes for this account."
 
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
@@ -124,14 +133,18 @@ class UserControls(BasePermission):
 
 
 class IssuedBy(BasePermission):
-    def has_object_permission(self, request: Request, view: View, obj: 'Invoice') -> bool:
-        invoice = getattr(obj, 'invoice', obj)
+    def has_object_permission(
+        self, request: Request, view: View, obj: "Invoice"
+    ) -> bool:
+        invoice = getattr(obj, "invoice", obj)
         return invoice.issued_by == request.user
 
 
 class BillTo(BasePermission):
-    def has_object_permission(self, request: Request, view: View, obj: 'Invoice') -> bool:
-        invoice = getattr(obj, 'invoice', obj)
+    def has_object_permission(
+        self, request: Request, view: View, obj: "Invoice"
+    ) -> bool:
+        invoice = getattr(obj, "invoice", obj)
         return invoice.bill_to == request.user
 
 
@@ -139,6 +152,7 @@ class NonPrivate(BasePermission):
     """
     Checks to see whether this object has its private field set True.
     """
+
     def has_object_permission(self, request, view, obj):
         return not obj.private
 
@@ -151,7 +165,7 @@ class ColorControls(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.is_staff:
             return True
-        if hasattr(obj, 'user'):
+        if hasattr(obj, "user"):
             if request.user == obj.user:
                 return True
             return False
@@ -162,6 +176,7 @@ class ColorControls(BasePermission):
 class ColorLimit(BasePermission):
     def has_object_permission(self, request, view, obj):
         from .models import Character
+
         if obj.colors.all().count() < Character.colors__max:
             return True
 
@@ -203,11 +218,11 @@ class IsSubject(BasePermission):
 
 
 class JournalCommentPermission(BasePermission):
-    message = 'You may not comment on this journal.'
+    message = "You may not comment on this journal."
 
     def has_object_permission(self, request, view, obj):
         if obj.comments_disabled:
-            self.message = 'Comments are disabled on this journal.'
+            self.message = "Comments are disabled on this journal."
             return False
         if obj.user.is_staff:
             return True
@@ -227,7 +242,8 @@ class IsSuperuser(BasePermission):
 
 
 class IsRegistered(BasePermission):
-    message = 'This action only available to registered users.'
+    message = "This action only available to registered users."
+
     def has_object_permission(self, request, view, obj):
         return request.user.is_registered
 
@@ -237,17 +253,18 @@ class IsRegistered(BasePermission):
 
 def AccountAge(delta: relativedelta):
     class AccountAgePermission(BasePermission):
-        message = 'Your account is too new. Please try again later.'
+        message = "Your account is too new. Please try again later."
 
         def has_permission(self, request: Request, view: View) -> bool:
             if not request.user.is_registered:
                 return False
             return request.user.date_joined < (timezone.now() - delta)
+
     return AccountAgePermission
 
 
 class AccountCurrentPermission(BasePermission):
-    message = 'You have an outstanding subscription invoice which must be paid first.'
+    message = "You have an outstanding subscription invoice which must be paid first."
 
     def has_object_permission(self, request, view, obj):
         user = derive_user(obj)

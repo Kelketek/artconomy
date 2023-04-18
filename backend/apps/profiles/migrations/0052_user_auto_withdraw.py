@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0051_remove_user_use_load_tracker'),
+        ("profiles", "0051_remove_user_use_load_tracker"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='auto_withdraw',
+            model_name="user",
+            name="auto_withdraw",
             field=models.BooleanField(default=True),
         ),
     ]

@@ -6,21 +6,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0009_character_tags'),
+        ("profiles", "0009_character_tags"),
     ]
 
-    database_operations = [
-        migrations.AlterModelTable('Tag', 'lib_tag')
-    ]
+    database_operations = [migrations.AlterModelTable("Tag", "lib_tag")]
 
-    state_operations = [
-    ]
+    state_operations = []
 
     operations = [
         migrations.SeparateDatabaseAndState(
-            database_operations=database_operations,
-            state_operations=state_operations
+            database_operations=database_operations, state_operations=state_operations
         )
     ]

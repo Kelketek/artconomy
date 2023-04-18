@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 def default_deliverable_names(apps, schema):
-    Deliverable = apps.get_model('sales', 'Deliverable')
-    Deliverable.objects.filter(name='').update(name='Main')
+    Deliverable = apps.get_model("sales", "Deliverable")
+    Deliverable.objects.filter(name="").update(name="Main")
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0091_auto_20200515_1649'),
+        ("sales", "0091_auto_20200515_1649"),
     ]
 
     operations = [

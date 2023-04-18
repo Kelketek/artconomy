@@ -6,8 +6,36 @@ from pprint import pformat
 
 import dateutil
 import requests
+from apps.lib.models import TRANSFER_FAILED, ref_for_instance
+from apps.lib.utils import notify
+from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
+from apps.sales.constants import (
+    BANK,
+    CASH_WITHDRAW,
+    FAILURE,
+    HOLDINGS,
+    NEW,
+    PAYMENT_PENDING,
+    PAYOUT_MIRROR_DESTINATION,
+    PAYOUT_MIRROR_SOURCE,
+    PAYOUT_REVERSAL,
+    STRIPE,
+    SUCCESS,
+    TYPE_TRANSLATION,
+)
+from apps.sales.models import (
+    CreditCardToken,
+    Deliverable,
+    Invoice,
+    StripeAccount,
+    TransactionRecord,
+    WebhookRecord,
+)
+from apps.sales.stripe import stripe
+from apps.sales.tasks import withdraw_all
+from apps.sales.utils import UserPaymentException, invoice_post_payment
+from apps.sales.views.main import logger
 from django.conf import settings
-
 from django.db import transaction
 from django.db.transaction import atomic
 from django.utils import timezone
@@ -18,73 +46,63 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from stripe.error import SignatureVerificationError
 
-from apps.lib.models import ref_for_instance, TRANSFER_FAILED
-from apps.lib.utils import notify
-from apps.profiles.models import User, IN_SUPPORTED_COUNTRY
-from apps.sales.constants import STRIPE, NEW, PAYMENT_PENDING, TYPE_TRANSLATION, FAILURE, SUCCESS, PAYOUT_REVERSAL, \
-    CASH_WITHDRAW, PAYOUT_MIRROR_DESTINATION, PAYOUT_MIRROR_SOURCE, BANK, HOLDINGS
-from apps.sales.models import Invoice, Deliverable, TransactionRecord, CreditCardToken, \
-    StripeAccount, WebhookRecord
-from apps.sales.stripe import stripe
-from apps.sales.tasks import withdraw_all
-from apps.sales.utils import UserPaymentException, invoice_post_payment
-from apps.sales.views.main import logger
-
 
 @transaction.atomic
 def handle_charge_event(event, successful=True):
-    charge_event = event['data']['object']
-    metadata = charge_event['metadata']
+    charge_event = event["data"]["object"]
+    metadata = charge_event["metadata"]
     amount = Money(
-        (Decimal(charge_event['amount']) / Decimal('100')).quantize(Decimal('0.00')),
-        charge_event['currency'].upper(),
+        (Decimal(charge_event["amount"]) / Decimal("100")).quantize(Decimal("0.00")),
+        charge_event["currency"].upper(),
     )
-    if 'invoice_id' in metadata:
-        invoice = Invoice.objects.get(id=metadata['invoice_id'])
+    if "invoice_id" in metadata:
+        invoice = Invoice.objects.get(id=metadata["invoice_id"])
         if successful:
-            if invoice.current_intent != charge_event['payment_intent']:
+            if invoice.current_intent != charge_event["payment_intent"]:
                 raise UserPaymentException(
-                    f'Mismatched intent ID! What happened? Received ID was '
+                    f"Mismatched intent ID! What happened? Received ID was "
                     f'{charge_event["payment_intent"]} while current intent is {invoice.current_intent}'
                 )
 
         if successful and (amount != invoice.total()):
             raise UserPaymentException(
-                f'Mismatched amount! Customer paid {amount} while total was {invoice.total()}',
+                f"Mismatched amount! Customer paid {amount} while total was {invoice.total()}",
             )
         records = invoice_post_payment(
-            invoice, {
-                'amount': amount,
-                'successful': successful,
-                'stripe_event': event,
+            invoice,
+            {
+                "amount": amount,
+                "successful": successful,
+                "stripe_event": event,
             },
         )
     else:
-        logger.warning('Charge for unknown item:')
+        logger.warning("Charge for unknown item:")
         logger.warning(pformat(event))
         return
-    if successful and metadata.get('save_card') == 'True':
-        user = User.objects.get(stripe_token=charge_event['customer'])
-        details = charge_event['payment_method_details']['card']
+    if successful and metadata.get("save_card") == "True":
+        user = User.objects.get(stripe_token=charge_event["customer"])
+        details = charge_event["payment_method_details"]["card"]
         card, _created = CreditCardToken.objects.get_or_create(
-            user=user, last_four=details['last4'],
-            stripe_token=charge_event['payment_method'],
-            type=TYPE_TRANSLATION[details['brand']],
-            defaults={'cvv_verified': True},
+            user=user,
+            last_four=details["last4"],
+            stripe_token=charge_event["payment_method"],
+            type=TYPE_TRANSLATION[details["brand"]],
+            defaults={"cvv_verified": True},
         )
-        if not user.primary_card or (metadata.get('make_primary') == 'True'):
+        if not user.primary_card or (metadata.get("make_primary") == "True"):
             user.primary_card_id = card.id
-            user.save(update_fields=['primary_card'])
-        TransactionRecord.objects.filter(id__in=[record.id for record in records]).update(card=card)
+            user.save(update_fields=["primary_card"])
+        TransactionRecord.objects.filter(
+            id__in=[record.id for record in records]
+        ).update(card=card)
 
 
 def charge_succeeded(event):
-    if not event['data']['object']['captured']:
+    if not event["data"]["object"]["captured"]:
         # In-person cards have a separate authorization and capture flow.
         with stripe as stripe_api:
-            stripe_api.PaymentIntent.capture(
-                event['data']['object']['payment_intent']
-            )
+            stripe_api.PaymentIntent.capture(event["data"]["object"]["payment_intent"])
             return
     handle_charge_event(event, successful=True)
 
@@ -95,13 +113,14 @@ def charge_failed(event):
 
 @transaction.atomic
 def account_updated(event):
-    account_data = event['data']['object']
-    account = StripeAccount.objects.get(token=account_data['id'])
-    account.active = account_data['payouts_enabled']
+    account_data = event["data"]["object"]
+    account = StripeAccount.objects.get(token=account_data["id"])
+    account.active = account_data["payouts_enabled"]
     account.save()
     if account.active:
         Deliverable.objects.filter(
-            order__seller=account.user, status__in=[NEW, PAYMENT_PENDING],
+            order__seller=account.user,
+            status__in=[NEW, PAYMENT_PENDING],
         ).update(processor=STRIPE)
         account.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         account.user.artist_profile.save()
@@ -114,51 +133,62 @@ def pull_and_reconcile_payout_report(event, report):
     Given a Stripe ReportRun object as specified by payout_paid,
     fetch the report file and then update our database with the transfer information.
     """
-    result = requests.get(report['result']['url'], auth=HTTPBasicAuth(settings.STRIPE_KEY, ''))
+    result = requests.get(
+        report["result"]["url"], auth=HTTPBasicAuth(settings.STRIPE_KEY, "")
+    )
     result.raise_for_status()
-    reader = csv.DictReader(StringIO(result.content.decode('utf-8')))
+    reader = csv.DictReader(StringIO(result.content.decode("utf-8")))
     # In reality, this should only ever be one row.
     for row in reader:
         parameters = event["data"]["object"]["parameters"]
-        currency = get_currency(row['currency'].upper())
-        amount = Money(Decimal(row['gross']), currency)
+        currency = get_currency(row["currency"].upper())
+        amount = Money(Decimal(row["gross"]), currency)
         old_source = HOLDINGS
         old_destination = BANK
         new_source = PAYOUT_MIRROR_SOURCE
         new_destination = PAYOUT_MIRROR_DESTINATION
         category = CASH_WITHDRAW
-        if amount < Money('0', currency):
+        if amount < Money("0", currency):
             new_source, new_destination = new_destination, new_source
             old_source, old_destination = old_destination, old_source
             amount = abs(amount)
             category = PAYOUT_REVERSAL
         try:
             record = TransactionRecord.objects.get(
-                remote_ids__contains=row['source_id'] + '', source=old_source,
+                remote_ids__contains=row["source_id"] + "",
+                source=old_source,
                 destination=old_destination,
             )
         except TransactionRecord.DoesNotExist:
             raise TransactionRecord.DoesNotExist(
                 f'Could not find corresponding record for {row["source_id"]}.'
-                f' It may need to be added manually or may be malformed. Please check '
+                f" It may need to be added manually or may be malformed. Please check "
                 f'https://dashboard.stripe.com/{parameters["connected_account"]}/payouts/'
-                f'{parameters["payout"]}')
-        if row['automatic_payout_effective_at_utc']:
-            timestamp = dateutil.parser.isoparse(row['automatic_payout_effective_at_utc'])
+                f'{parameters["payout"]}'
+            )
+        if row["automatic_payout_effective_at_utc"]:
+            timestamp = dateutil.parser.isoparse(
+                row["automatic_payout_effective_at_utc"]
+            )
             timestamp = timestamp.replace(tzinfo=dateutil.tz.UTC)
         else:
             timestamp = timezone.now()
         record.finalized_on = timestamp
         record.status = SUCCESS
-        record.remote_ids.append(parameters['payout'])
+        record.remote_ids.append(parameters["payout"])
         record.remote_ids = list(set(record.remote_ids))
         record.save()
         new_record = TransactionRecord.objects.get_or_create(
-            remote_ids=record.remote_ids, amount=amount,
-            payer=record.payer, payee=record.payee, source=new_source,
-            destination=new_destination, status=SUCCESS,
+            remote_ids=record.remote_ids,
+            amount=amount,
+            payer=record.payer,
+            payee=record.payee,
+            source=new_source,
+            destination=new_destination,
+            status=SUCCESS,
             category=category,
-            created_on=record.created_on, finalized_on=timestamp,
+            created_on=record.created_on,
+            finalized_on=timestamp,
         )[0]
         new_record.targets.add(*record.targets.all())
         new_record.targets.add(ref_for_instance(record))
@@ -171,7 +201,7 @@ def reconcile_payout_report(event):
     This function might seem redundant, but it's possible for a report not attached to an event to call it. An
     example of this is found in payout_paid.
     """
-    pull_and_reconcile_payout_report(event, event['data']['object'])
+    pull_and_reconcile_payout_report(event, event["data"]["object"])
 
 
 @atomic
@@ -181,22 +211,22 @@ def payout_paid(event):
     picture for what we want. So we force a report generation, and then fetch the result of this information to get
     the remaining info.
     """
-    payout_data = event['data']['object']
+    payout_data = event["data"]["object"]
     with stripe as stripe_api:
         stripe_api.reporting.ReportRun.create(
-            report_type='connected_account_payout_reconciliation.by_id.itemized.4',
+            report_type="connected_account_payout_reconciliation.by_id.itemized.4",
             parameters={
-                'payout': payout_data['id'],
-                'connected_account': event['account'],
-                'columns': [
-                    'source_id',
-                    'gross',
-                    'net',
-                    'fee',
-                    'currency',
-                    'automatic_payout_effective_at_utc',
-                ]
-            }
+                "payout": payout_data["id"],
+                "connected_account": event["account"],
+                "columns": [
+                    "source_id",
+                    "gross",
+                    "net",
+                    "fee",
+                    "currency",
+                    "automatic_payout_effective_at_utc",
+                ],
+            },
         )
 
 
@@ -204,49 +234,49 @@ def transfer_failed(event):
     """
     Webhook for the transfer failed event from Stripe.
     """
-    transfer = event['data']['object']['id']
+    transfer = event["data"]["object"]["id"]
     records = TransactionRecord.objects.filter(
         remote_ids__contains=transfer,
     )
     records.update(status=FAILURE)
-    record = records.order_by('created_on')[0]
+    record = records.order_by("created_on")[0]
     notify(
         TRANSFER_FAILED,
         record.payer,
         data={
-            'error': 'The bank rejected the transfer. Please try again, update your account information, '
-                     'or contact support.'
-        }
+            "error": "The bank rejected the transfer. Please try again, update your account information, "
+            "or contact support."
+        },
     )
 
 
 @transaction.atomic
 def payment_method_attached(event):
-    card_info = event['data']['object']
-    if not card_info['type'] == 'card':
-        logger.warning('Attached unknown payment type:', card_info['type'])
+    card_info = event["data"]["object"]
+    if not card_info["type"] == "card":
+        logger.warning("Attached unknown payment type:", card_info["type"])
         logger.warning(pformat(event))
         raise NotImplementedError
-    user = User.objects.get(stripe_token=card_info['customer'])
+    user = User.objects.get(stripe_token=card_info["customer"])
     card, _created = CreditCardToken.objects.get_or_create(
         user=user,
-        stripe_token=card_info['id'],
-        last_four=card_info['card']['last4'],
-        type=TYPE_TRANSLATION[card_info['card']['brand']],
-        defaults={'cvv_verified': True},
+        stripe_token=card_info["id"],
+        last_four=card_info["card"]["last4"],
+        type=TYPE_TRANSLATION[card_info["card"]["brand"]],
+        defaults={"cvv_verified": True},
     )
     if not user.primary_card:
         user.primary_card = card
-        user.save(update_fields=['primary_card'])
+        user.save(update_fields=["primary_card"])
 
 
 REPORT_ROUTES = {
-    'connected_account_payout_reconciliation.by_id.itemized.4': reconcile_payout_report,
+    "connected_account_payout_reconciliation.by_id.itemized.4": reconcile_payout_report,
 }
 
 
 def reporting_report_run_succeeded(event):
-    report_type = event['data']['object']['report_type']
+    report_type = event["data"]["object"]["report_type"]
     if report_type in REPORT_ROUTES:
         REPORT_ROUTES[report_type](event)
         return
@@ -295,23 +325,23 @@ def dummy_report_processor(event):
 
 
 STRIPE_DIRECT_WEBHOOK_ROUTES = {
-    'charge.captured': charge_succeeded,
-    'charge.succeeded': charge_succeeded,
-    'charge.failed': charge_failed,
-    'transfer.failed': transfer_failed,
-    'reporting.report_run.succeeded': reporting_report_run_succeeded,
-    'payment_method.attached': payment_method_attached,
+    "charge.captured": charge_succeeded,
+    "charge.succeeded": charge_succeeded,
+    "charge.failed": charge_failed,
+    "transfer.failed": transfer_failed,
+    "reporting.report_run.succeeded": reporting_report_run_succeeded,
+    "payment_method.attached": payment_method_attached,
 }
 STRIPE_CONNECT_WEBHOOK_ROUTES = {
-    'account.updated': account_updated,
-    'payout.paid': payout_paid,
+    "account.updated": account_updated,
+    "payout.paid": payout_paid,
 }
 
 
 if settings.TESTING:
-    STRIPE_DIRECT_WEBHOOK_ROUTES['dummy_event'] = dummy_event
-    STRIPE_CONNECT_WEBHOOK_ROUTES['dummy_connect_event'] = dummy_connect_event
-    REPORT_ROUTES['dummy_report'] = dummy_report_processor
+    STRIPE_DIRECT_WEBHOOK_ROUTES["dummy_event"] = dummy_event
+    STRIPE_CONNECT_WEBHOOK_ROUTES["dummy_connect_event"] = dummy_connect_event
+    REPORT_ROUTES["dummy_report"] = dummy_report_processor
 
 
 def handle_stripe_event(*, body: str = None, connect: bool, event: dict = None):
@@ -323,14 +353,18 @@ def handle_stripe_event(*, body: str = None, connect: bool, event: dict = None):
     routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
     if event is None:
         if body is None:
-            raise TypeError('Neither event nor body provided. Both are None.')
+            raise TypeError("Neither event nor body provided. Both are None.")
         event = json.loads(body)
-    handler = routes.get(event['type'], None)
+    handler = routes.get(event["type"], None)
     if not handler:
-        logger.warning('Unsupported event "%s" received from Stripe. Connect is %s', event['type'], connect)
+        logger.warning(
+            'Unsupported event "%s" received from Stripe. Connect is %s',
+            event["type"],
+            connect,
+        )
         return Response(
             status=status.HTTP_400_BAD_REQUEST,
-            data={'detail': f'Unsupported command "{event["type"]}"'}
+            data={"detail": f'Unsupported command "{event["type"]}"'},
         )
     handler(event)
 
@@ -341,16 +375,21 @@ class StripeWebhooks(APIView):
     """
     Function for processing stripe webhook events.
     """
+
     permission_classes = []
 
     def post(self, request, connect):
         with stripe as stripe_api:
             try:
-                sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+                sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
                 secret = WebhookRecord.objects.get(connect=connect).secret
                 # If the secret is missing, we cannot verify the signature. Die dramatically until an admin fixes.
                 assert secret
-                event = stripe_api.Webhook.construct_event(request.body, sig_header, secret)
+                event = stripe_api.Webhook.construct_event(
+                    request.body, sig_header, secret
+                )
             except SignatureVerificationError as err:
-                return Response(status=status.HTTP_400_BAD_REQUEST, data={'detail': str(err)})
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST, data={"detail": str(err)}
+                )
             return handle_stripe_event(connect=connect, event=event)

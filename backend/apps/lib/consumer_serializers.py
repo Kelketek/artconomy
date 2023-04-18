@@ -5,8 +5,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from rest_framework import serializers
 
-
-dotless = RegexValidator(r'.*[.].*', inverse_match=True, message='May not have a "." in this field.')
+dotless = RegexValidator(
+    r".*[.].*", inverse_match=True, message='May not have a "." in this field.'
+)
 
 
 class WatchNewSpecSerializer(serializers.Serializer):
@@ -17,8 +18,8 @@ class WatchNewSpecSerializer(serializers.Serializer):
     list_name = serializers.CharField(validators=[dotless])
 
     def validate_list_name(self, val):
-        if '.' in val:
-            raise ValidationError('Cannot have a dot in list_name')
+        if "." in val:
+            raise ValidationError("Cannot have a dot in list_name")
         return val
 
 

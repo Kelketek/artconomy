@@ -5,15 +5,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0109_auto_20210825_1339'),
+        ("profiles", "0109_auto_20210825_1339"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='processor',
-            field=models.CharField(choices=[('authorize', 'EVO Authorize.net'), ('stripe', 'Stripe')], db_index=True, default='stripe', max_length=24),
+            model_name="user",
+            name="processor",
+            field=models.CharField(
+                choices=[("authorize", "EVO Authorize.net"), ("stripe", "Stripe")],
+                db_index=True,
+                default="stripe",
+                max_length=24,
+            ),
         ),
     ]

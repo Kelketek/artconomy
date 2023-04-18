@@ -4,20 +4,34 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0095_auto_20200616_1535'),
+        ("sales", "0095_auto_20200616_1535"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='wait_list',
+            model_name="product",
+            name="wait_list",
             field=models.BooleanField(db_index=True, default=False),
         ),
         migrations.AlterField(
-            model_name='deliverable',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'Waiting List'), (1, 'New'), (2, 'Payment Pending'), (3, 'Queued'), (4, 'In Progress'), (5, 'Review'), (6, 'Cancelled'), (7, 'Disputed'), (8, 'Completed'), (9, 'Refunded')], db_index=True, default=1),
+            model_name="deliverable",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Waiting List"),
+                    (1, "New"),
+                    (2, "Payment Pending"),
+                    (3, "Queued"),
+                    (4, "In Progress"),
+                    (5, "Review"),
+                    (6, "Cancelled"),
+                    (7, "Disputed"),
+                    (8, "Completed"),
+                    (9, "Refunded"),
+                ],
+                db_index=True,
+                default=1,
+            ),
         ),
     ]

@@ -4,15 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0046_auto_20190605_1418'),
+        ("sales", "0046_auto_20190605_1418"),
     ]
 
     operations = [
         migrations.RenameField(
-            model_name='creditcardtoken',
-            old_name='card_type',
-            new_name='type',
+            model_name="creditcardtoken",
+            old_name="card_type",
+            new_name="type",
         ),
     ]

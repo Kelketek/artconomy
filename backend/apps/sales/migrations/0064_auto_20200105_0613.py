@@ -5,16 +5,15 @@ from django.db.models import F
 
 
 def set_customer_email(apps, schema):
-    Order = apps.get_model('sales', 'Order')
+    Order = apps.get_model("sales", "Order")
     for order in Order.objects.filter(buyer__guest=True):
         order.customer_email = order.buyer.guest_email
         order.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0063_order_trust_finalized'),
+        ("sales", "0063_order_trust_finalized"),
     ]
 
     operations = [

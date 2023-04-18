@@ -4,15 +4,14 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0099_submission_deliverable'),
-        ('sales', '0089_deliverable_data_copy'),
+        ("profiles", "0099_submission_deliverable"),
+        ("sales", "0089_deliverable_data_copy"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='submission',
-            name='order',
+            model_name="submission",
+            name="order",
         ),
     ]

@@ -4,19 +4,18 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0018_auto_20180322_1643'),
+        ("profiles", "0018_auto_20180322_1643"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='character',
-            name='favorites_hidden',
+            model_name="character",
+            name="favorites_hidden",
         ),
         migrations.AddField(
-            model_name='user',
-            name='favorites_hidden',
+            model_name="user",
+            name="favorites_hidden",
             field=models.BooleanField(default=False),
         ),
     ]

@@ -1,8 +1,7 @@
 """artconomy URL Configuration
 """
-from django.urls import path
-
 from apps.profiles.views import SubmissionPreview
+from django.urls import path
 
 app_name = "profiles"
 
@@ -10,5 +9,5 @@ app_name = "profiles"
 
 
 urlpatterns = [
-    path('<int:submission_id>', SubmissionPreview.as_view(), name='submission_preview'),
+    path("<int:submission_id>", SubmissionPreview.as_view(), name="submission_preview"),
 ]

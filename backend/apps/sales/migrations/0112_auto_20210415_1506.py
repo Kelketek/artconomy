@@ -4,25 +4,26 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0111_auto_20210412_1415'),
+        ("sales", "0111_auto_20210412_1415"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='creditcardtoken',
-            name='stripe_token',
-            field=models.CharField(blank=True, default='', max_length=50),
+            model_name="creditcardtoken",
+            name="stripe_token",
+            field=models.CharField(blank=True, default="", max_length=50),
         ),
         migrations.AlterField(
-            model_name='creditcardtoken',
-            name='token',
-            field=models.CharField(blank=True, default='', max_length=50),
+            model_name="creditcardtoken",
+            name="token",
+            field=models.CharField(blank=True, default="", max_length=50),
         ),
         migrations.AlterField(
-            model_name='deliverable',
-            name='current_intent',
-            field=models.CharField(blank=True, db_index=True, default='', max_length=30),
+            model_name="deliverable",
+            name="current_intent",
+            field=models.CharField(
+                blank=True, db_index=True, default="", max_length=30
+            ),
         ),
     ]

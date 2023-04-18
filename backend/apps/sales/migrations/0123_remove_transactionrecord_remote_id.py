@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0122_convert_remote_ids'),
+        ("sales", "0122_convert_remote_ids"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='transactionrecord',
-            name='remote_id',
+            model_name="transactionrecord",
+            name="remote_id",
         ),
     ]

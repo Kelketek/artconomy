@@ -5,25 +5,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0122_remove_submission_artists'),
+        ("profiles", "0122_remove_submission_artists"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='artisttag',
-            name='display_position',
-            field=models.FloatField(db_index=True, default=apps.profiles.models.get_next_artist_position),
+            model_name="artisttag",
+            name="display_position",
+            field=models.FloatField(
+                db_index=True, default=apps.profiles.models.get_next_artist_position
+            ),
         ),
         migrations.AlterField(
-            model_name='charactertag',
-            name='display_position',
-            field=models.FloatField(db_index=True, default=apps.profiles.models.get_next_character_position),
+            model_name="charactertag",
+            name="display_position",
+            field=models.FloatField(
+                db_index=True, default=apps.profiles.models.get_next_character_position
+            ),
         ),
         migrations.AlterField(
-            model_name='submission',
-            name='display_position',
-            field=models.FloatField(db_index=True, default=apps.profiles.models.get_next_submission_position),
+            model_name="submission",
+            name="display_position",
+            field=models.FloatField(
+                db_index=True, default=apps.profiles.models.get_next_submission_position
+            ),
         ),
     ]

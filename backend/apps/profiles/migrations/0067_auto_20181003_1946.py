@@ -6,23 +6,23 @@ from mailchimp3 import MailChimp
 
 def set_mailchimp_status(apps, schema):
     from django.conf import settings
-    User = apps.get_model('profiles', 'User')
+
+    User = apps.get_model("profiles", "User")
     if not all([settings.MAILCHIMP_API_KEY, settings.MAILCHIMP_LIST_SECRET]):
         return
     chimp = MailChimp(mc_api=settings.MAILCHIMP_API_KEY)
     emails = [
-        entry['email_address'].lower() for entry in
-        chimp.lists.members.all(settings.MAILCHIMP_LIST_SECRET, get_all=True)['members']
+        entry["email_address"].lower()
+        for entry in chimp.lists.members.all(
+            settings.MAILCHIMP_LIST_SECRET, get_all=True
+        )["members"]
     ]
     User.objects.filter(email__in=emails).update(offered_mailchimp=True)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0066_user_offered_mailchimp'),
+        ("profiles", "0066_user_offered_mailchimp"),
     ]
 
-    operations = [
-        migrations.RunPython(set_mailchimp_status)
-    ]
+    operations = [migrations.RunPython(set_mailchimp_status)]

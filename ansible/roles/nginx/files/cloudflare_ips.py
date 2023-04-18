@@ -1,10 +1,12 @@
 #! /usr/bin/env python
 from __future__ import print_function
-import requests
+
 import hashlib
 import os
-from sys import stderr, exit
 from itertools import chain
+from sys import exit, stderr
+
+import requests
 
 try:
     response_ip4 = requests.get('https://www.cloudflare.com/ips-v4')

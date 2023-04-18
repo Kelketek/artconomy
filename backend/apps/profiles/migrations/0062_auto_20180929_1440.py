@@ -4,18 +4,15 @@ from django.db import migrations
 
 
 def set_bank_status(apps, schema):
-    User = apps.get_model('profiles', 'User')
+    User = apps.get_model("profiles", "User")
     User.objects.filter(banks__isnull=False).update(bank_account_status=1)
     User.objects.filter(escrow_disabled=True).update(bank_account_status=2)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0061_user_bank_account_status'),
-        ('sales', '0035_product_available'),
+        ("profiles", "0061_user_bank_account_status"),
+        ("sales", "0035_product_available"),
     ]
 
-    operations = [
-        migrations.RunPython(set_bank_status, reverse_code=lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(set_bank_status, reverse_code=lambda x, y: None)]

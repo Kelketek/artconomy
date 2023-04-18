@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0145_alter_expected_turnaround'),
-        ('sales', '0151_cascade_fees_flag'),
+        ("sales", "0145_alter_expected_turnaround"),
+        ("sales", "0151_cascade_fees_flag"),
     ]
 
-    operations = [
-    ]
+    operations = []

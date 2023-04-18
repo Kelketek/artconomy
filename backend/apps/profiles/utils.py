@@ -1,45 +1,64 @@
 from uuid import uuid4
 
+from apps.lib.models import Comment
+from apps.lib.utils import destroy_comment
+from apps.profiles.middleware import derive_session_settings
+from apps.profiles.models import (
+    Character,
+    Conversation,
+    ConversationParticipant,
+    Submission,
+    User,
+    default_plan,
+)
+from apps.sales.constants import (
+    DISPUTED,
+    DRAFT,
+    HOLDINGS,
+    IN_PROGRESS,
+    LIMBO,
+    NEW,
+    OPEN,
+    PAYMENT_PENDING,
+    QUEUED,
+    REVIEW,
+    TIPPING,
+    VOID,
+    WAITING,
+)
+from apps.sales.models import Deliverable, Invoice, ServicePlan, StripeAccount
+from apps.sales.utils import PENDING, account_balance, cancel_deliverable
 from avatar.models import Avatar
 from avatar.templatetags.avatar_tags import avatar_url
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Case, When, F, IntegerField, Q
+from django.db.models import Case, F, IntegerField, Q, When
 from django.utils import timezone
 from short_stuff import gen_shortcode
 
-from apps.lib.models import Comment
-from apps.lib.utils import destroy_comment
-from apps.profiles.middleware import derive_session_settings
-from apps.profiles.models import Character, Submission, User, Conversation, ConversationParticipant, default_plan
-from apps.sales.models import Deliverable, StripeAccount, ServicePlan, Invoice
-from apps.sales.constants import WAITING, NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, REVIEW, DISPUTED, HOLDINGS, \
-    TIPPING, DRAFT, OPEN, VOID, LIMBO
-from apps.sales.utils import account_balance, PENDING, cancel_deliverable
 
-
-def char_ordering(qs, requester, query=''):
+def char_ordering(qs, requester, query=""):
     return qs.annotate(
         # Make target user characters negative so they're always first.
         mine=Case(
-            When(user_id=requester.id, then=0-F('id')),
-            default=F('id'),
+            When(user_id=requester.id, then=0 - F("id")),
+            default=F("id"),
             output_field=IntegerField(),
         ),
         matches=Case(
-            When(name__iexact=query, then=0),
-            default=1,
-            output_field=IntegerField()
+            When(name__iexact=query, then=0), default=1, output_field=IntegerField()
         ),
         tag_matches=Case(
             When(tags__name__iexact=query, then=0),
             default=1,
-            output_field=IntegerField()
-        )
-    ).order_by('matches', 'mine', 'tag_matches')
+            output_field=IntegerField(),
+        ),
+    ).order_by("matches", "mine", "tag_matches")
 
 
-def available_chars(requester, query='', commissions=False, tagging=False, self_search=False):
+def available_chars(
+    requester, query="", commissions=False, tagging=False, self_search=False
+):
     exclude = Q(private=True)
     if (not requester.is_staff) and requester.is_authenticated:
         exclude |= Q(user__blocking=requester)
@@ -84,15 +103,19 @@ def available_submissions(request, requester, show_all=False):
         exclude |= Q(artists__blocked_by=requester)
     if request.user.is_authenticated and show_all:
         exclude &= ~(Q(owner=requester) | Q(shared_with=requester))
-    return Submission.objects.exclude(exclude).exclude(
-        rating__gt=request.max_rating
-    ).exclude(tags__in=request.blacklist)
+    return (
+        Submission.objects.exclude(exclude)
+        .exclude(rating__gt=request.max_rating)
+        .exclude(tags__in=request.blacklist)
+    )
 
 
 def available_users(user):
     if user.is_staff or not user.is_authenticated:
         return User.objects.exclude(is_active=False)
-    return User.objects.exclude(id__in=user.blocked_by.all().values('id')).exclude(is_active=False)
+    return User.objects.exclude(id__in=user.blocked_by.all().values("id")).exclude(
+        is_active=False
+    )
 
 
 def extend_landscape(user, months):
@@ -102,30 +125,31 @@ def extend_landscape(user, months):
     else:
         start_point = today
     user.service_plan_paid_through = start_point + relativedelta(months=months)
-    user.service_plan = ServicePlan.objects.get(name='Landscape')
+    user.service_plan = ServicePlan.objects.get(name="Landscape")
     user.save()
 
 
 def empty_user(*, session, user):
     session_settings = derive_session_settings(user=user, session=session)
     return {
-        'blacklist': [],
-        'rating': session_settings['rating'],
-        'sfw_mode': session_settings['sfw_mode'],
-        'username': '_',
-        'birthday': session_settings['birthday'] and session_settings['birthday'].isoformat(),
+        "blacklist": [],
+        "rating": session_settings["rating"],
+        "sfw_mode": session_settings["sfw_mode"],
+        "username": "_",
+        "birthday": session_settings["birthday"]
+        and session_settings["birthday"].isoformat(),
     }
 
 
 def create_guest_user(email: str) -> User:
     # Start with a username unlikely to cause collision
-    username = f'__{gen_shortcode()}'
+    username = f"__{gen_shortcode()}"
     user = User.objects.create(
-        guest=True, email=f'{username}@localhost', guest_email=email, username=username
+        guest=True, email=f"{username}@localhost", guest_email=email, username=username
     )
     # Create username in a pattern we can quickly recognize elsewhere in the code even if the user is not yet loaded.
-    user.username = f'__{user.id}'
-    user.email = f'__{user.id}@localhost'
+    user.username = f"__{user.id}"
+    user.email = f"__{user.id}@localhost"
     user.save()
     return user
 
@@ -143,39 +167,53 @@ def clear_user(user: User):
     holdup_statuses = [DISPUTED, IN_PROGRESS, QUEUED, REVIEW]
     clearable_statuses = [NEW, PAYMENT_PENDING, WAITING, LIMBO]
     if user.sales.filter(deliverables__status__in=holdup_statuses).exists():
-        raise UserClearException(f'{user.username} has outstanding sales to complete or refund. Cannot remove!')
+        raise UserClearException(
+            f"{user.username} has outstanding sales to complete or refund. Cannot remove!"
+        )
     if user.buys.filter(deliverables__status__in=holdup_statuses).exists():
-        raise UserClearException(f'{user.username} has outstanding orders which are unfinished. Cannot remove!')
+        raise UserClearException(
+            f"{user.username} has outstanding orders which are unfinished. Cannot remove!"
+        )
     if user.is_staff or user.is_superuser:
         raise UserClearException(
-            f'{user.username} is an administrative account. It cannot be removed until it is deprivileged.',
+            f"{user.username} is an administrative account. It cannot be removed until it is deprivileged.",
         )
     stoppers = [
         account_balance(user, HOLDINGS),
-        account_balance(user, HOLDINGS, PENDING)
+        account_balance(user, HOLDINGS, PENDING),
     ]
     if any(stoppers):
-        raise UserClearException(f'{user.username} has pending transactions! Cannot remove!')
-    for sale in Deliverable.objects.filter(status__in=clearable_statuses, order__seller=user):
+        raise UserClearException(
+            f"{user.username} has pending transactions! Cannot remove!"
+        )
+    for sale in Deliverable.objects.filter(
+        status__in=clearable_statuses, order__seller=user
+    ):
         cancel_deliverable(sale, user)
-    for order in Deliverable.objects.filter(status__in=clearable_statuses, order__buyer=user):
+    for order in Deliverable.objects.filter(
+        status__in=clearable_statuses, order__buyer=user
+    ):
         cancel_deliverable(order, user)
-    for invoice in Invoice.objects.filter(type=TIPPING, status__in=[DRAFT, OPEN, VOID], issued_by=user):
+    for invoice in Invoice.objects.filter(
+        type=TIPPING, status__in=[DRAFT, OPEN, VOID], issued_by=user
+    ):
         invoice.delete()
 
     notes = user.notes
     if notes:
-        notes += f'\n\nUsername: {user.username}, Email: {user.email}, removed on {timezone.now()}'
+        notes += f"\n\nUsername: {user.username}, Email: {user.email}, removed on {timezone.now()}"
     for account in StripeAccount.objects.filter(user=user):
         try:
             account.delete()
         except Exception as err:
-            raise UserClearException(f'Error removing stripe account for {user.username}: {err}') from err
+            raise UserClearException(
+                f"Error removing stripe account for {user.username}: {err}"
+            ) from err
     for card in user.credit_cards.all():
         try:
             card.mark_deleted()
         except Exception as err:
-            raise UserClearException(f'Error removing card information: {err}') from err
+            raise UserClearException(f"Error removing card information: {err}") from err
     for favorite in user.favorites.all():
         user.favorites.remove(favorite)
     for watcher in user.watched_by.all():
@@ -194,9 +232,9 @@ def clear_user(user: User):
         product.delete()
     # These can just be straight up cleared.
     user.notifications.all().delete()
-    user.username = f'__deleted{user.id}'
+    user.username = f"__deleted{user.id}"
     user.set_password(str(uuid4()))
-    user.email = f'{uuid4()}@local'
+    user.email = f"{uuid4()}@local"
     user.is_active = False
     user.next_service_plan = default_plan()
     user.subscription_set.all().delete()
@@ -207,7 +245,9 @@ def clear_user(user: User):
 
 
 def leave_conversation(user: User, conversation: Conversation):
-    participant = ConversationParticipant.objects.filter(conversation=conversation, user=user).first()
+    participant = ConversationParticipant.objects.filter(
+        conversation=conversation, user=user
+    ).first()
     if participant:
         participant.delete()
     count = conversation.participants.all().count()
@@ -218,7 +258,12 @@ def leave_conversation(user: User, conversation: Conversation):
             conversation.delete()
             return
     if participant:
-        Comment(user=user, system=True, content_object=conversation, text='left the conversation.').save()
+        Comment(
+            user=user,
+            system=True,
+            content_object=conversation,
+            text="left the conversation.",
+        ).save()
 
 
 def get_anonymous_user() -> User:

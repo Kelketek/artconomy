@@ -6,20 +6,27 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0017_auto_20180305_2322'),
+        ("profiles", "0017_auto_20180305_2322"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='character',
-            name='favorites_hidden',
+            model_name="character",
+            name="favorites_hidden",
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='user',
-            name='username',
-            field=models.CharField(db_index=True, max_length=30, unique=True, validators=[django.contrib.auth.validators.UnicodeUsernameValidator(), apps.profiles.models.banned_named_validator]),
+            model_name="user",
+            name="username",
+            field=models.CharField(
+                db_index=True,
+                max_length=30,
+                unique=True,
+                validators=[
+                    django.contrib.auth.validators.UnicodeUsernameValidator(),
+                    apps.profiles.models.banned_named_validator,
+                ],
+            ),
         ),
     ]

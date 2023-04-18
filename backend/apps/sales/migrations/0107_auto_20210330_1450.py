@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0106_auto_20210330_1449'),
+        ("sales", "0106_auto_20210330_1449"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='deliverable',
-            name='processor',
-            field=models.CharField(choices=[('authorize', 'EVO Authorize.net'), ('stripe', 'Stripe')], db_index=True, default='stripe', max_length=24),
+            model_name="deliverable",
+            name="processor",
+            field=models.CharField(
+                choices=[("authorize", "EVO Authorize.net"), ("stripe", "Stripe")],
+                db_index=True,
+                default="stripe",
+                max_length=24,
+            ),
         ),
     ]

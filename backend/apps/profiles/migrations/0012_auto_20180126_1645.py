@@ -11,11 +11,8 @@ def gen_tokens(apps, schema):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0011_auto_20180125_1524'),
+        ("profiles", "0011_auto_20180125_1524"),
     ]
 
-    operations = [
-        migrations.RunPython(gen_tokens, lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(gen_tokens, lambda x, y: None)]

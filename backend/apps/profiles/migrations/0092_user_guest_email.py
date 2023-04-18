@@ -4,15 +4,16 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0091_auto_20191010_1012'),
+        ("profiles", "0091_auto_20191010_1012"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='user',
-            name='guest_email',
-            field=models.EmailField(blank=True, db_index=True, default='', max_length=254),
+            model_name="user",
+            name="guest_email",
+            field=models.EmailField(
+                blank=True, db_index=True, default="", max_length=254
+            ),
         ),
     ]

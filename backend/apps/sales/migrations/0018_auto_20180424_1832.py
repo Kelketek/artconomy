@@ -4,15 +4,23 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0017_auto_20180411_1606'),
+        ("sales", "0017_auto_20180411_1606"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='charactertransfer',
-            name='status',
-            field=models.IntegerField(choices=[(0, 'New'), (1, 'Completed'), (2, 'Cancelled'), (3, 'Rejected')], db_index=True, default=0),
+            model_name="charactertransfer",
+            name="status",
+            field=models.IntegerField(
+                choices=[
+                    (0, "New"),
+                    (1, "Completed"),
+                    (2, "Cancelled"),
+                    (3, "Rejected"),
+                ],
+                db_index=True,
+                default=0,
+            ),
         ),
     ]

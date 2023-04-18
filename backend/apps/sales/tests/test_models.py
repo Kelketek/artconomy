@@ -1,28 +1,69 @@
 from datetime import date
 from decimal import Decimal
-from unittest.mock import patch, Mock
+from unittest.mock import Mock, patch
 
-from ddt import ddt, unpack, data
+from apps.lib.models import (
+    COMMENT,
+    NEW_PRODUCT,
+    REVISION_APPROVED,
+    ModifiedMarker,
+    Subscription,
+    ref_for_instance,
+)
+from apps.lib.test_resources import EnsurePlansMixin
+from apps.lib.tests.factories_interdepend import CommentFactory
+from apps.lib.utils import FakeRequest
+from apps.profiles.models import IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY
+from apps.profiles.tests.factories import SubmissionFactory, UserFactory
+from apps.sales.constants import (
+    BASE_PRICE,
+    BONUS,
+    CANCELLED,
+    COMPLETED,
+    DELIVERABLE_TRACKING,
+    NEW,
+    PAYMENT_PENDING,
+    PENDING,
+    PRIORITY_MAP,
+    QUEUED,
+    SHIELD,
+    SUCCESS,
+    TABLE_SERVICE,
+    TAX,
+    WAITING,
+)
+from apps.sales.models import (
+    InventoryTracker,
+    Product,
+    StripeLocation,
+    StripeReader,
+    deliverable_from_context,
+)
+from apps.sales.tests.factories import (
+    CreditCardTokenFactory,
+    DeliverableFactory,
+    InvoiceFactory,
+    LineItemFactory,
+    OrderFactory,
+    ProductFactory,
+    PromoFactory,
+    RatingFactory,
+    ReferenceFactory,
+    RevisionFactory,
+    ServicePlanFactory,
+    StripeAccountFactory,
+    StripeLocationFactory,
+    StripeReaderFactory,
+    TransactionRecordFactory,
+    WebhookRecordFactory,
+)
+from ddt import data, ddt, unpack
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from moneyed import Money
-
-from apps.lib.models import NEW_PRODUCT, ref_for_instance, ModifiedMarker, Subscription, COMMENT, REVISION_APPROVED
-from apps.lib.test_resources import EnsurePlansMixin
-from apps.lib.tests.factories_interdepend import CommentFactory
-from apps.lib.utils import FakeRequest
-from apps.profiles.models import NO_SUPPORTED_COUNTRY, IN_SUPPORTED_COUNTRY
-from apps.profiles.tests.factories import UserFactory, SubmissionFactory
-from apps.sales.models import Product, InventoryTracker, deliverable_from_context, StripeLocation, StripeReader
-from apps.sales.constants import BASE_PRICE, SHIELD, BONUS, TABLE_SERVICE, TAX, COMPLETED, NEW, QUEUED, CANCELLED, \
-    WAITING, PENDING, SUCCESS, PRIORITY_MAP, DELIVERABLE_TRACKING, PAYMENT_PENDING
-from apps.sales.tests.factories import RatingFactory, PromoFactory, TransactionRecordFactory, ProductFactory, \
-    DeliverableFactory, \
-    CreditCardTokenFactory, RevisionFactory, LineItemFactory, OrderFactory, InvoiceFactory, WebhookRecordFactory, \
-    ReferenceFactory, ServicePlanFactory, StripeLocationFactory, StripeReaderFactory, StripeAccountFactory
 
 
 class TestRating(EnsurePlansMixin, TestCase):
@@ -33,32 +74,40 @@ class TestRating(EnsurePlansMixin, TestCase):
         RatingFactory.create(target=user, stars=5, rater=rater)
         RatingFactory.create(target=user, stars=4, rater=rater)
         user.refresh_from_db()
-        self.assertEqual(user.stars, Decimal('3.67'))
+        self.assertEqual(user.stars, Decimal("3.67"))
         self.assertEqual(user.rating_count, 3)
 
     def test_string(self):
-        user = UserFactory.create(username='Beep')
-        rater = UserFactory.create(username='Boop')
-        deliverable = DeliverableFactory.create(product=None, order__seller=user, order__buyer=rater)
+        user = UserFactory.create(username="Beep")
+        rater = UserFactory.create(username="Boop")
+        deliverable = DeliverableFactory.create(
+            product=None, order__seller=user, order__buyer=rater
+        )
         rating = RatingFactory.create(target=user, stars=2, rater=rater)
         rating.content_object = deliverable
         rating.save()
-        self.assertEqual(
-            str(rating), f'Boop rated Beep 2 stars for [{deliverable}]'
-        )
+        self.assertEqual(str(rating), f"Boop rated Beep 2 stars for [{deliverable}]")
 
 
 class TestPromo(TestCase):
     def test_promo_string(self):
-        promo = PromoFactory.create(code='Wat')
-        self.assertEqual(str(promo), 'WAT')
+        promo = PromoFactory.create(code="Wat")
+        self.assertEqual(str(promo), "WAT")
 
 
 DESCRIPTION_VALUES = (
-    {'price': Decimal('5.00'), 'prefix': '[Starts at $5.00] - ', 'escrow_enabled': True},
-    {'price': Decimal('0'), 'prefix': '[Starts at FREE] - ', 'escrow_enabled': True},
-    {'price': Decimal('0'), 'prefix': '[Starts at FREE] - ', 'escrow_enabled': False},
-    {'price': Decimal('1.1'), 'prefix': '[Starts at $1.10] - ', 'escrow_enabled': False},
+    {
+        "price": Decimal("5.00"),
+        "prefix": "[Starts at $5.00] - ",
+        "escrow_enabled": True,
+    },
+    {"price": Decimal("0"), "prefix": "[Starts at FREE] - ", "escrow_enabled": True},
+    {"price": Decimal("0"), "prefix": "[Starts at FREE] - ", "escrow_enabled": False},
+    {
+        "price": Decimal("1.1"),
+        "prefix": "[Starts at $1.10] - ",
+        "escrow_enabled": False,
+    },
 )
 
 
@@ -71,22 +120,26 @@ class TestProduct(EnsurePlansMixin, TestCase):
         self.assertTrue(product.can_reference_asset(user))
         self.assertFalse(product.can_reference_asset(other))
 
-    @patch('apps.sales.models.recall_notification')
+    @patch("apps.sales.models.recall_notification")
     def test_recall(self, mock_recall_notification):
         user = UserFactory.create()
         product = ProductFactory.create(hidden=False, user=user)
         mock_recall_notification.assert_not_called()
         product.hidden = True
         product.save()
-        mock_recall_notification.assert_called_with(NEW_PRODUCT, user, {'product': product.id}, unique_data=True)
+        mock_recall_notification.assert_called_with(
+            NEW_PRODUCT, user, {"product": product.id}, unique_data=True
+        )
 
     def test_notification_display(self):
         request = Mock()
         request.user = UserFactory.create()
-        context = {'request': request}
-        product = ProductFactory.create(user=request.user, primary_submission=SubmissionFactory.create())
+        context = {"request": request}
+        product = ProductFactory.create(
+            user=request.user, primary_submission=SubmissionFactory.create()
+        )
         data = product.notification_display(context)
-        self.assertEqual(data['id'], product.primary_submission.id)
+        self.assertEqual(data["id"], product.primary_submission.id)
 
     def test_escrow_disabled(self):
         product = ProductFactory.create(user__artist_profile__escrow_enabled=False)
@@ -102,53 +155,62 @@ class TestProduct(EnsurePlansMixin, TestCase):
 
     @unpack
     @data(*DESCRIPTION_VALUES)
-    def test_preview_description(self, price: Decimal, prefix: str, escrow_enabled: bool):
-        account_status = IN_SUPPORTED_COUNTRY if escrow_enabled else NO_SUPPORTED_COUNTRY
+    def test_preview_description(
+        self, price: Decimal, prefix: str, escrow_enabled: bool
+    ):
+        account_status = (
+            IN_SUPPORTED_COUNTRY if escrow_enabled else NO_SUPPORTED_COUNTRY
+        )
         product = ProductFactory.create(
-            base_price=price, description='Test **Test** *Test*',
+            base_price=price,
+            description="Test **Test** *Test*",
         )
         product.user.artist_profile.bank_status = account_status
         product.user.artist_profile.escrow_enabled = escrow_enabled
         product.user.artist_profile.save()
         self.assertTrue(
             product.preview_description.startswith(prefix),
-            msg=f'{repr(product.preview_description)} does not start with {repr(prefix)}.',
+            msg=f"{repr(product.preview_description)} does not start with {repr(prefix)}.",
         )
         self.assertTrue(
-            product.preview_description.endswith('Test Test Test'),
-            msg=f"{repr(product.preview_description)} does not end with 'Test Test Test'."
+            product.preview_description.endswith("Test Test Test"),
+            msg=f"{repr(product.preview_description)} does not end with 'Test Test Test'.",
         )
 
     def test_preview_link(self):
         product = ProductFactory.create(primary_submission=None)
-        self.assertEqual(product.preview_link, '/static/images/default-avatar.png')
+        self.assertEqual(product.preview_link, "/static/images/default-avatar.png")
         submission = SubmissionFactory.create()
         product.primary_submission = submission
         self.assertEqual(product.preview_link, submission.preview_link)
 
     def test_string(self):
-        product = ProductFactory.create(name='Beep', user__username='Boop', base_price=Money('30.00', 'USD'))
-        self.assertEqual(str(product), 'Beep offered by Boop at $30.00')
+        product = ProductFactory.create(
+            name="Beep", user__username="Boop", base_price=Money("30.00", "USD")
+        )
+        self.assertEqual(str(product), "Beep offered by Boop at $30.00")
 
 
 class TestTransactionRecord(EnsurePlansMixin, TestCase):
     def test_string(self):
-        record = TransactionRecordFactory.create(payer__username='Dude', payee__username='Chick')
+        record = TransactionRecordFactory.create(
+            payer__username="Dude", payee__username="Chick"
+        )
         self.assertEqual(
             str(record),
-            'Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for None',
+            "Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for None",
         )
         submission = SubmissionFactory.create()
         record.targets.add(ref_for_instance(submission))
         self.assertEqual(
             str(record),
-            f'Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for {submission}',
+            f"Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for {submission}",
         )
         record.targets.add(ref_for_instance(SubmissionFactory.create()))
         self.assertEqual(
             str(record),
-            f'Successful [Escrow hold]: $10.00 from Dude [Credit Card] to '
-            f'Chick [Escrow] for {submission} and 1 other(s).',
+            f"Successful [Escrow hold]: $10.00 from Dude [Credit Card] to "
+            f"Chick [Escrow] for {submission} and 1 other(s).",
         )
 
     def test_auto_finalize(self):
@@ -161,16 +223,16 @@ class TestTransactionRecord(EnsurePlansMixin, TestCase):
 
 @ddt
 @override_settings(
-    TABLE_PERCENTAGE_FEE=Decimal('20'),
-    TABLE_STATIC_FEE=Money('2.00', 'USD'),
-    TABLE_TAX=Decimal('8'),
+    TABLE_PERCENTAGE_FEE=Decimal("20"),
+    TABLE_STATIC_FEE=Money("2.00", "USD"),
+    TABLE_TAX=Decimal("8"),
 )
 class TestDeliverable(EnsurePlansMixin, TestCase):
     def test_total(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money(5, 'USD'))
-        self.assertEqual(deliverable.invoice.total(), Money('5.00', 'USD'))
-        LineItemFactory.create(invoice=deliverable.invoice, amount=Money('2.00', 'USD'))
-        self.assertEqual(deliverable.invoice.total(), Money('7.00', 'USD'))
+        deliverable = DeliverableFactory.create(product__base_price=Money(5, "USD"))
+        self.assertEqual(deliverable.invoice.total(), Money("5.00", "USD"))
+        LineItemFactory.create(invoice=deliverable.invoice, amount=Money("2.00", "USD"))
+        self.assertEqual(deliverable.invoice.total(), Money("7.00", "USD"))
 
     def deliverable_and_context(self):
         deliverable = DeliverableFactory.create()
@@ -178,19 +240,19 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable.save()
         request = Mock()
         request.user = deliverable.arbitrator
-        context = {'request': request}
+        context = {"request": request}
         return deliverable, context
 
     def test_notification_name(self):
         deliverable, context = self.deliverable_and_context()
         self.assertEqual(
-            f'Case #{deliverable.order.id} [{deliverable.name}]',
+            f"Case #{deliverable.order.id} [{deliverable.name}]",
             deliverable.notification_name(context),
         )
         deliverable.buyer = deliverable.arbitrator
         deliverable.arbitrator = None
         self.assertEqual(
-            f'Order #{deliverable.order.id} [{deliverable.name}]',
+            f"Order #{deliverable.order.id} [{deliverable.name}]",
             deliverable.notification_name(context),
         )
 
@@ -199,48 +261,54 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable.status = WAITING
         deliverable.save()
         self.assertEqual(
-            f'Case #{deliverable.order.id} [{deliverable.name}] (Waitlisted)',
+            f"Case #{deliverable.order.id} [{deliverable.name}] (Waitlisted)",
             deliverable.notification_name(context),
         )
 
     def test_notification_link(self):
         deliverable, context = self.deliverable_and_context()
         self.assertEqual(
-            {'name': 'CaseDeliverableOverview', 'params': {
-                'orderId': deliverable.order.id,
-                'deliverableId': deliverable.id,
-                'username': context['request'].user.username,
-            }},
+            {
+                "name": "CaseDeliverableOverview",
+                "params": {
+                    "orderId": deliverable.order.id,
+                    "deliverableId": deliverable.id,
+                    "username": context["request"].user.username,
+                },
+            },
             deliverable.notification_link(context),
         )
         deliverable.buyer = deliverable.arbitrator
         deliverable.arbitrator = None
         deliverable.save()
         self.assertEqual(
-            {'name': 'OrderDeliverableOverview', 'params': {
-                'orderId': deliverable.order.id,
-                'deliverableId': deliverable.id,
-                'username': context['request'].user.username,
-            }},
+            {
+                "name": "OrderDeliverableOverview",
+                "params": {
+                    "orderId": deliverable.order.id,
+                    "deliverableId": deliverable.id,
+                    "username": context["request"].user.username,
+                },
+            },
             deliverable.notification_link(context),
         )
 
     def test_notification_link_guest(self):
         deliverable, context = self.deliverable_and_context()
-        deliverable.order.buyer = UserFactory.create(guest=True, username='__1')
-        deliverable.order.claim_token = 'y1zGvlKfTnmA'
+        deliverable.order.buyer = UserFactory.create(guest=True, username="__1")
+        deliverable.order.claim_token = "y1zGvlKfTnmA"
         deliverable.order.save()
-        context['request'].user = deliverable.order.buyer
+        context["request"].user = deliverable.order.buyer
         self.assertEqual(
             {
-                'name': 'ClaimOrder',
-                'params': {
-                    'claimToken': 'y1zGvlKfTnmA',
-                    'orderId': deliverable.order.id,
-                    'deliverableId': deliverable.id,
-                    'next': f'%7B%22name%22%3A%20%22OrderDeliverableOverview%22%2C%20%22params%22%3A%20'
-                            f'%7B%22username%22%3A%20%22_%22%2C%20%22orderId%22%3A%20{deliverable.order.id}'
-                            f'%2C%20%22deliverableId%22%3A%20{deliverable.id}%7D%7D'
+                "name": "ClaimOrder",
+                "params": {
+                    "claimToken": "y1zGvlKfTnmA",
+                    "orderId": deliverable.order.id,
+                    "deliverableId": deliverable.id,
+                    "next": f"%7B%22name%22%3A%20%22OrderDeliverableOverview%22%2C%20%22params%22%3A%20"
+                    f"%7B%22username%22%3A%20%22_%22%2C%20%22orderId%22%3A%20{deliverable.order.id}"
+                    f"%2C%20%22deliverableId%22%3A%20{deliverable.id}%7D%7D",
                 },
             },
             deliverable.notification_link(context),
@@ -250,22 +318,28 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable, context = self.deliverable_and_context()
         DeliverableFactory.create(order=deliverable.order)
         self.assertEqual(
-            {'name': 'CaseDeliverableOverview', 'params': {
-                'orderId': deliverable.order.id,
-                'deliverableId': deliverable.id,
-                'username': context['request'].user.username,
-            }},
+            {
+                "name": "CaseDeliverableOverview",
+                "params": {
+                    "orderId": deliverable.order.id,
+                    "deliverableId": deliverable.id,
+                    "username": context["request"].user.username,
+                },
+            },
             deliverable.notification_link(context),
         )
         deliverable.buyer = deliverable.arbitrator
         deliverable.arbitrator = None
         deliverable.save()
         self.assertEqual(
-            {'name': 'OrderDeliverableOverview', 'params': {
-                'orderId': deliverable.order.id,
-                'deliverableId': deliverable.id,
-                'username': context['request'].user.username,
-            }},
+            {
+                "name": "OrderDeliverableOverview",
+                "params": {
+                    "orderId": deliverable.order.id,
+                    "deliverableId": deliverable.id,
+                    "username": context["request"].user.username,
+                },
+            },
             deliverable.notification_link(context),
         )
 
@@ -273,8 +347,8 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable, context = self.deliverable_and_context()
         deliverable.product.primary_submission = SubmissionFactory.create()
         output = deliverable.notification_display(context)
-        self.assertEqual(output['id'], deliverable.product.primary_submission.id)
-        self.assertEqual(output['title'], deliverable.product.primary_submission.title)
+        self.assertEqual(output["id"], deliverable.product.primary_submission.id)
+        self.assertEqual(output["title"], deliverable.product.primary_submission.title)
 
     def test_notification_display_revision(self):
         deliverable, context = self.deliverable_and_context()
@@ -282,26 +356,29 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable.revisions_hidden = False
         revision = RevisionFactory.create(deliverable=deliverable)
         output = deliverable.notification_display(context)
-        self.assertEqual(output['id'], revision.id)
-        self.assertIn(revision.file.file.name, output['file']['full'])
+        self.assertEqual(output["id"], revision.id)
+        self.assertIn(revision.file.file.name, output["file"]["full"])
 
     @data(True, False)
-    @patch('apps.sales.stripe.stripe')
+    @patch("apps.sales.stripe.stripe")
     def test_create_line_items_escrow(self, cascade_fees, mock_stripe):
         plan = ServicePlanFactory.create(
-            name='Test Plan', shield_percentage_price=Decimal('9'), shield_static_price=Money('.35', 'USD'),
+            name="Test Plan",
+            shield_percentage_price=Decimal("9"),
+            shield_static_price=Money(".35", "USD"),
         )
         deliverable = DeliverableFactory.create(
-            product__base_price=Money('15.00', 'USD'), order__seller__service_plan=plan,
+            product__base_price=Money("15.00", "USD"),
+            order__seller__service_plan=plan,
             cascade_fees=cascade_fees,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(base_price.amount, Money('15.00', 'USD'))
+        self.assertEqual(base_price.amount, Money("15.00", "USD"))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
         shield = deliverable.invoice.line_items.get(type=SHIELD)
-        self.assertEqual(shield.percentage, Decimal('9'))
-        self.assertEqual(shield.amount, Money('.35', 'USD'))
+        self.assertEqual(shield.percentage, Decimal("9"))
+        self.assertEqual(shield.amount, Money(".35", "USD"))
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
@@ -310,117 +387,134 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
     @data(True, False)
     def test_create_line_items_escrow_international(self, cascade_fees):
         plan = ServicePlanFactory.create(
-            name='Test Plan', shield_percentage_price=Decimal('9'), shield_static_price=Money('.35', 'USD'),
+            name="Test Plan",
+            shield_percentage_price=Decimal("9"),
+            shield_static_price=Money(".35", "USD"),
         )
-        account = StripeAccountFactory.create(country='AU', user__service_plan=plan)
+        account = StripeAccountFactory.create(country="AU", user__service_plan=plan)
         deliverable = DeliverableFactory.create(
-            product__base_price=Money('15.00', 'USD'),
-            cascade_fees=cascade_fees, order__seller=account.user,
+            product__base_price=Money("15.00", "USD"),
+            cascade_fees=cascade_fees,
+            order__seller=account.user,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(base_price.amount, Money('15.00', 'USD'))
+        self.assertEqual(base_price.amount, Money("15.00", "USD"))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
         shield = deliverable.invoice.line_items.get(type=SHIELD)
-        self.assertEqual(shield.percentage, Decimal('10'))
-        self.assertEqual(shield.amount, Money('.35', 'USD'))
+        self.assertEqual(shield.percentage, Decimal("10"))
+        self.assertEqual(shield.amount, Money(".35", "USD"))
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
     def test_create_line_items_non_escrow_free(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'), escrow_enabled=False)
+        deliverable = DeliverableFactory.create(
+            product__base_price=Money("15.00", "USD"), escrow_enabled=False
+        )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(base_price.amount, Money('15.00', 'USD'))
+        self.assertEqual(base_price.amount, Money("15.00", "USD"))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
         self.assertEqual(deliverable.invoice.line_items.all().count(), 1)
 
     @data(True, False)
     def test_create_line_items_non_escrow_metered(self, cascade_fees):
-        plan = ServicePlanFactory.create(per_deliverable_price=Money('2.00', 'USD'))
+        plan = ServicePlanFactory.create(per_deliverable_price=Money("2.00", "USD"))
         deliverable = DeliverableFactory.create(
-            product__base_price=Money('15.00', 'USD'),
+            product__base_price=Money("15.00", "USD"),
             escrow_enabled=False,
             order__seller__service_plan=plan,
             cascade_fees=cascade_fees,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(base_price.amount, Money('15.00', 'USD'))
+        self.assertEqual(base_price.amount, Money("15.00", "USD"))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
         meter_price = deliverable.invoice.line_items.get(type=DELIVERABLE_TRACKING)
-        self.assertEqual(meter_price.amount, Money('2.00', 'USD'))
+        self.assertEqual(meter_price.amount, Money("2.00", "USD"))
         self.assertEqual(meter_price.cascade_amount, cascade_fees)
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
     @data(True, False)
     def test_create_line_items_table_service(self, cascade_fees):
         deliverable = DeliverableFactory.create(
-            product__base_price=Money('15.00', 'USD'),
+            product__base_price=Money("15.00", "USD"),
             table_order=True,
             cascade_fees=cascade_fees,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(base_price.amount, Money('15.00', 'USD'))
+        self.assertEqual(base_price.amount, Money("15.00", "USD"))
         self.assertEqual(base_price.percentage, 0)
         self.assertEqual(base_price.priority, 0)
         table_service = deliverable.invoice.line_items.get(type=TABLE_SERVICE)
-        self.assertEqual(table_service.percentage, Decimal('20'))
-        self.assertEqual(table_service.amount, Money('2.00', 'USD'))
+        self.assertEqual(table_service.percentage, Decimal("20"))
+        self.assertEqual(table_service.amount, Money("2.00", "USD"))
         self.assertEqual(table_service.cascade_percentage, cascade_fees)
         self.assertFalse(table_service.cascade_amount)
         set_on_fire = deliverable.invoice.line_items.get(type=TAX)
-        self.assertEqual(set_on_fire.percentage, Decimal('8'))
-        self.assertEqual(set_on_fire.amount, Money('0.00', 'USD'))
+        self.assertEqual(set_on_fire.percentage, Decimal("8"))
+        self.assertEqual(set_on_fire.amount, Money("0.00", "USD"))
         self.assertEqual(deliverable.invoice.line_items.all().count(), 3)
 
     @override_settings(AUTO_CANCEL_DAYS=5)
-    @freeze_time('2023-01-01')
+    @freeze_time("2023-01-01")
     def test_set_auto_cancel(self):
         deliverable = DeliverableFactory.create(status=NEW)
         self.assertEqual(deliverable.auto_cancel_on, timezone.now().replace(day=6))
         with freeze_time(date(2023, 1, 3)):
-            CommentFactory.create(top=deliverable, content_object=deliverable, user=deliverable.order.buyer)
+            CommentFactory.create(
+                top=deliverable,
+                content_object=deliverable,
+                user=deliverable.order.buyer,
+            )
             deliverable.refresh_from_db()
             self.assertEqual(deliverable.auto_cancel_on, timezone.now().replace(day=8))
 
     @override_settings(AUTO_CANCEL_DAYS=5)
-    @freeze_time('2023-01-01')
+    @freeze_time("2023-01-01")
     def test_no_set_auto_cancel_on_secondary_deliverables(self):
         initial_deliverable = DeliverableFactory.create(status=NEW)
-        second_deliverable = DeliverableFactory.create(status=NEW, order=initial_deliverable.order)
+        second_deliverable = DeliverableFactory.create(
+            status=NEW, order=initial_deliverable.order
+        )
         # Re-saving shouldn't break the first, though.
         initial_deliverable.save()
-        self.assertEqual(initial_deliverable.auto_cancel_on, timezone.now().replace(day=6))
+        self.assertEqual(
+            initial_deliverable.auto_cancel_on, timezone.now().replace(day=6)
+        )
         self.assertIsNone(second_deliverable.auto_cancel_on)
 
     @override_settings(AUTO_CANCEL_DAYS=5)
-    @freeze_time('2023-01-01')
+    @freeze_time("2023-01-01")
     def test_auto_cancel_cleared_on_response(self):
         deliverable = DeliverableFactory.create(status=NEW)
         self.assertEqual(deliverable.auto_cancel_on, timezone.now().replace(day=6))
-        CommentFactory.create(top=deliverable, content_object=deliverable, user=deliverable.order.seller)
+        CommentFactory.create(
+            top=deliverable, content_object=deliverable, user=deliverable.order.seller
+        )
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.auto_cancel_on, None)
 
     @override_settings(AUTO_CANCEL_DAYS=5)
-    @freeze_time('2023-01-01')
+    @freeze_time("2023-01-01")
     def test_auto_cancel_stays_none_if_not_new(self):
         deliverable = DeliverableFactory.create(status=PAYMENT_PENDING)
         self.assertEqual(deliverable.auto_cancel_on, None)
-        CommentFactory.create(top=deliverable, content_object=deliverable, user=deliverable.order.buyer)
+        CommentFactory.create(
+            top=deliverable, content_object=deliverable, user=deliverable.order.buyer
+        )
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.auto_cancel_on, None)
 
 
 class TestCreditCardToken(EnsurePlansMixin, TestCase):
     def test_string(self):
-        card = CreditCardTokenFactory.create(last_four='1234')
-        self.assertEqual(str(card), 'Visa ending in 1234')
+        card = CreditCardTokenFactory.create(last_four="1234")
+        self.assertEqual(str(card), "Visa ending in 1234")
         card.active = False
-        self.assertEqual(str(card), 'Visa ending in 1234 (Deleted)')
+        self.assertEqual(str(card), "Visa ending in 1234 (Deleted)")
 
     def test_no_delete(self):
         card = CreditCardTokenFactory.create()
@@ -430,12 +524,15 @@ class TestCreditCardToken(EnsurePlansMixin, TestCase):
         card = CreditCardTokenFactory.create()
         self.assertEqual(
             card.announce_channels(),
-            [f'profiles.User.pk.{card.user.id}.all_cards', f'profiles.User.pk.{card.user.id}.stripe_cards']
+            [
+                f"profiles.User.pk.{card.user.id}.all_cards",
+                f"profiles.User.pk.{card.user.id}.stripe_cards",
+            ],
         )
 
     def test_check_token(self):
         with self.assertRaises(ValidationError):
-            CreditCardTokenFactory.create(stripe_token='', token='')
+            CreditCardTokenFactory.create(stripe_token="", token="")
 
 
 class TestRevision(EnsurePlansMixin, TestCase):
@@ -443,8 +540,10 @@ class TestRevision(EnsurePlansMixin, TestCase):
         user = UserFactory.create()
         buyer = UserFactory.create()
         revision = RevisionFactory.create(
-            owner=user, deliverable__order__seller=user,
-            deliverable__product__user=user, deliverable__order__buyer=buyer,
+            owner=user,
+            deliverable__order__seller=user,
+            deliverable__product__user=user,
+            deliverable__order__buyer=buyer,
         )
         other = UserFactory.create()
         self.assertTrue(revision.can_reference_asset(revision.owner))
@@ -457,62 +556,82 @@ class TestRevision(EnsurePlansMixin, TestCase):
         revision = RevisionFactory.create()
         self.assertEqual(
             str(revision),
-            f'Revision {revision.id} for Deliverable object ({revision.deliverable.id})',
+            f"Revision {revision.id} for Deliverable object ({revision.deliverable.id})",
         )
 
     def test_notification_name(self):
         revision = RevisionFactory.create()
-        context = {'request': FakeRequest(user=revision.deliverable.order.buyer)}
+        context = {"request": FakeRequest(user=revision.deliverable.order.buyer)}
         self.assertEqual(
             revision.notification_name(context),
-            f'Revision ID #{revision.id} on Order #{revision.deliverable.order.id} [{revision.deliverable.name}]',
+            f"Revision ID #{revision.id} on Order #{revision.deliverable.order.id} [{revision.deliverable.name}]",
         )
 
     def test_notification_display(self):
         revision = RevisionFactory.create()
-        context = {'request': FakeRequest(user=revision.deliverable.order.buyer)}
+        context = {"request": FakeRequest(user=revision.deliverable.order.buyer)}
         self.assertIn(
-            'file',
+            "file",
             revision.notification_display(context),
         )
 
     def test_notification_link(self):
         revision = RevisionFactory.create()
-        context = {'request': FakeRequest(user=revision.deliverable.order.buyer)}
+        context = {"request": FakeRequest(user=revision.deliverable.order.buyer)}
         self.assertEqual(
             revision.notification_link(context),
-            {'name': 'OrderDeliverableRevision',
-             'params': {'deliverableId': revision.deliverable.id,
-                        'orderId': revision.deliverable.order.id,
-                        'revisionId': revision.id,
-                        'username': revision.deliverable.order.buyer.username}}
+            {
+                "name": "OrderDeliverableRevision",
+                "params": {
+                    "deliverableId": revision.deliverable.id,
+                    "orderId": revision.deliverable.order.id,
+                    "revisionId": revision.id,
+                    "username": revision.deliverable.order.buyer.username,
+                },
+            },
         )
 
     def test_subscriptions_created(self):
         deliverable = DeliverableFactory.create()
         Subscription.objects.all().delete()
-        revision = RevisionFactory.create(owner=deliverable.order.seller, deliverable=deliverable)
-        seller_comment_subscription = Subscription.objects.get(subscriber=revision.owner, type=COMMENT)
+        revision = RevisionFactory.create(
+            owner=deliverable.order.seller, deliverable=deliverable
+        )
+        seller_comment_subscription = Subscription.objects.get(
+            subscriber=revision.owner, type=COMMENT
+        )
         self.assertEqual(seller_comment_subscription.target, revision)
-        seller_approval_subscription = Subscription.objects.get(subscriber=revision.owner, type=REVISION_APPROVED)
+        seller_approval_subscription = Subscription.objects.get(
+            subscriber=revision.owner, type=REVISION_APPROVED
+        )
         self.assertEqual(seller_approval_subscription.target, revision)
-        buyer_subscription = Subscription.objects.get(subscriber=deliverable.order.buyer)
+        buyer_subscription = Subscription.objects.get(
+            subscriber=deliverable.order.buyer
+        )
         self.assertEqual(buyer_subscription.type, COMMENT)
         self.assertEqual(buyer_subscription.target, revision)
 
     def test_subscription_created_no_buyer(self):
         deliverable = DeliverableFactory.create(order__buyer=None)
         Subscription.objects.all().delete()
-        revision = RevisionFactory.create(owner=deliverable.order.seller, deliverable=deliverable)
-        seller_comment_subscription = Subscription.objects.get(subscriber=revision.owner, type=COMMENT)
+        revision = RevisionFactory.create(
+            owner=deliverable.order.seller, deliverable=deliverable
+        )
+        seller_comment_subscription = Subscription.objects.get(
+            subscriber=revision.owner, type=COMMENT
+        )
         self.assertEqual(seller_comment_subscription.target, revision)
-        seller_approval_subscription = Subscription.objects.get(subscriber=revision.owner, type=REVISION_APPROVED)
+        seller_approval_subscription = Subscription.objects.get(
+            subscriber=revision.owner, type=REVISION_APPROVED
+        )
         self.assertEqual(seller_approval_subscription.target, revision)
 
     def test_subscription_created_once(self):
         deliverable = DeliverableFactory.create(order__buyer=None)
         Subscription.objects.all().delete()
-        revision = RevisionFactory.create(owner=deliverable.order.seller, deliverable=deliverable)
+        revision = RevisionFactory.create(
+            owner=deliverable.order.seller, deliverable=deliverable
+        )
         self.assertEqual(Subscription.objects.all().count(), 2)
         revision.save()
         self.assertEqual(Subscription.objects.all().count(), 2)
@@ -540,7 +659,9 @@ class TestLoadAdjustment(EnsurePlansMixin, TestCase):
         self.assertEqual(user.artist_profile.load, 10)
         self.assertTrue(user.artist_profile.commissions_disabled)
         self.assertFalse(user.artist_profile.commissions_closed)
-        order2 = DeliverableFactory.create(task_weight=5, status=NEW, order__seller=user)
+        order2 = DeliverableFactory.create(
+            task_weight=5, status=NEW, order__seller=user
+        )
         user.refresh_from_db()
         # Now we have an order in a new state. This shouldn't undo the disability.
         self.assertEqual(user.artist_profile.load, 10)
@@ -605,30 +726,37 @@ class TestLoadAdjustment(EnsurePlansMixin, TestCase):
 
 class TestOrder(EnsurePlansMixin, TestCase):
     def test_order_string(self):
-        order = OrderFactory.create(seller__username='Jim', buyer__username='Bob')
-        self.assertEqual(str(order), f'#{order.id} by Jim for Bob')
+        order = OrderFactory.create(seller__username="Jim", buyer__username="Bob")
+        self.assertEqual(str(order), f"#{order.id} by Jim for Bob")
 
     def test_mark_modified(self):
         order = OrderFactory.create()
         with self.assertRaises(ModifiedMarker.DoesNotExist):
-            ModifiedMarker.objects.get(content_type=ContentType.objects.get_for_model(order), object_id=order.id)
+            ModifiedMarker.objects.get(
+                content_type=ContentType.objects.get_for_model(order),
+                object_id=order.id,
+            )
         CommentFactory.create(top=order)
         # Should exist now.
-        marker = ModifiedMarker.objects.get(content_type=ContentType.objects.get_for_model(order), object_id=order.id)
+        marker = ModifiedMarker.objects.get(
+            content_type=ContentType.objects.get_for_model(order), object_id=order.id
+        )
         self.assertEqual(marker.order, order)
 
     def test_notification_display(self):
         deliverable = DeliverableFactory.create()
         self.assertEqual(
-            deliverable.order.notification_link({'request': FakeRequest(user=deliverable.order.seller)}),
+            deliverable.order.notification_link(
+                {"request": FakeRequest(user=deliverable.order.seller)}
+            ),
             {
-                'name': 'SaleDeliverableOverview',
-                'params': {
-                    'deliverableId': deliverable.id,
-                    'orderId': deliverable.order.id,
-                    'username': deliverable.order.seller.username,
+                "name": "SaleDeliverableOverview",
+                "params": {
+                    "deliverableId": deliverable.id,
+                    "orderId": deliverable.order.id,
+                    "username": deliverable.order.seller.username,
                 },
-            }
+            },
         )
 
 
@@ -658,15 +786,17 @@ class TestInvoice(EnsurePlansMixin, TestCase):
         self.assertEqual(
             str(invoice),
             # Not sure why the money library adds this weird padding, but it's their bug, not mine.
-            f'Invoice {invoice.id} [Sale] for {invoice.bill_to.username} in the amount of $\xa00.00',
+            f"Invoice {invoice.id} [Sale] for {invoice.bill_to.username} in the amount of $\xa00.00",
         )
 
     def test_string_deliverable(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money('15.00', 'USD'))
+        deliverable = DeliverableFactory.create(
+            product__base_price=Money("15.00", "USD")
+        )
         self.assertEqual(
             str(deliverable.invoice),
-            f'Invoice {deliverable.invoice.id} [Sale] for {deliverable.invoice.bill_to.username} in the amount of '
-            f'$15.00 for deliverable: Deliverable object ({deliverable.id})',
+            f"Invoice {deliverable.invoice.id} [Sale] for {deliverable.invoice.bill_to.username} in the amount of "
+            f"$15.00 for deliverable: Deliverable object ({deliverable.id})",
         )
 
 
@@ -680,8 +810,11 @@ class TestReference(EnsurePlansMixin, TestCase):
         reference = ReferenceFactory.create()
         deliverable.reference_set.add(reference)
         with self.assertRaises(ModifiedMarker.DoesNotExist):
-            ModifiedMarker.objects.get(content_type=ContentType.objects.get_for_model(reference), object_id=reference.id)
-        CommentFactory.create(top=reference, extra_data={'deliverable': deliverable.id})
+            ModifiedMarker.objects.get(
+                content_type=ContentType.objects.get_for_model(reference),
+                object_id=reference.id,
+            )
+        CommentFactory.create(top=reference, extra_data={"deliverable": deliverable.id})
         # Should exist now.
         marker = ModifiedMarker.objects.get(
             content_type=ContentType.objects.get_for_model(reference),
@@ -693,8 +826,11 @@ class TestReference(EnsurePlansMixin, TestCase):
         deliverable = DeliverableFactory.create()
         reference = ReferenceFactory.create()
         with self.assertRaises(ModifiedMarker.DoesNotExist):
-            ModifiedMarker.objects.get(content_type=ContentType.objects.get_for_model(reference), object_id=reference.id)
-        CommentFactory.create(top=reference, extra_data={'deliverable': deliverable.id})
+            ModifiedMarker.objects.get(
+                content_type=ContentType.objects.get_for_model(reference),
+                object_id=reference.id,
+            )
+        CommentFactory.create(top=reference, extra_data={"deliverable": deliverable.id})
         # Should exist now.
         marker = ModifiedMarker.objects.get(
             content_type=ContentType.objects.get_for_model(reference),
@@ -706,29 +842,39 @@ class TestReference(EnsurePlansMixin, TestCase):
         deliverable = DeliverableFactory.create()
         reference = ReferenceFactory.create()
         deliverable.reference_set.add(reference)
-        context = {'extra_data': {'deliverable': deliverable.id}, 'request': FakeRequest(user=deliverable.order.seller)}
+        context = {
+            "extra_data": {"deliverable": deliverable.id},
+            "request": FakeRequest(user=deliverable.order.seller),
+        }
         self.assertEqual(
             reference.notification_name(context),
-            f'Reference ID #{reference.id} for Sale #{deliverable.order.id} [{deliverable.name}]',
+            f"Reference ID #{reference.id} for Sale #{deliverable.order.id} [{deliverable.name}]",
         )
 
     def test_notification_link(self):
         deliverable = DeliverableFactory.create()
         reference = ReferenceFactory.create()
         deliverable.reference_set.add(reference)
-        context = {'extra_data': {'deliverable': deliverable.id}, 'request': FakeRequest(user=deliverable.order.seller)}
+        context = {
+            "extra_data": {"deliverable": deliverable.id},
+            "request": FakeRequest(user=deliverable.order.seller),
+        }
         self.assertEqual(
             reference.notification_link(context),
-            {'name': 'SaleDeliverableReference',
-             'params': {'deliverableId': deliverable.id,
-                        'orderId': deliverable.order.id,
-                        'referenceId': reference.id,
-                        'username': deliverable.order.seller.username}},
+            {
+                "name": "SaleDeliverableReference",
+                "params": {
+                    "deliverableId": deliverable.id,
+                    "orderId": deliverable.order.id,
+                    "referenceId": reference.id,
+                    "username": deliverable.order.seller.username,
+                },
+            },
         )
 
     def test_notification_link_no_context(self):
         reference = ReferenceFactory.create()
-        context = {'extra_data': {'deliverable': '1234'}}
+        context = {"extra_data": {"deliverable": "1234"}}
         self.assertEqual(
             reference.notification_link(context),
             None,
@@ -738,62 +884,86 @@ class TestReference(EnsurePlansMixin, TestCase):
         deliverable = DeliverableFactory.create()
         reference = ReferenceFactory.create()
         deliverable.reference_set.add(reference)
-        context = {'extra_data': {'deliverable': deliverable.id}, 'request': FakeRequest(user=deliverable.order.seller)}
+        context = {
+            "extra_data": {"deliverable": deliverable.id},
+            "request": FakeRequest(user=deliverable.order.seller),
+        }
         self.assertIn(
-            'file',
+            "file",
             reference.notification_display(context),
         )
 
 
 class TestLineItem(EnsurePlansMixin, TestCase):
     def test_string(self):
-        line_item = LineItemFactory.create(amount=Money('15', 'USD'), percentage=5, priority=100)
-        self.assertEqual(str(line_item), f'Add on or Discount ($15.00, 5) for #{line_item.invoice.id}, priority 100')
+        line_item = LineItemFactory.create(
+            amount=Money("15", "USD"), percentage=5, priority=100
+        )
+        self.assertEqual(
+            str(line_item),
+            f"Add on or Discount ($15.00, 5) for #{line_item.invoice.id}, priority 100",
+        )
 
 
 class TestWebhook(TestCase):
     def test_string(self):
         webhook = WebhookRecordFactory.create()
         connect_webhook = WebhookRecordFactory.create(connect=True)
-        self.assertEqual(str(webhook), f'Webhook {webhook.id}')
-        self.assertEqual(str(connect_webhook), f'Webhook {connect_webhook.id} (Connect)')
+        self.assertEqual(str(webhook), f"Webhook {webhook.id}")
+        self.assertEqual(
+            str(connect_webhook), f"Webhook {connect_webhook.id} (Connect)"
+        )
 
 
 class TestDeliverableFromRequest(EnsurePlansMixin, TestCase):
     def test_deliverable_from_context(self):
         deliverable = DeliverableFactory.create()
-        context = {'extra_data': {'deliverable': deliverable.id}, 'request': FakeRequest(user=deliverable.order.seller)}
+        context = {
+            "extra_data": {"deliverable": deliverable.id},
+            "request": FakeRequest(user=deliverable.order.seller),
+        }
         self.assertEqual(deliverable_from_context(context), deliverable)
 
     def test_deliverable_from_context_bad_permission(self):
         deliverable = DeliverableFactory.create()
-        context = {'extra_data': {'deliverable': deliverable.id}, 'request': FakeRequest(user=UserFactory.create())}
+        context = {
+            "extra_data": {"deliverable": deliverable.id},
+            "request": FakeRequest(user=UserFactory.create()),
+        }
         self.assertIsNone(deliverable_from_context(context))
 
     def test_deliverable_from_context_no_check(self):
         deliverable = DeliverableFactory.create()
-        context = {'extra_data': {'deliverable': deliverable.id}, 'request': FakeRequest(user=UserFactory.create())}
-        self.assertEqual(deliverable_from_context(context, check_request=False), deliverable)
+        context = {
+            "extra_data": {"deliverable": deliverable.id},
+            "request": FakeRequest(user=UserFactory.create()),
+        }
+        self.assertEqual(
+            deliverable_from_context(context, check_request=False), deliverable
+        )
 
     def test_nonexistent(self):
-        context = {'extra_data': {'deliverable': 1234}, 'request': FakeRequest(user=UserFactory.create())}
+        context = {
+            "extra_data": {"deliverable": 1234},
+            "request": FakeRequest(user=UserFactory.create()),
+        }
         self.assertIsNone(deliverable_from_context(context))
 
     def test_nonsense(self):
-        context = {'extra_data': {'deliverable': 'beep'}, 'request': FakeRequest(user=UserFactory.create())}
+        context = {
+            "extra_data": {"deliverable": "beep"},
+            "request": FakeRequest(user=UserFactory.create()),
+        }
         self.assertIsNone(deliverable_from_context(context))
 
 
 class TestServicePlan(TestCase):
     def test_string(self):
-        plan = ServicePlanFactory.create(name='Boop')
-        self.assertEqual(
-            str(plan),
-            f'Boop (#{plan.id})'
-        )
+        plan = ServicePlanFactory.create(name="Boop")
+        self.assertEqual(str(plan), f"Boop (#{plan.id})")
 
 
-@patch('apps.sales.models.stripe')
+@patch("apps.sales.models.stripe")
 class TestStripeLocation(TestCase):
     def test_string(self, _mock_stripe):
         location = StripeLocationFactory.create()
@@ -801,83 +971,105 @@ class TestStripeLocation(TestCase):
 
     def test_create_location(self, mock_stripe):
         location = StripeLocation(
-            name='Beep',
-            line1='1234 Someplace lane',
-            city='Houston',
-            postal_code='77339',
+            name="Beep",
+            line1="1234 Someplace lane",
+            city="Houston",
+            postal_code="77339",
         )
-        mock_stripe.__enter__.return_value.terminal.Location.create.return_value = {'id': '1234'}
+        mock_stripe.__enter__.return_value.terminal.Location.create.return_value = {
+            "id": "1234"
+        }
         location.save()
         mock_stripe.__enter__.return_value.terminal.Location.create.assert_called_with(
-            display_name='Beep',
-            address={'line1': '1234 Someplace lane', 'country': '', 'city': 'Houston', 'postal_code': '77339'},
+            display_name="Beep",
+            address={
+                "line1": "1234 Someplace lane",
+                "country": "",
+                "city": "Houston",
+                "postal_code": "77339",
+            },
         )
-        self.assertEqual(location.stripe_token, '1234')
+        self.assertEqual(location.stripe_token, "1234")
 
     def test_modify_location(self, mock_stripe):
         location = StripeLocation(
-            name='Beep',
-            line1='1234 Someplace lane',
-            city='Houston',
-            postal_code='77339',
+            name="Beep",
+            line1="1234 Someplace lane",
+            city="Houston",
+            postal_code="77339",
         )
-        mock_stripe.__enter__.return_value.terminal.Location.create.return_value = {'id': '1234'}
+        mock_stripe.__enter__.return_value.terminal.Location.create.return_value = {
+            "id": "1234"
+        }
         location.save()
         mock_stripe.__enter__.return_value.terminal.Location.modify.assert_not_called()
         location.save()
         mock_stripe.__enter__.return_value.terminal.Location.modify.assert_called_with(
-            '1234',
-            display_name='Beep',
-            address={'line1': '1234 Someplace lane', 'country': '', 'city': 'Houston', 'postal_code': '77339'},
+            "1234",
+            display_name="Beep",
+            address={
+                "line1": "1234 Someplace lane",
+                "country": "",
+                "city": "Houston",
+                "postal_code": "77339",
+            },
         )
 
     def test_delete(self, mock_stripe):
-        location = StripeLocationFactory.create(stripe_token='1234')
+        location = StripeLocationFactory.create(stripe_token="1234")
         location.delete()
-        mock_stripe.__enter__.return_value.terminal.Location.delete.assert_called_with('1234')
+        mock_stripe.__enter__.return_value.terminal.Location.delete.assert_called_with(
+            "1234"
+        )
 
 
-@patch('apps.sales.models.stripe')
+@patch("apps.sales.models.stripe")
 class TestStripeReader(TestCase):
     def test_string(self, _mock_stripe):
-        reader = StripeReaderFactory.create(name='Beep', location__name='Boop')
-        self.assertEqual(str(reader), f'Beep at Boop (#{reader.id})' )
+        reader = StripeReaderFactory.create(name="Beep", location__name="Boop")
+        self.assertEqual(str(reader), f"Beep at Boop (#{reader.id})")
 
     def test_create_reader_normal(self, mock_stripe):
-        location = StripeLocationFactory.create(stripe_token='1234')
+        location = StripeLocationFactory.create(stripe_token="1234")
         reader = StripeReader(
-            name='Swiper',
+            name="Swiper",
             location=location,
         )
-        reader.registration_code = 'Beep Boop'
-        mock_stripe.__enter__.return_value.terminal.Reader.create.return_value = {'id': '5678'}
+        reader.registration_code = "Beep Boop"
+        mock_stripe.__enter__.return_value.terminal.Reader.create.return_value = {
+            "id": "5678"
+        }
         reader.save()
         mock_stripe.__enter__.return_value.terminal.Reader.create.assert_called_with(
-            label='Swiper',
-            location='1234',
-            registration_code='Beep Boop',
+            label="Swiper",
+            location="1234",
+            registration_code="Beep Boop",
         )
-        self.assertEqual(reader.stripe_token, '5678')
+        self.assertEqual(reader.stripe_token, "5678")
         self.assertFalse(reader.virtual)
 
     def test_create_reader_virtual(self, mock_stripe):
-        location = StripeLocationFactory.create(stripe_token='1234')
+        location = StripeLocationFactory.create(stripe_token="1234")
         reader = StripeReader(
-            name='Swiper',
+            name="Swiper",
             location=location,
         )
-        reader.registration_code = 'simulated'
-        mock_stripe.__enter__.return_value.terminal.Reader.create.return_value = {'id': '5678'}
+        reader.registration_code = "simulated"
+        mock_stripe.__enter__.return_value.terminal.Reader.create.return_value = {
+            "id": "5678"
+        }
         reader.save()
         mock_stripe.__enter__.return_value.terminal.Reader.create.assert_called_with(
-            label='Swiper',
-            location='1234',
-            registration_code='simulated',
+            label="Swiper",
+            location="1234",
+            registration_code="simulated",
         )
-        self.assertEqual(reader.stripe_token, '5678')
+        self.assertEqual(reader.stripe_token, "5678")
         self.assertTrue(reader.virtual)
 
     def test_delete(self, mock_stripe):
-        reader = StripeReaderFactory.create(stripe_token='Boop')
+        reader = StripeReaderFactory.create(stripe_token="Boop")
         reader.delete()
-        mock_stripe.__enter__.return_value.terminal.Reader.delete.assert_called_with('Boop')
+        mock_stripe.__enter__.return_value.terminal.Reader.delete.assert_called_with(
+            "Boop"
+        )

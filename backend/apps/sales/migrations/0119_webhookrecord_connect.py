@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0118_create_stripe_bank_accounts'),
+        ("sales", "0118_create_stripe_bank_accounts"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='webhookrecord',
-            name='connect',
+            model_name="webhookrecord",
+            name="connect",
             field=models.BooleanField(default=False),
         ),
     ]

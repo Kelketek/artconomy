@@ -4,12 +4,11 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0013_product_parallel'),
+        ("sales", "0013_product_parallel"),
     ]
 
     operations = [
-        migrations.RenameField('Revision', 'uploaded_by', 'owner'),
-        migrations.RenameField('Product', 'uploaded_by', 'owner'),
+        migrations.RenameField("Revision", "uploaded_by", "owner"),
+        migrations.RenameField("Product", "uploaded_by", "owner"),
     ]

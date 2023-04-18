@@ -4,10 +4,12 @@ from django.db import migrations
 
 REVISION_APPROVED = 39
 
+
 def populate_revision_subscriptions(apps, schema_editor):
-    Revision = apps.get_model('sales', 'Revision')
-    Subscription = apps.get_model('lib', 'Subscription')
+    Revision = apps.get_model("sales", "Revision")
+    Subscription = apps.get_model("lib", "Subscription")
     from django.contrib.contenttypes.models import ContentType
+
     content_type_id = ContentType.objects.get_for_model(Revision).id
     for revision in Revision.objects.all():
         Subscription.objects.get_or_create(
@@ -20,11 +22,12 @@ def populate_revision_subscriptions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0168_serviceplan_waitlisting'),
+        ("sales", "0168_serviceplan_waitlisting"),
     ]
 
     operations = [
-        migrations.RunPython(populate_revision_subscriptions, reverse_code=lambda x, y: None),
+        migrations.RunPython(
+            populate_revision_subscriptions, reverse_code=lambda x, y: None
+        ),
     ]

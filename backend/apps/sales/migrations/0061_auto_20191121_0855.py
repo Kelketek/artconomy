@@ -4,25 +4,52 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0060_auto_20191031_0805'),
+        ("sales", "0060_auto_20191031_0805"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='commission_info',
-            field=models.TextField(blank=True, default=''),
+            model_name="order",
+            name="commission_info",
+            field=models.TextField(blank=True, default=""),
         ),
         migrations.AlterField(
-            model_name='transactionrecord',
-            name='destination',
-            field=models.IntegerField(choices=[(300, 'Credit Card'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Finalized Earnings, available for withdraw'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (308, 'ACH Transaction fees'), (309, 'Other ACH fees')], db_index=True),
+            model_name="transactionrecord",
+            name="destination",
+            field=models.IntegerField(
+                choices=[
+                    (300, "Credit Card"),
+                    (301, "Bank Account"),
+                    (302, "Escrow"),
+                    (303, "Finalized Earnings, available for withdraw"),
+                    (304, "Contingency reserve"),
+                    (305, "Unannotated earnings"),
+                    (306, "Card transaction fees"),
+                    (307, "Other card fees"),
+                    (308, "ACH Transaction fees"),
+                    (309, "Other ACH fees"),
+                ],
+                db_index=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='transactionrecord',
-            name='source',
-            field=models.IntegerField(choices=[(300, 'Credit Card'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Finalized Earnings, available for withdraw'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (308, 'ACH Transaction fees'), (309, 'Other ACH fees')], db_index=True),
+            model_name="transactionrecord",
+            name="source",
+            field=models.IntegerField(
+                choices=[
+                    (300, "Credit Card"),
+                    (301, "Bank Account"),
+                    (302, "Escrow"),
+                    (303, "Finalized Earnings, available for withdraw"),
+                    (304, "Contingency reserve"),
+                    (305, "Unannotated earnings"),
+                    (306, "Card transaction fees"),
+                    (307, "Other card fees"),
+                    (308, "ACH Transaction fees"),
+                    (309, "Other ACH fees"),
+                ],
+                db_index=True,
+            ),
         ),
     ]

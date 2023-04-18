@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0106_subscribe_waitlist_emails'),
-        ('profiles', '0107_user_current_intent'),
+        ("profiles", "0106_subscribe_waitlist_emails"),
+        ("profiles", "0107_user_current_intent"),
     ]
 
-    operations = [
-    ]
+    operations = []

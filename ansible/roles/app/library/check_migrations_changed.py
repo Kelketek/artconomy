@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 #   WANT_JSON
 import glob
-import json
 import hashlib
+import json
 import os
 import sys
 

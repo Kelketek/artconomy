@@ -8,19 +8,21 @@ from rest_framework.response import Response
 
 
 class ResizablePagination(PageNumberPagination):
-    page_size_query_param = 'size'
+    page_size_query_param = "size"
     max_page_size = 50
 
     def get_paginated_response(self, data):
-        return Response({
-            'links': {
-                'next': self.get_next_link(),
-                'previous': self.get_previous_link()
-            },
-            'count': self.page.paginator.count,
-            'results': data,
-            "size": self.get_page_size(self.request),
-        })
+        return Response(
+            {
+                "links": {
+                    "next": self.get_next_link(),
+                    "previous": self.get_previous_link(),
+                },
+                "count": self.page.paginator.count,
+                "results": data,
+                "size": self.get_page_size(self.request),
+            }
+        )
 
 
 class OlderThanPagination(ResizablePagination):
@@ -28,23 +30,25 @@ class OlderThanPagination(ResizablePagination):
     Paginates a queryset based on when items in the set were created.
     """
 
-    timestamp_query = 'created_on__lt'
+    timestamp_query = "created_on__lt"
 
     def paginate_queryset(self, queryset, request, view=None):
         page_size = self.get_page_size(request)
         if not page_size:
             return None
-        timestamp = request.GET.get('created_on', None)
+        timestamp = request.GET.get("created_on", None)
         if not timestamp:
             return super().paginate_queryset(queryset, request, view=view)
         try:
             timestamp = parser.parse(timestamp)
         except ValueError:
             return super().paginate_queryset(queryset, request, view=view)
-        return super().paginate_queryset(queryset.filter(**{self.timestamp_query: timestamp}), request, view=view)
+        return super().paginate_queryset(
+            queryset.filter(**{self.timestamp_query: timestamp}), request, view=view
+        )
 
 
-ip_pattern = re.compile('[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+')
+ip_pattern = re.compile("[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+")
 
 
 class IPMiddleware:
@@ -52,7 +56,9 @@ class IPMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        ip = request.META.get('HTTP_CF_CONNECTING_IP', request.META.get('REMOTE_ADDR')).strip()
+        ip = request.META.get(
+            "HTTP_CF_CONNECTING_IP", request.META.get("REMOTE_ADDR")
+        ).strip()
         if ip_pattern.match(ip):
             request.ip4 = ip
             request.ip6 = None
@@ -73,6 +79,7 @@ def patched_get_ip(request):
 class MonkeyPatchMiddleWare:
     def __init__(self, get_response):
         from hitcount import views as hitcount_views
+
         hitcount_views.get_ip = patched_get_ip
         self.get_response = get_response
 

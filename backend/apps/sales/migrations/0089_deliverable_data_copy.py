@@ -3,7 +3,16 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
 
-def transfer_details(*, source, destination, source_type_id, destination_type_id, apps, source_kwarg, dest_kwarg):
+def transfer_details(
+    *,
+    source,
+    destination,
+    source_type_id,
+    destination_type_id,
+    apps,
+    source_kwarg,
+    dest_kwarg
+):
     destination.status = source.status
     destination.revisions = source.revisions
     destination.revisions_hidden = source.revisions_hidden
@@ -31,32 +40,45 @@ def transfer_details(*, source, destination, source_type_id, destination_type_id
 
     destination.save()
     destination.characters.set(source.characters.all())
-    Comment = apps.get_model('lib', 'Comment')
-    Subscription = apps.get_model('lib', 'Subscription')
-    Event = apps.get_model('lib', 'Event')
-    TransactionRecord = apps.get_model('sales', 'TransactionRecord')
-    LineItem = apps.get_model('sales', 'LineItem')
-    Revision = apps.get_model('sales', 'Revision')
-    Rating = apps.get_model('sales', 'Rating')
-    GenericReference = apps.get_model('lib', 'GenericReference')
+    Comment = apps.get_model("lib", "Comment")
+    Subscription = apps.get_model("lib", "Subscription")
+    Event = apps.get_model("lib", "Event")
+    TransactionRecord = apps.get_model("sales", "TransactionRecord")
+    LineItem = apps.get_model("sales", "LineItem")
+    Revision = apps.get_model("sales", "Revision")
+    Rating = apps.get_model("sales", "Rating")
+    GenericReference = apps.get_model("lib", "GenericReference")
     Comment.objects.filter(content_type_id=source_type_id, object_id=source.id).update(
-        content_type_id=destination_type_id, object_id=destination.id,
+        content_type_id=destination_type_id,
+        object_id=destination.id,
     )
-    Comment.objects.filter(top_content_type_id=source_type_id, top_object_id=source.id).update(
-        top_content_type_id=destination_type_id, top_object_id=destination.id,
+    Comment.objects.filter(
+        top_content_type_id=source_type_id, top_object_id=source.id
+    ).update(
+        top_content_type_id=destination_type_id,
+        top_object_id=destination.id,
     )
-    Subscription.objects.filter(object_id=source.id, content_type_id=source_type_id).update(
-        object_id=destination.id, content_type_id=destination_type_id,
+    Subscription.objects.filter(
+        object_id=source.id, content_type_id=source_type_id
+    ).update(
+        object_id=destination.id,
+        content_type_id=destination_type_id,
     )
     Event.objects.filter(object_id=source.id, content_type_id=source_type_id).update(
-        object_id=destination.id, content_type_id=destination_type_id,
+        object_id=destination.id,
+        content_type_id=destination_type_id,
     )
     Rating.objects.filter(object_id=source.id, content_type_id=source_type_id).update(
-        object_id=destination.id, content_type_id=destination_type_id,
+        object_id=destination.id,
+        content_type_id=destination_type_id,
     )
     source.outputs.all().update(**{dest_kwarg: destination})
-    LineItem.objects.filter(**{source_kwarg: source}).update(**{dest_kwarg: destination})
-    Revision.objects.filter(**{source_kwarg: source}).update(**{dest_kwarg: destination})
+    LineItem.objects.filter(**{source_kwarg: source}).update(
+        **{dest_kwarg: destination}
+    )
+    Revision.objects.filter(**{source_kwarg: source}).update(
+        **{dest_kwarg: destination}
+    )
 
     def ref_for_instance(object_id: int, content_type_id: int):
         result, _created = GenericReference.objects.get_or_create(
@@ -64,6 +86,7 @@ def transfer_details(*, source, destination, source_type_id, destination_type_id
             object_id=object_id,
         )
         return result
+
     source_ref = ref_for_instance(source.id, source_type_id)
     dest_ref = ref_for_instance(destination.id, destination_type_id)
     for transaction in TransactionRecord.objects.filter(targets=source_ref):
@@ -71,11 +94,10 @@ def transfer_details(*, source, destination, source_type_id, destination_type_id
         transaction.targets.add(dest_ref)
 
 
-
 def deliverable_data_copy(apps, schema):
-    Order = apps.get_model('sales', 'Order')
-    Deliverable = apps.get_model('sales', 'Deliverable')
-    LineItem = apps.get_model('sales', 'LineItem')
+    Order = apps.get_model("sales", "Order")
+    Deliverable = apps.get_model("sales", "Deliverable")
+    LineItem = apps.get_model("sales", "LineItem")
     source_type_id = ContentType.objects.get_for_model(Order).id
     destination_type_id = ContentType.objects.get_for_model(Deliverable).id
     for order in Order.objects.all():
@@ -85,15 +107,15 @@ def deliverable_data_copy(apps, schema):
             source_type_id=source_type_id,
             destination_type_id=destination_type_id,
             apps=apps,
-            source_kwarg='order',
-            dest_kwarg='deliverable',
+            source_kwarg="order",
+            dest_kwarg="deliverable",
         )
 
 
 def reverse_deliverable_data_copy(apps, schema):
-    Order = apps.get_model('sales', 'Order')
-    Deliverable = apps.get_model('sales', 'Deliverable')
-    LineItem = apps.get_model('sales', 'LineItem')
+    Order = apps.get_model("sales", "Order")
+    Deliverable = apps.get_model("sales", "Deliverable")
+    LineItem = apps.get_model("sales", "LineItem")
     source_type_id = ContentType.objects.get_for_model(Deliverable).id
     destination_type_id = ContentType.objects.get_for_model(Order).id
     for order in Order.objects.all():
@@ -106,20 +128,21 @@ def reverse_deliverable_data_copy(apps, schema):
             source_type_id=source_type_id,
             destination_type_id=destination_type_id,
             apps=apps,
-            source_kwarg='deliverable',
-            dest_kwarg='order',
+            source_kwarg="deliverable",
+            dest_kwarg="order",
         )
         LineItem.objects.filter(deliverable=deliverable).update(order=order)
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0088_auto_20200314_1937'),
-        ('lib', '0029_auto_20200324_1542'),
-        ('profiles', '0099_submission_deliverable'),
+        ("sales", "0088_auto_20200314_1937"),
+        ("lib", "0029_auto_20200324_1542"),
+        ("profiles", "0099_submission_deliverable"),
     ]
 
     operations = [
-        migrations.RunPython(deliverable_data_copy, reverse_code=reverse_deliverable_data_copy)
+        migrations.RunPython(
+            deliverable_data_copy, reverse_code=reverse_deliverable_data_copy
+        )
     ]

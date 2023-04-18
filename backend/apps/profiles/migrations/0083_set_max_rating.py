@@ -6,21 +6,18 @@ from django.db.models import Max
 
 def set_max_rating(apps, schema):
     # Infers the max rating an artist is willing to create in based on their previous submissions.
-    User = apps.get_model('profiles', 'User')
+    User = apps.get_model("profiles", "User")
     for user in User.objects.all():
         user.artist_profile.max_rating = max(
-            user.products.aggregate(Max('rating'))['rating__max'] or 0,
-            user.art.aggregate(Max('rating'))['rating__max'] or 0,
+            user.products.aggregate(Max("rating"))["rating__max"] or 0,
+            user.art.aggregate(Max("rating"))["rating__max"] or 0,
         )
         user.artist_profile.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0082_artistprofile_max_rating'),
+        ("profiles", "0082_artistprofile_max_rating"),
     ]
 
-    operations = [
-        migrations.RunPython(set_max_rating, reverse_code=lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(set_max_rating, reverse_code=lambda x, y: None)]

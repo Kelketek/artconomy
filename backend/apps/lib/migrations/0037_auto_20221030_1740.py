@@ -4,9 +4,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0036_auto_20220106_1410'),
+        ("lib", "0036_auto_20220106_1410"),
     ]
 
     operations = [

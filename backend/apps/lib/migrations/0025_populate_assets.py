@@ -5,44 +5,43 @@ from django.db.models import Exists, OuterRef
 from easy_thumbnails.alias import aliases
 from easy_thumbnails.engine import NoSourceGenerator
 from easy_thumbnails.exceptions import InvalidImageFormatError
-from easy_thumbnails.files import get_thumbnailer, generate_all_aliases
+from easy_thumbnails.files import generate_all_aliases, get_thumbnailer
 
-migrate_models = [
-    'profiles.Submission',
-    'sales.Revision',
-    'sales.Product'
-]
+migrate_models = ["profiles.Submission", "sales.Revision", "sales.Product"]
 
 translate = {
-    'asset': 'file',
-    'preview_asset': 'preview',
+    "asset": "file",
+    "preview_asset": "preview",
 }
+
 
 def gen_subjective_thumbnails(cls, field_name, asset):
     """
     Gen the thumbnails for an asset as if it were a ThumbnailField on another model. This allows us to use multiple
     thumbnail specifications for one asset, and one asset for multiple model instances.
     """
-    ref_name = f'{cls._meta.app_label}.{cls.__name__}.{translate[field_name]}'
+    ref_name = f"{cls._meta.app_label}.{cls.__name__}.{translate[field_name]}"
     all_options = aliases.all(ref_name, include_global=True)
     if not all_options:
         return
     thumbnailer = get_thumbnailer(asset.file)
     for key, options in all_options.items():
-        options['ALIAS'] = key
+        options["ALIAS"] = key
         try:
             thumbnailer.get_thumbnail(options)
         except (OSError, InvalidImageFormatError, NoSourceGenerator) as err:
-            print(f'Could not generate for {asset.file}: {err}')
+            print(f"Could not generate for {asset.file}: {err}")
+
 
 migrated = []
 
+
 def migrate_assets(apps, schema):
-    Asset = apps.get_model('lib.Asset')
+    Asset = apps.get_model("lib.Asset")
     for model_path in migrate_models:
         cls = apps.get_model(model_path)
-        for field, new_field in [('file', 'asset'), ('preview', 'preview_asset')]:
-            query_set = cls.objects.exclude(**{field: ''}).annotate(
+        for field, new_field in [("file", "asset"), ("preview", "preview_asset")]:
+            query_set = cls.objects.exclude(**{field: ""}).annotate(
                 migrated=Exists(Asset.objects.filter(file=OuterRef(field)))
             )
             for instance in query_set:
@@ -52,7 +51,9 @@ def migrate_assets(apps, schema):
                 asset = Asset.objects.filter(file=getattr(instance, field)).first()
                 if not asset:
                     asset = Asset.objects.create(
-                        uploaded_by=instance.owner, created_on=instance.created_on, file=file.name,
+                        uploaded_by=instance.owner,
+                        created_on=instance.created_on,
+                        file=file.name,
                     )
                 setattr(instance, new_field, asset)
                 instance.save()
@@ -65,7 +66,7 @@ def migrate_assets(apps, schema):
 def unmigrate_assets(apps, schema):
     for model_path in migrate_models:
         cls = apps.get_model(model_path)
-        for field, old_field in [('asset', 'file'), ('preview_asset', 'preview')]:
+        for field, old_field in [("asset", "file"), ("preview_asset", "preview")]:
             query_set = cls.objects.all()
             for instance in query_set:
                 file = getattr(instance, field)
@@ -76,18 +77,18 @@ def unmigrate_assets(apps, schema):
                 instance.refresh_from_db()
                 file.delete_thumbnails()
                 try:
-                    generate_all_aliases(getattr(instance, old_field), include_global=True)
+                    generate_all_aliases(
+                        getattr(instance, old_field), include_global=True
+                    )
                 except OSError:
-                    print(f'Could not generate for {file}')
+                    print(f"Could not generate for {file}")
+
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('lib', '0024_auto_20190725_2023'),
-        ('profiles', '0089_auto_20190725_2023'),
-        ('sales', '0050_auto_20190725_2023'),
+        ("lib", "0024_auto_20190725_2023"),
+        ("profiles", "0089_auto_20190725_2023"),
+        ("sales", "0050_auto_20190725_2023"),
     ]
 
-    operations = [
-        migrations.RunPython(migrate_assets, reverse_code=unmigrate_assets)
-    ]
+    operations = [migrations.RunPython(migrate_assets, reverse_code=unmigrate_assets)]

@@ -4,19 +4,16 @@ from django.db import migrations
 
 
 def migrate_intents(apps, schema):
-    Deliverable = apps.get_model('sales', 'Deliverable')
-    for deliverable in Deliverable.objects.exclude(current_intent=''):
-        if deliverable.invoice.current_intent == '':
+    Deliverable = apps.get_model("sales", "Deliverable")
+    for deliverable in Deliverable.objects.exclude(current_intent=""):
+        if deliverable.invoice.current_intent == "":
             deliverable.invoice.current_intent = deliverable.current_intent
             deliverable.invoice.save()
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0127_invoice_current_intents'),
+        ("sales", "0127_invoice_current_intents"),
     ]
 
-    operations = [
-        migrations.RunPython(migrate_intents, reverse_code=lambda x, y: None)
-    ]
+    operations = [migrations.RunPython(migrate_intents, reverse_code=lambda x, y: None)]

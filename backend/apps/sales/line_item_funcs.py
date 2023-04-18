@@ -1,14 +1,14 @@
-from _decimal import ROUND_DOWN, getcontext
 from collections import defaultdict
-from decimal import localcontext, ROUND_CEILING, ROUND_HALF_EVEN, Decimal
-from functools import reduce, cmp_to_key
-from typing import Callable, Iterator, Union, List, Tuple, TYPE_CHECKING, Dict
+from decimal import ROUND_CEILING, ROUND_HALF_EVEN, Decimal, localcontext
+from functools import cmp_to_key, reduce
+from typing import TYPE_CHECKING, Callable, Dict, Iterator, List, Tuple, Union
 
-from moneyed import Money, Currency
-
+from _decimal import ROUND_DOWN, getcontext
+from moneyed import Currency, Money
 
 if TYPE_CHECKING:  # pragma: no cover
     from apps.sales.models import LineItem, LineItemSim
+
     Line = Union[LineItem, LineItemSim]
     LineMoneyMap = Dict[Line, Money]
 
@@ -18,6 +18,7 @@ def down_context(wrapped: Callable):
         with localcontext() as ctx:
             ctx.rounding = ROUND_DOWN
             return wrapped(*args, **kwargs)
+
     return wrapper
 
 
@@ -26,6 +27,7 @@ def ceiling_context(wrapped: Callable):
         with localcontext() as ctx:
             ctx.rounding = ROUND_CEILING
             return wrapped(*args, **kwargs)
+
     return wrapper
 
 
@@ -34,11 +36,13 @@ def half_even_context(wrapped: Callable):
         with localcontext() as ctx:
             ctx.rounding = ROUND_HALF_EVEN
             return wrapped(*args, **kwargs)
+
     return wrapper
 
 
 def lines_by_priority(
-        lines: Iterator[Union['LineItem', 'LineItemSim']]) -> List[List[Union['LineItem', 'LineItemSim']]]:
+    lines: Iterator[Union["LineItem", "LineItemSim"]]
+) -> List[List[Union["LineItem", "LineItemSim"]]]:
     """
     Groups line items by priority.
     """
@@ -49,8 +53,8 @@ def lines_by_priority(
 
 
 def distribute_reduction(
-        *, total: Money, distributed_amount: Money, line_values: 'LineMoneyMap'
-) -> 'LineMoneyMap':
+    *, total: Money, distributed_amount: Money, line_values: "LineMoneyMap"
+) -> "LineMoneyMap":
     """
     Given an amount to discount from a set of line items, remove it proportionally from each line item.
     """
@@ -59,8 +63,8 @@ def distribute_reduction(
         # Don't apply reductions to discounts, as that would be nonsense.
         if original_value < Money(0, total.currency):
             continue
-        if original_value.amount == Decimal('0'):
-            multiplier = Decimal('1.00') / len(line_values)
+        if original_value.amount == Decimal("0"):
+            multiplier = Decimal("1.00") / len(line_values)
         else:
             multiplier = original_value / total
         reductions[line] = Money(distributed_amount.amount * multiplier, total.currency)
@@ -69,8 +73,8 @@ def distribute_reduction(
 
 @half_even_context
 def priority_total(
-        current: (Money, Money, 'LineMoneyMap'), priority_set: List['Line']
-) -> (Money, 'LineMoneyMap'):
+    current: (Money, Money, "LineMoneyMap"), priority_set: List["Line"]
+) -> (Money, "LineMoneyMap"):
     """
     Get the effect on the total of a priority set. First runs any percentage increase, then
     adds in the static amount. Calculates the difference of each separately to make sure they're not affecting each
@@ -79,7 +83,7 @@ def priority_total(
     current_total, discount, subtotals = current
     working_subtotals = {}
     summable_totals = {}
-    reductions: List['LineMoneyMap'] = []
+    reductions: List["LineMoneyMap"] = []
     for line in priority_set:
         cascaded_amount = Money(0, current_total.currency)
         added_amount = Money(0, current_total.currency)
@@ -88,12 +92,14 @@ def priority_total(
         else:
             added_amount += line.amount
         # Percentages with equal priorities should not stack.
-        multiplier = (Decimal('.01') * line.percentage)
+        multiplier = Decimal(".01") * line.percentage
         if line.back_into_percentage:
             if line.cascade_percentage:
-                working_amount = (current_total / (multiplier + Decimal('1.00'))) * multiplier
+                working_amount = (
+                    current_total / (multiplier + Decimal("1.00"))
+                ) * multiplier
             else:
-                factor = Decimal('1.00') / (Decimal('1.00') - multiplier)
+                factor = Decimal("1.00") / (Decimal("1.00") - multiplier)
                 additional = Money(0, current_total.currency)
                 if not line.cascade_amount:
                     additional = line.amount
@@ -107,10 +113,17 @@ def priority_total(
             added_amount += working_amount
         working_amount += line.amount
         if cascaded_amount:
-            reductions.append(distribute_reduction(
-                total=current_total - discount, distributed_amount=cascaded_amount, line_values={
-                    key: value for key, value in subtotals.items() if key.priority < line.priority
-                }))
+            reductions.append(
+                distribute_reduction(
+                    total=current_total - discount,
+                    distributed_amount=cascaded_amount,
+                    line_values={
+                        key: value
+                        for key, value in subtotals.items()
+                        if key.priority < line.priority
+                    },
+                )
+            )
         if added_amount:
             summable_totals[line] = added_amount
         working_subtotals[line] = working_amount
@@ -120,16 +133,26 @@ def priority_total(
     for reduction_set in reductions:
         for line, reduction in reduction_set.items():
             new_subtotals[line] = new_subtotals[line] - reduction
-    return current_total + sum(summable_totals.values()), discount, {**new_subtotals, **working_subtotals}
+    return (
+        current_total + sum(summable_totals.values()),
+        discount,
+        {**new_subtotals, **working_subtotals},
+    )
 
 
 @down_context
-def to_distribute(total: Money, money_map: 'LineMoneyMap') -> Money:
-    combined_sum = sum([value.round(2) for value in money_map.values()]) or Money('0', total.currency)
+def to_distribute(total: Money, money_map: "LineMoneyMap") -> Money:
+    combined_sum = sum([value.round(2) for value in money_map.values()]) or Money(
+        "0", total.currency
+    )
     return total.round(2) - combined_sum
 
 
-def redistribution_priority(ascending_priority: bool, item: Tuple['LineItem', Decimal], item2: Tuple['LineItem', Decimal]) -> Union[float, int]:
+def redistribution_priority(
+    ascending_priority: bool,
+    item: Tuple["LineItem", Decimal],
+    item2: Tuple["LineItem", Decimal],
+) -> Union[float, int]:
     item_line, item_amount = item
     item2_line, item2_amount = item2
     if item_line.priority != item2_line.priority:
@@ -142,7 +165,9 @@ def redistribution_priority(ascending_priority: bool, item: Tuple['LineItem', De
 
 
 @down_context
-def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'LineMoneyMap':
+def distribute_difference(
+    difference: Money, money_map: "LineMoneyMap"
+) -> "LineMoneyMap":
     """
     So. We have a few leftover pennies. To figure out where we should allocate them,
     we need to zero out everything but the remainder (that is, everything but what's beyond
@@ -156,15 +181,19 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
     updated_map = {key: value.round(2) for key, value in money_map.items()}
     sorted_values = [(key, value) for key, value in updated_map.items()]
     sorted_values.sort(
-        key=cmp_to_key(lambda a, b: redistribution_priority(difference > Money('0', difference.currency), a, b)),
+        key=cmp_to_key(
+            lambda a, b: redistribution_priority(
+                difference > Money("0", difference.currency), a, b
+            )
+        ),
     )
     current_values = [*sorted_values]
     remaining = difference
-    if remaining > Money('0', remaining.currency):
-        amount = Money('0.01', remaining.currency)
+    if remaining > Money("0", remaining.currency):
+        amount = Money("0.01", remaining.currency)
     else:
-        amount = Money('-0.01', remaining.currency)
-    while remaining != Money('0.00', remaining.currency):
+        amount = Money("-0.01", remaining.currency)
+    while remaining != Money("0.00", remaining.currency):
         if not len(current_values):  # pragma: no cover
             current_values = [*sorted_values]
         key = current_values.pop(0)[0]
@@ -174,20 +203,22 @@ def distribute_difference(difference: Money, money_map: 'LineMoneyMap') -> 'Line
 
 
 @down_context
-def normalized_lines(priority_sets: List[List[Union['LineItem', 'LineItemSim']]]):
+def normalized_lines(priority_sets: List[List[Union["LineItem", "LineItemSim"]]]):
     total, discount, subtotals = reduce(
-        priority_total, priority_sets, (Money('0.00', 'USD'), Money('0.00', 'USD'), {}),
+        priority_total,
+        priority_sets,
+        (Money("0.00", "USD"), Money("0.00", "USD"), {}),
     )
     total = total.round(2)
     subtotals = {key: value.round(2) for key, value in subtotals.items()}
     difference = to_distribute(total, subtotals)
-    if difference != Money('0', difference.currency):
+    if difference != Money("0", difference.currency):
         subtotals = distribute_difference(difference, subtotals)
     return total, discount, subtotals
 
 
 @down_context
-def get_totals(lines: Iterator['Line']) -> (Money, Money, 'LineMoneyMap'):
+def get_totals(lines: Iterator["Line"]) -> (Money, Money, "LineMoneyMap"):
     priority_sets = lines_by_priority(lines)
     return normalized_lines(priority_sets)
 
@@ -217,9 +248,12 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
     difference = int(difference.amount)
     result = [target_amount] * divisor
     if digits(target_amount.currency):
-        penny_amount = Money(Decimal('0.' + ('0' * (digits(target_amount.currency) - 1)) + '1'), target_amount.currency)
+        penny_amount = Money(
+            Decimal("0." + ("0" * (digits(target_amount.currency) - 1)) + "1"),
+            target_amount.currency,
+        )
     else:
-        penny_amount = Money('1', target_amount.currency)
+        penny_amount = Money("1", target_amount.currency)
     assert difference >= 0
     # It's probably not possible for it to loop around again, but I'm not a confident
     # enough mathematician to disprove it, especially since I'm unsure how having discrete values factors in for edge

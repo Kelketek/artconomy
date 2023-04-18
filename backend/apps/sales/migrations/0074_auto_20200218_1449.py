@@ -4,44 +4,116 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0073_fix_old_subscriptions'),
+        ("sales", "0073_fix_old_subscriptions"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='order',
-            name='tax_rate',
+            model_name="order",
+            name="tax_rate",
         ),
         migrations.AddField(
-            model_name='product',
-            name='table_product',
+            model_name="product",
+            name="table_product",
             field=models.BooleanField(db_index=True, default=False),
         ),
         migrations.AlterField(
-            model_name='lineitem',
-            name='destination_account',
-            field=models.IntegerField(choices=[(300, 'Credit Card'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Finalized Earnings, available for withdraw'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (308, 'ACH Transaction fees'), (309, 'Other ACH fees'), (310, 'Taxes')]),
+            model_name="lineitem",
+            name="destination_account",
+            field=models.IntegerField(
+                choices=[
+                    (300, "Credit Card"),
+                    (301, "Bank Account"),
+                    (302, "Escrow"),
+                    (303, "Finalized Earnings, available for withdraw"),
+                    (304, "Contingency reserve"),
+                    (305, "Unannotated earnings"),
+                    (306, "Card transaction fees"),
+                    (307, "Other card fees"),
+                    (308, "ACH Transaction fees"),
+                    (309, "Other ACH fees"),
+                    (310, "Taxes"),
+                ]
+            ),
         ),
         migrations.AlterField(
-            model_name='lineitem',
-            name='type',
-            field=models.IntegerField(choices=[(0, 'Base Price'), (1, 'Add on or Discount'), (2, 'Shield'), (3, 'Bonus'), (4, 'Tip'), (5, 'Table Service'), (7, 'Extra'), (6, 'Tax')], db_index=True),
+            model_name="lineitem",
+            name="type",
+            field=models.IntegerField(
+                choices=[
+                    (0, "Base Price"),
+                    (1, "Add on or Discount"),
+                    (2, "Shield"),
+                    (3, "Bonus"),
+                    (4, "Tip"),
+                    (5, "Table Service"),
+                    (7, "Extra"),
+                    (6, "Tax"),
+                ],
+                db_index=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='transactionrecord',
-            name='category',
-            field=models.IntegerField(choices=[(400, 'Artconomy Service Fee'), (401, 'Escrow hold'), (402, 'Escrow release'), (403, 'Escrow refund'), (404, 'Subscription dues'), (405, 'Refund for subscription dues'), (406, 'Cash withdrawal'), (407, 'Cash deposit'), (408, 'Third party fee'), (409, 'Premium service bonus'), (410, 'Internal Transfer'), (411, 'Third party refund'), (412, 'Correction')], db_index=True),
+            model_name="transactionrecord",
+            name="category",
+            field=models.IntegerField(
+                choices=[
+                    (400, "Artconomy Service Fee"),
+                    (401, "Escrow hold"),
+                    (402, "Escrow release"),
+                    (403, "Escrow refund"),
+                    (404, "Subscription dues"),
+                    (405, "Refund for subscription dues"),
+                    (406, "Cash withdrawal"),
+                    (407, "Cash deposit"),
+                    (408, "Third party fee"),
+                    (409, "Premium service bonus"),
+                    (410, "Internal Transfer"),
+                    (411, "Third party refund"),
+                    (412, "Correction"),
+                ],
+                db_index=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='transactionrecord',
-            name='destination',
-            field=models.IntegerField(choices=[(300, 'Credit Card'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Finalized Earnings, available for withdraw'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (308, 'ACH Transaction fees'), (309, 'Other ACH fees'), (310, 'Taxes')], db_index=True),
+            model_name="transactionrecord",
+            name="destination",
+            field=models.IntegerField(
+                choices=[
+                    (300, "Credit Card"),
+                    (301, "Bank Account"),
+                    (302, "Escrow"),
+                    (303, "Finalized Earnings, available for withdraw"),
+                    (304, "Contingency reserve"),
+                    (305, "Unannotated earnings"),
+                    (306, "Card transaction fees"),
+                    (307, "Other card fees"),
+                    (308, "ACH Transaction fees"),
+                    (309, "Other ACH fees"),
+                    (310, "Taxes"),
+                ],
+                db_index=True,
+            ),
         ),
         migrations.AlterField(
-            model_name='transactionrecord',
-            name='source',
-            field=models.IntegerField(choices=[(300, 'Credit Card'), (301, 'Bank Account'), (302, 'Escrow'), (303, 'Finalized Earnings, available for withdraw'), (304, 'Contingency reserve'), (305, 'Unannotated earnings'), (306, 'Card transaction fees'), (307, 'Other card fees'), (308, 'ACH Transaction fees'), (309, 'Other ACH fees'), (310, 'Taxes')], db_index=True),
+            model_name="transactionrecord",
+            name="source",
+            field=models.IntegerField(
+                choices=[
+                    (300, "Credit Card"),
+                    (301, "Bank Account"),
+                    (302, "Escrow"),
+                    (303, "Finalized Earnings, available for withdraw"),
+                    (304, "Contingency reserve"),
+                    (305, "Unannotated earnings"),
+                    (306, "Card transaction fees"),
+                    (307, "Other card fees"),
+                    (308, "ACH Transaction fees"),
+                    (309, "Other ACH fees"),
+                    (310, "Taxes"),
+                ],
+                db_index=True,
+            ),
         ),
     ]

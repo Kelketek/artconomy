@@ -1,13 +1,71 @@
 import uuid
 from decimal import Decimal
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 import ddt
+from apps.lib.models import ORDER_UPDATE, Notification, Subscription, ref_for_instance
+from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
+from apps.profiles.models import User
+from apps.profiles.tests.factories import UserFactory
+from apps.sales.constants import (
+    ACH_MISC_FEES,
+    CANCELLED,
+    CARD,
+    COMPLETED,
+    DELIVERABLE_TRACKING,
+    ESCROW,
+    FAILURE,
+    HOLDINGS,
+    IN_PROGRESS,
+    LIMBO,
+    NEW,
+    PROCESSING,
+    RESERVE,
+    SHIELD,
+    SUCCESS,
+    UNPROCESSED_EARNINGS,
+    VOID,
+)
+from apps.sales.models import LineItem, LineItemSim, TransactionRecord
+from apps.sales.tests.factories import (
+    DeliverableFactory,
+    InvoiceFactory,
+    LineItemFactory,
+    OrderFactory,
+    ProductFactory,
+    ReferenceFactory,
+    RevisionFactory,
+    ServicePlanFactory,
+    StripeAccountFactory,
+    TransactionRecordFactory,
+)
+from apps.sales.utils import (
+    PENDING,
+    POSTED_ONLY,
+    account_balance,
+    available_products,
+    claim_order_by_token,
+    credit_referral,
+    default_deliverable,
+    destroy_deliverable,
+    fetch_prefixed,
+    freeze_line_items,
+    from_remote_id,
+    get_claim_token,
+    initialize_tip_invoice,
+    invoice_post_payment,
+    reverse_record,
+    set_service_plan,
+    term_charge,
+    update_downstream_pricing,
+    verify_total,
+)
+from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.relativedelta import relativedelta
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
-from django.db.models import Sum, Q
+from django.db.models import Q, Sum
 from django.test import TestCase, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
@@ -15,44 +73,26 @@ from moneyed import Money
 from rest_framework.exceptions import ValidationError
 from short_stuff import gen_shortcode
 
-from apps.lib.models import Notification, ORDER_UPDATE, Subscription, ref_for_instance
-from apps.lib.test_resources import SignalsDisabledMixin, EnsurePlansMixin
-from apps.profiles.models import User
-from apps.profiles.tests.factories import UserFactory
-from apps.sales.constants import IN_PROGRESS, CANCELLED, SUCCESS, UNPROCESSED_EARNINGS, ESCROW, CARD, ACH_MISC_FEES, \
-    RESERVE, FAILURE, SHIELD, COMPLETED, VOID, PROCESSING, LIMBO, NEW, HOLDINGS, DELIVERABLE_TRACKING
-from apps.sales.models import TransactionRecord, LineItemSim, LineItem
-from apps.sales.tests.factories import InvoiceFactory, ServicePlanFactory, StripeAccountFactory
-from apps.sales.tests.factories import TransactionRecordFactory, ProductFactory, DeliverableFactory, \
-    RevisionFactory, ReferenceFactory, OrderFactory, LineItemFactory
-from apps.sales.utils import claim_order_by_token, \
-    available_products, account_balance, POSTED_ONLY, PENDING, destroy_deliverable, get_claim_token, fetch_prefixed, \
-    verify_total, \
-    default_deliverable, from_remote_id, credit_referral, initialize_tip_invoice, invoice_post_payment, \
-    update_downstream_pricing, set_service_plan, reverse_record, term_charge
-from apps.sales.utils import freeze_line_items
-from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
-
 
 class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
     def setUp(self):
         super().setUp()
-        user1 = UserFactory.create(username='Fox')
-        user2 = UserFactory.create(username='Cat')
+        user1 = UserFactory.create(username="Fox")
+        user2 = UserFactory.create(username="Cat")
         transaction = TransactionRecordFactory.create(
             card=None,
             payer=user1,
             payee=user2,
             source=CARD,
             destination=ESCROW,
-            amount=Money('10.00', 'USD')
+            amount=Money("10.00", "USD"),
         )
         user1, user2 = transaction.payer, transaction.payee
         TransactionRecordFactory.create(
             card=None,
             payer=user1,
             payee=user2,
-            amount=Money('5.00', 'USD'),
+            amount=Money("5.00", "USD"),
             source=RESERVE,
             destination=ESCROW,
         )
@@ -62,7 +102,7 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
             payee=user1,
             source=ESCROW,
             destination=ACH_MISC_FEES,
-            amount=Money('3.00', 'USD'),
+            amount=Money("3.00", "USD"),
             status=PENDING,
         )
         TransactionRecordFactory.create(
@@ -71,7 +111,7 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
             payee=user1,
             source=ESCROW,
             destination=ACH_MISC_FEES,
-            amount=Money('3.00', 'USD'),
+            amount=Money("3.00", "USD"),
             status=FAILURE,
         )
         TransactionRecordFactory.create(
@@ -80,27 +120,35 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
             payee=None,
             source=ESCROW,
             destination=ACH_MISC_FEES,
-            amount=Money('0.50', 'USD'),
+            amount=Money("0.50", "USD"),
             status=SUCCESS,
         )
-        self.user1 = User.objects.get(username='Fox')
-        self.user2 = User.objects.get(username='Cat')
+        self.user1 = User.objects.get(username="Fox")
+        self.user2 = User.objects.get(username="Cat")
 
     def test_account_balance_available(self):
-        self.assertEqual(account_balance(self.user2, ESCROW), Decimal('11.50'))
-        self.assertEqual(account_balance(self.user1, RESERVE), Decimal('-5.00'))
-        self.assertEqual(account_balance(None, ACH_MISC_FEES), Decimal('0.50'))
+        self.assertEqual(account_balance(self.user2, ESCROW), Decimal("11.50"))
+        self.assertEqual(account_balance(self.user1, RESERVE), Decimal("-5.00"))
+        self.assertEqual(account_balance(None, ACH_MISC_FEES), Decimal("0.50"))
 
     def test_account_balance_posted(self):
-        self.assertEqual(account_balance(self.user2, ESCROW, POSTED_ONLY), Decimal('14.50'))
-        self.assertEqual(account_balance(self.user1, RESERVE, POSTED_ONLY), Decimal('-5.00'))
-        self.assertEqual(account_balance(None, ACH_MISC_FEES, POSTED_ONLY), Decimal('0.50'))
+        self.assertEqual(
+            account_balance(self.user2, ESCROW, POSTED_ONLY), Decimal("14.50")
+        )
+        self.assertEqual(
+            account_balance(self.user1, RESERVE, POSTED_ONLY), Decimal("-5.00")
+        )
+        self.assertEqual(
+            account_balance(None, ACH_MISC_FEES, POSTED_ONLY), Decimal("0.50")
+        )
 
     def test_account_balance_pending(self):
-        self.assertEqual(account_balance(self.user2, ESCROW, PENDING), Decimal('-3.00'))
-        self.assertEqual(account_balance(self.user1, RESERVE, PENDING), Decimal('0.00'))
-        self.assertEqual(account_balance(None, ACH_MISC_FEES, PENDING), Decimal('0.00'))
-        self.assertEqual(account_balance(self.user1, ACH_MISC_FEES, PENDING), Decimal('3.00'))
+        self.assertEqual(account_balance(self.user2, ESCROW, PENDING), Decimal("-3.00"))
+        self.assertEqual(account_balance(self.user1, RESERVE, PENDING), Decimal("0.00"))
+        self.assertEqual(account_balance(None, ACH_MISC_FEES, PENDING), Decimal("0.00"))
+        self.assertEqual(
+            account_balance(self.user1, ACH_MISC_FEES, PENDING), Decimal("3.00")
+        )
 
     def test_nonsense_balance(self):
         with self.assertRaises(TypeError):
@@ -138,17 +186,25 @@ class TestClaim(EnsurePlansMixin, TestCase):
 
     def test_force_claim(self):
         user = UserFactory.create()
-        order = DeliverableFactory.create(order__buyer=user, order__claim_token=gen_shortcode()).order
-        Subscription.objects.filter(content_type=ContentType.objects.get_for_model(order), object_id=order.id).delete()
+        order = DeliverableFactory.create(
+            order__buyer=user, order__claim_token=gen_shortcode()
+        ).order
+        Subscription.objects.filter(
+            content_type=ContentType.objects.get_for_model(order), object_id=order.id
+        ).delete()
         claim_order_by_token(str(order.claim_token), user, force=True)
         order.refresh_from_db()
         self.assertEqual(order.buyer, user)
         self.assertIsNone(order.claim_token)
-        Subscription.objects.filter(content_type=ContentType.objects.get_for_model(order), object_id=order.id).exists()
+        Subscription.objects.filter(
+            content_type=ContentType.objects.get_for_model(order), object_id=order.id
+        ).exists()
 
     def test_order_claim_fail_self(self):
         user = UserFactory.create()
-        order = DeliverableFactory.create(order__buyer=None, order__seller=user, product__user=user).order
+        order = DeliverableFactory.create(
+            order__buyer=None, order__seller=user, product__user=user
+        ).order
         original_token = order.claim_token
         claim_order_by_token(str(order.claim_token), user)
         order.refresh_from_db()
@@ -156,7 +212,7 @@ class TestClaim(EnsurePlansMixin, TestCase):
         self.assertEqual(order.claim_token, original_token)
         self.assertIsNone(order.buyer)
 
-    @patch('apps.sales.utils.transfer_order')
+    @patch("apps.sales.utils.transfer_order")
     def test_order_claim_none(self, mock_transfer):
         user = UserFactory.create()
         order = DeliverableFactory.create(order__buyer=None).order
@@ -173,7 +229,7 @@ class TestClaim(EnsurePlansMixin, TestCase):
         self.assertEqual(order.buyer, user)
         self.assertIsNone(order.claim_token)
 
-    @patch('apps.sales.utils.logger.warning')
+    @patch("apps.sales.utils.logger.warning")
     def test_order_claim_fail(self, mock_warning):
         user = UserFactory.create()
         uid = uuid.uuid4()
@@ -199,21 +255,31 @@ class TestAvailableProducts(EnsurePlansMixin, TestCase):
     def test_available_products_ordered(self):
         user = UserFactory.create()
         ProductFactory.create()
-        self.assertIn('ORDER BY', str(available_products(user).query))
+        self.assertIn("ORDER BY", str(available_products(user).query))
 
 
 class TestFreezeLineItems(EnsurePlansMixin, TestCase):
     def test_freezes_values(self):
         invoice = InvoiceFactory.create()
         source = [
-            LineItemFactory.create(amount=Money('0.01', 'USD'), priority=0, invoice=invoice),
-            LineItemFactory.create(amount=Money('0.01', 'USD'), priority=100, invoice=invoice),
-            LineItemFactory.create(amount=Money('0.01', 'USD'), priority=100, invoice=invoice),
-            LineItemFactory.create(amount=Money('-5.00', 'USD'), priority=100, invoice=invoice),
-            LineItemFactory.create(amount=Money('10.00', 'USD'), priority=100, invoice=invoice),
             LineItemFactory.create(
-                amount=Money('.75', 'USD'),
-                percentage=Decimal('8'),
+                amount=Money("0.01", "USD"), priority=0, invoice=invoice
+            ),
+            LineItemFactory.create(
+                amount=Money("0.01", "USD"), priority=100, invoice=invoice
+            ),
+            LineItemFactory.create(
+                amount=Money("0.01", "USD"), priority=100, invoice=invoice
+            ),
+            LineItemFactory.create(
+                amount=Money("-5.00", "USD"), priority=100, invoice=invoice
+            ),
+            LineItemFactory.create(
+                amount=Money("10.00", "USD"), priority=100, invoice=invoice
+            ),
+            LineItemFactory.create(
+                amount=Money(".75", "USD"),
+                percentage=Decimal("8"),
                 cascade_percentage=True,
                 cascade_amount=True,
                 priority=300,
@@ -225,33 +291,46 @@ class TestFreezeLineItems(EnsurePlansMixin, TestCase):
         freeze_line_items(invoice)
         for line_item in source:
             line_item.refresh_from_db()
-        self.assertEqual(source[0].frozen_value, Money('0.00', 'USD'))
-        self.assertEqual(source[1].frozen_value, Money('0.00', 'USD'))
-        self.assertEqual(source[2].frozen_value, Money('0.01', 'USD'))
-        self.assertEqual(source[3].frozen_value, Money('-5.00', 'USD'))
-        self.assertEqual(source[4].frozen_value, Money('8.86', 'USD'))
-        self.assertEqual(source[5].frozen_value, Money('1.16', 'USD'))
+        self.assertEqual(source[0].frozen_value, Money("0.00", "USD"))
+        self.assertEqual(source[1].frozen_value, Money("0.00", "USD"))
+        self.assertEqual(source[2].frozen_value, Money("0.01", "USD"))
+        self.assertEqual(source[3].frozen_value, Money("-5.00", "USD"))
+        self.assertEqual(source[4].frozen_value, Money("8.86", "USD"))
+        self.assertEqual(source[5].frozen_value, Money("1.16", "USD"))
 
 
 class TransactionCheckMixin:
     def check_transactions(
-            self, deliverable, user, remote_id='36985214745', source=CARD,
-            landscape=False,
+        self,
+        deliverable,
+        user,
+        remote_id="36985214745",
+        source=CARD,
+        landscape=False,
     ):
         escrow_transactions = TransactionRecord.objects.filter(
-            source=source, destination=ESCROW,
+            source=source,
+            destination=ESCROW,
         )
         if remote_id:
-            escrow_transactions = escrow_transactions.filter(remote_ids__contains=remote_id)
+            escrow_transactions = escrow_transactions.filter(
+                remote_ids__contains=remote_id
+            )
         else:
             escrow_transactions = escrow_transactions.filter(remote_ids=[])
         escrow = escrow_transactions.get()
-        self.assertEqual(escrow.targets.filter(content_type__model='deliverable').get().target, deliverable)
-        self.assertEqual(escrow.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)
+        self.assertEqual(
+            escrow.targets.filter(content_type__model="deliverable").get().target,
+            deliverable,
+        )
+        self.assertEqual(
+            escrow.targets.filter(content_type__model="invoice").get().target,
+            deliverable.invoice,
+        )
         if landscape:
-            self.assertEqual(escrow.amount, Money('11.01', 'USD'))
+            self.assertEqual(escrow.amount, Money("11.01", "USD"))
         else:
-            self.assertEqual(escrow.amount, Money('10.28', 'USD'))
+            self.assertEqual(escrow.amount, Money("10.28", "USD"))
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.payee, deliverable.order.seller)
 
@@ -260,25 +339,35 @@ class TransactionCheckMixin:
             destination=UNPROCESSED_EARNINGS,
         )
         if remote_id:
-            shield_fee_candidates = shield_fee_candidates.filter(remote_ids__contains=remote_id)
+            shield_fee_candidates = shield_fee_candidates.filter(
+                remote_ids__contains=remote_id
+            )
         else:
             shield_fee_candidates = shield_fee_candidates.filter(remote_ids=[])
         shield_fee = shield_fee_candidates.get()
         self.assertEqual(shield_fee.status, SUCCESS)
-        self.assertEqual(shield_fee.targets.filter(content_type__model='deliverable').get().target, deliverable)
-        self.assertEqual(shield_fee.targets.filter(content_type__model='invoice').get().target, deliverable.invoice)
+        self.assertEqual(
+            shield_fee.targets.filter(content_type__model="deliverable").get().target,
+            deliverable,
+        )
+        self.assertEqual(
+            shield_fee.targets.filter(content_type__model="invoice").get().target,
+            deliverable.invoice,
+        )
         if landscape:
-            self.assertEqual(shield_fee.amount, Money('0.99', 'USD'))
+            self.assertEqual(shield_fee.amount, Money("0.99", "USD"))
         else:
-            self.assertEqual(shield_fee.amount, Money('1.72', 'USD'))
+            self.assertEqual(shield_fee.amount, Money("1.72", "USD"))
         if source == CARD:
             card_fee = TransactionRecord.objects.get(payer=None, payee=None)
-            self.assertEqual(card_fee.amount, Money('.65', 'USD'))
+            self.assertEqual(card_fee.amount, Money(".65", "USD"))
         self.assertEqual(shield_fee.payer, user)
         self.assertIsNone(shield_fee.payee)
         self.assertEqual(
-            TransactionRecord.objects.all().exclude(
-                Q(payer=None) & Q(payee=None)).aggregate(total=Sum('amount'))['total'], Decimal('12.00'),
+            TransactionRecord.objects.all()
+            .exclude(Q(payer=None) & Q(payee=None))
+            .aggregate(total=Sum("amount"))["total"],
+            Decimal("12.00"),
         )
 
 
@@ -287,7 +376,7 @@ class TestDestroyDeliverable(EnsurePlansMixin, TestCase):
         deliverable = DeliverableFactory(status=IN_PROGRESS)
         self.assertRaises(IntegrityError, destroy_deliverable, deliverable)
 
-    @patch('apps.lib.utils.clear_events_subscriptions_and_comments')
+    @patch("apps.lib.utils.clear_events_subscriptions_and_comments")
     def test_destroy_deliverable(self, mock_clear):
         deliverable = DeliverableFactory(status=CANCELLED)
         seller = deliverable.order.seller
@@ -302,27 +391,31 @@ class TestDestroyDeliverable(EnsurePlansMixin, TestCase):
         other_deliverable.refresh_from_db()
 
         to_preserve = {
-            'other_deliverable': other_deliverable,
-            'reused_reference': reused_reference,
-            'unrelated_revision': unrelated_revision,
-            'buyer': buyer,
-            'seller': seller,
+            "other_deliverable": other_deliverable,
+            "reused_reference": reused_reference,
+            "unrelated_revision": unrelated_revision,
+            "buyer": buyer,
+            "seller": seller,
         }
         to_destroy = {
-            'deliverable': deliverable,
-            'reference': reference,
-            'revision': revision,
+            "deliverable": deliverable,
+            "reference": reference,
+            "revision": revision,
         }
         destroy_deliverable(deliverable)
         for name, target in to_preserve.items():
             try:
                 target.refresh_from_db()
             except ObjectDoesNotExist:
-                raise AssertionError(f'{name} was destroyed when it should not have been!')
+                raise AssertionError(
+                    f"{name} was destroyed when it should not have been!"
+                )
         for name, target in to_destroy.items():
             try:
                 target.refresh_from_db()
-                raise AssertionError(f'{name} was preserved when it should not have been!')
+                raise AssertionError(
+                    f"{name} was preserved when it should not have been!"
+                )
             except ObjectDoesNotExist:
                 continue
 
@@ -351,9 +444,9 @@ class TestGetClaimToken(EnsurePlansMixin, TestCase):
 
 
 FETCH_SCENARIOS = (
-    ('test_item', 'stuff_things', 'wat_do'),
-    ('test_item', 'test_things', 'wat_do'),
-    ('wat_do', 'test_item', 'test_things'),
+    ("test_item", "stuff_things", "wat_do"),
+    ("test_item", "test_things", "wat_do"),
+    ("wat_do", "test_item", "test_things"),
 )
 
 
@@ -361,34 +454,44 @@ FETCH_SCENARIOS = (
 class TestFetchPrefix(TestCase):
     @ddt.data(*FETCH_SCENARIOS)
     def test_prefix_fetched(self, id_list):
-        self.assertEqual(fetch_prefixed('test_', id_list), 'test_item')
+        self.assertEqual(fetch_prefixed("test_", id_list), "test_item")
 
     def test_prefix_not_found(self):
         with self.assertRaises(ValueError):
-            fetch_prefixed('wat', ['test_thing', 'wot'])
+            fetch_prefixed("wat", ["test_thing", "wot"])
 
 
 class TestVerifyTotal(EnsurePlansMixin, TestCase):
     def test_negative(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money('5.00', 'USD'))
-        LineItemFactory.create(invoice=deliverable.invoice, amount=Money('-6.00', 'USD'))
+        deliverable = DeliverableFactory.create(
+            product__base_price=Money("5.00", "USD")
+        )
+        LineItemFactory.create(
+            invoice=deliverable.invoice, amount=Money("-6.00", "USD")
+        )
         with self.assertRaises(ValidationError):
             verify_total(deliverable)
 
-    @override_settings(MINIMUM_PRICE=Money('100.00', 'USD'))
+    @override_settings(MINIMUM_PRICE=Money("100.00", "USD"))
     def test_below_minimum(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money('5.00', 'USD'))
+        deliverable = DeliverableFactory.create(
+            product__base_price=Money("5.00", "USD")
+        )
         with self.assertRaises(ValidationError):
             verify_total(deliverable)
 
-    @override_settings(MINIMUM_PRICE=Money('1.00', 'USD'))
+    @override_settings(MINIMUM_PRICE=Money("1.00", "USD"))
     def test_above_minimum(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money('5.00', 'USD'))
+        deliverable = DeliverableFactory.create(
+            product__base_price=Money("5.00", "USD")
+        )
         verify_total(deliverable)
 
     def test_zero(self):
-        deliverable = DeliverableFactory.create(product__base_price=Money('0.00', 'USD'))
-        self.assertEqual(deliverable.invoice.total(), Money('0.00', 'USD'))
+        deliverable = DeliverableFactory.create(
+            product__base_price=Money("0.00", "USD")
+        )
+        self.assertEqual(deliverable.invoice.total(), Money("0.00", "USD"))
         verify_total(deliverable)
 
 
@@ -406,22 +509,27 @@ class TestDefaultDeliverable(EnsurePlansMixin, TestCase):
 class TestFromRemoteID(EnsurePlansMixin, TestCase):
     # Most cases are covered in other tests, so we'll just check this one here:
     def test_unsupported_status(self):
-        event = base_charge_succeeded_event()['data']['object']
-        event['status'] = 'pending'
+        event = base_charge_succeeded_event()["data"]["object"]
+        event["status"] = "pending"
         post_success = MagicMock()
         post_save = MagicMock()
         initiate_transactions = MagicMock()
-        attempt = {'stripe_event': event, 'amount': Money('10.00', 'USD')}
+        attempt = {"stripe_event": event, "amount": Money("10.00", "USD")}
         success, transactions, message = from_remote_id(
-            amount=Money('10.00', 'USD'), attempt=attempt, context={}, remote_ids=['1234'],
-            user=UserFactory.create(), post_success=post_success, post_save=post_save,
+            amount=Money("10.00", "USD"),
+            attempt=attempt,
+            context={},
+            remote_ids=["1234"],
+            user=UserFactory.create(),
+            post_success=post_success,
+            post_save=post_save,
             initiate_transactions=initiate_transactions,
         )
         self.assertFalse(success)
         self.assertEqual(transactions, [])
         self.assertEqual(
             message,
-            'Unhandled charge status, pending for remote_ids [\'1234\', \'txn_1Icyh5AhlvPza3BKKv8oUs3e\']',
+            "Unhandled charge status, pending for remote_ids ['1234', 'txn_1Icyh5AhlvPza3BKKv8oUs3e']",
         )
         post_success.assert_not_called()
         initiate_transactions.assert_not_called()
@@ -443,10 +551,12 @@ class TestCreditReferral(EnsurePlansMixin, TestCase):
         self.assertTrue(user.service_plan_paid_through)
         self.assertEqual(user.next_service_plan, self.free)
 
-    @freeze_time('2023-01-01')
+    @freeze_time("2023-01-01")
     def test_credit_referral_extends_landscape(self):
         user = UserFactory.create(
-            service_plan=self.landscape, service_plan_paid_through=timezone.now().date(), next_service_plan=self.free,
+            service_plan=self.landscape,
+            service_plan_paid_through=timezone.now().date(),
+            next_service_plan=self.free,
         )
         # Quick sanity check.
         self.assertEqual(user.service_plan, self.landscape)
@@ -458,25 +568,35 @@ class TestCreditReferral(EnsurePlansMixin, TestCase):
         credit_referral(deliverable)
         user.refresh_from_db()
         self.assertEqual(user.service_plan, self.landscape)
-        self.assertEqual(user.service_plan_paid_through, timezone.now().date() + relativedelta(months=1))
+        self.assertEqual(
+            user.service_plan_paid_through,
+            timezone.now().date() + relativedelta(months=1),
+        )
         # Shouldn't affect next service plan.
         self.assertEqual(user.next_service_plan, self.free)
 
 
 class TestInitializeTipInvoice(EnsurePlansMixin, TestCase):
-    @override_settings(PROCESSING_PERCENTAGE=Decimal('5'), INTERNATIONAL_CONVERSION_PERCENTAGE=Decimal('2'))
+    @override_settings(
+        PROCESSING_PERCENTAGE=Decimal("5"),
+        INTERNATIONAL_CONVERSION_PERCENTAGE=Decimal("2"),
+    )
     def test_issue_invoice_idempotent(self):
-        deliverable = DeliverableFactory.create(status=COMPLETED, finalized_on=timezone.now())
+        deliverable = DeliverableFactory.create(
+            status=COMPLETED, finalized_on=timezone.now()
+        )
         deliverable.order.seller.service_plan = self.landscape
         deliverable.order.seller.save()
         invoice = initialize_tip_invoice(deliverable)
         self.assertTrue(invoice.id)
         self.assertEqual(initialize_tip_invoice(deliverable), invoice)
         line = invoice.line_items.filter(type=PROCESSING).get()
-        self.assertEqual(line.percentage, Decimal('5'))
+        self.assertEqual(line.percentage, Decimal("5"))
 
     def test_reissue_voice(self):
-        deliverable = DeliverableFactory.create(status=COMPLETED, finalized_on=timezone.now())
+        deliverable = DeliverableFactory.create(
+            status=COMPLETED, finalized_on=timezone.now()
+        )
         deliverable.order.seller.service_plan = self.landscape
         deliverable.order.seller.save()
         invoice = initialize_tip_invoice(deliverable)
@@ -484,37 +604,48 @@ class TestInitializeTipInvoice(EnsurePlansMixin, TestCase):
         invoice.save()
         self.assertNotEqual(invoice, initialize_tip_invoice(deliverable))
 
-    @override_settings(PROCESSING_PERCENTAGE=Decimal('5'), INTERNATIONAL_CONVERSION_PERCENTAGE=Decimal('2'))
+    @override_settings(
+        PROCESSING_PERCENTAGE=Decimal("5"),
+        INTERNATIONAL_CONVERSION_PERCENTAGE=Decimal("2"),
+    )
     def test_international(self):
-        deliverable = DeliverableFactory.create(status=COMPLETED, finalized_on=timezone.now(), international=True)
+        deliverable = DeliverableFactory.create(
+            status=COMPLETED, finalized_on=timezone.now(), international=True
+        )
         deliverable.order.seller.service_plan = self.landscape
         deliverable.order.seller.save()
         invoice = initialize_tip_invoice(deliverable)
         line = invoice.line_items.filter(type=PROCESSING).get()
-        self.assertEqual(line.percentage, Decimal('7'))
+        self.assertEqual(line.percentage, Decimal("7"))
 
 
 class TestInvoicePostPayment(EnsurePlansMixin, TestCase):
     def test_invoice_post_pay_wrong_amount(self):
         deliverable = DeliverableFactory.create()
         with self.assertRaises(AssertionError):
-            invoice_post_payment(deliverable.invoice, {'successful': True, 'amount': Money('100', 'USD')})
+            invoice_post_payment(
+                deliverable.invoice, {"successful": True, "amount": Money("100", "USD")}
+            )
 
 
 class TestUpdateDownstreamPricing(EnsurePlansMixin, TestCase):
     def test_product_and_deliverable_order(self):
         product = ProductFactory.create(cascade_fees=False, escrow_enabled=True)
-        deliverable = DeliverableFactory.create(product=product, order__seller=product.user, cascade_fees=False)
+        deliverable = DeliverableFactory.create(
+            product=product, order__seller=product.user, cascade_fees=False
+        )
         original_product_price = product.starting_price
         original_deliverable_price = deliverable.invoice.total()
-        service_plan = ServicePlanFactory(per_deliverable_price=Money('1.00', 'USD'))
+        service_plan = ServicePlanFactory(per_deliverable_price=Money("1.00", "USD"))
         product.user.service_plan = service_plan
         product.user.save()
         update_downstream_pricing(product.user)
         product.refresh_from_db()
         deliverable.refresh_from_db()
         product_difference = product.starting_price - original_product_price
-        deliverable_difference = deliverable.invoice.total() - original_deliverable_price
+        deliverable_difference = (
+            deliverable.invoice.total() - original_deliverable_price
+        )
         self.assertTrue(product_difference)
         self.assertTrue(deliverable_difference)
 
@@ -522,7 +653,9 @@ class TestUpdateDownstreamPricing(EnsurePlansMixin, TestCase):
 class TestSetServicePlan(EnsurePlansMixin, TestCase):
     def test_upgrade_makes_limbo_visible(self):
         deliverable = DeliverableFactory.create(status=LIMBO)
-        visible_deliverable = DeliverableFactory.create(status=NEW, order__seller=deliverable.order.seller)
+        visible_deliverable = DeliverableFactory.create(
+            status=NEW, order__seller=deliverable.order.seller
+        )
         # Should make no change.
         set_service_plan(deliverable.order.seller, self.free)
         deliverable.refresh_from_db()
@@ -538,13 +671,24 @@ class TestSetServicePlan(EnsurePlansMixin, TestCase):
 
     def test_upgrade_makes_limited_limbo_visible(self):
         deliverable = DeliverableFactory.create(status=NEW)
-        second_deliverable = DeliverableFactory.create(status=LIMBO, order__seller=deliverable.order.seller)
-        third_deliverable = DeliverableFactory.create(status=LIMBO, order__seller=deliverable.order.seller)
-        set_service_plan(deliverable.order.seller, ServicePlanFactory.create(max_simultaneous_orders=2))
+        second_deliverable = DeliverableFactory.create(
+            status=LIMBO, order__seller=deliverable.order.seller
+        )
+        third_deliverable = DeliverableFactory.create(
+            status=LIMBO, order__seller=deliverable.order.seller
+        )
+        set_service_plan(
+            deliverable.order.seller,
+            ServicePlanFactory.create(max_simultaneous_orders=2),
+        )
         deliverable.refresh_from_db()
         second_deliverable.refresh_from_db()
         third_deliverable.refresh_from_db()
-        visible = [item for item in [deliverable, second_deliverable, third_deliverable] if item.status == NEW]
+        visible = [
+            item
+            for item in [deliverable, second_deliverable, third_deliverable]
+            if item.status == NEW
+        ]
         self.assertEqual(len(visible), 2)
 
 
@@ -553,8 +697,8 @@ class TestReverseRecord(EnsurePlansMixin, TestCase):
         initial_record = TransactionRecordFactory.create(
             source=ESCROW,
             destination=HOLDINGS,
-            amount=Money('10', 'USD'),
-            remote_ids=['beep', 'boop']
+            amount=Money("10", "USD"),
+            remote_ids=["beep", "boop"],
         )
         user = UserFactory.create()
         initial_record.targets.add(ref_for_instance(user))
@@ -581,8 +725,8 @@ class TestReverseRecord(EnsurePlansMixin, TestCase):
             status=FAILURE,
             source=ESCROW,
             destination=HOLDINGS,
-            amount=Money('10', 'USD'),
-            remote_ids=['beep', 'boop'],
+            amount=Money("10", "USD"),
+            remote_ids=["beep", "boop"],
         )
         with self.assertRaises(ValueError):
             reverse_record(initial_record)
@@ -591,22 +735,30 @@ class TestReverseRecord(EnsurePlansMixin, TestCase):
 class TestTermCharge(EnsurePlansMixin, TestCase):
     def test_term_charge(self):
         user = UserFactory.create()
-        plan = ServicePlanFactory.create(per_deliverable_price=Money('1.00', 'USD'))
+        plan = ServicePlanFactory.create(per_deliverable_price=Money("1.00", "USD"))
         StripeAccountFactory.create(user=user, active=True)
         user.service_plan = plan
         user.save()
-        deliverable = DeliverableFactory.create(order__seller=user, escrow_enabled=False)
+        deliverable = DeliverableFactory.create(
+            order__seller=user, escrow_enabled=False
+        )
         term_charge(deliverable)
-        line = LineItem.objects.get(invoice=deliverable.invoice, type=DELIVERABLE_TRACKING)
-        self.assertEqual(line.amount, Money('1.00', 'USD'))
+        line = LineItem.objects.get(
+            invoice=deliverable.invoice, type=DELIVERABLE_TRACKING
+        )
+        self.assertEqual(line.amount, Money("1.00", "USD"))
         self.assertEqual(line.targets.first(), ref_for_instance(deliverable))
 
     def test_term_charge_skips_escrow(self):
         user = UserFactory.create()
-        plan = ServicePlanFactory.create(per_deliverable_price=Money('1.00', 'USD'))
+        plan = ServicePlanFactory.create(per_deliverable_price=Money("1.00", "USD"))
         StripeAccountFactory.create(user=user, active=True)
         user.service_plan = plan
         user.save()
         deliverable = DeliverableFactory.create(order__seller=user, escrow_enabled=True)
         term_charge(deliverable)
-        self.assertFalse(LineItem.objects.filter(invoice=deliverable.invoice, type=DELIVERABLE_TRACKING).exists())
+        self.assertFalse(
+            LineItem.objects.filter(
+                invoice=deliverable.invoice, type=DELIVERABLE_TRACKING
+            ).exists()
+        )

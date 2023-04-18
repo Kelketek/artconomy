@@ -4,11 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0125_auto_20220930_0941'),
-        ('profiles', '0125_correct_profile_hitcount'),
+        ("profiles", "0125_auto_20220930_0941"),
+        ("profiles", "0125_correct_profile_hitcount"),
     ]
 
-    operations = [
-    ]
+    operations = []

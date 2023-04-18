@@ -5,42 +5,53 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('profiles', '0085_journal_edited'),
+        ("profiles", "0085_journal_edited"),
     ]
 
     operations = [
-        migrations.RenameModel('Message', 'Conversation'),
-        migrations.RenameModel('MessageRecipientRelationship', 'ConversationParticipant'),
-        migrations.RenameField(
-            model_name='conversationparticipant',
-            old_name='message',
-            new_name='conversation',
+        migrations.RenameModel("Message", "Conversation"),
+        migrations.RenameModel(
+            "MessageRecipientRelationship", "ConversationParticipant"
         ),
         migrations.RenameField(
-            model_name='conversation',
-            old_name='recipients',
-            new_name='participants',
+            model_name="conversationparticipant",
+            old_name="message",
+            new_name="conversation",
+        ),
+        migrations.RenameField(
+            model_name="conversation",
+            old_name="recipients",
+            new_name="participants",
         ),
         migrations.AlterField(
-            model_name='conversation',
-            name='participants',
-            field=models.ManyToManyField(blank=True, related_name='conversations', through='profiles.ConversationParticipant', to=settings.AUTH_USER_MODEL),
+            model_name="conversation",
+            name="participants",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="conversations",
+                through="profiles.ConversationParticipant",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.AlterField(
-            model_name='conversation',
-            name='subject',
-            field=models.CharField(max_length=150, default='')
+            model_name="conversation",
+            name="subject",
+            field=models.CharField(max_length=150, default=""),
         ),
         migrations.AlterField(
-            model_name='conversation',
-            name='body',
-            field=models.CharField(max_length=5000, default='')
+            model_name="conversation",
+            name="body",
+            field=models.CharField(max_length=5000, default=""),
         ),
         migrations.AlterField(
-            model_name='conversation',
-            name='sender',
-            field=models.ForeignKey(on_delete=models.deletion.CASCADE, related_name='sent_messages', to=settings.AUTH_USER_MODEL, null=True)
+            model_name="conversation",
+            name="sender",
+            field=models.ForeignKey(
+                on_delete=models.deletion.CASCADE,
+                related_name="sent_messages",
+                to=settings.AUTH_USER_MODEL,
+                null=True,
+            ),
         ),
     ]

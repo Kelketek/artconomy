@@ -2,34 +2,46 @@ import os
 import time
 from pathlib import Path
 
+from apps.profiles.models import User
 from django.conf import settings
 from django.core.mail import EmailMultiAlternatives
 from django.core.management import BaseCommand
 from django.template.loader import get_template
-
-from apps.profiles.models import User
 from shortcuts import gen_textifier
 
 
 class Command(BaseCommand):
-    help = 'Sends a notice of bumped prices to users with shield-protected products.'
+    help = "Sends a notice of bumped prices to users with shield-protected products."
 
     def handle(self, *args, **options):
-        users = User.objects.exclude(is_active=False).filter(products__escrow_enabled=True).distinct()
-        template_path = Path(settings.BACKEND_ROOT) / 'templates' / 'transactional' / 'bumped_prices.html'
+        users = (
+            User.objects.exclude(is_active=False)
+            .filter(products__escrow_enabled=True)
+            .distinct()
+        )
+        template_path = (
+            Path(settings.BACKEND_ROOT)
+            / "templates"
+            / "transactional"
+            / "bumped_prices.html"
+        )
         for user in users:
-            subject = 'Your products have had their prices adjusted'
+            subject = "Your products have had their prices adjusted"
             ctx = {}
             to = [user.guest_email or user.email]
             from_email = settings.DEFAULT_FROM_EMAIL
             message = get_template(template_path).render(ctx)
             textifier = gen_textifier()
             msg = EmailMultiAlternatives(
-                subject, textifier.handle(message), to=to, from_email=from_email, headers={'Return-Path': settings.RETURN_PATH_EMAIL}
+                subject,
+                textifier.handle(message),
+                to=to,
+                from_email=from_email,
+                headers={"Return-Path": settings.RETURN_PATH_EMAIL},
             )
-            msg.attach_alternative(message, 'text/html')
+            msg.attach_alternative(message, "text/html")
             try:
                 msg.send()
             except Exception as err:
-                print(f'Error for {user}: {err}')
+                print(f"Error for {user}: {err}")
             time.sleep(1)

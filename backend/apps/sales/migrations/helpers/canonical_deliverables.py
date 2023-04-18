@@ -7,9 +7,11 @@ HOLDINGS = 303
 
 
 def fix_targets(apps, schema):
-    TransactionRecord = apps.get_model('sales', 'TransactionRecord')
-    Deliverable = apps.get_model('sales', 'Deliverable')
-    transactions = TransactionRecord.objects.filter(destination=BANK, status__in=[SUCCESS, PENDING], source=HOLDINGS).order_by('created_on')
+    TransactionRecord = apps.get_model("sales", "TransactionRecord")
+    Deliverable = apps.get_model("sales", "Deliverable")
+    transactions = TransactionRecord.objects.filter(
+        destination=BANK, status__in=[SUCCESS, PENDING], source=HOLDINGS
+    ).order_by("created_on")
     type_id = ContentType.objects.get_for_model(Deliverable).id
     already_seen = set()
     for transaction in transactions:

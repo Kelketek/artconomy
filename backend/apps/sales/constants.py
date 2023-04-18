@@ -2,15 +2,15 @@
 # Processor selection constants.
 ####
 
-STRIPE = 'stripe'
+STRIPE = "stripe"
 
-AUTHORIZE = 'authorize'
+AUTHORIZE = "authorize"
 
 PROCESSOR_CHOICES = (
     # Note: We don't use Authorize.net anymore, but we keep record of old
     # transactions which did.
-    (AUTHORIZE, 'EVO Authorize.net'),
-    (STRIPE, 'Stripe'),
+    (AUTHORIZE, "EVO Authorize.net"),
+    (STRIPE, "Stripe"),
 )
 
 ####
@@ -47,18 +47,18 @@ PRIORITY_MAP = {
 }
 
 LINE_ITEM_TYPES = (
-    (BASE_PRICE, 'Base Price'),
-    (ADD_ON, 'Add on or Discount'),
-    (DELIVERABLE_TRACKING, 'Deliverable Tracking Fee'),
-    (OTHER_FEE, 'Other fee'),
-    (SHIELD, 'Shield'),
-    (BONUS, 'Bonus'),
-    (TIP, 'Tip'),
-    (TABLE_SERVICE, 'Table Service'),
-    (EXTRA, 'Extra'),
-    (TAX, 'Tax'),
-    (PREMIUM_SUBSCRIPTION, 'Premium Subscription'),
-    (PROCESSING, 'Processing Fee'),
+    (BASE_PRICE, "Base Price"),
+    (ADD_ON, "Add on or Discount"),
+    (DELIVERABLE_TRACKING, "Deliverable Tracking Fee"),
+    (OTHER_FEE, "Other fee"),
+    (SHIELD, "Shield"),
+    (BONUS, "Bonus"),
+    (TIP, "Tip"),
+    (TABLE_SERVICE, "Table Service"),
+    (EXTRA, "Extra"),
+    (TAX, "Tax"),
+    (PREMIUM_SUBSCRIPTION, "Premium Subscription"),
+    (PROCESSING, "Processing Fee"),
 )
 
 ####
@@ -71,10 +71,10 @@ PAID = 2
 VOID = 5
 
 INVOICE_STATUSES = (
-    (DRAFT, 'Draft'),
-    (OPEN, 'Open'),
-    (PAID, 'Paid'),
-    (VOID, 'Void'),
+    (DRAFT, "Draft"),
+    (OPEN, "Open"),
+    (PAID, "Paid"),
+    (VOID, "Void"),
 )
 
 SALE = 0
@@ -87,10 +87,10 @@ TERM = 2
 TIPPING = 3
 
 INVOICE_TYPES = (
-    (SALE, 'Sale'),
-    (SUBSCRIPTION, 'Subscription'),
-    (TERM, 'Term'),
-    (TIPPING, 'Tip'),
+    (SALE, "Sale"),
+    (SUBSCRIPTION, "Subscription"),
+    (TERM, "Term"),
+    (TIPPING, "Tip"),
 )
 
 ####
@@ -114,18 +114,18 @@ LIMBO = 10
 MISSED = 11
 
 DELIVERABLE_STATUSES = (
-    (WAITING, 'Waiting List'),
-    (NEW, 'New'),
-    (PAYMENT_PENDING, 'Payment Pending'),
-    (QUEUED, 'Queued'),
-    (IN_PROGRESS, 'In Progress'),
-    (REVIEW, 'Review'),
-    (CANCELLED, 'Cancelled'),
-    (DISPUTED, 'Disputed'),
-    (COMPLETED, 'Completed'),
-    (REFUNDED, 'Refunded'),
-    (LIMBO, 'Limbo'),
-    (MISSED, 'Missed'),
+    (WAITING, "Waiting List"),
+    (NEW, "New"),
+    (PAYMENT_PENDING, "Payment Pending"),
+    (QUEUED, "Queued"),
+    (IN_PROGRESS, "In Progress"),
+    (REVIEW, "Review"),
+    (CANCELLED, "Cancelled"),
+    (DISPUTED, "Disputed"),
+    (COMPLETED, "Completed"),
+    (REFUNDED, "Refunded"),
+    (LIMBO, "Limbo"),
+    (MISSED, "Missed"),
 )
 
 PAID_STATUSES = (QUEUED, IN_PROGRESS, REVIEW, REFUNDED, COMPLETED)
@@ -148,22 +148,22 @@ JCB = 8
 UNKNOWN = 9
 
 CARD_TYPES = (
-    (VISA, 'Visa'),
-    (MASTERCARD, 'Mastercard'),
-    (AMEX, 'American Express'),
-    (DISCOVER, 'Discover'),
+    (VISA, "Visa"),
+    (MASTERCARD, "Mastercard"),
+    (AMEX, "American Express"),
+    (DISCOVER, "Discover"),
     (DINERS, "Diners Club"),
     (UNIONPAY, "UnionPay"),
 )
 
 TYPE_TRANSLATION = {
-    'amex': AMEX,
-    'discover': DISCOVER,
-    'mc': MASTERCARD,
-    'diners': DINERS,
-    'visa': VISA,
-    'mastercard': MASTERCARD,
-    'unionpay': UNIONPAY
+    "amex": AMEX,
+    "discover": DISCOVER,
+    "mc": MASTERCARD,
+    "diners": DINERS,
+    "visa": VISA,
+    "mastercard": MASTERCARD,
+    "unionpay": UNIONPAY,
 }
 
 # Status types
@@ -172,9 +172,9 @@ FAILURE = 1
 PENDING = 2
 
 TRANSACTION_STATUSES = (
-    (SUCCESS, 'Successful'),
-    (FAILURE, 'Failed'),
-    (PENDING, 'Pending'),
+    (SUCCESS, "Successful"),
+    (FAILURE, "Failed"),
+    (PENDING, "Pending"),
 )
 
 ####
@@ -223,21 +223,24 @@ PAYOUT_MIRROR_SOURCE = 500
 PAYOUT_MIRROR_DESTINATION = 501
 
 ACCOUNT_TYPES = (
-    (CARD, 'Credit Card'),
-    (BANK, 'Bank Account'),
-    (ESCROW, 'Escrow'),
-    (HOLDINGS, 'Finalized Earnings, available for withdraw'),
-    (PAYOUT_MIRROR_SOURCE, '(Local Currency) Finalized Earnings, available for withdraw'),
-    (PAYOUT_MIRROR_DESTINATION, '(Local Currency) Bank Account'),
-    (RESERVE, 'Contingency reserve'),
-    (UNPROCESSED_EARNINGS, 'Unannotated earnings'),
-    (CARD_TRANSACTION_FEES, 'Card transaction fees'),
-    (CARD_MISC_FEES, 'Other card fees'),
-    (CASH_DEPOSIT, 'Cash deposit'),
-    (ACH_TRANSACTION_FEES, 'ACH Transaction fees'),
-    (ACH_MISC_FEES, 'Other ACH fees'),
-    (MONEY_HOLE_STAGE, 'Tax staging'),
-    (MONEY_HOLE, 'Tax')
+    (CARD, "Credit Card"),
+    (BANK, "Bank Account"),
+    (ESCROW, "Escrow"),
+    (HOLDINGS, "Finalized Earnings, available for withdraw"),
+    (
+        PAYOUT_MIRROR_SOURCE,
+        "(Local Currency) Finalized Earnings, available for withdraw",
+    ),
+    (PAYOUT_MIRROR_DESTINATION, "(Local Currency) Bank Account"),
+    (RESERVE, "Contingency reserve"),
+    (UNPROCESSED_EARNINGS, "Unannotated earnings"),
+    (CARD_TRANSACTION_FEES, "Card transaction fees"),
+    (CARD_MISC_FEES, "Other card fees"),
+    (CASH_DEPOSIT, "Cash deposit"),
+    (ACH_TRANSACTION_FEES, "ACH Transaction fees"),
+    (ACH_MISC_FEES, "Other ACH fees"),
+    (MONEY_HOLE_STAGE, "Tax staging"),
+    (MONEY_HOLE, "Tax"),
 )
 
 # Transaction types
@@ -271,22 +274,22 @@ PROCESSING_FEE = 418
 TIP_SEND = 419
 
 CATEGORIES = (
-    (SHIELD_FEE, 'Artconomy Service Fee'),
-    (ESCROW_HOLD, 'Escrow hold'),
-    (ESCROW_RELEASE, 'Escrow release'),
-    (ESCROW_REFUND, 'Escrow refund'),
-    (SUBSCRIPTION_DUES, 'Subscription dues'),
-    (SUBSCRIPTION_REFUND, 'Refund for subscription dues'),
-    (CASH_WITHDRAW, 'Cash withdrawal'),
-    (THIRD_PARTY_FEE, 'Third party fee'),
-    (PREMIUM_BONUS, 'Premium service bonus'),
-    (INTERNAL_TRANSFER, 'Internal Transfer'),
-    (THIRD_PARTY_REFUND, 'Third party refund'),
-    (EXTRA_ITEM, 'Extra item'),
-    (CORRECTION, 'Correction'),
-    (TABLE_SERVICE, 'Table Service'),
-    (TAXES, 'Taxes'),
-    (MANUAL_PAYOUT, 'Manual Payout'),
-    (PAYOUT_REVERSAL, 'Payout Reversal'),
-    (TIP_SEND, 'Tip'),
+    (SHIELD_FEE, "Artconomy Service Fee"),
+    (ESCROW_HOLD, "Escrow hold"),
+    (ESCROW_RELEASE, "Escrow release"),
+    (ESCROW_REFUND, "Escrow refund"),
+    (SUBSCRIPTION_DUES, "Subscription dues"),
+    (SUBSCRIPTION_REFUND, "Refund for subscription dues"),
+    (CASH_WITHDRAW, "Cash withdrawal"),
+    (THIRD_PARTY_FEE, "Third party fee"),
+    (PREMIUM_BONUS, "Premium service bonus"),
+    (INTERNAL_TRANSFER, "Internal Transfer"),
+    (THIRD_PARTY_REFUND, "Third party refund"),
+    (EXTRA_ITEM, "Extra item"),
+    (CORRECTION, "Correction"),
+    (TABLE_SERVICE, "Table Service"),
+    (TAXES, "Taxes"),
+    (MANUAL_PAYOUT, "Manual Payout"),
+    (PAYOUT_REVERSAL, "Payout Reversal"),
+    (TIP_SEND, "Tip"),
 )

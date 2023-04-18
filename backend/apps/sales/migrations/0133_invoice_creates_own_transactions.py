@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0132_invoice_status_flags'),
+        ("sales", "0132_invoice_status_flags"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='invoice',
-            name='creates_own_transactions',
+            model_name="invoice",
+            name="creates_own_transactions",
             field=models.BooleanField(db_index=True, default=False),
         ),
     ]
