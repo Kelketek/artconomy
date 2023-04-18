@@ -28,7 +28,7 @@ from apps.lib.models import (
     Event,
     Notification,
     Subscription,
-    Tag,
+    Tag, COMMISSIONS_OPEN,
 )
 from apps.lib.utils import add_check, set_tags, tag_list_cleaner
 from apps.profiles.models import Character, Conversation, Journal, Submission, User
@@ -653,6 +653,12 @@ def submission_artist_tag(obj, context):
     }
 
 
+def commissions_open(obj, context):
+    return {
+        "display": notification_display(obj.target, context),
+    }
+
+
 NOTIFICATION_TYPE_MAP = {
     CHAR_TAG: char_tag,
     ORDER_UPDATE: order_update,
@@ -673,6 +679,7 @@ NOTIFICATION_TYPE_MAP = {
     WAITLIST_UPDATED: waitlist_updated,
     TIP_RECEIVED: order_update,
     REVISION_APPROVED: revision_approved,
+    COMMISSIONS_OPEN: commissions_open,
 }
 
 
