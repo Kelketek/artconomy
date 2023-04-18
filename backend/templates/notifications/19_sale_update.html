@@ -3,7 +3,7 @@
 {% block header_message %}{% if target.status == 1 %}New Sale!{% else %}Sale update!{% endif %} #{{target.id}} (From order #{{target.order.id}}){% endblock %}
 {% block message %}
 {% if target.status == 1 or target.status == 0 or target.status == 10 %}
-<p>You have a new sale of your product, "{{target.product.name}}"{% if target.status != 10 %} to {%if target.order.buyer.guest %}{% if target.order.buyer.guest_email %}{{target.order.buyer.guest_email}}{% else %}{{target.order.customer_email}}{% endif %}!{% else %}}<a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.{% endif %}</p>{% endif %}
+<p>You have a new sale of your product, "{{target.product.name}}"{% if target.status != 10 %} to {%if target.order.buyer.guest %}{% if target.order.buyer.guest_email %}{{target.order.buyer.guest_email}}{% else %}{{target.order.customer_email}}{% endif %}!{% else %}<a href="/profile/{{target.order.buyer.username}}/">{{target.order.buyer.username}}</a>.{% endif %}</p>{% endif %}
 
 {% if target.status == 0 %}
 <p><strong>NOTE: THIS IS A WAITLISTED ORDER.</strong></p>
