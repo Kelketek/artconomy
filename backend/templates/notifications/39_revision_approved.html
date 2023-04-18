@@ -1,9 +1,9 @@
 {% extends 'email_base.html' %}
 {% block header_message %}Update!{% endblock %}
 {% block message %}
-Your WIP/Revision on Sale #{{ target.deliverable.order.id }} [{{target.deliverable.name}}] has been approved by the commissioner!
+Your WIP/Revision on Sale #{{ raw_target.deliverable.order.id  }} [{{raw_target.deliverable.name}}] has been approved by the commissioner!
 {% endblock message %}
 
 {% block action %}
-<a href="/orders/{{target.order.buyer.username}}/order/{{target.order.id}}/deliverables/{{target.id}}/revisions">View the revision/WIP here!</a>
+<a href="/orders/{{raw_target.order.buyer.username}}/order/{{raw_target.order.id}}/deliverables/{{raw_target.id}}/revisions">View the revision/WIP here!</a>
 {% endblock %}
