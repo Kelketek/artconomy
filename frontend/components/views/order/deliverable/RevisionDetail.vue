@@ -163,7 +163,7 @@ export default class RevisionDetail extends mixins(DeliverableMixin, Formatting)
     })
     this.revisions.firstRun()
     this.revisionComments = this.$getList(`${this.prefix}__revision${this.deliverableId}__comments`, {
-      endpoint: `/api/lib/v1/comments/sales.Revision/${this.revisionId}/`,
+      endpoint: `/api/lib/comments/sales.Revision/${this.revisionId}/`,
       reverse: true,
       grow: true,
       params: {size: 5},

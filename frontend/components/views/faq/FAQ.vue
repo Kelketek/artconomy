@@ -43,8 +43,8 @@ export default class FAQ extends mixins(Viewer) {
   }
 
   public created() {
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
-    this.stripeCountries = this.$getSingle('stripeCountries', {endpoint: '/api/sales/v1/stripe-countries/', persist: true, x: {countries: []}})
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
+    this.stripeCountries = this.$getSingle('stripeCountries', {endpoint: '/api/sales/stripe-countries/', persist: true, x: {countries: []}})
     this.stripeCountries.get()
     updateTitle('Frequently Asked Questions -- Artconomy')
     setMetaContent(

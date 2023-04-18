@@ -22,7 +22,7 @@ export default class NotificationsListBase extends mixins(Viewer) {
   public toMark: Array<Partial<AcNotification<any, any>>> = []
   public marking: Array<Partial<AcNotification<any, any>>> = []
   public marked: Array<Partial<AcNotification<any, any>>> = []
-  public readUrl = '/api/profiles/v1/data/notifications/mark-read/'
+  public readUrl = '/api/profiles/data/notifications/mark-read/'
   public loopId: number = 0
 
   // noinspection JSMethodCanBeStatic
@@ -36,7 +36,7 @@ export default class NotificationsListBase extends mixins(Viewer) {
     }
     notification.updateX({read: true})
     artCall({
-      url: '/api/profiles/v1/data/notifications/mark-read/',
+      url: '/api/profiles/data/notifications/mark-read/',
       method: 'patch',
       data: [{id: (notification.x as AcNotification<any, any>).id, read: true}],
     },

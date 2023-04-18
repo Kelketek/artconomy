@@ -40,7 +40,7 @@ export default class QuestionSet extends Vue {
   }
 
   public created() {
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
     this.pricing.get().then()
   }
 }

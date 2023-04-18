@@ -99,7 +99,7 @@ export default class AcJournals extends mixins(Subjective, Formatting) {
     }
 
     public get url() {
-      return `/api/profiles/v1/account/${this.username}/journals/`
+      return `/api/profiles/account/${this.username}/journals/`
     }
 
     public get preview() {

@@ -336,7 +336,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
     public editAssetTab = 0
 
     public get url() {
-      return `/api/profiles/v1/submission/${this.submissionId}/`
+      return `/api/profiles/submission/${this.submissionId}/`
     }
 
     public get favorite() {
@@ -466,7 +466,7 @@ export default class SubmissionDetail extends mixins(Viewer, Formatting, Editabl
       })
       this.comments = this.$getList(
         `submission-${this.submissionId}-comments`, {
-          endpoint: `/api/lib/v1/comments/profiles.Submission/${this.submissionId}/`,
+          endpoint: `/api/lib/comments/profiles.Submission/${this.submissionId}/`,
           reverse: true,
           grow: true,
           params: {size: 5},

@@ -50,10 +50,10 @@ describe('Purchase.vue Authorize', () => {
       localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/')
+    expect(vm.cards.endpoint).toBe('/api/sales/account/Fox/cards/')
     wrapper.setProps({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Vulpes/cards/')
+    expect(vm.cards.endpoint).toBe('/api/sales/account/Vulpes/cards/')
   })
   it('Replaces the primary card with a new one', async() => {
     const user = genUser()
@@ -77,7 +77,7 @@ describe('Purchase.vue Authorize', () => {
     wrapper.find('.add-card-button').trigger('click')
     await vm.$nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/sales/v1/account/Fox/cards/', 'post', emptyForm(), {}))
+      rq('/api/sales/account/Fox/cards/', 'post', emptyForm(), {}))
     const card = genCard({id: 5, primary: true})
     mockAxios.mockResponse(rs(card))
     await flushPromises()
@@ -110,7 +110,7 @@ describe('Purchase.vue Authorize', () => {
     wrapper.find('.add-card-button').trigger('click')
     await vm.$nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/sales/v1/account/Fox/cards/', 'post', emptyForm(), {}))
+      rq('/api/sales/account/Fox/cards/', 'post', emptyForm(), {}))
     const card = genCard({id: 5})
     mockAxios.mockResponse(rs(card))
     await flushPromises()

@@ -107,7 +107,7 @@ export default class Invoices extends mixins(Subjective, Formatting) {
       endpoint: '#',
       x: {drawer},
     })
-    this.invoices = this.$getList(`${this.username}__invoices`, {endpoint: `/api/sales/v1/account/${this.username}/invoices/`})
+    this.invoices = this.$getList(`${this.username}__invoices`, {endpoint: `/api/sales/account/${this.username}/invoices/`})
     this.invoices.firstRun()
   }
 }

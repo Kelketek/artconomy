@@ -36,10 +36,10 @@ describe('ac-setup-two-factor', () => {
   it('Fetches the relevant 2FA data', async() => {
     mount(AcSetupTwoFactor, {localVue, store, vuetify, propsData: {username: 'Fox'}})
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'get'),
+      rq('/api/profiles/account/Fox/auth/two-factor/tg/', 'get'),
     )
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/account/Fox/auth/two-factor/totp/',
+      '/api/profiles/account/Fox/auth/two-factor/totp/',
       'get',
       undefined,
       {params: {page: 1, size: 24}, cancelToken: expect.any(Object)}),
@@ -64,10 +64,10 @@ describe('ac-setup-two-factor', () => {
     mockError.mockImplementationOnce(() => undefined)
     wrapper = mount(AcSetupTwoFactor, {localVue, store, vuetify, propsData: {username: 'Fox'}})
     const vm = wrapper.vm as any
-    expect(vm.url).toBe('/api/profiles/v1/account/Fox/auth/two-factor/')
+    expect(vm.url).toBe('/api/profiles/account/Fox/auth/two-factor/')
     wrapper.setProps({username: 'Vulpes'})
     await vm.$nextTick()
-    expect(vm.url).toBe('/api/profiles/v1/account/Vulpes/auth/two-factor/')
+    expect(vm.url).toBe('/api/profiles/account/Vulpes/auth/two-factor/')
   })
   it('Creates a Telegram Device', async() => {
     setViewer(store, genUser())
@@ -81,7 +81,7 @@ describe('ac-setup-two-factor', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.setup-telegram').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'put'),
+      rq('/api/profiles/account/Fox/auth/two-factor/tg/', 'put'),
     )
   })
   it('Creates a TOTP Device', async() => {
@@ -97,7 +97,7 @@ describe('ac-setup-two-factor', () => {
     await wrapper.vm.$nextTick()
     wrapper.find('.setup-totp').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/', 'post', {name: 'Phone'}),
+      rq('/api/profiles/account/Fox/auth/two-factor/totp/', 'post', {name: 'Phone'}),
     )
   })
 })

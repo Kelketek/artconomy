@@ -203,7 +203,7 @@ export default class AcTippingPrompt extends mixins(Subjective, StripeHostMixin)
   }
 
   public get deliverableUrl() {
-    return `/api/sales/v1/order/${this.deliverable.x!.order.id}/deliverables/${this.deliverable.x!.id}/`
+    return `/api/sales/order/${this.deliverable.x!.order.id}/deliverables/${this.deliverable.x!.id}/`
   }
 
   public paymentSubmit() {
@@ -239,7 +239,7 @@ export default class AcTippingPrompt extends mixins(Subjective, StripeHostMixin)
   }
 
   public get url() {
-    return `/api/sales/v1/invoice/${this.invoiceId}/`
+    return `/api/sales/invoice/${this.invoiceId}/`
   }
 
   public get readerFormUrl() {

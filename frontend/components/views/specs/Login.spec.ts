@@ -63,7 +63,7 @@ describe('Login.vue', () => {
     submit.trigger('click')
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/login/',
+      '/api/profiles/login/',
       'post',
       {email: 'test@example.com', password: 'pass', token: ''},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
@@ -319,7 +319,7 @@ describe('Login.vue', () => {
     mockAxios.reset()
     submit.trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/login/',
+      '/api/profiles/login/',
       'post',
       {email: 'test@example.com', password: 'pass', token: '086 456'},
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
@@ -406,7 +406,7 @@ describe('Login.vue', () => {
     mockAxios.reset()
     submit.trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/register/',
+      '/api/profiles/register/',
       'post',
       {
         email: 'test@example.com',
@@ -494,7 +494,7 @@ describe('Login.vue', () => {
     mockAxios.reset()
     submit.trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/forgot-password/',
+      '/api/profiles/forgot-password/',
       'post',
       {
         email: 'Test',

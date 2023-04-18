@@ -23,11 +23,11 @@
             </p>
             <code>
               &lt;a href="{{protocol}}//{{host}}/store/{{username}}/iframe/?referred_by={{username}}"&gt;&lt;img
-              src="{{protocol}}//{{host}}/api/sales/v1/account/{{username}}/commissions-status-image/"&gt;&lt;/a&gt;
+              src="{{protocol}}//{{host}}/api/sales/account/{{username}}/commissions-status-image/"&gt;&lt;/a&gt;
             </code>
             <p>Preview:</p>
             <router-link :to="{name: 'Store', params: {username: username}}">
-              <img :src="`/api/sales/v1/account/${username}/commissions-status-image/`">
+              <img :src="`/api/sales/account/${username}/commissions-status-image/`">
             </router-link>
           </v-card-text>
         </v-card>

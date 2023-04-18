@@ -140,7 +140,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     }
     this.sellerHandler = this.$getProfile(order.seller.username, {})
     this.ensureHandler(this.sellerHandler, order.seller, true)
-    this.paymentForm.endpoint = `/api/sales/v1/invoice/${deliverable.invoice}/pay/`
+    this.paymentForm.endpoint = `/api/sales/invoice/${deliverable.invoice}/pay/`
     /* istanbul ignore if */
     if (this.viewMode !== VIEWER_TYPE.UNSET) {
       return
@@ -242,11 +242,11 @@ export default class DeliverableMixin extends mixins(Viewer) {
   }
 
   public get orderUrl() {
-    return `/api/sales/v1/order/${this.orderId}/`
+    return `/api/sales/order/${this.orderId}/`
   }
 
   public get url() {
-    return `/api/sales/v1/order/${this.orderId}/deliverables/${this.deliverableId}/`
+    return `/api/sales/order/${this.orderId}/deliverables/${this.deliverableId}/`
   }
 
   public get prefix() {
@@ -362,7 +362,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
         endpoint: '#',
       },
     )
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
     this.pricing.get()
     this.viewSettings.ready = true
     this.order = this.$getSingle(`order${this.orderId}`, {endpoint: this.orderUrl})
@@ -378,7 +378,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     )
     this.comments = this.$getList(
       `${this.prefix}__comments`, {
-        endpoint: `/api/lib/v1/comments/sales.Deliverable/${this.deliverableId}/`,
+        endpoint: `/api/lib/comments/sales.Deliverable/${this.deliverableId}/`,
         reverse: true,
         grow: true,
         params: {size: 5},
@@ -435,7 +435,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
         comments_disabled: {value: false},
       },
     })
-    const invoiceSchema = baseInvoiceSchema(`/api/sales/v1/order/${this.orderId}/deliverables/`)
+    const invoiceSchema = baseInvoiceSchema(`/api/sales/order/${this.orderId}/deliverables/`)
     invoiceSchema.fields.characters = {value: []}
     invoiceSchema.fields.references = {value: []}
     invoiceSchema.fields.name = {value: 'New Deliverable'}

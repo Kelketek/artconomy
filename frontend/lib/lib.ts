@@ -862,7 +862,7 @@ export async function markRead<T extends ReadMarkable>(controller: SingleControl
     return
   }
   return artCall({
-    url: `/api/lib/v1/read-marker/${contentType}/${controller.x.id}/`,
+    url: `/api/lib/read-marker/${contentType}/${controller.x.id}/`,
     method: 'post',
   }).then(() => {
     controller.updateX({read: true} as Partial<T>)

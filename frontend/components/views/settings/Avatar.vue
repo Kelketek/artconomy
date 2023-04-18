@@ -32,7 +32,7 @@ import AcUppyFile from '@/components/fields/AcUppyFile.vue'
   })
 export default class Avatar extends mixins(Viewer, Subjective) {
   private get url() {
-    return `/api/profiles/v1/account/${this.subject && this.subject.username}/avatar/`
+    return `/api/profiles/account/${this.subject && this.subject.username}/avatar/`
   }
 
   public created() {

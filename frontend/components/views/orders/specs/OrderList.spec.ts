@@ -44,7 +44,7 @@ describe('OrderList.vue', () => {
     const vm = wrapper.vm as any
     expect(vm.showProduct).toBe(false)
     expect(vm.productInitItems.length).toBe(0)
-    const request = mockAxios.getReqByUrl('/api/sales/v1/account/Fox/products/10/')
+    const request = mockAxios.getReqByUrl('/api/sales/account/Fox/products/10/')
     expect(request.method).toBe('get')
     mockAxios.mockResponse(rs(genProduct({id: 10, name: 'stuff'})), request)
     await vm.$nextTick()
@@ -72,7 +72,7 @@ describe('OrderList.vue', () => {
     await vm.$nextTick()
     await confirmAction(wrapper, ['.clear-waitlist'])
     await vm.$nextTick()
-    const request = mockAxios.getReqByUrl('/api/sales/v1/account/Fox/products/100/clear-waitlist/')
+    const request = mockAxios.getReqByUrl('/api/sales/account/Fox/products/100/clear-waitlist/')
     mockAxios.mockResponse(rs(undefined), request)
     await vm.$nextTick()
     expect(vm.list.ready).toBe(false)

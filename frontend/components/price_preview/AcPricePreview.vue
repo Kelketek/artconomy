@@ -295,7 +295,7 @@ export default class AcPricePreview extends mixins(Subjective) {
   }
 
   public created() {
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
     this.pricing.get()
     this.addOnForm = this.$getForm(`${this.lineItems.name}_addOn`, {
       endpoint: this.lineItems.endpoint,

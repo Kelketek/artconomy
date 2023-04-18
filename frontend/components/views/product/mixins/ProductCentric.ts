@@ -13,7 +13,7 @@ export default class ProductCentric extends mixins(Subjective) {
   public product: SingleController<Product> = null as unknown as SingleController<Product>
 
   public get url() {
-    return `/api/sales/v1/account/${this.username}/products/${this.productId}/`
+    return `/api/sales/account/${this.username}/products/${this.productId}/`
   }
 
   public get deliveryDate() {

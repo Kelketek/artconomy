@@ -74,9 +74,9 @@ describe('Profile.vue', () => {
     router.push({name: 'Profile', params: {username: fox.username}})
     wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/artist-profile/', 'get', undefined, {
       params: {view: 'true'}, cancelToken: expect.any(Object),
     }))
     mockAxios.mockResponse(rs(genArtistProfile()))
@@ -91,10 +91,10 @@ describe('Profile.vue', () => {
     fox.artist_mode = true
     router.push({name: 'Profile', params: {username: fox.username}})
     wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()})
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/', 'get'))
     mockAxios.mockResponse(rs(fox))
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/artist-profile/', 'get', undefined, {
+      rq('/api/profiles/account/Fox/artist-profile/', 'get', undefined, {
         params: {view: 'true'}, cancelToken: expect.any(Object),
       }),
     )

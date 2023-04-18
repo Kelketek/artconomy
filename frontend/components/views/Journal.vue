@@ -145,12 +145,12 @@ export default class extends mixins(Subjective, Editable, Formatting) {
       this.body = this.$makePatcher({modelProp: 'journal', attrName: 'body'})
       this.journal = this.$getSingle(
         `journal-${this.journalId}`, {
-          endpoint: `/api/profiles/v1/account/${this.username}/journals/${this.journalId}/`,
+          endpoint: `/api/profiles/account/${this.username}/journals/${this.journalId}/`,
         })
       this.journal.get().catch(this.setError)
       this.journalComments = this.$getList(
         `journal-${this.journalId}-comments`, {
-          endpoint: `/api/lib/v1/comments/profiles.Journal/${this.journalId}/`,
+          endpoint: `/api/lib/comments/profiles.Journal/${this.journalId}/`,
           reverse: true,
           grow: true,
           params: {size: 5},

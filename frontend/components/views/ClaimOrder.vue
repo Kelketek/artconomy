@@ -106,7 +106,7 @@ export default class ClaimOrder extends mixins(Viewer) {
 
   public created() {
     this.claimForm = this.$getForm('orderClaim', {
-      endpoint: '/api/sales/v1/order-auth/',
+      endpoint: '/api/sales/order-auth/',
       reset: false,
       fields: {
         id: {value: this.orderId},

@@ -48,7 +48,7 @@ export default class Ratings extends mixins(Subjective) {
 
     public created() {
       this.ratings = this.$getList(
-        `ratings__${flatten(this.username)}`, {endpoint: `/api/sales/v1/account/${this.username}/ratings/`},
+        `ratings__${flatten(this.username)}`, {endpoint: `/api/sales/account/${this.username}/ratings/`},
       )
       this.ratings.firstRun()
     }

@@ -58,7 +58,7 @@ export default class Characters extends mixins(Subjective) {
     public showNew = false
 
     public get url() {
-      return `/api/profiles/v1/account/${this.username}/characters/`
+      return `/api/profiles/account/${this.username}/characters/`
     }
 
     public visitCharacter(character: Character) {

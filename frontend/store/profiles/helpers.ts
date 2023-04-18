@@ -1,5 +1,5 @@
 export function artistProfileEndpointFor(username: string) {
-  return `/api/profiles/v1/account/${username}/artist-profile/`
+  return `/api/profiles/account/${username}/artist-profile/`
 }
 
 export function artistProfilePathFor(username: string) {
@@ -16,7 +16,7 @@ export function userPathFor(username: string) {
 
 export function endpointFor(username: string) {
   if (username === '_') {
-    return '/api/profiles/v1/data/requester/'
+    return '/api/profiles/data/requester/'
   }
-  return `/api/profiles/v1/account/${username}/`
+  return `/api/profiles/account/${username}/`
 }

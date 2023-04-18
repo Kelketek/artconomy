@@ -237,7 +237,7 @@ export default class AcNewProduct extends Subjective {
     public newProduct = null as unknown as FormController
 
     public get url() {
-      return `/api/sales/v1/account/${this.username}/products/`
+      return `/api/sales/account/${this.username}/products/`
     }
 
     public get limitAtOnce() {
@@ -337,7 +337,7 @@ export default class AcNewProduct extends Subjective {
 
     public created() {
       this.subjectHandler.artistProfile.get().catch(this.setError)
-      this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+      this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
       this.pricing.get()
       this.newProduct = this.$getForm(`${flatten(this.username)}__newProduct`, {
         endpoint: this.url,

@@ -34,10 +34,10 @@ export default class NotificationsCenter extends mixins(Viewer) {
 
     public created() {
       this.community = this.$getList('communityNotifications', {
-        grow: true, endpoint: '/api/profiles/v1/data/notifications/community/',
+        grow: true, endpoint: '/api/profiles/data/notifications/community/',
       })
       this.sales = this.$getList('salesNotifications', {
-        grow: true, endpoint: '/api/profiles/v1/data/notifications/sales/',
+        grow: true, endpoint: '/api/profiles/data/notifications/sales/',
       })
       this.community.firstRun().catch(this.setError)
       this.sales.firstRun().catch(this.setError)

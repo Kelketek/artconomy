@@ -68,11 +68,11 @@ describe('Credentials.vue', () => {
       attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
-    expect(vm.url).toBe('/api/profiles/v1/account/Fox/auth/credentials/')
+    expect(vm.url).toBe('/api/profiles/account/Fox/auth/credentials/')
     wrapper.setProps({username: 'Vulpes'})
     vm.subjectHandler.user.updateX({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
-    const newUrl = '/api/profiles/v1/account/Vulpes/auth/credentials/'
+    const newUrl = '/api/profiles/account/Vulpes/auth/credentials/'
     expect(vm.url).toBe(newUrl)
     expect(vm.usernameForm.endpoint).toBe(newUrl)
     expect(vm.passwordForm.endpoint).toBe(newUrl)

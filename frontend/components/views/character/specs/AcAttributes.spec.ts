@@ -97,7 +97,7 @@ describe('AcAttributes.vue', () => {
     vm.character.attributes.setList([{key: 'Species', value: 'Foxie', sticky: true}])
     await vm.$nextTick()
     const request = mockAxios.lastReqGet()
-    expect(request.url).toBe('/api/profiles/v1/account/Fox/characters/Kai/')
+    expect(request.url).toBe('/api/profiles/account/Fox/characters/Kai/')
     const updatedCharacter = genCharacter()
     updatedCharacter.name = 'Wat'
     updatedCharacter.tags = ['hello', 'there']

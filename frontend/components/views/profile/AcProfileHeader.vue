@@ -205,7 +205,7 @@ export default class AcProfileHeader extends mixins(Subjective, Formatting, Edit
     public created() {
       this.newConversation = this.$getForm('new-conversation', {
         fields: {participants: {value: []}, captcha: {value: ''}},
-        endpoint: `/api/profiles/v1/account/${this.rawViewerName}/conversations/`,
+        endpoint: `/api/profiles/account/${this.rawViewerName}/conversations/`,
       })
     }
 }

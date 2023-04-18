@@ -263,7 +263,7 @@ export default class Login extends mixins(Viewer) {
 
     public created() {
       this.loginForm = this.$getForm('login', {
-        endpoint: '/api/profiles/v1/login/',
+        endpoint: '/api/profiles/login/',
         fields: {
           email: {value: '', validators: [{name: 'email'}, {name: 'required'}]},
           password: {value: '', validators: [{name: 'required'}]},
@@ -272,7 +272,7 @@ export default class Login extends mixins(Viewer) {
         },
       })
       this.registerForm = this.$getForm('register', {
-        endpoint: '/api/profiles/v1/register/',
+        endpoint: '/api/profiles/register/',
         fields: {
           username: {value: '', validators: [{name: 'username', async: true}]},
           email: {
@@ -290,7 +290,7 @@ export default class Login extends mixins(Viewer) {
         },
       })
       this.forgotForm = this.$getForm('forgot', {
-        endpoint: '/api/profiles/v1/forgot-password/',
+        endpoint: '/api/profiles/forgot-password/',
         fields: {
           email: {value: '', validators: [{name: 'required'}]},
         },

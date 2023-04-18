@@ -96,7 +96,7 @@ export default class AcSetupTwoFactor extends mixins(Viewer, Subjective, Alerts)
     }
 
     private get url() {
-      return `/api/profiles/v1/account/${this.username}/auth/two-factor/`
+      return `/api/profiles/account/${this.username}/auth/two-factor/`
     }
 
     private get noDevice() {

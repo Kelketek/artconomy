@@ -326,7 +326,7 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   }
 
   public get invoiceUrl() {
-    return `/api/sales/v1/invoice/${this.deliverable.x?.invoice}/`
+    return `/api/sales/invoice/${this.deliverable.x?.invoice}/`
   }
 
   public get readerFormUrl() {

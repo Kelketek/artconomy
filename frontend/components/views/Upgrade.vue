@@ -236,7 +236,7 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
 
   public setPlan() {
     return artCall({
-      url: `/api/sales/v1/account/${this.username}/set-plan/`,
+      url: `/api/sales/account/${this.username}/set-plan/`,
       data: {service: this.selection},
       method: 'post',
     })
@@ -252,9 +252,9 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
       return
     }
     if (!value) {
-      this.clientSecret.endpoint = `/api/sales/v1/account/${this.username}/cards/setup-intent/`
+      this.clientSecret.endpoint = `/api/sales/account/${this.username}/cards/setup-intent/`
     } else {
-      this.clientSecret.endpoint = `/api/sales/v1/account/${this.username}/premium/intent/`
+      this.clientSecret.endpoint = `/api/sales/account/${this.username}/premium/intent/`
     }
   }
 
@@ -311,9 +311,9 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
   public created() {
     // @ts-ignore
     window.payment = this
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/', persist: true})
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/', persist: true})
     this.pricing.get()
-    const schema = baseCardSchema('/api/sales/v1/premium/')
+    const schema = baseCardSchema('/api/sales/premium/')
     schema.fields = {
       ...schema.fields,
       card_id: {value: null},
@@ -322,7 +322,7 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
     this.paymentForm = this.$getForm('serviceUpgrade', schema)
     this.clientSecret = this.$getSingle(
       'upgrade__clientSecret', {
-        endpoint: '/api/sales/v1/premium/intent/',
+        endpoint: '/api/sales/premium/intent/',
         params: {service: this.selection},
       })
   }

@@ -31,7 +31,7 @@ describe('AcAvatar', () => {
       propsData: {username: 'Fox'},
       stubs: {RouterLink: RouterLinkStub},
     })
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/', 'get'))
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
     expect(wrapper.findComponent(RouterLinkStub).exists()).toBeFalsy()
     mockAxios.mockResponse(userResponse())
@@ -52,7 +52,7 @@ describe('AcAvatar', () => {
       stubs: {RouterLink: RouterLinkStub},
     })
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/data/user/id/1/', 'get', undefined, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/data/user/id/1/', 'get', undefined, {}))
     mockAxios.mockResponse(userResponse())
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -113,12 +113,12 @@ describe('AcAvatar', () => {
     wrapper.setProps({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
     await flushPromises()
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Vulpes/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Vulpes/', 'get'))
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
     vulpes.avatar_url = '/static/stuff.jpg/'
-    mockAxios.mockResponseFor({url: '/api/profiles/v1/account/Vulpes/'}, rs(vulpes))
+    mockAxios.mockResponseFor({url: '/api/profiles/account/Vulpes/'}, rs(vulpes))
     await flushPromises()
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any

@@ -74,7 +74,7 @@ describe('AcCharacterToolbar.vue', () => {
     mockAxios.reset()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/characters/Kai/', 'delete'),
+      rq('/api/profiles/account/Fox/characters/Kai/', 'delete'),
     )
     mockAxios.mockResponse(rs(undefined))
     await vm.$nextTick()

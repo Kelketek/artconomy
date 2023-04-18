@@ -298,7 +298,7 @@ export const routes = [
     props(route: Route) {
       return {
         username: route.params.username,
-        endpoint: `/api/sales/v1/account/${route.params.username}/products/`,
+        endpoint: `/api/sales/account/${route.params.username}/products/`,
         iFrame: true,
       }
     },
@@ -514,7 +514,7 @@ export const routes = [
             return {
               ...route.params,
               listName: 'art',
-              endpoint: `/api/profiles/v1/account/${route.params.username}/submissions/art/`,
+              endpoint: `/api/profiles/account/${route.params.username}/submissions/art/`,
               trackPages: true,
             }
           },
@@ -526,7 +526,7 @@ export const routes = [
             return {
               ...route.params,
               listName: 'art',
-              endpoint: `/api/profiles/v1/account/${route.params.username}/submissions/art/management/`,
+              endpoint: `/api/profiles/account/${route.params.username}/submissions/art/management/`,
               trackPages: true,
             }
           },
@@ -538,7 +538,7 @@ export const routes = [
             return {
               ...route.params,
               listName: 'collection',
-              endpoint: `/api/profiles/v1/account/${route.params.username}/submissions/collection/`,
+              endpoint: `/api/profiles/account/${route.params.username}/submissions/collection/`,
               trackPages: true,
             }
           },
@@ -550,7 +550,7 @@ export const routes = [
             return {
               ...route.params,
               listName: 'collection',
-              endpoint: `/api/profiles/v1/account/${route.params.username}/submissions/collection/management/`,
+              endpoint: `/api/profiles/account/${route.params.username}/submissions/collection/management/`,
               trackPages: true,
             }
           },
@@ -564,7 +564,7 @@ export const routes = [
           return {
             ...route.params,
             listName: 'favorites',
-            endpoint: `/api/profiles/v1/account/${route.params.username}/favorites/`,
+            endpoint: `/api/profiles/account/${route.params.username}/favorites/`,
             okStatuses: [403],
             failureMessage: "This user's favorites are hidden.",
           }
@@ -583,7 +583,7 @@ export const routes = [
             return {
               ...route.params,
               nameSpace: 'watching',
-              endpoint: `/api/profiles/v1/account/${route.params.username}/watching/`,
+              endpoint: `/api/profiles/account/${route.params.username}/watching/`,
             }
           },
         }, {
@@ -594,7 +594,7 @@ export const routes = [
             return {
               ...route.params,
               nameSpace: 'watchers',
-              endpoint: `/api/profiles/v1/account/${route.params.username}/watchers/`,
+              endpoint: `/api/profiles/account/${route.params.username}/watchers/`,
             }
           },
         }],

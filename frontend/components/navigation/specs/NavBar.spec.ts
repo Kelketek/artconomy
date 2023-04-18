@@ -199,7 +199,7 @@ describe('NavBar.vue', () => {
     mockAxios.reset()
     wrapper.find('.logout-button').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/logout/', 'post', undefined, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/logout/', 'post', undefined, {}))
     mockAxios.mockResponse(rs(genAnon()))
     await flushPromises()
     expect((wrapper.vm as any).viewerName).toBe('')

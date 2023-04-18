@@ -320,7 +320,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
       this.setUser(window.USER_PRELOAD)
     }
     this.supportForm = this.$getForm('supportRequest', {
-      endpoint: '/api/lib/v1/support/request/',
+      endpoint: '/api/lib/support/request/',
       fields: {
         body: {value: '', validators: [{name: 'required'}]},
         email: {value: '', validators: [{name: 'email'}, {name: 'required'}]},
@@ -350,19 +350,19 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     }
     // Set up search list entries as early as possible.
     this.submissionSearch = this.$getList('searchSubmissions', {
-      endpoint: '/api/profiles/v1/search/submission/',
+      endpoint: '/api/profiles/search/submission/',
       persistent: true,
     })
     this.productSearch = this.$getList('searchProducts', {
-      endpoint: '/api/sales/v1/search/product/',
+      endpoint: '/api/sales/search/product/',
       persistent: true,
     })
     this.characterSearch = this.$getList('searchCharacters', {
-      endpoint: '/api/profiles/v1/search/character/',
+      endpoint: '/api/profiles/search/character/',
       persistent: true,
     })
     this.profileSearch = this.$getList('searchProfiles', {
-      endpoint: '/api/profiles/v1/search/user/',
+      endpoint: '/api/profiles/search/user/',
       persistent: true,
     })
   }

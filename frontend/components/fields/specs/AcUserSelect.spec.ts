@@ -32,7 +32,7 @@ describe('AcUserSelect.vue', () => {
     await jest.runAllTimers()
     expect(mockAxios.request).toHaveBeenCalled()
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/search/user/',
+      '/api/profiles/search/user/',
       'get',
       undefined,
       {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}},
@@ -53,7 +53,7 @@ describe('AcUserSelect.vue', () => {
     await jest.runAllTimers()
     expect(mockAxios.request).toHaveBeenCalled()
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/search/user/',
+      '/api/profiles/search/user/',
       'get',
       undefined,
       {

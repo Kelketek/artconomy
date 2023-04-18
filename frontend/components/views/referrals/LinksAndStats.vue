@@ -82,7 +82,7 @@ export default class Referrals extends mixins(Subjective) {
     public privateView = true
     public created() {
       this.stats = this.$getSingle(
-        `ReferralStats__${flatten(this.username)}`, {endpoint: `/api/profiles/v1/account/${this.username}/referral_stats/`},
+        `ReferralStats__${flatten(this.username)}`, {endpoint: `/api/profiles/account/${this.username}/referral_stats/`},
       )
       this.stats.get()
     }

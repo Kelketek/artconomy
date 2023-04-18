@@ -31,7 +31,7 @@ export default class SearchSubmissions extends mixins(SearchList) {
     public list: ListController<Submission> = null as unknown as ListController<Submission>
     public created() {
       this.list = this.$getList('searchSubmissions', {
-        endpoint: '/api/profiles/v1/search/submission/',
+        endpoint: '/api/profiles/search/submission/',
         persistent: true,
       })
     }

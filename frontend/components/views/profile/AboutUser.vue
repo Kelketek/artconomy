@@ -117,7 +117,7 @@ export default class AboutUser extends mixins(Subjective, Editable) {
   }
 
   public get productUrl() {
-    return `/api/sales/v1/account/${this.username}/products/`
+    return `/api/sales/account/${this.username}/products/`
   }
 
   public get artList() {
@@ -132,7 +132,7 @@ export default class AboutUser extends mixins(Subjective, Editable) {
       return {
         listName: 'art',
         label: 'Art',
-        endpoint: `/api/profiles/v1/account/${this.username}/submissions/art/`,
+        endpoint: `/api/profiles/account/${this.username}/submissions/art/`,
         emptyMessage: 'You have not yet uploaded any art where you are tagged as the artist.',
         buttonText: buttonText,
         buttonDest: {name: 'Gallery', params: {username: this.username}},
@@ -146,7 +146,7 @@ export default class AboutUser extends mixins(Subjective, Editable) {
     return {
       listName: 'collection',
       label: 'Collection',
-      endpoint: `/api/profiles/v1/account/${this.username}/submissions/collection/`,
+      endpoint: `/api/profiles/account/${this.username}/submissions/collection/`,
       emptyMessage: 'You have not uploaded any art to your collection. Your collection ' +
           'holds all art artists have made for you.',
       buttonText: buttonText,

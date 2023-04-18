@@ -68,7 +68,7 @@ import Formatting from '@/mixins/formatting'
 export default class Premium extends mixins(Viewer, Subjective, Formatting) {
   public discordPath = mdiDiscord
   public cancelSubscription() {
-    artCall({url: `/api/sales/v1/account/${this.username}/cancel-premium/`, method: 'post'}).then(
+    artCall({url: `/api/sales/account/${this.username}/cancel-premium/`, method: 'post'}).then(
       this.subjectHandler.user.setX,
     )
   }

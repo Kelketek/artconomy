@@ -275,7 +275,7 @@ export default class AcCardManager extends mixins(Subjective, Alerts, StripeMixi
     }
 
     public get url() {
-      let url = `/api/sales/v1/account/${this.username}/cards/`
+      let url = `/api/sales/account/${this.username}/cards/`
       if (this.showAll) {
         return url
       }

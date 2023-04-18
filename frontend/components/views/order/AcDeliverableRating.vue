@@ -47,7 +47,7 @@ export default class AcDeliverableRating extends Vue {
   public created() {
     this.rating = this.$getSingle(
       `${this.orderId}__rate__${this.end}`,
-      {endpoint: `/api/sales/v1/order/${this.orderId}/deliverables/${this.deliverableId}/rate/${this.end}/`},
+      {endpoint: `/api/sales/order/${this.orderId}/deliverables/${this.deliverableId}/rate/${this.end}/`},
     )
     this.rating.get()
   }

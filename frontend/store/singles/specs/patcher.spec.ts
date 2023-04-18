@@ -47,7 +47,7 @@ describe('Patcher', () => {
     jest.runAllTimers()
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
     const request = rq(
-      '/api/profiles/v1/account/Fox/',
+      '/api/profiles/account/Fox/',
       'patch', {sfw_mode: true},
     )
     request.cancelToken = expect.any(Object)

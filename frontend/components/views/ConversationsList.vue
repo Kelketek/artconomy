@@ -135,11 +135,11 @@ export default class ConversationsList extends mixins(Subjective, Formatting) {
 
     public created() {
       this.conversations = this.$getList('conversations-' + this.username, {
-        endpoint: `/api/profiles/v1/account/${this.username}/conversations/`,
+        endpoint: `/api/profiles/account/${this.username}/conversations/`,
       })
       this.newConversation = this.$getForm('new-conversation', {
         fields: {participants: {value: []}, captcha: {value: ''}},
-        endpoint: `/api/profiles/v1/account/${this.rawViewerName}/conversations/`,
+        endpoint: `/api/profiles/account/${this.rawViewerName}/conversations/`,
       })
       this.conversations.firstRun().catch(this.setError)
     }

@@ -133,7 +133,7 @@ export default class AcNewCard extends mixins(Viewer) {
   }
 
   public created() {
-    this.countries = this.$getSingle('countries', {persist: true, endpoint: '/api/lib/v1/countries/'})
+    this.countries = this.$getSingle('countries', {persist: true, endpoint: '/api/lib/countries/'})
     this.countries.get().then()
   }
 }

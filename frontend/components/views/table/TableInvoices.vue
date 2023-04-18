@@ -129,8 +129,8 @@ export default class TableInvoices extends mixins(Viewer, Formatting) {
       x: {drawer},
     })
     this.navSettings = this.$getSingle('navSettings')
-    this.invoiceForm = this.$getForm('new_invoice_button', {endpoint: '/api/sales/v1/create-anonymous-invoice/', fields: {}})
-    this.invoices = this.$getList('table_invoices', {endpoint: '/api/sales/v1/recent-invoices/'})
+    this.invoiceForm = this.$getForm('new_invoice_button', {endpoint: '/api/sales/create-anonymous-invoice/', fields: {}})
+    this.invoices = this.$getList('table_invoices', {endpoint: '/api/sales/recent-invoices/'})
     this.invoices.firstRun()
   }
 }

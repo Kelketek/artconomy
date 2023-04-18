@@ -61,7 +61,7 @@ describe('InvoicingMixin.ts', () => {
     await vm.$nextTick()
     expect(mockKill).toHaveBeenCalled()
     expect(mockGet).toHaveBeenCalled()
-    expect(vm.invoiceProduct.endpoint).toBe('/api/sales/v1/account/Fox/products/255/')
+    expect(vm.invoiceProduct.endpoint).toBe('/api/sales/account/Fox/products/255/')
   })
   it('Goes to the new deliverable', async() => {
     const push = jest.fn()

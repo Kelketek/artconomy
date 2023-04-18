@@ -50,22 +50,22 @@ describe('AcCardManager.vue Authorize', () => {
   })
   it('Fetches the initial data', async() => {
     expect(mockAxios.request.mock.calls[0][0]).toEqual(
-      rq('/api/sales/v1/account/Fox/cards/authorize/', 'get', undefined, {cancelToken: expect.any(Object)}),
+      rq('/api/sales/account/Fox/cards/authorize/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
   })
   it('Updates the endpoint when the username is changed', async() => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/authorize/')
+    expect(vm.cards.endpoint).toBe('/api/sales/account/Fox/cards/authorize/')
     wrapper.setProps({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Vulpes/cards/authorize/')
+    expect(vm.cards.endpoint).toBe('/api/sales/account/Vulpes/cards/authorize/')
   })
   it('Switches tabs depending on whether cards are present', async() => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/authorize/')
+    expect(vm.cards.endpoint).toBe('/api/sales/account/Fox/cards/authorize/')
     wrapper.setProps({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Vulpes/cards/authorize/')
+    expect(vm.cards.endpoint).toBe('/api/sales/account/Vulpes/cards/authorize/')
     vm.cards.setList([genCard()])
     await wrapper.vm.$nextTick()
     expect(vm.tab).toBe('saved-cards')
@@ -75,7 +75,7 @@ describe('AcCardManager.vue Authorize', () => {
   })
   it('Saves the last valid card ID', async() => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/v1/account/Fox/cards/authorize/')
+    expect(vm.cards.endpoint).toBe('/api/sales/account/Fox/cards/authorize/')
     wrapper.setProps({value: 3})
     await wrapper.vm.$nextTick()
     expect(vm.lastCard).toBe(3)
@@ -98,7 +98,7 @@ describe('AcCardManager.vue Authorize', () => {
     wrapper.setProps({processor: undefined})
     const vm = wrapper.vm as any
     await vm.$nextTick()
-    expect(vm.url).toBe('/api/sales/v1/account/Fox/cards/')
+    expect(vm.url).toBe('/api/sales/account/Fox/cards/')
   })
 })
 
@@ -125,7 +125,7 @@ describe('AcCardManager.vue Stripe', () => {
   })
   it('Fetches the initial data', async() => {
     expect(mockAxios.request.mock.calls[0][0]).toEqual(
-      rq('/api/sales/v1/account/Fox/cards/stripe/', 'get', undefined, {cancelToken: expect.any(Object)}),
+      rq('/api/sales/account/Fox/cards/stripe/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
   })
   it('Handles cleanup after saving a card', async() => {

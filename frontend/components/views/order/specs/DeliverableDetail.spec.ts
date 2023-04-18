@@ -52,7 +52,7 @@ describe('DeliverableDetail.vue', () => {
     const arbitrator = genUser()
     arbitrator.username = 'Foxxo'
     deliverable.arbitrator = arbitrator
-    const deliverableRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
+    const deliverableRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), deliverableRequest)
     await flushPromises()
     await vm.$nextTick()
@@ -107,7 +107,7 @@ describe('DeliverableDetail.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     deliverable.order.buyer = null
-    const deliverableRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
+    const deliverableRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), deliverableRequest)
     expect(vm.buyer).toBe(null)
     expect(vm.buyerSubmission).toBe(null)
@@ -147,7 +147,7 @@ describe('DeliverableDetail.vue', () => {
     const newSubmission = genSubmission()
     newSubmission.id = 101
     const newSubmissionRequest = mockAxios.lastReqGet()
-    expect(newSubmissionRequest.url).toBe('/api/sales/v1/order/1/deliverables/5/outputs/')
+    expect(newSubmissionRequest.url).toBe('/api/sales/order/1/deliverables/5/outputs/')
     mockAxios.mockResponse(rs(newSubmission))
     await flushPromises()
     await vm.$nextTick()
@@ -172,7 +172,7 @@ describe('DeliverableDetail.vue', () => {
     const deliverable = genDeliverable()
     deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
-    const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
+    const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
     await flushPromises()
     await vm.$nextTick()
@@ -196,7 +196,7 @@ describe('DeliverableDetail.vue', () => {
     const deliverable = genDeliverable()
     deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
-    const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
+    const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
     await flushPromises()
     await vm.$nextTick()
@@ -240,7 +240,7 @@ describe('DeliverableDetail.vue', () => {
     const deliverable = genDeliverable()
     deliverable.product = null
     deliverable.status = DeliverableStatus.COMPLETED
-    const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
+    const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
     await flushPromises()
     await vm.$nextTick()
@@ -278,7 +278,7 @@ describe('DeliverableDetail.vue', () => {
     deliverable.trust_finalized = true
     deliverable.auto_finalize_on = formatISO(add(new Date(), {days: 7}))
     deliverable.status = DeliverableStatus.COMPLETED
-    const orderRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/')
+    const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
     mockAxios.mockResponse(rs(deliverable), orderRequest)
     await flushPromises()
     await vm.$nextTick()
@@ -483,7 +483,7 @@ describe('DeliverableDetail.vue', () => {
     vm.revisions.fetching = false
     vm.revisions.ready = true
     await vm.$nextTick()
-    const characterRequest = mockAxios.getReqByUrl('/api/sales/v1/order/1/deliverables/5/characters/')
+    const characterRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/characters/')
     const character = genCharacter()
     character.tags = ['stuff', 'things', 'wat']
     mockAxios.mockResponse(rs([{id: 1, character}]), characterRequest)

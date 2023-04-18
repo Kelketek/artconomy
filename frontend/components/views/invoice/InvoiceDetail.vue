@@ -286,7 +286,7 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
   }
 
   get url() {
-    return `/api/sales/v1/invoice/${this.invoiceId}/`
+    return `/api/sales/invoice/${this.invoiceId}/`
   }
 
   get totalCharge() {
@@ -381,7 +381,7 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
     this.readerForm.endpoint = this.readerFormUrl
     this.invoice.get()
     this.lineItems = this.$getList(`${this.prefix}__line_items`, {
-      endpoint: `/api/sales/v1/invoice/${this.invoiceId}/line-items/`,
+      endpoint: `/api/sales/invoice/${this.invoiceId}/line-items/`,
       paginated: false,
       socketSettings: {
         appLabel: 'sales',
@@ -397,7 +397,7 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
     })
     this.lineItems.firstRun()
     this.transactions = this.$getList(`${this.prefix}__transaction_records`, {
-      endpoint: `/api/sales/v1/invoice/${this.invoiceId}/transaction-records/`,
+      endpoint: `/api/sales/invoice/${this.invoiceId}/transaction-records/`,
     })
     this.transactions.get().catch(this.statusOk(403))
   }

@@ -76,7 +76,7 @@ export default class referenceDetail extends mixins(DeliverableMixin) {
       () => updateLinked({list: this.references, key: 'reference', newValue: this.reference.x}),
     )
     this.referenceComments = this.$getList(`${this.prefix}__reference${this.referenceId}__comments`, {
-      endpoint: `/api/lib/v1/comments/sales.Reference/${this.referenceId}/`,
+      endpoint: `/api/lib/comments/sales.Reference/${this.referenceId}/`,
       reverse: true,
       grow: true,
       params: {size: 5},

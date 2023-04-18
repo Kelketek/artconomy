@@ -44,7 +44,7 @@ export default class TableOrders extends mixins(Viewer) {
   }
 
   public created() {
-    this.orderList = this.$getList('table_orders', {endpoint: '/api/sales/v1/table/orders/', paginated: false})
+    this.orderList = this.$getList('table_orders', {endpoint: '/api/sales/table/orders/', paginated: false})
     this.orderList.firstRun()
   }
 }

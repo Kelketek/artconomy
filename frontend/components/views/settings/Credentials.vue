@@ -294,11 +294,11 @@ export default class Credentials extends mixins(Subjective, Alerts) {
     }
 
     public get url() {
-      return `/api/profiles/v1/account/${this.username}/auth/credentials/`
+      return `/api/profiles/account/${this.username}/auth/credentials/`
     }
 
     public get deleteUrl() {
-      return `/api/profiles/v1/account/${this.username}/auth/delete-account/`
+      return `/api/profiles/account/${this.username}/auth/delete-account/`
     }
 
     private get passwordDisabled() {

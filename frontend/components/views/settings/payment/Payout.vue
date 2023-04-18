@@ -119,7 +119,7 @@ export default class Payout extends mixins(Subjective) {
       const viewer = this.viewer as User
       this.stripeAccounts = this.$getList(
         `${flatten(this.username)}__stripeAccounts`, {
-          endpoint: `/api/sales/v1/account/${this.username}/stripe-accounts/`,
+          endpoint: `/api/sales/account/${this.username}/stripe-accounts/`,
           paginated: false,
           socketSettings: {
             appLabel: 'sales',
@@ -136,7 +136,7 @@ export default class Payout extends mixins(Subjective) {
       )
       this.stripeAccounts.firstRun()
       this.balance = this.$getSingle(
-        `${flatten(this.username)}__balance`, {endpoint: `/api/sales/v1/account/${this.username}/balance/`},
+        `${flatten(this.username)}__balance`, {endpoint: `/api/sales/account/${this.username}/balance/`},
       )
       this.balance.get()
     }

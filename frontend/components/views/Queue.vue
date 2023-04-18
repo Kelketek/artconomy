@@ -47,7 +47,7 @@ export default class Queue extends mixins(Subjective) {
 
   public created() {
     this.list = this.$getList(`${this.username}__queue`, {
-      endpoint: `/api/sales/v1/account/${this.username}/queue/`,
+      endpoint: `/api/sales/account/${this.username}/queue/`,
     })
     this.list.get().catch(this.setError)
   }

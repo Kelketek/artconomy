@@ -75,7 +75,7 @@ const uppyStore = (single: SingleController<UppyState>) => {
 
 @Component
 export default class AcUppyFile extends mixins(ExtendedInput) {
-    @Prop({default: '/api/lib/v1/asset/'})
+    @Prop({default: '/api/lib/asset/'})
     public endpoint!: string
 
     @Prop({default: ''})

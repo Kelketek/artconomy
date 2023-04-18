@@ -101,6 +101,6 @@ describe('AcTotpDevice.vue', () => {
     form.fields.code.update('123456')
     wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/auth/two-factor/totp/1/', 'patch', {code: '123456'}, {}))
+      rq('/api/profiles/account/Fox/auth/two-factor/totp/1/', 'patch', {code: '123456'}, {}))
   })
 })

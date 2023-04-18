@@ -152,7 +152,7 @@ export default class OrderList extends mixins(Subjective, SearchField, Formattin
 
   public populateProduct() {
     artCall({
-      url: `/api/sales/v1/account/${this.username}/products/${this.searchForm.fields.product.value}/`,
+      url: `/api/sales/account/${this.username}/products/${this.searchForm.fields.product.value}/`,
       method: 'get',
     }).then((response: Product) => {
       Vue.set(this, 'productInitItems', [response])
@@ -168,7 +168,7 @@ export default class OrderList extends mixins(Subjective, SearchField, Formattin
   public clearWaitlist() {
     this.inProgress = true
     artCall({
-      url: `/api/sales/v1/account/${this.username}/products/${this.searchForm.fields.product.value}/clear-waitlist/`,
+      url: `/api/sales/account/${this.username}/products/${this.searchForm.fields.product.value}/clear-waitlist/`,
       method: 'post',
     }).then(() => {
       this.list.reset()
@@ -195,7 +195,7 @@ export default class OrderList extends mixins(Subjective, SearchField, Formattin
       this.showProduct = true
     }
     this.list = this.$getList(`orders__${flatten(this.username)}__${this.type}__${this.category}`, {
-      endpoint: `/api/sales/v1/account/${this.username}/${this.type}/${this.category}/`,
+      endpoint: `/api/sales/account/${this.username}/${this.type}/${this.category}/`,
     })
   }
 }

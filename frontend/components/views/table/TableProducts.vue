@@ -48,7 +48,7 @@ export default class TableProducts extends mixins(Viewer) {
   }
 
   public created() {
-    this.productList = this.$getList('table_products', {endpoint: '/api/sales/v1/table/products/', paginated: false})
+    this.productList = this.$getList('table_products', {endpoint: '/api/sales/table/products/', paginated: false})
     this.productList.firstRun()
   }
 }

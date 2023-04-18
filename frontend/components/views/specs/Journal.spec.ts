@@ -60,7 +60,7 @@ describe('Journal.vue', () => {
   it('Mounts a journal', async() => {
     wrapper = mount(Journal, {localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, attachTo: docTarget()},
     )
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/account/Fox/journals/1/', 'get'))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/journals/1/', 'get'))
     expect(wrapper.find('.edit-toggle').exists()).toBe(false)
     expect(wrapper.find('.delete-button').exists()).toBe(false)
   })
@@ -78,7 +78,7 @@ describe('Journal.vue', () => {
     toggle.trigger('click')
     await wrapper.vm.$nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
-    const mockDelete = mockAxios.getReqByUrl('/api/profiles/v1/account/Fox/journals/1/')
+    const mockDelete = mockAxios.getReqByUrl('/api/profiles/account/Fox/journals/1/')
     expect(mockDelete.method).toBe('delete')
     mockAxios.mockResponse(rs(null), mockDelete)
     await flushPromises()

@@ -84,12 +84,12 @@ export default class TransactionHistory extends mixins(Subjective) {
         endpoint: '', fields: {account: {value: 300}},
       })
       this.transactions = this.$getList(`transactions__${flatten(this.username)}`, {
-        endpoint: `/api/sales/v1/account/${this.username}/transactions/`,
+        endpoint: `/api/sales/account/${this.username}/transactions/`,
         params: this.transactionFilter.rawData,
       })
       this.transactions.firstRun()
       this.summary = this.$getSingle(flatten(`account_summary__${this.username}`), {
-        endpoint: `/api/sales/v1/account/${this.username}/account-status/`, params: this.transactionFilter.rawData,
+        endpoint: `/api/sales/account/${this.username}/account-status/`, params: this.transactionFilter.rawData,
       })
       this.summary.get()
     }

@@ -103,7 +103,7 @@ describe('Field validators', () => {
     expect(validateStatus(status)).toBe(result)
   })
   it('Generates an async validator that checks for a common error pattern.', async() => {
-    const validator = simpleAsyncValidator('/api/profiles/v1/form-validators/email/')
+    const validator = simpleAsyncValidator('/api/profiles/form-validators/email/')
     store.commit('forms/initForm', {
       name: 'example2',
       fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}},
@@ -112,7 +112,7 @@ describe('Field validators', () => {
     const source = axios.CancelToken.source()
     validator(controller, source.token).then()
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/form-validators/email/',
+      '/api/profiles/form-validators/email/',
       'post',
       {email: 'test@example.com'},
       {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus},
@@ -120,7 +120,7 @@ describe('Field validators', () => {
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
   })
   it('Returns errors from a generated async validator.', async() => {
-    const validator = simpleAsyncValidator('/api/profiles/v1/form-validators/email/')
+    const validator = simpleAsyncValidator('/api/profiles/form-validators/email/')
     store.commit('forms/initForm', {
       name: 'example2',
       fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}},
@@ -134,7 +134,7 @@ describe('Field validators', () => {
     await flushPromises()
   })
   it('Returns an empty list from a generated async validator when field errors are not present.', async() => {
-    const validator = simpleAsyncValidator('/api/profiles/v1/form-validators/email/')
+    const validator = simpleAsyncValidator('/api/profiles/form-validators/email/')
     store.commit('forms/initForm', {
       name: 'example2',
       fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}},

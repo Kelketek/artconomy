@@ -114,7 +114,7 @@ describe('App.vue', () => {
     await vm.$nextTick()
     const submit = dialogExpects({wrapper, formName: 'supportRequest', fields: ['email', 'body']})
     submit.trigger('click')
-    const response = rq('/api/lib/v1/support/request/', 'post',
+    const response = rq('/api/lib/support/request/', 'post',
       {
         email: 'fox@artconomy.com',
         body: 'This is a test.',

@@ -212,9 +212,9 @@ export function colorRef(field: FieldController) {
   return ['The color must be in the form of an RGB reference, like #000000 #FFFFFF or #c4c4c4.']
 }
 
-export const emailAsync = simpleAsyncValidator('/api/profiles/v1/form-validators/email/')
-export const username = simpleAsyncValidator('/api/profiles/v1/form-validators/username/')
-export const password = simpleAsyncValidator('/api/profiles/v1/form-validators/password/')
+export const emailAsync = simpleAsyncValidator('/api/profiles/form-validators/email/')
+export const username = simpleAsyncValidator('/api/profiles/form-validators/username/')
+export const password = simpleAsyncValidator('/api/profiles/form-validators/password/')
 
 export function registerValidators() {
   formRegistry.validators.required = required

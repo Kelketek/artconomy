@@ -27,7 +27,7 @@ describe('ac-tag-field', () => {
     wrapper.find('input').setValue('Test')
     await jest.runAllTimers()
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
-      '/api/profiles/v1/search/tag/',
+      '/api/profiles/search/tag/',
       'get',
       undefined,
       {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, params: {q: 'Test'}},

@@ -106,7 +106,7 @@ export default class ConversationDetail extends mixins(Subjective, Formatting) {
       this.conversationComments = this.$getList(
         'conversation-' + this.conversationId + '-comments',
         {
-          endpoint: `/api/lib/v1/comments/profiles.Conversation/${this.conversationId}/`,
+          endpoint: `/api/lib/comments/profiles.Conversation/${this.conversationId}/`,
           reverse: true,
           grow: true,
           params: {size: 5},
@@ -115,7 +115,7 @@ export default class ConversationDetail extends mixins(Subjective, Formatting) {
     }
 
     public get url(): string {
-      return `/api/profiles/v1/account/${this.username}/conversations/${this.conversationId}/`
+      return `/api/profiles/account/${this.username}/conversations/${this.conversationId}/`
     }
 
     public leaveConversation() {

@@ -240,7 +240,7 @@ export default class AcNavDrawer extends Vue {
 
   public logout() {
     artCall({
-      url: '/api/profiles/v1/logout/',
+      url: '/api/profiles/logout/',
       method: 'post',
     }).then(this.subjectHandler.user.setX).then(() => {
       this.$router.push({name: 'Home'})

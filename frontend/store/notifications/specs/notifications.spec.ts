@@ -52,7 +52,7 @@ describe('Notifications store', () => {
     store.dispatch('notifications/startLoop')
     expect((store.state as any).notifications.loopID).toBeGreaterThan(0)
     expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 10000)
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/data/notifications/unread/', 'get', undefined, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/data/notifications/unread/', 'get', undefined, {}))
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
     jest.runOnlyPendingTimers()
     expect(mockAxios.request).toHaveBeenCalledTimes(2)
@@ -83,7 +83,7 @@ describe('Notifications store', () => {
   })
   it('Sets stats after a fetch run', () => {
     store.dispatch('notifications/runFetch')
-    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/v1/data/notifications/unread/', 'get', undefined, {}))
+    expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/data/notifications/unread/', 'get', undefined, {}))
     mockAxios.mockResponse(rs({
       community_count: 8,
       count: 3,

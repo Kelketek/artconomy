@@ -72,7 +72,7 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
 
   public created() {
     this.readers = this.$getList(
-      'stripeReaders', {endpoint: '/api/sales/v1/stripe-readers/', persistent: true},
+      'stripeReaders', {endpoint: '/api/sales/stripe-readers/', persistent: true},
     )
     if (!(this.readers.ready || this.readers.fetching || this.readers.failed)) {
       this.readers.get().catch(this.statusOk(403))

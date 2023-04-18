@@ -27,7 +27,7 @@
       <v-col cols="12">
         <v-row no-gutters>
           <v-col class="text-center">
-            <v-btn color="primary" :href="`/api/sales/v1/account/${username}/reports/payout/${rangeString}`" download>Download Payout Report CSV</v-btn>
+            <v-btn color="primary" :href="`/api/sales/account/${username}/reports/payout/${rangeString}`" download>Download Payout Report CSV</v-btn>
           </v-col>
         </v-row>
       </v-col>

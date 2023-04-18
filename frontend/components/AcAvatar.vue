@@ -119,7 +119,7 @@ export default class AcAvatar extends Vue {
         username = this.$store.getters.idMap[this.userId]
         this.subjectHandler = this.$getProfile(username, {})
       } else {
-        artCall({url: `/api/profiles/v1/data/user/id/${this.userId}/`, method: 'get'}).then(this.setUser).catch(
+        artCall({url: `/api/profiles/data/user/id/${this.userId}/`, method: 'get'}).then(this.setUser).catch(
           () => {},
         )
       }

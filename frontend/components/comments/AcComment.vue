@@ -325,13 +325,13 @@ export default class AcComment extends mixins(Subjective, Formatting) {
         )
       }
       this.subCommentList = this.$getList(this.comment.name + '_comments', {
-        endpoint: `/api/lib/v1/comments/lib.Comment/${comment.id}/`,
+        endpoint: `/api/lib/comments/lib.Comment/${comment.id}/`,
         params: {size: 5},
         grow: true,
         reverse: true,
       })
       this.historyList = this.$getList(this.comment.name + '_history', {
-        endpoint: `/api/lib/v1/comments/lib.Comment/${comment.id}/history/`,
+        endpoint: `/api/lib/comments/lib.Comment/${comment.id}/history/`,
         params: {size: 5},
         grow: true,
         reverse: true,

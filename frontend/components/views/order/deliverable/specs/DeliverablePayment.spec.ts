@@ -157,7 +157,7 @@ describe('DeliverablePayment.vue', () => {
     await vm.$nextTick()
     await confirmAction(wrapper, ['.accept-order'])
     const lastRequest = mockAxios.lastReqGet()
-    expect(lastRequest.url).toBe('/api/sales/v1/order/1/deliverables/5/accept/')
+    expect(lastRequest.url).toBe('/api/sales/order/1/deliverables/5/accept/')
     const newDeliverable = {...deliverable, ...{status: 2}}
     mockAxios.mockResponse(rs(newDeliverable), lastRequest)
     await flushPromises()
@@ -590,7 +590,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
     wrapper.find('.mark-paid-cash').trigger('click')
     const lastRequest = mockAxios.lastReqGet()
     expect(lastRequest.url).toBe(
-      `/api/sales/v1/invoice/${deliverable.invoice}/pay/`,
+      `/api/sales/invoice/${deliverable.invoice}/pay/`,
     )
     mockAxios.mockResponse(rs(deliverable))
     await vm.$nextTick()

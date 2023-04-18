@@ -43,7 +43,7 @@ export default class DeliverableListing extends mixins(Viewer, Formatting, Ratin
   public deliverables: ListController<Deliverable> = null as unknown as ListController<Deliverable>
   public order: SingleController<Order> = null as unknown as SingleController<Order>
   public get url() {
-    return `/api/sales/v1/order/${this.orderId}/`
+    return `/api/sales/order/${this.orderId}/`
   }
 
   public get isCurrentRoute() {

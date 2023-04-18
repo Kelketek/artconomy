@@ -114,7 +114,7 @@ export default class ArtistTagManager extends mixins(Subjective) {
     const submissionId = this.tag.x!.submission.id
     this.submission = this.$getSingle(
         `submission-${submissionId}`, {
-          endpoint: `/api/profiles/v1/submission/${submissionId}/`,
+          endpoint: `/api/profiles/submission/${submissionId}/`,
           x: this.tag.x!.submission,
         },
     )

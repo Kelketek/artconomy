@@ -78,13 +78,13 @@ export default class PasswordReset extends mixins(Viewer) {
     public created() {
       this.validator = this.$getSingle(
         'passwordToken', {
-          endpoint: `/api/profiles/v1/forgot-password/token-check/${this.username}/${this.resetToken}/`,
+          endpoint: `/api/profiles/forgot-password/token-check/${this.username}/${this.resetToken}/`,
         },
       )
       this.validator.get()
       this.resetForm = this.$getForm(
         'passwordReset', {
-          endpoint: `/api/profiles/v1/forgot-password/perform-reset/${this.username}/${this.resetToken}/`,
+          endpoint: `/api/profiles/forgot-password/perform-reset/${this.username}/${this.resetToken}/`,
           fields: {
             new_password: {value: ''},
             new_password2: {

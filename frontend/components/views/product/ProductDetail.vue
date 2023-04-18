@@ -793,7 +793,7 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
 
     public created() {
       this.product.get()
-      this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+      this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
       this.pricing.get()
       this.inventory = this.$getSingle(
         `product__${this.productId}__inventory`, {endpoint: `${this.url}inventory/`},

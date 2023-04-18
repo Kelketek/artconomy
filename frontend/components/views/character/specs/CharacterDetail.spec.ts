@@ -83,16 +83,16 @@ describe('CharacterDetail.vue', () => {
     )
     await wrapper.vm.$nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Vulpes/characters/Kai/', 'get'),
+      rq('/api/profiles/account/Vulpes/characters/Kai/', 'get'),
     )
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Vulpes/characters/Kai/attributes/', 'get',
+      rq('/api/profiles/account/Vulpes/characters/Kai/attributes/', 'get',
         undefined, {cancelToken: expect.any(Object)}))
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Vulpes/characters/Kai/colors/', 'get',
+      rq('/api/profiles/account/Vulpes/characters/Kai/colors/', 'get',
         undefined, {cancelToken: expect.any(Object)}))
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Vulpes/characters/Kai/share/', 'get',
+      rq('/api/profiles/account/Vulpes/characters/Kai/share/', 'get',
         undefined, {cancelToken: expect.any(Object)}))
     mockAxios.mockResponse(rs(genCharacter()))
     mockAxios.mockResponse(rs([]))

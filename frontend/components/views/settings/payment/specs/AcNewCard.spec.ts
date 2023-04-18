@@ -56,7 +56,7 @@ describe('AcNewCard.vue', () => {
   it('Fetches the initial data', async() => {
     const countriesRequest = mockAxios.lastReqGet()
     expect(mockAxios.request).toHaveBeenCalledWith(...[
-      rq('/api/lib/v1/countries/', 'get', undefined),
+      rq('/api/lib/countries/', 'get', undefined),
     ])
     mockAxios.mockResponse(rs({US: 'United States', CA: 'Canada'}), countriesRequest)
     await flushPromises()

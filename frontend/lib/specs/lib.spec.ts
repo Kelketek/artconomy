@@ -226,7 +226,7 @@ describe('Enumerators', () => {
     wrapper = shallowMount(Empty, {localVue, store})
     const handler = wrapper.vm.$getProfile('person', {})
     expect(newUploadSchema(handler.user)).toEqual({
-      endpoint: '/api/profiles/v1/account/person/submissions/',
+      endpoint: '/api/profiles/account/person/submissions/',
       reset: false,
       fields: {
         title: {value: '', step: 2},
@@ -563,7 +563,7 @@ describe('Mark Read handler', () => {
     )
     markRead(target, 'stuff.Things')
     const req = mockAxios.lastReqGet()
-    expect(req.url).toBe('/api/lib/v1/read-marker/stuff.Things/1/')
+    expect(req.url).toBe('/api/lib/read-marker/stuff.Things/1/')
     expect(req.method).toBe('post')
     mockAxios.mockResponse(rs({}))
     await flushPromises()

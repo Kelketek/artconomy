@@ -175,7 +175,7 @@ export default class AcTgDevice extends mixins(Subjective) {
     }
 
     private get url() {
-      return `/api/profiles/v1/account/${this.username}/auth/two-factor/tg/`
+      return `/api/profiles/account/${this.username}/auth/two-factor/tg/`
     }
 }
 </script>

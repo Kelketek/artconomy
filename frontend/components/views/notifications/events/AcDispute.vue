@@ -43,7 +43,7 @@ export default {
   },
   computed: {
     url() {
-      return `/api/sales/v1/order/${this.event.target.order.id}/deliverables/${this.event.target.id}/`
+      return `/api/sales/order/${this.event.target.order.id}/deliverables/${this.event.target.id}/`
     },
     casePath() {
       return {

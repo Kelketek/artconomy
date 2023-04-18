@@ -188,7 +188,7 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
   public created() {
     const type = this.baseName.toLocaleLowerCase()
     this.stats = this.$getSingle(`stats__sales__${flatten(this.username)}`, {
-      endpoint: `/api/sales/v1/account/${this.username}/sales/stats/`,
+      endpoint: `/api/sales/account/${this.username}/sales/stats/`,
     })
     this.$listenForList(`orders__${flatten(this.username)}__${type}__archived`)
     this.$listenForList(`orders__${flatten(this.username)}__${type}__current`)
@@ -200,11 +200,11 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
       this.stats.get()
       this.subjectHandler.artistProfile.get()
     }
-    const invoiceSchema = baseInvoiceSchema(`/api/sales/v1/account/${this.username}/create-invoice/`)
+    const invoiceSchema = baseInvoiceSchema(`/api/sales/account/${this.username}/create-invoice/`)
     invoiceSchema.fields.hold.value = !this.isCurrent
     this.newInvoice = this.$getForm('newInvoice', invoiceSchema)
     this.broadcastForm = this.$getForm('broadcast', {
-      endpoint: `/api/sales/v1/account/${this.username}/broadcast/`,
+      endpoint: `/api/sales/account/${this.username}/broadcast/`,
       fields: {text: {value: ''}, extra_data: {value: {}}},
     })
   }

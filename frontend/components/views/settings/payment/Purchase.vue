@@ -66,7 +66,7 @@ export default class Purchase extends mixins(Subjective) {
   public clientSecret = null as unknown as SingleController<ClientSecret>
 
   public get url() {
-    return `/api/sales/v1/account/${this.username}/cards/`
+    return `/api/sales/account/${this.username}/cards/`
   }
 
   public get processor() {
@@ -111,7 +111,7 @@ export default class Purchase extends mixins(Subjective) {
     delete schema.fields.save_card
     this.clientSecret = this.$getSingle(
     `${flatten(this.username)}__new_card__clientSecret`, {
-      endpoint: `/api/sales/v1/account/${this.username}/cards/setup-intent/`,
+      endpoint: `/api/sales/account/${this.username}/cards/setup-intent/`,
     })
     this.fetchSecret()
     this.ccForm = this.$getForm(flatten(`${flatten(this.username)}__cards__new`), baseCardSchema(this.url))

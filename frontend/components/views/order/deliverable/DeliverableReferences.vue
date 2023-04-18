@@ -99,7 +99,7 @@ export default class DeliverableReferences extends mixins(DeliverableMixin) {
     const deliverableRating = this.deliverable.x && this.deliverable.x.rating
     this.newReference = this.$getForm(
       'newReference', {
-        endpoint: '/api/sales/v1/references/',
+        endpoint: '/api/sales/references/',
         fields: {
           file: {value: ''},
           rating: {value: deliverableRating},

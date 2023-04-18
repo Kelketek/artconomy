@@ -29,7 +29,7 @@ export default class InvoicingMixin extends Vue {
       this.invoiceProduct.setX(null)
       return
     }
-    this.invoiceProduct.endpoint = `/api/sales/v1/account/${this.sellerName}/products/${val}/`
+    this.invoiceProduct.endpoint = `/api/sales/account/${this.sellerName}/products/${val}/`
     this.invoiceProduct.kill()
     this.invoiceProduct.get()
   }
@@ -76,7 +76,7 @@ export default class InvoicingMixin extends Vue {
   }
 
   public created() {
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/v1/pricing-info/'})
+    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
     this.pricing.get()
     this.invoiceProduct = this.$getSingle('invoiceProduct', {endpoint: ''})
   }

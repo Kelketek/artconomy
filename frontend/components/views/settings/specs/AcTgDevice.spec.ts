@@ -88,7 +88,7 @@ describe('AcTgDevice.vue', () => {
     })
     wrapper.find('.send-tg-code').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'post', undefined, {}))
+      rq('/api/profiles/account/Fox/auth/two-factor/tg/', 'post', undefined, {}))
   })
   it('Sends a verification code', async() => {
     setViewer(store, genUser())
@@ -106,7 +106,7 @@ describe('AcTgDevice.vue', () => {
     form.fields.code.update('123456')
     wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/v1/account/Fox/auth/two-factor/tg/', 'patch', {code: '123456'}, {}))
+      rq('/api/profiles/account/Fox/auth/two-factor/tg/', 'patch', {code: '123456'}, {}))
   })
   it('Updates the form URL if the username changes', async() => {
     const user = genUser()
@@ -121,10 +121,10 @@ describe('AcTgDevice.vue', () => {
       propsData: {username: 'Fox', device: controller.list[0]},
 
     })
-    expect((wrapper.vm as any).url).toBe('/api/profiles/v1/account/Fox/auth/two-factor/tg/')
+    expect((wrapper.vm as any).url).toBe('/api/profiles/account/Fox/auth/two-factor/tg/')
     wrapper.setProps({username: 'Vulpes', device: {...controller.list[0]}})
     await wrapper.vm.$nextTick()
-    expect((wrapper.vm as any).url).toBe('/api/profiles/v1/account/Vulpes/auth/two-factor/tg/')
-    expect((wrapper.vm as any).form.endpoint).toBe('/api/profiles/v1/account/Vulpes/auth/two-factor/tg/')
+    expect((wrapper.vm as any).url).toBe('/api/profiles/account/Vulpes/auth/two-factor/tg/')
+    expect((wrapper.vm as any).form.endpoint).toBe('/api/profiles/account/Vulpes/auth/two-factor/tg/')
   })
 })

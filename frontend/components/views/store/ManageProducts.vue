@@ -73,7 +73,7 @@ export default class ManageProducts extends mixins(Subjective, Editable) {
   public endpoint!: string
 
   public get url() {
-    return `/api/sales/v1/account/${this.username}/products/manage/`
+    return `/api/sales/account/${this.username}/products/manage/`
   }
 
   public list: ListController<Product> = null as unknown as ListController<Product>

@@ -106,7 +106,7 @@ export default class AcSubjectiveProductList extends mixins(Subjective) {
     }
 
     public get url() {
-      return `/api/sales/v1/account/${this.username}/products/`
+      return `/api/sales/account/${this.username}/products/`
     }
 
     public created() {

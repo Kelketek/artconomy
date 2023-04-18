@@ -444,7 +444,7 @@ describe('AcComment.vue', () => {
     await vm.$nextTick()
     wrapper.find('.history-button').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(mockAxios.lastReqGet().url).toBe('/api/lib/v1/comments/lib.Comment/13/history/')
+    expect(mockAxios.lastReqGet().url).toBe('/api/lib/comments/lib.Comment/13/history/')
     vm.historyList.response = {...commentSet}
     vm.historyList.setList([...commentSet.results])
     vm.historyList.fetching = false

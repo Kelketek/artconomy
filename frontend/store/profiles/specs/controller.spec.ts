@@ -147,7 +147,7 @@ describe('Profile controller', () => {
     controller.artistProfile.fetching = false
     controller.artistProfile.ready = true
     controller.refresh().then(() => {
-      expect(controller.user.endpoint).toBe('/api/profiles/v1/data/requester/')
+      expect(controller.user.endpoint).toBe('/api/profiles/data/requester/')
       expect(controller.artistProfile.x).toBeNull()
     })
     mockAxios.mockResponse(rs(genAnon()))
@@ -170,7 +170,7 @@ describe('Profile controller', () => {
     user.username = 'Vulpes'
     mockAxios.mockResponse(rs(user))
     await flushPromises()
-    expect(controller.user.endpoint).toBe('/api/profiles/v1/account/Vulpes/')
+    expect(controller.user.endpoint).toBe('/api/profiles/account/Vulpes/')
     expect(controller.artistProfile.x).not.toBeNull()
     mockAxios.mockResponse(rs(genArtistProfile()))
     await flushPromises()

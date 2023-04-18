@@ -390,7 +390,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       } else {
         const promises = []
         for (const charId of this.orderForm.fields.characters.model) {
-          promises.push(artCall({url: `/api/profiles/v1/data/character/id/${charId}/`, method: 'get'}).then(
+          promises.push(artCall({url: `/api/profiles/data/character/id/${charId}/`, method: 'get'}).then(
             (response) => this.initCharacters.push(response),
           ).catch(() => {
             this.orderForm.fields.characters.model = this.orderForm.fields.characters.model.filter(

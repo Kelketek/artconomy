@@ -127,7 +127,7 @@ export default class AcBankToggleStripe extends mixins(Subjective) {
     const subject = this.subject as User
     this.stripeAccounts = this.$getList(
         `${flatten(this.username)}__stripeAccounts`, {
-          endpoint: `/api/sales/v1/account/${this.username}/stripe-accounts/`,
+          endpoint: `/api/sales/account/${this.username}/stripe-accounts/`,
           paginated: false,
           socketSettings: {
             appLabel: 'sales',
@@ -145,14 +145,14 @@ export default class AcBankToggleStripe extends mixins(Subjective) {
     this.stripeSetupForm = this.$getForm(
         `${flatten(this.username)}__stripeAccountLink`,
         {
-          endpoint: `/api/sales/v1/account/${this.username}/stripe-accounts/link/`,
+          endpoint: `/api/sales/account/${this.username}/stripe-accounts/link/`,
           fields: {
             country: {value: '', validators: [{name: 'required'}]},
             url: {value: window.location + ''},
           },
         },
     )
-    this.stripeCountries = this.$getSingle('stripeCountries', {endpoint: '/api/sales/v1/stripe-countries/', persist: true, x: {countries: []}})
+    this.stripeCountries = this.$getSingle('stripeCountries', {endpoint: '/api/sales/stripe-countries/', persist: true, x: {countries: []}})
     this.stripeCountries.get()
     this.stripeAccounts.firstRun()
   }

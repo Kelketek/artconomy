@@ -223,7 +223,7 @@ export default class AcTotpDevice extends mixins(Subjective) {
     if (!this.device.x) {
       return '#'
     }
-    return `/api/profiles/v1/account/${this.username}/auth/two-factor/totp/${this.device.x.id}/`
+    return `/api/profiles/account/${this.username}/auth/two-factor/totp/${this.device.x.id}/`
   }
 }
 </script>
