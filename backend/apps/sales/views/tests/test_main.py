@@ -9,6 +9,7 @@ from django.core import mail
 from django.test import override_settings
 from django.utils import timezone
 from django.utils.datetime_safe import date
+from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
 
@@ -2886,6 +2887,7 @@ class TestInvoicePayment(APITestCase):
 
 
 class TestSetPlan(APITestCase):
+    @freeze_time('2023-01-01')
     def test_set_next_plan_free(self):
         user = UserFactory.create(
             service_plan=self.landscape,
@@ -2898,7 +2900,9 @@ class TestSetPlan(APITestCase):
         user.refresh_from_db()
         self.assertEqual(user.service_plan, self.landscape)
         self.assertEqual(user.next_service_plan, self.free)
+        self.assertEqual(user.service_plan_paid_through, timezone.now().date())
 
+    @freeze_time('2023-01-01')
     def test_set_current_plan_free(self):
         user = UserFactory.create(
             service_plan=self.landscape,
@@ -2911,6 +2915,8 @@ class TestSetPlan(APITestCase):
         user.refresh_from_db()
         self.assertEqual(user.service_plan, self.free)
         self.assertEqual(user.next_service_plan, self.free)
+        self.assertEqual(user.service_plan_paid_through, timezone.now().date().replace(month=2))
+
 
     def test_allow_paid_noop(self):
         user = UserFactory.create(

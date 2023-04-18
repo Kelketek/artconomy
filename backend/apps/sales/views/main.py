@@ -74,7 +74,7 @@ from apps.sales.utils import available_products, \
     available_products_by_load, finalize_deliverable, account_balance, \
     POSTED_ONLY, PENDING, transfer_order, cancel_deliverable, \
     verify_total, ensure_buyer, \
-    invoice_post_payment, refund_deliverable, initialize_tip_invoice, term_charge, set_service_plan
+    invoice_post_payment, refund_deliverable, initialize_tip_invoice, term_charge, set_service_plan, get_term_invoice
 from shortcuts import make_url
 
 
@@ -1551,7 +1551,10 @@ class SetPlan(GenericAPIView):
         next_service_plan = service_plan
         if user.service_plan.monthly_charge and user.service_plan_paid_through >= timezone.now().date():
             service_plan = user.service_plan
-        set_service_plan(user, service_plan, next_plan=next_service_plan)
+            target_date = user.service_plan_paid_through
+        else:
+            target_date = timezone.now().date() + relativedelta(months=1)
+        set_service_plan(user, service_plan, next_plan=next_service_plan, target_date=target_date)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

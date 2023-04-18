@@ -212,6 +212,9 @@ class TestAutoRenewal(EnsurePlansMixin, TestCase):
     def setUp(self):
         super().setUp()
         self.service_plan = ServicePlanFactory(monthly_charge=Money('6.00', 'USD'))
+        self.basic_plan = ServicePlanFactory(
+            monthly_charge=Money('0.00', 'USD'), per_deliverable_price=Money('1.00', 'USD'),
+        )
 
     @patch('apps.sales.tasks.renew')
     @freeze_time('2018-02-10 12:00:00')
@@ -219,10 +222,11 @@ class TestAutoRenewal(EnsurePlansMixin, TestCase):
     def test_tasks_made(self, mock_renew):
         disable = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 1, 1))
         renew_landscape = UserFactory.create(service_plan=self.service_plan, service_plan_paid_through=date(2018, 2, 7))
+        renew_basic = UserFactory.create(service_plan=self.basic_plan, service_plan_paid_through=date(2018, 2, 7))
         run_billing()
         disable.refresh_from_db()
         self.assertFalse(disable.landscape_enabled)
-        mock_renew.delay.assert_has_calls([call(renew_landscape.id)])
+        mock_renew.delay.assert_has_calls([call(renew_landscape.id), call(renew_basic.id)])
         self.assertEqual(Notification.objects.filter(event__type=SUBSCRIPTION_DEACTIVATED).count(), 1)
         self.assertEqual(len(mail.outbox), 1)
         for letter in mail.outbox:

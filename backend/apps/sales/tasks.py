@@ -161,7 +161,7 @@ def run_billing():
     users = User.objects.filter(
         Q(service_plan__isnull=False,
           service_plan_paid_through__lte=timezone.now().date() - relativedelta(days=settings.TERM_GRACE_DAYS),
-          )
+        )
     ).exclude(
         # We assume that the default plan is a free plan.
         Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME)
