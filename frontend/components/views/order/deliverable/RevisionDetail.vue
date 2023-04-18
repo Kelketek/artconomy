@@ -8,14 +8,14 @@
             <ac-asset thumb-name="gallery" :asset="revision.x" :contain="true" />
             <ac-form-container v-bind="approveForm.bind">
               <v-row>
-                <v-col class="text-center" cols="12" :lg="isBuyer ? '6' : '12'" v-if="isBuyer || archived">
+                <v-col class="text-center" cols="12" :lg="isBuyer && !isFinal ? '6' : '12'" v-if="isBuyer || archived">
                   <v-btn color="green" :href="revision.x.file.full" download><v-icon left>cloud_download</v-icon>Download</v-btn>
                 </v-col>
-                <v-col class="text-center" cols="12" :lg="6" v-if="isBuyer && (!archived || revision.x.approved_on)">
+                <v-col class="text-center" cols="12" :lg="6" v-if="isBuyer && !isFinal && (!archived || revision.x.approved_on)">
                   <v-btn @click="approveForm.submitThen(revision.updateX)" color="primary" v-if="!revision.x.approved_on"><v-icon left>check_circle</v-icon>Approve</v-btn>
                   <span v-else>Approved on {{formatDateTime(revision.x.approved_on)}}</span>
                 </v-col>
-                <v-col class="text-center" cols="6" lg="3" v-else>
+                <v-col class="text-center" cols="6" lg="3" v-else-if="isSeller">
                   <v-btn fab small color="green" :href="revision.x.file.full" download><v-icon>cloud_download</v-icon></v-btn>
                 </v-col>
                 <v-col class="text-center" cols="6" lg="3" v-if="isSeller && isLast && !archived">
