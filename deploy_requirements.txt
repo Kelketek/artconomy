@@ -11,9 +11,7 @@ ansible-core==2.14.4
 cffi==1.15.1
     # via cryptography
 cryptography==40.0.2
-    # via
-    #   -r deploy_requirements.in
-    #   ansible-core
+    # via ansible-core
 jinja2==3.1.2
     # via ansible-core
 markupsafe==2.1.2

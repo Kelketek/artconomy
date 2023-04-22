@@ -1,3 +1,1 @@
 ansible
-# Ansible is loading an insecure version of this package. Just needs to be one bit higher.
-cryptography>39.0.0
