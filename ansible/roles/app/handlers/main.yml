@@ -17,6 +17,7 @@
     - Set international product flags
     - Bump all prices
     - Ensure invoice annotations
+    - Create email preferences
 
 - name: stripe webhooks
   become: yes
@@ -97,6 +98,14 @@
   args:
     executable: "/bin/bash"
     creates: "{{ home }}/.international-product-flags-set"
+
+- name: Create email preferences
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py create_email_preferences && touch {{home}}/.email-preferences-created"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/.email-preferences-created"
 
 - name: Perform post-planning-refactor price bump
   become: yes

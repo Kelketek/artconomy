@@ -362,7 +362,12 @@ def notify(
         )
 
     # Send email notifications if needed.
-    email_subscriptions = subscriptions.filter(email=True)
+    # email_subscriptions = subscriptions.filter(email=True)
+    email_subscriptions = subscriptions.filter(
+        subscriber__email_preferences__content_type=content_type,
+        subscriber__email_preferences__type=event_type,
+        subscriber__email_preferences__enabled=True,
+    )
     if not silent_broadcast and email_subscriptions.exists():
         path = Path(settings.BACKEND_ROOT) / "templates" / "notifications"
         template = [

@@ -203,9 +203,7 @@ urlpatterns = [
         stripe_views.PremiumPaymentIntent.as_view(),
         name="premium_intent",
     ),
-    path(
-        "account/<username>/broadcast/", main.Broadcast.as_view(), name="broadcast"
-    ),
+    path("account/<username>/broadcast/", main.Broadcast.as_view(), name="broadcast"),
     path(
         "account/<username>/cancel-premium/",
         main.CancelPremium.as_view(),
@@ -279,9 +277,7 @@ urlpatterns = [
         main.CreateInvoice.as_view(),
         name="create_invoice",
     ),
-    path(
-        "account/<username>/ratings/", main.RatingList.as_view(), name="rating_list"
-    ),
+    path("account/<username>/ratings/", main.RatingList.as_view(), name="rating_list"),
     path(
         "account/<username>/products/<int:product>/order/",
         main.PlaceOrder.as_view(),

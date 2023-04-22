@@ -7,6 +7,7 @@ from apps.lib.models import (
     CHAR_SHARED,
     CHAR_TAG,
     COMMENT,
+    COMMISSIONS_OPEN,
     DISPUTE,
     FAVORITE,
     NEW_CHARACTER,
@@ -28,7 +29,7 @@ from apps.lib.models import (
     Event,
     Notification,
     Subscription,
-    Tag, COMMISSIONS_OPEN,
+    Tag,
 )
 from apps.lib.utils import add_check, set_tags, tag_list_cleaner
 from apps.profiles.models import Character, Conversation, Journal, Submission, User

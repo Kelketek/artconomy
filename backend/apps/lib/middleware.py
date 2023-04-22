@@ -104,6 +104,7 @@ class GlobalRequestMiddleware:
         _requests.pop(currentThread())
         return response
 
+
 path_re = re.compile(r"/api/([^/]+)([/]v1[/])")
 
 

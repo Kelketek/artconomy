@@ -18,14 +18,20 @@ from apps.lib.models import (
     CHAR_SHARED,
     CHAR_TAG,
     COMMENT,
+    COMMISSIONS_OPEN,
     DISPUTE,
     FAVORITE,
     NEW_CHARACTER,
     NEW_JOURNAL,
+    ORDER_UPDATE,
+    REFERENCE_UPLOADED,
     REFERRAL_LANDSCAPE_CREDIT,
     REFUND,
     RENEWAL_FAILURE,
     RENEWAL_FIXED,
+    REVISION_APPROVED,
+    REVISION_UPLOADED,
+    SALE_UPDATE,
     SUBMISSION_ARTIST_TAG,
     SUBMISSION_CHAR_TAG,
     SUBMISSION_SHARED,
@@ -35,6 +41,7 @@ from apps.lib.models import (
     WAITLIST_UPDATED,
     WATCHING,
     Comment,
+    EmailPreference,
     Event,
     Notification,
     Subscription,
@@ -467,6 +474,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
     if created:
         if not instance.guest:
             create_user_subscriptions(instance)
+        create_email_preferences(instance)
         set_avatar_url(instance)
     if instance.is_staff:
         Subscription.objects.get_or_create(
@@ -1198,3 +1206,137 @@ def favorite_notification(sender, instance, **kwargs):
 
 models.signals.m2m_changed.connect(subscribe_watching, User.watching.through)
 models.signals.m2m_changed.connect(favorite_notification, User.favorites.through)
+
+
+def create_email_preferences(user: User):
+    """
+    Creates email preferences for a user.
+    """
+    from apps.sales.models import Deliverable, Reference, Revision
+
+    user_content_type = ContentType.objects.get_for_model(User)
+    conversation_content_type = ContentType.objects.get_for_model(Conversation)
+    deliverable_content_type = ContentType.objects.get_for_model(Deliverable)
+    revision_content_type = ContentType.objects.get_for_model(Revision)
+    reference_content_type = ContentType.objects.get_for_model(Reference)
+    preferences = [
+        EmailPreference(
+            user=user,
+            content_type=deliverable_content_type,
+            type=ORDER_UPDATE,
+            enabled=True,
+        ),
+        EmailPreference(
+            user=user,
+            content_type=deliverable_content_type,
+            type=COMMENT,
+            enabled=True,
+        ),
+        EmailPreference(
+            user=user,
+            content_type=revision_content_type,
+            type=COMMENT,
+            enabled=True,
+        ),
+        EmailPreference(
+            user=user,
+            content_type=reference_content_type,
+            type=COMMENT,
+            enabled=True,
+        ),
+        EmailPreference(
+            user=user,
+            content_type=deliverable_content_type,
+            type=REVISION_UPLOADED,
+            enabled=True,
+        ),
+        EmailPreference(
+            user=user,
+            content_type=deliverable_content_type,
+            type=REFERENCE_UPLOADED,
+            enabled=True,
+        ),
+    ]
+    if not user.guest:
+        preferences.extend(
+            [
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=COMMISSIONS_OPEN,
+                    enabled=False,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=WAITLIST_UPDATED,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=deliverable_content_type,
+                    type=SALE_UPDATE,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=conversation_content_type,
+                    type=COMMENT,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=RENEWAL_FIXED,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=RENEWAL_FAILURE,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=SUBSCRIPTION_DEACTIVATED,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=TRANSFER_FAILED,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=REFERRAL_LANDSCAPE_CREDIT,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=user_content_type,
+                    type=AUTO_CLOSED,
+                    enabled=True,
+                ),
+                EmailPreference(
+                    user=user,
+                    content_type=revision_content_type,
+                    type=REVISION_APPROVED,
+                    enabled=True,
+                ),
+            ]
+        )
+    if user.is_staff:
+        preferences.extend(
+            [
+                EmailPreference(
+                    user=user,
+                    content_type=deliverable_content_type,
+                    type=REFUND,
+                    enabled=True,
+                ),
+            ]
+        )
+    EmailPreference.objects.bulk_create(preferences, ignore_conflicts=True)

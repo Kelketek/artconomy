@@ -64,9 +64,7 @@ urlpatterns = [
         views.StartPasswordReset.as_view(),
         name="password_reset_start",
     ),
-    path(
-        "data/requester/", views.CurrentUserInfo.as_view(), name="current_user_info"
-    ),
+    path("data/requester/", views.CurrentUserInfo.as_view(), name="current_user_info"),
     path(
         "data/notifications/unread/",
         views.UnreadNotifications.as_view(),
@@ -87,17 +85,13 @@ urlpatterns = [
         views.SalesNotificationsList.as_view(),
         name="sales_notifications",
     ),
-    path(
-        "data/user/id/<int:user_id>/", views.UserInfoByID.as_view(), name="user_info"
-    ),
+    path("data/user/id/<int:user_id>/", views.UserInfoByID.as_view(), name="user_info"),
     path(
         "data/character/id/<int:character_id>/",
         views.CharacterById().as_view(),
         name="character_info_by_id",
     ),
-    path(
-        "search/character/", views.CharacterSearch.as_view(), name="character_search"
-    ),
+    path("search/character/", views.CharacterSearch.as_view(), name="character_search"),
     path(
         "search/character/indexed/",
         views.CharacterSearch.as_view(),
@@ -153,9 +147,7 @@ urlpatterns = [
         views.FavoritesList.as_view(),
         name="favorites_list",
     ),
-    path(
-        "account/<username>/journals/", views.Journals.as_view(), name="journal_list"
-    ),
+    path("account/<username>/journals/", views.Journals.as_view(), name="journal_list"),
     path(
         "account/<username>/journals/<int:journal_id>/",
         views.JournalManager.as_view(),

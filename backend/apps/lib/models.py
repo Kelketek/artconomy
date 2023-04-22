@@ -236,6 +236,7 @@ class Subscription(models.Model):
     )
     target = GenericForeignKey("content_type", "object_id")
     implicit = models.BooleanField(default=True, db_index=True)
+    # Deprecated field-- we now use the EmailPreference model.
     email = models.BooleanField(default=False, db_index=True)
     telegram = models.BooleanField(default=False, db_index=True)
     removed = models.BooleanField(default=False, db_index=True)
@@ -249,6 +250,20 @@ class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     event = models.ForeignKey(Event, on_delete=CASCADE, related_name="notifications")
     read = models.BooleanField(default=False, db_index=True)
+
+
+class EmailPreference(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name="email_preferences"
+    )
+    type = models.IntegerField(db_index=True, choices=EVENT_TYPES)
+    enabled = models.BooleanField(default=True, db_index=True)
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.CASCADE, null=True, blank=True
+    )
+
+    class Meta:
+        unique_together = ("user", "type", "content_type")
 
 
 class Tag(Model):
