@@ -48,6 +48,16 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from short_stuff.django.serializers import ShortCodeField
 
+CHARACTER_HINTS = (
+    "sex",
+    "species",
+    "build",
+    "accessories",
+    "genre",
+    "profession",
+    "orientation",
+)
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     recaptcha = ReCaptchaField(write_only=True)
@@ -150,7 +160,7 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
         min_length=0,
     )
     subscribed = SubscribedField(required=False)
-    tags = TagListField(required=False)
+    tags = TagListField()
     private = serializers.BooleanField(default=False)
 
     # noinspection PyMethodMayBeStatic
@@ -284,7 +294,11 @@ class CharacterSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
     taggable = serializers.BooleanField(default=True)
-    tags = TagListField(required=False)
+    tags = TagListField(
+        required=False,
+        min=4,
+        hints=CHARACTER_HINTS,
+    )
 
     class Meta:
         model = Character
@@ -308,7 +322,7 @@ class CharacterManagementSerializer(RelatedAtomicMixin, serializers.ModelSeriali
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
     colors = RefColorSerializer(many=True, read_only=True)
     taggable = serializers.BooleanField(default=True)
-    tags = TagListField(required=False)
+    tags = TagListField(min=4, hints=CHARACTER_HINTS)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -462,7 +476,7 @@ class SubmissionManagementSerializer(
     favorites = UserRelationField(required=False)
     subscribed = SubscribedField(required=False)
     product = serializers.SerializerMethodField()
-    tags = TagListField(required=False, read_only=True)
+    tags = TagListField(read_only=True, min=4, hints=CHARACTER_HINTS)
     commission_link = serializers.SerializerMethodField()
     order = serializers.SerializerMethodField()
 

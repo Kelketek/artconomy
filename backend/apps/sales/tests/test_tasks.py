@@ -183,7 +183,8 @@ class TestRenew(EnsurePlansMixin, TestCase):
         self.assertEqual(user.service_plan, basic)
         mock_renew_stripe_card.assert_not_called()
         self.assertEqual(
-            user.service_plan_paid_through, date.today() + relativedelta(months=1)
+            user.service_plan_paid_through,
+            timezone.now().date() + relativedelta(months=1),
         )
 
     @freeze_time("2022-05-01")

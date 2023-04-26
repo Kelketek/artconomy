@@ -628,6 +628,7 @@ class TestProduct(APITestCase):
                 "task_weight": 2,
                 "expected_turnaround": 3,
                 "base_price": 2.50,
+                "tags": ["a", "b", "c", "d"],
             },
         )
         result = response.data
@@ -636,6 +637,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result["revisions"], 2)
         self.assertEqual(result["task_weight"], 2)
         self.assertEqual(result["expected_turnaround"], 3.00)
+        self.assertCountEqual(result["tags"], ["a", "b", "c", "d"])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_product_free(self):
@@ -652,6 +654,7 @@ class TestProduct(APITestCase):
                 "task_weight": 2,
                 "expected_turnaround": 3,
                 "base_price": 0,
+                "tags": ["a", "b", "c", "d"],
             },
         )
         result = response.data
@@ -661,6 +664,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result["task_weight"], 2)
         self.assertEqual(result["expected_turnaround"], 3.00)
         self.assertEqual(result["base_price"], 0.00)
+        self.assertCountEqual(result["tags"], ["a", "b", "c", "d"])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     @override_settings(MINIMUM_PRICE=Money("1.00", "USD"))
@@ -684,6 +688,7 @@ class TestProduct(APITestCase):
                 "base_price": 0.50,
                 "escrow_enabled": True,
                 "cascade_fees": True,
+                "tags": ["a", "b", "c", "d"],
             },
         )
         result = response.data
@@ -746,6 +751,7 @@ class TestProduct(APITestCase):
                 "escrow_enabled": False,
                 "escrow_upgradable": True,
                 "cascade_fees": True,
+                "tags": ["a", "b", "c", "d"],
             },
         )
         result = response.data
@@ -778,6 +784,7 @@ class TestProduct(APITestCase):
                 "task_weight": 2,
                 "expected_turnaround": 3,
                 "base_price": 0.50,
+                "tags": ["a", "b", "c", "d"],
             },
         )
         result = response.data
@@ -835,6 +842,7 @@ class TestProduct(APITestCase):
                 "task_weight": 2,
                 "expected_turnaround": 3,
                 "base_price": 2.50,
+                "tags": ["a", "b", "c", "d"],
             },
         )
         result = response.data
@@ -1113,10 +1121,12 @@ class TestProduct(APITestCase):
             "/api/sales/v1/account/{}/products/{}/".format(
                 product.user.username, product.id
             ),
-            {"tags": ["inks", "full_body"]},
+            {"tags": ["inks", "full_body", "digital", "furry"]},
             format="json",
         )
-        self.assertEqual(sorted(response.data["tags"]), ["full_body", "inks"])
+        self.assertCountEqual(
+            response.data["tags"], ["inks", "full_body", "digital", "furry"]
+        )
         product.refresh_from_db()
         self.assertIsNone(product.primary_submission)
 
@@ -2519,7 +2529,11 @@ class TestOrderOutputs(APITestCase):
         self.login(deliverable.order.buyer)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "now", "stuff"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(deliverable.outputs.all().count(), 1)
@@ -2543,7 +2557,7 @@ class TestOrderOutputs(APITestCase):
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
-                "tags": ["Things", "wat"],
+                "tags": ["Things", "wat", "do", "then", "so"],
                 "revision": revision_1.id,
                 "title": "Hi!",
             },
@@ -2567,7 +2581,7 @@ class TestOrderOutputs(APITestCase):
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
-                "tags": ["Things", "wat"],
+                "tags": ["Things", "wat", "do", "then", "so"],
                 "revision": revision.id,
                 "title": "Hi!",
             },
@@ -2586,7 +2600,11 @@ class TestOrderOutputs(APITestCase):
         self.login(deliverable.order.buyer)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "then", "so"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         output = deliverable.outputs.all()[0]
@@ -2601,7 +2619,11 @@ class TestOrderOutputs(APITestCase):
         self.login(deliverable.order.seller)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "then", "so"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         output = deliverable.outputs.all()[0]
@@ -2615,7 +2637,11 @@ class TestOrderOutputs(APITestCase):
         self.login(deliverable.order.seller)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "then", "so"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
@@ -2634,7 +2660,11 @@ class TestOrderOutputs(APITestCase):
         self.login(deliverable.order.seller)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "then", "so"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
@@ -2660,7 +2690,11 @@ class TestOrderOutputs(APITestCase):
         self.login(deliverable.order.buyer)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "so", "then"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(deliverable.outputs.all().count(), 1)
@@ -2688,7 +2722,11 @@ class TestOrderOutputs(APITestCase):
         self.login(deliverable.order.seller)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "so", "then"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(deliverable.outputs.all().count(), 1)
@@ -2709,7 +2747,11 @@ class TestOrderOutputs(APITestCase):
         )
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
-            {"caption": "Stuff", "tags": ["Things", "wat"], "title": "Hi!"},
+            {
+                "caption": "Stuff",
+                "tags": ["Things", "wat", "do", "so", "then"],
+                "title": "Hi!",
+            },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(deliverable.outputs.all().count(), 1)

@@ -122,6 +122,7 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
                 "private": False,
                 "open_requests": False,
                 "open_requests_restrictions": "Must be foxy.",
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -143,6 +144,7 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
                 "open_requests": False,
                 "open_requests_restrictions": "Must be really foxy.",
                 "taggable": False,
+                "tags": ["a", "b", "c", "d"],
             },
             format="json",
         )
@@ -200,14 +202,14 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
             {
                 "name": "Terrence",
                 "description": "Positively foxy.",
-                "tags": ["new", "set"],
+                "tags": ["new", "set", "of", "tags"],
             },
             format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["name"], "Fern")
         self.assertEqual(response.data["description"], "Supremely Foxy")
-        self.assertEqual(sorted(response.data["tags"]), ["new", "set"])
+        self.assertCountEqual(response.data["tags"], ["new", "set", "of", "tags"])
 
     def test_delete_character(self):
         char = CharacterFactory.create()
@@ -247,6 +249,7 @@ class TestSubmission(APITestCase):
                 "caption": "Shameless porn.",
                 "private": True,
                 "rating": MATURE,  # Bad user. You should know better!
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -267,6 +270,7 @@ class TestSubmission(APITestCase):
                 "caption": "Use the proper rating!",
                 "private": False,
                 "rating": ADULT,  # That's better.
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -293,6 +297,7 @@ class TestSubmission(APITestCase):
                 "caption": "Shameless porn.",
                 "private": True,
                 "rating": MATURE,  # Bad user. You should know better!
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -405,6 +410,7 @@ class TestSubmission(APITestCase):
                 "title": "This is a test",
                 "rating": MATURE,
                 "file": str(asset.id),
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -428,6 +434,7 @@ class TestSubmission(APITestCase):
                 "rating": MATURE,
                 "file": str(asset.id),
                 "artists": [artist.id],
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -450,6 +457,7 @@ class TestSubmission(APITestCase):
                 "title": "This is a test",
                 "rating": MATURE,
                 "file": "",
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -464,6 +472,7 @@ class TestSubmission(APITestCase):
                 "title": "This is a test",
                 "rating": MATURE,
                 "file": None,
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -477,6 +486,7 @@ class TestSubmission(APITestCase):
             {
                 "title": "This is a test",
                 "rating": MATURE,
+                "tags": ["a", "b", "c", "d", "e"],
             },
             format="json",
         )
@@ -1123,13 +1133,13 @@ class TestCharacterTag(APITestCase):
             "/api/profiles/v1/account/{}/characters/{}/".format(
                 user.username, char.name
             ),
-            {"tags": ["sexy", "vix"]},
+            {"tags": ["sexy", "vix", "fox", "glasses"]},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         char.refresh_from_db()
-        self.assertEqual(
-            sorted(list(char.tags.all().values_list("name", flat=True))),
-            ["sexy", "vix"],
+        self.assertCountEqual(
+            list(char.tags.all().values_list("name", flat=True)),
+            ["sexy", "vix", "fox", "glasses"],
         )
 
 
@@ -1140,13 +1150,13 @@ class TestSubmissionTag(APITestCase):
         submission = SubmissionFactory.create(owner=user)
         response = self.client.patch(
             "/api/profiles/v1/submission/{}/".format(submission.id),
-            {"tags": ["sexy", "vix"]},
+            {"tags": ["sexy", "vix", "fox", "glasses"]},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         submission.refresh_from_db()
-        self.assertEqual(
-            sorted(list(submission.tags.all().values_list("name", flat=True))),
-            ["sexy", "vix"],
+        self.assertCountEqual(
+            list(submission.tags.all().values_list("name", flat=True)),
+            ["sexy", "vix", "fox", "glasses"],
         )
 
 

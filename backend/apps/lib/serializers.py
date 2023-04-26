@@ -730,6 +730,22 @@ class TagListField(serializers.ListSerializer):
 
     def __init__(self, *args, **kwargs):
         kwargs["child"] = serializers.SlugField()
+        self.min = kwargs.pop("min", 5)
+        self.hints = kwargs.pop(
+            "hints",
+            (
+                "sex/gender",
+                "species",
+                "genre",
+                "subject matter",
+                "focus of the piece",
+                "location",
+                "pose/position",
+                "art style",
+                "clothing/accessories",
+                "relationships depicted",
+            ),
+        )
         super().__init__(*args, **kwargs)
 
     def get_value(self, dictionary):
@@ -752,6 +768,12 @@ class TagListField(serializers.ListSerializer):
         if data is empty:
             return empty
         data = tag_list_cleaner(data)
+        if len(data) < self.min:
+            message = (
+                f"You must specify at least {self.min} tags. Think about the following: "
+                + ", ".join(self.hints)
+            )
+            raise ValidationError(message)
         add_check(self.parent.instance, self.field_name, replace=True)
         return data
 

@@ -94,12 +94,20 @@ from rest_framework.fields import (
 from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
 
+PRODUCT_HINTS = (
+    "genre",
+    "technique",
+    "medium",
+    "concept",
+    "function/purpose (like a badge or a refsheet)",
+)
+
 
 class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     save_related = True
     user = RelatedUserSerializer(read_only=True)
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
-    tags = TagListField(required=False)
+    tags = TagListField(min=3, hints=PRODUCT_HINTS)
     base_price = MoneyToFloatField()
     starting_price = MoneyToFloatField(read_only=True)
     shield_price = MoneyToFloatField(read_only=True)
@@ -1149,7 +1157,7 @@ class DeliverableCharacterTagSerializer(serializers.ModelSerializer):
 
 
 class SubmissionFromOrderSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
-    tags = TagListField(required=False)
+    tags = TagListField()
 
     class Meta:
         model = Submission
