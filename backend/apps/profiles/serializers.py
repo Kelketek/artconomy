@@ -656,7 +656,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     watching = UserRelationField(required=False)
     blocking = UserRelationField(required=False)
     artist_mode = serializers.BooleanField(required=False)
-    blacklist = TagListField(required=False)
+    blacklist = TagListField(required=False, min=0)
     stars = serializers.FloatField(required=False)
     processor = serializers.SerializerMethodField()
     service_plan = serializers.SerializerMethodField()
