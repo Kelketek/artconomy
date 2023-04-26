@@ -67,8 +67,9 @@
       </v-expansion-panel-header>
       <v-expansion-panel-content>
         <p>
-          In general, the policy is 'nothing illegal.' We don't believe in telling you what you can and can't draw. The
-          requirement we have is that content must be properly tagged, especially NSFW content. If users cannot
+          In general, the policy is 'nothing illegal in the state of Texas, USA.' We don't believe in telling you what
+          you can and can't draw. The requirement we have is that content must be properly tagged, especially NSFW
+          content. If users cannot
           <router-link :to="{name: 'Other', params: {question: 'blacklist'}}">blacklist</router-link>
           your content by tag (and by
           <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">rating</router-link>
@@ -81,13 +82,16 @@
           <li>Explicit photos of humans</li>
           <li>Photographs of humans uploaded without consent</li>
           <li>Photomanipulations of humans which are explicit</li>
-          <li>Computer generated explicit content of humans which is indistinguishable from photographs.</li>
+          <li>
+              Computer generated explicit content of humans which is indistinguishable (or only distinguishable with
+              difficulty) from photographs.
+          </li>
           <li>Non-art content-- such as datasets or programs that aren't reasonably understood by our staff to have
             artistic purpose or merit.</li>
         </ul>
 
         Artconomy is hosted in the state of Texas and is subject to the laws of it and the United States of America.
-        Some examples of content which is illegal here include:
+        Some examples of content which is illegal here and not covered in the above prohibitions include:
 
         <ul>
           <li>Criminal Threats</li>

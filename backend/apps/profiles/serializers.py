@@ -51,6 +51,7 @@ from short_stuff.django.serializers import ShortCodeField
 CHARACTER_HINTS = (
     "sex",
     "species",
+    "gender",
     "build",
     "accessories",
     "genre",

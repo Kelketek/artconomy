@@ -734,8 +734,9 @@ class TagListField(serializers.ListSerializer):
         self.hints = kwargs.pop(
             "hints",
             (
-                "sex/gender",
-                "species",
+                "sex/gender (required, if character)",
+                "species (ditto)",
+                "kinks/fetishes (ditto)",
                 "genre",
                 "subject matter",
                 "focus of the piece",
