@@ -2,6 +2,8 @@ from datetime import date
 from urllib.parse import quote_plus
 from uuid import UUID
 
+from django.utils.text import slugify
+
 from apps.lib.abstract_models import RATINGS
 from apps.lib.consumers import register_serializer
 from apps.lib.serializers import (
@@ -1069,3 +1071,12 @@ class ArtistTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = ArtistTag
         fields = ("id", "submission", "user", "display_position", "hidden")
+
+
+class EmailPreferencesSerializer(serializers.Serializer):
+    def __init__(self, *args, **kwargs):
+        for preference in kwargs['context']['preferences']:
+            self._declared_fields[slugify(preference.get_type_display().lower()).replace('-', '_')] = (
+                serializers.BooleanField(initial=preference.enabled, required=False)
+            )
+        super().__init__(*args, **kwargs)

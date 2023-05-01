@@ -19,7 +19,7 @@ from apps.lib.models import (
     Comment,
     Notification,
     Subscription,
-    Tag,
+    Tag, EmailPreference,
 )
 from apps.lib.permissions import (
     All,
@@ -102,7 +102,7 @@ from apps.profiles.serializers import (
     TelegramDeviceSerializer,
     TwoFactorTimerSerializer,
     UsernameValidationSerializer,
-    UserSerializer,
+    UserSerializer, EmailPreferencesSerializer,
 )
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
@@ -2068,3 +2068,23 @@ class DestroyAccount(GenericAPIView):
             logout(request)
             trigger_reconnect(request, include_current=True)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class NotificationSettings(GenericAPIView):
+    serializer_class = EmailPreferencesSerializer
+    permission_classes = [UserControls]
+
+    def get_object(self) -> User:
+        user = get_object_or_404(User, username=self.kwargs["username"])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def get_serializer_context(self) -> Dict[str, Any]:
+        context = super().get_serializer_context()
+        context["user"] = self.get_object()
+        context["preferences"] = EmailPreference.objects.filter(user=context["user"]).order_by("id")
+        return context
+
+    def get(self, request, *args, **kwargs):
+        serializer = self.get_serializer()
+        return Response(serializer.data)
