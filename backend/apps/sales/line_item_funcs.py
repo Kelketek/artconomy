@@ -160,7 +160,10 @@ def redistribution_priority(
             return item2_line.priority - item_line.priority
         return item_line.priority - item2_line.priority
     if item_amount == item2_amount:
-        return float(item2_line.id - item_line.id)
+        lines = sorted([item_line, item2_line], key=lambda x: x.id)
+        # Ids could be something other than integers, but this should work the same as
+        # it did before, when I made the assumption they would be.
+        return float(lines.index(item2_line) - lines.index(item_line))
     return float(item2_amount.amount - item_amount.amount)
 
 

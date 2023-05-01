@@ -1,7 +1,6 @@
 from uuid import UUID
 
 from apps.lib.admin import CommentInline
-from apps.lib.models import ref_for_instance
 from apps.sales.models import (
     CreditCardToken,
     Deliverable,
@@ -21,7 +20,6 @@ from apps.sales.models import (
 )
 from apps.sales.utils import reverse_record
 from django import forms
-from django.conf import settings
 from django.contrib import admin, messages
 from django.db.transaction import atomic
 
