@@ -634,7 +634,7 @@ MASTODON_PROFILES = get_env(
     [
         "https://yiff.life/@Vulpes_Veritas",
         "https://yiff.life/@Artconomy",
-        "https://bytetower.social/@Artconomy",
+        "https://mastodon.social/@Artconomy",
     ],
     unpack=True,
 )
