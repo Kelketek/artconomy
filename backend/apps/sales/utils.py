@@ -37,7 +37,7 @@ from apps.lib.models import (
     Subscription,
     ref_for_instance,
 )
-from apps.lib.utils import notify, recall_notification
+from apps.lib.utils import multi_filter, notify, recall_notification
 from apps.profiles.models import User
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.sales.constants import (
@@ -159,9 +159,9 @@ def account_balance(
     user: Union[User, None, Type[ALL]],
     account_type: int,
     balance_type: int = AVAILABLE,
-    qs_kwargs: dict = None,
+    additional_filters: Optional[list[Q]] = None,
 ) -> Decimal:
-    qs_kwargs = qs_kwargs or {}
+    additional_filters = additional_filters or []
     from apps.sales.models import TransactionRecord
 
     if balance_type == PENDING:
@@ -175,18 +175,18 @@ def account_balance(
     kwargs = {
         "status__in": statuses,
         "source": account_type,
-        **qs_kwargs,
     }
     if user is not ALL:
         kwargs["payer"] = user
     try:
         debit = Decimal(
             str(
-                TransactionRecord.objects.filter(
-                    **kwargs,
-                ).aggregate(
-                    Sum("amount")
-                )["amount__sum"]
+                multi_filter(
+                    TransactionRecord.objects.filter(
+                        **kwargs,
+                    ),
+                    additional_filters,
+                ).aggregate(Sum("amount"))["amount__sum"]
             )
         )
     except InvalidOperation:
@@ -194,18 +194,18 @@ def account_balance(
     kwargs = {
         "status__in": statuses,
         "destination": account_type,
-        **qs_kwargs,
     }
     if user is not ALL:
         kwargs["payee"] = user
     try:
         credit = Decimal(
             str(
-                TransactionRecord.objects.filter(
-                    **kwargs,
-                ).aggregate(
-                    Sum("amount")
-                )["amount__sum"]
+                multi_filter(
+                    TransactionRecord.objects.filter(
+                        **kwargs,
+                    ),
+                    additional_filters,
+                ).aggregate(Sum("amount"))["amount__sum"]
             )
         )
     except InvalidOperation:

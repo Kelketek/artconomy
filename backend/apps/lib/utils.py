@@ -1144,3 +1144,14 @@ def shift_position(
         setattr(instance, field_name, (upper + lower) / 2)
         instance.save()
     return
+
+
+def multi_filter(qs, filters: List[Q]):
+    """
+    Takes a queryset and a list of filters and applies them all.
+
+    This is necessary because &= ~Q() does not work as expected.
+    """
+    for qs_filter in filters:
+        qs = qs.filter(qs_filter)
+    return qs

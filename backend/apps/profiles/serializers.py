@@ -2,8 +2,6 @@ from datetime import date
 from urllib.parse import quote_plus
 from uuid import UUID
 
-from django.utils.text import slugify
-
 from apps.lib.abstract_models import RATINGS
 from apps.lib.consumers import register_serializer
 from apps.lib.serializers import (
@@ -44,6 +42,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import connection
 from django.db.transaction import atomic
 from django.utils import timezone
+from django.utils.text import slugify
 from django_otp.plugins.otp_totp.models import TOTPDevice
 from recaptcha.fields import ReCaptchaField
 from rest_framework import serializers
@@ -1075,8 +1074,8 @@ class ArtistTagSerializer(serializers.ModelSerializer):
 
 class EmailPreferencesSerializer(serializers.Serializer):
     def __init__(self, *args, **kwargs):
-        for preference in kwargs['context']['preferences']:
-            self._declared_fields[slugify(preference.get_type_display().lower()).replace('-', '_')] = (
-                serializers.BooleanField(initial=preference.enabled, required=False)
-            )
+        for preference in kwargs["context"]["preferences"]:
+            self._declared_fields[
+                slugify(preference.get_type_display().lower()).replace("-", "_")
+            ] = serializers.BooleanField(initial=preference.enabled, required=False)
         super().__init__(*args, **kwargs)

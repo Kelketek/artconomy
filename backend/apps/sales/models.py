@@ -1323,7 +1323,7 @@ class LineItem(Model):
     destination_account = IntegerField(choices=ACCOUNT_TYPES)
     description = CharField(max_length=250, blank=True, default="")
     watch_permissions = {
-        "LineItemSerializer": [Any(OrderViewPermission, BillTo, IssuedBy)]
+        "LineItemSerializer": [Any(OrderViewPermission, BillTo, IssuedBy, IsStaff)]
     }
     targets = ManyToManyField(
         "lib.GenericReference", through=LineItemAnnotation, related_name="line_items"

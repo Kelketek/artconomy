@@ -10,5 +10,6 @@ export default interface LineItem {
   type: number,
   description: string,
   destination_account?: number,
-  destination_user?: number|null
+  destination_user?: number|null,
+  targets?: Array<{model: string, id: string|number}>,
 }

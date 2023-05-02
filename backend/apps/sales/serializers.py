@@ -17,7 +17,7 @@ from apps.lib.serializers import (
     SubscribedField,
     TagListField,
 )
-from apps.lib.utils import add_check, check_read
+from apps.lib.utils import add_check, check_read, multi_filter
 from apps.profiles.models import Character, Submission, User
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
@@ -1220,11 +1220,13 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     @lru_cache(4)
     def charge_transactions(self, obj):
-        return TransactionRecord.objects.filter(
-            status=SUCCESS,
-            # Will need this to expand to cash or similar?
-            source__in=[CARD, CASH_DEPOSIT],
-            **self.qs_kwargs(obj),
+        return multi_filter(
+            TransactionRecord.objects.filter(
+                status=SUCCESS,
+                # Will need this to expand to cash or similar?
+                source__in=[CARD, CASH_DEPOSIT],
+            ),
+            self.qs_filters(obj),
         )
 
     @lru_cache(4)
@@ -1234,6 +1236,14 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             "targets__object_id": obj.id,
         }
 
+    @lru_cache(4)
+    def qs_filters(self, obj):
+        query_filters = [Q(targets=ref_for_instance(obj))]
+        if obj.tip_invoice:
+            print("tip invoice found!")
+            query_filters.append(~Q(targets=ref_for_instance(obj.tip_invoice)))
+        return query_filters
+
     def get_price(self, obj):
         return self.charge_transactions(obj).aggregate(total=Sum("amount"))["total"]
 
@@ -1242,7 +1252,10 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_sales_tax_collected(self, obj):
         return account_balance(
-            None, MONEY_HOLE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+            None,
+            MONEY_HOLE,
+            AVAILABLE,
+            additional_filters=self.qs_filters(obj),
         )
 
     def get_extra(self, obj):
@@ -1253,7 +1266,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     def get_still_in_escrow(self, obj):
         return account_balance(
-            obj.order.seller, ESCROW, AVAILABLE, qs_kwargs=self.qs_kwargs(obj)
+            obj.order.seller, ESCROW, AVAILABLE, additional_filters=self.qs_filters(obj)
         )
 
     def get_artist_earnings(self, obj):
@@ -1264,51 +1277,56 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         ).aggregate(total=Sum("amount"))["total"]
 
     def get_in_reserve(self, obj):
-        return account_balance(None, RESERVE, AVAILABLE, qs_kwargs=self.qs_kwargs(obj))
+        return account_balance(
+            None, RESERVE, AVAILABLE, additional_filters=self.qs_filters(obj)
+        )
 
     @lru_cache(4)
     def get_card_fees(self, obj):
-        return TransactionRecord.objects.filter(
-            payer=None,
-            payee=None,
-            status=SUCCESS,
-            source=UNPROCESSED_EARNINGS,
-            destination=CARD_TRANSACTION_FEES,
-            **self.qs_kwargs(obj),
+        return multi_filter(
+            TransactionRecord.objects.filter(
+                payer=None,
+                payee=None,
+                status=SUCCESS,
+                source=UNPROCESSED_EARNINGS,
+                destination=CARD_TRANSACTION_FEES,
+            ),
+            self.qs_filters(obj),
         ).aggregate(total=Sum("amount"))["total"]
 
     def get_our_fees(self, obj):
-        transactions = (
+        transactions = multi_filter(
             TransactionRecord.objects.filter(
                 status=SUCCESS,
+            ),
+            self.qs_filters(obj),
+        ).filter(
+            Q(
+                payer=obj.order.buyer,
+                payee=None,
+                source__in=[CARD, CASH_DEPOSIT],
+                destination__in=[UNPROCESSED_EARNINGS],
             )
-            .filter(**self.qs_kwargs(obj))
-            .filter(
-                Q(
-                    payer=obj.order.buyer,
-                    payee=None,
-                    source__in=[CARD, CASH_DEPOSIT],
-                    destination__in=[UNPROCESSED_EARNINGS],
-                )
-                | Q(
-                    payer=None,
-                    payee=None,
-                    source=RESERVE,
-                    destination=UNPROCESSED_EARNINGS,
-                )
+            | Q(
+                payer=None,
+                payee=None,
+                source=RESERVE,
+                destination=UNPROCESSED_EARNINGS,
             )
         )
         return transactions.aggregate(total=Sum("amount"))["total"]
 
     @lru_cache(4)
     def get_ach_fees(self, obj):
-        transaction = TransactionRecord.objects.filter(
-            payer=obj.order.seller,
-            payee=obj.order.seller,
-            status=SUCCESS,
-            source=HOLDINGS,
-            destination=BANK,
-            **self.qs_kwargs(obj),
+        transaction = multi_filter(
+            TransactionRecord.objects.filter(
+                payer=obj.order.seller,
+                payee=obj.order.seller,
+                status=SUCCESS,
+                source=HOLDINGS,
+                destination=BANK,
+            ),
+            self.qs_filters(obj),
         ).first()
         if not transaction:
             return None
@@ -1334,9 +1352,11 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             lines[invoice] = LineItemSim(
                 id=invoice.id,
                 amount=Money(
-                    TransactionRecord.objects.filter(
-                        destination=HOLDINGS,
-                        **self.qs_kwargs(obj),
+                    multi_filter(
+                        TransactionRecord.objects.filter(
+                            destination=HOLDINGS,
+                        ),
+                        self.qs_filters(obj),
                     ).aggregate(total=Sum("amount"))["total"],
                     settings.DEFAULT_CURRENCY,
                 ),
@@ -1359,17 +1379,19 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
 
     @lru_cache
     def get_refunded_on(self, obj):
-        if refund := TransactionRecord.objects.filter(
-            source=ESCROW,
-            payer=obj.order.seller,
-            status=SUCCESS,
-            payee=obj.order.buyer,
-            **self.qs_kwargs(obj),
+        if refund := multi_filter(
+            TransactionRecord.objects.filter(
+                source=ESCROW,
+                payer=obj.order.seller,
+                status=SUCCESS,
+                payee=obj.order.buyer,
+            ),
+            self.qs_filters(obj),
         ).first():
             return refund.created_on
 
     def get_remote_ids(self, obj):
-        records = TransactionRecord.objects.filter(**self.qs_kwargs(obj))
+        records = multi_filter(TransactionRecord.objects, self.qs_filters(obj))
         remote_ids = set(list(chain(*(record.remote_ids for record in records))))
         return ", ".join(sorted(list(remote_ids)))
 
@@ -1403,6 +1425,7 @@ class TipValuesSerializer(serializers.ModelSerializer):
     Tracks all relevant finance info from a tip invoice.
     """
 
+    deliverable_id = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
     bill_to = serializers.SerializerMethodField()
     issued_by = serializers.CharField(source="issued_by.username", read_only=True)
@@ -1413,6 +1436,9 @@ class TipValuesSerializer(serializers.ModelSerializer):
     ach_fees = serializers.SerializerMethodField()
     profit = serializers.SerializerMethodField()
     remote_ids = serializers.SerializerMethodField()
+
+    def get_deliverable_id(self, obj):
+        return getattr(obj.tipped_deliverables.first(), "id", "")
 
     def get_status(self, obj):
         return obj.get_status_display()
@@ -1542,6 +1568,7 @@ class TipValuesSerializer(serializers.ModelSerializer):
         model = Invoice
         fields = (
             "id",
+            "deliverable_id",
             "created_on",
             "status",
             "issued_by",

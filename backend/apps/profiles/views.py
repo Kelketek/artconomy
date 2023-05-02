@@ -17,9 +17,10 @@ from apps.lib.models import (
     SUBMISSION_CHAR_TAG,
     SUBMISSION_SHARED,
     Comment,
+    EmailPreference,
     Notification,
     Subscription,
-    Tag, EmailPreference,
+    Tag,
 )
 from apps.lib.permissions import (
     All,
@@ -86,6 +87,7 @@ from apps.profiles.serializers import (
     ConversationSerializer,
     CredentialsSerializer,
     DeleteUserSerializer,
+    EmailPreferencesSerializer,
     EmailValidationSerializer,
     JournalSerializer,
     PasswordResetSerializer,
@@ -102,7 +104,7 @@ from apps.profiles.serializers import (
     TelegramDeviceSerializer,
     TwoFactorTimerSerializer,
     UsernameValidationSerializer,
-    UserSerializer, EmailPreferencesSerializer,
+    UserSerializer,
 )
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
@@ -2082,7 +2084,9 @@ class NotificationSettings(GenericAPIView):
     def get_serializer_context(self) -> Dict[str, Any]:
         context = super().get_serializer_context()
         context["user"] = self.get_object()
-        context["preferences"] = EmailPreference.objects.filter(user=context["user"]).order_by("id")
+        context["preferences"] = EmailPreference.objects.filter(
+            user=context["user"]
+        ).order_by("id")
         return context
 
     def get(self, request, *args, **kwargs):

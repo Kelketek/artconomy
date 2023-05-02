@@ -77,6 +77,13 @@ export default class AcLineItemPreview extends Vue {
         return 'Tip'
       }
     }
+    if (this.line.type === LineTypes.DELIVERABLE_TRACKING) {
+      let label = 'Order Tracking'
+      if (this.line.targets?.length) {
+        label += ' (' + this.line.targets.map((target) => `${target.model} #${target.id}`).join(', ') + ')'
+      }
+      return label
+    }
     const BASIC_TYPES: {[key: number]: string} = {
       0: 'Base price',
       2: 'Shield protection',

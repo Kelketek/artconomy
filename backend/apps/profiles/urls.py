@@ -104,7 +104,11 @@ urlpatterns = [
         views.SubmissionSearch.as_view(),
         name="submission_search",
     ),
-    path("account/<username>/notification-settings/", views.NotificationSettings.as_view(), name="profile"),
+    path(
+        "account/<username>/notification-settings/",
+        views.NotificationSettings.as_view(),
+        name="profile",
+    ),
     path(
         "account/<username>/artist-profile/",
         views.ArtistProfileSettings.as_view(),

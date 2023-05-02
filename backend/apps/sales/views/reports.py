@@ -242,7 +242,7 @@ class TipReportCSV(CSVReport, ListAPIView, DateConstrained):
     def get_renderer_context(self):
         context = super().get_renderer_context()
         context["header"] = [
-            "id",
+            "deliverable_id",
             "paid_on",
             "status",
             "issued_by",
@@ -250,7 +250,7 @@ class TipReportCSV(CSVReport, ListAPIView, DateConstrained):
             "total",
             "payment_type",
             "created_on",
-            "blank1",
+            "id",
             "artist_earnings",
             "blank2",
             "blank3",

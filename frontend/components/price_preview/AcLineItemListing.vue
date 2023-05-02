@@ -89,7 +89,7 @@ export default class AcLineItemListing extends mixins(LineItemMixin) {
   }
 
   public get others() {
-    return this.lineItems.list.filter((item) => item.x && [LineTypes.PREMIUM_SUBSCRIPTION, LineTypes.OTHER_FEE].includes(item.x.type))
+    return this.lineItems.list.filter((item) => item.x && [LineTypes.PREMIUM_SUBSCRIPTION, LineTypes.OTHER_FEE, LineTypes.DELIVERABLE_TRACKING].includes(item.x.type))
   }
 }
 </script>
