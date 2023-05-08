@@ -473,6 +473,7 @@ class TestDeliverableStatusChange(APITestCase):
         self.assertEqual(refund_transaction.remote_ids, [])
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
 
+    @freeze_time('2023-01-01')
     @patch("apps.sales.utils.stripe")
     @override_settings(
         PREMIUM_PERCENTAGE_FEE=Decimal("5"), PREMIUM_STATIC_FEE=Decimal("0.10")
@@ -496,7 +497,7 @@ class TestDeliverableStatusChange(APITestCase):
             ref_for_instance(self.deliverable.invoice),
         ]
         record.targets.set(targets)
-        self.state_assertion("seller", "refund/", initial_status=DISPUTED)
+        self.state_assertion("seller", "refund/", initial_status=DISPUTED, target_status=REFUNDED)
         refund_transaction = TransactionRecord.objects.get(
             status=SUCCESS,
             payee=self.deliverable.order.buyer,
@@ -504,6 +505,7 @@ class TestDeliverableStatusChange(APITestCase):
             source=ESCROW,
             destination=CARD,
         )
+        self.assertEqual(self.deliverable.refunded_on, timezone.now())
         self.assertEqual(refund_transaction.amount, Money("15.00", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertCountEqual(refund_transaction.remote_ids, ["pi_1234", "refund123"])

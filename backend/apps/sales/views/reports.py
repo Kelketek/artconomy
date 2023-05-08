@@ -31,7 +31,7 @@ from apps.sales.serializers import (
 )
 from dateutil.parser import ParserError, parse
 from dateutil.relativedelta import relativedelta
-from django.db.models import F
+from django.db.models import F, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import make_aware
@@ -66,7 +66,14 @@ class CustomerHoldingsCSV(ListAPIView):
 
 class DateConstrained:
     request: Request
-    date_field = "created_on"
+    date_fields = ["created_on"]
+
+    def __init__(self, *args, **kwargs):
+        if hasattr(self, "date_field"):
+            raise AttributeError("date_field is deprecated. Use date_fields instead.")
+        if type(self.date_fields) is str:
+            raise AttributeError("date_fields must be a list of strings.")
+        super().__init__(*args, **kwargs)
 
     @property
     def start_date(self) -> datetime:
@@ -102,12 +109,20 @@ class DateConstrained:
         return end_date
 
     @property
-    def date_kwargs(self):
-        kwargs = {
-            f"{self.date_field}__gte": self.start_date,
-            f"{self.date_field}__lte": self.end_date,
-        }
-        return kwargs
+    def date_filter(self):
+        date_filter = None
+        for field in self.date_fields:
+            new_filter = Q(
+                **{
+                    f"{field}__gte": self.start_date,
+                    f"{field}__lte": self.end_date,
+                }
+            )
+            if date_filter:
+                date_filter |= new_filter
+                continue
+            date_filter = new_filter
+        return date_filter
 
 
 class CSVReport:
@@ -128,7 +143,7 @@ class CSVReport:
 
 
 class OrderValues(CSVReport, ListAPIView, DateConstrained):
-    date_field = "paid_on"
+    date_fields = ["paid_on", "refunded_on"]
     serializer_class = DeliverableValuesSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
@@ -136,7 +151,8 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
 
     def get_queryset(self):
         return (
-            Deliverable.objects.filter(escrow_enabled=True, **self.date_kwargs)
+            Deliverable.objects.filter(escrow_enabled=True)
+            .filter(self.date_filter)
             .exclude(
                 status__in=[CANCELLED, NEW, PAYMENT_PENDING, WAITING],
             )
@@ -173,7 +189,7 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = SubscriptionInvoiceSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
-    date_field = "paid_on"
+    date_fields = ["paid_on"]
     report_name = "subscription-report"
 
     def get_renderer_context(self):
@@ -191,18 +207,21 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
         return context
 
     def get_queryset(self):
-        return Invoice.objects.filter(
-            type__in=[SUBSCRIPTION, TERM],
-            status=PAID,
-            **self.date_kwargs,
-        ).order_by("paid_on")
+        return (
+            Invoice.objects.filter(
+                type__in=[SUBSCRIPTION, TERM],
+                status=PAID,
+            )
+            .filter(self.date_filter)
+            .order_by("paid_on")
+        )
 
 
 class UnaffiliatedSaleReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = UnaffiliatedInvoiceSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
-    date_field = "paid_on"
+    date_fields = ["paid_on"]
     report_name = "unaffiliated-sales-report"
 
     def get_renderer_context(self):
@@ -222,13 +241,16 @@ class UnaffiliatedSaleReportCSV(CSVReport, ListAPIView, DateConstrained):
         return context
 
     def get_queryset(self):
-        result = Invoice.objects.filter(
-            status=PAID,
-            **self.date_kwargs,
-            type=SALE,
-            targets__isnull=True,
-            deliverables__isnull=True,
-        ).order_by("paid_on")
+        result = (
+            Invoice.objects.filter(
+                status=PAID,
+                type=SALE,
+                targets__isnull=True,
+                deliverables__isnull=True,
+            )
+            .filter(self.date_filter)
+            .order_by("paid_on")
+        )
         return result
 
 
@@ -236,7 +258,7 @@ class TipReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = TipValuesSerializer
     permission_classes = [IsSuperuser]
     pagination_class = None
-    date_field = "paid_on"
+    date_fields = ["paid_on"]
     report_name = "tip-report"
 
     def get_renderer_context(self):
@@ -265,13 +287,16 @@ class TipReportCSV(CSVReport, ListAPIView, DateConstrained):
         return context
 
     def get_queryset(self):
-        result = Invoice.objects.filter(
-            status=PAID,
-            **self.date_kwargs,
-            type=TIPPING,
-            targets__isnull=True,
-            deliverables__isnull=True,
-        ).order_by("paid_on")
+        result = (
+            Invoice.objects.filter(
+                status=PAID,
+                type=TIPPING,
+                targets__isnull=True,
+                deliverables__isnull=True,
+            )
+            .filter(self.date_filter)
+            .order_by("paid_on")
+        )
         return result
 
 
@@ -303,8 +328,8 @@ class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
                 payer=F("payee"),
                 source=HOLDINGS,
                 destination=BANK,
-                **self.date_kwargs,
             )
+            .filter(self.date_filter)
             .exclude(payer=None)
             .exclude(status=FAILURE)
             .order_by("created_on")
@@ -315,7 +340,7 @@ class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = UserPayoutTransactionSerializer
     permission_classes = [UserControls]
     pagination_class = None
-    date_field = "finalized_on"
+    date_fields = ["finalized_on"]
     report_name = "user-payout-report"
 
     def get_renderer_context(self):
@@ -341,8 +366,8 @@ class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
                 payee=user,
                 source=PAYOUT_MIRROR_SOURCE,
                 destination=PAYOUT_MIRROR_DESTINATION,
-                **self.date_kwargs,
             )
+            .filter(self.date_filter)
             .exclude(payer=None)
             .exclude(status=FAILURE)
             .order_by("finalized_on")

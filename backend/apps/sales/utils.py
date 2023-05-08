@@ -1527,6 +1527,7 @@ def refund_deliverable(deliverable: "Deliverable", requesting_user=None) -> (boo
     if record.status == FAILURE:
         return False, record.response_message
     deliverable.status = REFUNDED
+    deliverable.refunded_on = timezone.now()
     deliverable.save()
     notify(REFUND, deliverable, unique=True, mark_unread=True)
     notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)

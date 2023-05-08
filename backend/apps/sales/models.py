@@ -457,6 +457,7 @@ class Deliverable(Model):
     auto_finalize_on = DateField(blank=True, null=True, db_index=True)
     finalized_on = DateTimeField(blank=True, null=True, db_index=True)
     auto_cancel_on = DateTimeField(blank=True, null=True, db_index=True)
+    refunded_on = DateTimeField(blank=True, null=True, db_index=True)
     tip_invoice = models.ForeignKey(
         "Invoice",
         null=True,
