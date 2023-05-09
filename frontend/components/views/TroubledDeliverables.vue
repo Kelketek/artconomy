@@ -1,9 +1,7 @@
 <template>
   <v-container>
+    <h1>Troubled Deliverables</h1>
     <ac-paginated :list="troubledDeliverables">
-      <template v-slot:header>
-        <h1>Troubled Deliverables</h1>
-      </template>
       <template v-slot:default>
         <v-simple-table>
           <template v-slot:default>
@@ -14,6 +12,8 @@
                 <th>Status</th>
                 <th>Created On</th>
                 <th>Paid On</th>
+                <th>Buyer</th>
+                <th>Seller</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -25,7 +25,9 @@
                   <ac-deliverable-status :deliverable="deliverable.x" />
                 </td>
                 <td>{{formatDateTime(deliverable.x.created_on)}}</td>
-                <td>{{formatDateTime(deliverable.x.paid_on)}}</td>
+                <td>{{deliverable.x.paid_on && formatDateTime(deliverable.x.paid_on)}}</td>
+                <td><ac-avatar :user="deliverable.x.order.buyer"  v-if="deliverable.x.order.buyer"/><span v-else>{{deliverable.x.order.customer_email}}</span></td>
+                <td><ac-avatar :user="deliverable.x.order.seller" /></td>
                 <td>
                   <ac-link :to="{name: 'CaseDeliverableOverview', params: {orderId: `${deliverable.x.order.id}`, deliverableId: `${deliverable.x.id}`, username: viewer.username}}" v-if="deliverable.x.arbitrator && deliverable.x.arbitrator.username === viewer.username">
                     View
@@ -52,10 +54,12 @@ import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import Formatting from '@/mixins/formatting'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {artCall} from '@/lib/lib'
-import { SingleController } from '@/store/singles/controller'
+import {SingleController} from '@/store/singles/controller'
+import AcAvatar from '@/components/AcAvatar.vue'
 
 @Component({
   components: {
+    AcAvatar,
     AcLink,
     AcDeliverableStatus,
     AcDeliverablePreview,

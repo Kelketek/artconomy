@@ -500,5 +500,5 @@ urlpatterns = [
     path(
         "reports/troubled-deliverables/",
         reports.TroubledDeliverables.as_view(),
-    )
+    ),
 ]

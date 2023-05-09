@@ -7,29 +7,34 @@ from apps.profiles.permissions import IsSuperuser, UserControls
 from apps.sales.constants import (
     BANK,
     CANCELLED,
+    DISPUTED,
     FAILURE,
     HOLDINGS,
+    IN_PROGRESS,
     NEW,
     PAID,
     PAYMENT_PENDING,
     PAYOUT_MIRROR_DESTINATION,
     PAYOUT_MIRROR_SOURCE,
+    QUEUED,
     SALE,
     SUBSCRIPTION,
     TERM,
     TIPPING,
-    WAITING, DISPUTED, IN_PROGRESS, QUEUED,
+    WAITING,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.serializers import (
+    DeliverableSerializer,
     DeliverableValuesSerializer,
     HoldingsSummarySerializer,
     PayoutTransactionSerializer,
     SubscriptionInvoiceSerializer,
     TipValuesSerializer,
     UnaffiliatedInvoiceSerializer,
-    UserPayoutTransactionSerializer, DeliverableSerializer,
+    UserPayoutTransactionSerializer,
 )
+from apps.sales.utils import PENDING
 from dateutil.parser import ParserError, parse
 from dateutil.relativedelta import relativedelta
 from django.db.models import F, Q
@@ -39,8 +44,6 @@ from django.utils.timezone import make_aware
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework_csv.renderers import CSVRenderer
-
-from apps.sales.utils import PENDING
 
 
 class CustomerHoldingsCSV(ListAPIView):
@@ -382,8 +385,17 @@ class TroubledDeliverables(ListAPIView):
     serializer_class = DeliverableSerializer
 
     def get_queryset(self):
-        return Deliverable.objects.filter(
-            status__in=[DISPUTED, IN_PROGRESS, QUEUED],
-            paid_on__lte=timezone.now() - relativedelta(months=4),
-            escrow_enabled=True,
-        ).order_by("paid_on")
+        return (
+            Deliverable.objects.filter(
+                status__in=[DISPUTED, IN_PROGRESS, QUEUED, PENDING],
+                escrow_enabled=True,
+            )
+            .filter(
+                Q(paid_on__lte=timezone.now() - relativedelta(months=4))
+                | Q(
+                    paid_on__isnull=True,
+                    created_on__lte=timezone.now() - relativedelta(months=4),
+                ),
+            )
+            .order_by("-status", "paid_on")
+        )
