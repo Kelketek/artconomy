@@ -396,6 +396,8 @@ class TroubledDeliverables(ListAPIView):
                     paid_on__isnull=True,
                     created_on__lte=timezone.now() - relativedelta(months=4),
                 ),
+            ).exclude(
+                Q(order__buyer__isnull=True) & Q(order__customer_email='')
             )
             .order_by("-status", "paid_on")
         )
