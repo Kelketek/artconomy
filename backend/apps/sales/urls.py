@@ -497,4 +497,8 @@ urlpatterns = [
         reports.UnaffiliatedSaleReportCSV.as_view(),
         name="unaffiliated_sales_csv",
     ),
+    path(
+        "reports/troubled-deliverables/",
+        reports.TroubledDeliverables.as_view(),
+    )
 ]

@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Union
 
+from apps.lib.permissions import IsStaff
 from apps.profiles.models import User
 from apps.profiles.permissions import IsSuperuser, UserControls
 from apps.sales.constants import (
@@ -17,7 +18,7 @@ from apps.sales.constants import (
     SUBSCRIPTION,
     TERM,
     TIPPING,
-    WAITING,
+    WAITING, DISPUTED, IN_PROGRESS, QUEUED,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.serializers import (
@@ -27,7 +28,7 @@ from apps.sales.serializers import (
     SubscriptionInvoiceSerializer,
     TipValuesSerializer,
     UnaffiliatedInvoiceSerializer,
-    UserPayoutTransactionSerializer,
+    UserPayoutTransactionSerializer, DeliverableSerializer,
 )
 from dateutil.parser import ParserError, parse
 from dateutil.relativedelta import relativedelta
@@ -38,6 +39,8 @@ from django.utils.timezone import make_aware
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework_csv.renderers import CSVRenderer
+
+from apps.sales.utils import PENDING
 
 
 class CustomerHoldingsCSV(ListAPIView):
@@ -372,3 +375,15 @@ class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
             .exclude(status=FAILURE)
             .order_by("finalized_on")
         )
+
+
+class TroubledDeliverables(ListAPIView):
+    permission_classes = [IsStaff]
+    serializer_class = DeliverableSerializer
+
+    def get_queryset(self):
+        return Deliverable.objects.filter(
+            status__in=[DISPUTED, IN_PROGRESS, QUEUED],
+            paid_on__lte=timezone.now() - relativedelta(months=4),
+            escrow_enabled=True,
+        ).order_by("paid_on")

@@ -93,6 +93,8 @@ const TableOrders = () => import('@/components/views/table/TableOrders.vue')
 const TableInvoices = () => import('@/components/views/table/TableInvoices.vue')
 const Invoices = () => import('@/components/views/settings/payment/Invoices.vue')
 
+const TroubledDeliverables = () => import('@/components/views/TroubledDeliverables.vue')
+
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
   for (const baseName of ['Order', 'Sale', 'Case']) {
@@ -674,10 +676,15 @@ export const routes = [
     props: true,
   },
   {
-    path: '/reports/:username/',
+    path: '/reports/financial/:username/',
     name: 'Reports',
     props: true,
     component: Reports,
+  },
+  {
+    path: '/reports/troubled-deliverables/',
+    name: 'TroubledDeliverables',
+    component: TroubledDeliverables,
   },
   {
     path: '/table/',

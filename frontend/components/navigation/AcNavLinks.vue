@@ -125,7 +125,29 @@
         </v-list-item-action>
         <v-list-item-title>Sales/Invoicing</v-list-item-title>
       </v-list-item>
-      <v-list-item :to="{name: 'Reports', params: {username: subject.username}}" v-if="isLoggedIn && (subject.artist_mode || subject.is_superuser)">
+      <v-list-group
+          no-action
+          :value="true"
+          sub-group
+          v-if="isLoggedIn && subject.is_superuser"
+        >
+        <template v-slot:activator>
+            <v-list-item-title>Reports</v-list-item-title>
+        </template>
+        <v-list-item :to="{name: 'Reports', params: {username: subject.username}}">
+          <v-list-item-action>
+              <v-icon>insert_chart</v-icon>
+          </v-list-item-action>
+          <v-list-item-title>Financial</v-list-item-title>
+        </v-list-item>
+        <v-list-item :to="{name: 'TroubledDeliverables'}">
+          <v-list-item-action>
+              <v-icon>warning</v-icon>
+          </v-list-item-action>
+          <v-list-item-title>Troubled Deliverables</v-list-item-title>
+        </v-list-item>
+      </v-list-group>
+      <v-list-item :to="{name: 'Reports', params: {username: subject.username}}" v-else-if="isLoggedIn && (subject.artist_mode || subject.is_superuser)">
         <v-list-item-action>
           <v-icon>insert_chart</v-icon>
         </v-list-item-action>
