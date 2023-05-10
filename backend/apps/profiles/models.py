@@ -504,7 +504,7 @@ def stripe_setup(sender, instance, created=False, **kwargs):
         return
     if not settings.STRIPE_KEY:
         return
-    create_or_update_stripe_user.delay(instance.id)
+    create_or_update_stripe_user.apply_async((instance.id,), countdown=3)
 
 
 class ArtistProfile(Model):
