@@ -192,8 +192,12 @@ class User(AbstractEmailUser, HitsMixin):
         related_name="+",
         on_delete=SET_NULL,
     )
+    old_favorites = ManyToManyField(
+        "profiles.Submission", blank=True, related_name="old_favorites"
+    )
     favorites = ManyToManyField(
-        "profiles.Submission", blank=True, related_name="favorites"
+        "profiles.Submission", blank=True, related_name="favorites",
+        through="profiles.Favorite",
     )
     favorites_hidden = BooleanField(default=False)
     taggable = BooleanField(default=True, db_index=True)
@@ -706,6 +710,19 @@ def auto_remove_image_subscriptions(sender, instance, **kwargs):
 
 remove_submission_events = receiver(pre_delete, sender=Submission)(clear_events)
 submission_thumbnailer = receiver(post_save, sender=Submission)(thumbnail_hook)
+
+
+class Favorite(Model):
+    """
+    Custom through model for favorites.
+    """
+    user = ForeignKey("User", on_delete=CASCADE, related_name="+")
+    submission = ForeignKey("Submission", on_delete=CASCADE, related_name="+")
+    created_on = DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        unique_together = ("user", "submission")
+        ordering = ("-created_on",)
 
 
 def get_next_artist_position():

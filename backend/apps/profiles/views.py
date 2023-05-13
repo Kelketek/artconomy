@@ -56,7 +56,7 @@ from apps.profiles.models import (
     RefColor,
     Submission,
     User,
-    trigger_reconnect,
+    trigger_reconnect, Favorite,
 )
 from apps.profiles.permissions import (
     AccountAge,
@@ -104,7 +104,7 @@ from apps.profiles.serializers import (
     TelegramDeviceSerializer,
     TwoFactorTimerSerializer,
     UsernameValidationSerializer,
-    UserSerializer,
+    UserSerializer, FavoriteSerializer,
 )
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
@@ -1316,15 +1316,16 @@ def perform_login(request):
 
 class FavoritesList(ListAPIView):
     permission_classes = [ViewFavorites]
-    serializer_class = SubmissionSerializer
+    serializer_class = FavoriteSerializer
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
-        return available_submissions(self.request, user, show_all=True).filter(
-            favorites=user
-        )
-
+        return Favorite.objects.filter(
+            user=user,
+            submission_id__in=Subquery(
+                available_submissions(self.request, user, show_all=True).values('id')
+            ))
 
 class SubmissionList(ListCreateAPIView):
     serializer_class = SubmissionSerializer

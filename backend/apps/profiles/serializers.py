@@ -29,7 +29,7 @@ from apps.profiles.models import (
     Submission,
     User,
     banned_named_validator,
-    banned_prefix_validator,
+    banned_prefix_validator, Favorite,
 )
 from apps.sales.constants import STRIPE
 from apps.sales.models import Promo, ServicePlan
@@ -222,6 +222,13 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
             "preview",
         )
         read_only_fields = ("tags",)
+
+
+class FavoriteSerializer(serializers.ModelSerializer):
+    submission = SubmissionSerializer(read_only=True)
+    class Meta:
+        model = Favorite
+        fields = ("id", "submission", "user_id", "created_on")
 
 
 class SubmissionNotificationSerializer(serializers.ModelSerializer):
