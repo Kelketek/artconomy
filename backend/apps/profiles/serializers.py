@@ -24,12 +24,13 @@ from apps.profiles.models import (
     Character,
     Conversation,
     ConversationParticipant,
+    Favorite,
     Journal,
     RefColor,
     Submission,
     User,
     banned_named_validator,
-    banned_prefix_validator, Favorite,
+    banned_prefix_validator,
 )
 from apps.sales.constants import STRIPE
 from apps.sales.models import Promo, ServicePlan
@@ -226,6 +227,7 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
 
 class FavoriteSerializer(serializers.ModelSerializer):
     submission = SubmissionSerializer(read_only=True)
+
     class Meta:
         model = Favorite
         fields = ("id", "submission", "user_id", "created_on")

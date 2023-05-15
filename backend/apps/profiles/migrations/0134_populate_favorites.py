@@ -7,7 +7,9 @@ def populate_favorites(apps, schema_editor):
     User = apps.get_model("profiles", "User")
     Favorite = apps.get_model("profiles", "Favorite")
     for old_favorite in User.favorites.through.objects.all():
-        Favorite.objects.get_or_create(user=old_favorite.user, submission=old_favorite.submission)
+        Favorite.objects.get_or_create(
+            user=old_favorite.user, submission=old_favorite.submission
+        )
 
 
 class Migration(migrations.Migration):
@@ -15,4 +17,6 @@ class Migration(migrations.Migration):
         ("profiles", "0133_favorite_user_new_favorites"),
     ]
 
-    operations = [migrations.RunPython(populate_favorites, reverse_code=migrations.RunPython.noop)]
+    operations = [
+        migrations.RunPython(populate_favorites, reverse_code=migrations.RunPython.noop)
+    ]

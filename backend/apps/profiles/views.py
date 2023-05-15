@@ -52,11 +52,12 @@ from apps.profiles.models import (
     Character,
     Conversation,
     ConversationParticipant,
+    Favorite,
     Journal,
     RefColor,
     Submission,
     User,
-    trigger_reconnect, Favorite,
+    trigger_reconnect,
 )
 from apps.profiles.permissions import (
     AccountAge,
@@ -89,6 +90,7 @@ from apps.profiles.serializers import (
     DeleteUserSerializer,
     EmailPreferencesSerializer,
     EmailValidationSerializer,
+    FavoriteSerializer,
     JournalSerializer,
     PasswordResetSerializer,
     PasswordValidationSerializer,
@@ -104,7 +106,7 @@ from apps.profiles.serializers import (
     TelegramDeviceSerializer,
     TwoFactorTimerSerializer,
     UsernameValidationSerializer,
-    UserSerializer, FavoriteSerializer,
+    UserSerializer,
 )
 from apps.profiles.tasks import mailchimp_subscribe
 from apps.profiles.utils import (
@@ -1208,6 +1210,7 @@ class RecentSubmissions(ListAPIView):
         return (
             available_submissions(self.request, self.request.user)
             .filter(deliverable__isnull=True)
+            .exclude(owner__username__in=settings.COMMUNITY_ACCOUNT_NAMES)
             .order_by("-created_on")
         )
 
@@ -1324,8 +1327,10 @@ class FavoritesList(ListAPIView):
         return Favorite.objects.filter(
             user=user,
             submission_id__in=Subquery(
-                available_submissions(self.request, user, show_all=True).values('id')
-            ))
+                available_submissions(self.request, user, show_all=True).values("id")
+            ),
+        )
+
 
 class SubmissionList(ListCreateAPIView):
     serializer_class = SubmissionSerializer
@@ -2093,3 +2098,18 @@ class NotificationSettings(GenericAPIView):
     def get(self, request, *args, **kwargs):
         serializer = self.get_serializer()
         return Response(serializer.data)
+
+
+class CommunitySubmissions(ListAPIView):
+    serializer_class = SubmissionSerializer
+
+    def get_queryset(self):
+        print("I ran!")
+        return (
+            available_submissions(
+                self.request,
+                self.request.user,
+            )
+            .filter(owner__username__in=settings.COMMUNITY_ACCOUNT_NAMES)
+            .order_by("-created_on")
+        )

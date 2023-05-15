@@ -15,6 +15,11 @@ urlpatterns = [
         name="recent_submissions",
     ),
     path(
+        "community-submissions/",
+        views.CommunitySubmissions.as_view(),
+        name="community_submissions",
+    ),
+    path(
         "recent-commissions/",
         views.RecentCommissions.as_view(),
         name="recent_commissions",

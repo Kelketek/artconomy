@@ -645,3 +645,8 @@ DISCORD_CLIENT_KEY = get_env("DISCORD_CLIENT_KEY", "discord-client-key")
 DISCORD_CLIENT_SECRET = get_env("DISCORD_CLIENT_SECRET", "discord-client-secret")
 # Explicitly set to empty string if not filled out in .env file by docker-compose
 DISCORD_GUILD_ID = int(get_env("DISCORD_GUILD_ID", "12345678") or "0")
+
+
+COMMUNITY_ACCOUNT_NAMES = get_env(
+    "COMMUNITY_ACCOUNT_NAMES", ["DoodleSessions"], unpack=True
+)

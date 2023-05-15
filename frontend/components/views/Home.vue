@@ -234,9 +234,32 @@
               <ac-product-slider :list="lgbt"></ac-product-slider>
               <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
             </v-tab-item>
+            <v-tab-item>
+              <ac-load-section :controller="communitySubmissions">
+                <template v-slot:default>
+                  <v-row dense>
+                    <v-col cols="6" sm="4" md="3" lg="2" v-for="submission in communitySubmissionsList" :key="submission.id">
+                      <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
+                    </v-col>
+                  </v-row>
+                </template>
+                <template v-slot:loading-spinner>
+                  <v-row dense>
+                    <v-col cols="6" sm="4" md="3" lg="2" v-for="i in Array(listSizer(true)).keys()" :key="i">
+                      <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                        <v-skeleton-loader
+                            max-height="100%"
+                            type="image"
+                        ></v-skeleton-loader>
+                      </v-responsive>
+                    </v-col>
+                  </v-row>
+                </template>
+              </ac-load-section>
+            </v-tab-item>
           </v-tabs-items>
         </v-col>
-        <v-col cols="12" md="6" class="px-1 py-2" :order="isRegistered ? 4 : 6">
+        <v-col cols="12" md="12" :lg="isRegistered? 6 : 12" class="px-1 py-2" :order="isRegistered ? 4 : 6">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Submissions</v-toolbar-title>
@@ -249,14 +272,14 @@
             <ac-load-section :controller="submissions">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" v-for="submission in submissionsList" :key="submission.id">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 4 : 2" v-for="submission in submissionsList" :key="submission.id">
                     <ac-gallery-preview :submission="submission.x" :show-footer="false" />
                   </v-col>
                 </v-row>
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" v-for="i in Array(listSizer()).keys()" :key="i">
+                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer($vuetify.breakpoint.mdOnly)).keys()" :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
                         max-height="100%"
@@ -269,7 +292,7 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" :md="isRegistered ? 12 : 6" class="px-1 py-2" order="7">
+        <v-col cols="12" class="px-1 py-2" order="7">
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>New Characters</v-toolbar-title>
@@ -282,14 +305,14 @@
             <ac-load-section :controller="characters">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" :lg="isRegistered ? 2 : 4" v-for="character in charactersList" :key="character.id">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="character in charactersList" :key="character.id">
                     <ac-character-preview :character="character.x" :show-footer="false" />
                   </v-col>
                 </v-row>
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer()).keys()" :key="i">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()" :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
                         max-height="100%"
@@ -367,11 +390,12 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     public lowPriced: ListController<Product> = null as unknown as ListController<Product>
     public commissions: ListController<Submission> = null as unknown as ListController<Submission>
     public submissions: ListController<Submission> = null as unknown as ListController<Submission>
+    public communitySubmissions: ListController<Submission> = null as unknown as ListController<Submission>
     public characters: ListController<Character> = null as unknown as ListController<Character>
     public lgbt: ListController<Product> = null as unknown as ListController<Product>
     public artistsOfColor: ListController<Product> = null as unknown as ListController<Product>
     public mainSection = 0
-    public communitySection = shuffle([0, 1])[0]
+    public communitySection = shuffle([0, 1, 2])[0]
     public blogEntries = [
       {
         link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',
@@ -526,6 +550,7 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
       return [
         {value: 0, text: 'Artists of Color', icon: ''},
         {value: 1, text: 'LGBTQ+', icon: ''},
+        {value: 2, text: 'Artconomy', icon: ''},
       ]
     }
 
@@ -584,11 +609,15 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     }
 
     public get submissionsList() {
-      return this.listPreview(this.submissions)
+      return this.listPreview(this.submissions, this.$vuetify.breakpoint.mdOnly)
+    }
+
+    public get communitySubmissionsList() {
+      return this.listPreview(this.communitySubmissions)
     }
 
     public get charactersList() {
-      return this.listPreview(this.characters, this.isRegistered)
+      return this.listPreview(this.characters, true)
     }
 
     public get featuredOrder() {
@@ -633,6 +662,10 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
         'submissions', {endpoint: '/api/profiles/recent-submissions/', params: {size: 6}},
       )
       this.submissions.firstRun()
+      this.communitySubmissions = this.$getList(
+        'communitySubmissions', {endpoint: '/api/profiles/community-submissions/', params: {size: 6}},
+      )
+      this.communitySubmissions.firstRun()
       this.characters = this.$getList('newCharacters', {endpoint: '/api/profiles/new-characters/', params: {size: 6}})
       this.characters.firstRun()
     }

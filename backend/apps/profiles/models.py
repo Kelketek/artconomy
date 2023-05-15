@@ -196,7 +196,9 @@ class User(AbstractEmailUser, HitsMixin):
         "profiles.Submission", blank=True, related_name="old_favorites"
     )
     favorites = ManyToManyField(
-        "profiles.Submission", blank=True, related_name="favorites",
+        "profiles.Submission",
+        blank=True,
+        related_name="favorites",
         through="profiles.Favorite",
     )
     favorites_hidden = BooleanField(default=False)
@@ -716,6 +718,7 @@ class Favorite(Model):
     """
     Custom through model for favorites.
     """
+
     user = ForeignKey("User", on_delete=CASCADE, related_name="+")
     submission = ForeignKey("Submission", on_delete=CASCADE, related_name="+")
     created_on = DateTimeField(default=timezone.now, db_index=True)
