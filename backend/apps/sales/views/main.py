@@ -380,7 +380,7 @@ def derive_user_from_string(seller, user_string):
 
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
-    permission_classes = [OrderPlacePermission]
+    permission_classes = [Any(OrderPlacePermission, UserControls)]
 
     @lru_cache
     def get_object(self):

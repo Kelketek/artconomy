@@ -299,7 +299,7 @@
                   </ac-load-section>
                 </v-col>
                 <v-col cols="12">
-                  <template v-if="product.x.available">
+                  <template v-if="product.x.available || isStaff || isCurrent">
                     <div class="text-center" v-if="inventory.x && inventory.x.count">
                       <p>
                         <strong>
@@ -315,7 +315,7 @@
                     </v-btn>
                     <v-alert type="info" v-else>Visit our table to order!</v-alert>
                   </template>
-                  <v-alert v-else :value="true" type="info">This product is not currently available.</v-alert>
+                  <v-alert v-if="!product.x.available" :class="{'mt-2': isCurrent || isStaff}" :value="true" type="info">This product is not currently available.</v-alert>
                 </v-col>
                 <v-col cols="12">
                   <ac-share-button :title="product.x.name" :block="true" :media-url="shareMediaUrl" :clean="shareMediaClean" />

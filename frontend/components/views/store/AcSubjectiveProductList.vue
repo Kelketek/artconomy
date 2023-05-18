@@ -9,7 +9,6 @@
         </v-btn>
       </v-col>
     </v-row>
-    <router-view v-if="managing" />
     <ac-product-list :products="products" v-show="!firstProduct" :show-username="false" :mini="mini" v-else>
       <template slot="empty">
         <v-col class="text-center pt-5">
@@ -19,8 +18,14 @@
     </ac-product-list>
     <ac-add-button v-model="showNew" v-if="!managing && controls && !iFrame && !hideNewButton">New Product</ac-add-button>
     <ac-new-product :username="username" v-model="showNew" v-if="!managing && controls && !iFrame"></ac-new-product>
-    <v-row no-gutters v-if="firstProduct && !managing">
-      <v-col class="pa-2" cols="12" :lg="mini ? 12 : 8" :offset-lg="mini ? 0 : 2" >
+    <v-row no-gutters v-if="firstProduct">
+      <v-col cols="12" class="text-md-right text-center">
+        <v-btn @click="managing = !managing" color="primary"><v-icon left>settings</v-icon>
+          <span v-if="managing">Finish</span>
+          <span v-else>Manage</span>
+        </v-btn>
+      </v-col>
+      <v-col class="pa-2" cols="12" :lg="mini ? 12 : 8" :offset-lg="mini ? 0 : 2" v-if="!managing">
         <v-card>
           <v-responsive min-height="25vh">
             <v-container class="bg fill-height" >
@@ -40,6 +45,7 @@
         </v-card>
       </v-col>
     </v-row>
+    <router-view v-if="managing" />
   </ac-load-section>
 </template>
 
@@ -90,7 +96,6 @@ export default class AcSubjectiveProductList extends mixins(Subjective) {
       const route = {name: this.$route.name + '', params: this.$route.params, query: this.$route.query}
       if (val && !this.managing) {
         route.name = 'ManageProducts'
-        console.log(route.name)
       } else if (!val && this.managing) {
         this.products.get()
         route.name = route.name.replace('Manage', '')

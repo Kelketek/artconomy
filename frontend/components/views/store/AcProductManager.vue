@@ -9,7 +9,7 @@
           <ac-patch-field :patcher="product.patchers.hidden" field-type="v-checkbox" label="Hidden" />
         </v-col>
           <v-col cols="2">
-            <v-btn color="green" class="mt-2"><v-icon>open_in_full</v-icon></v-btn>
+            <v-btn color="green" class="mt-2" :to="{name: 'Product', params: {username, productId: `${product.x.id}`}}"><v-icon>open_in_full</v-icon></v-btn>
           </v-col>
       </v-row>
     </v-col>
