@@ -32,7 +32,7 @@
                   label="Referral Credit"
                   hint="Email you when someone you've referred qualifies you for a free month of Landscape"
                   :persistent-hint="true"
-                  :patcher="notificationSettings.patchers.commission_slots_available"
+                  :patcher="notificationSettings.patchers.referral_landscape_credit"
               />
             </v-col>
           </v-row>
