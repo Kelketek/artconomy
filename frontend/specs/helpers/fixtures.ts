@@ -157,6 +157,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     cascade_fees: true,
     escrow_upgradable: false,
     display_position: 0,
+    over_order_limit: false,
     ...overrides,
   }
 }

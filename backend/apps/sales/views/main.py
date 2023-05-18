@@ -361,6 +361,23 @@ class ProductSampleManager(DestroyAPIView):
         instance.delete()
 
 
+def derive_user_from_string(seller, user_string):
+    if not user_string:
+        return None
+    try:
+        user = User.objects.get(username=user_string, is_active=True)
+    except User.DoesNotExist:
+        try:
+            user = User.objects.get(email=user_string, is_active=True)
+        except User.DoesNotExist:
+            user = create_guest_user(user_string)
+            return user
+    if user == seller:
+        raise ValidationError("You cannot order your own product.")
+    return user
+
+
+
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
     permission_classes = [OrderPlacePermission]
@@ -379,15 +396,18 @@ class PlaceOrder(CreateAPIView):
         self.check_object_permissions(self.request, product)
         user = self.request.user
         reconnect = False
+        user_string = serializer.validated_data.get("email", '')
         if user.is_staff and product.table_product:
-            user = create_guest_user(serializer.validated_data["email"])
+            user = create_guest_user(user_string)
         elif not user.is_authenticated:
-            user = create_guest_user(serializer.validated_data["email"])
+            user = create_guest_user(user_string)
             login(self.request, user)
             reconnect = True
+        elif (product.user == self.request.user) or self.request.user.is_staff and serializer.validated_data['invoicing']:
+            user = derive_user_from_string(product.user, user_string)
         elif not user.is_registered:
-            if self.request.user.guest_email != serializer.validated_data["email"]:
-                user = create_guest_user(serializer.validated_data["email"])
+            if self.request.user.guest_email != user_string:
+                user = create_guest_user(user_string)
                 login(self.request, user)
                 reconnect = True
         order = serializer.save(
@@ -424,14 +444,14 @@ class PlaceOrder(CreateAPIView):
             details=serializer.validated_data["details"],
         )
         deliverable.characters.set(serializer.validated_data.get("characters", []))
-        if not user.guest:
+        if self.request.user == user:
             for character in deliverable.characters.all():
                 character.shared_with.add(order.seller)
-        else:
+        elif user:
             order.customer_email = user.guest_email
             order.save()
         for asset in serializer.validated_data.get("references", []):
-            reference = Reference.objects.create(file=asset, owner=user)
+            reference = Reference.objects.create(file=asset, owner=user or self.request.user)
             reference.deliverables.add(deliverable)
         if product.wait_list:
             notify(WAITLIST_UPDATED, order.seller, unique=True, mark_unread=True)
@@ -597,12 +617,15 @@ class DeliverableInvite(GenericAPIView):
                 data={"detail": "Customer email not set. Cannot send an invite!"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        customer_email = deliverable.order.customer_email
         if deliverable.order.buyer:
-            deliverable.order.buyer.guest_email = deliverable.order.customer_email
+            deliverable.order.buyer.guest_email = customer_email
             deliverable.order.buyer.save()
             subject = f"Claim Link for order #{deliverable.order.id}."
             template = "new_claim_link.html"
         else:
+            new_user = create_guest_user(customer_email)
+            transfer_order(deliverable.order, None, new_user, skip_notification=True)
             subject = (
                 f"You have a new invoice from {deliverable.order.seller.username}!"
             )
@@ -610,7 +633,7 @@ class DeliverableInvite(GenericAPIView):
         send_transaction_email(
             subject,
             template,
-            deliverable.order.customer_email,
+            customer_email,
             {
                 "deliverable": deliverable,
                 "order": deliverable.order,

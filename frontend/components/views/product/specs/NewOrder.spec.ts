@@ -49,7 +49,7 @@ describe('NewOrder.vue', () => {
     expect(window.scrollTo).toHaveBeenCalledWith(0, 0)
   })
   it('Submits a form with a registered user', async() => {
-    const user = genUser()
+    const user = genUser({username: 'OtherPerson'})
     setViewer(store, user)
     wrapper = mount(NewOrder, {
       localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
@@ -77,6 +77,38 @@ describe('NewOrder.vue', () => {
       },
       query: {
         showConfirm: 'true',
+      },
+    })
+  })
+  it('Creates an invoice for an artist', async() => {
+    const user = genUser()
+    setViewer(store, user)
+    wrapper = mount(NewOrder, {
+      localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
+    })
+    const vm = wrapper.vm as any
+    vm.subjectHandler.user.makeReady(genUser())
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
+    vm.product.makeReady(genProduct({id: 1}))
+    await vm.$nextTick()
+    expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
+    const mockPush = jest.spyOn(vm.$router, 'push')
+    vm.orderForm.step = 3
+    await vm.$nextTick()
+    wrapper.find('.submit-button').trigger('click')
+    await vm.$nextTick()
+    const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
+    mockAxios.mockResponse(rs(genOrder()), submitted)
+    await flushPromises()
+    await vm.$nextTick()
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'SaleDeliverablePayment',
+      params: {
+        orderId: '1',
+        username: 'Fox',
+      },
+      query: {
+        view_as: 'Seller',
       },
     })
   })
@@ -175,6 +207,7 @@ describe('NewOrder.vue', () => {
         rating: {value: 0, step: 2},
         details: {value: '', step: 2},
         references: {value: [], step: 2},
+        invoicing: {value: false, step: 3},
         // Let there be a 'step 3' even if there's not an actual field there.
         dummy: {value: '', step: 3},
       },
@@ -217,6 +250,7 @@ describe('NewOrder.vue', () => {
         characters: {value: [23, 50]},
         rating: {value: 0},
         details: {value: ''},
+        invoicing: {value: false, step: 3},
       },
     })
     wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})

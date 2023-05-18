@@ -312,7 +312,8 @@
                     <v-alert v-if="product.x.wait_list" :value="true" type="info">This product is waitlisted.</v-alert>
                     <v-btn color="green" block :to="orderLink" v-if="!product.x.table_product">
                       <v-icon left>shopping_basket</v-icon>
-                      Order
+                      <span v-if="isCurrent">Create Invoice</span>
+                      <span v-else>Order</span>
                     </v-btn>
                     <v-alert type="info" v-else>Visit our table to order!</v-alert>
                   </template>
@@ -565,11 +566,18 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
     }
 
     public get orderLink(): Location {
+      // eslint-disable-next-line camelcase
+      if (this.isCurrent && this.product.x?.over_order_limit) {
+        return {name: 'Upgrade', params: {username: this.username}}
+      }
       const path: Location = {
         name: 'NewOrder',
         params: {username: this.username, productId: `${this.productId}`, stepId: '1'},
       }
       path.query = {...this.$route.query}
+      if (this.isCurrent) {
+        path.params!.invoiceMode = 'invoice'
+      }
       return path
     }
 

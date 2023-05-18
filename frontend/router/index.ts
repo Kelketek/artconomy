@@ -285,9 +285,11 @@ export const routes = [
         children: [
           {
             name: 'NewOrder',
-            path: 'order/:stepId?/',
+            path: 'order/:stepId?/:invoiceMode(invoice)?',
             component: NewOrder,
-            props: true,
+            props(route: Route) {
+              return {...route.params, invoiceMode: !!route.params.invoiceMode}
+            },
           },
         ],
       },

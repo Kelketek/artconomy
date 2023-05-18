@@ -12,5 +12,5 @@
 {% endblock message %}
 
 {% block action %}
-<a href="/claim-order/{{deliverable.order.id}}/{{ claim_token }}/{{deliverable.id}}">View your invoice here!</a>
+<a href="/claim-order/{{order.id}}/{{ claim_token }}/{% if deliverable %}{{deliverable.id}}{% endif %}">View your invoice here!</a>
 {% endblock %}

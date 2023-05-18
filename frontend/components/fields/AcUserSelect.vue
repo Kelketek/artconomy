@@ -1,5 +1,5 @@
 <template>
-  <v-autocomplete
+  <v-combobox
       chips
       :multiple="multiple"
       v-model="tags"

@@ -43,7 +43,7 @@ from apps.sales.constants import (
     TIP,
     TIPPING,
     UNPROCESSED_EARNINGS,
-    WAITING,
+    WAITING, CONCURRENCY_STATUSES,
 )
 from apps.sales.line_item_funcs import get_totals, reckon_lines
 from apps.sales.models import (
@@ -112,6 +112,17 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     starting_price = MoneyToFloatField(read_only=True)
     shield_price = MoneyToFloatField(read_only=True)
     expected_turnaround = FloatField()
+    over_order_limit = serializers.SerializerMethodField()
+
+    def get_over_order_limit(self, obj):
+        if not obj.user.service_plan.max_simultaneous_orders:
+            return False
+        return (
+                obj.user.service_plan.max_simultaneous_orders
+                <= Deliverable.objects.filter(
+            status__in=CONCURRENCY_STATUSES,
+            order__seller=obj.user,
+        ).count())
 
     def __init__(self, *args, **kwargs):
         self.related_list = kwargs.get("related_list", None)
@@ -212,6 +223,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "escrow_upgradable",
             "international",
             "display_position",
+            "over_order_limit",
         )
         read_only_fields = (
             "tags",
@@ -281,7 +293,7 @@ class ProductNameMixin:
 class ProductNewOrderSerializer(
     ProductNameMixin, serializers.ModelSerializer, CharacterValidationMixin
 ):
-    email = EmailField(write_only=True, required=False, allow_blank=True)
+    email = serializers.CharField(write_only=True, required=False, allow_blank=True)
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     characters = ListField(child=IntegerField(), required=False)
@@ -291,6 +303,7 @@ class ProductNewOrderSerializer(
         write_only=True,
         max_length=10,
     )
+    invoicing = BooleanField(default=False)
     rating = ModelField(model_field=Deliverable()._meta.get_field("rating"))
     details = ModelField(
         model_field=Deliverable()._meta.get_field("details"), max_length=5000
@@ -311,6 +324,14 @@ class ProductNewOrderSerializer(
             del self.fields["characters"]
             self.fields["email"].required = True
             self.fields["email"].allow_blank = False
+
+    def validate_email(self, value):
+        if not value:
+            return ''
+        if User.objects.filter(username=value).exists():
+            return value
+        EmailValidator()(value)
+        return value
 
     def validate_references(self, value):
         value = set(value)
@@ -339,6 +360,7 @@ class ProductNewOrderSerializer(
                 "rating",
                 "email",
                 "escrow_upgrade",
+                "invoicing",
             )
         }
         return super().create(data)
@@ -357,6 +379,7 @@ class ProductNewOrderSerializer(
             "characters",
             "references",
             "product_name",
+            "invoicing",
             "escrow_upgrade",
         )
         extra_kwargs = {

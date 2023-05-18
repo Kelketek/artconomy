@@ -690,7 +690,7 @@ class UserSearch(ListAPIView):
             qs = qs.filter(Q(taggable=True) | Q(id=self.request.user.id))
         elif tagging:
             qs = qs.filter(taggable=True)
-        return qs
+        return qs.order_by('username')
 
 
 class TagSearch(APIView):

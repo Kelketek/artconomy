@@ -84,9 +84,6 @@ class OrderPlacePermission(BasePermission):
             .exists()
         ):
             return False
-        if obj.user == request.user and not obj.user.is_staff:
-            self.message = "You may not order your own product."
-            return False
         if not request.user.is_authenticated:
             return True
         # Need something a bit more robust here for guest checkout.

@@ -391,7 +391,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.data["detail"], "This product is not in stock.")
         self.assertEqual(Order.objects.all().count(), 0)
 
-    def test_place_order_own_product(self):
+    def test_place_order_own_product_empty_email(self):
         product = ProductFactory.create()
         self.login(product.user)
         response = self.client.post(
@@ -403,7 +403,86 @@ class TestOrder(TransactionCheckMixin, APITestCase):
                 "rating": ADULT,
             },
         )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
+        self.assertIsNone(deliverable.order.buyer)
+        self.assertEqual(deliverable.order.customer_email, '')
+
+    def test_place_order_own_product_own_email(self):
+        product = ProductFactory.create()
+        self.login(product.user)
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": product.user.email,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_place_order_own_product_buyer_email(self):
+        product = ProductFactory.create()
+        self.login(product.user)
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "test@example.com",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
+        self.assertTrue(deliverable.order.buyer)
+        self.assertEqual(deliverable.order.buyer.guest_email, 'test@example.com')
+        self.assertEqual(deliverable.order.customer_email, 'test@example.com')
+
+    def test_place_order_own_product_buyer_existing_email(self):
+        product = ProductFactory.create()
+        self.login(product.user)
+        target_user = UserFactory.create(email='test@example.com')
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "test@example.com",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
+        self.assertTrue(deliverable.order.buyer)
+        self.assertEqual(deliverable.order.buyer.guest_email, '')
+        self.assertEqual(deliverable.order.buyer, target_user)
+        self.assertEqual(deliverable.order.customer_email, '')
+
+    def test_place_order_own_product_buyer_existing_username(self):
+        product = ProductFactory.create()
+        self.login(product.user)
+        target_user = UserFactory.create(username='example')
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "example",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
+        self.assertTrue(deliverable.order.buyer)
+        self.assertEqual(deliverable.order.buyer.guest_email, '')
+        self.assertEqual(deliverable.order.buyer, target_user)
+        self.assertEqual(deliverable.order.customer_email, '')
 
     def test_place_order_unavailable(self):
         user = UserFactory.create()

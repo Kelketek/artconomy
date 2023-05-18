@@ -582,7 +582,7 @@ def claim_order_by_token(order_claim, user, force=False):
     transfer_order(order, order.buyer, user, force=force)
 
 
-def transfer_order(order, old_buyer, new_buyer, force=False):
+def transfer_order(order, old_buyer, new_buyer, force=False, skip_notification=False):
     """
     Sets the buyer from one user (or None) to a new buyer.
 
@@ -610,7 +610,8 @@ def transfer_order(order, old_buyer, new_buyer, force=False):
         Subscription.objects.bulk_create(
             buyer_subscriptions(deliverable), ignore_conflicts=True
         )
-        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        if not skip_notification:
+            notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         update_order_payments(deliverable)
     revision_type = ContentType.objects.get_for_model(Revision)
     Subscription.objects.bulk_create(

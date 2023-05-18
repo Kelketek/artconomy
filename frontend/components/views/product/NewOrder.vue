@@ -1,7 +1,7 @@
 <template>
   <ac-load-section :controller="product">
     <template v-slot:default>
-      <v-row>
+      <v-row @click="() => clickCounter += 1">
         <v-col cols="12" md="8" offset-lg="1" >
           <ac-form @submit.prevent="submitAction">
             <ac-form-container
@@ -28,10 +28,22 @@
                   <v-stepper-items>
                     <v-stepper-content :step="1">
                       <v-row>
-                        <v-col cols="12" sm="6" v-if="!isRegistered || product.x.table_product">
+                        <v-col cols="12" sm="6" v-if="invoicing || !isRegistered || product.x.table_product">
                           <v-subheader v-if="!isRegistered">Checkout as Guest</v-subheader>
+                          <v-subheader v-if="invoicing">Enter customer's username or email</v-subheader>
                           <v-subheader v-else-if="product.x.table_product">Enter Commissioner's Email</v-subheader>
-                          <ac-bound-field label="Email" :field="orderForm.fields.email" />
+                          <ac-bound-field
+                                  label="Customer username/email"
+                                  :field="orderForm.fields.email"
+                                  field-type="ac-user-select"
+                                  item-value="username"
+                                  :multiple="false"
+                                  :allow-raw="true"
+                                  v-if="invoicing"
+                                  hint="Enter the username or the email address of the customer this commission is for.
+                This can be left blank if you only want to use this order for tracking purposes."
+                          />
+                          <ac-bound-field label="Email" v-else :field="orderForm.fields.email" />
                         </v-col>
                         <v-col cols="12" sm="6" class="text-center" v-if="!isRegistered">
                           <p>Or, if you have an account,</p>
@@ -45,7 +57,7 @@
                               field-type="ac-rating-field" :field="orderForm.fields.rating"
                               :persistent-hint="true"
                               :max="product.x.max_rating"
-                              hint="Please select the desired content rating of the piece you are commissioning."
+                              :hint="ratingHint"
                           />
                         </v-col>
                       </v-row>
@@ -65,9 +77,7 @@
                         <v-col cols="12" sm="6">
                           <ac-bound-field
                               field-type="ac-checkbox" :field="orderForm.fields.private" label="Private Order" :persistent-hint="true"
-                              hint="Hides the resulting submission from public view and tells the artist you want this commission
-                    to be private. The artist may charge an additional fee, since they will not be able to use the piece
-                    in their portfolio."
+                              :hint="privateHint"
                           />
                         </v-col>
                       </v-row>
@@ -114,7 +124,20 @@
                       </v-row>
                     </v-stepper-content>
                     <v-stepper-content step="3">
-                      <v-row>
+                      <v-row v-if="invoicing">
+                        <v-col cols="12">
+                          <v-card>
+                            <v-card-text>
+                              <p><span class="title">When you hit 'Create Invoice'...</span></p>
+                              <p>You will be brought to an order page, where you can then adjust terms/line items and
+                                finalize once ready. Once finalized, the invoice will be sent to the customer
+                                (if you provided a username or email).
+                              </p>
+                            </v-card-text>
+                          </v-card>
+                        </v-col>
+                      </v-row>
+                      <v-row v-else>
                         <v-col cols="12">
                           <v-alert type="warning" :value="true" v-if="product.x.wait_list">
                             This order will be waitlisted. Waitlisted orders are not guaranteed to be accepted on any
@@ -160,8 +183,15 @@
                 <v-card-actions row wrap>
                   <v-spacer></v-spacer>
                   <v-btn @click.prevent="orderForm.step -= 1" v-if="orderForm.step > 1" color="secondary" class="previous-button">Previous</v-btn>
-                  <v-btn @click.prevent="orderForm.step += 1" v-if="orderForm.step < 3" color="primary" class="next-button">Next</v-btn>
-                  <v-btn type="submit" v-if="orderForm.step === 3" color="primary" class="submit-button">Agree and Place Order</v-btn>
+                  <v-btn @click.prevent="orderForm.step += 1" v-if="orderForm.step < 3" color="primary" class="next-button" :disabled="nextDisabled">Next</v-btn>
+                  <v-btn type="submit" v-if="orderForm.step === 3" color="primary" class="submit-button">
+                    <span v-if="invoicing">
+                      Create Invoice
+                    </span>
+                    <span v-else>
+                      Agree and Place Order
+                    </span>
+                  </v-btn>
                 </v-card-actions>
               </v-card>
               <v-card>
@@ -226,7 +256,7 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import Order from '@/types/Order'
 import {User} from '@/store/profiles/types/User'
-import {Watch} from 'vue-property-decorator'
+import {Watch, Prop} from 'vue-property-decorator'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
@@ -253,6 +283,8 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
     public loginForm: FormController = null as unknown as FormController
     public initCharacters: Character[] = []
     public showCharacters = false
+    // Nasty hack, see nextDisabled for application.
+    public clickCounter = 0
 
     @Watch('viewer.guest_email')
     public updateEmail(newVal: string) {
@@ -261,6 +293,9 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       }
       this.orderForm.fields.email.update(newVal)
     }
+
+    @Prop({default: false})
+    public invoiceMode!: boolean
 
     @Watch('product.x')
     public trackCart(newProduct: null|Product, oldProduct: null|Product) {
@@ -297,13 +332,25 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         return
       }
       // Special case override for table events.
-      if (this.product.x?.table_product && this.isStaff) { // eslint-disable-line camelcase
+      if ((this.product.x?.table_product && this.isStaff) || this.invoicing) { // eslint-disable-line camelcase
         link.query.view_as = 'Seller'
         link.name = 'SaleDeliverablePayment'
         delete link.query.showConfirm
       }
       this.$router.push(link)
       this.orderForm.sending = false
+    }
+
+    public get nextDisabled() {
+      // Touch the order form so this is re-evaluated whenever it changes.
+      // Just checking the email field isn't enough since Vue can't listen for it.
+      // eslint-disable-next-line no-unused-expressions
+      this.clickCounter
+      const element = document.querySelector('#field-newOrder__email')
+      if (!element) {
+        return false
+      }
+      return document.activeElement && document.activeElement.id === element.id
     }
 
     public get currentPrice() {
@@ -315,6 +362,17 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         return product.shield_price
       }
       return product.starting_price
+    }
+
+    public get ratingHint() {
+      if (this.invoicing) {
+        return 'Please select the desired content rating of the piece being commissioned.'
+      }
+      return 'Please select the desired content rating of the piece you are commissioning.'
+    }
+
+    public get invoicing() {
+      return this.isCurrent || (this.isStaff && this.invoiceMode)
     }
 
     public get shielded() {
@@ -345,6 +403,19 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       return text + `$${this.shieldCost.toFixed(2)}`
     }
 
+    public get privateHint() {
+      if (this.invoicing) {
+        return 'Mark if the client has requested that this piece be private-- which means that it will not be publicly ' +
+            'shown, and copyright will be assigned to them by default (if applicable and legally possible, and your ' +
+            'commission info in your artist settings does not explicitly say otherwise). You are advised to upcharge ' +
+            'for this if you do it.'
+      } else {
+        return 'Hides the resulting submission from public view and tells the artist you want this commission ' +
+          'to be private. The artist may charge an additional fee, since they will not be able to use the piece ' +
+          'in their portfolio.'
+      }
+    }
+
     public get forceShield() {
       return !!({...this.$route.query}.forceShield)
     }
@@ -361,22 +432,28 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       } else if (step < 1) {
         step = 1
       }
+      const validators = [{name: 'email'}]
+      if (this.invoiceMode) {
+        validators.pop()
+      }
       this.orderForm = this.$getForm('newOrder', {
         endpoint: this.product.endpoint + 'order/',
         persistent: true,
         step,
         fields: {
-          email: {value: (viewer.guest_email || ''), step: 1, validators: [{name: 'email'}]},
+          email: {value: (viewer.guest_email || ''), step: 1, validators: validators},
           private: {value: false, step: 1},
           characters: {value: [], step: 2},
           rating: {value: 0, step: 2},
           details: {value: '', step: 2},
           references: {value: [], step: 2},
+          invoicing: {value: false, step: 3},
           // Note: There are agreements and warnings to display on step 3 even if there aren't fields,
           // so if this field gets moved to a lower step, a dummy field should be created for step 3 to persist.
           escrow_upgrade: {value: this.forceShield, step: 3},
         },
       })
+      this.orderForm.fields.invoicing.update(this.invoicing)
       // Might be overwritten and set false if the form already exists and the visited another product.
       if (this.forceShield) {
         this.orderForm.fields.escrow_upgrade.model = true

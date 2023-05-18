@@ -29,4 +29,5 @@ export default interface Product {
   cascade_fees: boolean,
   escrow_upgradable: boolean,
   display_position: number,
+  over_order_limit: boolean,
 }
