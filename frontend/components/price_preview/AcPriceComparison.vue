@@ -1,11 +1,20 @@
 <template>
   <v-container class="pa-0">
     <v-row>
-      <v-col v-for="({name, lineItems}) in lineItemSetMaps" :key="name">
+      <v-col cols="12" :md="mdSize" :lg="lgSize" v-for="({name, lineItems, offer}) in lineItemSetMaps" :key="name">
         <v-card>
           <v-card-text>
             <v-card-title v-if="!single">{{name}}</v-card-title>
             <ac-price-preview :line-items="lineItems" :username="username" :hide-hourly-form="!single" />
+            <v-row no-gutters>
+              <v-col cols="12" class="text-center" v-if="offerExists">
+                <v-btn
+                    :disabled="!offer" :style="`opacity: ${offer ? 1 : 0}`"
+                    color="green"
+                    :to="{name: 'Upgrade', params: {username}}"
+                    :aria-hidden="`${offer ? 'true' : 'false'}`">Upgrade</v-btn>
+              </v-col>
+            </v-row>
           </v-card-text>
         </v-card>
       </v-col>
@@ -43,6 +52,26 @@ export default class extends mixins(Subjective) {
 
   public hourlyForm = null as unknown as FormController
   public hours = null
+
+  public get mdSize() {
+    if (this.lineItemSetMaps.length > 1) {
+      return 6
+    }
+    return 12
+  }
+
+  public get offerExists() {
+    return !!this.lineItemSetMaps.filter((item) => item.offer).length
+  }
+
+  public get lgSize() {
+    if (this.lineItemSetMaps.length >= 3) {
+      return 4
+    } else if (this.lineItemSetMaps.length === 2) {
+      return 6
+    }
+    return 12
+  }
 
   public get single() {
     return this.lineItemSetMaps.length === 1

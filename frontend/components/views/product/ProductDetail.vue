@@ -211,9 +211,9 @@
                   <ac-expanded-property v-model="showTerms" :large="true">
                     <span slot="title">Edit Terms</span>
                     <v-row>
-                      <v-col cols="6">
+                      <v-col cols="12" md="6" lg="4">
                         <v-row>
-                          <v-col cols="12" sm="6">
+                          <v-col cols="12" sm="6" lg="12">
                             <ac-patch-field :patcher="product.patchers.base_price" :label="basePriceLabel"
                                             field-type="ac-price-field"
                                             :hint="priceHint"
@@ -254,12 +254,10 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <v-col>
-                        <v-col cols="12">
-                          <ac-price-comparison
-                              :username="username" :line-item-set-maps="lineItemSetMaps"
-                          />
-                        </v-col>
+                      <v-col cols="12" md="6" lg="8">
+                        <ac-price-comparison
+                            :username="username" :line-item-set-maps="lineItemSetMaps"
+                        />
                       </v-col>
                     </v-row>
                     <v-row>
@@ -662,6 +660,10 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
         endpoint: '#',
         paginated: false,
       })
+      const preferredLinesController = this.$getList(`product${product.x.id}PreferredPlanItems`, {
+        endpoint: '#',
+        paginated: false,
+      })
       const pricing = this.pricing.x
       const basePrice = product.x.base_price
       // eslint-disable-next-line camelcase
@@ -669,19 +671,30 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       const international = !!this.subject?.international
       const cascade = product.x.cascade_fees
       const tableProduct = product.x.table_product
+      let appendPreferred = false
       if (this.escrow && (product.x.escrow_enabled || product.x.escrow_upgradable)) {
-        const escrowLines = deliverableLines({
+        const options = {
           basePrice,
           cascade: cascade && (product.x.escrow_enabled),
           international,
-          planName,
           pricing,
           escrowEnabled: true,
           tableProduct,
           extraLines: [],
+        }
+        const escrowLines = deliverableLines({
+          ...options,
+          planName,
         })
         escrowLinesController.makeReady(escrowLines)
-        sets.push({name: 'Shield Protected', lineItems: escrowLinesController})
+        sets.push({name: 'Shielded', lineItems: escrowLinesController, offer: false})
+        if (pricing && (planName !== pricing.preferred_plan)) {
+          preferredLinesController.makeReady(deliverableLines({
+            ...options,
+            planName: pricing.preferred_plan,
+          }))
+          appendPreferred = true
+        }
       }
       if (!this.escrow || !product.x.escrow_enabled) {
         const nonEscrowLines = deliverableLines({
@@ -695,7 +708,11 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
           extraLines: [],
         })
         nonEscrowLinesController.makeReady(nonEscrowLines)
-        sets.push({name: 'Unprotected', lineItems: nonEscrowLinesController})
+        sets.push({name: 'Unshielded', lineItems: nonEscrowLinesController, offer: false})
+      }
+      if (appendPreferred) {
+        // eslint-disable-next-line camelcase
+        sets.push({name: pricing?.preferred_plan + '', lineItems: preferredLinesController, offer: true})
       }
       return sets
     }

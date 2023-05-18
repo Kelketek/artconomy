@@ -2288,6 +2288,7 @@ class PricingInfo(APIView):
                 "table_static": settings.TABLE_STATIC_FEE.amount,
                 "table_tax": settings.TABLE_TAX,
                 "international_conversion_percentage": settings.INTERNATIONAL_CONVERSION_PERCENTAGE,
+                "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
             },
         )
 

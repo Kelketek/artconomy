@@ -164,5 +164,6 @@ export function genPricing(): Pricing {
     table_static: 5,
     table_tax: 8.25,
     international_conversion_percentage: 1,
+    preferred_plan: 'Landscape',
   }
 }

@@ -7,4 +7,5 @@ export default interface Pricing {
   table_static: number,
   table_tax: number,
   international_conversion_percentage: number,
+  preferred_plan: string,
 }

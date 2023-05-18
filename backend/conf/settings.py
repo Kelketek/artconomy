@@ -615,6 +615,8 @@ CACHES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 DEFAULT_SERVICE_PLAN_NAME = get_env("DEFAULT_SERVICE_PLAN_NAME", "Free")
+# Used as the comparison point in price previews by the frontend.
+PREFERRED_SERVICE_PLAN_NAME = get_env("PREFERRED_SERVICE_PLAN_NAME", "Landscape")
 
 # Username for the 'anonymous user'-- The user which random purchases at the point of sale are attributed to.
 # This exists so the software can distinguish between None as a payer/payee, which means Artconomy, and someone who

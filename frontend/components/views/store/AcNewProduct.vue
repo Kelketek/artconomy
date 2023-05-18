@@ -60,9 +60,9 @@
               </v-stepper-content>
               <v-stepper-content :step="2">
                 <v-row>
-                  <v-col cols="6">
+                  <v-col cols="12" md="6" lg="4">
                     <v-row>
-                      <v-col cols="12" sm="6">
+                      <v-col cols="12" sm="6" lg="12">
                         <ac-bound-field :field="newProduct.fields.base_price" :label="basePriceLabel"
                                         field-type="ac-price-field"
                                         :hint="priceHint"
@@ -103,12 +103,10 @@
                       </v-col>
                     </v-row>
                   </v-col>
-                  <v-col>
-                    <v-col cols="12">
-                      <ac-price-comparison
-                          :username="username" :line-item-set-maps="lineItemSetMaps"
-                      />
-                    </v-col>
+                  <v-col cols="12" md="6" lg="8">
+                    <ac-price-comparison
+                        :username="username" :line-item-set-maps="lineItemSetMaps"
+                    />
                   </v-col>
                 </v-row>
                 <v-row>
@@ -254,6 +252,10 @@ export default class AcNewProduct extends Subjective {
         endpoint: '#',
         paginated: false,
       })
+      const preferredLinesController = this.$getList('newProductPreferredPlanItems', {
+        endpoint: '#',
+        paginated: false,
+      })
       const pricing = this.pricing.x
       const basePrice = parseFloat(this.newProduct.fields.base_price.value)
       // eslint-disable-next-line camelcase
@@ -261,19 +263,30 @@ export default class AcNewProduct extends Subjective {
       const international = !!this.subject?.international
       const cascade = this.newProduct.fields.cascade_fees.value
       const tableProduct = this.newProduct.fields.table_product.value
+      let appendPreferred = false
+      const options = {
+        basePrice,
+        cascade: cascade && (this.newProduct.fields.escrow_enabled.value),
+        international,
+        pricing,
+        escrowEnabled: true,
+        tableProduct,
+        extraLines: [],
+      }
       if (this.escrow && (this.newProduct.fields.escrow_enabled.value || this.newProduct.fields.escrow_upgradable.value)) {
         const escrowLines = deliverableLines({
-          basePrice,
-          cascade: cascade && (this.newProduct.fields.escrow_enabled.value),
-          international,
+          ...options,
           planName,
-          pricing,
-          escrowEnabled: true,
-          tableProduct,
-          extraLines: [],
         })
         escrowLinesController.makeReady(escrowLines)
-        sets.push({name: 'Shield Protected', lineItems: escrowLinesController})
+        sets.push({name: 'Shielded', lineItems: escrowLinesController, offer: false})
+        if (pricing && (planName !== pricing.preferred_plan)) {
+          preferredLinesController.makeReady(deliverableLines({
+            ...options,
+            planName: pricing.preferred_plan,
+          }))
+          appendPreferred = true
+        }
       }
       if (!this.escrow || !this.newProduct.fields.escrow_enabled.value) {
         const nonEscrowLines = deliverableLines({
@@ -287,7 +300,11 @@ export default class AcNewProduct extends Subjective {
           extraLines: [],
         })
         nonEscrowLinesController.makeReady(nonEscrowLines)
-        sets.push({name: 'Unprotected', lineItems: nonEscrowLinesController})
+        sets.push({name: 'Unshielded', lineItems: nonEscrowLinesController, offer: false})
+      }
+      if (appendPreferred) {
+        // eslint-disable-next-line camelcase
+        sets.push({name: pricing?.preferred_plan + '', lineItems: preferredLinesController, offer: true})
       }
       return sets
     }
