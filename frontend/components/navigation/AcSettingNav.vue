@@ -13,6 +13,12 @@
         <v-icon>palette</v-icon>
       </v-list-item-icon>
     </v-list-item>
+    <v-list-item :to="{name: 'Email', params: {username}}" exact>
+      <v-list-item-title>Email Notifications</v-list-item-title>
+      <v-list-item-icon>
+        <v-icon>send</v-icon>
+      </v-list-item-icon>
+    </v-list-item>
     <v-list-item :to="{name: 'Login Details', params: {username}}">
       <v-list-item-title>Login Details</v-list-item-title>
       <v-list-item-icon>

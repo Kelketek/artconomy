@@ -63,6 +63,7 @@ const Payout = () => import('@/components/views/settings/payment/Payout.vue')
 const NotificationsList = () => import('@/components/views/notifications/NotificationsList.vue')
 const Settings = () => import('@/components/views/settings/Settings.vue')
 const Options = () => import('@/components/views/settings/Options.vue')
+const Email = () => import('@/components/views/settings/Email.vue')
 const Artist = () => import('@/components/views/settings/Artist.vue')
 const Credentials = () => import('@/components/views/settings/Credentials.vue')
 const Avatar = () => import('@/components/views/settings/Avatar.vue')
@@ -412,6 +413,12 @@ export const routes = [
         name: 'Options',
         path: 'options',
         component: Options,
+        props: true,
+      },
+      {
+        name: 'Email',
+        path: 'email',
+        component: Email,
         props: true,
       },
     ],

@@ -15,7 +15,7 @@ from apps.lib.serializers import (
     TagListField,
     TagSerializer,
     UserListField,
-    UserRelationField,
+    UserRelationField, EmailPreferenceField,
 )
 from apps.profiles.models import (
     ArtistProfile,
@@ -1081,10 +1081,31 @@ class ArtistTagSerializer(serializers.ModelSerializer):
         fields = ("id", "submission", "user", "display_position", "hidden")
 
 
-class EmailPreferencesSerializer(serializers.Serializer):
-    def __init__(self, *args, **kwargs):
+class EmailPreferencesSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
+    def __new__(cls, *args, **kwargs):
+        field_names = set()
+        declared_fields = {}
+        to_disambiguate = set()
         for preference in kwargs["context"]["preferences"]:
-            self._declared_fields[
-                slugify(preference.get_type_display().lower()).replace("-", "_")
-            ] = serializers.BooleanField(initial=preference.enabled, required=False)
-        super().__init__(*args, **kwargs)
+            field_name = slugify(preference.get_type_display().lower()).replace("-", "_")
+            if field_name in field_names:
+                to_disambiguate |= {field_name}
+                revised_name = field_name + f'__{str(declared_fields[field_name].instance.content_type.model).lower()}'
+                declared_fields[revised_name] = declared_fields[field_name]
+                del declared_fields[field_name]
+                field_names.remove(field_name)
+                field_names |= {revised_name}
+            if field_name in to_disambiguate:
+                field_name += f'__{str(preference.content_type.model).lower()}'
+            field_names |= {field_name}
+            declared_fields[field_name] = EmailPreferenceField(
+                instance=preference, required=False, initial=preference.enabled,
+            )
+        for key, value in declared_fields.items():
+            setattr(cls, key, value)
+        class Meta:
+            model = User
+            fields = tuple(field_names)
+        setattr(cls, 'Meta', Meta)
+        cls._declared_fields = declared_fields
+        return super().__new__(cls, *args, **kwargs)

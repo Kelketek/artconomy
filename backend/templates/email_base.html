@@ -154,11 +154,17 @@
                             <a href="/">Visit Artconomy!</a>
                           {% endblock %}
                         </div>
+                        {% if request.user.is_registered %}
+                        <div class="centered mt-2">
+                          You can manage your notification settings <a href="/my/Email">using this link</a>
+                        </div>
+                        {% else %}
                         <div class="centered mt-2">
                           From your friends at <a href="https://artconomy.com/">Artconomy.com</a>
                         </div>
+                        {% endif %}
                         <div class="centered mt-2">
-                          5214 Newkirk Lane<br />Houston, TX 77021
+                          Artconomy.com, 5214 Newkirk Lane<br />Houston, TX 77021
                         </div>
                       </td>
                     </tr>

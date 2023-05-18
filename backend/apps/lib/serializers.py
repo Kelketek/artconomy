@@ -1,3 +1,4 @@
+import json
 import os
 from typing import List, Union
 
@@ -1034,3 +1035,26 @@ class MoneyToFloatField(serializers.FloatField):
 class CookieConsent(serializers.Serializer):
     first_party_analytics = serializers.BooleanField()
     third_party_analytics = serializers.BooleanField()
+
+
+class EmailPreferenceField(serializers.BooleanField):
+    save_related = True
+
+    def __init__(
+            self,
+            *args,
+            instance,
+            **kwargs,
+    ):
+        self.instance = instance
+        super().__init__(*args, **kwargs)
+
+    def get_attribute(self, instance):
+        return self.instance.enabled
+
+    def to_representation(self, value):
+        return value
+
+    def mod_instance(self, instance, value):
+        self.instance.enabled = value
+        self.instance.save()

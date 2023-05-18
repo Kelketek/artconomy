@@ -20,7 +20,8 @@ from apps.lib.models import (
     EmailPreference,
     Notification,
     Subscription,
-    Tag,
+    Tag, ORDER_UPDATE, SALE_UPDATE, RENEWAL_FIXED, SUBSCRIPTION_DEACTIVATED, RENEWAL_FAILURE, REVISION_UPLOADED,
+    REFERENCE_UPLOADED, REVISION_APPROVED,
 )
 from apps.lib.permissions import (
     All,
@@ -2078,21 +2079,63 @@ class DestroyAccount(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-class NotificationSettings(GenericAPIView):
+class NotificationSettings(RetrieveUpdateAPIView):
     serializer_class = EmailPreferencesSerializer
     permission_classes = [UserControls]
+
+    @property
+    def extra_deliverable_content_types(self):
+        return [ContentType.objects.get_for_model(model) for model in [Revision, Reference]]
 
     def get_object(self) -> User:
         user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
         return user
 
+    @transaction.atomic()
+    def perform_update(self, serializer):
+        result = super().perform_update(serializer)
+        revised_value = serializer.data.get('new_comment__deliverable')
+        user = self.get_object()
+        if revised_value is not None:
+            EmailPreference.objects.filter(
+                user=user,
+                type=COMMENT, content_type__in=self.extra_deliverable_content_types,
+            ).update(enabled=revised_value)
+        revised_value = serializer.data.get('order_update')
+        if revised_value is not None:
+            EmailPreference.objects.filter(
+                user=user,
+                type__in=[ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, REFERENCE_UPLOADED, REVISION_APPROVED],
+            ).update(enabled=revised_value)
+        revised_value = serializer.data.get('renewal_failure')
+        if revised_value is not None:
+            EmailPreference.objects.filter(
+                user=user,
+                type__in=[
+                    RENEWAL_FAILURE,
+                    RENEWAL_FIXED,
+                    SUBSCRIPTION_DEACTIVATED,
+                ],
+            ).update(enabled=revised_value)
+        return result
+
     def get_serializer_context(self) -> Dict[str, Any]:
         context = super().get_serializer_context()
         context["user"] = self.get_object()
         context["preferences"] = EmailPreference.objects.filter(
             user=context["user"]
-        ).order_by("id")
+        ).exclude(
+            type=COMMENT,
+            content_type__in=self.extra_deliverable_content_types,
+        ).exclude(type__in=[
+            SALE_UPDATE,
+            RENEWAL_FIXED,
+            SUBSCRIPTION_DEACTIVATED,
+            REVISION_UPLOADED,
+            REFERENCE_UPLOADED,
+            REVISION_APPROVED,
+        ]).order_by("id")
         return context
 
     def get(self, request, *args, **kwargs):
@@ -2104,7 +2147,6 @@ class CommunitySubmissions(ListAPIView):
     serializer_class = SubmissionSerializer
 
     def get_queryset(self):
-        print("I ran!")
         return (
             available_submissions(
                 self.request,
