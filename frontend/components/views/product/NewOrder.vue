@@ -35,7 +35,6 @@
                           <ac-bound-field
                                   label="Customer username/email"
                                   :field="orderForm.fields.email"
-                                  field-type="ac-user-select"
                                   item-value="username"
                                   :multiple="false"
                                   :allow-raw="true"

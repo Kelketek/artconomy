@@ -9,7 +9,7 @@
         </v-btn>
       </v-col>
     </v-row>
-    <ac-product-list :products="products" v-show="!firstProduct" :show-username="false" :mini="mini" v-else>
+    <ac-product-list :products="products" v-show="!firstProduct" :show-username="false" :mini="mini" v-if="!managing">
       <template slot="empty">
         <v-col class="text-center pt-5">
           {{username}} has no available products.
