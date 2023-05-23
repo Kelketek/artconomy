@@ -115,7 +115,7 @@ discord-py-interactions==5.1.0
     # via -r requirements.in
 discord-typings==0.5.1
     # via discord-py-interactions
-django==4.2
+django==4.2.1
     # via
     #   -r requirements.in
     #   channels
