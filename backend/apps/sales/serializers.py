@@ -30,6 +30,7 @@ from apps.sales.constants import (
     CARD,
     CARD_TRANSACTION_FEES,
     CASH_DEPOSIT,
+    CONCURRENCY_STATUSES,
     ESCROW,
     EXTRA,
     HOLDINGS,
@@ -43,7 +44,7 @@ from apps.sales.constants import (
     TIP,
     TIPPING,
     UNPROCESSED_EARNINGS,
-    WAITING, CONCURRENCY_STATUSES,
+    WAITING,
 )
 from apps.sales.line_item_funcs import get_totals, reckon_lines
 from apps.sales.models import (
@@ -118,11 +119,12 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         if not obj.user.service_plan.max_simultaneous_orders:
             return False
         return (
-                obj.user.service_plan.max_simultaneous_orders
-                <= Deliverable.objects.filter(
-            status__in=CONCURRENCY_STATUSES,
-            order__seller=obj.user,
-        ).count())
+            obj.user.service_plan.max_simultaneous_orders
+            <= Deliverable.objects.filter(
+                status__in=CONCURRENCY_STATUSES,
+                order__seller=obj.user,
+            ).count()
+        )
 
     def __init__(self, *args, **kwargs):
         self.related_list = kwargs.get("related_list", None)
@@ -327,7 +329,7 @@ class ProductNewOrderSerializer(
 
     def validate_email(self, value):
         if not value:
-            return ''
+            return ""
         if User.objects.filter(username=value).exists():
             return value
         EmailValidator()(value)
@@ -797,6 +799,8 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
 
     def get_guest_email(self, order):
         user = self.context["request"].user
+        if self.context.get("public"):
+            return ""
         if not (user == order.seller or user.is_staff):
             return ""
         if order.buyer and order.buyer.guest:
@@ -806,8 +810,7 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
         return ""
 
     def to_representation(self, instance):
-        checks = self.can_view(instance)
-        if (instance.private or instance.hide_details) and not checks:
+        if (instance.private or instance.hide_details) and self.context.get("public"):
             return {"private": True, "id": instance.id}
         return super().to_representation(instance)
 

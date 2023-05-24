@@ -13,15 +13,22 @@ from apps.lib.models import (
     COMMENT,
     FAVORITE,
     ORDER_NOTIFICATION_TYPES,
+    ORDER_UPDATE,
+    REFERENCE_UPLOADED,
+    RENEWAL_FAILURE,
+    RENEWAL_FIXED,
+    REVISION_APPROVED,
+    REVISION_UPLOADED,
+    SALE_UPDATE,
     SUBMISSION_ARTIST_TAG,
     SUBMISSION_CHAR_TAG,
     SUBMISSION_SHARED,
+    SUBSCRIPTION_DEACTIVATED,
     Comment,
     EmailPreference,
     Notification,
     Subscription,
-    Tag, ORDER_UPDATE, SALE_UPDATE, RENEWAL_FIXED, SUBSCRIPTION_DEACTIVATED, RENEWAL_FAILURE, REVISION_UPLOADED,
-    REFERENCE_UPLOADED, REVISION_APPROVED,
+    Tag,
 )
 from apps.lib.permissions import (
     All,
@@ -691,7 +698,7 @@ class UserSearch(ListAPIView):
             qs = qs.filter(Q(taggable=True) | Q(id=self.request.user.id))
         elif tagging:
             qs = qs.filter(taggable=True)
-        return qs.order_by('username')
+        return qs.order_by("username")
 
 
 class TagSearch(APIView):
@@ -2085,7 +2092,9 @@ class NotificationSettings(RetrieveUpdateAPIView):
 
     @property
     def extra_deliverable_content_types(self):
-        return [ContentType.objects.get_for_model(model) for model in [Revision, Reference]]
+        return [
+            ContentType.objects.get_for_model(model) for model in [Revision, Reference]
+        ]
 
     def get_object(self) -> User:
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -2095,20 +2104,27 @@ class NotificationSettings(RetrieveUpdateAPIView):
     @transaction.atomic()
     def perform_update(self, serializer):
         result = super().perform_update(serializer)
-        revised_value = serializer.data.get('new_comment__deliverable')
+        revised_value = serializer.data.get("new_comment__deliverable")
         user = self.get_object()
         if revised_value is not None:
             EmailPreference.objects.filter(
                 user=user,
-                type=COMMENT, content_type__in=self.extra_deliverable_content_types,
+                type=COMMENT,
+                content_type__in=self.extra_deliverable_content_types,
             ).update(enabled=revised_value)
-        revised_value = serializer.data.get('order_update')
+        revised_value = serializer.data.get("order_update")
         if revised_value is not None:
             EmailPreference.objects.filter(
                 user=user,
-                type__in=[ORDER_UPDATE, SALE_UPDATE, REVISION_UPLOADED, REFERENCE_UPLOADED, REVISION_APPROVED],
+                type__in=[
+                    ORDER_UPDATE,
+                    SALE_UPDATE,
+                    REVISION_UPLOADED,
+                    REFERENCE_UPLOADED,
+                    REVISION_APPROVED,
+                ],
             ).update(enabled=revised_value)
-        revised_value = serializer.data.get('renewal_failure')
+        revised_value = serializer.data.get("renewal_failure")
         if revised_value is not None:
             EmailPreference.objects.filter(
                 user=user,
@@ -2123,19 +2139,24 @@ class NotificationSettings(RetrieveUpdateAPIView):
     def get_serializer_context(self) -> Dict[str, Any]:
         context = super().get_serializer_context()
         context["user"] = self.get_object()
-        context["preferences"] = EmailPreference.objects.filter(
-            user=context["user"]
-        ).exclude(
-            type=COMMENT,
-            content_type__in=self.extra_deliverable_content_types,
-        ).exclude(type__in=[
-            SALE_UPDATE,
-            RENEWAL_FIXED,
-            SUBSCRIPTION_DEACTIVATED,
-            REVISION_UPLOADED,
-            REFERENCE_UPLOADED,
-            REVISION_APPROVED,
-        ]).order_by("id")
+        context["preferences"] = (
+            EmailPreference.objects.filter(user=context["user"])
+            .exclude(
+                type=COMMENT,
+                content_type__in=self.extra_deliverable_content_types,
+            )
+            .exclude(
+                type__in=[
+                    SALE_UPDATE,
+                    RENEWAL_FIXED,
+                    SUBSCRIPTION_DEACTIVATED,
+                    REVISION_UPLOADED,
+                    REFERENCE_UPLOADED,
+                    REVISION_APPROVED,
+                ]
+            )
+            .order_by("id")
+        )
         return context
 
     def get(self, request, *args, **kwargs):

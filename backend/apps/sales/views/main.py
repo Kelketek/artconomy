@@ -36,6 +36,7 @@ from apps.lib.utils import (
 from apps.lib.views import BasePreview, PositionShift
 from apps.profiles.models import (
     IN_SUPPORTED_COUNTRY,
+    ArtistProfile,
     ArtistTag,
     Submission,
     User,
@@ -185,7 +186,7 @@ from django.db.models import (
     When,
 )
 from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
@@ -377,7 +378,6 @@ def derive_user_from_string(seller, user_string):
     return user
 
 
-
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
     permission_classes = [Any(OrderPlacePermission, UserControls)]
@@ -396,14 +396,18 @@ class PlaceOrder(CreateAPIView):
         self.check_object_permissions(self.request, product)
         user = self.request.user
         reconnect = False
-        user_string = serializer.validated_data.get("email", '')
+        user_string = serializer.validated_data.get("email", "")
         if user.is_staff and product.table_product:
             user = create_guest_user(user_string)
         elif not user.is_authenticated:
             user = create_guest_user(user_string)
             login(self.request, user)
             reconnect = True
-        elif (product.user == self.request.user) or self.request.user.is_staff and serializer.validated_data['invoicing']:
+        elif (
+            (product.user == self.request.user)
+            or self.request.user.is_staff
+            and serializer.validated_data["invoicing"]
+        ):
             user = derive_user_from_string(product.user, user_string)
         elif not user.is_registered:
             if self.request.user.guest_email != user_string:
@@ -451,7 +455,9 @@ class PlaceOrder(CreateAPIView):
             order.customer_email = user.guest_email
             order.save()
         for asset in serializer.validated_data.get("references", []):
-            reference = Reference.objects.create(file=asset, owner=user or self.request.user)
+            reference = Reference.objects.create(
+                file=asset, owner=user or self.request.user
+            )
             reference.deliverables.add(deliverable)
         if product.wait_list:
             notify(WAITLIST_UPDATED, order.seller, unique=True, mark_unread=True)
@@ -1753,6 +1759,11 @@ class PublicSalesQueue(SalesListBase):
 
     def get_object(self):
         return get_object_or_404(User, username=self.kwargs["username"])
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["public"] = True
+        return context
 
     @staticmethod
     def extra_filter(qs):  # pragma: no cover
@@ -3139,3 +3150,31 @@ class StoreShift(PositionShift):
 
     def get_object(self) -> Any:
         return get_object_or_404(Product, id=self.kwargs["product"])
+
+
+class QueueListing(View):
+    def get(self, request, username):
+        user = get_object_or_404(
+            ArtistProfile, user__username=username, public_queue=True
+        ).user
+        orders = (
+            Order.objects.filter(
+                seller=user,
+                deliverables__status__in=[
+                    QUEUED,
+                    IN_PROGRESS,
+                    REVIEW,
+                    DISPUTED,
+                ],
+            )
+            .distinct()
+            .order_by("created_on")
+        )
+        orders = OrderPreviewSerializer(
+            instance=orders, many=True, context={"request": request, "public": True}
+        ).data
+        return render(
+            request,
+            "sales/queue_listing.html",
+            context={"orders": orders, "user": user},
+        )

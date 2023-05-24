@@ -1,6 +1,6 @@
 """artconomy URL Configuration
 """
-from apps.sales.views.main import ProductPreview, StorePreview
+from apps.sales.views.main import ProductPreview, QueueListing, StorePreview
 from django.urls import path
 
 app_name = "sales"
@@ -12,6 +12,7 @@ app_name = "sales"
 urlpatterns = [
     path("<username>", StorePreview.as_view(), name="store_preview"),
     path("<username>/", StorePreview.as_view(), name="store_preview"),
+    path("<username>/queue-listing/", QueueListing.as_view(), name="queue_listing"),
     path("<username>/iframe", StorePreview.as_view(), name="store_preview_iframe"),
     path("<username>/iframe/", StorePreview.as_view(), name="store_preview_iframe"),
     path(

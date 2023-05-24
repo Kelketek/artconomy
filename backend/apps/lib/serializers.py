@@ -1041,10 +1041,10 @@ class EmailPreferenceField(serializers.BooleanField):
     save_related = True
 
     def __init__(
-            self,
-            *args,
-            instance,
-            **kwargs,
+        self,
+        *args,
+        instance,
+        **kwargs,
     ):
         self.instance = instance
         super().__init__(*args, **kwargs)

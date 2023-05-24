@@ -3,7 +3,12 @@ from unittest.mock import Mock, patch
 
 from apps.lib.abstract_models import ADULT, EXTREME, GENERAL
 from apps.lib.models import COMMENT, Comment, Subscription, ref_for_instance
-from apps.lib.test_resources import APITestCase, MethodAccessMixin, PermissionsTestCase
+from apps.lib.test_resources import (
+    APITestCase,
+    EnsurePlansMixin,
+    MethodAccessMixin,
+    PermissionsTestCase,
+)
 from apps.lib.tests.factories import AssetFactory, TagFactory
 from apps.profiles.models import (
     IN_SUPPORTED_COUNTRY,
@@ -78,7 +83,7 @@ from ddt import data, ddt, unpack
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
-from django.test import override_settings
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.utils.datetime_safe import date
 from freezegun import freeze_time
@@ -3892,3 +3897,26 @@ class TestIssueTipInvoice(APITestCase):
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/issue-tip-invoice/",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class TestQueueListing(EnsurePlansMixin, TestCase):
+    def test_load_listing(self):
+        user = UserFactory.create()
+        not_included = [
+            DeliverableFactory.create(
+                status=COMPLETED,
+                order__seller=user,
+            ),
+            DeliverableFactory.create(
+                status=IN_PROGRESS,
+            ),
+        ]
+        included = [
+            DeliverableFactory.create(status=IN_PROGRESS, order__seller=user),
+            DeliverableFactory.create(status=QUEUED, order__seller=user),
+        ]
+        result = self.client.get(f"/store/{user.username}/queue-listing/")
+        for item in included:
+            self.assertIn(f"order__{item.order.id}", result.content.decode("utf-8"))
+        for item in not_included:
+            self.assertNotIn(f"order__{item.order.id}", result.content.decode("utf-8"))

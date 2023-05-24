@@ -3,10 +3,11 @@
     <ac-profile-header :username="username"></ac-profile-header>
     <ac-paginated :list="list">
       <template v-slot:default>
-        <v-container fluid class="pa-0">
+        <v-container fluid class="pt-2 px-0">
           <v-row>
             <v-col cols="12" class="text-right">
               <v-btn color="green" :to="{name: 'Products', params: {username}}"><v-icon left>add</v-icon>Place an order!</v-btn>
+              <v-btn class="ml-2" @click="openListing"><v-icon>open_in_new</v-icon>Stream list display</v-btn>
             </v-col>
           </v-row>
           <v-row no-gutters>
@@ -44,6 +45,11 @@ import Order from '@/types/Order'
 })
 export default class Queue extends mixins(Subjective) {
   public list: ListController<Order> = null as unknown as ListController<Order>
+
+  public openListing() {
+    const params = 'scrollbars=no,resizable=yes,status=no,location=no,toolbar=no,menubar=no,width=200,height=300,left=100,top=100'
+    open(`/store/${this.username}/queue-listing/`, 'test', params)
+  }
 
   public created() {
     this.list = this.$getList(`${this.username}__queue`, {

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html encoding="utf-8">
+<head>
+  <meta charset="utf-8">
+  <title>{{user.username}}'s stream queue</title>
+  <style>
+    body {
+      background-color: rgb(18, 18, 18);
+      color: rgba(255, 255, 255, 0.7);
+      font-family: "Roboto", sans-serif;
+      text-rendering: optimizeLegibility;
+      font-size: smaller;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    .shortened {
+      display: inline-block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      line-clamp: 1;
+    }
+    td {
+      border-bottom: solid rgba(255, 255, 255, 0.4) 1px;
+      border-right: solid rgba(255, 255, 255, 0.4) 1px;
+      padding: .25rem .5rem;
+    }
+    td:last-child {
+      border-right: none;
+    }
+  </style>
+</head>
+<body>
+<table>
+{% for order in orders %}
+  <tr id="order__{{order.id}}">
+    <td>
+      {% if order.buyer and order.buyer.guest %}
+      Guest #{{order.buyer.guest.id}}
+      {% elif order.buyer %}
+      {{order.buyer.username}}
+      {% elif order.private %}
+      (Private)
+      {% endif %}
+    </td>
+    <td onclick="document.querySelector('#order__{{order.id}}').remove()">x</td>
+  </tr>
+{% endfor %}
+</table>
+</body>
+</html>
