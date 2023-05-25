@@ -3914,9 +3914,15 @@ class TestQueueListing(EnsurePlansMixin, TestCase):
         included = [
             DeliverableFactory.create(status=IN_PROGRESS, order__seller=user),
             DeliverableFactory.create(status=QUEUED, order__seller=user),
+            DeliverableFactory.create(
+                status=QUEUED, order__seller=user, order__buyer__guest=True
+            ),
         ]
         result = self.client.get(f"/store/{user.username}/queue-listing/")
+        content = result.content.decode("utf-8")
         for item in included:
-            self.assertIn(f"order__{item.order.id}", result.content.decode("utf-8"))
+            self.assertIn(f"order__{item.order.id}", content)
         for item in not_included:
-            self.assertNotIn(f"order__{item.order.id}", result.content.decode("utf-8"))
+            self.assertNotIn(f"order__{item.order.id}", content)
+        guest_deliverable = included[-1]
+        self.assertIn(f"Guest #{guest_deliverable.order.buyer.id}", content)

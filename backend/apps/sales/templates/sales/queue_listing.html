@@ -39,7 +39,7 @@
   <tr id="order__{{order.id}}">
     <td>
       {% if order.buyer and order.buyer.guest %}
-      Guest #{{order.buyer.guest.id}}
+      Guest #{{order.buyer.id}}
       {% elif order.buyer %}
       {{order.buyer.username}}
       {% elif order.private %}
