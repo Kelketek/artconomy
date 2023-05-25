@@ -160,6 +160,7 @@ from apps.sales.utils import (
     available_products,
     available_products_by_load,
     cancel_deliverable,
+    claim_deliverable,
     ensure_buyer,
     finalize_deliverable,
     initialize_tip_invoice,
@@ -1483,22 +1484,7 @@ class ClaimDispute(GenericAPIView):
             raise PermissionDenied(
                 "An arbitrator has already been assigned to this dispute."
             )
-        obj.arbitrator = request.user
-        obj.save()
-        Subscription.objects.get_or_create(
-            type=COMMENT,
-            object_id=obj.id,
-            content_type=ContentType.objects.get_for_model(obj),
-            subscriber=request.user,
-            email=True,
-        )
-        Subscription.objects.get_or_create(
-            type=REVISION_UPLOADED,
-            object_id=obj.id,
-            content_type=ContentType.objects.get_for_model(obj),
-            subscriber=request.user,
-            email=True,
-        )
+        claim_deliverable(request.user, obj)
         serializer = self.get_serializer(instance=obj)
         return Response(status=status.HTTP_200_OK, data=serializer.data)
 

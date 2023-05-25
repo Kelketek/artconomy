@@ -5,6 +5,8 @@ from apps.lib.abstract_models import ADULT
 from apps.lib.models import (
     COMMENT,
     DISPUTE,
+    ORDER_UPDATE,
+    REVISION_APPROVED,
     REVISION_UPLOADED,
     Subscription,
     ref_for_instance,
@@ -47,6 +49,7 @@ from apps.sales.tests.factories import (
     CreditCardTokenFactory,
     DeliverableFactory,
     LineItemFactory,
+    ReferenceFactory,
     RevisionFactory,
     ServicePlanFactory,
     TransactionRecordFactory,
@@ -613,6 +616,9 @@ class TestDeliverableStatusChange(APITestCase):
         record.refresh_from_db()
 
     def test_claim_deliverable_staffer(self, _mock_notify):
+        revision = RevisionFactory.create(deliverable=self.deliverable)
+        reference = ReferenceFactory.create()
+        reference.deliverables.add(self.deliverable)
         self.state_assertion("staffer", "claim/", initial_status=DISPUTED)
         self.deliverable.refresh_from_db()
         self.assertEqual(self.deliverable.arbitrator, self.staffer)
@@ -621,10 +627,29 @@ class TestDeliverableStatusChange(APITestCase):
                 subscriber=self.staffer,
                 object_id=self.deliverable.id,
                 content_type=ContentType.objects.get_for_model(Deliverable),
-                type__in=[COMMENT, REVISION_UPLOADED],
+                type__in=[COMMENT, REVISION_UPLOADED, ORDER_UPDATE],
+                email=True,
+            ).count(),
+            3,
+        )
+        self.assertEqual(
+            Subscription.objects.filter(
+                subscriber=self.staffer,
+                object_id=revision.id,
+                content_type=ContentType.objects.get_for_model(revision),
+                type__in=[COMMENT, REVISION_APPROVED],
                 email=True,
             ).count(),
             2,
+        )
+        self.assertTrue(
+            Subscription.objects.filter(
+                subscriber=self.staffer,
+                object_id=reference.id,
+                content_type=ContentType.objects.get_for_model(reference),
+                type=COMMENT,
+                email=True,
+            ).exists()
         )
 
     def test_claim_deliverable_staffer_claimed_already(self, _mock_notify):

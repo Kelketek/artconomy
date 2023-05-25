@@ -30,6 +30,8 @@ from apps.lib.models import (
     ORDER_UPDATE,
     REFERRAL_LANDSCAPE_CREDIT,
     REFUND,
+    REVISION_APPROVED,
+    REVISION_UPLOADED,
     SALE_UPDATE,
     Comment,
     Event,
@@ -1743,3 +1745,64 @@ def credit_referral(deliverable):
             deliverable.order.seller.referred_by,
             unique=False,
         )
+
+
+def claim_deliverable(user, deliverable):
+    """
+    Perform all subscriptions and settings to assign an arbitrator.
+    """
+    deliverable.arbitrator = user
+    deliverable.save()
+    subscriptions = [
+        Subscription(
+            type=COMMENT,
+            object_id=deliverable.id,
+            content_type=ContentType.objects.get_for_model(deliverable),
+            subscriber=user,
+            email=True,
+        ),
+        Subscription(
+            type=REVISION_UPLOADED,
+            object_id=deliverable.id,
+            content_type=ContentType.objects.get_for_model(deliverable),
+            subscriber=user,
+            email=True,
+        ),
+        Subscription(
+            type=ORDER_UPDATE,
+            object_id=deliverable.id,
+            content_type=ContentType.objects.get_for_model(deliverable),
+            subscriber=user,
+            email=True,
+        ),
+    ]
+    for revision in deliverable.revision_set.all():
+        subscriptions.append(
+            Subscription(
+                type=COMMENT,
+                object_id=revision.id,
+                content_type=ContentType.objects.get_for_model(revision),
+                subscriber=user,
+                email=True,
+            )
+        )
+        subscriptions.append(
+            Subscription(
+                type=REVISION_APPROVED,
+                object_id=revision.id,
+                content_type=ContentType.objects.get_for_model(revision),
+                subscriber=user,
+                email=True,
+            )
+        )
+    for reference in deliverable.reference_set.all():
+        subscriptions.append(
+            Subscription(
+                type=COMMENT,
+                object_id=reference.id,
+                content_type=ContentType.objects.get_for_model(reference),
+                subscriber=user,
+                email=True,
+            )
+        )
+    Subscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
