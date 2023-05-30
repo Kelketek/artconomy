@@ -1398,6 +1398,7 @@ class Revision(ImageModel):
         return order_context_to_link(
             order_context(
                 order=self.deliverable.order,
+                deliverable=self.deliverable,
                 logged_in=False,
                 user=context["request"].user,
                 extra_params={"revisionId": self.id},
