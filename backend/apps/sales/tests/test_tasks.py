@@ -694,11 +694,14 @@ class TestDeliverableClear(EnsurePlansMixin, TestCase):
     @patch("apps.sales.tasks.clear_deliverable")
     def test_clear_deliverables(self, mock_clear):
         chosen = DeliverableFactory(
+            status=MISSED, cancelled_on=timezone.now() - relativedelta(months=2)
+        )
+        DeliverableFactory(
             status=CANCELLED, cancelled_on=timezone.now() - relativedelta(months=2)
         )
-        DeliverableFactory(status=CANCELLED, cancelled_on=timezone.now())
-        DeliverableFactory(status=CANCELLED, cancelled_on=None)
-        DeliverableFactory(status=CANCELLED, cancelled_on=None)
+        DeliverableFactory(status=MISSED, cancelled_on=timezone.now())
+        DeliverableFactory(status=MISSED, cancelled_on=None)
+        DeliverableFactory(status=MISSED, cancelled_on=None)
         clear_cancelled_deliverables()
         mock_clear.assert_called_with(chosen.id)
         self.assertEqual(mock_clear.call_count, 1)
@@ -711,9 +714,9 @@ class TestDeliverableClear(EnsurePlansMixin, TestCase):
         # Non-existent
         clear_deliverable(-1)
         mock_destroy.assert_not_called()
-        relevent = DeliverableFactory(status=CANCELLED)
-        clear_deliverable(relevent.id)
-        mock_destroy.assert_called_with(relevent)
+        relevant = DeliverableFactory(status=MISSED)
+        clear_deliverable(relevant.id)
+        mock_destroy.assert_called_with(relevant)
 
 
 @override_settings(

@@ -559,7 +559,7 @@ def annotate_connect_fees():
 @celery_app.task
 def clear_deliverable(deliverable_id):
     try:
-        deliverable = Deliverable.objects.get(id=deliverable_id, status=CANCELLED)
+        deliverable = Deliverable.objects.get(id=deliverable_id, status=MISSED)
     except Deliverable.DoesNotExist:
         return
     destroy_deliverable(deliverable)
@@ -568,8 +568,9 @@ def clear_deliverable(deliverable_id):
 @celery_app.task
 def clear_cancelled_deliverables():
     to_destroy = Deliverable.objects.filter(
-        status__in=[CANCELLED, MISSED],
+        status__in=[MISSED],
         cancelled_on__lte=timezone.now() - relativedelta(weeks=2),
+        term_billed=False,
     )
     for deliverable in to_destroy:
         clear_deliverable(deliverable.id)
