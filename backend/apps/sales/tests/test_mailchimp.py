@@ -1,14 +1,14 @@
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
-from apps.sales.mailchimp import init_chimp
+from apps.sales.mail_campaign import init_chimp
 from django.test import override_settings
 from requests.structures import CaseInsensitiveDict
 
 
 class TestInitChimp(TestCase):
     @override_settings(MAILCHIMP_API_KEY="")
-    @patch("apps.sales.mailchimp.MailChimp")
+    @patch("apps.sales.mail_campaign.MailChimp")
     def test_init_chimp_dummy(self, mock_mail_chimp):
         target = Mock()
         mock_mail_chimp.return_value = target
@@ -16,7 +16,7 @@ class TestInitChimp(TestCase):
         mock_mail_chimp.assert_not_called()
 
     @override_settings(MAILCHIMP_API_KEY="12345")
-    @patch("apps.sales.mailchimp.MailChimp")
+    @patch("apps.sales.mail_campaign.MailChimp")
     def test_init_chimp_production(self, mock_mail_chimp):
         target = Mock()
         mock_mail_chimp.return_value = target

@@ -412,6 +412,11 @@ TERM_GRACE_DAYS = int(get_env("TERM_GRACE_DAYS", "7"))
 
 REFUND_FEE = Decimal(get_env("REFUND_FEE", "2.00"))
 
+# Account ID for Drip
+DRIP_ACCOUNT_KEY = get_env("DRIP_ACCOUNT_KEY", "")
+
+DRIP_API_KEY = get_env("DRIP_API_KEY", "")
+
 MAILCHIMP_API_KEY = get_env("MAILCHIMP_API_KEY", "")
 
 MAILCHIMP_LIST_SECRET = get_env("MAILCHIMP_LIST_SECRET", "3d3eca5eea")
@@ -635,7 +640,6 @@ MASTODON_PROFILES = get_env(
     "MASTODON_PROFILES",
     [
         "https://yiff.life/@Vulpes_Veritas",
-        "https://yiff.life/@Artconomy",
         "https://mastodon.social/@Artconomy",
     ],
     unpack=True,
@@ -652,3 +656,5 @@ DISCORD_GUILD_ID = int(get_env("DISCORD_GUILD_ID", "12345678") or "0")
 COMMUNITY_ACCOUNT_NAMES = get_env(
     "COMMUNITY_ACCOUNT_NAMES", ["DoodleSessions"], unpack=True
 )
+
+USER_AGENT = get_env("USER_AGENT", "Artconomy (fox@artconomy.com)")

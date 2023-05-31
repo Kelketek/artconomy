@@ -1,5 +1,5 @@
 from apps.profiles.models import Conversation, User
-from apps.sales.mailchimp import chimp
+from apps.sales.mail_campaign import chimp, drip
 from apps.sales.stripe import stripe
 from conf.celery_config import celery_app
 from dateutil.relativedelta import relativedelta
@@ -37,6 +37,25 @@ def mailchimp_tag(user_id):
 
 
 @celery_app.task
+def drip_tag(user_id):
+    user = (
+        User.objects.filter(id=user_id)
+        .exclude(drip_id="")
+        .exclude(is_active=False)
+        .exclude(guest=True)
+        .first()
+    )
+    if not user:
+        return
+    tags = []
+    if user.artist_mode:
+        tags.append('artist')
+    result = drip.post(f'/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers', json={'subscribers': [{'id': user.drip_id, 'email': user.email, 'tags': tags}]})
+    result.raise_for_status()
+
+
+
+@celery_app.task
 def mailchimp_subscribe(user_id):
     user = User.objects.get(id=user_id)
     user.mailchimp_id = chimp.lists.members.create(
@@ -49,6 +68,15 @@ def mailchimp_subscribe(user_id):
     )["id"]
     user.save()
     mailchimp_tag.delay(user_id)
+
+
+@celery_app.task
+def drip_subscribe(user_id):
+    user = User.objects.get(id=user_id)
+    result = drip.post(f'/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers', json={'subscribers': [{'email': user.email}]})
+    user.drip_id = result.json()['subscribers'][0]['id']
+    user.save(update_fields=['drip_id'])
+    drip_tag.delay(user.id)
 
 
 @celery_app.task

@@ -192,9 +192,6 @@ class User(AbstractEmailUser, HitsMixin):
         related_name="+",
         on_delete=SET_NULL,
     )
-    old_favorites = ManyToManyField(
-        "profiles.Submission", blank=True, related_name="old_favorites"
-    )
     favorites = ManyToManyField(
         "profiles.Submission",
         blank=True,
@@ -305,6 +302,7 @@ class User(AbstractEmailUser, HitsMixin):
         related_query_name="hit_counter",
     )
     mailchimp_id = models.CharField(max_length=32, db_index=True, default="")
+    drip_id = models.CharField(max_length=32, db_index=True, default="")
     watch_permissions = {
         "UserSerializer": [UserControls],
         "UserInfoSerializer": [],
@@ -475,7 +473,7 @@ def create_user_subscriptions(instance):
 @receiver(post_save, sender=User)
 @disable_on_load
 def auto_subscribe(sender, instance, created=False, **_kwargs):
-    from apps.profiles.tasks import mailchimp_tag
+    from apps.profiles.tasks import mailchimp_tag, drip_tag
 
     if created:
         if not instance.guest:
@@ -499,6 +497,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
         return
     artist_profile.save()
     mailchimp_tag.delay(instance.id)
+    drip_tag.delay(instance.id)
 
 
 @receiver(post_save, sender=User)

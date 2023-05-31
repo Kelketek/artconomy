@@ -5,7 +5,7 @@ from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import Conversation
 from apps.profiles.tasks import clear_blank_conversations, derive_tags, mailchimp_tag
 from apps.profiles.tests.factories import ConversationFactory, UserFactory
-from apps.sales.mailchimp import chimp
+from apps.sales.mail_campaign import chimp
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, override_settings
 from django.utils import timezone
