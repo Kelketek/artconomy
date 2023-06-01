@@ -154,7 +154,7 @@
                             <a href="/">Visit Artconomy!</a>
                           {% endblock %}
                         </div>
-                        {% if request.user.is_registered %}
+                        {% if user and not user.guest %}
                         <div class="centered mt-2">
                           You can manage your notification settings <a href="/my/Email">using this link</a>
                         </div>

@@ -20,7 +20,7 @@ def init_chimp() -> Union[MailChimp, Mock]:
 
 
 class DripSession(Session):
-    def __init__(self, base_url='https://api.getdrip.com/'):
+    def __init__(self, base_url="https://api.getdrip.com/"):
         self.base_url = base_url
         super().__init__()
 
@@ -32,11 +32,10 @@ class DripSession(Session):
 def init_drip() -> DripSession:
     if settings.DRIP_API_KEY and settings.DRIP_ACCOUNT_KEY:
         drip_session = DripSession()
-        drip_session.headers.update({'User-Agent': settings.USER_AGENT})
-        drip_session.auth = (settings.DRIP_API_KEY, '')
+        drip_session.headers.update({"User-Agent": settings.USER_AGENT})
+        drip_session.auth = (settings.DRIP_API_KEY, "")
         return drip_session
     return Mock(spec=DripSession)
-
 
 
 chimp = init_chimp()

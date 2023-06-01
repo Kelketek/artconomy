@@ -473,7 +473,7 @@ def create_user_subscriptions(instance):
 @receiver(post_save, sender=User)
 @disable_on_load
 def auto_subscribe(sender, instance, created=False, **_kwargs):
-    from apps.profiles.tasks import mailchimp_tag, drip_tag
+    from apps.profiles.tasks import drip_tag, mailchimp_tag
 
     if created:
         if not instance.guest:

@@ -116,7 +116,7 @@ from apps.profiles.serializers import (
     UsernameValidationSerializer,
     UserSerializer,
 )
-from apps.profiles.tasks import mailchimp_subscribe, drip_subscribe
+from apps.profiles.tasks import drip_subscribe, mailchimp_subscribe
 from apps.profiles.utils import (
     UserClearException,
     available_chars,

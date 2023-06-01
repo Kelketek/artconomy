@@ -49,14 +49,18 @@ def drip_tag(user_id):
         return
     tags = []
     if user.artist_mode:
-        tags.append('artist')
-    result = drip.post(f'/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers', json={'subscribers': [{'id': user.drip_id, 'email': user.email, 'tags': tags}]})
+        tags.append("artist")
+    result = drip.post(
+        f"/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers",
+        json={"subscribers": [{"id": user.drip_id, "email": user.email, "tags": tags}]},
+    )
     result.raise_for_status()
-
 
 
 @celery_app.task
 def mailchimp_subscribe(user_id):
+    if not settings.MAILCHIMP_LIST_SECRET:
+        return
     user = User.objects.get(id=user_id)
     user.mailchimp_id = chimp.lists.members.create(
         settings.MAILCHIMP_LIST_SECRET,
@@ -72,10 +76,15 @@ def mailchimp_subscribe(user_id):
 
 @celery_app.task
 def drip_subscribe(user_id):
+    if not settings.DRIP_ACCOUNT_KEY:
+        return
     user = User.objects.get(id=user_id)
-    result = drip.post(f'/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers', json={'subscribers': [{'email': user.email}]})
-    user.drip_id = result.json()['subscribers'][0]['id']
-    user.save(update_fields=['drip_id'])
+    result = drip.post(
+        f"/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers",
+        json={"subscribers": [{"email": user.email}]},
+    )
+    user.drip_id = result.json()["subscribers"][0]["id"]
+    user.save(update_fields=["drip_id"])
     drip_tag.delay(user.id)
 
 
