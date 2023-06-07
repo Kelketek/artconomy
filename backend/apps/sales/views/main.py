@@ -163,6 +163,7 @@ from apps.sales.utils import (
     claim_deliverable,
     ensure_buyer,
     finalize_deliverable,
+    get_claim_token,
     initialize_tip_invoice,
     invoice_post_payment,
     refund_deliverable,
@@ -2858,7 +2859,7 @@ class OrderAuth(GenericAPIView):
                 f"Claim Link for order #{order.id}.",
                 "new_claim_link.html",
                 target_email,
-                {"order": order, "claim_token": order.claim_token},
+                {"order": order, "claim_token": get_claim_token(order)},
             )
             return Response(
                 status=status.HTTP_401_UNAUTHORIZED,

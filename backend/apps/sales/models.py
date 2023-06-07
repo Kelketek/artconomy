@@ -93,6 +93,7 @@ from apps.sales.stripe import delete_payment_method, stripe
 from apps.sales.utils import (
     credit_referral,
     ensure_buyer,
+    get_claim_token,
     lines_for_product,
     order_context,
     order_context_to_link,
@@ -948,7 +949,11 @@ def issue_order_claim(sender: type, instance: Deliverable, created=False, **kwar
         f"You have a new invoice from {instance.order.seller.username}!",
         "invoice_issued.html",
         instance.order.customer_email,
-        {"deliverable": instance, "claim_token": instance.order.claim_token},
+        {
+            "deliverable": instance,
+            "claim_token": get_claim_token(instance.order),
+            "deliverable": instance,
+        },
     )
 
 
