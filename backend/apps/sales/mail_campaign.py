@@ -30,7 +30,7 @@ class DripSession(Session):
 
 
 def init_drip() -> DripSession:
-    if settings.DRIP_API_KEY and settings.DRIP_ACCOUNT_KEY:
+    if settings.DRIP_API_KEY and settings.DRIP_ACCOUNT_ID:
         drip_session = DripSession()
         drip_session.headers.update({"User-Agent": settings.USER_AGENT})
         drip_session.auth = (settings.DRIP_API_KEY, "")

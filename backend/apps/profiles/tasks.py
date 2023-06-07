@@ -51,7 +51,7 @@ def drip_tag(user_id):
     if user.artist_mode:
         tags.append("artist")
     result = drip.post(
-        f"/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers",
+        f"/v2/{settings.DRIP_ACCOUNT_ID}/subscribers",
         json={"subscribers": [{"id": user.drip_id, "email": user.email, "tags": tags}]},
     )
     result.raise_for_status()
@@ -76,11 +76,11 @@ def mailchimp_subscribe(user_id):
 
 @celery_app.task
 def drip_subscribe(user_id):
-    if not settings.DRIP_ACCOUNT_KEY:
+    if not settings.DRIP_ACCOUNT_ID:
         return
     user = User.objects.get(id=user_id)
     result = drip.post(
-        f"/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers",
+        f"/v2/{settings.DRIP_ACCOUNT_ID}/subscribers",
         json={"subscribers": [{"email": user.email}]},
     )
     user.drip_id = result.json()["subscribers"][0]["id"]

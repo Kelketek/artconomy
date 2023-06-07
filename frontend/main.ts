@@ -43,6 +43,7 @@ declare global {
     DEFAULT_SERVICE_PLAN_NAME: string,
     Stripe?: StripeConstructor,
     StripeInstance: Stripe,
+    _drip: () => void,
   }
 }
 

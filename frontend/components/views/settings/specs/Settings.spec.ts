@@ -16,6 +16,7 @@ import Payout from '@/components/views/settings/payment/Payout.vue'
 import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
 import Premium from '@/components/views/settings/Premium.vue'
 import Invoices from '../payment/Invoices.vue'
+import Email from '@/components/views/settings/Email.vue'
 
 jest.useFakeTimers()
 
@@ -86,6 +87,12 @@ const settingRoutes = [{
       name: 'Options',
       path: 'options',
       component: Options,
+      props: true,
+    },
+    {
+      name: 'Email',
+      path: 'email',
+      component: Email,
       props: true,
     },
   ],

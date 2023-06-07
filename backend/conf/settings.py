@@ -413,7 +413,7 @@ TERM_GRACE_DAYS = int(get_env("TERM_GRACE_DAYS", "7"))
 REFUND_FEE = Decimal(get_env("REFUND_FEE", "2.00"))
 
 # Account ID for Drip
-DRIP_ACCOUNT_KEY = get_env("DRIP_ACCOUNT_KEY", "")
+DRIP_ACCOUNT_ID = get_env("DRIP_ACCOUNT_ID", "")
 
 DRIP_API_KEY = get_env("DRIP_API_KEY", "")
 

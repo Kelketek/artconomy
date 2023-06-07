@@ -42,6 +42,7 @@
   DEFAULT_SERVICE_PLAN_NAME = "{{ settings.DEFAULT_SERVICE_PLAN_NAME }}";
 </script>
 <div id="app"></div>
+{% include env_file %}
 {% if not debug %}
   {% get_files 'app' 'js' as app_js_files %}
   {% for file in app_js_files %}
@@ -56,7 +57,9 @@
 {% else %}
   {% render_bundle 'app' 'js' %}
 {% endif %}
-{% include env_file %}
+<script type="text/javascript">
+  window._drip = function () {}
+</script>
 <noscript>
   <p>Hey, we're one of those newfangled single page apps, so please enable JavaScript or the site won't work!</p>
 </noscript>

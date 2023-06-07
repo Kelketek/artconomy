@@ -41,6 +41,7 @@ def base_template(request, extra=None):
         "recaptcha_key": settings.GR_CAPTCHA_PUBLIC_KEY,
         "user_serialized": json.dumps(user_data),
         "mastodon_profiles": mastodon_profiles_for_routes(request.path),
+        "drip_account_id": settings.DRIP_ACCOUNT_ID,
     }
     if request.user.is_authenticated:
         context["user_email"] = request.user.guest_email or request.user.email

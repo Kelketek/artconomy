@@ -167,6 +167,9 @@ export default class AcCookieConsent extends Vue {
       window._paq.push(['forgetCookieConsentGiven'])
     }
     // If and when we add Pinterest ads back in, we'll need to do something with the third party consent cookies.
+    if (this.thirdParty) {
+      window._drip()
+    }
   }
 
   public created() {

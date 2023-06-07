@@ -98,13 +98,14 @@ describe('NewOrder.vue', () => {
     wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
-    mockAxios.mockResponse(rs(genOrder()), submitted)
+    mockAxios.mockResponse(rs(genOrder({default_path: {name: 'SaleDeliverableOverview', params: {orderId: '1', deliverableId: '5', username: 'Fox'}}})), submitted)
     await flushPromises()
     await vm.$nextTick()
     expect(mockPush).toHaveBeenCalledWith({
       name: 'SaleDeliverablePayment',
       params: {
         orderId: '1',
+        deliverableId: '5',
         username: 'Fox',
       },
       query: {

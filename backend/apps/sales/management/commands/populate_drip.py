@@ -9,7 +9,7 @@ class Command(BaseCommand):
         for user in User.objects.filter(is_active=True, guest=False, drip_id=""):
             try:
                 result = drip.get(
-                    f"/v2/{settings.DRIP_ACCOUNT_KEY}/subscribers/{user.email}"
+                    f"/v2/{settings.DRIP_ACCOUNT_ID}/subscribers/{user.email}"
                 )
                 user.drip_id = result.json()["subscribers"][0]["id"]
                 user.save(update_fields=["drip_id"])

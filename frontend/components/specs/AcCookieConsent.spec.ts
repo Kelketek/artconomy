@@ -10,6 +10,7 @@ describe('AcCookieConsent.vue', () => {
   let vuetify: Vuetify
   let store: ArtStore
   let wrapper: Wrapper<Vue>
+  window._drip = jest.fn()
   beforeEach(() => {
     store = createStore()
     vuetify = createVuetify()
