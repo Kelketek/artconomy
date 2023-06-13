@@ -48,7 +48,7 @@
                   :enable-new-line="index === extras.length - 1"  />
               <ac-new-line-skeleton v-if="extraForm.sending" />
               <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
-                <ac-form @submit.prevent="extraForm.submitThen(lineItems.push)">
+                <ac-form @submit.prevent="extraForm.submitThen(lineItems.uniquePush)">
                   <ac-new-line-item :form="extraForm" :price="priceData.subtotals.get(extraFormItem) || 0" />
                 </ac-form>
               </ac-form-container>

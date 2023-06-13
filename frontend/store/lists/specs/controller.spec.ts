@@ -384,7 +384,7 @@ describe('List controller', () => {
     controller.ready = true
     controller.uniquePush({id: 1})
     expect(controller.list.length).toBe(1)
-    controller.uniquePush({id: 1})
+    controller.uniquePush({id: 1, text: 'other'})
     expect(controller.list.length).toBe(1)
   })
   it('Retries a fetch if there was a previous failure', () => {
