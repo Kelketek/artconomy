@@ -658,3 +658,5 @@ COMMUNITY_ACCOUNT_NAMES = get_env(
 )
 
 USER_AGENT = get_env("USER_AGENT", "Artconomy (fox@artconomy.com)")
+
+DEDUPLICATE_ASSETS = get_env("DEDUPLICATE_ASSETS", not DEBUG)

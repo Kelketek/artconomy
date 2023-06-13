@@ -2833,6 +2833,17 @@ class TestReferences(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_upload_reference_unauthenticated(self):
+        deliverable = DeliverableFactory.create()
+        asset = AssetFactory.create(uploaded_by=deliverable.order.seller)
+        response = self.client.post(
+            f"/api/sales/v1/references/",
+            {
+                "file": asset.id,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
     def test_attach_reference(self):
         deliverable = DeliverableFactory.create(arbitrator=UserFactory.create())
         reference = ReferenceFactory.create(owner=deliverable.order.seller)

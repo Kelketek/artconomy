@@ -400,7 +400,10 @@ class AssetUpload(APIView):
         else:
             user = None
         digest = digest_for_file(file_obj)
-        asset = Asset.objects.filter(hash=digest).first()
+        if settings.DEDUPLICATE_ASSETS:
+            asset = Asset.objects.filter(hash=digest).first()
+        else:
+            asset = None
         # If we already have a file with this hash, there's no need to store it again.
         if not asset:
             asset = Asset(file=file_obj, uploaded_by=user, hash=digest)
