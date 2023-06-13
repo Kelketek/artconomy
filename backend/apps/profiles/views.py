@@ -132,7 +132,6 @@ from apps.sales.utils import claim_order_by_token
 from apps.tg_bot.models import TelegramDevice
 from avatar.models import Avatar
 from avatar.signals import avatar_updated
-from avatar.templatetags.avatar_tags import avatar_url
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -527,8 +526,8 @@ class SetAvatar(APIView):
         avatar.save()
         avatar_updated.send(sender=Avatar, user=request.user, avatar=avatar)
         Avatar.objects.filter(user=request.user).exclude(id=avatar.id).delete()
-        user.avatar_url = avatar_url(user)
-        user.save()
+        user.avatar_url = avatar.get_absolute_url()
+        user.save(update_fields=['avatar_url'])
         return Response(
             data=UserSerializer(instance=user, context={"request": request}).data
         )
