@@ -285,7 +285,7 @@ export default class AcPricePreview extends mixins(Subjective) {
   }
 
   public postSubmitAdd(form: FormController) {
-    form.submitThen(this.lineItems.push).then(() => {
+    form.submitThen(this.lineItems.uniquePush).then(() => {
       const line = this.lineItems.list[this.lineItems.list.length - 1]
       this.$nextTick(() => {
         const element = this.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
