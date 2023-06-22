@@ -4,8 +4,9 @@
     name: letsencrypt
     state: present
 
+# This needs fixing. It's now dependent on nginx running, but nginx won't be running on first deploy.
 - name: Generate certificates
-  command: "letsencrypt --standalone --email {{ admin_email }} --agree-tos{% for name in domains %} -d {{name}}{% endfor %} certonly"
+  command: "letsencrypt --webroot --non-interactive --webroot-path /home/{{ env_prefix }}/artconomy/ --email {{ admin_email }} --agree-tos{% for name in domains %} -d {{name}}{% endfor %} certonly"
   args:
     creates: "/etc/letsencrypt/live/*"
   register: certgen
