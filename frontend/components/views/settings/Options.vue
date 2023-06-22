@@ -91,8 +91,8 @@
           </v-col>
           <v-col cols="12" sm="6">
             <ac-patch-field field-type="ac-tag-field"
-                label="Blacklist"
-                hint="Submissions that have tags in your blacklist will be hidden from view."
+                label="Blocked tags"
+                hint="Submissions that have these tags will be hidden from view."
                 persistent-hint
                 :patcher="blacklist"
             ></ac-patch-field>

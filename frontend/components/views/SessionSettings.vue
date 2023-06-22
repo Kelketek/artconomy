@@ -70,7 +70,7 @@
                         <strong>Galleries</strong>
                       </li>
                       <li>
-                        <strong>Blacklist settings</strong>
+                        <strong>Blocked Tags</strong>
                       </li>
                       <li>
                         <strong>...And much more!</strong>

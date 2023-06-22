@@ -53,9 +53,9 @@
                   </p>
                 </div>
                 <div v-if="blacklisted.length" class="blacklist-info">
-                  <p v-if="terse">This piece contains tags on your blacklist.</p>
+                  <p v-if="terse">This piece contains tags you've blocked.</p>
                   <p v-else>
-                    This piece contains these blacklisted tags:
+                    This piece contains these blocked tags:
                     <span v-for="tag in this.blacklisted" :key="tag">{{tag}} </span>
                   </p>
                 </div>

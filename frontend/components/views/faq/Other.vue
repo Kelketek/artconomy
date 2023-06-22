@@ -70,8 +70,8 @@
           In general, the policy is 'nothing illegal in the state of Texas, USA.' We don't believe in telling you what
           you can and can't draw. The requirement we have is that content must be properly tagged, especially NSFW
           content. If users cannot
-          <router-link :to="{name: 'Other', params: {question: 'blacklist'}}">blacklist</router-link>
-          your content by tag (and by
+          <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">block your content by tag</router-link>
+           (and by
           <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">rating</router-link>
           as applicable) your account may be subject to disciplinary action.
         </p>
@@ -102,7 +102,8 @@
 
         This is not an exhaustive list. If you are unsure if your content is illegal, please consult with your
         attorney. You may also check our <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
-        for more information.
+        for more information. Artconomy staff is not a legal team, but will remove violating content on our best
+        judgement.
       </v-expansion-panel-content>
     </v-expansion-panel>
     <v-expansion-panel>
@@ -118,7 +119,7 @@
         <ul>
           <li>It makes products, submissions, and characters easy for visitors to find via search. Customers interested
             in your content may not be able to find it if it is not properly tagged.</li>
-          <li>It makes such content easy to <router-link :to="{name: 'Other', params: {}}">blacklist</router-link> for
+          <li>It makes such content easy to <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">block</router-link> for
             those who do not wish to see it.</li>
         </ul>
         <p>
@@ -190,7 +191,7 @@
     </v-expansion-panel>
     <v-expansion-panel>
       <v-expansion-panel-header>
-        <strong>How do I use the Blacklist?</strong>
+        <strong>How do I block tags I don't want to see?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
         <v-card>
@@ -200,7 +201,7 @@
               given work may be less desirable to a viewer even if it might normally be in a rating they are
               comfortable with.
             </p>
-            <p><strong>Enter the Blacklist:</strong>
+            <p><strong>Enter tag blocking:</strong>
               When you encounter content that is against your tastes, check the tags on the work.
               Once you locate a tag related to the content you find objectionable, you can go to
               <router-link
@@ -212,7 +213,7 @@
               <span v-else>
                       your settings page
                     </span>
-              and add it to your blacklist. From then on, content with that tag will be filtered out.
+              and add it to your blocked tags. From then on, content with that tag will be filtered out.
             </p>
             <p>
               Proper tagging is important. Users are expected to tag their artwork and, by default, all pieces can
@@ -225,7 +226,7 @@
               <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">content policy</router-link>
               is very permissive, and does not prevent disturbing or offensive imagery from being uploaded,
               especially since pieces may be marked private. We prefer to give each customer the power to customize his
-              or her viewing experience using the rating and blacklist tools.
+              or her viewing experience using the rating, user blocking and tag blocking tools.
             </p>
             <p>
               Artconomy does, however, respond to legal requests to remove unlawful content, and does not permit
@@ -325,7 +326,7 @@ import {paramHandleArray} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 
 const other = [
-  'content-ratings', 'content-policy', 'tagging', 'blacklist', 'watching', 'blocking', 'file-formats',
+  'content-ratings', 'content-policy', 'tagging', 'tag-blocking', 'watching', 'blocking', 'file-formats',
 ]
   @Component
 export default class Other extends mixins(Viewer, QuestionSet) {
