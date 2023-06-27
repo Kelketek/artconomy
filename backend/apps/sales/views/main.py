@@ -2346,7 +2346,7 @@ class ProductPreview(BasePreview):
             ],
         }
         if image:
-            data["image_links"] += [image]
+            data["image_links"].insert(0, image)
         return data
 
 
