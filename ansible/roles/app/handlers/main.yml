@@ -83,14 +83,6 @@
     executable: "/bin/bash"
     creates: "{{ home }}/.initial-service-plans-created"
 
-- name: Set international product flags
-  become: yes
-  become_user: "{{ env_prefix }}"
-  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py set_international_flags && touch {{home}}/.international-product-flags-set"
-  args:
-    executable: "/bin/bash"
-    creates: "{{ home }}/.international-product-flags-set"
-
 - name: Create email preferences
   become: yes
   become_user: "{{ env_prefix }}"
