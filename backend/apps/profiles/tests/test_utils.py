@@ -80,6 +80,7 @@ class TestEmptyUser(APITestCase):
             empty_user(user=ArtconomyAnonymousUser(), session=session),
             {
                 "blacklist": [],
+                "nsfw_blacklist": [],
                 "rating": ADULT,
                 "sfw_mode": True,
                 "username": "_",

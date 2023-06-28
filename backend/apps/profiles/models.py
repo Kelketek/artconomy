@@ -267,8 +267,12 @@ class User(AbstractEmailUser, HitsMixin):
         db_index=True,
         help_text="Enabled when a user's account is in arrears beyond the grace period.",
     )
-    blacklist = ManyToManyField("lib.Tag", blank=True)
+    blacklist = ManyToManyField(
+        "lib.Tag", blank=True, related_name="blacklisting_users"
+    )
     blacklist__max = 500
+    nsfw_blacklist = ManyToManyField("lib.Tag", related_name="nsfw_blacklisting_users")
+    nsfw_blacklist__max = 500
     biography = CharField(max_length=5000, blank=True, default="")
     blocking = ManyToManyField(
         "User", symmetrical=False, related_name="blocked_by", blank=True
@@ -791,6 +795,12 @@ class Character(Model, HitsMixin):
     user = ForeignKey("User", related_name="characters", on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
     tags = ManyToManyField("lib.Tag", related_name="characters", blank=True)
+    nsfw = BooleanField(
+        db_index=True,
+        default=False,
+        help_text="Used to indicate that this character should not be shown when in SFW mode, and its tags should be "
+        "excluded based on a user's NSFW blocked tags.",
+    )
     shared_with = ManyToManyField("User", related_name="shared_characters", blank=True)
     hit_counter = GenericRelation(
         "hitcount.HitCount",

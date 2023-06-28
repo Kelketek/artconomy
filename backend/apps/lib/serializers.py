@@ -961,7 +961,8 @@ class CharacterListField(RelatedSetMixin, serializers.ListSerializer):
             return empty
         data = list(set(data))
         qs = available_chars(
-            self.context.get("request").user, tagging=self.tag_check
+            self.context.get("request").user,
+            tagging=self.tag_check,
         ).filter(id__in=data)
         data = qs.values_list("id", flat=True)
         add_check(self.parent.instance, self.field_name, *data, replace=True)

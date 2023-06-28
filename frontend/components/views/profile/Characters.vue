@@ -23,12 +23,24 @@
 
           </ac-bound-field>
         </v-col>
-        <v-col cols="12">
+        <v-col cols="12" sm="6">
           <ac-bound-field :field="form.fields.private"
                           field-type="ac-checkbox"
                           :persistent-hint="true"
                           label="Private"
                           hint="If checked, this character will not appear in search listings and will only be visible to users you explicitly share them with."
+          >
+          </ac-bound-field>
+        </v-col>
+        <v-col cols="12" sm="6">
+          <ac-bound-field :field="form.fields.nsfw"
+                          field-type="ac-checkbox"
+                          :persistent-hint="true"
+                          label="NSFW"
+                          hint="If checked, this character will be hidden for users in SFW mode, or if they're
+                          blocking a tag this character has in their NSFW blocked tags list. We recommend checking this
+                          if you primarily draw/commission art of this character not appropriate for most workplace
+                          settings."
           >
           </ac-bound-field>
         </v-col>
@@ -74,7 +86,7 @@ export default class Characters extends mixins(Subjective) {
       this.form = this.$getForm(`${flatten(this.username)}-newCharacter`, {
         endpoint: this.url,
         fields: {
-          name: {value: ''}, private: {value: false},
+          name: {value: ''}, private: {value: false}, nsfw: {value: false},
         },
       })
       this.characters.firstRun().then()

@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404
 def derive_session_settings(*, user, session):
     rating = GENERAL
     blacklist = []
+    nsfw_blacklist = []
     session_settings = {}
     if user.is_registered:
         sfw_mode = user.sfw_mode
@@ -15,6 +16,7 @@ def derive_session_settings(*, user, session):
         if not sfw_mode:
             rating = user.rating
             blacklist = user.blacklist.all()
+            nsfw_blacklist = user.nsfw_blacklist.all()
     else:
         rating = session.get("rating", GENERAL)
         if rating not in [GENERAL, MATURE, ADULT, EXTREME]:
@@ -31,6 +33,7 @@ def derive_session_settings(*, user, session):
     session_settings["birthday"] = birthday
     session_settings["max_rating"] = GENERAL if sfw_mode else rating
     session_settings["blacklist"] = blacklist
+    session_settings["nsfw_blacklist"] = nsfw_blacklist
     return session_settings
 
 

@@ -1,6 +1,5 @@
 from datetime import date
 from urllib.parse import quote_plus
-from uuid import UUID
 
 from apps.lib.abstract_models import RATINGS
 from apps.lib.consumers import register_serializer
@@ -325,6 +324,7 @@ class CharacterSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "primary_submission",
             "tags",
             "taggable",
+            "nsfw",
             "hits",
         )
 
@@ -368,6 +368,7 @@ class CharacterManagementSerializer(RelatedAtomicMixin, serializers.ModelSeriali
             "tags",
             "colors",
             "taggable",
+            "nsfw",
             "hits",
         )
 
@@ -668,6 +669,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     blocking = UserRelationField(required=False)
     artist_mode = serializers.BooleanField(required=False)
     blacklist = TagListField(required=False, min=0)
+    nsfw_blacklist = TagListField(required=False, min=0)
     stars = serializers.FloatField(required=False)
     processor = serializers.SerializerMethodField()
     service_plan = serializers.SerializerMethodField()
@@ -734,6 +736,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "email",
             "favorites_hidden",
             "blacklist",
+            "nsfw_blacklist",
             "biography",
             "taggable",
             "watching",

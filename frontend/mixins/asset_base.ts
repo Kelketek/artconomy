@@ -59,6 +59,17 @@ export default class AssetBase extends mixins(Viewer) {
     return this.tags.filter((n) => viewer.blacklist.includes(n))
   }
 
+  public get nsfwBlacklisted() {
+    if (!this.asset) {
+      return []
+    }
+    if (!this.assetRating) {
+      return []
+    }
+    const viewer = this.viewer as User|AnonUser
+    return this.tags.filter((n) => viewer.nsfw_blacklist.includes(n))
+  }
+
   public get assetRating() {
     if (!this.asset) {
       return 0
@@ -88,7 +99,7 @@ export default class AssetBase extends mixins(Viewer) {
 
   public get canDisplay() {
     if (this.permittedRating) {
-      if (!this.blacklisted.length) {
+      if (!this.blacklisted.length && !this.nsfwBlacklisted.length) {
         return true
       }
     }

@@ -1,5 +1,6 @@
 from uuid import uuid4
 
+from apps.lib.abstract_models import GENERAL
 from apps.lib.models import Comment
 from apps.lib.utils import destroy_comment
 from apps.profiles.middleware import derive_session_settings
@@ -57,7 +58,12 @@ def char_ordering(qs, requester, query=""):
 
 
 def available_chars(
-    requester, query="", commissions=False, tagging=False, self_search=False
+    requester,
+    query="",
+    commissions=False,
+    tagging=False,
+    self_search=False,
+    sfw=False,
 ):
     exclude = Q(private=True)
     if (not requester.is_staff) and requester.is_authenticated:
@@ -70,6 +76,8 @@ def available_chars(
         q = Q()
     q = Character.objects.filter(q)
     q = q.exclude(user__is_active=False)
+    if sfw:
+        q = q.exclude(nsfw=True)
     if requester.is_authenticated:
         if commissions:
             exclude_exception = Q(shared_with=requester) & Q(open_requests=True)
@@ -79,6 +87,8 @@ def available_chars(
         if not self_search:
             # Never make our blacklist exclude our own characters, lest we lose track of them.
             qs = qs.exclude(tags__in=requester.blacklist.all())
+            qs = qs.exclude(tags__in=requester.nsfw_blacklist.all(), nsfw=True)
+
     else:
         qs = q.exclude(exclude)
     if tagging:
@@ -107,6 +117,7 @@ def available_submissions(request, requester, show_all=False):
         Submission.objects.exclude(exclude)
         .exclude(rating__gt=request.max_rating)
         .exclude(tags__in=request.blacklist)
+        .exclude(rating__gt=GENERAL, tags__in=request.nsfw_blacklist)
     )
 
 
@@ -133,6 +144,7 @@ def empty_user(*, session, user):
     session_settings = derive_session_settings(user=user, session=session)
     return {
         "blacklist": [],
+        "nsfw_blacklist": [],
         "rating": session_settings["rating"],
         "sfw_mode": session_settings["sfw_mode"],
         "username": "_",

@@ -59,6 +59,13 @@
                     <span v-for="tag in this.blacklisted" :key="tag">{{tag}} </span>
                   </p>
                 </div>
+                <div v-if="nsfwBlacklisted.length" class="blacklist-info">
+                  <p v-if="terse">This piece contains tags you've blocked in an NSFW context.</p>
+                  <p v-else>
+                    This piece contains these blocked tags:
+                    <span v-for="tag in this.nsfwBlacklisted" :key="tag">{{tag}} </span>
+                  </p>
+                </div>
               </v-col>
             </v-col>
           </v-card-text>

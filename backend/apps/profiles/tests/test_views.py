@@ -739,6 +739,30 @@ class TestSubmissionSearch(APITestCase):
         self.assertIDInList(submission_risque, response.data["results"])
         self.assertIDInList(submission_extreme, response.data["results"])
 
+    def test_blocked_tags(self):
+        artist = UserFactory.create()
+        Tag.objects.bulk_create([Tag(name="stuff"), Tag(name="wat"), Tag(name="thing")])
+        submission_clean = SubmissionFactory.create(rating=GENERAL, owner=artist)
+        submission_clean.tags.add("stuff", "wat")
+        submission_nsfw = SubmissionFactory.create(rating=MATURE, owner=artist)
+        submission_nsfw.tags.add("stuff")
+        submission_nsfw_blocked = SubmissionFactory.create(
+            rating=EXTREME, title="Stuff", owner=artist
+        )
+        submission_nsfw_blocked.tags.add("stuff", "wat")
+        submission_general_blocked = SubmissionFactory.create(
+            rating=GENERAL, owner=artist
+        )
+        submission_general_blocked.tags.add("stuff", "thing")
+        user = UserFactory.create(rating=EXTREME)
+        user.blacklist.add("thing")
+        user.nsfw_blacklist.add("wat")
+        self.login(user=user)
+        response = self.client.get("/api/profiles/v1/search/submission/?q=stuff")
+        self.assertIDInList(submission_clean, response.data["results"])
+        self.assertIDInList(submission_nsfw, response.data["results"])
+        self.assertEqual(len(response.data["results"]), 2)
+
 
 class TestCharacterSearch(APITestCase):
     def test_query_not_logged_in(self):
@@ -816,6 +840,28 @@ class TestCharacterSearch(APITestCase):
         self.assertIDInList(visible_private, response.data["results"])
         self.assertIDInList(visible3, response.data["results"])
         self.assertEqual(visible2.id, response.data["results"][2]["id"])
+
+    def test_blocked_tags(self):
+        Tag.objects.bulk_create(
+            [Tag(name="stuff"), Tag(name="wat"), Tag(name="things")]
+        )
+        user = UserFactory.create(rating=MATURE)
+        user.blacklist.add("things")
+        user.nsfw_blacklist.add("wat")
+        user2 = UserFactory.create()
+        character = CharacterFactory.create(user=user2)
+        character.tags.add("stuff", "wat")
+        character_nsfw = CharacterFactory.create(user=user2, nsfw=True)
+        character_nsfw.tags.add("stuff")
+        character_blocked = CharacterFactory.create(user=user2)
+        character_blocked.tags.add("stuff", "things")
+        character_nsfw_blocked = CharacterFactory.create(user=user2, nsfw=True)
+        character_nsfw_blocked.tags.add("stuff", "wat")
+        self.login(user)
+        response = self.client.get("/api/profiles/v1/search/character/?q=stuff")
+        self.assertIDInList(character, response.data["results"])
+        self.assertIDInList(character_nsfw, response.data["results"])
+        self.assertEqual(len(response.data["results"]), 2)
 
     def test_query_logged_in_staffer(self):
         user = UserFactory.create()

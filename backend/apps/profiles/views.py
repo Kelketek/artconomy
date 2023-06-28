@@ -396,7 +396,9 @@ class CharacterListAPI(ListCreateAPIView):
         else:
             requester = self.request.user
         self_search = requester == user
-        qs = available_chars(requester, self_search=self_search).filter(user=user)
+        qs = available_chars(
+            requester, self_search=self_search, sfw=not self.request.rating
+        ).filter(user=user)
         qs = qs.order_by("created_on")
         return qs
 
@@ -527,7 +529,7 @@ class SetAvatar(APIView):
         avatar_updated.send(sender=Avatar, user=request.user, avatar=avatar)
         Avatar.objects.filter(user=request.user).exclude(id=avatar.id).delete()
         user.avatar_url = avatar.get_absolute_url()
-        user.save(update_fields=['avatar_url'])
+        user.save(update_fields=["avatar_url"])
         return Response(
             data=UserSerializer(instance=user, context={"request": request}).data
         )
@@ -666,14 +668,23 @@ class CharacterSearch(ListAPIView):
             user = self.request.user
         if self.request.user.is_authenticated:
             base_query = available_chars(
-                user, query=query, commissions=commissions, tagging=tagging
+                user,
+                query=query,
+                commissions=commissions,
+                tagging=tagging,
+                sfw=not self.request.rating,
             )
             if tagging:
                 return char_ordering(base_query, user, query=query)
             return base_query.order_by("-created_on")
         q = Q(name__istartswith=query) | Q(tags__name__iexact=query)
+        if self.request.rating:
+            nsfw_filter = Q()
+        else:
+            nsfw_filter = Q(nsfw=False)
         return (
             Character.objects.filter(q)
+            .filter(nsfw_filter)
             .exclude(private=True)
             .exclude(taggable=False)
             .distinct()
@@ -1237,7 +1248,7 @@ class NewCharacters(ListAPIView):
 
     def get_queryset(self):
         return (
-            available_chars(self.request.user)
+            available_chars(self.request.user, sfw=not self.request.rating)
             .filter(primary_submission__isnull=False)
             .order_by("-created_on")
         )
@@ -2046,7 +2057,7 @@ class RecommendedCharacters(ListAPIView):
     def get_queryset(self):
         character = self.get_object()
         qs = (
-            available_chars(self.request.user)
+            available_chars(self.request.user, sfw=not self.request.rating)
             .exclude(id=character.id)
             .exclude(primary_submission=None)
         )

@@ -18,6 +18,7 @@
     - Bump all prices
     - Ensure invoice annotations
     - Create email preferences
+    - Set character NSFW flags
 
 - name: stripe webhooks
   become: yes
@@ -82,6 +83,14 @@
   args:
     executable: "/bin/bash"
     creates: "{{ home }}/.initial-service-plans-created"
+
+- name: Set character NSFW flags
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py convert_character_ratings && touch {{home}}/.character-rating-flags-set"
+  args:
+    executable: "/bin/bash"
+    creates: "{{home}}/.character-rating-flags-set"
 
 - name: Create email preferences
   become: yes

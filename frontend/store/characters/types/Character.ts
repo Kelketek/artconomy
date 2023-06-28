@@ -12,5 +12,6 @@ export interface Character {
   primary_submission: Submission|null,
   tags: string[],
   taggable: boolean,
+  nsfw: boolean,
   hits: number,
 }

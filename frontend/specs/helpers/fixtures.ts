@@ -28,6 +28,7 @@ export function genUser(overrides?: Partial<User>): User {
     email: 'fox@artconomy.com',
     favorites_hidden: false,
     blacklist: [],
+    nsfw_blacklist: [],
     biography: '',
     taggable: true,
     watching: false,

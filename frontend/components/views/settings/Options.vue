@@ -37,8 +37,8 @@
         <v-col>
           <v-subheader>Content/Browsing</v-subheader>
           <v-card-text>
-            <v-row no-gutters>
-              <v-col order="2" cols="12" order-md="1" md="6" lg="4" :class="{disabled: sfwMode.model}">
+            <v-row>
+              <v-col cols="12" offset-md="3" md="6" :class="{disabled: sfwMode.model}">
                 <ac-patch-field
                   field-type="ac-birthday-field"
                   label="Birthday"
@@ -47,10 +47,23 @@
                   hint="You must be at least 18 years old to view adult content."
                 ></ac-patch-field>
               </v-col>
-              <v-col order="1" cols="12" order-md="2" md="6" lg="8" class="text-center">
-                <v-btn color="secondary" @click="updateCookieSettings" class="cookie-settings-button">Update Cookie Settings</v-btn>
+              <v-col cols="12" md="6">
+                <ac-patch-field field-type="ac-tag-field"
+                                label="Blocked tags"
+                                hint="All submissions and characters that have these tags will be hidden from view, regardless of rating."
+                                persistent-hint
+                                :patcher="blacklist"
+                ></ac-patch-field>
               </v-col>
-              <v-col order="3" cols="12" class="pt-5" :class="{disabled: sfwMode.model}"><strong>Select the maximum content rating you'd like to see when browsing.</strong></v-col>
+              <v-col cols="12" md="6" class="text-center" :class="{disabled: sfwMode.model}">
+                <ac-patch-field field-type="ac-tag-field"
+                                label="NSFW Blocked tags"
+                                hint="Submissions and characters that have these tags and have a rating higher than clean/safe will be hidden from view."
+                                persistent-hint
+                                :patcher="nsfwBlacklist"
+                ></ac-patch-field>
+              </v-col>
+              <v-col cols="12" class="pt-5" :class="{disabled: sfwMode.model}"><strong>Select the maximum content rating you'd like to see when browsing.</strong></v-col>
             </v-row>
             <ac-patch-field
                 field-type="v-slider"
@@ -79,8 +92,8 @@
         </v-col>
       </v-row>
       <v-container class="py-0" fluid>
-        <v-row no-gutters   justify="center" align="center">
-          <v-col class="text-center" cols="12" sm="6" md="4" >
+        <v-row justify="center" align="center">
+          <v-col class="text-center" cols="12" sm="6">
             <ac-patch-field field-type="v-switch" label="SFW Mode"
                 :patcher="sfwMode"
                 hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
@@ -89,13 +102,8 @@
                 :instant="true"
                 persistent-hint></ac-patch-field>
           </v-col>
-          <v-col cols="12" sm="6">
-            <ac-patch-field field-type="ac-tag-field"
-                label="Blocked tags"
-                hint="Submissions that have these tags will be hidden from view."
-                persistent-hint
-                :patcher="blacklist"
-            ></ac-patch-field>
+          <v-col order="1" cols="12" sm="6" class="text-center">
+            <v-btn color="secondary" @click="updateCookieSettings" class="cookie-settings-button">Update Cookie Settings</v-btn>
           </v-col>
         </v-row>
       </v-container>
@@ -126,6 +134,7 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
   private favoritesHidden: Patch = null as unknown as Patch
   private taggable: Patch = null as unknown as Patch
   private blacklist: Patch = null as unknown as Patch
+  private nsfwBlacklist: Patch = null as unknown as Patch
 
   private EXTREME = 3
   private ratingLongDesc = RATING_LONG_DESC
@@ -155,6 +164,7 @@ export default class Options extends mixins(Viewer, Subjective, Alerts) {
     this.favoritesHidden = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'favorites_hidden'})
     this.taggable = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'taggable'})
     this.blacklist = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'blacklist'})
+    this.nsfwBlacklist = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'nsfw_blacklist'})
   }
 }
 </script>

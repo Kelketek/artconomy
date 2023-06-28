@@ -171,7 +171,7 @@ import AcRelatedManager from '@/components/wrappers/AcRelatedManager.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {Watch} from 'vue-property-decorator'
-import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
+import {ratings, RATINGS, setMetaContent, textualize, updateTitle} from '@/lib/lib'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {ListController} from '@/store/lists/controller'
 
@@ -245,6 +245,10 @@ export default class CharacterDetail extends mixins(Subjective, CharacterCentric
       updateTitle(`${character.name} - ${character.user.username} on Artconomy.com`)
       setMetaContent('description', textualize(character.description).slice(0, 160))
       if (!character.primary_submission) {
+        if (character.nsfw) {
+          // Adult content rating by default.
+          this.ageCheck({value: 2})
+        }
         return
       }
       this.ageCheck({value: character.primary_submission.rating})

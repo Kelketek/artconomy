@@ -136,6 +136,7 @@ export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
   return {
     rating: Ratings.GENERAL,
     blacklist: [],
+    nsfw_blacklist: [],
     sfw_mode: false,
     username: '_',
     birthday: null,

@@ -18,6 +18,7 @@ export interface User {
   guest_email: string,
   favorites_hidden: boolean,
   blacklist: string[],
+  nsfw_blacklist: string[],
   biography: string,
   taggable: boolean
   stars: number | null,

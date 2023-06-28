@@ -47,6 +47,16 @@
                 Private
               </v-list-item-title>
             </v-list-item>
+            <v-list-item>
+              <v-list-item-action>
+                <v-switch v-model="character.profile.patchers.nsfw.model"
+                          :hide-details="true"
+                />
+              </v-list-item-action>
+              <v-list-item-title>
+                NSFW
+              </v-list-item-title>
+            </v-list-item>
             <ac-confirmation :action="deleteCharacter">
               <template v-slot:default="confirmContext">
                 <v-list-item v-on="confirmContext.on">

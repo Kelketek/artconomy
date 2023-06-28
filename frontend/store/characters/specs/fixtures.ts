@@ -70,8 +70,9 @@ export function genCharacter(overrides?: Partial<Character>) {
     },
     tags: [
       'red_panda', 'female', 'wah', 'stuff', 'cool', 'awesome', 'fuzzy', 'floofy',
-      'notable', 'fuckable', 'soft_paws', 'feets', 'nosings',
+      'notable', 'soft_paws', 'feets', 'nosings',
     ],
+    nsfw: false,
     taggable: true,
     ...overrides,
   } as Character
