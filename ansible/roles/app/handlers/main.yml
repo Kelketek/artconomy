@@ -14,7 +14,6 @@
     - Set up stripe users
     - Set up initial service plans
     - Create anonymous user
-    - Set international product flags
     - Bump all prices
     - Ensure invoice annotations
     - Create email preferences
