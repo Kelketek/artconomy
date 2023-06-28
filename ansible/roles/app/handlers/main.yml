@@ -83,14 +83,6 @@
     executable: "/bin/bash"
     creates: "{{ home }}/.initial-service-plans-created"
 
-- name: Create auto-closure subscriptions
-  become: yes
-  become_user: "{{ env_prefix }}"
-  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py auto_close_subscriptions && touch {{home}}/.auto-close-subscriptions"
-  args:
-    executable: "/bin/bash"
-    creates: "{{ home }}/.auto-close-subscriptions"
-
 - name: Set international product flags
   become: yes
   become_user: "{{ env_prefix }}"
