@@ -40,6 +40,7 @@ class EnsurePlansMixin:
             monthly_charge=Money("8.00", "USD"),
             tipping=True,
             shield_static_price=Money(".50", "USD"),
+            paypal_invoicing=True,
             shield_percentage_price=Decimal("4"),
         )[0]
         self.free = ServicePlan.objects.get_or_create(

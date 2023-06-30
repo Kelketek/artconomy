@@ -42,6 +42,8 @@ from apps.sales.constants import (
     TIP,
     TIPPING,
     UNPROCESSED_EARNINGS,
+    CANCELLED,
+    REFUNDED,
 )
 from apps.sales.models import CreditCardToken, TransactionRecord
 from apps.sales.stripe import money_to_stripe
@@ -56,9 +58,16 @@ from apps.sales.tests.factories import (
     TransactionRecordFactory,
     WebhookRecordFactory,
     add_adjustment,
+    PaypalConfigFactory,
 )
 from apps.sales.tests.test_utils import TransactionCheckMixin
 from apps.sales.utils import UserPaymentException
+from apps.sales.views.tests.fixtures.paypal_fixtures import (
+    invoice_paid_event,
+    invoice_cancelled_event,
+    invoice_refunded_event,
+    invoice_updated_event,
+)
 from apps.sales.views.tests.fixtures.stripe_fixtures import (
     DUMMY_REPORT,
     DUMMY_REPORT_NO_EFFECTIVE_TIME,
@@ -933,3 +942,179 @@ class TestReconcileReport(EnsurePlansMixin, TestCase):
         handle_stripe_event(connect=False, event=event)
         existing_record.refresh_from_db()
         self.assertEqual(existing_record.finalized_on, timezone.now())
+
+
+def prep_for_invoice(event, invoice):
+    event["resource"]["invoice"]["id"] = invoice.paypal_token
+    event["resource"]["invoice"]["number"] = invoice.id
+    total = invoice.total()
+    event["resource"]["invoice"]["amount"]["value"] = total.amount
+    event["resource"]["invoice"]["amount"]["currency_code"] = str(total.currency)
+
+
+@override_settings(BYPASS_PAYPAL_WEBHOOK_VALIDATION=True)
+class TestPaypalWebhooks(APITestCase):
+    def test_invoice_paid_fully(self):
+        deliverable = DeliverableFactory.create(
+            invoice__paypal_token="boop",
+            status=PAYMENT_PENDING,
+        )
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        paid_event = invoice_paid_event()
+        prep_for_invoice(paid_event, deliverable.invoice)
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", paid_event, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, QUEUED)
+
+    def test_invoice_paid_partially(self):
+        deliverable = DeliverableFactory.create(
+            invoice__paypal_token="boop",
+            status=PAYMENT_PENDING,
+        )
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        paid_event = invoice_paid_event()
+        prep_for_invoice(paid_event, deliverable.invoice)
+        paid_event["resource"]["invoice"]["due_amount"]["value"] = "5.00"
+        paid_event["resource"]["invoice"]["due_amount"]["currency_code"] = "USD"
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", paid_event, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, PAYMENT_PENDING)
+
+    def test_invoice_paid_with_gratuity(self):
+        deliverable = DeliverableFactory.create(
+            invoice__paypal_token="boop",
+            status=NEW,
+        )
+        deliverable.status = PAYMENT_PENDING
+        deliverable.save()
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        paid_event = invoice_paid_event()
+        prep_for_invoice(paid_event, deliverable.invoice)
+        original_total = deliverable.invoice.total()
+        paid_event["resource"]["invoice"]["gratuity"] = {
+            "value": "5.00",
+            "currency_code": "USD",
+        }
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", paid_event, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, QUEUED)
+        self.assertEqual(
+            deliverable.invoice.total(), original_total + Money("5.00", "USD")
+        )
+        self.assertEqual(
+            deliverable.invoice.line_items.filter(type=TIP).get().amount,
+            Money("5.00", "USD"),
+        )
+
+    def test_invoice_cancelled(self):
+        deliverable = DeliverableFactory.create(
+            invoice__paypal_token="boop",
+            status=NEW,
+        )
+        deliverable.status = PAYMENT_PENDING
+        deliverable.save()
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        cancelled_event = invoice_cancelled_event()
+        prep_for_invoice(cancelled_event, deliverable.invoice)
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", cancelled_event, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, CANCELLED)
+
+    def test_non_existent_invoice_cancel(self):
+        config = PaypalConfigFactory.create()
+        cancelled_event = invoice_cancelled_event()
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", cancelled_event, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_paypal_refunded_full_amount(self):
+        deliverable = DeliverableFactory.create(
+            invoice__paypal_token="Boop",
+            escrow_enabled=False,
+            status=NEW,
+        )
+        deliverable.status = COMPLETED
+        deliverable.save()
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        refunded = invoice_refunded_event()
+        prep_for_invoice(refunded, deliverable.invoice)
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", refunded, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, REFUNDED)
+
+    def test_paypal_refunded_partial_does_nothing(self):
+        deliverable = DeliverableFactory.create(
+            invoice__paypal_token="Boop",
+            escrow_enabled=False,
+            status=NEW,
+        )
+        deliverable.status = COMPLETED
+        deliverable.save()
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        refunded = invoice_refunded_event()
+        prep_for_invoice(refunded, deliverable.invoice)
+        amount_dict = refunded["resource"]["invoice"]["refunds"]["refund_amount"]
+        amount_dict["value"] = "1"
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", refunded, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.status, COMPLETED)
+
+    def test_paypal_refunded_throws_for_escrow(self):
+        deliverable = DeliverableFactory.create(
+            invoice__paypal_token="Boop",
+            escrow_enabled=True,
+            status=NEW,
+        )
+        deliverable.status = COMPLETED
+        deliverable.save()
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        cancelled_event = invoice_refunded_event()
+        prep_for_invoice(cancelled_event, deliverable.invoice)
+        with self.assertRaises(RuntimeError):
+            self.client.post(
+                f"/api/sales/paypal-webhooks/{config.id}/",
+                cancelled_event,
+                format="json",
+            )
+
+    def test_unsupported_event(self):
+        unsupported_event = invoice_refunded_event()
+        config = PaypalConfigFactory.create()
+        unsupported_event["event_type"] = "PANIC"
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", unsupported_event, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.data["detail"], "Event type not supported.")
+
+    def test_invoice_updated(self):
+        deliverable = DeliverableFactory.create(invoice__paypal_token="Beep")
+        updated_event = invoice_updated_event()
+        updated_event["resource"]["invoice"]["id"] = deliverable.invoice.paypal_token
+        updated_event["resource"]["invoice"]["number"] = deliverable.invoice.id
+        config = PaypalConfigFactory.create(user=deliverable.order.seller)
+        resp = self.client.post(
+            f"/api/sales/paypal-webhooks/{config.id}/", updated_event, format="json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        deliverable.invoice.refresh_from_db()
+        self.assertEqual(deliverable.invoice.total(), Money("108.00", "USD"))

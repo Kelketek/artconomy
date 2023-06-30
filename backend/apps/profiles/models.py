@@ -123,7 +123,7 @@ def banned_prefix_validator(value):
     if value.startswith("guest"):
         raise ValidationError('A username may not start with the word "guest".')
     if value.startswith("@"):
-        raise ValidationError('A username may not start with the symbol @.')
+        raise ValidationError("A username may not start with the symbol @.")
 
 
 def tg_key_gen():
@@ -771,7 +771,8 @@ class Character(Model, HitsMixin):
         max_length=150,
         validators=[
             RegexValidator(
-                r"^[^/\\?%&+#@]+$", message="Names may not contain /, \\, ?, #, @, or &."
+                r"^[^/\\?%&+#@]+$",
+                message="Names may not contain /, \\, ?, #, @, or &.",
             ),
             RegexValidator(r"^[^.]", message="Names may not start with a period."),
             RegexValidator(r"[^.]$", message="Names may not end with a period."),

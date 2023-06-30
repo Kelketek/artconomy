@@ -69,8 +69,6 @@ ALLOWED_HOSTS = get_env(
 if TESTING or DEBUG:
     ALLOWED_HOSTS += ["*"]
 
-ALLOWED_HOSTS
-
 CSRF_TRUSTED_ORIGINS = [f"https://{source}" for source in ALLOWED_HOSTS]
 
 # Application definition
@@ -329,6 +327,9 @@ if TESTING:
 
 DEFAULT_PROTOCOL = get_env("DEFAULT_PROTOCOL", "https")
 DEFAULT_DOMAIN = get_env("DEFAULT_DOMAIN", "artconomy.vulpinity.com")
+# The webhooks domain may be different in the case of local development using something
+# like ngrok.
+WEBHOOKS_DOMAIN = get_env("WEBHOOKS_DOMAIN", DEFAULT_DOMAIN)
 PREMAILER_OPTIONS = get_env(
     "PREMAILER_OPTIONS",
     {
@@ -394,6 +395,11 @@ SOURCE_COUNTRY = get_env("SOURCE_COUNTRY", "US")
 HIDE_TEST_BROWSER = bool(int(get_env("HIDE_TEST_BROWSER", "1")))
 
 CARD_TEST = bool(int(get_env("CARD_TEST", "1")))
+
+# DO NOT SET THIS TO TRUE IN PRODUCTION.
+BYPASS_PAYPAL_WEBHOOK_VALIDATION = bool(
+    int(get_env("BYPASS_PAYPAL_WEBHOOK_VALIDATION", "0")),
+)
 
 MIN_PASS_LENGTH = int(get_env("MIN_PASS_LENGTH", "8"))
 

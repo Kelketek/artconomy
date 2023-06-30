@@ -96,6 +96,7 @@ export default class AcLineItemPreview extends Vue {
       9: 'Other Fee',
       10: 'Order Tracking',
       11: 'Processing',
+      12: 'Reconciliation',
     }
     return BASIC_TYPES[this.line.type] || 'Unknown'
   }

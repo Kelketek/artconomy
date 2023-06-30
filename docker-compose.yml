@@ -55,7 +55,7 @@ services:
       - ENV_NAME=dev
       - REDIS_HOST=redis
       - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
-      - STRIPE_WEBHOOKS_DOMAIN=${STRIPE_WEBHOOKS_DOMAIN}
+      - WEBHOOKS_DOMAIN=${WEBHOOKS_DOMAIN}
       - STRIPE_KEY=${STRIPE_KEY}
       - DEFAULT_CARD_PROCESSOR=stripe
     command: /home/dev/.pyenv/versions/artconomy/bin/python manage.py runserver 0.0.0.0:8002

@@ -29,8 +29,8 @@ test_backend:
 	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"
 
 format:
-	${APP_COMMAND} "ruff --fix backend"
 	${APP_COMMAND} "black backend"
+	${APP_COMMAND} "ruff --fix backend"
 
 upgrade:
 	rm -f requirements.txt && ${APP_COMMAND} "pip-compile --resolver=backtracking requirements.in constraints.in --output-file=requirements.txt"

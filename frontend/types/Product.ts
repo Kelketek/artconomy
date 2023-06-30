@@ -30,4 +30,5 @@ export default interface Product {
   escrow_upgradable: boolean,
   display_position: number,
   over_order_limit: boolean,
+  paypal: boolean,
 }

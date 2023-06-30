@@ -100,6 +100,7 @@ from apps.sales.constants import (
     UNPROCESSED_EARNINGS,
     VOID,
     WAITING,
+    LINE_ITEM_TYPES_TABLE,
 )
 from apps.sales.line_item_funcs import (
     ceiling_context,
@@ -108,6 +109,7 @@ from apps.sales.line_item_funcs import (
     lines_by_priority,
     normalized_lines,
 )
+from apps.sales.paypal import clear_existing_invoice, paypal_api
 from apps.sales.stripe import refund_payment_intent, remote_ids_from_charge, stripe
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -649,7 +651,7 @@ def transfer_order(order, old_buyer, new_buyer, force=False, skip_notification=F
     CreditCardToken.objects.filter(user=old_buyer).update(user=new_buyer)
 
 
-def cancel_deliverable(deliverable, requested_by):
+def cancel_deliverable(deliverable, requested_by, skip_remote=False):
     """
     Marks a deliverable as cancelled, sending relevant notifications.
     """
@@ -657,6 +659,9 @@ def cancel_deliverable(deliverable, requested_by):
         deliverable.status = MISSED
     else:
         deliverable.status = CANCELLED
+    if deliverable.invoice.paypal_token and not skip_remote:
+        with paypal_api(deliverable.order.seller) as paypal:
+            clear_existing_invoice(paypal, deliverable.invoice)
     deliverable.cancelled_on = timezone.now()
     deliverable.save()
     deliverable.invoice.status = VOID
@@ -1533,7 +1538,10 @@ def invoice_post_payment(
 def refund_deliverable(deliverable: "Deliverable", requesting_user=None) -> (bool, str):
     from apps.sales.models import TransactionRecord
 
-    assert deliverable.status in [QUEUED, IN_PROGRESS, DISPUTED, REVIEW]
+    statuses = [QUEUED, IN_PROGRESS, DISPUTED, REVIEW]
+    if deliverable.invoice.paypal_token:
+        statuses.append(COMPLETED)
+    assert deliverable.status in statuses
     if not deliverable.escrow_enabled:
         deliverable.status = REFUNDED
         deliverable.save()
@@ -1840,3 +1848,47 @@ def claim_deliverable(user, deliverable):
             )
         )
     Subscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
+
+
+def get_line_description(line_item: "LineItem", amount: Money):
+    """
+    Produce a description (with fallback default) by line item type.
+
+    There is a more complex version of this function with smarter output
+    in AcLineItemPreview on the frontend. This simpler one handles our
+    needs here.
+    """
+    if line_item.description:
+        return line_item.description
+    if line_item.type == ADD_ON:
+        if amount.amount < 0:
+            return "Discount"
+        return "Additional requirements"
+    return LINE_ITEM_TYPES_TABLE[line_item.type]
+
+
+def mark_deliverable_paid(deliverable: "Deliverable"):
+    """
+    For cases where we need to mark a deliverable as paid without handling
+    any of the money ourselves.
+    """
+    if deliverable.final_uploaded:
+        deliverable.status = COMPLETED
+    elif deliverable.revision_set.all():
+        deliverable.status = IN_PROGRESS
+    else:
+        deliverable.status = QUEUED
+    if deliverable.product:
+        deliverable.task_weight = deliverable.product.task_weight
+        deliverable.expected_turnaround = deliverable.product.expected_turnaround
+        deliverable.revisions = deliverable.product.revisions
+    deliverable.revisions_hidden = False
+    deliverable.escrow_enabled = False
+    deliverable.save()
+    deliverable.invoice.record_only = True
+    deliverable.invoice.status = PAID
+    deliverable.invoice.paid_on = timezone.now()
+    freeze_line_items(deliverable.invoice)
+    deliverable.invoice.save()
+    term_charge(deliverable)
+    notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)

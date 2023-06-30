@@ -4,7 +4,7 @@ from functools import cmp_to_key, reduce
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, List, Tuple, Union
 
 from _decimal import ROUND_DOWN
-from moneyed import Currency, Money
+from moneyed import Currency, Money, get_currency
 
 if TYPE_CHECKING:  # pragma: no cover
     from apps.sales.models import LineItem, LineItemSim
@@ -143,10 +143,10 @@ def priority_total(
 
 @down_context
 def to_distribute(total: Money, money_map: "LineMoneyMap") -> Money:
-    combined_sum = sum([value.round(2) for value in money_map.values()]) or Money(
-        "0", total.currency
-    )
-    return total.round(2) - combined_sum
+    combined_sum = sum(
+        [value.round(digits(total.currency)) for value in money_map.values()]
+    ) or Money("0", total.currency)
+    return total.round(digits(total.currency)) - combined_sum
 
 
 def redistribution_priority(
@@ -183,7 +183,9 @@ def distribute_difference(
     will be the correct target, and each value will be representable as a real monetary
     value-- that is, something no more fractionalized than cents.
     """
-    updated_map = {key: value.round(2) for key, value in money_map.items()}
+    updated_map = {
+        key: value.round(digits(value.currency)) for key, value in money_map.items()
+    }
     sorted_values = [(key, value) for key, value in updated_map.items()]
     sorted_values.sort(
         key=cmp_to_key(
@@ -208,14 +210,20 @@ def distribute_difference(
 
 
 @down_context
-def normalized_lines(priority_sets: List[List[Union["LineItem", "LineItemSim"]]]):
+def normalized_lines(
+    priority_sets: List[List[Union["LineItem", "LineItemSim"]]],
+    currency=get_currency("USD"),
+):
+    zero = zero_amount(currency)
     total, discount, subtotals = reduce(
         priority_total,
         priority_sets,
-        (Money("0.00", "USD"), Money("0.00", "USD"), {}),
+        (zero, zero, {}),
     )
-    total = total.round(2)
-    subtotals = {key: value.round(2) for key, value in subtotals.items()}
+    total = total.round(digits(total.currency))
+    subtotals = {
+        key: value.round(digits(total.currency)) for key, value in subtotals.items()
+    }
     difference = to_distribute(total, subtotals)
     if difference != Money("0", difference.currency):
         subtotals = distribute_difference(difference, subtotals)
@@ -223,17 +231,37 @@ def normalized_lines(priority_sets: List[List[Union["LineItem", "LineItemSim"]]]
 
 
 @down_context
-def get_totals(lines: Iterator["Line"]) -> (Money, Money, "LineMoneyMap"):
+def get_totals(
+    lines: Iterator["Line"], currency=get_currency("USD")
+) -> (Money, Money, "LineMoneyMap"):
     priority_sets = lines_by_priority(lines)
-    return normalized_lines(priority_sets)
+    return normalized_lines(priority_sets, currency=currency)
 
 
-def reckon_lines(lines) -> Money:
+def reckon_lines(lines, currency=get_currency("USD")) -> Money:
     """
     Reckons all line items to produce a total value.
     """
-    value, discount, _subtotals = get_totals(lines)
-    return value.round(2)
+    value, discount, _subtotals = get_totals(lines, currency=currency)
+    return value.round(digits(currency))
+
+
+def penny_amount(currency: Currency):
+    if not digits(currency):
+        return Money("1", currency)
+    return Money(
+        Decimal("0." + ("0" * (digits(currency) - 1)) + "1"),
+        currency,
+    )
+
+
+def zero_amount(currency: Currency):
+    if not digits(currency):
+        return Money("0", currency)
+    return Money(
+        Decimal("0." + ("0" * digits(currency))),
+        currency,
+    )
 
 
 @down_context
@@ -252,13 +280,7 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
     difference *= target_amount.currency.sub_unit
     difference = int(difference.amount)
     result = [target_amount] * divisor
-    if digits(target_amount.currency):
-        penny_amount = Money(
-            Decimal("0." + ("0" * (digits(target_amount.currency) - 1)) + "1"),
-            target_amount.currency,
-        )
-    else:
-        penny_amount = Money("1", target_amount.currency)
+    penny = penny_amount(target_amount.currency)
     assert difference >= 0
     # It's probably not possible for it to loop around again, but I'm not a confident
     # enough mathematician to disprove it, especially since I'm unsure how having
@@ -266,7 +288,7 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
     # I'm good with simplifying this loop.
     while difference:
         for index, item in enumerate(result):
-            result[index] += penny_amount
+            result[index] += penny
             difference -= 1
             if not difference:
                 break

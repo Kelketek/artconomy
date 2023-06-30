@@ -30,6 +30,9 @@ OTHER_FEE = 9
 DELIVERABLE_TRACKING = 10
 # Similar fee to shield, but when we're not handling escrow, such as after-order tips.
 PROCESSING = 11
+# Used when we're syncing from an outside invoice, but there's a discrepency. Paper over
+# it by adding a static amount line item that handles the difference.
+RECONCILIATION = 12
 
 PRIORITY_MAP = {
     BASE_PRICE: 0,
@@ -44,6 +47,7 @@ PRIORITY_MAP = {
     PROCESSING: 300,
     EXTRA: 400,
     TAX: 600,
+    RECONCILIATION: 1000,
 }
 
 LINE_ITEM_TYPES = (
@@ -59,7 +63,10 @@ LINE_ITEM_TYPES = (
     (TAX, "Tax"),
     (PREMIUM_SUBSCRIPTION, "Premium Subscription"),
     (PROCESSING, "Processing Fee"),
+    (RECONCILIATION, "Reconciliation"),
 )
+
+LINE_ITEM_TYPES_TABLE = dict(LINE_ITEM_TYPES)
 
 ####
 # Invoice constants.
@@ -133,6 +140,8 @@ PAID_STATUSES = (QUEUED, IN_PROGRESS, REVIEW, REFUNDED, COMPLETED)
 WEIGHTED_STATUSES = (IN_PROGRESS, PAYMENT_PENDING, QUEUED)
 # Used for counting against 'Max simultaneous orders'
 CONCURRENCY_STATUSES = (NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW)
+# For all statuses where the artist has made some commitment they're seeing through.
+WORK_IN_PROGRESS_STATUSES = (PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW)
 
 
 ####

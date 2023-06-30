@@ -104,6 +104,7 @@ export function genPricing(): Pricing {
         waitlisting: false,
         shield_static_price: 3.5,
         shield_percentage_price: 5.50,
+        paypal_invoicing: false,
       },
       {
         id: 8,
@@ -129,6 +130,7 @@ export function genPricing(): Pricing {
         waitlisting: false,
         shield_static_price: 3.5,
         shield_percentage_price: 5.00,
+        paypal_invoicing: false,
       },
       {
         id: 9,
@@ -157,6 +159,7 @@ export function genPricing(): Pricing {
         waitlisting: true,
         shield_static_price: 0.75,
         shield_percentage_price: 4.00,
+        paypal_invoicing: true,
       },
     ],
     minimum_price: 1,

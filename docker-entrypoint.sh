@@ -10,7 +10,7 @@ fi
 ./manage.py migrate
 ./manage.py initial_service_plans
 ./manage.py create_anonymous_user
-./manage.py stripe_webhooks --domain="$STRIPE_WEBHOOKS_DOMAIN"
+./manage.py stripe_webhooks --domain="$WEBHOOKS_DOMAIN"
 npm run serve &
 ./manage.py collectstatic -v0 --noinput
 ./manage.py tg_bot &

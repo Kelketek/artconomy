@@ -289,3 +289,17 @@ class PlanDeliverableAddition(BasePermission):
         ):
             return False
         return True
+
+
+class ValidPaypal(BasePermission):
+    message = "No active PayPal configuration for this account."
+
+    def has_object_permission(self, request, view, obj):
+        from apps.sales.models import PaypalConfig
+
+        user = derive_user(obj)
+        try:
+            user.paypal_config
+        except PaypalConfig.DoesNotExist:
+            return False
+        return user.paypal_config.active

@@ -923,3 +923,24 @@ export const initDrawerValue = () => {
   }
   return null
 }
+
+export const paypalTokenToUrl = (invoiceToken: string, sender: boolean): string => {
+  if (!invoiceToken) {
+    return ''
+  }
+  let extension = ''
+  let baseUrl = ''
+  if (sender) {
+    extension = `/invoice/details/${invoiceToken}`
+  } else {
+    const tokenSegments = invoiceToken.split('INV2-', 2)
+    const token = tokenSegments[tokenSegments.length - 1].replace(/-/g, '')
+    extension = `/invoice/p/#${token}`
+  }
+  if (window.CARD_TEST) {
+    baseUrl = 'https://www.sandbox.paypal.com'
+  } else {
+    baseUrl = 'https://www.paypal.com'
+  }
+  return `${baseUrl}${extension}`
+}

@@ -9,7 +9,7 @@ import Deliverable from '@/types/Deliverable'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
 import {FormController} from '@/store/forms/form-controller'
-import {baseCardSchema, baseInvoiceSchema, parseISO} from '@/lib/lib'
+import {baseCardSchema, baseInvoiceSchema, parseISO, paypalTokenToUrl} from '@/lib/lib'
 import {LineTypes} from '@/types/LineTypes'
 import DeliverableViewSettings from '@/types/DeliverableViewSettings'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
@@ -108,6 +108,13 @@ export default class DeliverableMixin extends mixins(Viewer) {
 
   public get sellerSubmission() {
     return this.getOutput(this.seller as User)
+  }
+
+  public get paypalUrl() {
+    if (!this.deliverable.x) {
+      return ''
+    }
+    return paypalTokenToUrl(this.deliverable.x.paypal_token, !!this.isSeller)
   }
 
   public ensureHandler(handler: ProfileController, user: User, loadProfile?: boolean) {

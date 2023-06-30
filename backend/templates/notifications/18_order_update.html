@@ -7,6 +7,8 @@ Your order has been placed into the artist's waitlist. We will update you if the
 Your order has been placed and will be reviewed by the artist soon. We will update you once they have accepted your commission!
 {% elif target.status == 2 %}
 Your order has been accepted by the artist and is ready for payment!
+{% elif target.status == 3 %}
+Your order has been added to the artist's queue! They'll update you as things progress.
 {% elif target.status == 4 %}
 The artist has begun work on your order. {% if target.stream_link %}<a href="{{target.stream_link}}">They're streaming the work here!</a> {% endif %}
 {% elif target.status == 5 %}

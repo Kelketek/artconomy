@@ -1,3 +1,5 @@
+from short_stuff import gen_shortcode
+
 from apps.lib.tests.factories import AssetFactory
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import ADD_ON, CARD, ESCROW, ESCROW_HOLD, SUCCESS
@@ -19,6 +21,7 @@ from apps.sales.models import (
     StripeReader,
     TransactionRecord,
     WebhookRecord,
+    PaypalConfig,
 )
 from factory import SelfAttribute, Sequence, SubFactory
 from factory.django import DjangoModelFactory
@@ -183,6 +186,18 @@ class ServicePlanFactory(DjangoModelFactory):
 
     class Meta:
         model = ServicePlan
+
+
+class PaypalConfigFactory(DjangoModelFactory):
+    id = Sequence(lambda _: gen_shortcode())
+    user = SubFactory(UserFactory)
+    key = Sequence(lambda x: f"key {x}")
+    secret = Sequence(lambda x: f"secret {x}")
+    template_id = Sequence(lambda x: f"template {x}")
+    webhook_id = Sequence(lambda x: f"webhook {x}")
+
+    class Meta:
+        model = PaypalConfig
 
 
 def add_adjustment(deliverable, amount: Money):

@@ -481,7 +481,11 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
     @freeze_time("2023-01-01")
     def test_no_set_auto_cancel_on_seller_issued(self):
         user = UserFactory.create()
-        deliverable = DeliverableFactory.create(status=NEW, order__seller=user, created_by=user)
+        deliverable = DeliverableFactory.create(
+            status=NEW,
+            order__seller=user,
+            created_by=user,
+        )
         self.assertIsNone(deliverable.auto_cancel_on)
 
     @override_settings(AUTO_CANCEL_DAYS=5)

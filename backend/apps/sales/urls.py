@@ -41,6 +41,11 @@ urlpatterns = [
         kwargs={"connect": False},
     ),
     path(
+        "paypal-webhooks/<short_code:config_id>/",
+        webhooks.PaypalWebhooks.as_view(),
+        name="paypal_webhooks",
+    ),
+    path(
         "create-anonymous-invoice/",
         main.CreateAnonymousInvoice.as_view(),
         name="create_anonymous_invoice",
@@ -64,12 +69,12 @@ urlpatterns = [
     path(
         "order/<int:order_id>/deliverables/<int:deliverable_id>/outputs/",
         main.DeliverableOutputs.as_view(),
-        name="accept_order",
+        name="deliverable_outputs",
     ),
     path(
         "order/<int:order_id>/deliverables/<int:deliverable_id>/characters/",
         main.DeliverableCharacterList.as_view(),
-        name="accept_order",
+        name="deliverable_character_list",
     ),
     path(
         "order/<int:order_id>/deliverables/<int:deliverable_id>/revisions/",
@@ -197,6 +202,16 @@ urlpatterns = [
         "search/product/<username>/",
         main.PersonalProductSearch.as_view(),
         name="personal_product_search",
+    ),
+    path(
+        "account/<username>/paypal/",
+        main.PaypalSettings.as_view(),
+        name="paypal_settings",
+    ),
+    path(
+        "account/<username>/paypal/templates/",
+        main.PaypalTemplates.as_view(),
+        name="paypal_settings",
     ),
     path(
         "account/<username>/premium/intent/",

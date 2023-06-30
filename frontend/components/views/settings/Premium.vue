@@ -7,10 +7,10 @@
           <v-btn :to="{name: 'Upgrade'}" color="secondary">Upgrade Now!</v-btn>
         </v-col>
       </v-row>
-      <v-row no-gutters v-if="subject.landscape">
+      <v-row v-if="subject.landscape">
         <v-col class="text-center" cols="12" >
-          <v-subheader>Landscape settings</v-subheader>
-          <p>There are no special settings to configure for Landscape at this time. Your commission bonuses will be applied automatically!</p>
+          <v-subheader>PayPal Integration</v-subheader>
+          <v-btn color="primary" type="submit" @click="showPaypal = true">Configure PayPal Integration</v-btn>
         </v-col>
         <v-col class="text-center" cols="2">
           <v-icon x-large>{{discordPath}}</v-icon>
@@ -23,6 +23,100 @@
           <v-text-field :disabled="true" :value="adminPath" />
         </v-col>
       </v-row>
+      <ac-form-dialog
+          v-model="showPaypal"
+          :large="true" v-bind="paypalForm.bind"
+          :show-submit="paypalWarned || paypal.ready"
+          title="PayPal Integration"
+          @submit.prevent="paypalForm.submitThen(paypal.makeReady)"
+          :showSubmit="(!paypal.ready && paypalWarned)"
+          :cancel-text="paypal.ready ? 'Done' : 'Cancel'"
+      >
+        <v-card-text>
+          <v-row v-if="!paypalWarned && !paypal.ready">
+            <v-col cols="12">
+              <span class="title">Notice</span>
+              <p>
+                This will integrate your Artconomy account with PayPal. Integrating with PayPal will allow you to automatically generate PayPal invoices on orders.
+                Please note the following:
+              </p>
+              <ul>
+                <li>Orders which use PayPal invoicing are not covered by Shield Protection.</li>
+                <li>You can choose which orders use Shield and which orders use PayPal as your needs dictate.</li>
+                <li>When you enable this feature, all orders which are not shield protected will use Paypal invoicing by default.
+                  You can disable this on a per-product and per-order basis.</li>
+                <li>You <strong>MUST</strong> have a PayPal business account for this to work.</li>
+                <li>PayPal's terms of service is hostile toward NSFW art commissions in most or all jurisdictions and circumstances.
+                  <strong>You should not use PayPal to track NSFW art commissions.</strong></li>
+                <li>Invoices generated in PayPal will contain all relevant information, such as product names and line items.</li>
+                <li>PayPal <strong>WILL</strong> reveal your personal information to the client, and vice versa in most cases. Use Shield instead to avoid this.</li>
+              </ul>
+            </v-col>
+            <v-col cols="12" class="text-center">
+              <v-btn color="primary" @click="paypalWarned = true">I understand and wish to continue</v-btn>
+            </v-col>
+          </v-row>
+        <v-row v-else-if="!paypal.ready">
+          <v-col cols="12">
+            <p>Enter your PayPal API Credentials below. If you're not sure how to get these credentials, please contact support.</p>
+          </v-col>
+          <v-col cols="12" md="6" lg="4" offset-lg="2">
+            <ac-bound-field
+                label="API Key"
+                :field="paypalForm.fields.key"
+                hint="Your API account key."
+                :persistent-hint="true"
+            />
+          </v-col>
+          <v-col cols="12" md="6" lg="4">
+            <ac-bound-field
+                label="API Secret"
+                :field="paypalForm.fields.secret"
+                type="password"
+                hint="Your API secret."
+                :persistent-hint="true"
+            />
+          </v-col>
+        </v-row>
+        <ac-load-section :controller="paypalTemplates" v-else-if="paypal.ready">
+          <template v-slot:default>
+            <v-row>
+              <v-col cols="12">
+                <ac-patch-field
+                    :patcher="paypal.patchers.template_id"
+                    :items="templateList"
+                    label="PayPal Invoice Template"
+                    hint="Select the PayPal invoice template Artconomy will fill with commission details.
+                          Using an invoice template allows you to add line items like taxes or other business
+                          addess information on your invoices."
+                    field-type="v-select"
+                    item-text="name"
+                    item-value="id"
+                    :persistent-hint="true"
+                 />
+              </v-col>
+              <v-col cols="12" md="6" class="text-md-center">
+                <ac-confirmation :action="deletePaypal">
+                  <template v-slot:default="{on}">
+                    <v-btn color="danger" class="cancel-subscription" v-on="on">Remove PayPal Integration</v-btn>
+                  </template>
+                  <div slot="confirmation-text">
+                    <p>Are you sure you wish to disconnect PayPal?</p>
+                  </div>
+                </ac-confirmation>
+              </v-col>
+              <v-col cols="12" md="6" class="text-md-center">
+                <v-alert type="success" v-if="paypal.x.active">Your PayPal Integration is ready.</v-alert>
+                <v-alert type="warning" v-else>
+                  You must select a valid template. A template must use USD to be valid.
+                  <a href="https://www.paypal.com/invoice/s/settings/templates">You can configure your templates here.</a>
+                </v-alert>
+              </v-col>
+            </v-row>
+          </template>
+        </ac-load-section>
+        </v-card-text>
+      </ac-form-dialog>
       <v-row no-gutters   v-if="(subject.landscape)">
         <v-col class="text-center" cols="12" >
           <p>Your landscape subscription is paid through {{formatDate(subject.landscape_paid_through)}}.</p>
@@ -35,10 +129,10 @@
             <template v-slot:default="{on}">
               <v-btn color="danger" class="cancel-subscription" v-on="on">Cancel Subscription</v-btn>
             </template>
-            <span slot="confirmation-text">
+            <div slot="confirmation-text">
               <p>Are you sure you wish to cancel your subscription?</p>
               <p>Note: You will be able to use the extra features until your current term ends.</p>
-            </span>
+            </div>
           </ac-confirmation>
         </v-col>
         <v-col class="text-center" cols="12" sm="6" v-else-if="subject.landscape">
@@ -61,16 +155,46 @@ import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {artCall} from '@/lib/lib'
 import {mdiDiscord} from '@mdi/js'
 import Formatting from '@/mixins/formatting'
+import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
+import {FormController} from '@/store/forms/form-controller'
+import AcForm from '@/components/wrappers/AcForm.vue'
+import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
+import AcBoundField from '@/components/fields/AcBoundField'
+import { SingleController } from '@/store/singles/controller'
+import { PaypalConfig } from '@/types/PaypalConfig'
+import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import {ListController} from '@/store/lists/controller'
+import { Watch } from 'vue-property-decorator'
 
 @Component({
-  components: {AcConfirmation, AcCardManager, AcTagField, AcLoadingSpinner, AcPatchField},
+  components: {
+    AcLoadSection,
+    AcBoundField,
+    AcFormDialog,
+    AcForm,
+    AcFormContainer,
+    AcConfirmation,
+    AcCardManager,
+    AcTagField,
+    AcLoadingSpinner,
+    AcPatchField,
+  },
 })
 export default class Premium extends mixins(Viewer, Subjective, Formatting) {
   public discordPath = mdiDiscord
+  public paypalForm = null as unknown as FormController
+  public paypal = null as unknown as SingleController<PaypalConfig>
+  public paypalTemplates = null as unknown as ListController<{name: string, id: string}>
+  public showPaypal = false
+  public paypalWarned = false
   public cancelSubscription() {
-    artCall({url: `/api/sales/account/${this.username}/cancel-premium/`, method: 'post'}).then(
+    return artCall({url: `/api/sales/account/${this.username}/cancel-premium/`, method: 'post'}).then(
       this.subjectHandler.user.setX,
     )
+  }
+
+  public deletePaypal() {
+    return this.paypal.delete().catch(this.paypalForm.setErrors)
   }
 
   public get adminPath() {
@@ -78,6 +202,40 @@ export default class Premium extends mixins(Viewer, Subjective, Formatting) {
       return ''
     }
     return `${location.protocol}//${location.host}/admin/profiles/user/${this.subject.id}/`
+  }
+
+  public get templateList() {
+    if (!this.paypalTemplates.ready) {
+      return []
+    }
+    return this.paypalTemplates.list.map((item) => item.x as {name: string, id: string})
+  }
+
+  @Watch('paypal.x')
+  public configurePaypal(paypal: PaypalConfig|null) {
+    if (!paypal) {
+      return
+    }
+    this.paypalTemplates.firstRun()
+  }
+
+  public created() {
+    this.paypal = this.$getSingle(
+        `paypal__${this.username}`,
+        {endpoint: `/api/sales/account/${this.username}/paypal/`},
+    )
+    this.paypal.get().catch(this.statusOk(404))
+    this.paypalTemplates = this.$getList(
+        `paypalTemplates__${this.username}`,
+        {endpoint: `/api/sales/account/${this.username}/paypal/templates/`, paginated: false},
+    )
+    this.paypalForm = this.$getForm(`paypalForm__${this.username}`, {
+      endpoint: `/api/sales/account/${this.username}/paypal/`,
+      fields: {
+        key: {value: '', validators: [{name: 'required'}]},
+        secret: {value: '', validators: [{name: 'required'}]},
+      },
+    })
   }
 }
 </script>

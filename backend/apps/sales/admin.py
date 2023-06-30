@@ -15,10 +15,12 @@ from apps.sales.models import (
     StripeReader,
     TransactionRecord,
     WebhookRecord,
+    PaypalConfig,
 )
 from apps.sales.utils import reverse_record
 from django import forms
 from django.contrib import admin, messages
+from django.core.exceptions import ValidationError
 from django.db.transaction import atomic
 
 # Register your models here.
@@ -297,6 +299,35 @@ class CreditCardTokenAdmin(admin.ModelAdmin):
     raw_id_fields = ["user"]
 
 
+class PaypalConfigAdminForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.id:
+            self.fields[
+                "secret"
+            ].help_text = "Secret not displayed. Enter a new secret to overwrite."
+
+    def clean_secret(self):
+        instance = getattr(self, "instance", None)
+        if self.cleaned_data["secret"]:
+            return self.cleaned_data["secret"]
+        elif instance.secret:
+            return instance.secret
+        raise ValidationError("Secret must be specified.")
+
+    class Meta:
+        model = PaypalConfig
+        widgets = {
+            "secret": forms.PasswordInput,
+        }
+        fields = "__all__"  # required for Django 3.x
+
+
+class PaypalConfigAdmin(admin.ModelAdmin):
+    raw_id_fields = ["user"]
+    form = PaypalConfigAdminForm
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Deliverable, DeliverableAdmin)
@@ -311,3 +342,4 @@ admin.site.register(ServicePlan)
 admin.site.register(StripeLocation, StripeLocationAdmin)
 admin.site.register(StripeReader, StripeReaderAdmin)
 admin.site.register(CreditCardToken, CreditCardTokenAdmin)
+admin.site.register(PaypalConfig, PaypalConfigAdmin)

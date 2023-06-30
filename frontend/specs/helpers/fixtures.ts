@@ -51,6 +51,7 @@ export function genUser(overrides?: Partial<User>): User {
     service_plan: 'Free',
     next_service_plan: 'Free',
     verified_email: false,
+    paypal_configured: false,
     ...overrides,
   }
 }
@@ -159,6 +160,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     escrow_upgradable: false,
     display_position: 0,
     over_order_limit: false,
+    paypal: false,
     ...overrides,
   }
 }
@@ -212,6 +214,8 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     },
     invoice: '234gsdgsdfg4',
     tip_invoice: null,
+    paypal: false,
+    paypal_token: '',
     ...overrides,
   }
 }

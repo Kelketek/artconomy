@@ -57,6 +57,13 @@
                   will have to handle payment using a third party service, or collecting it in person."
                 />
               </v-col>
+              <v-col cols="12" v-if="isSeller && editable && seller.paypal_configured">
+                <ac-patch-field
+                    :patcher="deliverable.patchers.paypal" field-type="v-switch" label="Paypal Invoicing" :persistent-hint="true"
+                    :disabled="deliverable.patchers.escrow_enabled.model"
+                    hint="Create an invoice in PayPal for this order."
+                />
+              </v-col>
               <v-col cols="12" v-if="isSeller && editable">
                 <ac-patch-field
                     :patcher="deliverable.patchers.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
@@ -77,6 +84,7 @@
                         :is-seller="isSeller"
                         :editable="editable && (isSeller || isArbitrator)"
                         :editBase="!product"
+                        :disabled="stateChange.sending"
                         :escrow="deliverable.x.escrow_enabled"
                     />
                     <v-row v-if="deliverable.x.paid_on">
@@ -90,10 +98,16 @@
                       </v-col>
                     </v-row>
                     <ac-escrow-label :escrow="escrow" name="order" />
+                    <v-col class="text-center" cols="12" v-if="paypalUrl">
+                      <v-btn color="primary" target="_blank" rel="noopener" :href="paypalUrl">
+                        <span v-if="is(PAYMENT_PENDING) && isBuyer">Pay with PayPal</span>
+                        <span v-else>View Invoice on PayPal</span>
+                      </v-btn>
+                    </v-col>
                     <v-col class="text-center" cols="12" v-if="isSeller && editable">
                       <ac-confirmation :action="statusEndpoint('accept')" v-if="(is(NEW) || is(WAITING)) && isSeller">
                         <template v-slot:default="{on}">
-                          <v-btn v-on="on" color="green" class="accept-order">Accept Order</v-btn>
+                          <v-btn v-on="on" color="green" class="accept-order" :disabled="stateChange.sending">Accept Order</v-btn>
                         </template>
                         <template v-slot:confirmation-text>
                           <v-col>
@@ -104,11 +118,11 @@
                         <span slot="title">Accept Order</span>
                         <span slot="confirm-text">I agree</span>
                       </ac-confirmation>
-                      <v-btn color="green" class="accept-order" @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
+                      <v-btn color="green" class="accept-order" :disabled="stateChange.sending" @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
                         Accept Order
                       </v-btn>
                     </v-col>
-                    <v-col class="text-center" v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED))" cols="12" >
+                    <v-col class="text-center" v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED)) && !paypalUrl" cols="12" >
                       <ac-confirmation :action="statusEndpoint('refund')">
                         <template v-slot:default="{on}">
                           <v-btn v-on="on">
@@ -228,7 +242,7 @@ import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
 import {Watch} from 'vue-property-decorator'
 import {Decimal} from 'decimal.js'
 import LineAccumulator from '@/types/LineAccumulator'
-import {getTotals, quantize, totalForTypes} from '@/lib/lineItemFunctions'
+import {getTotals} from '@/lib/lineItemFunctions'
 import {LineTypes} from '@/types/LineTypes'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'

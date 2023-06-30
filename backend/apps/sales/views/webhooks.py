@@ -1,11 +1,15 @@
 import csv
 import json
+import logging
 from decimal import Decimal
 from io import StringIO
 from pprint import pformat
+from typing import Callable
 
 import dateutil
 import requests
+from rest_framework.generics import get_object_or_404
+
 from apps.lib.models import TRANSFER_FAILED, ref_for_instance
 from apps.lib.utils import notify
 from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
@@ -22,6 +26,7 @@ from apps.sales.constants import (
     STRIPE,
     SUCCESS,
     TYPE_TRANSLATION,
+    TIP,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -30,11 +35,23 @@ from apps.sales.models import (
     StripeAccount,
     TransactionRecord,
     WebhookRecord,
+    PaypalConfig,
+    LineItem,
+)
+from apps.sales.paypal import (
+    validate_paypal_request,
+    reconcile_invoices,
+    transferable_lines,
 )
 from apps.sales.stripe import stripe
 from apps.sales.tasks import withdraw_all
-from apps.sales.utils import UserPaymentException, invoice_post_payment
-from apps.sales.views.main import logger
+from apps.sales.utils import (
+    UserPaymentException,
+    invoice_post_payment,
+    mark_deliverable_paid,
+    cancel_deliverable,
+    refund_deliverable,
+)
 from django.conf import settings
 from django.db import transaction
 from django.db.transaction import atomic
@@ -45,6 +62,9 @@ from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from stripe.error import SignatureVerificationError
+
+
+logger = logging.getLogger(__name__)
 
 
 @transaction.atomic
@@ -328,6 +348,83 @@ def dummy_report_processor(event):
     mockable_dummy_report_processor(event)
 
 
+def invoice_centric(
+    wrapped: Callable[[dict, Invoice], None]
+) -> Callable[[dict, PaypalConfig], None]:
+    def wrapper(event_data: dict, config: PaypalConfig):
+        invoice = Invoice.objects.filter(
+            paypal_token=event_data["resource"]["invoice"]["id"],
+            issued_by=config.user,
+        ).first()
+        if invoice is None:
+            # This is an invoice we're not tracking. Ignore.
+            return
+        wrapped(event_data, invoice)
+
+    return wrapper
+
+
+@invoice_centric
+def paypal_invoice_paid(event_data: dict, invoice: Invoice):
+    """
+    Once a PayPal invoice is paid, mark it internally.
+    """
+    due_amount = Decimal(event_data["resource"]["invoice"]["due_amount"]["value"])
+    if due_amount > Decimal(0):
+        # Not fully paid yet. Accept event but don't do anything.
+        return
+    raw_tip = event_data["resource"]["invoice"].get("gratuity", None)
+    tip = (raw_tip or Money("0", "USD")) and Money(
+        raw_tip["value"],
+        raw_tip["currency_code"],
+    )
+    if tip:
+        # Add this to the invoice now that we have it.
+        LineItem.objects.update_or_create(
+            type=TIP,
+            invoice=invoice,
+            defaults={
+                "amount": tip,
+                "frozen_value": tip,
+                # Not used, but required by DB schema.
+                "destination_account": HOLDINGS,
+                "destination_user": invoice.issued_by,
+            },
+        )
+    deliverable = invoice.deliverables.get()
+    mark_deliverable_paid(deliverable)
+
+
+@invoice_centric
+def paypal_invoice_cancelled(_event_data: dict, invoice: Invoice):
+    cancel_deliverable(invoice.deliverables.get(), requested_by=None, skip_remote=True)
+
+
+@invoice_centric
+def paypal_invoice_refunded(event_data: dict, invoice: Invoice):
+    deliverable = invoice.deliverables.get()
+    # This should never happen, but just to be sure:
+    if deliverable.escrow_enabled:
+        raise RuntimeError(
+            "PayPal is refunding an escrow invoice! This should not be possible!",
+        )
+    # See if this is a partial or total refund
+    total = event_data["resource"]["invoice"]["amount"]
+    refunded = event_data["resource"]["invoice"]["refunds"]["refund_amount"]
+    if Money(total["value"], total["currency_code"]) <= Money(
+        refunded["value"], refunded["currency_code"]
+    ):
+        refund_deliverable(deliverable, requesting_user=invoice.issued_by)
+
+
+@invoice_centric
+def paypal_invoice_updated(event_data: dict, invoice: Invoice):
+    reconcile_invoices(
+        invoice.deliverables.get(),
+        event_data["resource"]["invoice"],
+    )
+
+
 STRIPE_DIRECT_WEBHOOK_ROUTES = {
     "charge.captured": charge_succeeded,
     "charge.succeeded": charge_succeeded,
@@ -339,6 +436,12 @@ STRIPE_DIRECT_WEBHOOK_ROUTES = {
 STRIPE_CONNECT_WEBHOOK_ROUTES = {
     "account.updated": account_updated,
     "payout.paid": payout_paid,
+}
+PAYPAL_WEBHOOK_ROUTES = {
+    "INVOICING.INVOICE.CANCELLED": paypal_invoice_cancelled,
+    "INVOICING.INVOICE.PAID": paypal_invoice_paid,
+    "INVOICING.INVOICE.REFUNDED": paypal_invoice_refunded,
+    "INVOICING.INVOICE.UPDATED": paypal_invoice_updated,
 }
 
 
@@ -354,6 +457,7 @@ def handle_stripe_event(*, body: str = None, connect: bool, event: dict = None):
     that's handled by the StripeWebhooks view. This function allows an event to be
     run as blessed even without verification, which is useful for testing.
     """
+
     routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
     if event is None:
         if body is None:
@@ -398,3 +502,26 @@ class StripeWebhooks(APIView):
                     status=status.HTTP_400_BAD_REQUEST, data={"detail": str(err)}
                 )
             return handle_stripe_event(connect=connect, event=event)
+
+
+class PaypalWebhooks(APIView):
+    """
+    View for callbacks from PayPal.
+
+    TODO: These all mimic the manual movements of the non-shield status changing
+          buttons. Should we refactor this to be more in tune with the rest of the
+          payment workflow?
+    TODO: Validate PayPal message to verify it came from PayPal
+    """
+
+    def post(self, request, *, config_id: str):
+        config = get_object_or_404(PaypalConfig, id=config_id)
+        validate_paypal_request(request, config)
+        route = PAYPAL_WEBHOOK_ROUTES.get(request.data["event_type"])
+        if not route:
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"detail": "Event type not supported."},
+            )
+        route(request.data, config)
+        return Response(status=status.HTTP_204_NO_CONTENT)

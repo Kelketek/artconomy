@@ -1,7 +1,7 @@
 <template>
   <v-row no-gutters>
     <v-col cols="2" align-self="center" class="text-center">
-      <v-btn x-small fab color="red" @click.prevent="line.delete" v-if="deletable">
+      <v-btn x-small fab color="red" @click.prevent="line.delete" v-if="deletable" :disabled="disabled">
         <v-icon>delete</v-icon>
       </v-btn>
     </v-col>
@@ -9,6 +9,7 @@
       <ac-patch-field
           :patcher="line.patchers.description"
           :id="`lineItem-${line.x.id}-description`"
+          :disabled="disabled"
           :placeholder="placeholder"
       />
     </v-col>
@@ -17,6 +18,7 @@
           :patcher="line.patchers.amount"
           :id="`lineItem-${line.x.id}-amount`"
           field-type="ac-price-field"
+          :disabled="disabled"
           @keydown.enter.native="newLineFunc"
       />
     </v-col>
@@ -46,6 +48,9 @@ export default class AcLineItemEditor extends Vue {
 
   @Prop({default: false})
   public enableNewLine!: boolean
+
+  @Prop({default: false})
+  public disabled!: boolean
 
   public get deletable() {
     return (this.line.x as LineItem).type !== LineTypes.BASE_PRICE

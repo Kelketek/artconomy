@@ -4,6 +4,10 @@ from functools import lru_cache
 from typing import Dict, Optional
 from uuid import uuid4
 
+from authlib.integrations.base_client import MissingTokenError
+from django.urls import reverse
+from short_stuff import gen_shortcode
+
 from apps.lib.models import (
     COMMENT,
     DISPUTE,
@@ -70,7 +74,6 @@ from apps.sales.constants import (
     MONEY_HOLE,
     NEW,
     OPEN,
-    PAID,
     PAYMENT_PENDING,
     QUEUED,
     REFUNDED,
@@ -86,6 +89,7 @@ from apps.sales.constants import (
     VOID,
     WAITING,
     WEIGHTED_STATUSES,
+    WORK_IN_PROGRESS_STATUSES,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -103,6 +107,13 @@ from apps.sales.models import (
     StripeAccount,
     TransactionRecord,
     inventory_change,
+    PaypalConfig,
+)
+from apps.sales.paypal import (
+    paypal_api,
+    generate_paypal_invoice,
+    delete_webhooks,
+    clear_existing_invoice,
 )
 from apps.sales.permissions import (
     BankingConfigured,
@@ -124,6 +135,7 @@ from apps.sales.permissions import (
     PlanDeliverableAddition,
     PublicQueue,
     RevisionsVisible,
+    ValidPaypal,
 )
 from apps.sales.serializers import (
     AccountBalanceSerializer,
@@ -152,6 +164,8 @@ from apps.sales.serializers import (
     SetServiceSerializer,
     SubmissionFromOrderSerializer,
     TransactionRecordSerializer,
+    NewPaypalConfigSerializer,
+    PaypalConfigSerializer,
 )
 from apps.sales.utils import (
     PENDING,
@@ -168,9 +182,9 @@ from apps.sales.utils import (
     invoice_post_payment,
     refund_deliverable,
     set_service_plan,
-    term_charge,
     transfer_order,
     verify_total,
+    mark_deliverable_paid,
 )
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -213,6 +227,8 @@ from rest_framework.generics import (
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from apps.sales.views.webhooks import PAYPAL_WEBHOOK_ROUTES
 from shortcuts import make_url
 
 logger = logging.getLogger(__name__)
@@ -438,10 +454,13 @@ class PlaceOrder(CreateAPIView):
         escrow_enabled = product.escrow_enabled
         if not escrow_enabled and product.escrow_upgradable:
             escrow_enabled = serializer.validated_data["escrow_upgrade"]
+        paypal = product.paypal
+        paypal = paypal and not escrow_enabled
         deliverable = Deliverable.objects.create(
             order=order,
             product=product,
             status=order_status,
+            paypal=paypal,
             table_order=product.table_product,
             name="Main",
             escrow_enabled=escrow_enabled,
@@ -688,6 +707,8 @@ class DeliverableAccept(GenericAPIView):
             deliverable.status = QUEUED
             deliverable.revisions_hidden = False
             deliverable.escrow_enabled = False
+        # Only actually generates if all conditions for generation are true.
+        generate_paypal_invoice(deliverable)
         deliverable.save()
         deliverable.invoice.status = OPEN
         deliverable.invoice.save()
@@ -766,28 +787,18 @@ class MarkPaid(GenericAPIView):
     def post(self, request, **_kwargs):
         deliverable = self.get_object()
         self.check_object_permissions(request, deliverable)
-        if deliverable.final_uploaded:
-            deliverable.status = COMPLETED
-        elif deliverable.revision_set.all():
-            deliverable.status = IN_PROGRESS
-        else:
-            deliverable.status = QUEUED
-        if deliverable.product:
-            deliverable.task_weight = deliverable.product.task_weight
-            deliverable.expected_turnaround = deliverable.product.expected_turnaround
-            deliverable.revisions = deliverable.product.revisions
-        deliverable.revisions_hidden = False
-        deliverable.escrow_enabled = False
-        deliverable.save()
-        deliverable.invoice.record_only = True
-        deliverable.invoice.status = PAID
-        deliverable.invoice.paid_on = timezone.now()
-        deliverable.invoice.save()
-        term_charge(deliverable)
+        if deliverable.paypal:
+            # There exists a paypal invoice for this, which we need to cancel
+            # since we're manually marking this paid.
+            with paypal_api(deliverable.order.seller) as paypal:
+                clear_existing_invoice(paypal, deliverable.invoice)
+                deliverable.paypal = False
+                deliverable.invoice.paypal_token = ""
+                deliverable.invoice.save()
+        mark_deliverable_paid(deliverable)
         data = self.serializer_class(
             instance=deliverable, context=self.get_serializer_context()
         ).data
-        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(data)
 
 
@@ -3187,3 +3198,126 @@ class QueueListing(View):
             "sales/queue_listing.html",
             context={"orders": orders, "user": user},
         )
+
+
+class PaypalSettings(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsRegistered, UserControls]
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs["username"])
+        self.check_object_permissions(self.request, user)
+        if self.request.method == "POST":
+            return user
+        return get_object_or_404(PaypalConfig, user=user)
+
+    def get_serializer_class(self):
+        if self.request.method == "POST":
+            return NewPaypalConfigSerializer
+        else:
+            return PaypalConfigSerializer
+
+    def delete(self, request, **_kwargs):
+        config = self.get_object()
+        if (
+            Deliverable.objects.filter(
+                order__seller=config.user,
+                status__in=WORK_IN_PROGRESS_STATUSES,
+            )
+            .exclude(invoice__paypal_token="")
+            .exists()
+        ):
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={
+                    "detail": "You must close out all orders currently managed "
+                    "by PayPal to remove this integration.",
+                },
+            )
+        delete_webhooks(config)
+        config.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def post(self, request, **_kwargs):
+        user = self.get_object()
+        try:
+            user.paypal_config
+            return Response(
+                status=status.HTTP_400_BAD_REQUEST,
+                data={"detail": "PayPal already configured."},
+            )
+        except PaypalConfig.DoesNotExist:
+            pass
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        config = PaypalConfig(
+            id=gen_shortcode(),
+            user=user,
+            key=data["key"],
+            secret=data["secret"],
+        )
+        with paypal_api(user, config=config) as paypal:
+            try:
+                resp = paypal.get("v1/invoicing/templates/")
+            except MissingTokenError:
+                return Response(
+                    status=status.HTTP_400_BAD_REQUEST,
+                    data={
+                        "key": ["Login failed. Check key."],
+                        "secret": ["Login failed. Check secret."],
+                    },
+                )
+            template = None
+            for entry in resp.json()["templates"]:
+                if entry["name"] == "Amount" and entry["currency_code"] == "USD":
+                    template = entry
+                    break
+            if template is not None:
+                config.template_id = template["template_id"]
+                config.active = True
+            webhook_path = reverse(
+                "sales:paypal_webhooks",
+                kwargs={"config_id": config.id},
+            )
+            resp = paypal.post(
+                "v1/notifications/webhooks",
+                {
+                    "url": f"https://{settings.WEBHOOKS_DOMAIN}" f"{webhook_path}",
+                    "event_types": [
+                        {"name": key} for key in PAYPAL_WEBHOOK_ROUTES.keys()
+                    ],
+                },
+            )
+            config.webhook_id = resp.json()["id"]
+            config.save()
+            # Force trigger of refresh of user serializer over websocker
+            config.user.save(update_fields=[])
+        return Response(
+            status=status.HTTP_201_CREATED,
+            data=PaypalConfigSerializer(
+                instance=config,
+                context=self.get_serializer_context(),
+            ).data,
+        )
+
+
+class PaypalTemplates(GenericAPIView):
+    permission_classes = [ObjectControls, ValidPaypal]
+
+    def get_object(self):
+        config = get_object_or_404(
+            PaypalConfig,
+            user__username=self.kwargs.get("username"),
+        )
+        self.check_object_permissions(self.request, config)
+        return config
+
+    def get(self, request, *args, **kwargs):
+        with paypal_api(config=self.get_object()) as paypal:
+            resp = paypal.get("v2/invoicing/templates?page_size=100")
+        templates = [
+            {"name": template["name"], "id": template["id"]}
+            for template in resp.json().get("templates", [])
+            if template["template_info"]["detail"]["currency_code"] == "USD"
+        ]
+        return Response(data=templates)

@@ -39,6 +39,9 @@
                         <v-divider />
                         <p>
                           <strong>Congratulations!</strong> Your artist has accepted your order. Please submit payment so that it can be added to their work queue.
+                          <span v-if="paypalUrl">
+                            <a :href="paypalUrl">Payment is done via PayPal.</a> This order is not protected by <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield.</router-link>
+                          </span>
                           <span v-if="!deliverable.x.escrow_enabled">Your artist will inform you on how to pay them.</span>
                         </p>
                         <p v-if="deliverable.x.escrow_enabled">
@@ -53,7 +56,7 @@
                       <v-col v-if="is(PAYMENT_PENDING) && isSeller" cols="12">
                         <p>The commissioner has been informed that they must now pay in order for you to work on the order.
                           You may continue to comment and tweak pricing in the interim, or you may cancel the order if you need to.</p>
-                        <p v-if="!deliverable.x.escrow_enabled">
+                        <p v-if="!deliverable.x.escrow_enabled && !paypalUrl">
                           <strong>REMEMBER:</strong> As we are not handling payment for this order, you MUST tell your
                           commissioner how to pay you. Leave a comment telling them how if you have not done so already.
                           When the customer has paid, click the 'Mark Paid' button.</p>
@@ -110,7 +113,7 @@
                         </ac-confirmation>
                       </v-col>
                       <v-row v-if="is(WAITING) || is(NEW) || is(PAYMENT_PENDING)">
-                        <v-col class="text-center" v-if="is(NEW) && canWaitlist">
+                        <v-col class="text-center" v-if="is(NEW) && canWaitlist && isSeller">
                           <v-btn color="secondary" @click="statusEndpoint('waitlist')()">Add to Waitlist</v-btn>
                         </v-col>
                         <v-col class="text-center">

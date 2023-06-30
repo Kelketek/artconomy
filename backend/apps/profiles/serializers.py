@@ -33,7 +33,7 @@ from apps.profiles.models import (
     banned_prefix_validator,
 )
 from apps.sales.constants import STRIPE
-from apps.sales.models import Promo, ServicePlan
+from apps.sales.models import Promo, ServicePlan, PaypalConfig
 from apps.tg_bot.models import TelegramDevice
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -679,6 +679,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     service_plan = serializers.SerializerMethodField()
     next_service_plan = serializers.SerializerMethodField()
     international = serializers.SerializerMethodField()
+    paypal_configured = serializers.SerializerMethodField()
 
     def get_international(self, obj):
         from apps.sales.models import StripeAccount
@@ -713,6 +714,14 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         # Holdover. We need to remove authorize.net from the frontend, then we can
         # remove this.
         return STRIPE
+
+    def get_paypal_configured(self, user):
+        if not (user.service_plan and user.service_plan.paypal_invoicing):
+            return False
+        try:
+            return bool(user.paypal_config)
+        except PaypalConfig.DoesNotExist:
+            return False
 
     def validate(self, attrs):
         if attrs.get("rating", 0):
@@ -766,6 +775,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "next_service_plan",
             "international",
             "verified_email",
+            "paypal_configured",
         )
         read_only_fields = [
             field

@@ -62,6 +62,7 @@ from apps.sales.models import (
     StripeAccount,
     StripeReader,
     TransactionRecord,
+    PaypalConfig,
 )
 from apps.sales.utils import (
     AVAILABLE,
@@ -218,6 +219,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "featured",
             "hits",
             "escrow_enabled",
+            "paypal",
             "table_product",
             "track_inventory",
             "wait_list",
@@ -539,6 +541,7 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     invoice = serializers.SerializerMethodField()
     tip_invoice = serializers.SerializerMethodField()
     commission_info = serializers.SerializerMethodField()
+    paypal_token = serializers.SerializerMethodField()
 
     def get_commission_info(self, obj):
         return obj.commission_info.text
@@ -554,6 +557,11 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         if self.is_buyer or self.is_seller or self.context["request"].user.is_staff:
             return getattr(getattr(obj, key, None), "id", None)
         return None
+
+    def get_paypal_token(self, obj):
+        if not self.invoice_field(obj, "invoice"):
+            return ""
+        return obj.invoice.paypal_token
 
     def get_invoice(self, obj):
         return self.invoice_field(obj, "invoice")
@@ -589,10 +597,17 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                     "details",
                 ]:
                     self.fields[field_name].read_only = False
-                if (
-                    not self.instance.table_order
-                ) and self.instance.order.seller.escrow_available:
-                    self.fields["escrow_enabled"].read_only = False
+                if not self.instance.table_order:
+                    if self.instance.order.seller.escrow_available:
+                        self.fields["escrow_enabled"].read_only = False
+                    try:
+                        if (
+                            self.instance.order.seller.paypal_config
+                            and self.instance.order.seller.paypal_config.active
+                        ):
+                            self.fields["paypal"].read_only = False
+                    except PaypalConfig.DoesNotExist:
+                        pass
             # Should never be harmful. Helpful in many statuses.
             self.fields["stream_link"].read_only = False
 
@@ -678,6 +693,8 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "tip_invoice",
             "cascade_fees",
             "international",
+            "paypal",
+            "paypal_token",
         )
         read_only_fields = [field for field in fields if field != "subscribed"]
         extra_kwargs = {
@@ -2007,6 +2024,29 @@ class ServicePlanSerializer(serializers.ModelSerializer):
             "shield_static_price",
             "shield_percentage_price",
             "waitlisting",
+            "paypal_invoicing",
         )
         read_only_fields = fields
         model = ServicePlan
+
+
+class NewPaypalConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaypalConfig
+        fields = (
+            "key",
+            "secret",
+        )
+        write_only_fields = (
+            "key",
+            "secret",
+        )
+
+
+class PaypalConfigSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaypalConfig
+        fields = (
+            "template_id",
+            "active",
+        )

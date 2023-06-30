@@ -9,6 +9,7 @@
                   :line="line" v-for="(line, index) in baseItems"
                   :key="line.x.id"
                   :price-data="priceData"
+                  :disabled="disabled"
                   :editing="editable"
                   @new-line="postSubmitAdd(addOnForm)"
                   :enable-new-line="(index === baseItems.length - 1) && !addOns.length"
@@ -23,6 +24,7 @@
                   :key="line.x.id"
                   :price-data="priceData"
                   :editing="editable"
+                  :disabled="disabled"
                   @new-line="postSubmitAdd(addOnForm)"
                   :enable-new-line="index === addOns.length - 1"
               />
@@ -44,6 +46,7 @@
                   :key="line.x.id"
                   :price-data="priceData"
                   :editing="editable"
+                  :disabled="disabled"
                   @new-line="postSubmitAdd(extraForm)"
                   :enable-new-line="index === extras.length - 1"  />
               <ac-new-line-skeleton v-if="extraForm.sending" />
@@ -114,9 +117,11 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import {Decimal} from 'decimal.js'
 import AcNewLineSkeleton from '@/components/price_preview/AcNewLineSkeleton.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
+import AcPatchField from '@/components/fields/AcPatchField.vue'
 
 @Component({
   components: {
+    AcPatchField,
     AcBoundField,
     AcNewLineSkeleton,
     AcForm,
@@ -152,6 +157,10 @@ export default class AcPricePreview extends mixins(Subjective) {
 
   @Prop({default: false})
   public transfer!: boolean
+
+  // Disables inputs, such as when performing another operation
+  @Prop({default: false})
+  public disabled!: boolean
 
   public hours = null
 
@@ -197,7 +206,7 @@ export default class AcPricePreview extends mixins(Subjective) {
       // We include tips here since we will handle that with a different interface.
       (line: LineItem) => [
         LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE, LineTypes.PROCESSING,
-        LineTypes.DELIVERABLE_TRACKING,
+        LineTypes.DELIVERABLE_TRACKING, LineTypes.RECONCILIATION,
       ].includes(line.type))
   }
 

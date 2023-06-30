@@ -1,6 +1,8 @@
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
+from authlib.integrations.base_client import MissingTokenError
+
 from apps.lib.abstract_models import ADULT, EXTREME, GENERAL
 from apps.lib.models import COMMENT, Comment, Subscription, ref_for_instance
 from apps.lib.test_resources import (
@@ -50,7 +52,7 @@ from apps.sales.constants import (
     VOID,
     WAITING,
 )
-from apps.sales.models import Deliverable, Order, Product, Reference
+from apps.sales.models import Deliverable, Order, Product, Reference, PaypalConfig
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
     DeliverableFactory,
@@ -63,6 +65,7 @@ from apps.sales.tests.factories import (
     ServicePlanFactory,
     StripeAccountFactory,
     TransactionRecordFactory,
+    PaypalConfigFactory,
 )
 from apps.sales.utils import initialize_tip_invoice
 from apps.sales.views.main import (
@@ -149,7 +152,7 @@ class TestOrderLists(TestOrderListBase, APITestCase):
 
     @staticmethod
     def make_url(user, category):
-        return "/api/sales/v1/account/{}/orders/{}/".format(user.username, category)
+        return "/api/sales/account/{}/orders/{}/".format(user.username, category)
 
     @staticmethod
     def factory_kwargs(user):
@@ -159,7 +162,7 @@ class TestOrderLists(TestOrderListBase, APITestCase):
 class TestSaleLists(TestOrderListBase, APITestCase):
     @staticmethod
     def make_url(user, category):
-        return "/api/sales/v1/account/{}/sales/{}/".format(user.username, category)
+        return "/api/sales/account/{}/sales/{}/".format(user.username, category)
 
     @staticmethod
     def factory_kwargs(user):
@@ -192,7 +195,7 @@ class TestSaleLists(TestOrderListBase, APITestCase):
 class TestCaseLists(TestOrderListBase, APITestCase):
     @staticmethod
     def make_url(user, category):
-        return "/api/sales/v1/account/{}/cases/{}/".format(user.username, category)
+        return "/api/sales/account/{}/cases/{}/".format(user.username, category)
 
     @staticmethod
     def factory_kwargs(user):
@@ -290,9 +293,7 @@ class TestSearchWaiting(APITestCase):
         DeliverableFactory.create(
             order__seller=deliverable.order.seller, status=WAITING
         )
-        url = (
-            f"/api/sales/v1/account/{deliverable.order.seller.username}/sales/waiting/"
-        )
+        url = f"/api/sales/account/{deliverable.order.seller.username}/sales/waiting/"
         self.login(deliverable.order.seller)
         response = self.client.get(url)
         self.assertEqual(len(response.data["results"]), 2)
@@ -309,7 +310,7 @@ class TestSearchWaiting(APITestCase):
             order__seller=deliverable.order.seller, status=WAITING
         )
         url = (
-            f"/api/sales/v1/account/{deliverable.order.seller.username}"
+            f"/api/sales/account/{deliverable.order.seller.username}"
             f"/sales/waiting/?q=beep"
         )
         self.login(deliverable.order.seller)
@@ -322,7 +323,7 @@ class TestSearchWaiting(APITestCase):
             order__buyer__email="beep@boop.com", status=WAITING
         )
         url = (
-            f"/api/sales/v1/account/{deliverable.order.seller.username}"
+            f"/api/sales/account/{deliverable.order.seller.username}"
             f"/sales/waiting/?q=beep"
         )
         self.login(deliverable.order.buyer)
@@ -336,7 +337,7 @@ class TestProductSamples(APITestCase):
         submission = SubmissionFactory.create()
         product.samples.add(submission)
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/samples/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -352,7 +353,7 @@ class TestProductSamples(APITestCase):
         )
         self.login(product.user)
         response = self.client.delete(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/samples/{linked.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -369,7 +370,7 @@ class TestProductSamples(APITestCase):
         )
         self.login(product.user)
         response = self.client.delete(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/samples/{linked.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -383,7 +384,7 @@ class TestProductSamples(APITestCase):
         submission.artists.add(product.user)
         self.login(product.user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/samples/",
             {"submission_id": submission.id},
         )
@@ -395,7 +396,7 @@ class TestProductSamples(APITestCase):
         submission = SubmissionFactory.create()
         self.login(product.user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/samples/",
             {"submission_id": submission.id},
         )
@@ -416,17 +417,13 @@ class TestCardManagement(APITestCase):
         self.login(user)
         user.refresh_from_db()
         response = self.client.post(
-            "/api/sales/v1/account/{}/cards/{}/primary/".format(
-                user.username, cards[2].id
-            )
+            "/api/sales/account/{}/cards/{}/primary/".format(user.username, cards[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
         self.assertEqual(user.primary_card.id, cards[2].id)
         response = self.client.post(
-            "/api/sales/v1/account/{}/cards/{}/primary/".format(
-                user.username, cards[3].id
-            )
+            "/api/sales/account/{}/cards/{}/primary/".format(user.username, cards[3].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
@@ -436,9 +433,7 @@ class TestCardManagement(APITestCase):
         user = UserFactory.create()
         cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
         response = self.client.post(
-            "/api/sales/v1/account/{}/cards/{}/primary/".format(
-                user.username, cards[2].id
-            )
+            "/api/sales/account/{}/cards/{}/primary/".format(user.username, cards[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -448,9 +443,7 @@ class TestCardManagement(APITestCase):
         self.login(user2)
         cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
         response = self.client.post(
-            "/api/sales/v1/account/{}/cards/{}/primary/".format(
-                user.username, cards[2].id
-            )
+            "/api/sales/account/{}/cards/{}/primary/".format(user.username, cards[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -461,7 +454,7 @@ class TestCardManagement(APITestCase):
         self.login(user)
         user.refresh_from_db()
         response = self.client.post(
-            "/api/sales/v1/account/{}/cards/{}/primary/".format(
+            "/api/sales/account/{}/cards/{}/primary/".format(
                 user.username, CreditCardTokenFactory.create(user=user2).id
             )
         )
@@ -471,9 +464,7 @@ class TestCardManagement(APITestCase):
         user = UserFactory.create()
         self.login(user)
         cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
-        response = self.client.get(
-            "/api/sales/v1/account/{}/cards/".format(user.username)
-        )
+        response = self.client.get("/api/sales/account/{}/cards/".format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for card in cards:
             self.assertIDInList(card, response.data)
@@ -490,7 +481,7 @@ class TestCardManagement(APITestCase):
             for i in range(2)
         ]
         response = self.client.get(
-            "/api/sales/v1/account/{}/cards/stripe/".format(user.username)
+            "/api/sales/account/{}/cards/stripe/".format(user.username)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for card in stripe_cards:
@@ -499,9 +490,7 @@ class TestCardManagement(APITestCase):
 
     def test_card_listing_not_logged_in(self):
         user = UserFactory.create()
-        response = self.client.get(
-            "/api/sales/v1/account/{}/cards/".format(user.username)
-        )
+        response = self.client.get("/api/sales/account/{}/cards/".format(user.username))
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_card_listing_staffer(self):
@@ -509,9 +498,7 @@ class TestCardManagement(APITestCase):
         user = UserFactory.create()
         self.login(staffer)
         cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
-        response = self.client.get(
-            "/api/sales/v1/account/{}/cards/".format(user.username)
-        )
+        response = self.client.get("/api/sales/account/{}/cards/".format(user.username))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for card in cards:
             self.assertIDInList(card, response.data)
@@ -526,7 +513,7 @@ class TestCardManagement(APITestCase):
         self.assertEqual(cards[0].active, True)
         self.assertEqual(cards[2].active, True)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/cards/{}/".format(user.username, cards[2].id)
+            "/api/sales/account/{}/cards/{}/".format(user.username, cards[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         cards[2].refresh_from_db()
@@ -546,7 +533,7 @@ class TestCardManagement(APITestCase):
         user.save()
         self.login(user)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/cards/{}/".format(user.username, new_card.id)
+            "/api/sales/account/{}/cards/{}/".format(user.username, new_card.id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
@@ -560,7 +547,7 @@ class TestCardManagement(APITestCase):
         ]
         self.assertEqual(cards[2].active, True)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/cards/{}/".format(user.username, cards[2].id)
+            "/api/sales/account/{}/cards/{}/".format(user.username, cards[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         cards[2].refresh_from_db()
@@ -576,7 +563,7 @@ class TestCardManagement(APITestCase):
         ]
         self.assertEqual(cards[2].active, True)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/cards/{}/".format(user.username, cards[2].id)
+            "/api/sales/account/{}/cards/{}/".format(user.username, cards[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         cards[2].refresh_from_db()
@@ -593,7 +580,7 @@ class TestCardManagement(APITestCase):
         self.assertEqual(cards[0].active, True)
         self.assertEqual(cards[2].active, True)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/cards/{}/".format(user.username, cards[2].id)
+            "/api/sales/account/{}/cards/{}/".format(user.username, cards[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         cards[2].refresh_from_db()
@@ -622,7 +609,7 @@ class TestProduct(APITestCase):
         hidden = ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
         response = self.client.get(
-            "/api/sales/v1/account/{}/products/manage/".format(user.username)
+            "/api/sales/account/{}/products/manage/".format(user.username)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 4)
@@ -635,7 +622,7 @@ class TestProduct(APITestCase):
         self.login(user)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(user.username),
+            "/api/sales/account/{}/products/".format(user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -661,7 +648,7 @@ class TestProduct(APITestCase):
         self.login(user)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(user.username),
+            "/api/sales/account/{}/products/".format(user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -693,7 +680,7 @@ class TestProduct(APITestCase):
         self.login(account.user)
         asset = AssetFactory.create(uploaded_by=account.user)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(account.user.username),
+            "/api/sales/account/{}/products/".format(account.user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -727,7 +714,7 @@ class TestProduct(APITestCase):
         self.login(account.user)
         asset = AssetFactory.create(uploaded_by=account.user)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(account.user.username),
+            "/api/sales/account/{}/products/".format(account.user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -756,7 +743,7 @@ class TestProduct(APITestCase):
         self.login(account.user)
         asset = AssetFactory.create(uploaded_by=account.user)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(account.user.username),
+            "/api/sales/account/{}/products/".format(account.user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -794,7 +781,7 @@ class TestProduct(APITestCase):
         self.login(user)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(user.username),
+            "/api/sales/account/{}/products/".format(user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -814,7 +801,7 @@ class TestProduct(APITestCase):
         user = UserFactory.create()
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(user.username),
+            "/api/sales/account/{}/products/".format(user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -833,7 +820,7 @@ class TestProduct(APITestCase):
         asset = AssetFactory.create(uploaded_by=user)
         self.login(user2)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(user.username),
+            "/api/sales/account/{}/products/".format(user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -852,7 +839,7 @@ class TestProduct(APITestCase):
         asset = AssetFactory.create(uploaded_by=staffer)
         self.login(staffer)
         response = self.client.post(
-            "/api/sales/v1/account/{}/products/".format(user.username),
+            "/api/sales/account/{}/products/".format(user.username),
             {
                 "description": "I will draw you a porn.",
                 "file": str(asset.id),
@@ -879,7 +866,7 @@ class TestProduct(APITestCase):
         ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
         response = self.client.get(
-            "/api/sales/v1/account/{}/products/manage/".format(user.username)
+            "/api/sales/account/{}/products/manage/".format(user.username)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 3)
@@ -894,7 +881,7 @@ class TestProduct(APITestCase):
         ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
         response = self.client.get(
-            "/api/sales/v1/account/{}/products/manage/".format(user.username)
+            "/api/sales/account/{}/products/manage/".format(user.username)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 3)
@@ -904,7 +891,7 @@ class TestProduct(APITestCase):
     def test_product_inventory(self):
         product = ProductFactory.create(track_inventory=True)
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/inventory/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -913,7 +900,7 @@ class TestProduct(APITestCase):
     def test_set_product_inventory_not_logged_in(self):
         product = ProductFactory.create(track_inventory=True)
         response = self.client.patch(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/inventory/",
             {"count": 3},
         )
@@ -923,7 +910,7 @@ class TestProduct(APITestCase):
         product = ProductFactory.create(track_inventory=True)
         self.login(UserFactory.create())
         response = self.client.patch(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/inventory/",
             {"count": 3},
         )
@@ -933,7 +920,7 @@ class TestProduct(APITestCase):
         product = ProductFactory.create(track_inventory=True)
         self.login(product.user)
         response = self.client.patch(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/inventory/",
             {"count": 3},
         )
@@ -943,7 +930,7 @@ class TestProduct(APITestCase):
     def test_product_inventory_no_tracking(self):
         product = ProductFactory.create(track_inventory=False)
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/inventory/"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -956,7 +943,7 @@ class TestProduct(APITestCase):
         hidden = ProductFactory.create(user=user, hidden=True)
         ProductFactory.create(user=user, active=False)
         response = self.client.get(
-            "/api/sales/v1/account/{}/products/manage/".format(user.username)
+            "/api/sales/account/{}/products/manage/".format(user.username)
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 4)
@@ -971,9 +958,7 @@ class TestProduct(APITestCase):
         DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.patch(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[1].id
-            ),
+            "/api/sales/account/{}/products/{}/".format(user.username, products[1].id),
             {"task_weight": 100},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -986,15 +971,11 @@ class TestProduct(APITestCase):
         DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[1].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[1].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[2].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         products[1].refresh_from_db()
@@ -1007,15 +988,11 @@ class TestProduct(APITestCase):
         DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[1].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[1].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[2].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         products[1].refresh_from_db()
@@ -1030,15 +1007,11 @@ class TestProduct(APITestCase):
         DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[1].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[1].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[2].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         products[1].refresh_from_db()
@@ -1053,15 +1026,11 @@ class TestProduct(APITestCase):
         DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[1].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[1].id)
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[2].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         products[1].refresh_from_db()
@@ -1076,15 +1045,11 @@ class TestProduct(APITestCase):
         DeliverableFactory.create(product=products[1])
         self.assertTrue(products[1].active)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[1].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[1].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         response = self.client.delete(
-            "/api/sales/v1/account/{}/products/{}/".format(
-                user.username, products[2].id
-            )
+            "/api/sales/account/{}/products/{}/".format(user.username, products[2].id)
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         products[1].refresh_from_db()
@@ -1097,7 +1062,7 @@ class TestProduct(APITestCase):
         submission.artists.add(product.user)
         self.login(product.user)
         response = self.client.patch(
-            "/api/sales/v1/account/{}/products/{}/".format(
+            "/api/sales/account/{}/products/{}/".format(
                 product.user.username, product.id
             ),
             {"primary_submission": submission.id},
@@ -1111,7 +1076,7 @@ class TestProduct(APITestCase):
         submission = SubmissionFactory.create()
         self.login(product.user)
         response = self.client.patch(
-            "/api/sales/v1/account/{}/products/{}/".format(
+            "/api/sales/account/{}/products/{}/".format(
                 product.user.username, product.id
             ),
             {"primary_submission": submission.id},
@@ -1128,7 +1093,7 @@ class TestProduct(APITestCase):
         product = ProductFactory.create(primary_submission=submission)
         self.login(product.user)
         response = self.client.patch(
-            "/api/sales/v1/account/{}/products/{}/".format(
+            "/api/sales/account/{}/products/{}/".format(
                 product.user.username, product.id
             ),
             {"primary_submission": None},
@@ -1142,7 +1107,7 @@ class TestProduct(APITestCase):
         product = ProductFactory.create()
         self.login(product.user)
         response = self.client.patch(
-            "/api/sales/v1/account/{}/products/{}/".format(
+            "/api/sales/account/{}/products/{}/".format(
                 product.user.username, product.id
             ),
             {"tags": ["inks", "full_body", "digital", "furry"]},
@@ -1208,7 +1173,7 @@ class TestProductSearch(APITestCase):
         )
         overloaded.user.refresh_from_db()
 
-        response = self.client.get("/api/sales/v1/search/product/", {"q": "test"})
+        response = self.client.get("/api/sales/search/product/", {"q": "test"})
 
         self.assertIDInList(product1, response.data["results"])
         self.assertIDInList(product2, response.data["results"])
@@ -1240,7 +1205,7 @@ class TestProductSearch(APITestCase):
 
         user = User.objects.get(username="Fox")
         self.login(user)
-        response = self.client.get("/api/sales/v1/search/product/", {"q": "test"})
+        response = self.client.get("/api/sales/search/product/", {"q": "test"})
         self.assertIDInList(product1, response.data["results"])
         self.assertIDInList(product2, response.data["results"])
         self.assertIDInList(product3, response.data["results"])
@@ -1275,7 +1240,7 @@ class TestProductSearch(APITestCase):
 
         user = UserFactory.create(username="Fox")
         self.login(user)
-        response = self.client.get("/api/sales/v1/search/product/", {"q": "test"})
+        response = self.client.get("/api/sales/search/product/", {"q": "test"})
         self.assertIDInList(product1, response.data["results"])
         self.assertIDInList(product2, response.data["results"])
         self.assertIDInList(product3, response.data["results"])
@@ -1286,7 +1251,7 @@ class TestProductSearch(APITestCase):
         user = UserFactory.create(username="Fox")
         user.blocking.add(product.user)
         self.login(user)
-        response = self.client.get("/api/sales/v1/search/product/", {"q": "test"})
+        response = self.client.get("/api/sales/search/product/", {"q": "test"})
         self.assertEqual(len(response.data["results"]), 0)
 
     def test_personal(self):
@@ -1300,7 +1265,7 @@ class TestProductSearch(APITestCase):
         ProductFactory.create(name="Test5")
 
         self.login(user)
-        response = self.client.get("/api/sales/v1/search/product/Fox/", {"q": "test"})
+        response = self.client.get("/api/sales/search/product/Fox/", {"q": "test"})
         self.assertIDInList(listed, response.data["results"])
         self.assertIDInList(listed2, response.data["results"])
         self.assertIDInList(listed3, response.data["results"])
@@ -1314,20 +1279,16 @@ class TestProductSearch(APITestCase):
         high_price = ProductFactory.create(
             base_price=Money("8000.00", "USD"), user=user
         )
-        response = self.client.get(
-            "/api/sales/v1/search/product/", {"min_price": "75.00"}
-        )
+        response = self.client.get("/api/sales/search/product/", {"min_price": "75.00"})
         self.assertIDInList(mid_price, response.data["results"])
         self.assertIDInList(high_price, response.data["results"])
         self.assertEqual(len(response.data["results"]), 2)
-        response = self.client.get(
-            "/api/sales/v1/search/product/", {"max_price": "75.00"}
-        )
+        response = self.client.get("/api/sales/search/product/", {"max_price": "75.00"})
         self.assertIDInList(mid_price, response.data["results"])
         self.assertIDInList(low_price, response.data["results"])
         self.assertEqual(len(response.data["results"]), 2)
         response = self.client.get(
-            "/api/sales/v1/search/product/",
+            "/api/sales/search/product/",
             {"max_price": "100.00", "min_price": "25.00"},
         )
         self.assertIDInList(mid_price, response.data["results"])
@@ -1339,20 +1300,20 @@ class TestProductSearch(APITestCase):
         adult = ProductFactory.create(max_rating=ADULT, user=user)
         extreme = ProductFactory.create(max_rating=EXTREME, user=user)
         response = self.client.get(
-            "/api/sales/v1/search/product/", {"minimum_content_rating": GENERAL}
+            "/api/sales/search/product/", {"minimum_content_rating": GENERAL}
         )
         self.assertIDInList(general, response.data["results"])
         self.assertIDInList(adult, response.data["results"])
         self.assertIDInList(extreme, response.data["results"])
         self.assertEqual(len(response.data["results"]), 3)
         response = self.client.get(
-            "/api/sales/v1/search/product/", {"minimum_content_rating": ADULT}
+            "/api/sales/search/product/", {"minimum_content_rating": ADULT}
         )
         self.assertIDInList(adult, response.data["results"])
         self.assertIDInList(extreme, response.data["results"])
         self.assertEqual(len(response.data["results"]), 2)
         response = self.client.get(
-            "/api/sales/v1/search/product/", {"minimum_content_rating": EXTREME}
+            "/api/sales/search/product/", {"minimum_content_rating": EXTREME}
         )
         self.assertIDInList(extreme, response.data["results"])
         self.assertEqual(len(response.data["results"]), 1)
@@ -1363,9 +1324,7 @@ class TestProductSearch(APITestCase):
         range_bound = ProductFactory.create(user=user, expected_turnaround=2)
         # Out of range.
         ProductFactory.create(user=user, expected_turnaround=5)
-        response = self.client.get(
-            "/api/sales/v1/search/product/", {"max_turnaround": 2}
-        )
+        response = self.client.get("/api/sales/search/product/", {"max_turnaround": 2})
         self.assertIDInList(in_range, response.data["results"])
         self.assertIDInList(range_bound, response.data["results"])
         self.assertEqual(len(response.data["results"]), 2)
@@ -1377,26 +1336,20 @@ class TestProductSearch(APITestCase):
         viewer.watching.add(watched.user)
         # Unwatched
         ProductFactory.create()
-        response = self.client.get(
-            "/api/sales/v1/search/product/", {"watch_list": True}
-        )
+        response = self.client.get("/api/sales/search/product/", {"watch_list": True})
         # No difference, not logged in.
         self.assertEqual(len(response.data["results"]), 2)
         self.login(viewer)
-        response = self.client.get(
-            "/api/sales/v1/search/product/", {"watch_list": True}
-        )
+        response = self.client.get("/api/sales/search/product/", {"watch_list": True})
         self.assertIDInList(watched, response.data["results"])
         self.assertEqual(len(response.data["results"]), 1)
         self.login(staff)
         # Now we're the staff user, who is watching no one.
-        response = self.client.get(
-            "/api/sales/v1/search/product/", {"watch_list": True}
-        )
+        response = self.client.get("/api/sales/search/product/", {"watch_list": True})
         self.assertEqual(len(response.data["results"]), 0)
         # Staff searching as user
         response = self.client.get(
-            "/api/sales/v1/search/product/",
+            "/api/sales/search/product/",
             {"watch_list": True, "user": viewer.username},
         )
         self.assertIDInList(watched, response.data["results"])
@@ -1407,11 +1360,11 @@ class TestProductSearch(APITestCase):
         artist_of_color = ProductFactory.create(
             user__artist_profile__artist_of_color=True
         )
-        response = self.client.get("/api/sales/v1/search/product/", {"lgbt": True})
+        response = self.client.get("/api/sales/search/product/", {"lgbt": True})
         self.assertIDInList(lgbt, response.data["results"])
         self.assertEqual(len(response.data["results"]), 1)
         response = self.client.get(
-            "/api/sales/v1/search/product/", {"artists_of_color": True}
+            "/api/sales/search/product/", {"artists_of_color": True}
         )
         self.assertIDInList(artist_of_color, response.data["results"])
         self.assertEqual(len(response.data["results"]), 1)
@@ -1429,7 +1382,7 @@ class TestProductSearch(APITestCase):
         Product.objects.filter(id=high_rated_last_edited.id).update(
             edited_on=timezone.now().replace(year=2018),
         )
-        response = self.client.get("/api/sales/v1/search/product/")
+        response = self.client.get("/api/sales/search/product/")
         ids = [item["id"] for item in response.data["results"]]
         self.assertEqual(
             ids,
@@ -1439,7 +1392,7 @@ class TestProductSearch(APITestCase):
                 high_rated_last_edited.id,
             ],
         )
-        response = self.client.get("/api/sales/v1/search/product/", {"rating": True})
+        response = self.client.get("/api/sales/search/product/", {"rating": True})
         ids = [item["id"] for item in response.data["results"]]
         self.assertEqual(
             ids,
@@ -1454,7 +1407,7 @@ class TestProductSearch(APITestCase):
         featured = ProductFactory.create(featured=True)
         # Non-featured
         ProductFactory.create()
-        response = self.client.get("/api/sales/v1/search/product/", {"featured": True})
+        response = self.client.get("/api/sales/search/product/", {"featured": True})
         self.assertIDInList(featured, response.data["results"])
 
     def test_shielded(self):
@@ -1474,20 +1427,18 @@ class TestProductSearch(APITestCase):
         ProductFactory.create(
             user__artist_profile__bank_account_status=NO_SUPPORTED_COUNTRY
         )
-        response = self.client.get(
-            "/api/sales/v1/search/product/", {"shield_only": True}
-        )
+        response = self.client.get("/api/sales/search/product/", {"shield_only": True})
         self.assertIDInList(shielded, response.data["results"])
         self.assertIDInList(upgradable, response.data["results"])
         self.assertEqual(len(response.data["results"]), 2)
         # Filter by shield and min_price
         response = self.client.get(
-            "/api/sales/v1/search/product/", {"shield_only": True, "min_price": "15.01"}
+            "/api/sales/search/product/", {"shield_only": True, "min_price": "15.01"}
         )
         self.assertIDInList(upgradable, response.data["results"])
         self.assertEqual(len(response.data["results"]), 1)
         response = self.client.get(
-            "/api/sales/v1/search/product/", {"shield_only": True, "max_price": "15.01"}
+            "/api/sales/search/product/", {"shield_only": True, "max_price": "15.01"}
         )
         self.assertIDInList(shielded, response.data["results"])
         self.assertEqual(len(response.data["results"]), 1)
@@ -1502,7 +1453,7 @@ class TestCancelPremium(APITestCase):
         user.service_plan_paid_through = date(2017, 11, 18)
         user.save()
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/cancel-premium/"
+            f"/api/sales/account/{user.username}/cancel-premium/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         user.refresh_from_db()
@@ -1517,7 +1468,7 @@ class TestCreateInvoice(APITestCase):
         user.artist_profile.bank_account_status = UNSET
         user.artist_profile.save()
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/", {}
+            f"/api/sales/account/{user.username}/create-invoice/", {}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1537,14 +1488,14 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/", {}
+            f"/api/sales/account/{user.username}/create-invoice/", {}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertIn("Your current service plan does not", response.data["detail"])
         self.free.max_simultaneous_orders = 0
         self.free.save()
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/", {}
+            f"/api/sales/account/{user.username}/create-invoice/", {}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -1562,7 +1513,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1626,7 +1577,7 @@ class TestCreateInvoice(APITestCase):
             table_product=True,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1688,7 +1639,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1731,7 +1682,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1773,7 +1724,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1814,7 +1765,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1851,7 +1802,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1889,7 +1840,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1926,7 +1877,7 @@ class TestCreateInvoice(APITestCase):
             track_inventory=True,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1953,7 +1904,7 @@ class TestCreateInvoice(APITestCase):
         user.artist_profile.save()
         product = ProductFactory.create(base_price=Money("3.00", "USD"))
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -1982,7 +1933,7 @@ class TestCreateInvoice(APITestCase):
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": None,
@@ -2016,7 +1967,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": True,
                 "product": product.id,
@@ -2059,7 +2010,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -2093,7 +2044,7 @@ class TestCreateInvoice(APITestCase):
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": None,
@@ -2134,7 +2085,7 @@ class TestCreateInvoice(APITestCase):
         user.artist_profile.bank_account_status = NO_SUPPORTED_COUNTRY
         user.artist_profile.save()
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": None,
@@ -2183,7 +2134,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -2227,7 +2178,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
                 "product": product.id,
@@ -2274,7 +2225,7 @@ class TestCreateInvoice(APITestCase):
             revisions=1,
         )
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/create-invoice/",
+            f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": True,
                 "product": product.id,
@@ -2313,7 +2264,7 @@ class TestLists(APITestCase):
     def test_new_products(self):
         user = UserFactory.create()
         product = ProductFactory.create(user=user)
-        response = self.client.get("/api/sales/v1/new-products/")
+        response = self.client.get("/api/sales/new-products/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], product.id)
@@ -2322,18 +2273,18 @@ class TestLists(APITestCase):
         user = UserFactory.create()
         self.login(user)
         product = ProductFactory.create()
-        response = self.client.get("/api/sales/v1/who-is-open/")
+        response = self.client.get("/api/sales/who-is-open/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 0)
         user.watching.add(product.user)
-        response = self.client.get("/api/sales/v1/who-is-open/")
+        response = self.client.get("/api/sales/who-is-open/")
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], product.id)
 
     def test_rating_list(self):
         user = UserFactory.create()
         rating = RatingFactory.create(target=user)
-        response = self.client.get(f"/api/sales/v1/account/{user.username}/ratings/")
+        response = self.client.get(f"/api/sales/account/{user.username}/ratings/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
         self.assertEqual(response.data["results"][0]["id"], rating.id)
@@ -2342,7 +2293,7 @@ class TestLists(APITestCase):
         ProductFactory.create(active=False, featured=True)
         active_product = ProductFactory.create(active=True, featured=True)
         ProductFactory.create(active=True, featured=True, hidden=True)
-        response = self.client.get("/api/sales/v1/featured-products/")
+        response = self.client.get("/api/sales/featured-products/")
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIDInList(active_product, response.data["results"])
 
@@ -2351,16 +2302,14 @@ class TestSalesStats(APITestCase):
     def test_sales_stats(self):
         user = UserFactory.create()
         self.login(user)
-        response = self.client.get(
-            f"/api/sales/v1/account/{user.username}/sales/stats/"
-        )
+        response = self.client.get(f"/api/sales/account/{user.username}/sales/stats/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
 
 class TestPricingInfo(APITestCase):
     @override_settings(TABLE_PERCENTAGE_FEE=Decimal("69"))
     def test_pricing_info(self):
-        response = self.client.get("/api/sales/v1/pricing-info/")
+        response = self.client.get("/api/sales/pricing-info/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["table_percentage"], Decimal("69"))
 
@@ -2376,7 +2325,7 @@ class TestOrderAuth(APITestCase):
             )
         ).order
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": order.claim_token,
                 "id": order.id,
@@ -2392,7 +2341,7 @@ class TestOrderAuth(APITestCase):
             order__buyer=None, order__customer_email="test@example.com"
         ).order
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": order.claim_token,
                 "id": order.id,
@@ -2411,7 +2360,7 @@ class TestOrderAuth(APITestCase):
             order__buyer=None, order__customer_email="test@example.com"
         ).order
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": order.claim_token,
                 "id": order.id,
@@ -2427,7 +2376,7 @@ class TestOrderAuth(APITestCase):
         ).order
         self.login(order.seller)
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": order.claim_token,
                 "id": order.id,
@@ -2444,7 +2393,7 @@ class TestOrderAuth(APITestCase):
         user = UserFactory.create()
         self.login(user)
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": order.claim_token,
                 "id": order.id,
@@ -2462,7 +2411,7 @@ class TestOrderAuth(APITestCase):
     def test_order_already_claimed(self):
         order = DeliverableFactory.create().order
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": "97uh97",
                 "id": order.id,
@@ -2483,7 +2432,7 @@ class TestOrderAuth(APITestCase):
         ).order
         self.login(order.buyer)
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": "97uh97",
                 "id": order.id,
@@ -2504,7 +2453,7 @@ class TestOrderAuth(APITestCase):
             )
         ).order
         response = self.client.post(
-            "/api/sales/v1/order-auth/",
+            "/api/sales/order-auth/",
             {
                 "claim_token": "97uh97",
                 "id": order.id,
@@ -2519,17 +2468,17 @@ class TestOrderManager(APITestCase):
     def test_view_order(self):
         deliverable = DeliverableFactory.create()
         self.login(deliverable.order.seller)
-        response = self.client.get(f"/api/sales/v1/order/{deliverable.order.id}/")
+        response = self.client.get(f"/api/sales/order/{deliverable.order.id}/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], deliverable.order.id)
 
     def test_update_order_hide_details(self):
         deliverable = DeliverableFactory.create()
         self.login(deliverable.order.seller)
-        response = self.client.get(f"/api/sales/v1/order/{deliverable.order.id}/")
+        response = self.client.get(f"/api/sales/order/{deliverable.order.id}/")
         self.assertFalse(response.data["hide_details"])
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/",
+            f"/api/sales/order/{deliverable.order.id}/",
             {"hide_details": True},
         )
         self.assertTrue(response.data["hide_details"])
@@ -2544,7 +2493,7 @@ class TestOrderOutputs(APITestCase):
             deliverable=deliverable, revision=revision
         )
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2555,7 +2504,7 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2582,7 +2531,7 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2607,7 +2556,7 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2629,7 +2578,7 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2649,7 +2598,7 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2668,7 +2617,7 @@ class TestOrderOutputs(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2693,7 +2642,7 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2725,7 +2674,7 @@ class TestOrderOutputs(APITestCase):
         revision_2 = RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2758,7 +2707,7 @@ class TestOrderOutputs(APITestCase):
         revision_2 = RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2784,7 +2733,7 @@ class TestOrderOutputs(APITestCase):
             deliverable=deliverable, owner=deliverable.order.buyer, revision=revision
         )
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
@@ -2803,7 +2752,7 @@ class TestOrderInvite(APITestCase):
         )
         self.login(deliverable.order.seller)
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_200_OK)
@@ -2819,7 +2768,7 @@ class TestOrderInvite(APITestCase):
         )
         self.login(deliverable.order.seller)
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2834,7 +2783,7 @@ class TestOrderInvite(APITestCase):
         deliverable.order.customer_email = "test@example.com"
         deliverable.order.save()
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_200_OK)
@@ -2851,7 +2800,7 @@ class TestOrderInvite(APITestCase):
         )
         self.login(deliverable.order.seller)
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2864,7 +2813,7 @@ class TestReferences(APITestCase):
         asset = AssetFactory.create(uploaded_by=deliverable.order.seller)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            "/api/sales/v1/references/",
+            "/api/sales/references/",
             {
                 "file": asset.id,
             },
@@ -2875,7 +2824,7 @@ class TestReferences(APITestCase):
         deliverable = DeliverableFactory.create()
         asset = AssetFactory.create(uploaded_by=deliverable.order.seller)
         response = self.client.post(
-            "/api/sales/v1/references/",
+            "/api/sales/references/",
             {
                 "file": asset.id,
             },
@@ -2887,7 +2836,7 @@ class TestReferences(APITestCase):
         reference = ReferenceFactory.create(owner=deliverable.order.seller)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/references/",
             {"reference_id": reference.id},
         )
@@ -2916,7 +2865,7 @@ class TestReferences(APITestCase):
         reference = ReferenceFactory.create()
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/references/",
             {"reference_id": reference.id},
         )
@@ -2935,7 +2884,7 @@ class TestReferences(APITestCase):
         )
         self.login(deliverable.order.buyer)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/references/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -2975,7 +2924,7 @@ class TestOrderDeliverables(APITestCase):
         DeliverableFactory.create()
         self.login(deliverable1.order.seller)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable1.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable1.order.id}/deliverables/"
         )
         self.assertCountEqual(
             [entry["id"] for entry in response.data["results"]],
@@ -2999,7 +2948,7 @@ class TestOrderDeliverables(APITestCase):
         )
         self.login(old_deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{old_deliverable.order.id}/deliverables/",
+            f"/api/sales/order/{old_deliverable.order.id}/deliverables/",
             {
                 "name": "Boop",
                 "completed": False,
@@ -3055,7 +3004,7 @@ class TestOrderDeliverables(APITestCase):
         reference.deliverables.add(old_deliverable)
         self.login(old_deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{old_deliverable.order.id}/deliverables/",
+            f"/api/sales/order/{old_deliverable.order.id}/deliverables/",
             {
                 "name": "Boop",
                 "completed": False,
@@ -3089,7 +3038,7 @@ class TestOrderDeliverables(APITestCase):
         )
         self.login(old_deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{old_deliverable.order.id}/deliverables/",
+            f"/api/sales/order/{old_deliverable.order.id}/deliverables/",
             {
                 "name": "Boop",
                 "completed": False,
@@ -3117,7 +3066,7 @@ class TestOrderDeliverables(APITestCase):
         )
         self.login(old_deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{old_deliverable.order.id}/deliverables/",
+            f"/api/sales/order/{old_deliverable.order.id}/deliverables/",
             {
                 "name": "Boop",
                 "completed": False,
@@ -3139,7 +3088,7 @@ class TestBroadcast(APITestCase):
         user = UserFactory.create()
         self.login(user)
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/broadcast/", {"text": "Boop"}
+            f"/api/sales/account/{user.username}/broadcast/", {"text": "Boop"}
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(
@@ -3153,7 +3102,7 @@ class TestBroadcast(APITestCase):
         deliverable3 = DeliverableFactory.create(order__seller=deliverable.order.seller)
         deliverable4 = DeliverableFactory.create()
         response = self.client.post(
-            f"/api/sales/v1/account/{deliverable.order.seller.username}/broadcast/",
+            f"/api/sales/account/{deliverable.order.seller.username}/broadcast/",
             {"text": "Boop"},
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -3184,18 +3133,18 @@ class TestClearWaitlist(APITestCase):
         deliverable5 = DeliverableFactory.create(status=COMPLETED)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/account/{deliverable.order.buyer.username}/products/"
+            f"/api/sales/account/{deliverable.order.buyer.username}/products/"
             f"{deliverable.product.id}/clear-waitlist/",
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         response = self.client.post(
-            f"/api/sales/v1/account/{deliverable.product.user.username}/products/"
+            f"/api/sales/account/{deliverable.product.user.username}/products/"
             f"{deliverable.product.id}/clear-waitlist/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         self.login(deliverable.product.user)
         response = self.client.post(
-            f"/api/sales/v1/account/{deliverable.product.user.username}/products/"
+            f"/api/sales/account/{deliverable.product.user.username}/products/"
             f"{deliverable.product.id}/clear-waitlist/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -3232,7 +3181,7 @@ class TestQueue(APITestCase):
             order__seller=deliverable.order.seller,
         )
         response = self.client.get(
-            f"/api/sales/v1/account/{deliverable.order.seller.username}/queue/"
+            f"/api/sales/account/{deliverable.order.seller.username}/queue/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 3)
@@ -3247,13 +3196,13 @@ class TestAnonymousInvoice(APITestCase):
         UserFactory.create(username=settings.ANONYMOUS_USER_USERNAME)
         user = UserFactory.create(is_staff=True)
         self.login(user)
-        response = self.client.post("/api/sales/v1/create-anonymous-invoice/")
+        response = self.client.post("/api/sales/create-anonymous-invoice/")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_fail_non_staff(self):
         user = UserFactory.create()
         self.login(user)
-        response = self.client.post("/api/sales/v1/create-anonymous-invoice/")
+        response = self.client.post("/api/sales/create-anonymous-invoice/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -3272,7 +3221,7 @@ class TestRecentInvoices(APITestCase):
             manually_created=True,
         )
         self.login(UserFactory.create(is_staff=True))
-        response = self.client.get("/api/sales/v1/recent-invoices/")
+        response = self.client.get("/api/sales/recent-invoices/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         target_list = [newest.id, middle.id, oldest.id]
         self.assertEqual(
@@ -3281,14 +3230,14 @@ class TestRecentInvoices(APITestCase):
 
     def test_fail_non_staff(self):
         self.login(UserFactory.create())
-        response = self.client.get("/api/sales/v1/recent-invoices/")
+        response = self.client.get("/api/sales/recent-invoices/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class TestServicePlans(APITestCase):
     def test_list_service_plans(self):
         ServicePlanFactory(name="wat", hidden=True)
-        response = self.client.get("/api/sales/v1/service-plans/")
+        response = self.client.get("/api/sales/service-plans/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIDInList(self.free.id, response.data)
         self.assertIDInList(self.landscape.id, response.data)
@@ -3302,7 +3251,7 @@ class TestInvoiceLineItems(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.get(
-            f"/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/"
+            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]["amount"], 10.0)
@@ -3314,7 +3263,7 @@ class TestInvoiceLineItems(APITestCase):
         )
         self.login(staff)
         response = self.client.post(
-            f"/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/",
+            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/",
             {"description": "Stuff", "amount": 5, "percentage": 0, "type": EXTRA},
         )
         self.assertEqual(response.data["amount"], 5)
@@ -3327,7 +3276,7 @@ class TestInvoiceLineItems(APITestCase):
         self.login(staff)
         line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         response = self.client.patch(
-            f"/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/"
+            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/"
             f"{line_item.id}/",
             {"amount": 5, "percentage": 5},
         )
@@ -3344,7 +3293,7 @@ class TestInvoiceLineItems(APITestCase):
         )
         self.login(staff)
         response = self.client.post(
-            f"/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/",
+            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/",
             {"description": "Stuff", "amount": 5, "percentage": 0, "type": ADD_ON},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -3356,7 +3305,7 @@ class TestInvoiceLineItems(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/",
+            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/",
             {"description": "Stuff", "amount": 5, "type": ADD_ON},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -3376,7 +3325,7 @@ class TestInvoiceLineItems(APITestCase):
         line_item = invoice.line_items.get(type=TIP)
         self.login(deliverable.order.buyer)
         response = self.client.patch(
-            f"/api/sales/v1/invoice/{invoice.id}/line-items/{line_item.id}/",
+            f"/api/sales/invoice/{invoice.id}/line-items/{line_item.id}/",
             {
                 "amount": "2.03",
             },
@@ -3403,7 +3352,7 @@ class TestInvoiceLineItems(APITestCase):
         line_item = invoice.line_items.get(type=TIP)
         self.login(deliverable.order.buyer)
         response = self.client.patch(
-            f"/api/sales/v1/invoice/{invoice.id}/line-items/{line_item.id}/",
+            f"/api/sales/invoice/{invoice.id}/line-items/{line_item.id}/",
             {
                 "amount": ".50",
             },
@@ -3429,7 +3378,7 @@ class TestInvoiceLineItems(APITestCase):
         line_item = invoice.line_items.get(type=TIP)
         self.login(deliverable.order.buyer)
         response = self.client.patch(
-            f"/api/sales/v1/invoice/{invoice.id}/line-items/{line_item.id}/",
+            f"/api/sales/invoice/{invoice.id}/line-items/{line_item.id}/",
             {
                 "amount": "12.00",
             },
@@ -3446,7 +3395,7 @@ class TestLineItemManager(APITestCase):
         line_item = LineItemFactory.create(amount=Money("5.00", "USD"))
         self.login(staff)
         response = self.client.get(
-            f"/api/sales/v1/invoice/{line_item.invoice.id}/line-items/{line_item.id}/",
+            f"/api/sales/invoice/{line_item.invoice.id}/line-items/{line_item.id}/",
         )
         self.assertEqual(response.data["id"], line_item.id)
 
@@ -3458,7 +3407,7 @@ class TestReferenceManager(APITestCase):
         deliverable.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.data["id"], reference.id)
@@ -3471,7 +3420,7 @@ class TestReferenceManager(APITestCase):
         deliverable2.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -3484,7 +3433,7 @@ class TestReferenceManager(APITestCase):
         deliverable.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -3497,7 +3446,7 @@ class TestReferenceManager(APITestCase):
         deliverable.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -3509,7 +3458,7 @@ class TestInvoicePayment(APITestCase):
         staff = UserFactory.create(is_staff=True)
         self.login(staff)
         response = self.client.post(
-            f"/api/sales/v1/invoice/{line_item.invoice.id}/pay/",
+            f"/api/sales/invoice/{line_item.invoice.id}/pay/",
             {
                 "amount": line_item.invoice.total().amount,
                 "cash": True,
@@ -3522,7 +3471,7 @@ class TestInvoicePayment(APITestCase):
         staff = UserFactory.create(is_staff=True)
         self.login(staff)
         response = self.client.post(
-            f"/api/sales/v1/invoice/{line_item.invoice.id}/pay/",
+            f"/api/sales/invoice/{line_item.invoice.id}/pay/",
             {
                 "amount": "12345",
                 "cash": True,
@@ -3541,7 +3490,7 @@ class TestSetPlan(APITestCase):
         )
         self.login(user)
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/set-plan/", {"service": "Free"}
+            f"/api/sales/account/{user.username}/set-plan/", {"service": "Free"}
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
@@ -3558,7 +3507,7 @@ class TestSetPlan(APITestCase):
         )
         self.login(user)
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/set-plan/", {"service": "Free"}
+            f"/api/sales/account/{user.username}/set-plan/", {"service": "Free"}
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
@@ -3576,7 +3525,7 @@ class TestSetPlan(APITestCase):
         )
         self.login(user)
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/set-plan/", {"service": "Landscape"}
+            f"/api/sales/account/{user.username}/set-plan/", {"service": "Landscape"}
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         user.refresh_from_db()
@@ -3591,7 +3540,7 @@ class TestSetPlan(APITestCase):
         )
         self.login(user)
         response = self.client.post(
-            f"/api/sales/v1/account/{user.username}/set-plan/", {"service": "Landscape"}
+            f"/api/sales/account/{user.username}/set-plan/", {"service": "Landscape"}
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         user.refresh_from_db()
@@ -3623,7 +3572,7 @@ class TestAccountStatus(APITestCase):
         )
         self.login(user)
         response = self.client.get(
-            f"/api/sales/v1/account/{user.username}/account-status/",
+            f"/api/sales/account/{user.username}/account-status/",
             {"account": HOLDINGS},
         )
         self.assertEqual(
@@ -3673,7 +3622,7 @@ class TestCommissionsStatus(APITestCase):
         product = ProductFactory.create()
         # Should be enabled by default.
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/commissions-status-image/"
+            f"/api/sales/account/{product.user.username}/commissions-status-image/"
         )
         self.assertIn(b"commissions-open.png", response.serialize_headers())
 
@@ -3681,7 +3630,7 @@ class TestCommissionsStatus(APITestCase):
         product = ProductFactory.create(user__artist_profile__commissions_closed=True)
         # Should be enabled by default.
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/commissions-status-image/"
+            f"/api/sales/account/{product.user.username}/commissions-status-image/"
         )
         self.assertIn(b"commissions-closed.png", response.serialize_headers())
 
@@ -3693,7 +3642,7 @@ class TestFeatureProduct(APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/feature/",
             {},
         )
@@ -3706,7 +3655,7 @@ class TestFeatureProduct(APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/feature/",
             {},
         )
@@ -3717,7 +3666,7 @@ class TestFeatureProduct(APITestCase):
         product = ProductFactory.create()
         self.login(product.user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/feature/",
             {},
         )
@@ -3729,7 +3678,7 @@ class TestPremadeSearches(APITestCase):
         lgbt = ProductFactory.create(user__artist_profile__lgbt=True)
         # Unrelated
         ProductFactory.create()
-        response = self.client.get("/api/sales/v1/lgbt/")
+        response = self.client.get("/api/sales/lgbt/")
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIDInList(lgbt, response.data["results"])
 
@@ -3739,7 +3688,7 @@ class TestPremadeSearches(APITestCase):
         )
         # Unrelated
         ProductFactory.create()
-        response = self.client.get("/api/sales/v1/artists-of-color/")
+        response = self.client.get("/api/sales/artists-of-color/")
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIDInList(artist_of_color, response.data["results"])
 
@@ -3749,7 +3698,7 @@ class TestPremadeSearches(APITestCase):
         ProductFactory.create(user__stars=3)
         # Unrated
         ProductFactory.create()
-        response = self.client.get("/api/sales/v1/highly-rated/")
+        response = self.client.get("/api/sales/highly-rated/")
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIDInList(highly_rated, response.data["results"])
 
@@ -3759,14 +3708,14 @@ class TestPremadeSearches(APITestCase):
             product=veteran, order__seller=veteran.user, status=COMPLETED
         )
         new_product = ProductFactory.create()
-        response = self.client.get("/api/sales/v1/new-artist-products/")
+        response = self.client.get("/api/sales/new-artist-products/")
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIDInList(new_product, response.data["results"])
 
     def test_low_price(self):
         low_price = ProductFactory.create(base_price=Money("10.00", "USD"))
         ProductFactory.create(base_price=Money("50.00", "USD"))
-        response = self.client.get("/api/sales/v1/low-price/")
+        response = self.client.get("/api/sales/low-price/")
         self.assertEqual(len(response.data["results"]), 1)
         self.assertIDInList(low_price, response.data["results"])
 
@@ -3775,7 +3724,7 @@ class TestPremadeSearches(APITestCase):
         ProductFactory.create()
         user = UserFactory.create(is_staff=True)
         self.login(user)
-        response = self.client.get("/api/sales/v1/table/products/")
+        response = self.client.get("/api/sales/table/products/")
         self.assertEqual(len(response.data), 1)
         self.assertIDInList(table_product, response.data)
 
@@ -3784,7 +3733,7 @@ class TestPremadeSearches(APITestCase):
         id_sets = [
             tuple(
                 item["id"]
-                for item in self.client.get("/api/sales/v1/random/").data["results"]
+                for item in self.client.get("/api/sales/random/").data["results"]
             )
             for _ in range(5)
         ]
@@ -3800,7 +3749,7 @@ class TestInvoiceStatus(APITestCase):
         invoice = InvoiceFactory.create(status=DRAFT)
         user = UserFactory.create(is_staff=True)
         self.login(user)
-        self.client.post(f"/api/sales/v1/invoice/{invoice.id}/finalize/")
+        self.client.post(f"/api/sales/invoice/{invoice.id}/finalize/")
         invoice.refresh_from_db()
         self.assertEqual(invoice.status, OPEN)
 
@@ -3808,14 +3757,14 @@ class TestInvoiceStatus(APITestCase):
         invoice = InvoiceFactory.create(status=OPEN)
         user = UserFactory.create(is_staff=True)
         self.login(user)
-        response = self.client.post(f"/api/sales/v1/invoice/{invoice.id}/finalize/")
+        response = self.client.post(f"/api/sales/invoice/{invoice.id}/finalize/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_void_invoice(self):
         invoice = InvoiceFactory.create(status=OPEN)
         user = UserFactory.create(is_staff=True)
         self.login(user)
-        self.client.post(f"/api/sales/v1/invoice/{invoice.id}/void/")
+        self.client.post(f"/api/sales/invoice/{invoice.id}/void/")
         invoice.refresh_from_db()
         self.assertEqual(invoice.status, VOID)
 
@@ -3823,13 +3772,13 @@ class TestInvoiceStatus(APITestCase):
         invoice = InvoiceFactory.create(status=PAID)
         user = UserFactory.create(is_staff=True)
         self.login(user)
-        response = self.client.post(f"/api/sales/v1/invoice/{invoice.id}/void/")
+        response = self.client.post(f"/api/sales/invoice/{invoice.id}/void/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_finalize_invoice_tipping(self):
         invoice = InvoiceFactory.create(status=DRAFT, type=TIPPING)
         self.login(invoice.bill_to)
-        self.client.post(f"/api/sales/v1/invoice/{invoice.id}/finalize/")
+        self.client.post(f"/api/sales/invoice/{invoice.id}/finalize/")
         invoice.refresh_from_db()
         self.assertEqual(invoice.status, OPEN)
 
@@ -3838,7 +3787,7 @@ class TestInvoiceStatus(APITestCase):
             status=DRAFT, type=TIPPING, issued_by=UserFactory.create()
         )
         self.login(invoice.issued_by)
-        response = self.client.post(f"/api/sales/v1/invoice/{invoice.id}/finalize/")
+        response = self.client.post(f"/api/sales/invoice/{invoice.id}/finalize/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         invoice.refresh_from_db()
         self.assertEqual(invoice.status, DRAFT)
@@ -3848,7 +3797,7 @@ class TestInvoiceDetail(APITestCase):
     def test_invoice_detail(self):
         invoice = InvoiceFactory()
         self.login(invoice.bill_to)
-        response = self.client.get(f"/api/sales/v1/invoice/{invoice.id}/")
+        response = self.client.get(f"/api/sales/invoice/{invoice.id}/")
         self.assertEqual(response.data["id"], invoice.id)
 
 
@@ -3859,7 +3808,7 @@ class TestTableOrders(APITestCase):
         # Unrelated
         DeliverableFactory.create()
         self.login(user)
-        response = self.client.get("/api/sales/v1/table/orders/")
+        response = self.client.get("/api/sales/table/orders/")
         self.assertIDInList(deliverable.order, response.data)
         self.assertEqual(len(response.data), 1)
 
@@ -3871,7 +3820,7 @@ class TestProductRecommendations(APITestCase):
             ProductFactory.create(user=product.user)
         other_user_product = ProductFactory.create()
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/recommendations/",
         )
         id_list = [result["user"]["id"] for result in response.data["results"]]
@@ -3887,7 +3836,7 @@ class TestUserInvoices(APITestCase):
         InvoiceFactory.create()
         self.login(invoice.bill_to)
         response = self.client.get(
-            f"/api/sales/v1/account/{invoice.bill_to.username}/invoices/",
+            f"/api/sales/account/{invoice.bill_to.username}/invoices/",
         )
         self.assertIDInList(invoice, response.data["results"])
         self.assertEqual(len(response.data["results"]), 1)
@@ -3897,7 +3846,7 @@ class TestUserInvoices(APITestCase):
         # Unrelated to the user
         self.login(UserFactory.create())
         response = self.client.get(
-            f"/api/sales/v1/account/{invoice.bill_to.username}/invoices/",
+            f"/api/sales/account/{invoice.bill_to.username}/invoices/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -3911,7 +3860,7 @@ class TestInvoiceTransactions(APITestCase):
         record.targets.add(ref_for_instance(invoice))
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get(
-            f"/api/sales/v1/invoice/{invoice.id}/transaction-records/",
+            f"/api/sales/invoice/{invoice.id}/transaction-records/",
         )
         self.assertIDInList(record, response.data["results"])
 
@@ -3921,7 +3870,7 @@ class TestInvoiceTransactions(APITestCase):
         record.targets.add(ref_for_instance(invoice))
         self.login(invoice.bill_to)
         response = self.client.get(
-            f"/api/sales/v1/invoice/{invoice.id}/transaction-records/",
+            f"/api/sales/invoice/{invoice.id}/transaction-records/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -3935,7 +3884,7 @@ class TestIssueTipInvoice(APITestCase):
         deliverable.order.seller.save()
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/issue-tip-invoice/",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -3946,7 +3895,7 @@ class TestIssueTipInvoice(APITestCase):
         )
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/issue-tip-invoice/",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -3959,7 +3908,7 @@ class TestIssueTipInvoice(APITestCase):
         deliverable.order.seller.save()
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"/api/sales/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/issue-tip-invoice/",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -3992,3 +3941,203 @@ class TestQueueListing(EnsurePlansMixin, TestCase):
             self.assertNotIn(f"order__{item.order.id}", content)
         guest_deliverable = included[-1]
         self.assertIn(f"Guest #{guest_deliverable.order.buyer.id}", content)
+
+
+@patch("apps.sales.views.main.paypal_api")
+class TestPaypalSettings(APITestCase):
+    def test_get_settings(self, _mock_paypal):
+        config = PaypalConfigFactory.create()
+        self.login(config.user)
+        resp = self.client.get(f"/api/sales/account/{config.user.username}/paypal/")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(config.template_id, resp.data["template_id"])
+        self.assertTrue(resp.data["active"])
+        self.assertNotIn("key", resp.data)
+        self.assertNotIn("secret", resp.data)
+
+    def test_patch_template(self, _mock_paypal):
+        config = PaypalConfigFactory.create()
+        self.login(config.user)
+        resp = self.client.patch(
+            f"/api/sales/account/{config.user.username}/paypal/",
+            {"template_id": "blorp"},
+        )
+        config.refresh_from_db()
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(config.template_id, "blorp")
+        self.assertEqual(resp.data["template_id"], "blorp")
+
+    def test_setup_config(self, mock_paypal):
+        user = UserFactory.create()
+        self.login(user)
+        templates_response = (
+            mock_paypal.return_value.__enter__.return_value.get.return_value
+        )
+        templates_response.status_code = status.HTTP_200_OK
+        templates_response.json.return_value = {
+            "templates": [
+                {
+                    "template_id": "herp",
+                    "name": "Amount",
+                    "currency_code": "USD",
+                }
+            ]
+        }
+        webhook_response = (
+            mock_paypal.return_value.__enter__.return_value.post.return_value
+        )
+        webhook_response.status_code = status.HTTP_200_OK
+        webhook_response.json.return_value = {"id": "boop"}
+        resp = self.client.post(
+            f"/api/sales/account/{user.username}/paypal/",
+            {"key": "blorp", "secret": "derp"},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        config = PaypalConfig.objects.get(user=user)
+        self.assertNotIn("key", resp.data)
+        self.assertEqual(config.key, "blorp")
+        self.assertNotIn("secret", resp.data)
+        self.assertEqual(config.secret, "derp")
+        self.assertEqual(resp.data["template_id"], "herp")
+        self.assertEqual(config.webhook_id, "boop")
+        self.assertEqual(config.template_id, "herp")
+        self.assertEqual(resp.data["active"], True)
+
+    def test_no_matching_template(self, mock_paypal):
+        user = UserFactory.create()
+        self.login(user)
+        templates_response = (
+            mock_paypal.return_value.__enter__.return_value.get.return_value
+        )
+        templates_response.status_code = status.HTTP_200_OK
+        templates_response.json.return_value = {
+            "templates": [
+                {
+                    "template_id": "herp",
+                    "name": "Amount",
+                    "currency_code": "CAD",
+                }
+            ]
+        }
+        webhook_response = (
+            mock_paypal.return_value.__enter__.return_value.post.return_value
+        )
+        webhook_response.status_code = status.HTTP_200_OK
+        webhook_response.json.return_value = {"id": "boop"}
+        resp = self.client.post(
+            f"/api/sales/account/{user.username}/paypal/",
+            {"key": "blorp", "secret": "derp"},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        config = PaypalConfig.objects.get(user=user)
+        self.assertFalse(config.active)
+
+    def test_bad_credentials(self, mock_paypal):
+        user = UserFactory.create()
+        self.login(user)
+        mock_paypal.return_value.__enter__.return_value.get.side_effect = (
+            MissingTokenError("Nope.")
+        )
+        resp = self.client.post(
+            f"/api/sales/account/{user.username}/paypal/",
+            {"key": "blorp", "secret": "derp"},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_other_upstream_error(self, mock_paypal):
+        user = UserFactory.create()
+        self.login(user)
+        mock_paypal.return_value.__enter__.return_value.get.side_effect = (
+            MissingTokenError("Nope.")
+        )
+        resp = self.client.post(
+            f"/api/sales/account/{user.username}/paypal/",
+            {"key": "blorp", "secret": "derp"},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_pre_existing(self, _mock_paypal):
+        config = PaypalConfigFactory.create()
+        self.login(config.user)
+        resp = self.client.post(
+            f"/api/sales/account/{config.user.username}/paypal/",
+            {"key": "blorp", "secret": "derp"},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(resp.data["detail"], "PayPal already configured.")
+
+    @patch("apps.sales.views.main.delete_webhooks")
+    def test_delete(self, _delete_webhooks, _mock_paypal):
+        config = PaypalConfigFactory.create()
+        self.login(config.user)
+        resp = self.client.delete(
+            f"/api/sales/account/{config.user.username}/paypal/",
+            {"key": "blorp", "secret": "derp"},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        with self.assertRaises(PaypalConfig.DoesNotExist):
+            config.refresh_from_db()
+
+    def test_no_delete_with_deliverables(self, _mock_paypal):
+        config = PaypalConfigFactory.create()
+        DeliverableFactory.create(
+            paypal=True,
+            status=IN_PROGRESS,
+            order__seller=config.user,
+            invoice__paypal_token="boop",
+        )
+        self.login(config.user)
+        resp = self.client.delete(
+            f"/api/sales/account/{config.user.username}/paypal/",
+            {"key": "blorp", "secret": "derp"},
+        )
+        self.assertEqual(
+            resp.data["detail"],
+            "You must close out all orders currently managed by "
+            "PayPal to remove this integration.",
+        )
+
+
+class TestPaypalTemplates(APITestCase):
+    @patch("apps.sales.views.main.paypal_api")
+    def test_get_templates(self, mock_paypal):
+        config = PaypalConfigFactory.create()
+        mock_get = mock_paypal.return_value.__enter__.return_value.get
+        mock_get.return_value.json.return_value = {
+            "templates": [
+                {
+                    "id": "Beep",
+                    "name": "Beeper",
+                    "template_info": {"detail": {"currency_code": "USD"}},
+                },
+                {
+                    "id": "Boop",
+                    "name": "Booper",
+                    "template_info": {"detail": {"currency_code": "CAD"}},
+                },
+                {
+                    "id": "Herp",
+                    "name": "Beeper",
+                    "template_info": {"detail": {"currency_code": "USD"}},
+                },
+            ]
+        }
+        self.login(config.user)
+        resp = self.client.get(
+            f"/api/sales/account/{config.user.username}/paypal/templates/"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            resp.data,
+            [{"id": "Beep", "name": "Beeper"}, {"id": "Herp", "name": "Beeper"}],
+        )
+
+    def test_get_templates_not_active(self):
+        config = PaypalConfigFactory.create(template_id="", active=False)
+        user = config.user
+        self.login(user)
+        resp = self.client.get(f"/api/sales/account/{user.username}/paypal/templates/")
+        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(
+            resp.data, {"detail": "No active PayPal configuration for this account."}
+        )

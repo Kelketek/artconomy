@@ -45,9 +45,9 @@ GR_CAPTCHA_PUBLIC_KEY=captcha-site-key-goes-here
 # to test shield functionality via Stripe.
 STRIPE_PUBLIC_KEY=key-goes-here
 STRIPE_KEY=key-goes-here
-# Our Stripe integration requires callbacks via webhooks. You will need a publicly accessible endpoint to test these. You can use a service like ngrok to set this up, and invoke it this way once you've logged in:
+# Some third party integrations require callbacks via webhooks. You will need a publicly accessible endpoint to test these. You can use a service like ngrok to set this up, and invoke it this way once you've logged in:
 # ngrok http https://artconomy.vulpinity.com --subdomain your-ngrok-subdomain
-STRIPE_WEBHOOKS_DOMAIN=test-webhook.ngrok.io
+WEBHOOKS_DOMAIN=test-webhook.ngrok.io
 # Set these to the ID and secret from Authorize.net. You can register for a sandbox account at https://developer.authorize.net/
 AUTHORIZE_KEY=authorize-net-id-goes-here
 AUTHORIZE_SECRET=authorize-net-secret-goes-here

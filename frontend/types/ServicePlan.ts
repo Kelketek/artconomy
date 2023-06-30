@@ -5,6 +5,7 @@ export interface ServicePlan {
   features: string[],
   monthly_charge: number,
   waitlisting: boolean,
+  paypal_invoicing: boolean,
   shield_static_price: number,
   per_deliverable_price: number,
   shield_percentage_price: number,

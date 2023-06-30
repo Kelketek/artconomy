@@ -229,6 +229,17 @@
                                 :false-value="false"
                             />
                           </v-col>
+                          <v-col cols="12" sm="6" v-if="subject.paypal_configured">
+                            <ac-patch-field
+                              :patcher="product.patchers.paypal"
+                              field-type="v-switch"
+                              label="PayPal Invoicing"
+                              :persistent-hint="true"
+                              hint="If the order is marked unshielded, generate a PayPal invoice upon acceptance."
+                              :true-value="true"
+                              :false-value="false"
+                            />
+                          </v-col>
                           <v-col cols="12" sm="6" v-if="escrow">
                             <ac-patch-field
                                 :patcher="product.patchers.escrow_enabled"

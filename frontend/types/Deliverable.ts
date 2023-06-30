@@ -45,4 +45,6 @@ export default interface Deliverable {
   tip_invoice: string | null,
   read: boolean,
   cascade_fees: boolean,
+  paypal: boolean,
+  paypal_token: string,
 }
