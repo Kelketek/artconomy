@@ -704,6 +704,7 @@ class DeliverableAccept(GenericAPIView):
                 deliverable.order.customer_email,
                 {
                     "deliverable": deliverable,
+                    "order": deliverable.order,
                     "claim_token": deliverable.order.claim_token,
                 },
             )

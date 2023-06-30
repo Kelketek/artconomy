@@ -952,7 +952,7 @@ def issue_order_claim(sender: type, instance: Deliverable, created=False, **kwar
         {
             "deliverable": instance,
             "claim_token": get_claim_token(instance.order),
-            "deliverable": instance,
+            "order": instance.order,
         },
     )
 
