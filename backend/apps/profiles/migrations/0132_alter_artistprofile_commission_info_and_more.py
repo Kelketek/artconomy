@@ -55,7 +55,8 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 db_index=True,
                 default=False,
-                help_text="Enabled when a user's account is in arrears beyond the grace period.",
+                help_text="Enabled when a user's account is in arrears beyond the "
+                "grace period.",
             ),
         ),
         migrations.AlterField(

@@ -11,7 +11,8 @@ from django.core.management import BaseCommand
 
 class Command(BaseCommand):
     """
-    One-time command to create backdated mirror transactions to make exporting tax reports easier for users.
+    One-time command to create backdated mirror transactions to make exporting tax
+    reports easier for users.
     """
 
     def handle(self, *args, **options):

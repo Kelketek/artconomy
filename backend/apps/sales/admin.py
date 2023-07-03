@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from apps.lib.admin import CommentInline
 from apps.sales.models import (
     CreditCardToken,
@@ -119,7 +117,8 @@ class LineItemInline(admin.StackedInline):
         if not obj.id:
             return "Save to edit annotations."
         return format_html(
-            f'<a href="{reverse("admin:sales_lineitem_change", args=[obj.id])}">Edit Annotations</a>'
+            f'<a href="{reverse("admin:sales_lineitem_change", args=[obj.id])}">Edit '
+            f"Annotations</a>"
         )
 
     model = LineItem
@@ -142,20 +141,23 @@ class InvoiceAdmin(admin.ModelAdmin):
 
 def safe_display(record):
     """
-    Safely render a transaction name such that no user-written characters are shown and it
-    can be HTML embedded in a message with a link.
+    Safely render a transaction name such that no user-written characters are shown and
+    it can be HTML embedded in a message with a link.
     """
     return (
-        f'<a href="{reverse("admin:sales_transactionrecord_change", args=[record.id])}">{record.id}</a> '
-        f"{record.get_category_display()} for {record.amount} from {record.get_source_display()} "
-        f"to {record.get_destination_display()}"
+        f'<a href="{reverse("admin:sales_transactionrecord_change", args=[record.id])}'
+        f'">{record.id}</a> '
+        f"{record.get_category_display()} for {record.amount} from "
+        f"{record.get_source_display()} to {record.get_destination_display()}"
     )
 
 
 def reverse_message(source: TransactionRecord, destination: TransactionRecord):
     return (
         f"<p>{safe_display(source)} was reversed in "
-        f'<a href="{reverse("admin:sales_transactionrecord_change", args=[destination.id])}">{destination.id}</a></p>'
+        f'<a href="'
+        f'{reverse("admin:sales_transactionrecord_change", args=[destination.id])}'
+        f'">{destination.id}</a></p>'
     )
 
 
@@ -179,7 +181,10 @@ def reverse_transactions(modeladmin, request, queryset):
             reverse_message(source, destination)
             for source, destination in created.items()
         ]
-        message = f'<p>The following reversions were created successfully:</p>{"".join(entries)}'
+        message = (
+            f"<p>The following reversions were created successfully:</p>"
+            f'{"".join(entries)}'
+        )
         modeladmin.message_user(
             request, mark_safe(message), level=messages.SUCCESS, extra_tags="safe"
         )
@@ -262,7 +267,8 @@ class StripeLocationAdmin(admin.ModelAdmin):
 class StripeReaderForm(ModelForm):
     registration_code = forms.CharField(
         max_length=250,
-        help_text="Pairing code given by reader. Only needed on initial creation, and not stored.",
+        help_text="Pairing code given by reader. Only needed on initial creation, and "
+        "not stored.",
     )
 
     def __init__(self, *args, **kwargs):

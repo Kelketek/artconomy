@@ -3,7 +3,6 @@
 from decimal import Decimal
 
 import django.core.validators
-import djmoney.models.fields
 from django.db import migrations, models
 
 

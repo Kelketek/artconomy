@@ -14,7 +14,6 @@ from apps.sales.constants import (
     CARD_TRANSACTION_FEES,
     CASH_DEPOSIT,
     CASH_WITHDRAW,
-    COMPLETED,
     ESCROW,
     HOLDINGS,
     MONEY_HOLE,
@@ -84,8 +83,8 @@ class TestCustomerHoldings(APITestCase):
             status=PENDING,
             amount=Money("50.00", "USD"),
         )
-        # Should not show up, as this account isn't checked, and the payee doesn't have any sales, so should be excluded
-        # for performance reasons.
+        # Should not show up, as this account isn't checked, and the payee doesn't have
+        # any sales, so should be excluded for performance reasons.
         TransactionRecordFactory.create(
             payer=deliverable.order.seller,
             source=CARD,
@@ -128,8 +127,8 @@ class TestUnaffiliatedSales(APITestCase):
             invoice__status=PAID,
             amount=Money("15.00", "USD"),
         )
-        # Amount doesn't matter here-- determines whether the invoice is cash or card by the
-        # presence of this transaction.
+        # Amount doesn't matter here-- determines whether the invoice is cash or card by
+        # the presence of this transaction.
         card_main_transaction = TransactionRecordFactory.create(
             source=CARD,
             payer=card_line_item.invoice.bill_to,
@@ -275,7 +274,8 @@ class TestPayoutReport(APITestCase):
         self.assertEqual(lines[0]["status"], "Successful")
         self.assertEqual(
             lines[0]["targets"],
-            f"Submission #{submission.id}, TransactionRecord #{source_transaction.id} ($10.00)",
+            f"Submission #{submission.id}, TransactionRecord #{source_transaction.id} "
+            f"($10.00)",
         )
         self.assertEqual(lines[0]["payee"], transaction.payee.username)
         self.assertEqual(lines[0]["total_drafted"], "22.00")
@@ -344,8 +344,9 @@ class TestUserPayoutReport(APITestCase):
         self.assertEqual(lines[0]["status"], "Successful")
         self.assertEqual(
             lines[0]["targets"],
-            f"Submission #{submission.id}, Sale #{deliverable.order.id} [{deliverable.name}], "
-            f"TransactionRecord #{source_transaction.id} ($10.00)",
+            f"Submission #{submission.id}, Sale #{deliverable.order.id} "
+            f"[{deliverable.name}], TransactionRecord #{source_transaction.id} "
+            f"($10.00)",
         )
         timezone.now().isoformat()
         self.assertEqual(parse(lines[0]["created_on"]), transaction.created_on)

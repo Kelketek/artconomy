@@ -44,7 +44,6 @@ from apps.sales.constants import (
     QUEUED,
     REFUNDED,
     REVIEW,
-    SALE,
     SUBSCRIPTION,
     TIP,
     TIPPING,
@@ -309,7 +308,10 @@ class TestSearchWaiting(APITestCase):
         DeliverableFactory.create(
             order__seller=deliverable.order.seller, status=WAITING
         )
-        url = f"/api/sales/v1/account/{deliverable.order.seller.username}/sales/waiting/?q=beep"
+        url = (
+            f"/api/sales/v1/account/{deliverable.order.seller.username}"
+            f"/sales/waiting/?q=beep"
+        )
         self.login(deliverable.order.seller)
         response = self.client.get(url)
         self.assertEqual(len(response.data["results"]), 1)
@@ -319,7 +321,10 @@ class TestSearchWaiting(APITestCase):
         deliverable = DeliverableFactory.create(
             order__buyer__email="beep@boop.com", status=WAITING
         )
-        url = f"/api/sales/v1/account/{deliverable.order.seller.username}/sales/waiting/?q=beep"
+        url = (
+            f"/api/sales/v1/account/{deliverable.order.seller.username}"
+            f"/sales/waiting/?q=beep"
+        )
         self.login(deliverable.order.buyer)
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -331,7 +336,8 @@ class TestProductSamples(APITestCase):
         submission = SubmissionFactory.create()
         product.samples.add(submission)
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/samples/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/samples/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data["results"]), 1)
@@ -346,7 +352,8 @@ class TestProductSamples(APITestCase):
         )
         self.login(product.user)
         response = self.client.delete(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/samples/{linked.id}/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/samples/{linked.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(product.samples.all().count(), 0)
@@ -362,7 +369,8 @@ class TestProductSamples(APITestCase):
         )
         self.login(product.user)
         response = self.client.delete(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/samples/{linked.id}/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/samples/{linked.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(product.samples.all().count(), 0)
@@ -375,7 +383,8 @@ class TestProductSamples(APITestCase):
         submission.artists.add(product.user)
         self.login(product.user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/samples/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/samples/",
             {"submission_id": submission.id},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -386,14 +395,16 @@ class TestProductSamples(APITestCase):
         submission = SubmissionFactory.create()
         self.login(product.user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/samples/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/samples/",
             {"submission_id": submission.id},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["submission_id"],
             [
-                "Either this submission does not exist, or you are not tagged as the artist in it."
+                "Either this submission does not exist, or you are not tagged as the "
+                "artist in it."
             ],
         )
 
@@ -700,7 +711,8 @@ class TestProduct(APITestCase):
         self.assertEqual(
             result["base_price"],
             [
-                "Value too small to have shield enabled. Raise until the total is at least $\xa01.00."
+                "Value too small to have shield enabled. Raise until the total is at "
+                "least $\xa01.00."
             ],
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -763,13 +775,15 @@ class TestProduct(APITestCase):
         self.assertEqual(
             result["base_price"],
             [
-                "Value too small to have shield upgrade available. Raise until the total is at least $\xa05.00."
+                "Value too small to have shield upgrade available. Raise until the "
+                "total is at least $\xa05.00."
             ],
         )
         self.assertEqual(
             result["escrow_enabled"],
             [
-                "Cannot have shield enabled on products whose total would be less than $\xa05.00"
+                "Cannot have shield enabled on products whose total would be less than "
+                "$\xa05.00"
             ],
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -890,7 +904,8 @@ class TestProduct(APITestCase):
     def test_product_inventory(self):
         product = ProductFactory.create(track_inventory=True)
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/inventory/"
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/inventory/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["count"], 0)
@@ -898,7 +913,8 @@ class TestProduct(APITestCase):
     def test_set_product_inventory_not_logged_in(self):
         product = ProductFactory.create(track_inventory=True)
         response = self.client.patch(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/inventory/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/inventory/",
             {"count": 3},
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -907,7 +923,8 @@ class TestProduct(APITestCase):
         product = ProductFactory.create(track_inventory=True)
         self.login(UserFactory.create())
         response = self.client.patch(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/inventory/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/inventory/",
             {"count": 3},
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -916,7 +933,8 @@ class TestProduct(APITestCase):
         product = ProductFactory.create(track_inventory=True)
         self.login(product.user)
         response = self.client.patch(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/inventory/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/inventory/",
             {"count": 3},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -925,7 +943,8 @@ class TestProduct(APITestCase):
     def test_product_inventory_no_tracking(self):
         product = ProductFactory.create(track_inventory=False)
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/inventory/"
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/inventory/"
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -1638,7 +1657,8 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data["product"]["id"], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data["id"])
-        # Actual price will be $8-- $3 plus the $5 static fee. Setting the order price to $15 will make a $7 adjustment.
+        # Actual price will be $8-- $3 plus the $5 static fee. Setting the order price
+        # to $15 will make a $7 adjustment.
         item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(item.amount, Money("7.00", "USD"))
         self.assertEqual(item.priority, 100)
@@ -2339,7 +2359,7 @@ class TestSalesStats(APITestCase):
 class TestPricingInfo(APITestCase):
     @override_settings(TABLE_PERCENTAGE_FEE=Decimal("69"))
     def test_pricing_info(self):
-        response = self.client.get(f"/api/sales/v1/pricing-info/")
+        response = self.client.get("/api/sales/v1/pricing-info/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["table_percentage"], Decimal("69"))
 
@@ -2523,7 +2543,8 @@ class TestOrderOutputs(APITestCase):
             deliverable=deliverable, revision=revision
         )
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIDInList(submission, response.data)
@@ -2533,7 +2554,8 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "now", "stuff"],
@@ -2559,7 +2581,8 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "then", "so"],
@@ -2583,7 +2606,8 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "then", "so"],
@@ -2604,7 +2628,8 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "then", "so"],
@@ -2623,7 +2648,8 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "then", "so"],
@@ -2641,7 +2667,8 @@ class TestOrderOutputs(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "then", "so"],
@@ -2652,7 +2679,8 @@ class TestOrderOutputs(APITestCase):
         self.assertEqual(
             response.data,
             {
-                "detail": "You can not create a submission from an order with no revisions."
+                "detail": "You can not create a submission from an order with no "
+                "revisions."
             },
         )
 
@@ -2664,7 +2692,8 @@ class TestOrderOutputs(APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "then", "so"],
@@ -2675,7 +2704,8 @@ class TestOrderOutputs(APITestCase):
         self.assertEqual(
             response.data,
             {
-                "detail": "You must specify a specific revision if the order is not completed."
+                "detail": "You must specify a specific revision if the order is not "
+                "completed."
             },
         )
 
@@ -2694,7 +2724,8 @@ class TestOrderOutputs(APITestCase):
         revision_2 = RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "so", "then"],
@@ -2726,7 +2757,8 @@ class TestOrderOutputs(APITestCase):
         revision_2 = RevisionFactory.create(deliverable=deliverable)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "so", "then"],
@@ -2751,7 +2783,8 @@ class TestOrderOutputs(APITestCase):
             deliverable=deliverable, owner=deliverable.order.buyer, revision=revision
         )
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/outputs/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/outputs/",
             {
                 "caption": "Stuff",
                 "tags": ["Things", "wat", "do", "so", "then"],
@@ -2769,7 +2802,8 @@ class TestOrderInvite(APITestCase):
         )
         self.login(deliverable.order.seller)
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -2784,7 +2818,8 @@ class TestOrderInvite(APITestCase):
         )
         self.login(deliverable.order.seller)
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(mail.outbox), 0)
@@ -2798,7 +2833,8 @@ class TestOrderInvite(APITestCase):
         deliverable.order.customer_email = "test@example.com"
         deliverable.order.save()
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -2814,7 +2850,8 @@ class TestOrderInvite(APITestCase):
         )
         self.login(deliverable.order.seller)
         request = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/invite/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/invite/"
         )
         self.assertEqual(request.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(len(mail.outbox), 0)
@@ -2826,7 +2863,7 @@ class TestReferences(APITestCase):
         asset = AssetFactory.create(uploaded_by=deliverable.order.seller)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/references/",
+            "/api/sales/v1/references/",
             {
                 "file": asset.id,
             },
@@ -2837,7 +2874,7 @@ class TestReferences(APITestCase):
         deliverable = DeliverableFactory.create()
         asset = AssetFactory.create(uploaded_by=deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/references/",
+            "/api/sales/v1/references/",
             {
                 "file": asset.id,
             },
@@ -2849,7 +2886,8 @@ class TestReferences(APITestCase):
         reference = ReferenceFactory.create(owner=deliverable.order.seller)
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/references/",
             {"reference_id": reference.id},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -2877,7 +2915,8 @@ class TestReferences(APITestCase):
         reference = ReferenceFactory.create()
         self.login(deliverable.order.seller)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/references/",
             {"reference_id": reference.id},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -2895,7 +2934,8 @@ class TestReferences(APITestCase):
         )
         self.login(deliverable.order.buyer)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/references/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 3)
@@ -3143,7 +3183,8 @@ class TestClearWaitlist(APITestCase):
         deliverable5 = DeliverableFactory.create(status=COMPLETED)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/account/{deliverable.order.buyer.username}/products/{deliverable.product.id}/clear-waitlist/",
+            f"/api/sales/v1/account/{deliverable.order.buyer.username}/products/"
+            f"{deliverable.product.id}/clear-waitlist/",
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         response = self.client.post(
@@ -3285,7 +3326,8 @@ class TestInvoiceLineItems(APITestCase):
         self.login(staff)
         line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         response = self.client.patch(
-            f"/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/invoice/{deliverable.invoice.id}/line-items/"
+            f"{line_item.id}/",
             {"amount": 5, "percentage": 5},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -3415,7 +3457,8 @@ class TestReferenceManager(APITestCase):
         deliverable.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.data["id"], reference.id)
 
@@ -3427,7 +3470,8 @@ class TestReferenceManager(APITestCase):
         deliverable2.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         # Should not throw.
@@ -3439,7 +3483,8 @@ class TestReferenceManager(APITestCase):
         deliverable.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         with self.assertRaises(Reference.DoesNotExist):
@@ -3451,7 +3496,8 @@ class TestReferenceManager(APITestCase):
         deliverable.reference_set.add(reference)
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/references/{reference.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/references/{reference.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -3646,7 +3692,8 @@ class TestFeatureProduct(APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/feature/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/feature/",
             {},
         )
         product.refresh_from_db()
@@ -3658,7 +3705,8 @@ class TestFeatureProduct(APITestCase):
         user = UserFactory.create(is_staff=True)
         self.login(user)
         self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/feature/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/feature/",
             {},
         )
         product.refresh_from_db()
@@ -3668,7 +3716,8 @@ class TestFeatureProduct(APITestCase):
         product = ProductFactory.create()
         self.login(product.user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/feature/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/feature/",
             {},
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -3740,7 +3789,8 @@ class TestPremadeSearches(APITestCase):
         ]
         for id_set in id_sets:
             self.assertCountEqual(products, id_set)
-        # Should be incredibly improbable for this to be true, though this test might fail once in a long while.
+        # Should be incredibly improbable for this to be true, though this test might
+        # fail once in a long while.
         self.assertNotEqual(len(id_sets), 1)
 
 
@@ -3808,7 +3858,7 @@ class TestTableOrders(APITestCase):
         # Unrelated
         DeliverableFactory.create()
         self.login(user)
-        response = self.client.get(f"/api/sales/v1/table/orders/")
+        response = self.client.get("/api/sales/v1/table/orders/")
         self.assertIDInList(deliverable.order, response.data)
         self.assertEqual(len(response.data), 1)
 
@@ -3820,7 +3870,8 @@ class TestProductRecommendations(APITestCase):
             ProductFactory.create(user=product.user)
         other_user_product = ProductFactory.create()
         response = self.client.get(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/recommendations/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/recommendations/",
         )
         id_list = [result["user"]["id"] for result in response.data["results"]]
         self.assertEqual([product.user.id] * 3 + [other_user_product.user.id], id_list)
@@ -3883,7 +3934,8 @@ class TestIssueTipInvoice(APITestCase):
         deliverable.order.seller.save()
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/issue-tip-invoice/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/issue-tip-invoice/",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -3893,7 +3945,8 @@ class TestIssueTipInvoice(APITestCase):
         )
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/issue-tip-invoice/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/issue-tip-invoice/",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
@@ -3905,7 +3958,8 @@ class TestIssueTipInvoice(APITestCase):
         deliverable.order.seller.save()
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/issue-tip-invoice/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/issue-tip-invoice/",
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 

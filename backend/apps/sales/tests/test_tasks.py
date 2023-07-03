@@ -30,7 +30,6 @@ from apps.sales.constants import (
     PENDING,
     REVIEW,
     SUCCESS,
-    TERM,
     UNPROCESSED_EARNINGS,
     VOID,
 )
@@ -98,7 +97,8 @@ class TestRenewStripeCard(EnsurePlansMixin, TestCase):
             customer="456",
             off_session=True,
             confirm=True,
-            # TODO: Needs to change per service name, or else be omitted since we'll be swapping methods for tracking
+            # TODO: Needs to change per service name, or else be omitted since we'll be
+            #  swapping methods for tracking
             # subscriptions anyway.
             metadata={"service": "landscape", "invoice_id": invoice.id},
         )
@@ -287,7 +287,8 @@ class TestRenew(EnsurePlansMixin, TestCase):
         renew(user.id)
         mock_renew_stripe_card.assert_not_called()
         mock_logger.error.assert_called_with(
-            f"!!! {user.username}({user.id}) has NONE for service_plan_paid_through with subscription enabled!",
+            f"!!! {user.username}({user.id}) has NONE for service_plan_paid_through "
+            f"with subscription enabled!",
         )
         self.assertEqual(len(mail.outbox), 0)
 
@@ -648,7 +649,8 @@ class TestReminders(EnsurePlansMixin, TestCase):
         def build_calls(order_list, differences):
             for i in differences:
                 mock = Mock()
-                # Negative to make distinct so we know the arguments are in the right order.
+                # Negative to make distinct so we know the arguments are in the right
+                # order.
                 mock.id = 0 - i
                 mock.auto_cancel_on = timezone.now() - relativedelta(days=i)
                 order_list.append(mock)

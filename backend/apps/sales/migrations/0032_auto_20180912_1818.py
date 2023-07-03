@@ -2,7 +2,6 @@
 
 from decimal import Decimal
 
-import apps.sales.models
 import djmoney.models.fields
 from django.db import migrations, models
 

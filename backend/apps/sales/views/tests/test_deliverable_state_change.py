@@ -135,7 +135,8 @@ class TestDeliverableStatusChange(APITestCase):
             self.assertEqual(response.status_code, target_response_code)
         except AssertionError:
             raise AssertionError(
-                f"Expected response code {target_response_code} but got {response.status_code}. Data: {response.data}",
+                f"Expected response code {target_response_code} but got "
+                f"{response.status_code}. Data: {response.data}",
             )
         if target_status is not None:
             self.deliverable.refresh_from_db()
@@ -231,7 +232,8 @@ class TestDeliverableStatusChange(APITestCase):
         self.assertFalse(self.deliverable.revisions_hidden)
         self.assertTrue(self.deliverable.invoice.record_only)
         self.assertEqual(self.deliverable.invoice.status, PAID)
-        # By default we're on the free plan, which has no per-deliverable charge, and no monthly charge.
+        # By default we're on the free plan, which has no per-deliverable charge, and
+        # no monthly charge.
         self.assertEqual(
             get_term_invoice(self.deliverable.order.seller).total(), Money("0", "USD")
         )
@@ -716,7 +718,8 @@ class TestDeliverableAdjustments(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
             {"adjustment_expected_turnaround": 1},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -731,7 +734,8 @@ class TestDeliverableAdjustments(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
             {"adjustment_expected_turnaround": -1},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -747,7 +751,8 @@ class TestDeliverableAdjustments(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
             {"adjustment_revisions": 1},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -761,7 +766,8 @@ class TestDeliverableAdjustments(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
             {"adjustment_revisions": -2},
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -777,7 +783,8 @@ class TestDeliverableAdjustments(APITestCase):
         )
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
             {"adjustment_task_weight": 1},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)

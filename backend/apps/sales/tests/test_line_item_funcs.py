@@ -5,7 +5,6 @@ from apps.sales.line_item_funcs import (
     get_totals,
     lines_by_priority,
     reckon_lines,
-    to_distribute,
 )
 from apps.sales.models import LineItemSim
 from django.test import TestCase
@@ -621,7 +620,8 @@ class TestLineCalculations(TestCase):
 
     def test_negative_distribution(self):
         """
-        In this case, there's a fee that isn't entirely absorbed by the other line items.
+        In this case, there's a fee that isn't entirely absorbed by the other line
+        items.
         """
         source = [
             LineItemSim(amount=Money("1", "USD"), priority=0, id=1),

@@ -15,7 +15,9 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 db_index=True,
                 default=False,
-                help_text="Used to indicate that this character should not be shown when in SFW mode, and its tags should be excluded based on a user's NSFW blocked tags.",
+                help_text="Used to indicate that this character should not be shown "
+                "when in SFW mode, and its tags should be excluded based on "
+                "a user's NSFW blocked tags.",
             ),
         ),
         migrations.AddField(

@@ -117,7 +117,8 @@ def derive_user(obj):
 
 class UserControls(BasePermission):
     """
-    Checks to see whether this is a staffer or the current user. Ignore actions if comment is deleted.
+    Checks to see whether this is a staffer or the current user. Ignore actions if
+    comment is deleted.
     """
 
     message = "You may not affect changes for this account."
@@ -159,7 +160,8 @@ class NonPrivate(BasePermission):
 
 class ColorControls(BasePermission):
     """
-    Checks to see whether this is a staffer or the color belongs to a character the user owns.
+    Checks to see whether this is a staffer or the color belongs to a character the user
+    owns.
     """
 
     def has_object_permission(self, request, view, obj):
@@ -194,7 +196,8 @@ class ViewFavorites(BasePermission):
 
 class MessageReadPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
-        # These are private messages. Unless there's a real need let's keep this to Superusers for now.
+        # These are private messages. Unless there's a real need let's keep this to
+        # Superusers for now.
         if request.user.is_superuser:
             return True
         if obj.participants.all().filter(id=request.user.id):

@@ -6,7 +6,8 @@ from django.db import migrations
 
 
 def gen_tokens(apps, schema):
-    # We're no longer generating tokens and, besides, this would be better off as a management command.
+    # We're no longer generating tokens and, besides, this would be better off as a
+    # management command.
     pass
 
 

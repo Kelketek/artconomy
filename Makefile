@@ -29,7 +29,7 @@ test_backend:
 	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"
 
 format:
-	${APP_COMMAND} "isort --profile=black ."
+	${APP_COMMAND} "ruff --fix backend"
 	${APP_COMMAND} "black backend"
 
 upgrade:

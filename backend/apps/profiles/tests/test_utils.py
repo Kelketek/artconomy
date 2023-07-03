@@ -97,7 +97,8 @@ class TestClearUser(EnsurePlansMixin, TestCase):
             clear_user(user)
         self.assertEqual(
             str(err.exception),
-            f"{user.username} has outstanding orders which are unfinished. Cannot remove!",
+            f"{user.username} has outstanding orders which are unfinished. Cannot "
+            f"remove!",
         )
 
     def test_fail_on_outstanding_sale(self):
@@ -107,7 +108,8 @@ class TestClearUser(EnsurePlansMixin, TestCase):
             clear_user(user)
         self.assertEqual(
             str(err.exception),
-            f"{user.username} has outstanding sales to complete or refund. Cannot remove!",
+            f"{user.username} has outstanding sales to complete or refund. Cannot "
+            f"remove!",
         )
 
     def test_fail_balance(self):
@@ -204,7 +206,7 @@ class TestClearUser(EnsurePlansMixin, TestCase):
         clear_user(user)
         user.refresh_from_db()
         self.assertEqual(user.username, f"__deleted{user.id}")
-        self.assertEqual(user.email, f"bde2aa86-b622-4811-97ff-efccf2001047@local")
+        self.assertEqual(user.email, "bde2aa86-b622-4811-97ff-efccf2001047@local")
         self.assertFalse(user.is_active)
         self.assertFalse(user.landscape_enabled)
         self.assertEqual(user.avatar_url, "https://example.com/test-reset.png")
@@ -218,7 +220,8 @@ class TestClearUser(EnsurePlansMixin, TestCase):
             CharacterFactory(user=user),
             AvatarFactory.create(user=user),
         ]
-        # Product should prevent this from being deleted, since the product has a deliverable.
+        # Product should prevent this from being deleted, since the product has a
+        # deliverable.
         deliverable = DeliverableFactory.create(order__seller=user)
         favorite = SubmissionFactory(title="Favorite")
         bank_account = BankAccountFactory(user=user)

@@ -5,7 +5,7 @@ from django.db import migrations
 
 
 def add_tag_artist(apps, schema):
-    User = apps.get_model("profiles", "User")
+    apps.get_model("profiles", "User")
     ImageAsset = apps.get_model("profiles", "ImageAsset")
     Subscription = apps.get_model("lib", "Subscription")
     # Remove any broken subscriptions from previous iteration.

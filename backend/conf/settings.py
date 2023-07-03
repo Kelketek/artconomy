@@ -100,7 +100,8 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_totp",
     "django_otp.plugins.otp_static",
-    # Needed to subclass the model. We don't use email for 2FA since we allow password resets as well.
+    # Needed to subclass the model. We don't use email for 2FA since we allow password
+    # resets as well.
     "django_otp.plugins.otp_email",
     "apps.profiles.apps.ProfilesConfig",
     "apps.sales.apps.SalesConfig",
@@ -183,7 +184,8 @@ CHANNEL_LAYERS = {
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation"
+        ".UserAttributeSimilarityValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -309,16 +311,18 @@ STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(
     get_env("STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE", "2.00"), DEFAULT_CURRENCY
 )
 
-# Stripe is now the only processor-- authorize.net has been removed. More work will be needed to abstract out
-# processors to make them further pluggable, but new processors will more closely match Stripe
-# (that is-- webhook driven) than Authorize.net (which we implemented all synchronous).
+# Stripe is now the only processor-- authorize.net has been removed. More work will be
+# needed to abstract out processors to make them further pluggable, but new processors
+# will more closely match Stripe (that is-- webhook driven) than Authorize.net (which
+# we implemented all synchronous).
 #
-# Even if we re-implemented authorize.net, we should do so using its webhook structure instead of the synchronous
-# method we used previously.
+# Even if we re-implemented authorize.net, we should do so using its webhook structure
+# instead of the synchronous method we used previously.
 DEFAULT_CARD_PROCESSOR = get_env("DEFAULT_CARD_PROCESSOR", "stripe")
 
 if TESTING:
-    # Development system may have a stripe key, but we don't want to be making entries on the Stripe test service
+    # Development system may have a stripe key, but we don't want to be making entries
+    # on the Stripe test service
     STRIPE_KEY = ""
     STRIPE_PUBLIC_KEY = ""
 
@@ -364,22 +368,26 @@ TABLE_PERCENTAGE_FEE = Decimal(get_env("TABLE_PERCENTAGE_FEE", "10"))
 TABLE_STATIC_FEE = Money(get_env("TABLE_STATIC_FEE", "5.00"), DEFAULT_CURRENCY)
 TABLE_TAX = Decimal(get_env("TABLE_TAX", "8.25"))
 
-# Add-on percentage to make sure we're always able to handle international conversions. 1% is always
-# enough, as no international converstion levied by Stripe is greater than that.
+# Add-on percentage to make sure we're always able to handle international conversions.
+# 1% is always enough, as no international conversion levied by Stripe is greater than
+# that.
 #
-# It may be possible to lower fees further if we can dynamically determine what the actual payout fee will be,
-# but for the moment the effort level isn't worth it, and I'm not sure that there's an appropriate API endpoint for
-# this particular functionality.
+# It may be possible to lower fees further if we can dynamically determine what the
+# actual payout fee will be, but for the moment the effort level isn't worth it, and
+# I'm not sure that there's an appropriate API endpoint for this particular
+# functionality.
 INTERNATIONAL_CONVERSION_PERCENTAGE = Decimal(
     get_env("INTERNATIONAL_CONVERSION_PERCENTAGE", "1")
 )
 
-# Fees for 'straight processing', like when we're handling tips. This is only very minimally above Stripe's fees,
-# since we're not handling disputes. However, we might have to deal with a fraud issue, or a hidden stripe fee
-# we're not calculating, so having some buffer for these kinds of transactions is needed.
+# Fees for 'straight processing', like when we're handling tips. This is only very
+# minimally above Stripe's fees, since we're not handling disputes. However, we might
+# have to deal with a fraud issue, or a hidden stripe fee we're not calculating, so
+# having some buffer for these kinds of transactions is needed.
 PROCESSING_PERCENTAGE = Decimal(get_env("PROCESSING_PERCENTAGE", "3.4"))
 PROCESSING_STATIC = Money(get_env("PROCESSING_PERCENTAGE", ".55"), DEFAULT_CURRENCY)
-# The country that the escrow account is housed in. In all reality this will probably always be the US.
+# The country that the escrow account is housed in. In all reality this will probably
+# always be the US.
 SOURCE_COUNTRY = get_env("SOURCE_COUNTRY", "US")
 
 HIDE_TEST_BROWSER = bool(int(get_env("HIDE_TEST_BROWSER", "1")))
@@ -403,7 +411,8 @@ TIP_DAYS = int(get_env("TIP_DAYS", "5"))
 # Number of days an order will stay in Limbo before it is automatically cancelled.
 LIMBO_DAYS = int(get_env("LIMBO_DAYS", "10"))
 
-# Number of days until an order marked 'NEW' will automatically cancel and close the artist's commissions.
+# Number of days until an order marked 'NEW' will automatically cancel and close the
+# artist's commissions.
 # NOTE: This will only affect new/newly commented on orders.
 AUTO_CANCEL_DAYS = int(get_env("AUTO_CLOSE_DAYS", "14"))
 
@@ -444,7 +453,8 @@ if not DEBUG:
         "rest_framework.renderers.JSONRenderer",
     )
 
-# This could be set back to Google Recaptcha if necessary, which is https://www.google.com/recaptcha/api/siteverify
+# This could be set back to Google Recaptcha if necessary, which is
+# https://www.google.com/recaptcha/api/siteverify
 GR_CAPTCHA_URL = get_env("GR_CAPTCHA_URL", "https://hcaptcha.com/siteverify")
 
 GR_CAPTCHA_SECRET_KEY = get_env("GR_CAPTCHA_SECRET_KEY", "")
@@ -594,7 +604,8 @@ TEST_RUNNER = "apps.lib.test_resources.NPMBuildTestRunner"
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+        "NAME": "django.contrib.auth.password_validation"
+        ".UserAttributeSimilarityValidator",
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -623,9 +634,11 @@ DEFAULT_SERVICE_PLAN_NAME = get_env("DEFAULT_SERVICE_PLAN_NAME", "Free")
 # Used as the comparison point in price previews by the frontend.
 PREFERRED_SERVICE_PLAN_NAME = get_env("PREFERRED_SERVICE_PLAN_NAME", "Landscape")
 
-# Username for the 'anonymous user'-- The user which random purchases at the point of sale are attributed to.
-# This exists so the software can distinguish between None as a payer/payee, which means Artconomy, and someone who
-# doesn't have an account without having to create a guest user each time.
+# Username for the 'anonymous user'-- The user which random purchases at the point of
+# sale are attributed to.
+# This exists so the software can distinguish between None as a payer/payee, which means
+# Artconomy, and someone who doesn't have an account without having to create a guest
+# user each time.
 #
 # The create_anonymous_user command must be run to create this user.
 ANONYMOUS_USER_USERNAME = get_env("ANONYMOUS_USER_USERNAME", "Anonymous")

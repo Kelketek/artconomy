@@ -37,7 +37,6 @@ from django.core.cache import cache
 from django.core.mail import EmailMessage
 from django.db.models.query import ModelIterable
 from django.http import Http404
-from django.shortcuts import get_object_or_404
 from django.template.loader import get_template
 from django.views import View
 from rest_framework import status
@@ -102,7 +101,8 @@ class UniversalViewMixin:
             {
                 "content_type": [
                     f"Could not find content type {self.kwargs['content_type']}. "
-                    f"Make sure it is a valid, commentable model and is in app.Model format.",
+                    f"Make sure it is a valid, commentable model and is in app.Model "
+                    f"format.",
                 ],
             }
         )
@@ -258,8 +258,8 @@ class BaseUserTagView(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
                 data={
                     "artists": [
-                        "No users specified. Those IDs do not exist, or you do not have permission "
-                        "to remove any of them."
+                        "No users specified. Those IDs do not exist, or you do not "
+                        "have permission to remove any of them."
                     ]
                 },
             )

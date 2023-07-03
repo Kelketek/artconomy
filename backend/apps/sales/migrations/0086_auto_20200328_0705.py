@@ -3,7 +3,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
 # Status types
-from short_stuff import slugify
 
 SUCCESS = 0
 FAILURE = 1
@@ -20,12 +19,14 @@ CARD = 300
 BANK = 301
 ESCROW = 302
 HOLDINGS = 303
-# All fees put the difference for premium bonus into reserve until an order is complete. When complete, these
-# amounts are deposited into either the cash account of Artconomy, or added to the user's holdings.
+# All fees put the difference for premium bonus into reserve until an order is complete.
+# When complete, these amounts are deposited into either the cash account of Artconomy,
+# or added to the user's holdings.
 RESERVE = 304
 # Earnings for which we have not yet subtracted card/bank transfer fees.
 UNPROCESSED_EARNINGS = 305
-# These two fee types will be used to keep track of fees that have been paid out to card processors.
+# These two fee types will be used to keep track of fees that have been paid out to card
+# processors.
 CARD_TRANSACTION_FEES = 306
 CARD_MISC_FEES = 307
 
@@ -78,10 +79,11 @@ CORRECTION = 412
 # For fees levied at conventions
 TABLE_HANDLING = 413
 TAX = 414
-# For things like inventory items sold at tables alongside the commission, like a pop socket.
+# For things like inventory items sold at tables alongside the commission, like a pop
+# socket.
 EXTRA_ITEM = 415
-# For times when we're manually sending money to others-- such as cases where we don't yet have code to manage
-# something but we need to be able to pay using Dwolla.
+# For times when we're manually sending money to others-- such as cases where we don't
+# yet have code to manage something but we need to be able to pay using Dwolla.
 MANUAL_PAYOUT = 416
 
 CATEGORIES = (

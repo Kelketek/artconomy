@@ -39,6 +39,7 @@ class Command(BaseCommand):
     def handle(self, *args: List, **options: Dict):
         if not (options["force"] or settings.ENV_NAME == "dev"):
             raise CommandError(
-                "You cannot run this in production without the --force flag. It could ruin everything!"
+                "You cannot run this in production without the --force flag. It could "
+                "ruin everything!"
             )
         replace_db()

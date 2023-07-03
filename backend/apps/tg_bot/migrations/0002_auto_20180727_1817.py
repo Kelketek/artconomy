@@ -2,7 +2,8 @@
 
 from django.db import migrations
 
-# Undo a mistake with the superclass. Thankfully we never really did this yet in production.
+# Undo a mistake with the superclass. Thankfully we never really did this yet in
+# production.
 
 
 class Migration(migrations.Migration):

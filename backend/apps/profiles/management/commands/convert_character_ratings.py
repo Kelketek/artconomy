@@ -4,7 +4,10 @@ from django.core.management.base import BaseCommand
 
 
 class Command(BaseCommand):
-    help = "Scans all SFW characters, checks if their submissions are primarily NSFW, and marks them NSFW if so.."
+    help = (
+        "Scans all SFW characters, checks if their submissions are primarily NSFW, and "
+        "marks them NSFW if so."
+    )
 
     def handle(self, *args, **options):
         for character in Character.objects.filter(nsfw=False):

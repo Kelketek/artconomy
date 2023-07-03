@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
             field=models.BooleanField(
                 db_index=True,
                 default=False,
-                help_text="Internal check for commissions that prevents taking on more work when max load is exceeded.",
+                help_text="Internal check for commissions that prevents taking on more "
+                "work when max load is exceeded.",
             ),
         ),
     ]

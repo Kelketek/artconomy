@@ -8,7 +8,6 @@ from apps.sales.tests.factories import DeliverableFactory, add_adjustment
 from apps.sales.tests.test_utils import TransactionCheckMixin
 from ddt import ddt
 from django.db.models import Sum
-from django.test import override_settings
 from moneyed import Money
 from rest_framework import status
 
@@ -82,7 +81,8 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
         self.assertEqual(total, Decimal("50.00"))
 
     def test_pay_order_table_edge_case(self):
-        # This edge case has showed up before-- it created an extra penny. Putting this in to prevent a regression.
+        # This edge case has showed up before-- it created an extra penny. Putting this
+        # in to prevent a regression.
         user = UserFactory.create(is_staff=True)
         self.login(user)
         deliverable = DeliverableFactory.create(

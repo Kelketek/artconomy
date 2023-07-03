@@ -1,5 +1,6 @@
-# This command to be run once in an intermediary deployment. We're not using data migrations to create these
-# because they break the ability for tests to work consistently.
+# This command to be run once in an intermediary deployment. We're not using data
+# migrations to create thesebecause they break the ability for tests to work
+# consistently.
 from decimal import Decimal
 from typing import Any
 
@@ -17,7 +18,8 @@ def build_initial_plans():
         name="Free",
         defaults=dict(
             description="""
-            Stay organized for free-- all commission information is kept in one place for easy access.
+            Stay organized for free-- all commission information is kept in one place 
+            for easy access.
             """,
             sort_value=0,
             max_simultaneous_orders=1,
@@ -42,7 +44,8 @@ def build_initial_plans():
         name="Basic",
         defaults=dict(
             description="""
-            Good for artists getting consistent orders, but who don't need the full features of Landscape.
+            Good for artists getting consistent orders, but who don't need the full 
+            features of Landscape.
             """,
             # Zero means 'infinite'
             max_simultaneous_orders=0,
@@ -101,8 +104,8 @@ def build_initial_plans():
             ],
         ),
     )
-    # At the time of writing this command code, we've already migrated all Landscape users over in production.
-    # So, this task just marks blank plans as the free plan.
+    # At the time of writing this command code, we've already migrated all Landscape
+    # users over in production. So, this task just marks blank plans as the free plan.
     User.objects.filter(service_plan__isnull=True).update(
         service_plan=free, service_plan_paid_through=timezone.now()
     )

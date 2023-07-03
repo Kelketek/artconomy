@@ -717,7 +717,8 @@ class WaitlistOrder(GenericAPIView):
         OrderSellerPermission,
         DeliverableStatusPermission(
             NEW,
-            error_message="You can only waitlist orders if they are new and haven't been accepted.",
+            error_message="You can only waitlist orders if they are new and haven't "
+            "been accepted.",
         ),
     ]
     serializer_class = DeliverableSerializer
@@ -747,7 +748,8 @@ class MarkPaid(GenericAPIView):
         OrderSellerPermission,
         DeliverableStatusPermission(
             PAYMENT_PENDING,
-            error_message="You can only mark orders paid if they are waiting for payment.",
+            error_message="You can only mark orders paid if they are waiting for "
+            "payment.",
         ),
     ]
     serializer_class = DeliverableSerializer
@@ -835,8 +837,8 @@ class DeliverableCancel(GenericAPIView):
             WAITING,
             NEW,
             PAYMENT_PENDING,
-            error_message="You cannot cancel this order. It is either already cancelled, finalized, "
-            "or must be refunded instead.",
+            error_message="You cannot cancel this order. It is either already "
+            "cancelled, finalized, or must be refunded instead.",
         ),
     ]
     serializer_class = DeliverableSerializer
@@ -1092,7 +1094,8 @@ class DeliverableRevisions(ListCreateAPIView):
                     QUEUED,
                     DISPUTED,
                     WAITING,
-                    error_message="You may not upload revisions while the order is in this state.",
+                    error_message="You may not upload revisions while the order is in "
+                    "this state.",
                 ),
             ),
         ),
@@ -1240,7 +1243,8 @@ class ReferenceManager(RetrieveDestroyAPIView):
 
     def perform_destroy(self, instance):
         if not (self.request.user.is_staff or instance.owner == self.request.user):
-            # Probably should find some cleaner way to check this with the permissions framework.
+            # Probably should find some cleaner way to check this with the permissions
+            # framework.
             raise PermissionDenied(
                 "You do not have the right to remove this reference."
             )
@@ -1268,7 +1272,10 @@ class ReferenceManager(RetrieveDestroyAPIView):
         return reference
 
 
-delete_forbidden_message = "You may not remove revisions from this order. They are either locked or under dispute."
+delete_forbidden_message = (
+    "You may not remove revisions from this order. They are either locked or under "
+    "dispute."
+)
 
 
 class RevisionManager(RetrieveDestroyAPIView):
@@ -2063,8 +2070,9 @@ class SetPlan(GenericAPIView):
                 status=status.HTTP_400_BAD_REQUEST,
                 data={
                     "service": [
-                        "This endpoint may not be used for plans with monthly charges unless it is the plan you are "
-                        "already on (which would induce no charge).",
+                        "This endpoint may not be used for plans with monthly charges "
+                        "unless it is the plan you are already on (which would induce "
+                        "no charge).",
                     ]
                 },
             )
@@ -2286,7 +2294,9 @@ class PricingInfo(APIView):
                 "table_percentage": settings.TABLE_PERCENTAGE_FEE,
                 "table_static": settings.TABLE_STATIC_FEE.amount,
                 "table_tax": settings.TABLE_TAX,
-                "international_conversion_percentage": settings.INTERNATIONAL_CONVERSION_PERCENTAGE,
+                "international_conversion_percentage": (
+                    settings.INTERNATIONAL_CONVERSION_PERCENTAGE
+                ),
                 "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
             },
         )
@@ -2319,8 +2329,9 @@ class StorePreview(BasePreview):
             "description": demark(user.artist_profile.commission_info),
             "image_links": [
                 make_url(product.preview_link)
-                # product.preview_link should always be true in production but may be None in debugging development
-                # since we don't have all the uploads locally when running off a copy of the DB.
+                # product.preview_link should always be true in production but may be
+                # None in debugging development since we don't have all the uploads
+                # locally when running off a copy of the DB.
                 for product in user_products(username, self.request.user)[:24]
                 if product.preview_link
             ]
@@ -2447,7 +2458,8 @@ class NewArtistProducts(ListAPIView):
     serializer_class = ProductSerializer
 
     def get_queryset(self):
-        # Can't directly do order_by on this QS because the ORM breaks grouping by placing it before the annotation.
+        # Can't directly do order_by on this QS because the ORM breaks grouping by
+        # placing it before the annotation.
         return (
             available_products(self.request.user, ordering=False)
             .filter(
@@ -2728,7 +2740,8 @@ class DeliverableOutputs(ListCreateAPIView):
         if not last_revision:
             return Response(
                 data={
-                    "detail": "You can not create a submission from an order with no revisions."
+                    "detail": "You can not create a submission from an order with no "
+                    "revisions."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -2736,7 +2749,8 @@ class DeliverableOutputs(ListCreateAPIView):
             if not deliverable.status == COMPLETED:
                 return Response(
                     data={
-                        "detail": "You must specify a specific revision if the order is not completed."
+                        "detail": "You must specify a specific revision if the order "
+                        "is not completed."
                     },
                     status=status.HTTP_400_BAD_REQUEST,
                 )
@@ -2745,7 +2759,8 @@ class DeliverableOutputs(ListCreateAPIView):
             if not deliverable.revision_set.filter(id=revision.id):
                 raise ValidationError(
                     {
-                        "revision": "The provided revision does not belong to this deliverable."
+                        "revision": "The provided revision does not belong to this "
+                        "deliverable."
                     }
                 )
         if Submission.objects.filter(
@@ -2753,7 +2768,8 @@ class DeliverableOutputs(ListCreateAPIView):
         ).exists():
             return Response(
                 data={
-                    "detail": "You have already created a submission with this deliverable and revision."
+                    "detail": "You have already created a submission with this "
+                    "deliverable and revision."
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
@@ -2850,7 +2866,8 @@ class OrderAuth(GenericAPIView):
         if request.user.is_authenticated and (
             order.buyer and (request.user.username == order.buyer.username)
         ):
-            # Ignore the claim token since we're already the required user, and just return success.
+            # Ignore the claim token since we're already the required user, and just
+            # return success.
             return Response(status=status.HTTP_200_OK, data=self.user_info(order.buyer))
         if order.claim_token != serializer.validated_data["claim_token"]:
             target_email = (
@@ -2870,8 +2887,9 @@ class OrderAuth(GenericAPIView):
             return Response(
                 status=status.HTTP_400_BAD_REQUEST,
                 data={
-                    "detail": "You must be logged in to claim this order for an existing account. "
-                    "You may wish to continue as a guest instead?"
+                    "detail": "You must be logged in to claim this order for an "
+                    "existing account. You may wish to continue as a "
+                    "guest instead?"
                 },
             )
         if serializer.validated_data["chown"]:

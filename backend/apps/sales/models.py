@@ -85,7 +85,6 @@ from apps.sales.constants import (
 from apps.sales.line_item_funcs import reckon_lines
 from apps.sales.permissions import (
     DeliverableStatusPermission,
-    LimboCheck,
     OrderViewPermission,
     ReferenceViewPermission,
 )
@@ -375,8 +374,8 @@ def inventory_change(product: Union["Product", None], delta: int = -1):
         tracker.count += delta
         if tracker.count < 0:
             raise InventoryError()
-        # Should return the row, locked for editing. When the block this function is used in is exited, should
-        # release the lock.
+        # Should return the row, locked for editing. When the block this function is
+        # used in is exited, should release the lock.
         yield tracker.count
         tracker.save()
 
@@ -790,8 +789,8 @@ def idempotent_lines(instance: Deliverable):
     total = reckon_lines(main_qs.filter(priority__lt=PRIORITY_MAP[SHIELD]))
     escrow_enabled = instance.escrow_enabled and total
     plan = instance.order.seller.service_plan
-    # Once this is in production long enough and all lines for existing deliverables have been recalculated,
-    # this line can be removed.
+    # Once this is in production long enough and all lines for existing deliverables
+    # have been recalculated, this line can be removed.
     delete(main_qs.filter(type=BONUS))
     if instance.table_order:
         line = main_qs.update_or_create(
@@ -799,7 +798,8 @@ def idempotent_lines(instance: Deliverable):
                 "percentage": settings.TABLE_PERCENTAGE_FEE,
                 "cascade_percentage": instance.cascade_fees,
                 "amount": settings.TABLE_STATIC_FEE,
-                # We don't cascade this flat amount for table products. Might revisit this later.
+                # We don't cascade this flat amount for table products. Might revisit
+                # this later.
                 "cascade_amount": False,
             },
             invoice=instance.invoice,
@@ -1068,7 +1068,10 @@ class Rating(Model):
     created_on = DateTimeField(auto_now_add=True, db_index=True)
 
     def __str__(self):
-        return f"{self.rater} rated {self.target} {self.stars} stars for [{self.content_object}]"
+        return (
+            f"{self.rater} rated {self.target} {self.stars} stars for "
+            f"[{self.content_object}]"
+        )
 
 
 # noinspection PyUnusedLocal
@@ -1084,8 +1087,8 @@ def tabulate_stars(sender, instance, **_kwargs):
 
 class CreditCardToken(Model):
     """
-    Card tokens are stored based on our processor's APIs. We don't store full card data to avoid issues
-    with PCI compliance.
+    Card tokens are stored based on our processor's APIs. We don't store full card data
+    to avoid issues with PCI compliance.
     """
 
     user = ForeignKey(User, related_name="credit_cards", on_delete=CASCADE)
@@ -1114,7 +1117,8 @@ class CreditCardToken(Model):
         Prevent this function from working to avoid accidental deletion.
 
         We will not allow this to be done in any way but the most deliberate manner,
-        since transaction records will exist for the card. So, instead, we raise an exception.
+        since transaction records will exist for the card. So, instead, we raise an
+        exception.
 
         To mark a card as deleted properly, use the mark_deleted function.
         """
@@ -1124,8 +1128,8 @@ class CreditCardToken(Model):
 
     def mark_deleted(self):
         """
-        Mark a card as deleted. Deleted cards are hidden away from the user, but kept for
-        historical accounting purposes.
+        Mark a card as deleted. Deleted cards are hidden away from the user, but kept
+        for historical accounting purposes.
         """
         with stripe as stripe_api:
             delete_payment_method(api=stripe_api, method_token=self.stripe_token)
@@ -1184,7 +1188,8 @@ class TransactionRecord(Model):
 
     def __str__(self):
         return (
-            f"{self.get_status_display()} [{self.get_category_display()}]: {self.amount} from "
+            f"{self.get_status_display()} [{self.get_category_display()}]: "
+            f"{self.amount} from "
             f'{self.payer or "(Artconomy)"} [{self.get_source_display()}] to '
             f'{self.payee or "(Artconomy)"} [{self.get_destination_display()}] for '
             f"{self.target_string}"
@@ -1242,17 +1247,20 @@ class Invoice(models.Model):
     # Used to look up invoices made manually at a table event.
     manually_created = models.BooleanField(default=False, db_index=True)
     payout_sent = models.BooleanField(default=False, db_index=True)
-    # Used to flag whether this invoice can send a payout when paid. This will be false for deliverables,
-    # since they have to finish escrow. In that case, this flag will be set True upon completion of the deliverable.
-    # For tip invoices, this is immediately True.
+    # Used to flag whether this invoice can send a payout when paid. This will be false
+    # for deliverables, since they have to finish escrow. In that case, this flag will
+    # be set True upon completion of the deliverable. For tip invoices, this is
+    # immediately True.
     payout_available = models.BooleanField(default=False, db_index=True)
-    # You should also add the targets to the line item annotations if adding them here. This is used
-    # to make lookups for things like 'the invoice for this deliverable' easier, though in the future
-    # it's possible that we could have multiple deliverables on an invoice.
+    # You should also add the targets to the line item annotations if adding them here.
+    # This is used to make lookups for things like 'the invoice for this deliverable'
+    # easier, though in the future it's possible that we could have multiple
+    # deliverables on an invoice.
     #
-    # The reason why this is useful rather than just querying line items is that it's possible that
-    # someone might be billed for an action taken regarding a deliverable, rather than the invoice being
-    # for the work of the deliverable itself. This makes querying just a bit easier for the deliverable's
+    # The reason why this is useful rather than just querying line items is that it's
+    # possible that someone might be billed for an action taken regarding a deliverable,
+    # rather than the invoice being for the work of the deliverable itself. This makes
+    # querying just a bit easier for the deliverable's
     # work invoice.
     targets = ManyToManyField(
         to="lib.GenericReference", related_name="referencing_invoices", blank=True
@@ -1262,8 +1270,8 @@ class Invoice(models.Model):
         return reckon_lines(self.line_items.all())
 
     def context_for(self, target):
-        # Provided for compatibility in post_payment hook. We might eventually allow for more specific annotations
-        # like we do with LineItems.
+        # Provided for compatibility in post_payment hook. We might eventually allow for
+        # more specific annotations like we do with LineItems.
         return {}
 
     def lines_for(self, target):
@@ -1272,7 +1280,10 @@ class Invoice(models.Model):
         return self.line_items.filter(targets=ref_for_instance(target))
 
     def __str__(self):
-        result = f"Invoice {self.id} [{self.get_type_display()}] for {self.bill_to} in the amount of {self.total()}"
+        result = (
+            f"Invoice {self.id} [{self.get_type_display()}] for {self.bill_to} in the "
+            f"amount of {self.total()}"
+        )
         deliverable = self.deliverables.first()
         if deliverable:
             result += f" for deliverable: {deliverable}"
@@ -1289,7 +1300,8 @@ class LineItemAnnotation(models.Model):
 
     target = ForeignKey("lib.GenericReference", on_delete=CASCADE)
     line_item = ForeignKey("sales.LineItem", on_delete=CASCADE)
-    # Do not allow users to set custom keys here, as it could lead to arbitrary code execution.
+    # Do not allow users to set custom keys here, as it could lead to arbitrary code
+    # execution.
     context = JSONField(default=dict)
 
 
@@ -1312,13 +1324,14 @@ class LineItem(Model):
         blank=True,
         null=True,
         default=None,
-        help_text="Snapshotted amount after calculations have been completed and the relevant "
-        "invoice is paid. This helps keep historical record in case the line item calculation "
-        "algorithms change.",
+        help_text="Snapshotted amount after calculations have been completed and the "
+        "relevant invoice is paid. This helps keep historical record in case "
+        "the line item calculation algorithms change.",
     )
     percentage = DecimalField(max_digits=5, db_index=True, decimal_places=3, default=0)
-    # Line items will be run in layers to get our totals/subtotals. Higher numbers will be run after lower numbers.
-    # If two items have the same priority, they will both be run as if the other had not been run.
+    # Line items will be run in layers to get our totals/subtotals. Higher numbers will
+    # be run after lower numbers. If two items have the same priority, they will both be
+    # run as if the other had not been run.
     priority = IntegerField(db_index=True)
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
@@ -1336,7 +1349,10 @@ class LineItem(Model):
     )
 
     def __str__(self):
-        return f"{self.get_type_display()} ({self.amount}, {self.percentage}) for #{self.invoice.id}, priority {self.priority}"
+        return (
+            f"{self.get_type_display()} ({self.amount}, {self.percentage}) for "
+            f"#{self.invoice.id}, priority {self.priority}"
+        )
 
     @property
     def deliverable(self):
@@ -1468,8 +1484,8 @@ def deliverable_from_context(context, check_request=True):
 
 class Reference(ImageModel):
     """
-    NOTE: References have to have their subscriptions created at the point of creation, as signals would not indicate
-    which deliverable is being dealt with.
+    NOTE: References have to have their subscriptions created at the point of creation,
+    as signals would not indicate which deliverable is being dealt with.
     """
 
     comment_permissions = [Any(ReferenceViewPermission, IsStaff)]
@@ -1483,7 +1499,8 @@ class Reference(ImageModel):
     )
 
     def can_reference_asset(self, user):
-        # Despite this being a reference, it should never be the source for any other models/sharing.
+        # Despite this being a reference, it should never be the source for any other
+        # models/sharing.
         return False
 
     def modified_kwargs(self, data):
@@ -1518,7 +1535,10 @@ class Reference(ImageModel):
 
     def notification_name(self, context):
         deliverable = deliverable_from_context(context)
-        return f"Reference ID #{self.id} for {deliverable and deliverable.notification_name(context)}"
+        return (
+            f"Reference ID #{self.id} for "
+            f"{deliverable and deliverable.notification_name(context)}"
+        )
 
     class Meta:
         ordering = ["created_on"]
@@ -1583,8 +1603,8 @@ class BankAccount(Model):
     """
     This was the model used to track Dwolla bank accounts for transfers.
 
-    It is no longer used-- payouts via Dwolla have been removed, and we only retain these
-    for record keeping purposes. Don't change the data on these entries.
+    It is no longer used-- payouts via Dwolla have been removed, and we only retain
+    these for record keeping purposes. Don't change the data on these entries.
     """
 
     CHECKING = 0
@@ -1692,12 +1712,13 @@ class ServicePlan(models.Model):
     waitlisting = models.BooleanField(
         default=False,
         db_index=True,
-        help_text="Whether the seller can add waitlist products or else waitlist a particular order.",
+        help_text="Whether the seller can add waitlist products or else waitlist a "
+        "particular order.",
     )
     shield_static_price = MoneyField(
         default=Money("1.50", "USD"),
-        help_text="Static amount charged per shield order. Replaces the per deliverable "
-        "price on shield orders.",
+        help_text="Static amount charged per shield order. Replaces the per "
+        "deliverable price on shield orders.",
         max_digits=5,
         decimal_places=2,
     )
@@ -1777,8 +1798,9 @@ class StripeReader(models.Model):
     location = ForeignKey(
         StripeLocation,
         on_delete=CASCADE,
-        help_text="Primary location where reader will be used. Cannot be changed after it is initially set. "
-        "You must delete the reader and recreate it to change its location.",
+        help_text="Primary location where reader will be used. Cannot be changed after "
+        "it is initially set. You must delete the reader and recreate it to "
+        "change its location.",
     )
 
     def __str__(self):
@@ -1812,7 +1834,6 @@ class StripeReader(models.Model):
 
 
 # Force load of registrations for serializers.
-from apps.sales import serializers
 
 
 def service_plan_post_pay(
@@ -1820,20 +1841,21 @@ def service_plan_post_pay(
     billable: Union[LineItem, Invoice],
     target: ServicePlan,
     context: dict,
-    records: List["TransactionRecords"],
+    records: List["TransactionRecord"],
 ):
     if not context["successful"]:
         return records
     if not hasattr(billable, "invoice"):  # pragma: no cover
         raise RuntimeError(
-            "Post payment hook for service called on the invoice level rather than on the line item level. "
-            "This should not happen-- we're tracking service plans at the line item level.",
+            "Post payment hook for service called on the invoice level rather than on "
+            "the line item level. This should not happen-- we're tracking service "
+            "plans at the line item level.",
         )
     invoice = billable.invoice
     service_plan = target
     user = invoice.bill_to
-    # Subscription type invoices are for starting new subscriptions. Term invoices are for continuing
-    # existing ones.
+    # Subscription type invoices are for starting new subscriptions. Term invoices are
+    # for continuing existing ones.
     set_next = invoice.type == SUBSCRIPTION
     set_service_plan(
         user,

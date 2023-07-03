@@ -1,4 +1,3 @@
-import json
 import os
 from typing import List, Union
 
@@ -35,7 +34,7 @@ from apps.lib.models import (
 from apps.lib.utils import add_check, set_tags, tag_list_cleaner
 from apps.profiles.models import Character, Conversation, Journal, Submission, User
 from apps.sales.constants import WAITING
-from apps.sales.models import Deliverable, Order, Product, Revision
+from apps.sales.models import Deliverable, Product, Revision
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
@@ -61,7 +60,8 @@ class RelatedAtomicMixin:
         if not data:
             # Don't run an update directly if there are no more fields to update.
             # We may add a way to force saving anyway if it ends up needed,
-            # but this prevents us from updating edit timestamps for things like subscribing to comments.
+            # but this prevents us from updating edit timestamps for things like
+            # subscribing to comments.
             return instance
         return super().update(instance, data)
 
@@ -605,8 +605,8 @@ def new_product(obj, context):
 
 
 def streaming(obj, context):
-    # Maybe some day we'll update all the entries in the DB for this, but for now, 'order' actually points to
-    # Deliverable.
+    # Maybe some day we'll update all the entries in the DB for this, but for now,
+    # 'order' actually points to Deliverable.
     deliverable = Deliverable.objects.get(id=obj.data["order"])
     user_data = notification_display(deliverable.order.seller, context)
     # Don't want to use full order here, would have too much info sent.
@@ -772,8 +772,8 @@ class TagListField(serializers.ListSerializer):
         data = tag_list_cleaner(data)
         if len(data) < self.min:
             message = (
-                f"You must specify at least {self.min} tags. Think about the following: "
-                + ", ".join(self.hints)
+                f"You must specify at least {self.min} tags. Think about the "
+                f"following: " + ", ".join(self.hints)
             )
             raise ValidationError(message)
         add_check(self.parent.instance, self.field_name, replace=True)
@@ -817,7 +817,8 @@ class UserRelationField(serializers.Field):
 # noinspection PyUnresolvedReferences
 class RelatedSetMixin:
     def get_value(self, dictionary):
-        # We want to be able to take either a set of integers or a set of dictionaries that contain an id field.
+        # We want to be able to take either a set of integers or a set of dictionaries
+        # that contain an id field.
         value = super().get_value(dictionary)
         if value is empty:
             return empty
@@ -881,7 +882,8 @@ class UserListField(RelatedSetMixin, serializers.ListSerializer):
         self.add_self = add_self
         if back_name is None and model is not None:
             raise TypeError(
-                "You must specify a 'back_name' for the through table the model the users will be tied to.",
+                "You must specify a 'back_name' for the through table the model the "
+                "users will be tied to.",
             )
         super().__init__(*args, **kwargs)
 
@@ -942,7 +944,8 @@ class CharacterListField(RelatedSetMixin, serializers.ListSerializer):
         self.add_self = add_self
         if back_name is None and model is not None:
             raise TypeError(
-                "You must specify a 'back_name' for the through table to the model the users will be tied to.",
+                "You must specify a 'back_name' for the through table to the model the "
+                "users will be tied to.",
             )
         super().__init__(*args, **kwargs)
 
@@ -1026,7 +1029,8 @@ class IdWritable:
 
 class MoneyToFloatField(serializers.FloatField):
     """
-    We're not as worried about the front-end getting these numbers right. We'll clean them up on the back.
+    We're not as worried about the front-end getting these numbers right. We'll clean
+    them up on the back.
     """
 
     def to_representation(self, value):

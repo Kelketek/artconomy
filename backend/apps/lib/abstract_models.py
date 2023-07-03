@@ -3,7 +3,7 @@ import os
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
-from django.db.models import CASCADE, DateTimeField, FloatField, ForeignKey
+from django.db.models import CASCADE, DateTimeField, ForeignKey
 from django.utils import timezone
 from easy_thumbnails.alias import aliases
 from easy_thumbnails.engine import NoSourceGenerator
@@ -88,8 +88,9 @@ class UntypedThumbnailField(ThumbnailerImageField):
 
 def gen_subjective_thumbnails(instance, field_name, asset):
     """
-    Gen the thumbnails for an asset as if it were a ThumbnailField on another model. This allows us to use multiple
-    thumbnail specifications for one asset, and one asset for multiple model instances.
+    Gen the thumbnails for an asset as if it were a ThumbnailField on another model.
+    This allows us to use multiple thumbnail specifications for one asset, and one asset
+    for multiple model instances.
     """
     if asset is None:
         return
@@ -111,8 +112,9 @@ def gen_subjective_thumbnails(instance, field_name, asset):
 
 def clear_asset_associations(asset_id):
     """
-    To be implemented later-- should create a task to walk the relations of an Asset instance and see if there's
-    anything left attached to it. If not, it should be removed.
+    To be implemented later-- should create a task to walk the relations of an Asset
+    instance and see if there's anything left attached to it. If not, it should be
+    removed.
     """
     pass
 
@@ -142,7 +144,8 @@ class AssetThumbnailMixin:
 
 @disable_on_load
 def thumbnail_hook(sender, instance, force=False, **kwargs):
-    # Receiver to be attached to the post_save hook of any model using AssetThumbnailMixin.
+    # Receiver to be attached to the post_save hook of any model using
+    # AssetThumbnailMixin.
     new_values = {
         field_name: getattr(instance, field_name)
         for field_name in instance._asset_fields
@@ -228,7 +231,8 @@ class ImageModel(AssetThumbnailMixin, models.Model):
 
     def thumbnail_aliases(self, field_name):
         """
-        Used in thumbnail alias handling to make sure we can get the right aliases for thumbnailed image files.
+        Used in thumbnail alias handling to make sure we can get the right aliases for
+        thumbnailed image files.
         """
         ref_name = self.ref_name(field_name)
         return aliases.all(ref_name, include_global=True)

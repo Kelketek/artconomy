@@ -13,8 +13,9 @@ COMMENT = 4
 
 def gen_subjective_thumbnails(cls, field_name, asset):
     """
-    Gen the thumbnails for an asset as if it were a ThumbnailField on another model. This allows us to use multiple
-    thumbnail specifications for one asset, and one asset for multiple model instances.
+    Gen the thumbnails for an asset as if it were a ThumbnailField on another model.
+    This allows us to use multiple thumbnail specifications for one asset, and one
+    asset for multiple model instances.
     """
     ref_name = f"{cls._meta.app_label}.{cls.__name__}.{field_name}"
     all_options = aliases.all(ref_name, include_global=True)
@@ -59,7 +60,8 @@ def create_submissions(apps, schema):
             rating=product.rating,
         )
         submission.artists.add(product.user)
-        # This may not be perfect, but it should prevent blacklisted items from showing to people who didn't want them.
+        # This may not be perfect, but it should prevent blacklisted items from showing
+        # to people who didn't want them.
         submission.tags.add(*product.tags.all())
         Subscription.objects.bulk_create(
             [

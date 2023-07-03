@@ -301,8 +301,8 @@ class TestSubmission(APITestCase):
             },
             format="json",
         )
-        # User can patch, but not anything specific to the piece, only their subscription to messages or
-        # favorites.
+        # User can patch, but not anything specific to the piece, only their
+        # subscription to messages or favorites.
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["title"], "Stuff")
         self.assertEqual(response.data["caption"], "Things")
@@ -888,9 +888,8 @@ class TestCharacterSearch(APITestCase):
         staffer = UserFactory.create(is_staff=True)
         self.login(staffer)
         response = self.client.get(
-            "/api/profiles/v1/search/character/?q=terr&new_order=1&user={}&tagging=true".format(
-                user.id
-            )
+            f"/api/profiles/v1/search/character/"
+            f"?q=terr&new_order=1&user={user.id}&tagging=true"
         )
         self.assertEqual(len(response.data["results"]), 4)
         self.assertIDInList(visible, response.data["results"])
@@ -953,7 +952,7 @@ class TestRefColor(APITestCase):
 class TestTagArtist(APITestCase):
     def test_logged_in(self):
         user = UserFactory.create()
-        user2 = UserFactory.create()
+        UserFactory.create()
         submission = SubmissionFactory.create()
         self.login(submission.owner)
         response = self.client.post(
@@ -969,7 +968,7 @@ class TestTagArtist(APITestCase):
 
     def test_not_logged_in(self):
         user = UserFactory.create()
-        user2 = UserFactory.create()
+        UserFactory.create()
         submission = SubmissionFactory.create()
         response = self.client.post(
             "/api/profiles/v1/submission/{}/artists/".format(submission.id),
@@ -979,7 +978,7 @@ class TestTagArtist(APITestCase):
 
     def test_logged_in_different_user(self):
         user = UserFactory.create()
-        user2 = UserFactory.create()
+        UserFactory.create()
         submission = SubmissionFactory.create()
         self.login(user)
         response = self.client.post(
@@ -1072,7 +1071,7 @@ class TestShareSubmission(APITestCase):
 
     def test_not_logged_in(self):
         user = UserFactory.create()
-        user2 = UserFactory.create()
+        UserFactory.create()
         submission = SubmissionFactory.create()
         response = self.client.post(
             "/api/profiles/v1/submission/{}/share/".format(submission.id),
@@ -1082,7 +1081,7 @@ class TestShareSubmission(APITestCase):
 
     def test_logged_in_different_user(self):
         user = UserFactory.create()
-        user2 = UserFactory.create()
+        UserFactory.create()
         submission = SubmissionFactory.create()
         self.login(user)
         response = self.client.post(
@@ -1139,7 +1138,7 @@ class TestShareSubmission(APITestCase):
 
     def test_delete_other_user_tagged(self):
         user = UserFactory.create()
-        user2 = UserFactory.create()
+        UserFactory.create()
         submission = SubmissionFactory.create()
         share = submission.shared_with.through.objects.create(
             user=user, submission=submission
@@ -1634,8 +1633,8 @@ class TestConversations(APITestCase):
 
     @patch("recaptcha.fields.ReCaptchaField.to_internal_value")
     def test_conversation_no_delete_others(self, _mock_captcha):
-        # Apparently one of my serializers had a terrible side effect of deleting all other conversations when a new
-        # one was created.
+        # Apparently one of my serializers had a terrible side effect of deleting all
+        # other conversations when a new one was created.
         relation = ConversationParticipantFactory.create()
         user = UserFactory.create(date_joined=timezone.now() - relativedelta(days=10))
         user2 = UserFactory.create()
@@ -1872,7 +1871,8 @@ class TestAttributes(APITestCase):
         character = CharacterFactory.create()
         attributes = [AttributeFactory.create(character=character) for _ in range(3)]
         response = self.client.get(
-            f"/api/profiles/v1/account/{character.user.username}/characters/{character.name}/attributes/",
+            f"/api/profiles/v1/account/{character.user.username}/characters/"
+            f"{character.name}/attributes/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         for attr in attributes:
@@ -1882,7 +1882,8 @@ class TestAttributes(APITestCase):
         character = CharacterFactory.create()
         self.login(character.user)
         response = self.client.post(
-            f"/api/profiles/v1/account/{character.user.username}/characters/{character.name}/attributes/",
+            f"/api/profiles/v1/account/{character.user.username}/characters/"
+            f"{character.name}/attributes/",
             {"key": "Test", "value": "Thing"},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

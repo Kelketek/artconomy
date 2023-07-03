@@ -56,7 +56,10 @@ class Migration(migrations.Migration):
                 (
                     "location",
                     models.ForeignKey(
-                        help_text="Primary location where reader will be used. Cannot be changed after it is initially set. You must delete the reader and recreate it to change its location.",
+                        help_text="Primary location where reader will be used. Cannot "
+                        "be changed after it is initially set. You must "
+                        "delete the reader and recreate it to change its "
+                        "location.",
                         on_delete=django.db.models.deletion.CASCADE,
                         to="sales.stripelocation",
                     ),

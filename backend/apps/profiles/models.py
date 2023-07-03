@@ -4,7 +4,8 @@ Models dealing primarily with user preferences and personalization.
 import hashlib
 import uuid
 from urllib.parse import urlencode, urljoin
-
+from django.contrib.auth import models as auth_models
+from django.contrib.auth import user_logged_in, user_logged_out
 from apps.lib.abstract_models import (
     GENERAL,
     RATINGS,
@@ -150,10 +151,11 @@ def default_plan():
             name=settings.DEFAULT_SERVICE_PLAN_NAME
         ).first()
     except ProgrammingError:
-        # During initialization, as Django is checking for common issues, it instantiates a copy of the User
-        # model to verify that certain attributes are defined correctly. Of course, instantiating before migrations
-        # have been run means that the tables for ServicePlan have not yet been created, so we have to catch
-        # the resulting exception in order to move forward.
+        # During initialization, as Django is checking for common issues, it
+        # instantiates a copy of the User model to verify that certain attributes are
+        # defined correctly. Of course, instantiating before migrations have been run
+        # means that the tables for ServicePlan have not yet been created, so we have to
+        # catch the resulting exception in order to move forward.
         return None
 
 
@@ -208,7 +210,8 @@ class User(AbstractEmailUser, HitsMixin):
     watching = ManyToManyField(
         "User", symmetrical=False, related_name="watched_by", blank=True
     )
-    # Don't create the migration for removing these until service plans have been created and are active in production.
+    # Don't create the migration for removing these until service plans have been
+    # created and are active in production.
     landscape_enabled = BooleanField(default=False, db_index=True, null=True)
     landscape_paid_through = DateField(
         null=True, default=None, blank=True, db_index=True
@@ -248,13 +251,14 @@ class User(AbstractEmailUser, HitsMixin):
         choices=RATINGS,
         db_index=True,
         default=GENERAL,
-        help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify "
-        "that you are of legal age to view adult content in your country.",
+        help_text="Shows the maximum rating to display. By setting this to anything "
+        "other than general, you certify that you are of legal age to view "
+        "adult content in your country.",
     )
     sfw_mode = BooleanField(
         default=False,
-        help_text="Enable this to only display clean art. "
-        "Useful if temporarily browsing from a location where adult content is not appropriate.",
+        help_text="Enable this to only display clean art. Useful if temporarily "
+        "browsing from a location where adult content is not appropriate.",
     )
     artist_mode = BooleanField(
         default=False,
@@ -265,7 +269,8 @@ class User(AbstractEmailUser, HitsMixin):
     delinquent = BooleanField(
         default=False,
         db_index=True,
-        help_text="Enabled when a user's account is in arrears beyond the grace period.",
+        help_text="Enabled when a user's account is in arrears beyond the grace "
+        "period.",
     )
     blacklist = ManyToManyField(
         "lib.Tag", blank=True, related_name="blacklisting_users"
@@ -294,10 +299,11 @@ class User(AbstractEmailUser, HitsMixin):
     notifications = ManyToManyField("lib.Event", through="lib.Notification")
     # Random default value to make extra sure it will never be invoked by mistake.
     reset_token = CharField(max_length=36, blank=True, default=uuid.uuid4)
-    # Currently only used to make sure sellers can't change the email on an order which a buyer has
-    # logged into via email link.
+    # Currently only used to make sure sellers can't change the email on an order which
+    # a buyer has logged into via email link.
     verified_email = BooleanField(default=False, db_index=True)
-    # Auto now add to avoid problems when filtering where 'null' is considered less than something else.
+    # Auto now add to avoid problems when filtering where 'null' is considered less than
+    # something else.
     token_expiry = DateTimeField(auto_now_add=True)
     notes = TextField(default="", blank=True)
     hit_counter = GenericRelation(
@@ -379,11 +385,8 @@ class ArtconomyAnonymousUser(AnonymousUser):
         return False
 
 
-# Replace Django's internal AnonymousUser model with our own that has the is_registered flag, needed to distinguish
-# guests from normal users.
-from django.contrib.auth import models as auth_models
-from django.contrib.auth import user_logged_in, user_logged_out
-
+# Replace Django's internal AnonymousUser model with our own that has the is_registered
+# flag, needed to distinguish guests from normal users.
 auth_models.AnonymousUser = ArtconomyAnonymousUser
 
 
@@ -535,7 +538,8 @@ class ArtistProfile(Model):
     commissions_disabled = BooleanField(
         default=False,
         db_index=True,
-        help_text="Internal check for commissions that prevents taking on more work when max load is exceeded.",
+        help_text="Internal check for commissions that prevents taking on more work "
+        "when max load is exceeded.",
     )
     public_queue = BooleanField(
         default=True,
@@ -778,13 +782,15 @@ class Character(Model, HitsMixin):
     )
     open_requests = BooleanField(
         default=False,
-        help_text="Allow others to request commissions with my character, such as for gifts.",
+        help_text="Allow others to request commissions with my character, such as for "
+        "gifts.",
     )
     open_requests_restrictions = CharField(
         max_length=2000,
-        help_text="Write any particular conditions or requests to be considered when someone else is "
-        "commissioning a piece with this character. "
-        "For example, 'This character should only be drawn in Safe for Work Pieces.'",
+        help_text="Write any particular conditions or requests to be considered when "
+        "someone else is commissioning a piece with this character. "
+        "For example, 'This character should only be drawn in Safe for "
+        "Work Pieces.'",
         blank=True,
         default="",
     )
@@ -798,7 +804,8 @@ class Character(Model, HitsMixin):
     nsfw = BooleanField(
         db_index=True,
         default=False,
-        help_text="Used to indicate that this character should not be shown when in SFW mode, and its tags should be "
+        help_text="Used to indicate that this character should not be shown when in "
+        "SFW mode, and its tags should be "
         "excluded based on a user's NSFW blocked tags.",
     )
     shared_with = ManyToManyField("User", related_name="shared_characters", blank=True)
@@ -1084,7 +1091,10 @@ class Conversation(Model):
         count, participants = participants.count(), participants[:3]
         if count > 3:
             additional = count() - 3
-            names = f"{participants[0]}, {participants[1]}, {participants[2]} and {additional} others"
+            names = (
+                f"{participants[0]}, {participants[1]}, {participants[2]} and "
+                f"{additional} others"
+            )
         elif count == 3:
             names = f"{participants[0]}, {participants[1]}, and {participants[2]}"
         elif count == 2:

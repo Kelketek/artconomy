@@ -5,7 +5,6 @@ from apps.sales.models import (
     BankAccount,
     CreditCardToken,
     Deliverable,
-    InventoryTracker,
     Invoice,
     LineItem,
     Order,

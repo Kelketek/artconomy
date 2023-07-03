@@ -162,7 +162,7 @@ import AcEditor from '@/components/fields/AcEditor.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {Patch} from '@/store/singles/patcher'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import { NotificationSettings } from '@/types/NotificationSettings'
+import {NotificationSettings} from '@/types/NotificationSettings'
 
 @Component({
   components: {AcLoadSection, AcPatchField},

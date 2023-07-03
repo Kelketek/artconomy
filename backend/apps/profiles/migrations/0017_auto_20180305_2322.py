@@ -15,7 +15,8 @@ class Migration(migrations.Migration):
             name="open_requests",
             field=models.BooleanField(
                 default=False,
-                help_text="Allow others to request commissions with my character, such as for gifts.",
+                help_text="Allow others to request commissions with my character, such "
+                "as for gifts.",
             ),
         ),
         migrations.AlterField(

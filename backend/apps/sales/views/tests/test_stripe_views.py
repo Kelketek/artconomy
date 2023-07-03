@@ -171,6 +171,7 @@ class TestStripePresentCard(APITestCase):
             {"reader": reader.id},
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # noqa: E501
         mock_stripe.__enter__.return_value.terminal.Reader.process_payment_intent.assert_called_with(
             "abc",
             payment_intent="beep",
@@ -178,10 +179,14 @@ class TestStripePresentCard(APITestCase):
 
     def test_no_connection(self, mock_stripe, _mock_model_stripe):
         mock_api = Mock()
-        mock_api.terminal.Reader.process_payment_intent.side_effect = InvalidRequestError(
-            "Reader is currently unreachable, please ensure the reader is "
-            "powered on and connected to the internet before retrying your request.",
-            "Request",
+        # noqa: E501
+        mock_api.terminal.Reader.process_payment_intent.side_effect = (
+            InvalidRequestError(
+                "Reader is currently unreachable, please ensure the reader is "
+                "powered on and connected to the internet before retrying your "
+                "request.",
+                "Request",
+            )
         )
         mock_stripe.__enter__.return_value = mock_api
         reader = StripeReaderFactory.create()
@@ -196,7 +201,8 @@ class TestStripePresentCard(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(
             response.data["detail"],
-            "Could not reach the card reader. Make sure it is on and connected to the Internet.",
+            "Could not reach the card reader. Make sure it is on and connected to the "
+            "Internet.",
         )
 
     def test_other_exception(self, mock_stripe, _mock_model_stripe):

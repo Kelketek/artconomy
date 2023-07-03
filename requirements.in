@@ -113,6 +113,8 @@ qrcode
 # The requests library is the most useful HTTP library in the Python ecosystem. It should probably be in the standard
 # library, and I think they were considering this at one point.
 requests
+# Code quality linter
+ruff
 # Library for generating shortcodes, built atop UUIDs but serializable to ASCII strings. Includes Django model and REST
 # framework fields
 short-stuff

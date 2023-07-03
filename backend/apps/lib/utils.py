@@ -112,7 +112,8 @@ class RecallNotification(Exception):
     """
     Used during a transform function to recall a notification.
     For instance, if we're tracking all of the people who commented on a submission
-    and the only person who commented removed their comment, we'd want to recall the event altogether.
+    and the only person who commented removed their comment, we'd want to recall the
+    event altogether.
     """
 
     def __init__(self, *args, **kwargs):
@@ -302,28 +303,33 @@ def notify(
     """
     Send out notifications to people who are subscribed to particular events.
 
-    event_type should be a type users are subscribed to. Target is a target they're subscribed to that event type on
-    (or None, if it's a general category like SYSTEM_ANNOUNCEMENT).
+    event_type should be a type users are subscribed to. Target is a target they're
+    subscribed to that event type on (or None, if it's a general category like
+    SYSTEM_ANNOUNCEMENT).
 
     data should be the JSON-compatible data to save in the event.
 
-    unique is to specify that the notification is universally unique and that if the notification is run again with the
-    same parameters (aside from whatever is in data, which can vary), it should not create a new broadcast.
-    The existing events will be updated based on the other parameters.
+    unique is to specify that the notification is universally unique and that if the
+    notification is run again with the same parameters (aside from whatever is in data,
+    which can vary), it should not create a new broadcast. The existing events will be
+    updated based on the other parameters.
 
-    unique_data means that the event will only be considered unique if the data is precisely the same.
+    unique_data means that the event will only be considered unique if the data is
+    precisely the same.
 
     time_override will force a particular timestamp on the event.
 
     transform is a function that takes the original data in an event and modifies it.
 
-    exclude is a list of users whose subscriptions will be ignored. For instance, a user might have a comment
-    subscription, but they made the comment, so we shouldn't notify them.
+    exclude is a list of users whose subscriptions will be ignored. For instance, a
+    user might have a comment subscription, but they made the comment, so we shouldn't
+    notify them.
 
-    force_create will force the creation of the event even if it would reach no subscribers. Useful if the data stored
-    will be useful for later subscribers.
+    force_create will force the creation of the event even if it would reach no
+    subscribers. Useful if the data stored will be useful for later subscribers.
 
-    silent_broadcast will not generate any emails or telegram notifications if they otherwise would have been generated.
+    silent_broadcast will not generate any emails or telegram notifications if they
+    otherwise would have been generated.
     """
     from apps.lib.serializers import NOTIFICATION_TYPE_MAP, notification_serialize
 
@@ -431,9 +437,10 @@ def notify(
             except Exception as err:
                 logger.exception(err)
 
-    # We need to make sure anyone who was previously ineligible for a notification who is now eligible can get one.
-    # To do that, we must avoid creating any that already exist if we want to leverage bulk_create. This should
-    # be a minority case that won't require too much overhead when it happens, but I suppose we will see.
+    # We need to make sure anyone who was previously ineligible for a notification who
+    # is now eligible can get one. To do that, we must avoid creating any that already
+    # exist if we want to leverage bulk_create. This should be a minority case that
+    # won't require too much overhead when it happens, but I suppose we will see.
     existing = Notification.objects.filter(event=event.id).values_list(
         "user_id", flat=True
     )
@@ -463,16 +470,16 @@ def subscribe(event_type, user, target, implicit=True):
 @disable_on_load
 def clear_events(sender, instance, **_kwargs):
     """
-    To be used as a signal handler elsewhere on models to make sure any events that existed with this
-    instance as the target are removed. Use in pre_delete.
+    To be used as a signal handler elsewhere on models to make sure any events that
+    existed with this instance as the target are removed. Use in pre_delete.
     """
     Event.objects.filter(
         object_id=instance.id, content_type=ContentType.objects.get_for_model(instance)
     ).delete()
 
 
-# This receiver is not in models where it would normally be, since we want to have clear_events available in utils
-# in a manner which my IDE will pull them in.
+# This receiver is not in models where it would normally be, since we want to have
+# clear_events available in utils in a manner which my IDE will pull them in.
 
 # ...Yeah, that sounds kinda dumb, maybe I'll change it later if it trips me up.
 remove_order_events = receiver(pre_delete, sender=Comment)(clear_events)
@@ -526,16 +533,16 @@ def add_check(
     proposed = args_length + current_length
     if proposed > max_length:
         raise ValidationError(
-            "This would exceed the maximum number of entries for this relation. {} > {}".format(
-                proposed, max_length
-            )
+            "This would exceed the maximum number of entries for this relation. "
+            "{} > {}".format(proposed, max_length)
         )
 
 
 def set_tags(instance, field_name, tag_names):
     """
     Idempotently sets the tags an instance field.
-    Assumes you've done all other cleanup and verification aside from ensuring the tags exist and setting them.
+    Assumes you've done all other cleanup and verification aside from ensuring the tags
+    exist and setting them.
     """
     ensure_tags(tag_names)
     getattr(instance, field_name).set(tag_names)
@@ -553,8 +560,9 @@ def ensure_tags(tag_list):
     tag_list = tag_list_cleaner(tag_list)
     with connection.cursor() as cursor:
         # Bulk get or create
-        # Django's query prepper automatically wraps our arrays in parens, but we need to have them
-        # act as individual values, so we have to custom build our placeholders here.
+        # Django's query prepper automatically wraps our arrays in parens, but we need
+        # to have them act as individual values, so we have to custom build our
+        # placeholders here.
         formatted_list = ("(%s), " * len(tag_list)).rsplit(",", 1)[0]
         # noinspection SqlType
         statement = f"""
@@ -609,7 +617,8 @@ def remove_tags(request, target, field_name="tags"):
     return True, None
 
 
-# https://www.caktusgroup.com/blog/2009/05/26/explicit-table-locking-with-postgresql-and-django/
+# https://www.caktusgroup.com/blog/2009/05/26/explicit-table-locking-with
+# -postgresql-and-django/
 LOCK_MODES = (
     "ACCESS SHARE",
     "ROW SHARE",
@@ -682,7 +691,8 @@ class MinimumOrZero:
 def default_context():
     return {
         "title": "Artconomy-- Easy Online Art Commissions.",
-        "description": "Artconomy.com makes it easy, safe, and fun for you to get custom art of your "
+        "description": "Artconomy.com makes it easy, safe, and fun for you to get "
+        "custom art of your "
         "original characters!",
     }
 
@@ -738,7 +748,8 @@ def send_transaction_email(subject, template_name, user, context):
 # noinspection PyAbstractClass
 class SubCount(Subquery):
     """
-    Version of Subquery that outputs the count instead of the result. Good for annotation.
+    Version of Subquery that outputs the count instead of the result. Good for
+    annotation.
     """
 
     template = "(SELECT count(*) FROM (%(subquery)s) _count)"
@@ -912,8 +923,9 @@ def exclude_request(request: Optional[HttpRequest]) -> List[str]:
 
 def update_websocket(signal, model, *serializer_names):
     """
-    Used to connect a model to broadcast out changes when updates are made. Attach a signal to have the instance run
-    through the specified serializers and broadcasted to the listening clients.
+    Used to connect a model to broadcast out changes when updates are made. Attach a
+    signal to have the instance run through the specified serializers and broadcasted
+    to the listening clients.
     """
 
     def update_broadcaster(instance: Model, **kwargs):
@@ -938,7 +950,8 @@ def update_websocket(signal, model, *serializer_names):
                 },
             )
 
-    # Need to return the function because the name of a receiver has to be defined to run.
+    # Need to return the function because the name of a receiver has to be defined to
+    # run.
     return receiver(signal, sender=model)(update_broadcaster)
 
 
@@ -1059,7 +1072,8 @@ def get_all_foreign_references(instance, check_existence=False):
 @transaction.atomic
 def replace_foreign_references(instance, replacement):
     """
-    Find all places where this instance is referenced and replace them with another instance.
+    Find all places where this instance is referenced and replace them with another
+    instance.
     """
     # Foreign keys first.
     check_fields = [
@@ -1073,7 +1087,8 @@ def replace_foreign_references(instance, replacement):
 
 def purge_asset(asset):
     """
-    Deletes related files for an asset, then clears from DB. DO NOT RUN UNTIL YOU'VE CHECKED FOR REFERENCES.
+    Deletes related files for an asset, then clears from DB. DO NOT RUN UNTIL YOU'VE
+    CHECKED FOR REFERENCES.
     """
     asset.file.delete_thumbnails()
     asset.file.delete()
@@ -1082,10 +1097,11 @@ def purge_asset(asset):
 
 def _get_relative_position_value(instance, field_name: str, delta: int, relative_to):
     """
-    Used by shift_position to find the correct target value relative to another positioned instance.
+    Used by shift_position to find the correct target value relative to another
+    positioned instance.
 
-    This is useful when moving an object to the first or last position on a page, where the frontend does not have
-    access to the instance just over the page boundary.
+    This is useful when moving an object to the first or last position on a page,
+    where the frontend does not have access to the instance just over the page boundary.
     """
     params = {}
     current_value = getattr(relative_to, field_name)
@@ -1132,7 +1148,8 @@ def shift_position(
         min_change = -1
     results = instance.__class__.objects.filter(**params).order_by(order)[:2]
     if len(results) == 0:
-        # Small chance that there could be entries with exactly the same value-- bump in the direction needed.
+        # Small chance that there could be entries with exactly the same value-- bump in
+        # the direction needed.
         setattr(instance, field_name, current_value + min_change)
         instance.save()
     elif len(results) == 1:

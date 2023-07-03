@@ -475,7 +475,9 @@ def base_charge_succeeded_event():
                 },
                 "receipt_email": None,
                 "receipt_number": None,
-                "receipt_url": "https://pay.stripe.com/receipts/acct_1Fu0KSAhlvPza3BK/ch_1Icyh4AhlvPza3BK7ZkPN95S/rcpt_JFTe7703FypdF9BO3C6kfZcrouVJ2Wm",
+                "receipt_url": "https://pay.stripe.com/receipts/acct_1Fu0KSAhlvPza3BK/"
+                "ch_1Icyh4AhlvPza3BK7ZkPN95S/"
+                "rcpt_JFTe7703FypdF9BO3C6kfZcrouVJ2Wm",
                 "refunded": False,
                 "refunds": {
                     "object": "list",
@@ -603,7 +605,8 @@ def base_report_event():
                     "connected_account": "acct_asdfawselkm",
                     "payout": "po_237uhawseivo2",
                 },
-                "report_type": "connected_account_payout_reconciliation.by_id.itemized.4",
+                "report_type": "connected_account_payout_reconciliation"
+                ".by_id.itemized.4",
                 "result": {
                     "id": "file_as8e7fh2w3eun",
                     "object": "file",
@@ -620,7 +623,8 @@ def base_report_event():
                     "size": 162,
                     "title": "FinanceReportRun frr_1LthdqAhlvPza3BKcoeR0Gxa",
                     "type": "csv",
-                    "url": "https://files.stripe.com/v1/files/file_asdvwoeudmva/contents",
+                    "url": "https://files.stripe.com/v1/files/file_asdvwoeudmva/"
+                    "contents",
                 },
                 "status": "succeeded",
                 "succeeded_at": 1665968255,
@@ -805,8 +809,14 @@ def base_payout_paid_event():
 DUMMY_REPORT = b"""source_id,gross,net,fee,currency,automatic_payout_effective_at_utc
 py_xoser87gh23o8hwer,47.86,47.86,0,gbp,2022-10-01 00:00:00"""
 
-DUMMY_REVERSE_REPORT = b"""source_id,gross,net,fee,currency,automatic_payout_effective_at_utc
-pyr_xoser87gh23o8hwer,-47.86,-47.86,0,gbp,2022-10-01 00:00:00"""
+DUMMY_REVERSE_REPORT = (
+    b"source_id,gross,net,fee,currency,"
+    b"automatic_payout_effective_at_utc\npyr_xoser87gh23o8hwer,"
+    b"-47.86,-47.86,0,gbp,2022-10-01 00:00:00"
+)
 
-DUMMY_REPORT_NO_EFFECTIVE_TIME = b"""source_id,gross,net,fee,currency,automatic_payout_effective_at_utc
-py_xoser87gh23o8hwer,47.86,47.86,0,gbp,"""
+DUMMY_REPORT_NO_EFFECTIVE_TIME = (
+    b"source_id,gross,net,fee,currency,"
+    b"automatic_payout_effective_at_utc\n"
+    b"py_xoser87gh23o8hwer,47.86,47.86,0,gbp,"
+)

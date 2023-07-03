@@ -53,7 +53,8 @@ class Migration(migrations.Migration):
                     "is_superuser",
                     models.BooleanField(
                         default=False,
-                        help_text="Designates that this user has all permissions without explicitly assigning them.",
+                        help_text="Designates that this user has all permissions "
+                        "without explicitly assigning them.",
                         verbose_name="superuser status",
                     ),
                 ),
@@ -70,7 +71,8 @@ class Migration(migrations.Migration):
                     "is_staff",
                     models.BooleanField(
                         default=False,
-                        help_text="Designates whether the user can log into this admin site.",
+                        help_text="Designates whether the user can log into this "
+                        "admin site.",
                         verbose_name="staff status",
                     ),
                 ),
@@ -78,7 +80,8 @@ class Migration(migrations.Migration):
                     "is_active",
                     models.BooleanField(
                         default=True,
-                        help_text="Designates whether this user should be treated as active. Unselect this instead of deleting accounts.",
+                        help_text="Designates whether this user should be treated as "
+                        "active. Unselect this instead of deleting accounts.",
                         verbose_name="active",
                     ),
                 ),
@@ -105,14 +108,16 @@ class Migration(migrations.Migration):
                     "use_load_tracker",
                     models.BooleanField(
                         default=True,
-                        help_text="Whether to use load tracking to automatically open or close commissions.",
+                        help_text="Whether to use load tracking to automatically open "
+                        "or close commissions.",
                     ),
                 ),
                 (
                     "max_load",
                     models.IntegerField(
                         default=10,
-                        help_text="How much work you're willing to take on at once (for artists)",
+                        help_text="How much work you're willing to take on at once "
+                        "(for artists)",
                         validators=[django.core.validators.MinValueValidator(1)],
                     ),
                 ),
@@ -123,27 +128,34 @@ class Migration(migrations.Migration):
                             (0, "Clean/Safe for work"),
                             (
                                 1,
-                                "Risque/mature, not adult content but not safe for work",
+                                "Risque/mature, not adult content but not safe for "
+                                "work",
                             ),
                             (2, "Adult content, not safe for work"),
                         ],
                         db_index=True,
                         default=0,
-                        help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify that you are of legal age to view adult content in your country.",
+                        help_text="Shows the maximum rating to display. By setting "
+                        "this to anything other than general, you certify "
+                        "that you are of legal age to view adult content in "
+                        "your country.",
                     ),
                 ),
                 (
                     "sfw_mode",
                     models.BooleanField(
                         default=False,
-                        help_text="Enable this to only display clean art. Useful if temporarily browsing from a location where adult content is not appropriate.",
+                        help_text="Enable this to only display clean art. Useful if "
+                        "temporarily browsing from a location where adult "
+                        "content is not appropriate.",
                     ),
                 ),
                 (
                     "groups",
                     models.ManyToManyField(
                         blank=True,
-                        help_text="The groups this user belongs to. A user will get all permissions granted to each of their groups.",
+                        help_text="The groups this user belongs to. A user will get "
+                        "all permissions granted to each of their groups.",
                         related_name="user_set",
                         related_query_name="user",
                         to="auth.Group",
@@ -178,14 +190,16 @@ class Migration(migrations.Migration):
                     "private",
                     models.BooleanField(
                         default=False,
-                        help_text="Only show this character to people I have explicitly shared it to.",
+                        help_text="Only show this character to people I have "
+                        "explicitly shared it to.",
                     ),
                 ),
                 (
                     "open_requests",
                     models.BooleanField(
                         default=True,
-                        help_text="Allow others to request commissions with my character, such as for gifts.",
+                        help_text="Allow others to request commissions with my "
+                        "character, such as for gifts.",
                     ),
                 ),
                 (
@@ -193,7 +207,11 @@ class Migration(migrations.Migration):
                     models.CharField(
                         blank=True,
                         default="",
-                        help_text="Write any particular conditions or requests to be considered when someone else is commissioning a piece with this character. For example, 'This character should only be drawn in Safe for Work Pieces.'",
+                        help_text="Write any particular conditions or requests to be "
+                        "considered when someone else is commissioning a "
+                        "piece with this character. For example, 'This "
+                        "character should only be drawn in Safe for Work "
+                        "Pieces.'",
                         max_length=2000,
                     ),
                 ),
@@ -219,7 +237,8 @@ class Migration(migrations.Migration):
                             (0, "Clean/Safe for work"),
                             (
                                 1,
-                                "Risque/mature, not adult content but not safe for work",
+                                "Risque/mature, not adult content but not safe for "
+                                "work",
                             ),
                             (2, "Adult content, not safe for work"),
                         ],
@@ -240,7 +259,8 @@ class Migration(migrations.Migration):
                     "private",
                     models.BooleanField(
                         default=False,
-                        help_text="Only show this to people I have explicitly shared it to.",
+                        help_text="Only show this to people I have explicitly shared "
+                        "it to.",
                     ),
                 ),
                 (
@@ -363,12 +383,14 @@ class Migration(migrations.Migration):
                             (0, "Clean/Safe for work"),
                             (
                                 1,
-                                "Risque/mature, not adult content but not safe for work",
+                                "Risque/mature, not adult content but not safe for "
+                                "work",
                             ),
                             (2, "Adult content, not safe for work"),
                             (
                                 3,
-                                "Offensive/Disturbing to most viewers, not safe for work",
+                                "Offensive/Disturbing to most viewers, not safe for "
+                                "work",
                             ),
                         ]
                     ),
@@ -461,7 +483,9 @@ class Migration(migrations.Migration):
                 ],
                 db_index=True,
                 default=0,
-                help_text="Shows the maximum rating to display. By setting this to anything other than general, you certify that you are of legal age to view adult content in your country.",
+                help_text="Shows the maximum rating to display. By setting this to "
+                "anything other than general, you certify that you are of "
+                "legal age to view adult content in your country.",
             ),
         ),
         migrations.AddField(

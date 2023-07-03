@@ -6,7 +6,10 @@ from django.core.management import BaseCommand
 
 
 def api_chain(stripe_endpoint):
-    """Given a Stipe endpoint function, start iterating and return entries until you get all of them."""
+    """
+    Given a Stipe endpoint function, start iterating and return entries until you
+    get all of them.
+    """
     data_kwargs = {"limit": 100}
     print(stripe_endpoint)
     while current_result := stripe_endpoint(**data_kwargs):
@@ -16,7 +19,8 @@ def api_chain(stripe_endpoint):
 
 class Command(BaseCommand):
     """
-    One-time command to back-annotate all balance transactions so that we can match them up when accounting later.
+    One-time command to back-annotate all balance transactions so that we can match
+    them up when accounting later.
     """
 
     def handle(self, *args, **options):
@@ -39,5 +43,6 @@ class Command(BaseCommand):
                     transaction_record.remote_ids = list(remote_ids)
                     transaction_record.save()
                     print(
-                        f'Added {item["balance_transaction"]} to {transaction_record.id}'
+                        f'Added {item["balance_transaction"]} to '
+                        f"{transaction_record.id}"
                     )

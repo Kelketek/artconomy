@@ -36,12 +36,14 @@ class Migration(migrations.Migration):
                             (0, "Clean/Safe for work"),
                             (
                                 1,
-                                "Risque/mature, not adult content but not safe for work",
+                                "Risque/mature, not adult content but not safe for "
+                                "work",
                             ),
                             (2, "Adult content, not safe for work"),
                             (
                                 3,
-                                "Offensive/Disturbing to most viewers, not safe for work",
+                                "Offensive/Disturbing to most viewers, not safe for "
+                                "work",
                             ),
                         ],
                         db_index=True,

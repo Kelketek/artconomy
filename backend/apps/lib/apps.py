@@ -5,4 +5,4 @@ class LibConfig(AppConfig):
     name = "apps.lib"
 
     def ready(self) -> None:
-        import apps.lib.serializers
+        pass

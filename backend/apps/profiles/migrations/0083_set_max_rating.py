@@ -5,7 +5,8 @@ from django.db.models import Max
 
 
 def set_max_rating(apps, schema):
-    # Infers the max rating an artist is willing to create in based on their previous submissions.
+    # Infers the max rating an artist is willing to create in based on their previous
+    # submissions.
     User = apps.get_model("profiles", "User")
     for user in User.objects.all():
         user.artist_profile.max_rating = max(

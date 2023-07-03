@@ -47,12 +47,14 @@ CARD = 300
 BANK = 301
 ESCROW = 302
 HOLDINGS = 303
-# All fees put the difference for premium bonus into reserve until an order is complete. When complete, these
-# amounts are deposited into either the cash account of Artconomy, or added to the user's holdings.
+# All fees put the difference for premium bonus into reserve until an order is complete.
+# When complete, these amounts are deposited into either the cash account of Artconomy,
+# or added to the user's holdings.
 RESERVE = 304
 # Earnings for which we have not yet subtracted card/bank transfer fees.
 UNPROCESSED_EARNINGS = 305
-# These two fee types will be used to keep track of fees that have been paid out to card processors.
+# These two fee types will be used to keep track of fees that have been paid out to card
+# processors.
 CARD_TRANSACTION_FEES = 306
 CARD_MISC_FEES = 307
 
@@ -102,9 +104,9 @@ def priority_total(
     current: (Money, "LineMoneyMap"), priority_set: List["Line"]
 ) -> (Money, "LineMoneyMap"):
     """
-    Get the effect on the total of a priority set. First runs any percentage increase, then
-    adds in the static amount. Calculates the difference of each separately to make sure they're not affecting each
-    other.
+    Get the effect on the total of a priority set. First runs any percentage increase,
+    then adds in the static amount. Calculates the difference of each separately to make
+    sure they're not affecting each other.
     """
     current_total, subtotals = current
     working_subtotals = {}
@@ -164,8 +166,8 @@ def populate_line_items(apps, schema):
     LineItem = apps.get_model("sales", "LineItem")
     content_type_id = ContentType.objects.get_for_model(Order).id
     for order in Order.objects.filter(escrow_disabled=True):
-        # We won't actually be transferring into escrow here, but if the product is ever converted to an
-        # escrow product, this would do the right thing.
+        # We won't actually be transferring into escrow here, but if the product is ever
+        # converted to an escrow product, this would do the right thing.
         if order.price is not None:
             original_price = order.price
         else:
@@ -202,7 +204,6 @@ def populate_line_items(apps, schema):
             priority=PRIORITY_MAP[BASE_PRICE],
             type=BASE_PRICE,
         )
-        adjustment_base_price = order.adjustment
         if order.adjustment:
             LineItem.objects.create(
                 order=order,

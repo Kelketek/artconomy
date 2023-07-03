@@ -362,7 +362,8 @@ class TestPositionShifts(EnsurePlansMixin, TestCase):
             self.assertEqual(submission.display_position, result)
         except AssertionError as err:
             raise AssertionError(
-                f"Expected delta of {delta} to result in position value of {result}. {err}"
+                f"Expected delta of {delta} to result in position value of {result}. "
+                f"{err}"
             )
 
     @ddt.unpack
@@ -375,7 +376,8 @@ class TestPositionShifts(EnsurePlansMixin, TestCase):
             self.assertEqual(submission.display_position, result)
         except AssertionError as err:
             raise AssertionError(
-                f"Expected delta of {delta} to result in position value of {result} with existing entry {other}. {err}",
+                f"Expected delta of {delta} to result in position value of {result} "
+                f"with existing entry {other}. {err}",
             )
 
     @ddt.unpack
@@ -393,6 +395,6 @@ class TestPositionShifts(EnsurePlansMixin, TestCase):
             self.assertEqual(submission.display_position, result)
         except AssertionError as err:
             raise AssertionError(
-                f"Expected delta of {delta} to result in position value of {result} with initial "
-                f"position {start}. {err}",
+                f"Expected delta of {delta} to result in position value of {result} "
+                f"with initial position {start}. {err}",
             )

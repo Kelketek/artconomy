@@ -10,8 +10,12 @@ def update_email_setting(apps, value: bool):
     Subscription.objects.filter(type=WAITLIST_UPDATED).update(email=value)
 
 
-enable_emails = lambda apps, schema: update_email_setting(apps, True)
-disable_emails = lambda apps, schema: update_email_setting(apps, False)
+def enable_emails(apps, schema):
+    return update_email_setting(apps, True)
+
+
+def disable_emails(apps, schema):
+    return update_email_setting(apps, False)
 
 
 class Migration(migrations.Migration):

@@ -61,12 +61,14 @@ def handle_charge_event(event, successful=True):
             if invoice.current_intent != charge_event["payment_intent"]:
                 raise UserPaymentException(
                     f"Mismatched intent ID! What happened? Received ID was "
-                    f'{charge_event["payment_intent"]} while current intent is {invoice.current_intent}'
+                    f'{charge_event["payment_intent"]} while current intent is '
+                    f"{invoice.current_intent}"
                 )
 
         if successful and (amount != invoice.total()):
             raise UserPaymentException(
-                f"Mismatched amount! Customer paid {amount} while total was {invoice.total()}",
+                f"Mismatched amount! Customer paid {amount} while total was "
+                f"{invoice.total()}",
             )
         records = invoice_post_payment(
             invoice,
@@ -163,8 +165,8 @@ def pull_and_reconcile_payout_report(event, report):
             raise TransactionRecord.DoesNotExist(
                 f'Could not find corresponding record for {row["source_id"]}.'
                 f" It may need to be added manually or may be malformed. Please check "
-                f'https://dashboard.stripe.com/{parameters["connected_account"]}/payouts/'
-                f'{parameters["payout"]}'
+                f'https://dashboard.stripe.com/{parameters["connected_account"]}/'
+                f'payouts/{parameters["payout"]}'
             )
         if row["automatic_payout_effective_at_utc"]:
             timestamp = dateutil.parser.isoparse(
@@ -196,10 +198,11 @@ def pull_and_reconcile_payout_report(event, report):
 
 def reconcile_payout_report(event):
     """
-    This event handles a webhook for the specific report type we run to reconcile payouts with our own reporting.
+    This event handles a webhook for the specific report type we run to reconcile
+    payouts with our own reporting.
 
-    This function might seem redundant, but it's possible for a report not attached to an event to call it. An
-    example of this is found in payout_paid.
+    This function might seem redundant, but it's possible for a report not attached to
+    an event to call it. An example of this is found in payout_paid.
     """
     pull_and_reconcile_payout_report(event, event["data"]["object"])
 
@@ -207,9 +210,9 @@ def reconcile_payout_report(event):
 @atomic
 def payout_paid(event):
     """
-    Stripe webhook for the payout.paid event. Unfortunately the payout information does not give us a full enough
-    picture for what we want. So we force a report generation, and then fetch the result of this information to get
-    the remaining info.
+    Stripe webhook for the payout.paid event. Unfortunately the payout information does
+    not give us a full enough picture for what we want. So we force a report generation,
+    and then fetch the result of this information to get the remaining info.
     """
     payout_data = event["data"]["object"]
     with stripe as stripe_api:
@@ -244,8 +247,8 @@ def transfer_failed(event):
         TRANSFER_FAILED,
         record.payer,
         data={
-            "error": "The bank rejected the transfer. Please try again, update your account information, "
-            "or contact support."
+            "error": "The bank rejected the transfer. Please try again, update your"
+            "account information, or contact support."
         },
     )
 
@@ -290,8 +293,8 @@ def mockable_dummy_event(event):
 
 def dummy_event(event):
     """
-    Fake Stripe event type used in automated tests. We don't mock this directly since it's root level and a dict value
-    at once.
+    Fake Stripe event type used in automated tests. We don't mock this directly since
+    it's root level and a dict value at once.
     """
     mockable_dummy_event(event)
 
@@ -304,7 +307,8 @@ def mockable_dummy_connect_event(event):
 
 def dummy_connect_event(event):
     """
-    Fake Stripe event used in automated tests. We don't mock this directly since it's root level and a dict value
+    Fake Stripe event used in automated tests. We don't mock this directly since it's
+    root level and a dict value
     at once.
     """
     mockable_dummy_connect_event(event)
@@ -318,8 +322,8 @@ def mockable_dummy_report_processor(event):
 
 def dummy_report_processor(event):
     """
-    Fake report processor function used in automated tests. We don't mock this directly since it's root level and a dict
-    value at once.
+    Fake report processor function used in automated tests. We don't mock this directly
+    since it's root level and a dict value at once.
     """
     mockable_dummy_report_processor(event)
 
@@ -383,7 +387,8 @@ class StripeWebhooks(APIView):
             try:
                 sig_header = request.META["HTTP_STRIPE_SIGNATURE"]
                 secret = WebhookRecord.objects.get(connect=connect).secret
-                # If the secret is missing, we cannot verify the signature. Die dramatically until an admin fixes.
+                # If the secret is missing, we cannot verify the signature. Die
+                # dramatically until an admin fixes.
                 assert secret
                 event = stripe_api.Webhook.construct_event(
                     request.body, sig_header, secret

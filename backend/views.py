@@ -17,8 +17,8 @@ from telegram import Bot
 def mastodon_profiles_for_routes(path: str) -> List[str]:
     if path == "/":
         return settings.MASTODON_PROFILES
-    # We may add code later to allow users to verify their mastodon accounts. Maybe not, though-- hard
-    # to count us as authoritative for anyone but ourselves.
+    # We may add code later to allow users to verify their mastodon accounts. Maybe not,
+    # though-- hard to count us as authoritative for anyone but ourselves.
     return []
 
 

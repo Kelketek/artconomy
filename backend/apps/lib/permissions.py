@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Any, List, Type
+from typing import Any, Type
 
 from django.views import View
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
@@ -226,8 +226,8 @@ def BlockedCheckPermission(ref_path=""):
     class WrappedBlockedPermission(BasePermission):
         def has_object_permission(self, request, view, obj):
             if not request.user.is_authenticated:
-                # In any case where we care if the user is blocked, this is an action we don't want to offer anonymous
-                # users access.
+                # In any case where we care if the user is blocked, this is an action we
+                # don't want to offer anonymous users access.
                 return False
             path = ref_path.split(".")
             target = obj

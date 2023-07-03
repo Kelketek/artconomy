@@ -19,9 +19,10 @@ SA = sync_to_async
 fixtures_directory = Path(__file__).parent / "fixtures"
 
 
-# We use TransactionTestCase instead of TestCase here because the consumer runs in a different thread. The secondary
-# thread does not use the same transaction as the host thread, so we must use TransactionTestCase instead, as it resets
-# the database by truncating tables rather than by rolling back a transaction.
+# We use TransactionTestCase instead of TestCase here because the consumer runs in a
+# different thread. The secondary thread does not use the same transaction as the host
+# thread, so we must use TransactionTestCase instead, as it resets the database by
+# truncating tables rather than by rolling back a transaction.
 
 
 class TestConsumer(EnsurePlansMixin, TransactionTestCase):

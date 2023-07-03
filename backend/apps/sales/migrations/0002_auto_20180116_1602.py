@@ -18,7 +18,8 @@ class Migration(migrations.Migration):
             field=models.IntegerField(
                 blank=True,
                 default=0,
-                help_text="How many of these you are willing to have in your backlog at one time.",
+                help_text="How many of these you are willing to have in your backlog "
+                "at one time.",
                 validators=[django.core.validators.MinValueValidator(0)],
             ),
         ),

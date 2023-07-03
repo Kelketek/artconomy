@@ -7,7 +7,7 @@ COMMENT = 4
 
 def revision_subscriptions(apps, schema):
     Subscription = apps.get_model("lib", "Subscription")
-    Deliverable = apps.get_model("sales", "Deliverable")
+    apps.get_model("sales", "Deliverable")
     Revision = apps.get_model("sales", "Revision")
     content_type_id = ContentType.objects.get_for_model(Revision).id
 

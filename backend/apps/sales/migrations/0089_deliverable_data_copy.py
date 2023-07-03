@@ -97,7 +97,7 @@ def transfer_details(
 def deliverable_data_copy(apps, schema):
     Order = apps.get_model("sales", "Order")
     Deliverable = apps.get_model("sales", "Deliverable")
-    LineItem = apps.get_model("sales", "LineItem")
+    apps.get_model("sales", "LineItem")
     source_type_id = ContentType.objects.get_for_model(Order).id
     destination_type_id = ContentType.objects.get_for_model(Deliverable).id
     for order in Order.objects.all():

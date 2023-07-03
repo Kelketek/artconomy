@@ -16,7 +16,8 @@ class Command(BaseCommand):
             "--connect",
             required=False,
             default=False,
-            help="Mark this as an event for a connected account, rather than the main account.",
+            help="Mark this as an event for a connected account, rather than the main "
+            "account.",
         )
 
     @half_even_context

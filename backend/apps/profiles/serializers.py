@@ -171,13 +171,15 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
         with connection.cursor() as cursor:
             cursor.execute(
                 """
-                WITH RECURSIVE q AS (SELECT id, parent_id, content_type_id, object_id
-                                       FROM lib_comment
-                                      WHERE object_id=%s AND content_type_id=%s
-                                      UNION ALL
-                                     SELECT m.id, m.parent_id, m.content_type_id, m.object_id
-                                       FROM lib_comment m
-                                       JOIN q ON q.id = m.parent_id)
+                WITH RECURSIVE q AS (
+                    SELECT id, parent_id, content_type_id, object_id
+                    FROM lib_comment
+                    WHERE object_id=%s AND content_type_id=%s
+                    UNION ALL
+                    SELECT m.id, m.parent_id, m.content_type_id, m.object_id
+                    FROM lib_comment m
+                    JOIN q ON q.id = m.parent_id
+                )
                     SELECT COUNT(id) FROM q
                 """,
                 [
@@ -597,7 +599,8 @@ class CorrectPasswordValidator(object):
 
 class FieldUniqueValidator(object):
     """
-    Validates that a field is unique. Model field name can be a Django queryset API keyword, such as username.
+    Validates that a field is unique. Model field name can be a Django queryset API
+    keyword, such as username.
     """
 
     requires_context = True
@@ -630,7 +633,8 @@ class CredentialsSerializer(serializers.ModelSerializer):
         ],
         required=False,
     )
-    # Confirmation of new password should be done on client-side and refuse to send unless verified.
+    # Confirmation of new password should be done on client-side and refuse to send
+    # unless verified.
     new_password = serializers.CharField(
         write_only=True,
         required=False,
@@ -706,7 +710,8 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         )
 
     def get_processor(self, user):
-        # Holdover. We need to remove authorize.net from the frontend, then we can remove this.
+        # Holdover. We need to remove authorize.net from the frontend, then we can
+        # remove this.
         return STRIPE
 
     def validate(self, attrs):
@@ -719,7 +724,8 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             if relativedelta(date.today(), birthday).years < 18:
                 raise ValidationError(
                     {
-                        "rating": "You must be at least 18 years old to view adult content."
+                        "rating": "You must be at least 18 years old to view adult "
+                        "content."
                     }
                 )
         return attrs
@@ -797,7 +803,8 @@ class SessionSettingsSerializer(serializers.Serializer):
             if relativedelta(date.today(), birthday).years < 18:
                 raise ValidationError(
                     {
-                        "rating": "You must be at least 18 years old to view adult content."
+                        "rating": "You must be at least 18 years old to view adult "
+                        "content."
                     }
                 )
         return attrs
@@ -889,7 +896,8 @@ class ConversationManagementSerializer(RelatedAtomicMixin, serializers.ModelSeri
 
 
 class PasswordResetSerializer(serializers.ModelSerializer):
-    # Confirmation of new password should be done on client-side and refuse to send unless verified.
+    # Confirmation of new password should be done on client-side and refuse to send
+    # unless verified.
     new_password = serializers.CharField(
         write_only=True, validators=[validate_password]
     )
@@ -1096,10 +1104,11 @@ class EmailPreferencesSerializer(RelatedAtomicMixin, serializers.ModelSerializer
             )
             if field_name in field_names:
                 to_disambiguate |= {field_name}
-                revised_name = (
-                    field_name
-                    + f"__{str(declared_fields[field_name].instance.content_type.model).lower()}"
-                )
+
+                pref_name_base = str(
+                    declared_fields[field_name].instance.content_type.model
+                ).lower()
+                revised_name = field_name + f"__{pref_name_base}"
                 declared_fields[revised_name] = declared_fields[field_name]
                 del declared_fields[field_name]
                 field_names.remove(field_name)

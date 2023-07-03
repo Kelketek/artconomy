@@ -18,7 +18,10 @@ class Migration(migrations.Migration):
                 decimal_places=2,
                 default=None,
                 default_currency="USD",
-                help_text="Snapshotted amount after calculations have been completed and the relevant invoice is paid. This helps keep historical record in case the line item calculation algorithms change.",
+                help_text="Snapshotted amount after calculations have been completed "
+                "and the relevant invoice is paid. This helps keep "
+                "historical record in case the line item calculation "
+                "algorithms change.",
                 max_digits=6,
                 null=True,
             ),
@@ -291,7 +294,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),

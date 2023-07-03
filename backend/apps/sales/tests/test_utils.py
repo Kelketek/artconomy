@@ -26,7 +26,7 @@ from apps.sales.constants import (
     UNPROCESSED_EARNINGS,
     VOID,
 )
-from apps.sales.models import LineItem, LineItemSim, TransactionRecord
+from apps.sales.models import LineItem, TransactionRecord
 from apps.sales.tests.factories import (
     DeliverableFactory,
     InvoiceFactory,
@@ -246,7 +246,8 @@ class TestClaim(EnsurePlansMixin, TestCase):
 
 
 class TestAvailableProducts(EnsurePlansMixin, TestCase):
-    # Basic smoke tests. Can be expanded if stuff breaks, but most of this functionality is tested elsewhere.
+    # Basic smoke tests. Can be expanded if stuff breaks, but most of this functionality
+    # is tested elsewhere.
     def test_available_products(self):
         user = UserFactory.create()
         product = ProductFactory.create()
@@ -284,7 +285,8 @@ class TestFreezeLineItems(EnsurePlansMixin, TestCase):
                 cascade_amount=True,
                 priority=300,
                 invoice=invoice,
-                # Priority will be overwritten by post-save action if not explicitly set.
+                # Priority will be overwritten by post-save action if not explicitly
+                # set.
                 type=SHIELD,
             ),
         ]
@@ -529,7 +531,8 @@ class TestFromRemoteID(EnsurePlansMixin, TestCase):
         self.assertEqual(transactions, [])
         self.assertEqual(
             message,
-            "Unhandled charge status, pending for remote_ids ['1234', 'txn_1Icyh5AhlvPza3BKKv8oUs3e']",
+            "Unhandled charge status, pending for remote_ids "
+            "['1234', 'txn_1Icyh5AhlvPza3BKKv8oUs3e']",
         )
         post_success.assert_not_called()
         initiate_transactions.assert_not_called()

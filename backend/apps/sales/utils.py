@@ -1,7 +1,10 @@
 """
-The functions in this file are meant to mirror the functions in frontend/lib/lineItemFunctions. There's not a good way
-to ensure that they're both updated at the same time, but they should, hopefully, be easy enough to keep in sync.
-If enough code has to be repeated between the two bases it may be worth looking into a transpiler.
+The functions in this file are meant to mirror the functions in
+frontend/lib/lineItemFunctions. There's not a good way to ensure that they're both
+updated at the same time, but they should, hopefully, be easy enough to keep in sync.
+
+If enough code has to be repeated between the two bases it may be worth looking into a
+transpiler.
 """
 import json
 import logging
@@ -124,12 +127,12 @@ from stripe.error import InvalidRequestError
 
 if TYPE_CHECKING:  # pragma: no cover
     from apps.sales.models import (
-        CreditCardToken,
+        Product,
         Deliverable,
         Invoice,
         LineItem,
+        LineItemSim,
         Order,
-        Revision,
         ServicePlan,
         TransactionRecord,
     )
@@ -227,7 +230,8 @@ def product_ordering(qs, query=""):
                 default=1,
                 output_field=IntegerField(),
             )
-            # How can we make it distinct on id while making matches and tag_matches priority ordering?
+            # How can we make it distinct on id while making matches and tag_matches
+            # priority ordering?
         )
         .order_by("id", "matches", "tag_matches")
         .distinct("id")
@@ -244,7 +248,8 @@ def available_products(requester, query="", ordering=True):
         qs = Product.objects.filter(available=True)
     qs = qs.exclude(active=False)
     qs = qs.exclude(table_product=True)
-    # TODO: Recheck this for basic/free plan when we have orders that have been placed but they haven't upgraded.
+    # TODO: Recheck this for basic/free plan when we have orders that have been placed
+    # but they haven't upgraded.
     qs = qs.exclude(
         (
             Q(user__service_plan_paid_through__lte=timezone.now())
@@ -263,7 +268,10 @@ def available_products(requester, query="", ordering=True):
 
 
 def term_charge(deliverable: "Deliverable"):
-    """Add a deliverable's charge to a user's term invoice if applicable. WARNING: Does not save the deliverable."""
+    """
+    Add a deliverable's charge to a user's term invoice if applicable.
+    WARNING: Does not save the deliverable.
+    """
     from apps.sales.models import LineItem
 
     plan = deliverable.order.seller.service_plan
@@ -555,9 +563,10 @@ def finalize_deliverable(deliverable, user=None):
             finalize_table_fees(deliverable)
         initialize_tip_invoice(deliverable)
         notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
-    # Don't worry about whether it's time to withdraw or not. This will make sure that an attempt is made in case
-    # there's money to withdraw that hasn't been taken yet, and another process will try again if it settles later.
-    # It will also ignore if the seller has auto_withdraw disabled.
+    # Don't worry about whether it's time to withdraw or not. This will make sure that
+    # an attempt is made in case there's money to withdraw that hasn't been taken yet,
+    # and another process will try again if it settles later. It will also ignore if
+    # the seller has auto_withdraw disabled.
     withdraw_all.delay(deliverable.order.seller.id)
 
 
@@ -767,8 +776,9 @@ def issue_refund(
             except ValueError:  # pragma: no cover
                 raise ValueError("Invalid Stripe payment ID. Please contact support!")
             with stripe as stripe_api:
-                # Note: We will assume success here. If there is a refund failure we'll have to dive into it
-                # manually anyway and will find it during the accounting rounds.
+                # Note: We will assume success here. If there is a refund failure we'll
+                # have to dive into it manually anyway and will find it during the
+                # accounting rounds.
                 # TODO: Fix this.
                 remote_id = refund_payment_intent(
                     amount=amount, api=stripe_api, intent_token=intent_token
@@ -823,7 +833,8 @@ def ensure_buyer(order: "Order"):
 def update_order_payments(deliverable: "Deliverable"):
     """
     Find existing payment actions for an order, and sets the payer to the current buyer.
-    This is useful when a order was once created by a guest but later chowned over to a registered user.
+    This is useful when a order was once created by a guest but later chowned over to a
+    registered user.
     """
     from apps.sales.models import TransactionRecord
 
@@ -835,8 +846,10 @@ def update_order_payments(deliverable: "Deliverable"):
 
 
 def get_claim_token(order: "Order") -> Union[str, None]:
-    """Determines whether this order should have a claim token, and, if so, generates one if it does not exist,
-    after which it returns whatever claim token is available or None.
+    """
+    Determines whether this order should have a claim token, and, if so, generates one
+    if it does not exist, after which it returns whatever claim token is available or
+    None.
     """
     if order.buyer and order.buyer.guest:
         if not order.claim_token:
@@ -854,10 +867,11 @@ def default_deliverable(order: "Order") -> Union["Deliverable", None]:
 
 def get_view_name(deliverable: "Deliverable") -> str:
     """
-    Determines the most relevant view at any given time for a deliverable. For instance, if the deliverable is awaiting
-    payment, the payment view is the most relevant. Note that the string this returns is intended to be combined with
-    a prefix, so if this returns 'DeliverablePayment', then the view on the frontend might be 'OrderDeliverablePayment',
-    'SaleDeliverablePayment', or 'CaseDeliverablePayment'.
+    Determines the most relevant view at any given time for a deliverable. For instance,
+    if the deliverable is awaiting payment, the payment view is the most relevant. Note
+    that the string this returns is intended to be combined with a prefix, so if this
+    returns 'DeliverablePayment', then the view on the frontend might be
+    'OrderDeliverablePayment', 'SaleDeliverablePayment', or 'CaseDeliverablePayment'.
     """
     if deliverable.status in [IN_PROGRESS, QUEUED, REVIEW]:
         return "DeliverableRevisions"
@@ -1005,8 +1019,9 @@ def perform_charge(
     context: dict,
 ) -> Tuple[bool, List["TransactionRecord"], str]:
     """
-    Convenience function for web-facing charges. Takes a payment data dictionary and determines which kind of payment
-    is being submitted from the client, then routes the payment according to permissions and payment type.
+    Convenience function for web-facing charges. Takes a payment data dictionary and
+    determines which kind of payment is being submitted from the client, then routes the
+    payment according to permissions and payment type.
     """
     if attempt.get("cash", False) and (requesting_user.is_staff or not amount):
         return from_cash(
@@ -1046,17 +1061,17 @@ def from_cash(
     context: dict,
 ):
     """
-    Function for marking payment made via cash. This should only ever be invoked through permission checked staff
-    channels because we're essentially telling the system 'trust me, this has been paid for' and to just move the
-    transaction along.
+    Function for marking payment made via cash. This should only ever be invoked through
+    permission checked staffchannels because we're essentially telling the system
+    'trust me, this has been paid for' and to just move the transaction along.
     """
     transactions = initiate_transactions(attempt, amount, user, context)
-    for transaction in transactions:
-        transaction.status = SUCCESS
-        transaction.source = CASH_DEPOSIT
+    for record in transactions:
+        record.status = SUCCESS
+        record.source = CASH_DEPOSIT
     post_success(transactions, attempt, user, context)
-    for transaction in transactions:
-        transaction.save()
+    for record in transactions:
+        record.save()
     post_save(transactions, attempt, user, context)
     return True, transactions, ""
 
@@ -1077,15 +1092,19 @@ def from_remote_id(
     """
     # This may not work if charging via stripe terminal.
     # We'll be checking this elsewhere if the stripe event is provided.
-    details = {"auth_amount": attempt["amount"]}
-    # Bogus auth code so things don't break. Need to remove this eventually-- it's a holdover from Authorize.net.
+    {"auth_amount": attempt["amount"]}
+    # Bogus auth code so things don't break. Need to remove this eventually-- it's a
+    # holdover from Authorize.net.
     auth_code = "******"
     stripe_event = attempt["stripe_event"]
     remote_ids = [*remote_ids]
     if stripe_event["balance_transaction"]:
         remote_ids.append(stripe_event["balance_transaction"])
     if stripe_event["status"] not in ["succeeded", "failed"]:
-        error = f'Unhandled charge status, {stripe_event["status"]} for remote_ids {remote_ids}'
+        error = (
+            f'Unhandled charge status, {stripe_event["status"]} for remote_ids '
+            f"{remote_ids}"
+        )
         return (
             False,
             annotate_error(
@@ -1114,9 +1133,9 @@ def from_remote_id(
             ),
             error,
         )
-    # We don't support the 'pending' status because we don't record the transaction on our side until
-    # we actually run the charge-- earlier code should filter it out. Maybe we'll add it in the future,
-    # but it's not complexity we need right now.
+    # We don't support the 'pending' status because we don't record the transaction on
+    # our side until we actually run the charge-- earlier code should filter it out.
+    # Maybe we'll add it in the future, but it's not complexity we need right now.
     mark_successful(
         transactions=transactions,
         remote_ids=remote_ids,
@@ -1140,7 +1159,8 @@ def annotate_error(
     context: dict,
 ) -> List["TransactionRecord"]:
     """
-    Annotates a set of transactions with an error and then returns the appropriate status code.
+    Annotates a set of transactions with an error and then returns the appropriate
+    status code.
     """
     response_message = error
     for record in transactions:
@@ -1180,7 +1200,10 @@ def mark_successful(
 
 @ceiling_context
 def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
-    """Return a set of initialized transactions that mark what fees we paid to stripe for a card charge."""
+    """
+    Return a set of initialized transactions that mark what fees we paid to stripe
+    for a card charge.
+    """
     from apps.sales.models import TransactionRecord
 
     base_percentage = Decimal("0")
@@ -1209,8 +1232,8 @@ def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
 
 def get_subscription_invoice(user: User) -> "Invoice":
     """
-    This grabs an invoice for upgrading the user's service plan. This prevents us from having multiple
-    such invoices for a user.
+    This grabs an invoice for upgrading the user's service plan. This prevents us from
+    having multiple such invoices for a user.
     """
     from apps.sales.models import Invoice
 
@@ -1221,9 +1244,9 @@ def get_subscription_invoice(user: User) -> "Invoice":
 
 def get_term_invoice(user: User) -> "Invoice":
     """
-    This grabs the term invoice for a user. A term invoice handles all the monthly billing-- things
-    like tracking non-shielded transactions. This prevents us from having multiple
-    such invoices for a user.
+    This grabs the term invoice for a user. A term invoice handles all the monthly
+    billing-- things like tracking non-shielded transactions. This prevents us from
+    having multiple such invoices for a user.
     """
     from apps.sales.models import Invoice
 
@@ -1274,18 +1297,18 @@ def get_intent_card_token(user: User, card_id: Optional[str]):
 
 def default_pre_pay_callable(target: Model):
     """
-    We'll determine what the default callable for this model is. For the moment, we're storing this value
-    as a property on the model, but we may eventually want to create some sort of registry if we end up factoring
-    this out.
+    We'll determine what the default callable for this model is. For the moment, we're
+    storing this value as a property on the model, but we may eventually want to create
+    some sort of registry if we end up factoring this out.
     """
     return getattr(target, "pre_pay_hook", None)
 
 
 def default_post_pay_callable(target: Model):
     """
-    We'll determine what the default callable for this model is. For the moment, we're storing this value
-    as a property on the model, but we may eventually want to create some sort of registry if we end up factoring
-    this out.
+    We'll determine what the default callable for this model is. For the moment, we're
+    storing this value as a property on the model, but we may eventually want to create
+    some sort of registry if we end up factoring this out.
     """
     return getattr(target, "post_pay_hook", None)
 
@@ -1294,9 +1317,10 @@ def pre_pay_hook(
     *, billable: Union["Invoice", "LineItem"], target: Model, context: dict
 ) -> dict:
     """
-    Determine the appropriate preflight function call for a billable. These functions should always return a dictionary
-    which will be merged into the context given to the post_pay hooks. Care should be taken to avoid clobbering
-    where possible, as execution order is not guaranteed.
+    Determine the appropriate preflight function call for a billable. These functions
+    should always return a dictionary which will be merged into the context given to the
+    post_pay hooks. Care should be taken to avoid clobbering where possible, as
+    execution order is not guaranteed.
     """
     import_spec = context.get("__callable__", default_pre_pay_callable(target))
     if not import_spec:
@@ -1313,8 +1337,8 @@ def post_pay_hook(
     records: List["TransactionRecord"],
 ) -> List["TransactionRecord"]:
     """
-    Determine the appropriate function call for a billable. These functions should always return a list of
-    TransactionRecords.
+    Determine the appropriate function call for a billable. These functions should
+    always return a list of TransactionRecords.
     """
     import_spec = context.get("__callable__", default_post_pay_callable(target))
     if not import_spec:
@@ -1325,7 +1349,8 @@ def post_pay_hook(
 
 def paired_iterator(always: Any, iterator: Iterator):
     """
-    Generator function that always returns a tuple with the first value as it iterates over the second value.
+    Generator function that always returns a tuple with the first value as it iterates
+    over the second value.
     """
     for item in iterator:
         yield always, item
@@ -1342,8 +1367,8 @@ def invoice_post_save(
     """
     invoice = context["invoice"]
     invoice_ref = ref_for_instance(invoice)
-    for transaction in transactions:
-        transaction.targets.add(invoice_ref)
+    for record in transactions:
+        record.targets.add(invoice_ref)
 
 
 def invoice_initiate_transactions(
@@ -1416,7 +1441,8 @@ def post_payment_transaction_creator(invoice: "Invoice", context: dict):
 
 def freeze_line_items(invoice: "Invoice"):
     """
-    Freezes the calculated values of line items on an invoice so that they'll no longer be dynamically handled
+    Freezes the calculated values of line items on an invoice so that they'll no longer
+    be dynamically handled
     """
     line_items = list(invoice.line_items.all())
     _, __, results = get_totals(line_items)
@@ -1430,13 +1456,15 @@ def invoice_post_payment(
     invoice: "Invoice", context: dict
 ) -> List["TransactionRecord"]:
     """
-    Post-pay hook. This iterates through all targets and all targets on all line items, and then runs hooks for
-    each. Any asynchronous operations that should occur should be scheduled tasks that can verify finished state
-    and start afterwards. Otherwise, they might run with a DB that failed the transaction.
+    Post-pay hook. This iterates through all targets and all targets on all line items,
+    and then runs hooks for each. Any asynchronous operations that should occur should
+    be scheduled tasks that can verify finished state and start afterwards. Otherwise,
+    they might run with a DB that failed the transaction.
 
-    Note that a payment may be 'failed.' We still call the post-payment hooks as they may need to perform some task
-    like creating failed transaction records for reference. Payments that have failed will have successful=False in
-    the context dictionary.
+    Note that a payment may be 'failed.' We still call the post-payment hooks as they
+    may need to perform some task like creating failed transaction records for
+    reference. Payments that have failed will have successful=False in the context
+    dictionary.
     """
     from apps.sales.models import Invoice
     from apps.sales.tasks import withdraw_all
@@ -1454,7 +1482,8 @@ def invoice_post_payment(
     for billable, target in all_targets:
         if not target.target:  # pragma: no cover
             raise IntegrityError(
-                f"{target.__class__.__name__} for deleted item paid: #{invoice.id}, GenericReference {target.id}",
+                f"{target.__class__.__name__} for deleted item paid: #{invoice.id}, "
+                f"GenericReference {target.id}",
             )
         context.update(
             pre_pay_hook(
@@ -1476,7 +1505,8 @@ def invoice_post_payment(
         )
         if initial_records and not records:  # pragma: no cover
             raise RuntimeError(
-                "Failed to return records from post_pay hook. Aborting to avoid data loss!"
+                "Failed to return records from post_pay hook. Aborting to avoid data "
+                "loss!"
             )
     if context["successful"]:
         invoice.paid_on = timezone.now()
@@ -1484,8 +1514,8 @@ def invoice_post_payment(
         invoice.save()
         freeze_line_items(invoice)
         if invoice.issued_by:
-            # Make (pretty) sure we've closed out the transaction first. This won't work right in testing, of course,
-            # since celery is always eager.
+            # Make (pretty) sure we've closed out the transaction first. This won't work
+            # right in testing, of course, since celery is always eager.
             withdraw_all.apply_async((invoice.issued_by_id,), countdown=1)
     # Remove a user's delinquency status if they've paid off everything that is due.
     outstanding = Invoice.objects.filter(
@@ -1541,10 +1571,12 @@ def refund_deliverable(deliverable: "Deliverable", requesting_user=None) -> (boo
 
 def reverse_record(record: "TransactionRecord") -> (bool, "TransactionRecord"):
     """
-    Creates an inverse record from an existing record. Note: This does NOT perform any particular API
-    requests needed to support the reversal outside the system, such as refunding credit cards.
+    Creates an inverse record from an existing record. Note: This does NOT perform any
+    particular API requests needed to support the reversal outside the system, such as
+    refunding credit cards.
 
-    This function might be moved to utils if given a few more guards so it can be used safely, but since
+    This function might be moved to utils if given a few more guards so that it can be
+    used safely.
     """
     from apps.sales.models import TransactionRecord
 
@@ -1659,8 +1691,8 @@ def get_invoice_intent(invoice: "Invoice", payment_settings: PaymentIntentSettin
         raise ValidationError("Cannot create a payment intent for a zero invoice.")
     if use_terminal:
         # We set card here as well to prevent a transaction issue on Stripe's side where
-        # We can't unset the payment method at the same time as changing the payment method
-        # types to just card_present.
+        # We can't unset the payment method at the same time as changing the payment
+        # method types to just card_present.
         payment_method_types = ["card_present", "card"]
         capture_method = "manual"
         save_card = False
@@ -1681,8 +1713,9 @@ def get_invoice_intent(invoice: "Invoice", payment_settings: PaymentIntentSettin
             "amount": int(total.amount * total.currency.sub_unit),
             "currency": str(total.currency).lower(),
             "customer": invoice.bill_to.stripe_token or None,
-            # Note: If we expand the payment types, we may need to take into account that linking the
-            # charge_id to the source_transaction field of the payout transfer could cause problems. See:
+            # Note: If we expand the payment types, we may need to take into account
+            # that linking the charge_id to the source_transaction field of the payout
+            # transfer could cause problems. See:
             # https://stripe.com/docs/connect/charges-transfers#transfer-availability
             "payment_method_types": payment_method_types,
             "payment_method": stripe_token,
@@ -1713,7 +1746,8 @@ def get_invoice_intent(invoice: "Invoice", payment_settings: PaymentIntentSettin
 
 def update_downstream_pricing(user):
     """
-    Updates the pricing on all items a user has. Especially useful when performing plan switches.
+    Updates the pricing on all items a user has. Especially useful when performing plan
+    switches.
     """
     from apps.sales.models import Deliverable, update_user_availability
 

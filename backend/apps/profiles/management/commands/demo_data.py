@@ -1,5 +1,5 @@
 from apps.lib.abstract_models import MATURE
-from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
+from apps.profiles.models import IN_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import UserFactory
 from django.conf import settings
 from django.core.management.base import BaseCommand

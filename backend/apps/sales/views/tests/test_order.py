@@ -47,7 +47,6 @@ from apps.sales.tests.factories import (
     add_adjustment,
 )
 from apps.sales.tests.test_utils import TransactionCheckMixin
-from dateutil.relativedelta import relativedelta
 from ddt import data, ddt
 from django.contrib.contenttypes.models import ContentType
 from django.core import mail
@@ -142,7 +141,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(
             response.data["references"],
             [
-                "Either you do not have permission to use those assets for reference, those asset IDs are invalid, "
+                "Either you do not have permission to use those assets for reference, "
+                "those asset IDs are invalid, "
                 "or they have expired. Please try re-uploading."
             ],
         )
@@ -151,7 +151,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         self.login(user)
         product = ProductFactory.create(task_weight=5, expected_turnaround=3)
-        asset_ids = [AssetFactory.create().id for _ in range(1)]
+        [AssetFactory.create().id for _ in range(1)]
         response = self.client.post(
             "/api/sales/v1/account/{}/products/{}/order/".format(
                 product.user.username, product.id
@@ -166,7 +166,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(
             response.data["references"],
             [
-                "Either you do not have permission to use those assets for reference, those asset IDs are invalid, "
+                "Either you do not have permission to use those assets for reference, "
+                "those asset IDs are invalid, "
                 "or they have expired. Please try re-uploading."
             ],
         )
@@ -539,7 +540,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], deliverable.id)
@@ -549,7 +551,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__buyer=user)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["id"], deliverable.id)
@@ -559,7 +562,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create()
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -568,7 +572,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
@@ -578,7 +583,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": ADD_ON,
                 "amount": "2.03",
@@ -599,7 +605,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             order__seller=user, product__base_price=Money("15.00", "USD")
         )
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": ADD_ON,
                 "amount": "-14.50",
@@ -616,7 +623,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": ADD_ON,
                 "amount": "2.03",
@@ -635,7 +643,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             invoice=deliverable.invoice, type=TIP, amount=Money("5.00", "USD")
         )
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": BASE_PRICE,
                 "amount": "2.03",
@@ -658,7 +667,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             invoice=deliverable.invoice,
         )
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
             {
                 "amount": "15.00",
             },
@@ -674,7 +684,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(order__seller=user2, order__buyer=user)
         line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
             {
                 "amount": "15.00",
             },
@@ -687,7 +698,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user2)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": ADD_ON,
                 "amount": "2.03",
@@ -700,7 +712,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         user = UserFactory.create()
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": ADD_ON,
                 "amount": "2.03",
@@ -715,7 +728,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(staffer)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": ADD_ON,
                 "amount": "2.03",
@@ -735,7 +749,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(staffer)
         deliverable = DeliverableFactory.create(order__seller=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/",
             {
                 "type": EXTRA,
                 "amount": "2.03",
@@ -754,7 +769,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
             {
                 # Should be ignored.
                 "type": SHIELD,
@@ -770,7 +786,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.buyer)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
             {
                 # Should be ignored.
                 "type": SHIELD,
@@ -786,7 +803,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.seller)
         response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
             {
                 # Should be ignored.
                 "type": SHIELD,
@@ -802,7 +820,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.seller)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -814,7 +833,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         staff = UserFactory.create(is_staff=True)
         self.login(staff)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
@@ -823,7 +843,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         self.login(deliverable.order.buyer)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/line-items/{line_item.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/line-items/{line_item.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -832,7 +853,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.login(user)
         deliverable = DeliverableFactory.create(order__seller=user, status=QUEUED)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/cancel/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/cancel/",
             {"stream_link": "https://streaming.artconomy.com/"},
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -845,7 +867,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             deliverable=deliverable, revision=revision
         )
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
@@ -866,7 +889,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
             },
@@ -880,7 +904,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.status, IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
                 "rating": ADULT,
@@ -925,7 +950,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {"file": str(asset.id), "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -936,7 +962,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.auto_finalize_on, date(2012, 8, 6))
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
             },
@@ -956,7 +983,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {"file": str(asset.id), "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -979,7 +1007,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {"file": str(asset.id), "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -991,7 +1020,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.status, COMPLETED)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
             },
@@ -1009,7 +1039,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, IN_PROGRESS)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
@@ -1029,7 +1060,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
@@ -1047,7 +1079,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, IN_PROGRESS)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
@@ -1063,7 +1096,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         self.assertEqual(deliverable.status, IN_PROGRESS)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/complete/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/complete/"
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1082,7 +1116,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/reopen/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/reopen/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
@@ -1102,7 +1137,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/reopen/"
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/reopen/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         deliverable.refresh_from_db()
@@ -1115,7 +1151,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(order__buyer=user, status=IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
                 "rating": ADULT,
@@ -1129,7 +1166,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(status=IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
                 "rating": ADULT,
@@ -1146,7 +1184,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         asset = AssetFactory.create(uploaded_by=staffer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
             },
@@ -1168,7 +1207,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
             },
@@ -1178,7 +1218,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.status, IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
                 "rating": ADULT,
@@ -1189,7 +1230,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.status, IN_PROGRESS)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {"file": str(asset.id), "rating": ADULT, "final": True},
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -1197,7 +1239,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.status, REVIEW)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
             {
                 "file": str(asset.id),
                 "rating": ADULT,
@@ -1215,7 +1258,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         deliverable.refresh_from_db()
@@ -1229,7 +1273,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         )
         revision = RevisionFactory.create(deliverable=deliverable)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/",
         )
         deliverable.refresh_from_db()
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -1243,7 +1288,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(order__seller=user, status=order_status)
         revision = RevisionFactory.create(deliverable=deliverable)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1254,7 +1300,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1267,7 +1314,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1278,7 +1326,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
         deliverable.refresh_from_db()
@@ -1292,7 +1341,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         revision = RevisionFactory.create(deliverable=deliverable)
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         response = self.client.delete(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         deliverable.refresh_from_db()
@@ -1307,14 +1357,16 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.revision_set.all().count(), 1)
         self.login(deliverable.order.buyer)
         response = self.client.post(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/{revision.id}/approve/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/{revision.id}/approve/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         revision.refresh_from_db()
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(
             mail.outbox[0].subject,
-            f"Your WIP/Revision for Sale #{deliverable.order.id} [{deliverable.name}] has been approved!",
+            f"Your WIP/Revision for Sale #{deliverable.order.id} [{deliverable.name}] "
+            f"has been approved!",
         )
         self.assertEqual(revision.approved_on, timezone.now())
 
@@ -1325,7 +1377,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             order__buyer=user, revisions_hidden=True
         )
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1336,7 +1389,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             order__buyer=user, revisions_hidden=False
         )
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1347,7 +1401,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             order__seller=user, revisions_hidden=True
         )
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/revisions/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/revisions/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
@@ -1355,27 +1410,30 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         self.login(deliverable.order.buyer)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/rate/seller/",
         )
         self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_seller(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
-        line_item = LineItemFactory.create(invoice=deliverable.invoice)
+        LineItemFactory.create(invoice=deliverable.invoice)
         self.login(deliverable.order.seller)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/rate/buyer/",
         )
         self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_order_get_rating_staff_buyer_end(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
-        line_item = LineItemFactory.create(invoice=deliverable.invoice)
+        LineItemFactory.create(invoice=deliverable.invoice)
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/buyer/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/rate/buyer/",
         )
         self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1384,7 +1442,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         self.login(UserFactory.create(is_staff=True))
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/rate/seller/",
         )
         self.assertIsNone(response.data["stars"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1393,14 +1452,16 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         self.login(UserFactory.create())
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/rate/seller/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_order_get_rating_not_logged_in(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/rate/seller/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/rate/seller/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -1455,7 +1516,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product = ProductFactory.create()
         self.login(user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/order/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/order/",
             {
                 "details": "Draw me some porn!",
                 "rating": ADULT,
@@ -1475,7 +1537,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         product.user.blocking.add(user)
         self.login(user)
         response = self.client.post(
-            f"/api/sales/v1/account/{product.user.username}/products/{product.id}/order/",
+            f"/api/sales/v1/account/{product.user.username}/products/"
+            f"{product.id}/order/",
             {
                 "details": "Draw me some porn!",
                 "rating": ADULT,
@@ -1515,7 +1578,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.characters.add(character)
         self.login(deliverable.order.buyer)
         response = self.client.get(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/characters/",
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/characters/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data[0]["character"]["id"], character.id)

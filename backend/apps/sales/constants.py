@@ -108,7 +108,8 @@ CANCELLED = 6
 DISPUTED = 7
 COMPLETED = 8
 REFUNDED = 9
-# Order was placed, but user doesn't have access to it because they've hit their plan max.
+# Order was placed, but user doesn't have access to it because they've hit their plan
+# max.
 LIMBO = 10
 # Like cancelled, but for those orders which never made it out of limbo.
 MISSED = 11
@@ -186,15 +187,16 @@ CARD = 300
 BANK = 301
 ESCROW = 302
 HOLDINGS = 303
-# DEPRECATED: This used to be true and is no longer so. We now determine at the time of payment whether the
-# amount to be taken is more or less due to landscape service.
-# OLD NOTE, NO LONGER CORRECT: All fees put the difference for premium bonus into reserve until an order is
-# complete. When complete, these amounts are deposited into either the cash account of Artconomy, or added to the
-# user's holdings.
+# DEPRECATED: This used to be true and is no longer so. We now determine at the time of
+# payment whether the amount to be taken is more or less due to landscape service.
+# OLD NOTE, NO LONGER CORRECT: All fees put the difference for premium bonus into
+# reserve until an order is complete. When complete, these amounts are deposited into
+# either the cash account of Artconomy, or added to the user's holdings.
 RESERVE = 304
 # Earnings for which we have not yet subtracted card/bank transfer fees.
 UNPROCESSED_EARNINGS = 305
-# These two fee types will be used to keep track of fees that have been paid out to card processors.
+# These two fee types will be used to keep track of fees that have been paid out to card
+# processors.
 CARD_TRANSACTION_FEES = 306
 CARD_MISC_FEES = 307
 
@@ -212,14 +214,14 @@ MONEY_HOLE = 311
 # For when a customer gives us cash, like at an event.
 CASH_DEPOSIT = 407
 
-# These next accounts are used to generate reports about what money was actually deposited into the payee's currency
-# for tax purposes.
+# These next accounts are used to generate reports about what money was actually
+# deposited into the payee's currency for tax purposes.
 
-# The balance of this account will always be negative (or zero) and potentially incalculable because the currency
-# could vary.
+# The balance of this account will always be negative (or zero) and potentially
+# incalculable because the currency could vary.
 PAYOUT_MIRROR_SOURCE = 500
-# The balance of this account will always be positive (or zero) and potentially incalculable because the currency
-# could vary.
+# The balance of this account will always be positive (or zero) and potentially
+# incalculable because the currency could vary.
 PAYOUT_MIRROR_DESTINATION = 501
 
 ACCOUNT_TYPES = (
@@ -262,15 +264,17 @@ CORRECTION = 412
 # For fees levied at conventions
 TABLE_HANDLING = 413
 TAXES = 414
-# For things like inventory items sold at tables alongside the commission, like a pop socket.
+# For things like inventory items sold at tables alongside the commission, like a pop
+# socket.
 EXTRA_ITEM = 415
-# For times when we're manually sending money to others-- such as cases where we don't yet have code to manage
-# something, but we need to be able to pay using Dwolla.
+# For times when we're manually sending money to others-- such as cases where we don't
+# yet have code to manage something, but we need to be able to pay using Dwolla.
 MANUAL_PAYOUT = 416
 PAYOUT_REVERSAL = 417
 # Used on items where we collect a slight processing fee, but not shield-level.
 PROCESSING_FEE = 418
-# For tips. Given a slightly different name to make sure it's a distinct value from the TIP and TIPPING consts.
+# For tips. Given a slightly different name to make sure it's a distinct value from the
+# TIP and TIPPING consts.
 TIP_SEND = 419
 
 CATEGORIES = (

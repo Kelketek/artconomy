@@ -190,9 +190,9 @@ class CoveredParallelTestSuite(ParallelTestSuite):
                 # Exhaust the generator, ensuring each process ran its part.
                 pass
             pool.close()
-        # Super uses pool.join, but this has failed ever since UserMatchesMixin got ddt and data added to it.
-        # unclear why, but .terminate doesn't seem to have any bad consequences for our use case, so we use that
-        # instead.
+        # Super uses pool.join, but this has failed ever since UserMatchesMixin got ddt
+        # and data added to it. unclear why, but .terminate doesn't seem to have any
+        # bad consequences for our use case, so we use that instead.
         pool.terminate()
 
         return result
@@ -253,7 +253,8 @@ class NPMBuildTestRunner(DiscoverRunner):
             execution_time = time.time() - self.method_start_time
             time_reports.put(
                 (
-                    f"{self.__class__.__module__}.{self.__class__.__name__}.{self._testMethodName}",
+                    f"{self.__class__.__module__}.{self.__class__.__name__}."
+                    f"{self._testMethodName}",
                     execution_time,
                 )
             )
@@ -348,7 +349,8 @@ class NPMBuildTestRunner(DiscoverRunner):
             "--max-time",
             type=float,
             dest="max_time",
-            help="Tests that take longer than this many seconds are marked red. Default: 3.5",
+            help="Tests that take longer than this many seconds are marked red. "
+            "Default: 3.5",
             default=3.5,
         )
 
@@ -417,7 +419,8 @@ class PermissionsTestCase(APITestCase):
             raise
         if fails:
             raise AssertionError(
-                f"Permission check passed when it should not have! {request.method} - {self.user.label}",
+                f"Permission check passed when it should not have! {request.method} - "
+                f"{self.user.label}",
             )
 
     def mod_request(self, request):
@@ -426,8 +429,8 @@ class PermissionsTestCase(APITestCase):
     # noinspection PyMethodMayBeStatic
     def get_object(self):
         """
-        Override this if you need to change what object is returned by get_object on the target when doing the
-        permissions run check.
+        Override this if you need to change what object is returned by get_object on the
+        target when doing the permissions run check.
         :return:
         """
         return Mock()
@@ -436,7 +439,8 @@ class PermissionsTestCase(APITestCase):
     def test_ran_permissions_check(self, method):
         """
         Verify that the view calls check_object_permissions. The catch with this is that
-        each view verified by this test will need to run the permissions check in the relevant method.
+        each view verified by this test will need to run the permissions check in the
+        relevant method.
         """
         if not hasattr(self.view, method):
             # No implementation for this method.
@@ -464,8 +468,8 @@ class PermissionsTestCase(APITestCase):
 # noinspection PyUnresolvedReferences
 @ddt
 class MethodAccessMixin:
-    # Everyone fails by default. You must explicitly define who passes by setting the user's username
-    # in the relevant list.
+    # Everyone fails by default. You must explicitly define who passes by setting the
+    # user's username in the relevant list.
     passes = {"get": [], "post": [], "patch": [], "delete": [], "put": []}
 
     @data("get", "post", "patch", "delete", "put")

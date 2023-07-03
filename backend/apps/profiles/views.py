@@ -216,8 +216,9 @@ class Register(CreateAPIView):
         referrer = self.request.META.get("HTTP_X_REFERRED_BY", None)
         if referrer:
             instance.referred_by = User.objects.filter(username=referrer).first()
-        # Specific fields here since other background operations may be happening in the interim.
-        # Most relevant during dev since celery is always eager and doesn't refresh the current object.
+        # Specific fields here since other background operations may be happening in the
+        # interim. Most relevant during dev since celery is always eager and doesn't
+        # refresh the current object.
         instance.save(
             update_fields=[
                 "offered_mailchimp",
@@ -410,8 +411,8 @@ class CharacterListAPI(ListCreateAPIView):
             )
         if user.characters.all().count() >= settings.MAX_CHARACTER_COUNT:
             raise PermissionDenied(
-                "You have reached your maximum number of characters. Please contact support "
-                "if you believe your quota should be increased."
+                "You have reached your maximum number of characters. Please contact "
+                "support if you believe your quota should be increased."
             )
         if user.characters.filter(name=serializer.validated_data["name"]):
             raise ValidationError(
@@ -1282,8 +1283,9 @@ def handle_login(request, user, token):
         if not device:
             return (
                 "",
-                "That Verification code is either invalid or expired. Please try again. If you've lost your"
-                " 2FA device, please contact support@artconomy.com",
+                "That Verification code is either invalid or expired. Please try "
+                "again. If you've lost your 2FA device, please contact "
+                "support@artconomy.com",
             )
 
     # If the account is valid and active, we can log the user in.
@@ -1373,8 +1375,9 @@ class SubmissionList(ListCreateAPIView):
 
 class FilteredSubmissionList(ListAPIView):
     """
-    Shows all items which are uploaded by the user but in which they are not tagged as the artist.
-    The creation function for this list is actually handled by GalleryList, since they are so similar.
+    Shows all items which are uploaded by the user but in which they are not tagged as
+    the artist. The creation function for this list is actually handled by GalleryList,
+    since they are so similar.
     """
 
     serializer_class = SubmissionSerializer
@@ -1392,8 +1395,9 @@ class RawArtistSubmissionList(FilteredSubmissionList):
 
 class CollectionManagementList(ListAPIView):
     """
-    Shows all items which are uploaded by the user but in which they are not tagged as the artist.
-    The creation function for this list is actually handled by GalleryList, since they are so similar.
+    Shows all items which are uploaded by the user but in which they are not tagged as
+    the artist. The creation function for this list is actually handled by GalleryList,
+    since they are so similar.
     """
 
     serializer_class = SubmissionSerializer
@@ -1407,7 +1411,8 @@ class CollectionManagementList(ListAPIView):
 
 class ArtRelationList(ListAPIView):
     """
-    Gets all submissions for which the user is marked as an artist via the through table.
+    Gets all submissions for which the user is marked as an artist via the through
+    table.
     """
 
     serializer_class = ArtistTagSerializer
@@ -1665,8 +1670,8 @@ class ConversationManager(RetrieveUpdateDestroyAPIView):
             participants__username=self.request.subject.username,
         )
         self.check_object_permissions(self.request, message)
-        # Leave this as request.user instead of request.subject, since we don't want a superuser
-        # triggering read markers.
+        # Leave this as request.user instead of request.subject, since we don't want a
+        # superuser triggering read markers.
         return message
 
     def get(self, *args, **kwargs):
@@ -1723,14 +1728,16 @@ class StartPasswordReset(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                     data={
                         "email": [
-                            "We could not find this username or email address in our records. Please contact support."
+                            "We could not find this username or email address in our "
+                            "records. Please contact support."
                         ]
                     },
                 )
         if user_has_device(user):
             raise PermissionDenied(
-                "This account is protected by two factor authentication. Please email support@artconomy.com or hit "
-                "the support button on the sidebar if you are having trouble logging in."
+                "This account is protected by two factor authentication. Please email "
+                "support@artconomy.com or hit the support button on the sidebar if you "
+                "are having trouble logging in."
             )
 
         user.reset_token = uuid.uuid4()
@@ -1777,7 +1784,8 @@ class PasswordReset(GenericAPIView):
         except User.DoesNotExist:
             raise ValidationError(
                 {
-                    "detail": "This user does not exist or the token has expired. Please request a new reset link."
+                    "detail": "This user does not exist or the token has expired. "
+                    "Please request a new reset link."
                 }
             )
         return user

@@ -156,7 +156,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -305,7 +306,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),

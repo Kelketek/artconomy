@@ -17,7 +17,6 @@ from apps.profiles.models import IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     BASE_PRICE,
-    BONUS,
     CANCELLED,
     COMPLETED,
     DELIVERABLE_TRACKING,
@@ -170,11 +169,13 @@ class TestProduct(EnsurePlansMixin, TestCase):
         product.user.artist_profile.save()
         self.assertTrue(
             product.preview_description.startswith(prefix),
-            msg=f"{repr(product.preview_description)} does not start with {repr(prefix)}.",
+            msg=f"{repr(product.preview_description)} does not start with "
+            f"{repr(prefix)}.",
         )
         self.assertTrue(
             product.preview_description.endswith("Test Test Test"),
-            msg=f"{repr(product.preview_description)} does not end with 'Test Test Test'.",
+            msg=f"{repr(product.preview_description)} does not end with 'Test Test "
+            f"Test'.",
         )
 
     def test_preview_link(self):
@@ -198,13 +199,15 @@ class TestTransactionRecord(EnsurePlansMixin, TestCase):
         )
         self.assertEqual(
             str(record),
-            "Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for None",
+            "Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick "
+            "[Escrow] for None",
         )
         submission = SubmissionFactory.create()
         record.targets.add(ref_for_instance(submission))
         self.assertEqual(
             str(record),
-            f"Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick [Escrow] for {submission}",
+            f"Successful [Escrow hold]: $10.00 from Dude [Credit Card] to Chick "
+            f"[Escrow] for {submission}",
         )
         record.targets.add(ref_for_instance(SubmissionFactory.create()))
         self.assertEqual(
@@ -306,8 +309,10 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
                     "claimToken": "y1zGvlKfTnmA",
                     "orderId": deliverable.order.id,
                     "deliverableId": deliverable.id,
-                    "next": f"%7B%22name%22%3A%20%22OrderDeliverableOverview%22%2C%20%22params%22%3A%20"
-                    f"%7B%22username%22%3A%20%22_%22%2C%20%22orderId%22%3A%20{deliverable.order.id}"
+                    "next": f"%7B%22name%22%3A%20%22OrderDeliverableOverview%22%2C%20%2"
+                    f"2params%22%3A%20"
+                    f"%7B%22username%22%3A%20%22_%22%2C%20%22orderId%22%3A%20"
+                    f"{deliverable.order.id}"
                     f"%2C%20%22deliverableId%22%3A%20{deliverable.id}%7D%7D",
                 },
             },
@@ -556,7 +561,8 @@ class TestRevision(EnsurePlansMixin, TestCase):
         revision = RevisionFactory.create()
         self.assertEqual(
             str(revision),
-            f"Revision {revision.id} for Deliverable object ({revision.deliverable.id})",
+            f"Revision {revision.id} for Deliverable object "
+            f"({revision.deliverable.id})",
         )
 
     def test_notification_name(self):
@@ -564,7 +570,8 @@ class TestRevision(EnsurePlansMixin, TestCase):
         context = {"request": FakeRequest(user=revision.deliverable.order.buyer)}
         self.assertEqual(
             revision.notification_name(context),
-            f"Revision ID #{revision.id} on Order #{revision.deliverable.order.id} [{revision.deliverable.name}]",
+            f"Revision ID #{revision.id} on Order #{revision.deliverable.order.id} "
+            f"[{revision.deliverable.name}]",
         )
 
     def test_notification_display(self):
@@ -659,9 +666,7 @@ class TestLoadAdjustment(EnsurePlansMixin, TestCase):
         self.assertEqual(user.artist_profile.load, 10)
         self.assertTrue(user.artist_profile.commissions_disabled)
         self.assertFalse(user.artist_profile.commissions_closed)
-        order2 = DeliverableFactory.create(
-            task_weight=5, status=NEW, order__seller=user
-        )
+        DeliverableFactory.create(task_weight=5, status=NEW, order__seller=user)
         user.refresh_from_db()
         # Now we have an order in a new state. This shouldn't undo the disability.
         self.assertEqual(user.artist_profile.load, 10)
@@ -670,8 +675,9 @@ class TestLoadAdjustment(EnsurePlansMixin, TestCase):
         order.status = COMPLETED
         order.save()
         user.refresh_from_db()
-        # We have reduced the load, but never took care of the new order. This used to result in commissions being
-        # disabled, but we've removed that functionality and they should be open now.
+        # We have reduced the load, but never took care of the new order. This used to
+        # result in commissions being disabled, but we've removed that functionality
+        # and they should be open now.
         self.assertEqual(user.artist_profile.load, 5)
         self.assertFalse(user.artist_profile.commissions_disabled)
         self.assertFalse(user.artist_profile.commissions_closed)
@@ -785,8 +791,10 @@ class TestInvoice(EnsurePlansMixin, TestCase):
         invoice = InvoiceFactory.create()
         self.assertEqual(
             str(invoice),
-            # Not sure why the money library adds this weird padding, but it's their bug, not mine.
-            f"Invoice {invoice.id} [Sale] for {invoice.bill_to.username} in the amount of $\xa00.00",
+            # Not sure why the money library adds this weird padding, but it's their
+            # bug, not mine.
+            f"Invoice {invoice.id} [Sale] for {invoice.bill_to.username} in the amount "
+            f"of $\xa00.00",
         )
 
     def test_string_deliverable(self):
@@ -795,7 +803,8 @@ class TestInvoice(EnsurePlansMixin, TestCase):
         )
         self.assertEqual(
             str(deliverable.invoice),
-            f"Invoice {deliverable.invoice.id} [Sale] for {deliverable.invoice.bill_to.username} in the amount of "
+            f"Invoice {deliverable.invoice.id} [Sale] for "
+            f"{deliverable.invoice.bill_to.username} in the amount of "
             f"$15.00 for deliverable: Deliverable object ({deliverable.id})",
         )
 
@@ -848,7 +857,8 @@ class TestReference(EnsurePlansMixin, TestCase):
         }
         self.assertEqual(
             reference.notification_name(context),
-            f"Reference ID #{reference.id} for Sale #{deliverable.order.id} [{deliverable.name}]",
+            f"Reference ID #{reference.id} for Sale #{deliverable.order.id} "
+            f"[{deliverable.name}]",
         )
 
     def test_notification_link(self):

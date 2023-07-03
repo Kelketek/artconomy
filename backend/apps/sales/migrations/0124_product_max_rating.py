@@ -22,7 +22,8 @@ class Migration(migrations.Migration):
                 ],
                 db_index=True,
                 default=0,
-                help_text="The maximum content rating you will support for this product.",
+                help_text="The maximum content rating you will support for this "
+                "product.",
             ),
         ),
     ]

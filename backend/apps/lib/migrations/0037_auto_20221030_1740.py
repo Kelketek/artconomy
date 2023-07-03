@@ -12,7 +12,8 @@ class Migration(migrations.Migration):
         # Need this to convert over to our new fork of Django-hitcount
         migrations.RunSQL(
             """
-            ALTER TABLE hitcount_hit_count ALTER COLUMN object_pk SET DATA TYPE integer USING object_pk::integer;
+            ALTER TABLE hitcount_hit_count ALTER COLUMN object_pk SET DATA TYPE 
+            integer USING object_pk::integer;
             """
         )
     ]

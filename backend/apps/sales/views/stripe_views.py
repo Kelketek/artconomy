@@ -33,10 +33,11 @@ from stripe.error import InvalidRequestError
 def create_account(*, user: User, country: str):
     """
     Create a stripe account for a user.
-    Note: The account might already exist and be the wrong country code. In this case we need to delete the existing
-    account.
+    Note: The account might already exist and be the wrong country code. In this case we
+    need to delete the existing account.
 
-    But in doing so, we'll need to start a new transaction to begin again, so we call this function one more time.
+    But in doing so, we'll need to start a new transaction to begin again, so we call
+    this function one more time.
     """
     restart = False
     with transaction.atomic(), stripe as api:
@@ -98,10 +99,11 @@ class StripeAccountLink(GenericAPIView):
 
 class StripeAccounts(ListAPIView):
     """
-    StripeAccount is actually one-to-one, but we want to subscribe to this object being created, so we're piggy-backing
-    on list creation for our websockets' sake.
+    StripeAccount is actually one-to-one, but we want to subscribe to this object being
+    created, so we're piggy-backing on list creation for our websockets' sake.
 
-    If we have many more singletons like this, it will be worth making a new websocket command.
+    If we have many more singletons like this, it will be worth making a new websocket
+    command.
     """
 
     permission_classes = [UserControls]
@@ -127,8 +129,8 @@ class PremiumPaymentIntent(APIView):
     """
     Create payment intent for upgrading to a premium service.
 
-    We could just make an endpoint that only creates the invoice, but doing so means significantly
-    complicating the frontend code.
+    We could just make an endpoint that only creates the invoice, but doing so means
+    significantly complicating the frontend code.
     """
 
     permission_classes = [IsRegistered]
@@ -248,8 +250,8 @@ class ProcessPresentCard(APIView):
                     return Response(
                         status=status.HTTP_400_BAD_REQUEST,
                         data={
-                            "detail": "Could not reach the card reader. Make sure it is on and connected "
-                            "to the Internet."
+                            "detail": "Could not reach the card reader. Make sure it "
+                                      "is on and connected to the Internet."
                         },
                     )
                 else:

@@ -1,5 +1,5 @@
 from apps.lib.models import Asset, Tag
-from factory import Sequence, SubFactory
+from factory import Sequence
 from factory.django import DjangoModelFactory, ImageField
 
 

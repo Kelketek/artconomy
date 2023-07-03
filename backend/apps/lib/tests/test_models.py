@@ -11,7 +11,7 @@ from apps.lib.utils import (
 )
 from apps.profiles.models import User
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
-from apps.sales.tests.factories import ProductFactory, ReferenceFactory, RevisionFactory
+from apps.sales.tests.factories import ReferenceFactory, RevisionFactory
 from django.test import TestCase
 from rest_framework import status
 
@@ -106,10 +106,10 @@ class TestAsset(EnsurePlansMixin, TestCase):
         submission = SubmissionFactory.create(file=asset)
         self.assertTrue(asset.can_reference(FakeRequest(submission.owner)))
 
-    # If CELERY_ALWAYS_EAGER is enabled, the cleanup function is skipped, because it would
-    # immediately delete any asset uploaded before you can use it. For this test case, we can't
-    # just override settings. We have to patch the settings object to keep CELERY_ALWAYS_EAGER true
-    # while reporting it false for the function tested.
+    # If CELERY_ALWAYS_EAGER is enabled, the cleanup function is skipped, because it
+    # would immediately delete any asset uploaded before you can use it. For this test
+    # case, we can't just override settings. We have to patch the settings object to
+    # keep CELERY_ALWAYS_EAGER true while reporting it false for the function tested.
     @patch("apps.lib.tasks.settings")
     def test_cleanup(self, mock_settings):
         mock_settings.CELERY_ALWAYS_EAGER = False

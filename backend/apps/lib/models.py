@@ -201,12 +201,16 @@ EVENT_TYPES = (
 EMAIL_SUBJECTS = {
     COMMISSIONS_OPEN: "Commissions are open for {{ target.username }}!",
     ORDER_UPDATE: "Order #{{ target.order.id}} [{{target.name}}] has been updated!",
-    REVISION_UPLOADED: "New revision for order #{{ target.order.id }} [{{target.name}}]!",
-    REFERENCE_UPLOADED: "New reference for order #{{ target.order.id }} [{{target.name}}]!",
-    SALE_UPDATE: "{% if target.status == 1 %}New Sale!{% elif target.status == 11 %}Your sale was cancelled.{% else %}Sale #{{ target.order.id }} [{{target.name}}] has been updated!{% endif %}"
-    " #{{target.id}}",
+    REVISION_UPLOADED: "New revision for order #{{ target.order.id }} "
+    "[{{target.name}}]!",
+    REFERENCE_UPLOADED: "New reference for order #{{ target.order.id }} "
+    "[{{target.name}}]!",
+    SALE_UPDATE: "{% if target.status == 1 %}New Sale!{% elif target.status == 11 %}"
+    "Your sale was cancelled.{% else %}Sale #{{ target.order.id }} "
+    "[{{target.name}}] has been updated!{% endif %} #{{target.id}}",
     REFUND: "A refund was issued for Order #{{ target.order.id }} [{{target.name}}]",
-    COMMENT: "{% if data.subject %}{{ data.subject }}{% else %}New comment on {{ data.name }}{% endif %}",
+    COMMENT: "{% if data.subject %}{{ data.subject }}{% else %}New comment on "
+    "{{ data.name }}{% endif %}",
     RENEWAL_FAILURE: "Issue with your subscription",
     SUBSCRIPTION_DEACTIVATED: "Your subscription has been deactivated.",
     RENEWAL_FIXED: "Subscription renewed successfully",
@@ -214,7 +218,9 @@ EMAIL_SUBJECTS = {
     REFERRAL_LANDSCAPE_CREDIT: "One of your referrals just made a sale!",
     WAITLIST_UPDATED: "A new order has been added to your waitlist!",
     AUTO_CLOSED: "Your commissions have been automatically closed.",
-    REVISION_APPROVED: "Your WIP/Revision for Sale #{{ raw_target.deliverable.order.id }} [{{raw_target.deliverable.name}}] has been approved!",
+    REVISION_APPROVED: "Your WIP/Revision for Sale "
+    "#{{ raw_target.deliverable.order.id }} "
+    "[{{raw_target.deliverable.name}}] has been approved!",
 }
 
 
@@ -356,7 +362,8 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
         from apps.lib.utils import mark_modified, mark_read, notify
 
         primary_target = instance.content_object
-        # Notify who is subscribed to the parent comment or the top level if there isn't one.
+        # Notify who is subscribed to the parent comment or the top level if there isn't
+        # one.
         notify(
             COMMENT,
             primary_target,
@@ -374,7 +381,8 @@ def auto_subscribe_thread(sender, instance, created=False, **_kwargs):
             ),
         )
         mark_read(obj=instance.top, user=instance.user)
-        # Notify whoever is subscribed to top level, if that's not what we already notified.
+        # Notify whoever is subscribed to top level, if that's not what we already
+        # notified.
         target = instance
         while isinstance(target, Comment) and target.content_object:
             target = target.content_object
@@ -405,7 +413,8 @@ def generate_thumbnails_async(sender, fieldfile, **kwargs):
     )
 
 
-# Additional signal for comment in utils, pre_save, since it would be recursive otherwise.
+# Additional signal for comment in utils, pre_save, since it would be recursive
+# otherwise.
 
 
 class Asset(Model):

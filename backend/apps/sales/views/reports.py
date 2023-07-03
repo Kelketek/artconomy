@@ -66,7 +66,7 @@ class CustomerHoldingsCSV(ListAPIView):
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
-        response["Content-Disposition"] = f"attachment; filename=holdings.csv"
+        response["Content-Disposition"] = "attachment; filename=holdings.csv"
         return response
 
 

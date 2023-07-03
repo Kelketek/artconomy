@@ -34,7 +34,8 @@ SA = sync_to_async
 
 def send_new(model: Type[Model], instance: Model):
     """
-    Constructs and sends a 'created' message to send out for a new instance to relevant lists.
+    Constructs and sends a 'created' message to send out for a new instance to relevant
+    lists.
     """
     layer = get_channel_layer()
     app_label = model._meta.app_label
@@ -43,9 +44,10 @@ def send_new(model: Type[Model], instance: Model):
         return
     channels = instance.announce_channels()
     for serializer_name in [key for key in model.watch_permissions.keys() if key]:
-        # Not great that we're in nested for loops here, but in practice we shouldn't have that many entries.
-        # Might find a way to optimize this if it ends up causing performance problems. It probably won't since
-        # most won't have listeners.
+        # Not great that we're in nested for loops here, but in practice we shouldn't
+        # have that many entries. Might find a way to optimize this if it ends up
+        # causing performance problems. It probably won't since most won't have
+        # listeners.
         for channel in channels:
             group_name = f"{channel}.{serializer_name}"
             async_to_sync(layer.group_send)(
@@ -110,8 +112,9 @@ def send_deleted(model, instance, pk=None):
 
 def update_websocket(model):
     """
-    Used to connect a model to broadcast out changes when updates are made. Attach a signal to have the instance run
-    through the specified serializers and broadcasted to the listening clients.
+    Used to connect a model to broadcast out changes when updates are made. Attach a
+    signal to have the instance run through the specified serializers and broadcasted
+    to the listening clients.
     """
 
     def update_broadcaster(instance: Model, created=False, **kwargs):
@@ -243,9 +246,11 @@ async def can_watch(
     *, user: User, instance: Type[Model], serializer_name: Optional[str]
 ):
     """
-    Runs a permissions check on a model to see if the listening user can watch it or not.
+    Runs a permissions check on a model to see if the listening user can watch it or
+    not.
     """
-    # If we don't have a registered serializer for this model with the given name, then we can't listen for changes.
+    # If we don't have a registered serializer for this model with the given name, then
+    # we can't listen for changes.
     if serializer_name is not None and not BROADCAST_SERIALIZERS.get(
         instance.__class__, {}
     ).get(serializer_name):
@@ -473,7 +478,8 @@ class EventConsumer(AsyncJsonWebsocketConsumer):
 
     async def update_model(self, event):
         """
-        Used when a model is updated and its serialized data needs to be pushed outward to listening clients.
+        Used when a model is updated and its serialized data needs to be pushed outward
+        to listening clients.
         """
         contents = event["contents"]
         model = apps.get_model(contents["app_label"], contents["model_name"])
@@ -490,7 +496,8 @@ class EventConsumer(AsyncJsonWebsocketConsumer):
         )
         await self.send_json(
             {
-                "command": f'{contents["app_label"]}.{contents["model_name"]}.update.{contents["serializer"]}.{contents["pk"]}',
+                "command": f'{contents["app_label"]}.{contents["model_name"]}.update.'
+                f'{contents["serializer"]}.{contents["pk"]}',
                 "payload": data,
                 "exclude": event.get("exclude", []),
             },
@@ -498,12 +505,14 @@ class EventConsumer(AsyncJsonWebsocketConsumer):
 
     async def delete_model(self, event):
         """
-        Used when a model is updated and its serialized data needs to be pushed outward to listening clients.
+        Used when a model is updated and its serialized data needs to be pushed outward
+        to listening clients.
         """
         contents = event["contents"]
         await self.send_json(
             {
-                "command": f'{contents["app_label"]}.{contents["model_name"]}.delete.{contents["pk"]}',
+                "command": f'{contents["app_label"]}.{contents["model_name"]}.delete.'
+                f'{contents["pk"]}',
                 "payload": {},
                 "exclude": event.get("exclude", []),
             },

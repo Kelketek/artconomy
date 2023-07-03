@@ -118,7 +118,10 @@ class RevisionsVisible(BasePermission):
 
 
 class BankingConfigured(BasePermission):
-    message = "You must have your banking settings configured before you can issue an invoice."
+    message = (
+        "You must have your banking settings configured before you can issue an "
+        "invoice."
+    )
 
     def has_object_permission(self, request, view, obj):
         return obj.artist_profile.bank_account_status is not UNSET
@@ -158,10 +161,14 @@ class OrderTimeUpPermission(BasePermission):
         if obj.dispute_available_on and (
             obj.dispute_available_on > timezone.now().date()
         ):
-            self.message = f"This order is not old enough to dispute. You can dispute it on {obj.dispute_available_on}."
+            self.message = (
+                "This order is not old enough to dispute. You can dispute it on "
+                f"{obj.dispute_available_on}."
+            )
             return False
         if not obj.dispute_available_on:  # pragma: no cover
-            # Should never happen, because if this is a disputable status, this timestamp should be set.
+            # Should never happen, because if this is a disputable status, this
+            # timestamp should be set.
             return False
         return True
 
@@ -185,7 +192,10 @@ def LineItemTypePermission(
 
 
 class DeliverableNoProduct(BasePermission):
-    message = "You may only perform this action on deliverables without an associated product."
+    message = (
+        "You may only perform this action on deliverables without an associated "
+        "product."
+    )
 
     def has_object_permission(self, request, view, obj):
         deliverable = derive_deliverable(obj)
@@ -249,8 +259,8 @@ class LimboCheck(BasePermission):
         deliverable = derive_deliverable(obj)
         if not deliverable:  # pragma: no cover
             return False
-        # This permission acts as a passthrough unless the user is the seller and this is in limbo or
-        # missed.
+        # This permission acts as a passthrough unless the user is the seller and this
+        # is in limbo or missed.
         if not request.user == deliverable.order.seller:
             return True
         if deliverable.status in [LIMBO, MISSED]:
@@ -259,7 +269,10 @@ class LimboCheck(BasePermission):
 
 
 class PlanDeliverableAddition(BasePermission):
-    message = "Your current service plan does not support tracking more invoices. Please upgrade."
+    message = (
+        "Your current service plan does not support tracking more invoices. Please "
+        "upgrade."
+    )
 
     def has_object_permission(self, request, view, obj):
         from apps.sales.models import Deliverable

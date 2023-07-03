@@ -8,7 +8,8 @@ def set_top_values(apps, schema):
     content_type_id = ContentType.objects.get_for_model(Comment).id
 
     def set_top(target_object_id, target_content_type_id, comment):
-        # Recursive setting of top. Now we can get all comments for an object regardless of how deeply nested they are.
+        # Recursive setting of top. Now we can get all comments for an object regardless
+        # of how deeply nested they are.
         for comment in Comment.objects.filter(
             object_id=comment.id, content_type_id=content_type_id
         ):

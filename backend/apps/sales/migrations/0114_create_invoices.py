@@ -89,7 +89,7 @@ def transfer_deliverables(apps, schema):
         record.targets.add(invoice_reference)
 
 
-def get_term_invoice(Invoice, user, created_on) -> "Invoice":
+def get_term_invoice(Invoice, user, created_on):
     return Invoice.objects.get_or_create(
         status=OPEN,
         bill_to=user,

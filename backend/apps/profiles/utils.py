@@ -85,7 +85,8 @@ def available_chars(
             exclude_exception = Q(shared_with=requester)
         qs = q.exclude(exclude & ~(Q(user=requester) | exclude_exception))
         if not self_search:
-            # Never make our blacklist exclude our own characters, lest we lose track of them.
+            # Never make our blacklist exclude our own characters, lest we lose track of
+            # them.
             qs = qs.exclude(tags__in=requester.blacklist.all())
             qs = qs.exclude(tags__in=requester.nsfw_blacklist.all(), nsfw=True)
 
@@ -159,7 +160,8 @@ def create_guest_user(email: str) -> User:
     user = User.objects.create(
         guest=True, email=f"{username}@localhost", guest_email=email, username=username
     )
-    # Create username in a pattern we can quickly recognize elsewhere in the code even if the user is not yet loaded.
+    # Create username in a pattern we can quickly recognize elsewhere in the code even
+    # if the user is not yet loaded.
     user.username = f"__{user.id}"
     user.email = f"__{user.id}@localhost"
     user.save()
@@ -173,22 +175,25 @@ class UserClearException(Exception):
 
 
 def clear_user(user: User):
-    # Clears out as much user data as is practical. Uses normal iterators, despite being slow, to ensure all cleanup
-    # hooks are run.
+    # Clears out as much user data as is practical. Uses normal iterators, despite being
+    # slow, to ensure all cleanup hooks are run.
     assert user
     holdup_statuses = [DISPUTED, IN_PROGRESS, QUEUED, REVIEW]
     clearable_statuses = [NEW, PAYMENT_PENDING, WAITING, LIMBO]
     if user.sales.filter(deliverables__status__in=holdup_statuses).exists():
         raise UserClearException(
-            f"{user.username} has outstanding sales to complete or refund. Cannot remove!"
+            f"{user.username} has outstanding sales to complete or refund. Cannot "
+            f"remove!"
         )
     if user.buys.filter(deliverables__status__in=holdup_statuses).exists():
         raise UserClearException(
-            f"{user.username} has outstanding orders which are unfinished. Cannot remove!"
+            f"{user.username} has outstanding orders which are unfinished. Cannot "
+            f"remove!"
         )
     if user.is_staff or user.is_superuser:
         raise UserClearException(
-            f"{user.username} is an administrative account. It cannot be removed until it is deprivileged.",
+            f"{user.username} is an administrative account. It cannot be removed until "
+            f"it is deprivileged.",
         )
     stoppers = [
         account_balance(user, HOLDINGS),
@@ -213,7 +218,10 @@ def clear_user(user: User):
 
     notes = user.notes
     if notes:
-        notes += f"\n\nUsername: {user.username}, Email: {user.email}, removed on {timezone.now()}"
+        notes += (
+            f"\n\nUsername: {user.username}, Email: {user.email}, removed on "
+            f"{timezone.now()}"
+        )
     for account in StripeAccount.objects.filter(user=user):
         try:
             account.delete()
@@ -280,7 +288,7 @@ def leave_conversation(user: User, conversation: Conversation):
 
 def get_anonymous_user() -> User:
     """
-    Grabs the anonymous user from the database and returns it. The anonymous user is created via the
-    create_anonymous_user command.
+    Grabs the anonymous user from the database and returns it. The anonymous user is
+    created via the create_anonymous_user command.
     """
     return User.objects.get(username=settings.ANONYMOUS_USER_USERNAME)

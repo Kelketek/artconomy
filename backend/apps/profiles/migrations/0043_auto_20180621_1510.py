@@ -5,7 +5,8 @@ from django.db import migrations
 
 def slash_fixer(apps, schema):
     Character = apps.get_model("profiles", "Character")
-    # There's a possibility for a collision here, but very remote. Will ignore and fix if it arrives.
+    # There's a possibility for a collision here, but very remote. Will ignore and fix
+    # if it arrives.
     for char in ["/", "\\", "?", "#", "&"]:
         for character in Character.objects.filter(name__contains=char):
             character.name = character.name.replace(char, "|")

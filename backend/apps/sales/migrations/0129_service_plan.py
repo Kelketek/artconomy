@@ -295,7 +295,8 @@ class Migration(migrations.Migration):
                             ("THB", "Thai Baht"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TPE", "Timorese Escudo"),
                             ("TOP", "Tongan Paʻanga"),
@@ -624,7 +625,8 @@ class Migration(migrations.Migration):
                             ("THB", "Thai Baht"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TPE", "Timorese Escudo"),
                             ("TOP", "Tongan Paʻanga"),
@@ -690,14 +692,16 @@ class Migration(migrations.Migration):
                     "max_simultaneous_orders",
                     models.IntegerField(
                         default=0,
-                        help_text="How many simultaneous orders are permitted. 0 means infinite.",
+                        help_text="How many simultaneous orders are permitted. 0 means "
+                        "infinite.",
                     ),
                 ),
                 (
                     "auto_shield",
                     models.BooleanField(
                         default=False,
-                        help_text="Whether shield protection can be automatically made available on each product.",
+                        help_text="Whether shield protection can be automatically made "
+                        "available on each product.",
                     ),
                 ),
                 (
@@ -967,7 +971,8 @@ class Migration(migrations.Migration):
                             ("THB", "Thai Baht"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TPE", "Timorese Escudo"),
                             ("TOP", "Tongan Paʻanga"),
@@ -1024,7 +1029,8 @@ class Migration(migrations.Migration):
                     djmoney.models.fields.MoneyField(
                         decimal_places=2,
                         default=Decimal("1.50"),
-                        help_text="Static amount charged per shield order. Replaces the per deliverable price on shield orders.",
+                        help_text="Static amount charged per shield order. Replaces "
+                        "the per deliverable price on shield orders.",
                         max_digits=5,
                     ),
                 ),
@@ -1295,7 +1301,8 @@ class Migration(migrations.Migration):
                             ("THB", "Thai Baht"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TPE", "Timorese Escudo"),
                             ("TOP", "Tongan Paʻanga"),

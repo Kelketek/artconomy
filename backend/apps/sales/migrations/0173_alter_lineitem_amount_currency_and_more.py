@@ -278,7 +278,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -598,7 +599,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -919,7 +921,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -1240,7 +1243,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -1561,7 +1565,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -1882,7 +1887,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -2202,7 +2208,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -2522,7 +2529,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),
@@ -2842,7 +2850,8 @@ class Migration(migrations.Migration):
                     ("THB", "Thai Baht"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency is "
+                        "involved",
                     ),
                     ("TPE", "Timorese Escudo"),
                     ("TOP", "Tongan Paʻanga"),

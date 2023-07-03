@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple, TypedDict
+from typing import List, Optional, Tuple, TypedDict
 
 import pycountry
 import stripe as stripe_api

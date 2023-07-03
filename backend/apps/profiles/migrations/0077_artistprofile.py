@@ -38,7 +38,8 @@ class Migration(migrations.Migration):
                     "max_load",
                     models.IntegerField(
                         default=10,
-                        help_text="How much work you're willing to take on at once (for artists)",
+                        help_text="How much work you're willing to take on at once "
+                        "(for artists)",
                         validators=[django.core.validators.MinValueValidator(1)],
                     ),
                 ),
@@ -68,7 +69,8 @@ class Migration(migrations.Migration):
                     models.BooleanField(
                         db_index=True,
                         default=False,
-                        help_text="Internal check for commissions that prevents taking on more work when max load is exceeded.",
+                        help_text="Internal check for commissions that prevents "
+                        "taking on more work when max load is exceeded.",
                     ),
                 ),
                 ("has_products", models.BooleanField(db_index=True, default=False)),

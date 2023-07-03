@@ -102,7 +102,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -251,7 +252,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -320,7 +322,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -469,7 +472,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -573,7 +577,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -722,7 +727,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -793,7 +799,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -942,7 +949,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -1050,7 +1058,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -1199,7 +1208,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -1270,7 +1280,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -1419,7 +1430,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -1488,7 +1500,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -1637,7 +1650,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -1711,12 +1725,14 @@ class Migration(migrations.Migration):
                             (0, "Clean/Safe for work"),
                             (
                                 1,
-                                "Risque/mature, not adult content but not safe for work",
+                                "Risque/mature, not adult content but not safe for "
+                                "work",
                             ),
                             (2, "Adult content, not safe for work"),
                             (
                                 3,
-                                "Offensive/Disturbing to most viewers, not safe for work",
+                                "Offensive/Disturbing to most viewers, not safe for "
+                                "work",
                             ),
                         ],
                         db_index=True,
@@ -1783,7 +1799,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -1932,7 +1949,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -2006,7 +2024,8 @@ class Migration(migrations.Migration):
                     models.IntegerField(
                         blank=True,
                         default=0,
-                        help_text="How many of these you are willing to have in your backlog at one time.",
+                        help_text="How many of these you are willing to have in your "
+                        "backlog at one time.",
                         validators=[django.core.validators.MinValueValidator(1)],
                     ),
                 ),
@@ -2389,7 +2408,8 @@ class Migration(migrations.Migration):
                     ("KZT", "Tenge"),
                     (
                         "XXX",
-                        "The codes assigned for transactions where no currency is involved",
+                        "The codes assigned for transactions where no currency "
+                        "is involved",
                     ),
                     ("TTD", "Trinidad and Tobago Dollar"),
                     ("MNT", "Tugrik"),
@@ -2490,7 +2510,8 @@ class Migration(migrations.Migration):
                             ("BZD", "Belize Dollar"),
                             (
                                 "BMD",
-                                "Bermudian Dollar (customarily known as Bermuda Dollar)",
+                                "Bermudian Dollar (customarily known as "
+                                "Bermuda Dollar)",
                             ),
                             ("BTN", "Bhutanese ngultrum"),
                             ("VEF", "Bolivar Fuerte"),
@@ -2639,7 +2660,8 @@ class Migration(migrations.Migration):
                             ("KZT", "Tenge"),
                             (
                                 "XXX",
-                                "The codes assigned for transactions where no currency is involved",
+                                "The codes assigned for transactions where no currency "
+                                "is involved",
                             ),
                             ("TTD", "Trinidad and Tobago Dollar"),
                             ("MNT", "Tugrik"),
@@ -2762,12 +2784,14 @@ class Migration(migrations.Migration):
                             (0, "Clean/Safe for work"),
                             (
                                 1,
-                                "Risque/mature, not adult content but not safe for work",
+                                "Risque/mature, not adult content but not safe "
+                                "for work",
                             ),
                             (2, "Adult content, not safe for work"),
                             (
                                 3,
-                                "Offensive/Disturbing to most viewers, not safe for work",
+                                "Offensive/Disturbing to most viewers, not safe "
+                                "for work",
                             ),
                         ],
                         db_index=True,

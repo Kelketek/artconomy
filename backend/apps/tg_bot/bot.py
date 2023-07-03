@@ -9,23 +9,23 @@ def start(update, context):
     if existing:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="Welcome back! Your messages from Artconomy for {} will continue now.".format(
-                existing[0].username
-            ),
+            text=f"Welcome back! Your messages from Artconomy for "
+            f"{existing[0].username} will continue now.",
         )
         return
     if not context.args:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="I'm missing your key. Please add your Telegram via your account settings to start this process.",
+            text="I'm missing your key. Please add your Telegram via your account "
+            "settings to start this process.",
         )
         return
     args = context.args[0].rsplit("_")
     if len(args) != 2:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="The key you sent me appears to be corrupt. Please add your telegram via your account settings to "
-            "send a starting message with your key.",
+            text="The key you sent me appears to be corrupt. Please add your telegram "
+            "via your account settings to send a starting message with your key.",
         )
         return
     try:
@@ -33,8 +33,9 @@ def start(update, context):
     except User.DoesNotExist:
         context.bot.send_message(
             chat_id=update.message.chat_id,
-            text="The key you sent me does not appear to match any account. Please add your telegram via your account "
-            "settings to send a starting message with your key.",
+            text="The key you sent me does not appear to match any account. Please add "
+            "your telegram via your account settings to send a starting message "
+            "with your key.",
         )
         return
     user.tg_chat_id = update.message.chat_id
@@ -42,15 +43,16 @@ def start(update, context):
     user.save()
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="Hi! I'm the Artconomy bot. I'll send messages for {}'s Two Factor Authentication "
-        "codes. Please visit the site for more information.".format(user.username),
+        text=f"Hi! I'm the Artconomy bot. I'll send messages for {user.username}'s Two "
+        f"Factor Authentication codes. Please visit the site for more information.",
     )
 
 
 def help_message(update, context):
     context.bot.send_message(
         chat_id=update.message.chat_id,
-        text="Sorry, I didn't understand that. If you're having trouble, please contact support@artconomy.com.",
+        text="Sorry, I didn't understand that. If you're having trouble, please "
+        "contact support@artconomy.com.",
     )
 
 

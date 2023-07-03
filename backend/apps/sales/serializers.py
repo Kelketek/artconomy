@@ -37,12 +37,10 @@ from apps.sales.constants import (
     LIMBO,
     MONEY_HOLE,
     NEW,
-    PAYMENT_PENDING,
     RESERVE,
     STRIPE,
     SUCCESS,
     TIP,
-    TIPPING,
     UNPROCESSED_EARNINGS,
     WAITING,
 )
@@ -85,7 +83,6 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.fields import (
     BooleanField,
     DecimalField,
-    EmailField,
     FloatField,
     IntegerField,
     ListField,
@@ -178,18 +175,22 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         total = reckon_lines(lines_for_product(revised))
         if escrow_enabled and (total < minimum):
             errors["escrow_enabled"].append(
-                f"Cannot have shield enabled on products whose total is less than {minimum}"
+                f"Cannot have shield enabled on products whose total is less than "
+                f"{minimum}"
             )
             errors["base_price"].append(
-                f"Value too small to have shield enabled. Raise until the total is at least {minimum}."
+                f"Value too small to have shield enabled. Raise until the total is at "
+                f"least {minimum}."
             )
         shield_total = reckon_lines(lines_for_product(revised, force_shield=True))
         if revised.escrow_upgradable and (shield_total < minimum):
             errors["escrow_enabled"].append(
-                f"Cannot have shield enabled on products whose total would be less than {minimum}"
+                f"Cannot have shield enabled on products whose total would be less "
+                f"than {minimum}"
             )
             errors["base_price"].append(
-                f"Value too small to have shield upgrade available. Raise until the total is at least {minimum}."
+                f"Value too small to have shield upgrade available. Raise until the "
+                f"total is at least {minimum}."
             )
         if errors:
             raise ValidationError(errors)
@@ -249,8 +250,9 @@ class CharacterValidationMixin:
                 )
                 if private or not character.open_requests:
                     raise serializers.ValidationError(
-                        "You are not permitted to commission pieces for all of the characters you have specified, or "
-                        "one or more characters you specified does not exist."
+                        "You are not permitted to commission pieces for all of the "
+                        "characters you have specified, or one or more characters you "
+                        "specified does not exist."
                     )
         return value
 
@@ -339,8 +341,9 @@ class ProductNewOrderSerializer(
         value = set(value)
         assets = Asset.objects.filter(id__in=value)
         error_message = (
-            "Either you do not have permission to use those assets for reference, those asset IDs are "
-            "invalid, or they have expired. Please try re-uploading."
+            "Either you do not have permission to use those assets for reference, "
+            "those asset IDs are invalid, or they have expired. Please try "
+            "re-uploading."
         )
         if assets.count() < len(value):
             raise serializers.ValidationError(error_message)
@@ -413,7 +416,7 @@ class OrderViewSerializer(
             return
         try:
             self.is_seller
-        except (KeyError, AttributeError) as err:  # pragma: no cover
+        except (KeyError, AttributeError):  # pragma: no cover
             # Can happen if the instance property is a queryset/list, which can happen
             # on list endpoints.
             return
@@ -544,7 +547,8 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         return check_read(obj=obj, user=self.context["request"].user)
 
     def invoice_field(self, obj, key):
-        # Can get triggered when loaded with a list. In that case there is no sensible answer.
+        # Can get triggered when loaded with a list. In that case there is no sensible
+        # answer.
         if not isinstance(obj, Deliverable):  # pragma: no cover
             return ""
         if self.is_buyer or self.is_seller or self.context["request"].user.is_staff:
@@ -560,8 +564,8 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not (args or kwargs):  # pragma: no cover
-            # We're in the class definition. I can't remember when and where (nor why) this happens,
-            # so I don't have a test for it, but it does.
+            # We're in the class definition. I can't remember when and where (nor why)
+            # this happens, so I don't have a test for it, but it does.
             return
         try:
             self.is_seller
@@ -724,14 +728,15 @@ class LineItemSerializer(serializers.ModelSerializer):
 
     def validate_type(self, value):
         deliverable = self.context.get("deliverable")
-        invoice = self.context.get("invoice")
+        self.context.get("invoice")
         user = self.context["request"].user
         if user.is_staff:
             permitted_types = [EXTRA, ADD_ON, TIP]
         elif deliverable and user == deliverable.order.seller:
             permitted_types = [ADD_ON]
         else:  # pragma: no cover
-            # This should never happen (security should filter this out) but included for completeness.
+            # This should never happen (security should filter this out) but included
+            # for completeness.
             permitted_types = []
         if value not in permitted_types:
             raise ValidationError(
@@ -1150,7 +1155,8 @@ class ProductSampleSerializer(serializers.ModelSerializer):
         user = self.context["product"].user
         if not Submission.objects.filter(id=val, artists=user):
             raise ValidationError(
-                "Either this submission does not exist, or you are not tagged as the artist in it."
+                "Either this submission does not exist, or you are not tagged as the "
+                "artist in it."
             )
         return val
 
@@ -1208,8 +1214,8 @@ class OrderAuthSerializer(serializers.Serializer):
 
 class DeliverableValuesSerializer(serializers.ModelSerializer):
     """
-    Tracks all relevant finance info from an order. This serializer should only be used on orders which have at
-    least been initially paid for.
+    Tracks all relevant finance info from an order. This serializer should only be used
+    on orders which have at least been initially paid for.
     """
 
     status = serializers.SerializerMethodField()
@@ -1366,7 +1372,8 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             targets__object_id=unslugify(transaction.id),
         ).first()
         if not fee:
-            # Something's wrong here. Will need to find out why this transaction was not annotated.
+            # Something's wrong here. Will need to find out why this transaction was not
+            # annotated.
             return
         invoices = []
         invoice_type = ContentType.objects.get_for_model(Deliverable)
@@ -1551,7 +1558,8 @@ class TipValuesSerializer(serializers.ModelSerializer):
             targets__object_id=unslugify(transaction.id),
         ).first()
         if not fee:
-            # Something's wrong here. Will need to find out why this transaction was not annotated.
+            # Something's wrong here. Will need to find out why this transaction was not
+            # annotated.
             return
         invoices = []
         invoice_type = ContentType.objects.get_for_model(Invoice)
@@ -1877,7 +1885,8 @@ class DeliverableReferenceSerializer(serializers.ModelSerializer):
             id=val, owner=self.context["request"].user
         ).exists():
             raise ValidationError(
-                "Either this reference does not exist, or you are not allowed to use it."
+                "Either this reference does not exist, or you are not allowed to use "
+                "it."
             )
         return val
 
@@ -1941,8 +1950,8 @@ class StripeBankSetupSerializer(serializers.Serializer):
 
     def validate_url(self, value):
         parsed = urlparse(value)
-        # '*' should only be in settings.ALLOWED_HOSTS in debug environments where someone may have stood up a random
-        # external domain name, like with Ngrok.
+        # '*' should only be in settings.ALLOWED_HOSTS in debug environments where
+        # someone may have stood up a random external domain name, like with Ngrok.
         if (
             parsed.hostname not in settings.ALLOWED_HOSTS
             and "*" not in settings.ALLOWED_HOSTS

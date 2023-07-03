@@ -15,7 +15,6 @@ from apps.profiles.models import User
 from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
     BANK,
-    CANCELLED,
     CARD,
     CASH_WITHDRAW,
     DRAFT,
@@ -62,9 +61,9 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Count, F, Q
+from django.db.models import Q
 from django.utils import timezone
-from django.utils.datetime_safe import date, datetime
+from django.utils.datetime_safe import datetime
 from moneyed import Money
 from pytz import UTC
 from stripe.error import CardError
@@ -79,8 +78,8 @@ def zero_invoice_check(invoice: Invoice):
     """
     total = invoice.total()
     if not total:
-        # This invoice is a zero invoice. This might happen for a plan with no monthly subscription fee where
-        # No orders are processed.
+        # This invoice is a zero invoice. This might happen for a plan with no monthly
+        # subscription fee where no orders are processed.
         invoice_post_payment(
             invoice,
             {
@@ -111,16 +110,19 @@ def renew_stripe_card(*, invoice, price, user, card):
             "customer": user.stripe_token,
             "confirm": True,
             "off_session": True,
-            # TODO: Needs to change per service name, or else be omitted since we'll be swapping methods for tracking
+            # TODO: Needs to change per service name, or else be omitted since we'll be
+            # swapping methods for tracking
             # subscriptions anyway.
             "metadata": {"service": "landscape", "invoice_id": invoice.id},
         }
         try:
-            # This... might cause a race condition? Seems unlikely, but if we have a bug later, it would be because
-            # the webhook was contacted before we set the current_intent on the invoice.
+            # This... might cause a race condition? Seems unlikely, but if we have a bug
+            # later, it would be because the webhook was contacted before we set the
+            # current_intent on the invoice.
             #
-            # Using the update method here to be absolutely certain we don't change anything else about the invoice
-            # that might clobber what the webhook is doing.
+            # Using the update method here to be absolutely certain we don't change
+            # anything else about the invoice that might clobber what the webhook is
+            # doing.
             Invoice.objects.filter(id=invoice.id).update(
                 current_intent=stripe_api.PaymentIntent.create(**kwargs)["id"]
             )
@@ -147,10 +149,8 @@ def renew(user_id, card_id=None):
     if old is None:
         # This should never happen.
         logger.error(
-            "!!! {}({}) has NONE for service_plan_paid_through with subscription enabled!".format(
-                user.username,
-                user.id,
-            )
+            f"!!! {user.username}({user.id}) has NONE for service_plan_paid_through "
+            f"with subscription enabled!"
         )
         return
     if not (enabled and old):
@@ -184,9 +184,9 @@ def renew(user_id, card_id=None):
     if not success:
         return
     if card_id or (paid_through < timezone.now().date()):
-        # This was called manually or a previous attempt should have been made and there may have been a gap
-        # in coverage. In this case, let's inform the user the renewal was successful instead of silently
-        # succeeding.
+        # This was called manually or a previous attempt should have been made and there
+        # may have been a gap in coverage. In this case, let's inform the user the
+        # renewal was successful instead of silently succeeding.
         notify(RENEWAL_FIXED, user, unique=True)
 
 
@@ -198,11 +198,12 @@ def deactivate(user_id: int):
     default_plan = ServicePlan.objects.get(name=settings.DEFAULT_SERVICE_PLAN_NAME)
     user.service_plan = default_plan
     user.next_service_plan = default_plan
-    # We only have delinquency for term invoices, but we may some day need to make this work more generally.
+    # We only have delinquency for term invoices, but we may some day need to make this
+    # work more generally.
     user.delinquent = True
     user.save()
-    # Update the user's current term invoice to use the default service plan. This might make it a zero invoice,
-    # which would clear it below.
+    # Update the user's current term invoice to use the default service plan. This might
+    # make it a zero invoice, which would clear it below.
     invoice = get_term_invoice(user)
     add_service_plan_line(invoice, user.next_service_plan)
     zero_invoice_check(invoice)
@@ -211,7 +212,8 @@ def deactivate(user_id: int):
 
 @celery_app.task
 def run_billing():
-    # Anyone we've not been able to renew for five days, assume won't be renewing automatically.
+    # Anyone we've not been able to renew for five days, assume won't be renewing
+    # automatically.
     users = User.objects.filter(
         Q(
             service_plan__isnull=False,
@@ -301,7 +303,8 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
         record_map[invoice] = record
     if not amount:
         return record_map
-    # TODO: Add tools for invoicing out at the company level. All payouts should be tied to an invoice.
+    # TODO: Add tools for invoicing out at the company level. All payouts should be tied
+    # to an invoice.
     record = TransactionRecord.objects.create(
         amount=amount,
         source=HOLDINGS,
@@ -310,7 +313,8 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
         category=CASH_WITHDRAW,
         destination=BANK,
         status=PENDING,
-        note="Remaining amount, not connected to any invoice. May need annotations later.",
+        note="Remaining amount, not connected to any invoice. May need annotations "
+        "later.",
     )
     record.targets.add(bank_ref)
     record_map[None] = record
@@ -425,19 +429,22 @@ def remind_sales():
 @transaction.atomic
 def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
     """
-    Stripe levies fees on the full transaction volume. This means calculating them by individual transfers could
-    lead to subtle differences between the amount we figure and they amount they actually charge us. So, we have to
-    run these calculations for the volume over a whole month and then divvy them up.
+    Stripe levies fees on the full transaction volume. This means calculating them by
+    individual transfers could lead to subtle differences between the amount we figure
+    and they amount they actually charge us. So, we have to run these calculations for
+    the volume over a whole month and then divvy them up.
 
-    We create these entries in an idempotent manner so we can run them as we go along if we wish. By the end of the
-    month, the amount of fees we calculate should match the amount they took.
+    We create these entries in an idempotent manner so we can run them as we go along if
+    we wish. By the end of the month, the amount of fees we calculate should match the
+    amount they took.
 
-    Note that this is done in two segments. All transfers out are subject to the general volume pricing, but those
-    which go internationally are subject to an additional fee atop the main one. Stripe levies this as a separate fee
-    so we calculate it separately and consolidate afterward.
+    Note that this is done in two segments. All transfers out are subject to the general
+    volume pricing, but those which go internationally are subject to an additional fee
+    atop the main one. Stripe levies this as a separate fee so we calculate it
+    separately and consolidate afterward.
 
-    This function may need to be optimized depending on how many transactions we end up dealing with. However
-    I'm optimizing for clarity of writing for now.
+    This function may need to be optimized depending on how many transactions we end up
+    dealing with. However I'm optimizing for clarity of writing for now.
 
     Stripe calculates its timezones on UTC.
     """
@@ -471,7 +478,8 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
     )
     # Need to track all fees for each user since we'll add to them multiple times.
     user_fees_map = defaultdict(list)
-    # Need to know which transactions were cross-border since they incur additional fees.
+    # Need to know which transactions were cross-border since they incur additional
+    # fees.
     cross_border_fees_list = []
     # And we'll need to tally the total from those transactions to derive the fee.
     cross_border_transactions = []
@@ -480,7 +488,8 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
         base_fees = (total_volume * (settings.STRIPE_PAYOUT_PERCENTAGE / 100)).round(2)
     fee_list = divide_amount(base_fees, len(target_transactions))
     for record in target_transactions:
-        # Can't use update_or_create here since we are looking around the 'targets' many-to-many table.
+        # Can't use update_or_create here since we are looking around the 'targets'
+        # many-to-many table.
         fee_record = TransactionRecord.objects.filter(
             source=UNPROCESSED_EARNINGS,
             destination=ACH_TRANSACTION_FEES,
@@ -513,8 +522,8 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
         if cross_border:
             cross_border_fees_list.append(fee_record)
             cross_border_transactions.append(record)
-    # Each user has a $2 fee per month if they have a payout. This is part of the 'connect' fee. It's going to be
-    # a challenge to find a way to mitigate the cost of this, but we can at least account for it to start.
+    # Each user has a $2 fee per month if they have a payout. This is part of the
+    # 'connect' fee.
     for key, values in user_fees_map.items():
         fee_list = divide_amount(
             settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE, len(values)
@@ -544,7 +553,8 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
 @celery_app.task
 def annotate_connect_fees():
     """
-    Runs through all payouts and tallies expected fees, creating entries for all of them.
+    Runs through all payouts and tallies expected fees, creating entries for all of
+    them.
     """
     target_date = timezone.now()
     annotate_connect_fees_for_year_month(month=target_date.month, year=target_date.year)
@@ -579,7 +589,8 @@ def clear_cancelled_deliverables():
 @celery_app.task
 def cancel_abandoned_orders():
     """
-    Cancels all orders that have been abandoned-- either in Limbo or from non-interaction.
+    Cancels all orders that have been abandoned-- either in Limbo or from
+    non-interaction.
     """
     abandoned = Deliverable.objects.filter(
         status=LIMBO,

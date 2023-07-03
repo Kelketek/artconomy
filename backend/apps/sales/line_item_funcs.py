@@ -3,7 +3,7 @@ from decimal import ROUND_CEILING, ROUND_HALF_EVEN, Decimal, localcontext
 from functools import cmp_to_key, reduce
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, List, Tuple, Union
 
-from _decimal import ROUND_DOWN, getcontext
+from _decimal import ROUND_DOWN
 from moneyed import Currency, Money
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -56,7 +56,8 @@ def distribute_reduction(
     *, total: Money, distributed_amount: Money, line_values: "LineMoneyMap"
 ) -> "LineMoneyMap":
     """
-    Given an amount to discount from a set of line items, remove it proportionally from each line item.
+    Given an amount to discount from a set of line items, remove it proportionally from
+    each line item.
     """
     reductions = {}
     for line, original_value in line_values.items():
@@ -76,9 +77,9 @@ def priority_total(
     current: (Money, Money, "LineMoneyMap"), priority_set: List["Line"]
 ) -> (Money, "LineMoneyMap"):
     """
-    Get the effect on the total of a priority set. First runs any percentage increase, then
-    adds in the static amount. Calculates the difference of each separately to make sure they're not affecting each
-    other.
+    Get the effect on the total of a priority set. First runs any percentage increase,
+    then adds in the static amount. Calculates the difference of each separately to make
+    sure they're not affecting each other.
     """
     current_total, discount, subtotals = current
     working_subtotals = {}
@@ -173,13 +174,14 @@ def distribute_difference(
 ) -> "LineMoneyMap":
     """
     So. We have a few leftover pennies. To figure out where we should allocate them,
-    we need to zero out everything but the remainder (that is, everything but what's beyond
-    the cents place), and then compare what remains. The largest numbers are the numbers that
-    were closest to rolling over into another penny, so we put them there first.
+    we need to zero out everything but the remainder (that is, everything but what's
+    beyond the cents place), and then compare what remains. The largest numbers are the
+    numbers that were closest to rolling over into another penny, so we put them there
+    first.
 
-    We also floor all the amounts to make sure that the discrete total of all values will be
-    the correct target, and each value will be representable as a real monetary value-- that is,
-    something no more fractionalized than cents.
+    We also floor all the amounts to make sure that the discrete total of all values
+    will be the correct target, and each value will be representable as a real monetary
+    value-- that is, something no more fractionalized than cents.
     """
     updated_map = {key: value.round(2) for key, value in money_map.items()}
     sorted_values = [(key, value) for key, value in updated_map.items()]
@@ -238,8 +240,8 @@ def reckon_lines(lines) -> Money:
 def divide_amount(amount: Money, divisor: int) -> List[Money]:
     """
     Takes an amount of money, and divides it as evenly as possible according to divisor.
-    Then, allocate remaining 'pennies' of the currency to the entries until the total number of discrete values
-    is accounted for.
+    Then, allocate remaining 'pennies' of the currency to the entries until the total
+    number of discrete values is accounted for.
 
     TODO: Replicate in JS version
     """
@@ -259,8 +261,9 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
         penny_amount = Money("1", target_amount.currency)
     assert difference >= 0
     # It's probably not possible for it to loop around again, but I'm not a confident
-    # enough mathematician to disprove it, especially since I'm unsure how having discrete values factors in for edge
-    # cases. If someone else can be more assured, I'm good with simplifying this loop.
+    # enough mathematician to disprove it, especially since I'm unsure how having
+    # discrete values factors in for edge cases. If someone else can be more assured,
+    # I'm good with simplifying this loop.
     while difference:
         for index, item in enumerate(result):
             result[index] += penny_amount

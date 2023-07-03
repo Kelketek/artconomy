@@ -339,6 +339,8 @@ requests==2.31.0
     #   mailchimp3
     #   premailer
     #   stripe
+ruff==0.0.277
+    # via -r requirements.in
 sendgrid==6.10.0
     # via django-sendgrid-v5
 service-identity==23.1.0
