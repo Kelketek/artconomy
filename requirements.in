@@ -27,7 +27,7 @@ discord-py-interactions
 # A class type that allows you to access keys in a dictionary as though they're props. Useful for duck-typing tricks.
 dotted-dict
 # The Django web framework is Artconomy's base web framework.
-Django>=4.1.7,<=4.2.1
+Django>=4.1.7,<=4.2.3
 # Application which handles avatars for users, including default avatars.
 django-avatar>=7.0.0,<8.0.0
 # Allows emails to be sent asynchronously via celery
