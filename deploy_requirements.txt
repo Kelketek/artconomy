@@ -4,17 +4,17 @@
 #
 #    pip-compile --resolver=backtracking deploy_requirements.in
 #
-ansible==7.4.0
+ansible==8.1.0
     # via -r deploy_requirements.in
-ansible-core==2.14.4
+ansible-core==2.15.1
     # via ansible
 cffi==1.15.1
     # via cryptography
-cryptography==40.0.2
+cryptography==41.0.1
     # via ansible-core
 jinja2==3.1.2
     # via ansible-core
-markupsafe==2.1.2
+markupsafe==2.1.3
     # via jinja2
 packaging==23.1
     # via ansible-core
@@ -22,5 +22,5 @@ pycparser==2.21
     # via cffi
 pyyaml==6.0
     # via ansible-core
-resolvelib==0.8.1
+resolvelib==1.0.1
     # via ansible-core
