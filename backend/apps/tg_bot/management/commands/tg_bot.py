@@ -6,5 +6,4 @@ from django.core.management import BaseCommand
 class Command(BaseCommand):
     def handle(self, *args, **options):
         updater = init(settings.TELEGRAM_BOT_KEY)
-        updater.start_polling()
-        updater.idle()
+        updater.run_polling()

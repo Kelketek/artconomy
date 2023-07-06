@@ -51,7 +51,6 @@ from rest_framework.response import Response
 from shortcuts import disable_on_load, gen_textifier, make_url
 from telegram import Bot
 
-BOT = None
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:  # pragma: no cover
@@ -61,10 +60,7 @@ if TYPE_CHECKING:  # pragma: no cover
 
 
 def get_bot():
-    global BOT
-    if not BOT:
-        BOT = Bot(settings.TELEGRAM_BOT_KEY)
-    return BOT
+    return Bot(settings.TELEGRAM_BOT_KEY)
 
 
 def countries_tweaked():

@@ -87,6 +87,7 @@ INSTALLED_APPS = [
     "djcelery_email",
     "webpack_loader",
     "rest_framework",
+    "adrf",
     "rest_framework.authtoken",
     "custom_user",
     "easy_thumbnails",

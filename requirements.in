@@ -1,3 +1,5 @@
+# Adds async view support to Django REST framework
+adrf
 # Library for asynchronous handling of files.
 aiofile
 # OAuth2 library used for our custom Discord Integration-- the non-bot part
@@ -105,7 +107,7 @@ pycountry
 # like 'relative deltas' so you can do things like add x number of months to a date.
 python-dateutil
 # Python library for the Telegram bot, used for 2FA
-python-telegram-bot>=13.0.0,<14.0.0
+python-telegram-bot>=20.0.0,<21.0.0
 # Used for handling Time Zone data in Python and imbuing naiive datetimes with TZ information.
 pytz
 # Used to generate QR codes

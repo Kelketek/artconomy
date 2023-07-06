@@ -251,7 +251,7 @@ class ProcessPresentCard(APIView):
                         status=status.HTTP_400_BAD_REQUEST,
                         data={
                             "detail": "Could not reach the card reader. Make sure it "
-                                      "is on and connected to the Internet."
+                            "is on and connected to the Internet."
                         },
                     )
                 else:

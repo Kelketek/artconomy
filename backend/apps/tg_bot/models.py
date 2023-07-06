@@ -1,3 +1,4 @@
+from asgiref.sync import async_to_sync
 from binascii import unhexlify
 
 from apps.lib.utils import get_bot
@@ -24,19 +25,25 @@ class TelegramDevice(Device):
     def bin_key(self):
         return unhexlify(self.key.encode())
 
-    def generate_challenge(self):
+    async def send_challenge(self, tg_chat_id):
+        """
+        Sends the 2FA challenge through the Telegram bot.
+        """
         token = totp(self.bin_key)
-        if not self.user.tg_chat_id:
+        if not tg_chat_id:
             raise ValidationError(
                 {"errors": ["You haven't yet set up Telegram with us yet."]}
             )
         bot = get_bot()
-        bot.send_message(
-            chat_id=self.user.tg_chat_id,
+        await bot.send_message(
+            chat_id=tg_chat_id,
             text="WE WILL NOT CALL, TEXT, OR MESSAGE YOU ASKING YOU FOR THIS CODE. "
             "DO NOT SHARE WITH ANYONE! Your 2FA Verification code is:",
         )
-        bot.send_message(chat_id=self.user.tg_chat_id, text=str(token).zfill(6))
+        await bot.send_message(chat_id=tg_chat_id, text=str(token).zfill(6))
+
+    def generate_challenge(self):
+        async_to_sync(self.send_challenge)(self.user.tg_chat_id)
 
     def verify_token(self, token):
         try:
