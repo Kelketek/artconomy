@@ -8,7 +8,12 @@
               <v-card-text>
                 <h2>About {{username}}</h2>
                 <v-row v-if="badges">
-                  <v-col>
+                  <v-col v-if="subject.stars">
+                    <router-link :to="{name: 'Ratings', params: {username}}" v-if="subject.stars">
+                      <v-rating :value="subject.stars" dense small half-increments readonly v-if="subject.stars" />
+                    </router-link>
+                  </v-col>
+                  <v-col cols="12">
                     <v-chip :color="badge.color" v-for="badge in badges" :key="badge.label" class="mx-1" :light="badge.light">
                       <strong>{{badge.label}}</strong>
                     </v-chip>
