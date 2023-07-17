@@ -1132,7 +1132,10 @@ class CreditCardToken(Model):
         for historical accounting purposes.
         """
         with stripe as stripe_api:
-            delete_payment_method(api=stripe_api, method_token=self.stripe_token)
+            if self.active:
+                # Card might already be deleted. Don't actually make a call unless we
+                # still think it's active.
+                delete_payment_method(api=stripe_api, method_token=self.stripe_token)
         self.active = False
         self.save()
         if self.user.primary_card == self:
