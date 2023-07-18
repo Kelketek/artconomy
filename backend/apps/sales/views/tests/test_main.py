@@ -1594,6 +1594,7 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data["product"]["id"], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data["id"])
+        self.assertEqual(deliverable.created_by, user)
         self.assertEqual(deliverable.invoice.status, OPEN)
         item = deliverable.invoice.line_items.get(type=ADD_ON)
         self.assertEqual(item.amount, Money("2.00", "USD"))

@@ -447,6 +447,7 @@ class PlaceOrder(CreateAPIView):
             escrow_enabled=escrow_enabled,
             rating=serializer.validated_data["rating"],
             processor=STRIPE,
+            created_by=user,
             details=serializer.validated_data["details"],
         )
         deliverable.characters.set(serializer.validated_data.get("characters", []))
@@ -2488,11 +2489,13 @@ class RandomProducts(ListAPIView):
 
 
 def get_order_facts(product: Optional[Product], serializer, seller: User):
+    # Helper function for seller-initiated invoices
     facts = {
         "table_order": False,
         "hold": serializer.validated_data.get("hold", False),
         "rating": serializer.validated_data.get("rating", 0),
         "cascade_fees": serializer.validated_data.get("cascade_fees", False),
+        "created_by": seller,
     }
     if serializer.validated_data["completed"] or not serializer.validated_data["hold"]:
         facts["commission_info"] = note_for_text(seller.artist_profile.commission_info)

@@ -409,6 +409,7 @@ class Deliverable(Model):
         default=get_default_processor,
     )
     status = IntegerField(choices=DELIVERABLE_STATUSES, default=NEW, db_index=True)
+    created_by = models.ForeignKey(User, on_delete=SET_NULL, null=True, blank=True)
     order = models.ForeignKey(
         "Order", null=False, on_delete=CASCADE, related_name="deliverables"
     )
@@ -544,7 +545,7 @@ class Deliverable(Model):
     def new_comment(self, comment):
         if self.status != NEW:
             return
-        if comment.user == self.order.seller:
+        if comment.user == self.order.seller or self.created_by == self.order.seller:
             self.auto_cancel_on = None
         else:
             self.auto_cancel_on = timezone.now() + relativedelta(
@@ -554,7 +555,10 @@ class Deliverable(Model):
 
     def save(self, *args, **kwargs):
         if self.status == NEW and not self.id and not self.auto_cancel_on:
-            if self.order.deliverables.all().count() == 0:
+            if (
+                    self.order.deliverables.all().count() == 0
+                    and self.created_by != self.order.seller
+            ):
                 # This is the first deliverable. Set the auto-cancel date.
                 self.auto_cancel_on = timezone.now() + relativedelta(
                     days=settings.AUTO_CANCEL_DAYS

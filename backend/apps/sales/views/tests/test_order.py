@@ -97,6 +97,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         # These should be set at the point of payment.
         self.assertEqual(deliverable.task_weight, 0)
         self.assertEqual(deliverable.expected_turnaround, 0)
+        self.assertEqual(deliverable.created_by, user)
 
     def test_place_order_references(self):
         user = UserFactory.create()
