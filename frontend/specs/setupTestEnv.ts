@@ -1,5 +1,8 @@
 /* This is run after initial Jest environment setup. It has access to the Jest globals, so we can access expect here. */
 
+// Polyfills the CSS.escape function, needed for dynamic CSS class/identifier creation.
+require('css.escape')
+
 export function testName() {
   return expect.getState().currentTestName
 }

@@ -898,4 +898,15 @@ describe('Form and field controllers', () => {
       type: 'FieldController', state: 30, name: 'age',
     })
   })
+  it('Makes a sane, consistent CSS name', () => {
+    wrapper = shallowMount(Empty, {localVue, store})
+    wrapper.vm.$getForm('example', {
+      fields: {
+        '@beep': {value: 30},
+      },
+      endpoint: '/test/endpoint/',
+    })
+    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: '@beep'}})
+    expect(controller.id).toBe('field-example__\\@beep')
+  })
 })

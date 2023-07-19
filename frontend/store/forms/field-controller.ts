@@ -88,7 +88,16 @@ export class FieldController extends Vue {
   }
 
   public get id() {
-    return `field-${flatten(this.formName)}__${flatten(this.fieldName)}`
+    const sourceString = `field-${flatten(this.formName)}__${flatten(this.fieldName)}`
+    let destString = ''
+    for (const char of sourceString) {
+      if (/[a-zA-Z0-9_-]/.test(char)) {
+        destString += char
+      } else {
+        destString += CSS.escape(char)
+      }
+    }
+    return destString
   }
 
   public get bind() {
