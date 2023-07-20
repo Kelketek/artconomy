@@ -8,7 +8,7 @@ adrf==0.1.1
     # via -r requirements.in
 aiofile==3.8.7
     # via -r requirements.in
-aiohttp==3.8.4
+aiohttp==3.8.5
     # via discord-py-interactions
 aiosignal==1.3.1
     # via aiohttp
@@ -78,7 +78,7 @@ charset-normalizer==3.2.0
     # via
     #   aiohttp
     #   requests
-click==8.1.5
+click==8.1.6
     # via
     #   black
     #   celery
@@ -191,7 +191,7 @@ emoji==2.6.0
     # via discord-py-interactions
 executing==1.2.0
     # via stack-data
-factory-boy==3.2.1
+factory-boy==3.3.0
     # via -r requirements.in
 faker==19.1.0
     # via factory-boy
@@ -333,7 +333,7 @@ pytz==2023.3
     #   -r requirements.in
     #   djangorestframework
     #   pandas
-pyyaml==6.0
+pyyaml==6.0.1
     # via uvicorn
 qrcode==7.4.2
     # via -r requirements.in
@@ -404,9 +404,9 @@ tzdata==2023.3
     #   pandas
 unicodecsv==0.14.1
     # via djangorestframework-csv
-urllib3==2.0.3
+urllib3==2.0.4
     # via requests
-uvicorn[standard]==0.23.0
+uvicorn[standard]==0.23.1
     # via -r requirements.in
 uvloop==0.17.0
     # via uvicorn
