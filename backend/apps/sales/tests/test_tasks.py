@@ -673,6 +673,7 @@ class TestReminders(EnsurePlansMixin, TestCase):
             auto_cancel_on__isnull=False,
         )
 
+    @freeze_time('2020-08-01 15:21:34')
     def test_send_reminder(self):
         deliverable = DeliverableFactory.create(
             status=NEW,
@@ -683,6 +684,7 @@ class TestReminders(EnsurePlansMixin, TestCase):
         self.assertEqual(
             mail.outbox[0].subject, "Your commissioner is awaiting your response!"
         )
+        self.assertIn('08/01/2020', mail.outbox[0].body)
 
     def test_status_changed(self):
         deliverable = DeliverableFactory.create(
