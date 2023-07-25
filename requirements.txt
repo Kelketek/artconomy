@@ -27,9 +27,7 @@ asgiref==3.7.2
 asttokens==2.2.1
     # via stack-data
 async-timeout==4.0.2
-    # via
-    #   aiohttp
-    #   redis
+    # via aiohttp
 attrs==23.1.0
     # via
     #   aiohttp
@@ -61,7 +59,7 @@ celery[redis]==5.3.1
     # via
     #   -r requirements.in
     #   django-celery-email
-certifi==2023.5.7
+certifi==2023.7.22
     # via
     #   httpcore
     #   httpx
