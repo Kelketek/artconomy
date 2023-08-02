@@ -32,8 +32,8 @@
                   <h2><span v-if="isSeller">Sale</span>
                     <span v-else-if="isArbitrator">Case</span>
                     <span v-else>Order</span>
-                    #{{order.x.id}} <span v-if="!isSeller || !(is(NEW) || is(PAYMENT_PENDING))">- [{{deliverable.x.name}}] Details:</span></h2>
-                  <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name" v-if="isSeller && (is(NEW) || is(PAYMENT_PENDING))"></ac-patch-field>
+                    #{{order.x.id}} <span v-if="!isSeller || !is(NEW)">- [{{deliverable.x.name}}] Details:</span></h2>
+                  <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name" v-if="isSeller && is(NEW)"></ac-patch-field>
                 </v-col>
                 <v-col cols="12" md="12" order="2" order-md="3" v-if="isSeller">
                   <ac-patch-field
