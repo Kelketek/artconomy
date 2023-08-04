@@ -77,7 +77,7 @@ class DateConstrained:
     def __init__(self, *args, **kwargs):
         if hasattr(self, "date_field"):
             raise AttributeError("date_field is deprecated. Use date_fields instead.")
-        if type(self.date_fields) is str:
+        if isinstance(self.date_fields, str):
             raise AttributeError("date_fields must be a list of strings.")
         super().__init__(*args, **kwargs)
 

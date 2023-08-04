@@ -30,7 +30,8 @@
               <v-col cols="12" class="hidden-md-and-up">
                 <v-row no-gutters>
                   <v-col class="shrink" align-self="start">
-                    From ${{product.starting_price.toFixed(2)}}
+                    <span v-if="product.name_your_price">Name your price!</span>
+                    <span v-else>From ${{product.starting_price.toFixed(2)}}</span>
                   </v-col>
                   <v-spacer></v-spacer>
                   <v-col class="shrink" align-self="end">
@@ -60,9 +61,10 @@
               </v-col>
               <v-col cols="6" class="hidden-sm-and-down">
                 <v-col cols="12" class="pb-1 no-underline">
-                  <ac-link :to="productLink">Starting at</ac-link>
+                  <ac-link :to="productLink" v-if="product.name_your_price">Name Your Price!</ac-link>
+                  <ac-link :to="productLink" v-else>Starting at</ac-link>
                 </v-col>
-                <v-col cols="12" class="no-underline">
+                <v-col cols="12" class="no-underline" v-if="!product.name_your_price">
                   <ac-link :to="productLink">
                     <span class="currency-notation" v-if="product.starting_price">$</span>
                     <span class="price-display">{{product.starting_price.toFixed(2)}}</span>
@@ -96,7 +98,8 @@
           <v-col cols="12"><ac-link :to="productLink">{{product.name}}</ac-link></v-col>
           <v-col cols="12">
             <v-row no-gutters>
-              <v-col class="grow" ><small>From</small> ${{product.starting_price.toFixed(2)}}</v-col>
+              <v-col class="grow" v-if="product.name_your_price"><small>Name Your Price!</small></v-col>
+              <v-col class="grow" v-else><small>From</small> ${{product.starting_price.toFixed(2)}}</v-col>
               <v-col class="no-underline shrink">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                   <v-tooltip bottom v-if="product.escrow_enabled">
@@ -165,7 +168,16 @@
           </v-row>
         </v-col>
         <v-spacer />
-        <v-col class="shrink d-flex">
+        <v-col class="d-flex" v-if="product.name_your_price">
+          <ac-link :to="productLink" v-if="product.name_your_price">
+            <v-row no-gutters>
+              <v-col cols="12" class="pb-1">
+                Name Your Price!
+              </v-col>
+            </v-row>
+          </ac-link>
+        </v-col>
+        <v-col class="shrink d-flex" v-else>
           <ac-link :to="productLink">
             <v-row no-gutters>
               <v-col cols="12" class="pb-1">
@@ -268,6 +280,10 @@ export default class AcProductPreview extends mixins(Formatting) {
 
     public get turnaround() {
       return Math.ceil(this.product.expected_turnaround)
+    }
+
+    public created() {
+      console.log(this.product)
     }
 }
 </script>

@@ -161,6 +161,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     display_position: 0,
     over_order_limit: false,
     paypal: false,
+    name_your_price: false,
     ...overrides,
   }
 }

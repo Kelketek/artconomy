@@ -536,6 +536,62 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             response.data["detail"], "This product is not available at this time."
         )
 
+    def test_place_order_named_price(self):
+        product = ProductFactory.create(
+            base_price=Money("5.00", "USD"), name_your_price=True
+        )
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "test@example.com",
+                "named_price": "50.00",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
+        self.assertEqual(deliverable.invoice.total(), Money("50.00", "USD"))
+
+    def test_place_order_named_price_too_low(self):
+        product = ProductFactory.create(
+            base_price=Money("5.00", "USD"), name_your_price=True
+        )
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "test@example.com",
+                "named_price": "1.00",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("named_price", response.data)
+
+    def test_place_order_named_price_ignored_if_not_allowed(self):
+        product = ProductFactory.create(
+            base_price=Money("5.00", "USD"), name_your_price=False
+        )
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "test@example.com",
+                "named_price": "50.00",
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
+        self.assertEqual(deliverable.invoice.total(), Money("5.00", "USD"))
+
     def test_deliverable_view_seller(self):
         user = UserFactory.create()
         self.login(user)

@@ -229,6 +229,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "international",
             "display_position",
             "over_order_limit",
+            "name_your_price",
         )
         read_only_fields = (
             "tags",
@@ -303,6 +304,8 @@ class ProductNewOrderSerializer(
     seller = RelatedUserSerializer(read_only=True)
     buyer = RelatedUserSerializer(read_only=True)
     characters = ListField(child=IntegerField(), required=False)
+    # Field will be entirely deleted if product is not a name your price commission.
+    named_price = MoneyToFloatField(required=False)
     references = ListField(
         child=serializers.CharField(),
         required=False,
@@ -331,6 +334,11 @@ class ProductNewOrderSerializer(
             self.fields["email"].required = True
             self.fields["email"].allow_blank = False
 
+    def validate_named_price(self, value):
+        if value < 0:
+            raise ValidationError("Price cannot be negative.")
+        return Money(value, settings.DEFAULT_CURRENCY)
+
     def validate_email(self, value):
         if not value:
             return ""
@@ -355,6 +363,32 @@ class ProductNewOrderSerializer(
                 raise serializers.ValidationError(error_message)
         return assets
 
+    def validate(self, data):
+        if self.context["product"].name_your_price:
+            if "named_price" not in data:
+                raise ValidationError(
+                    {"named_price": ["You must name a price for this order."]}
+                )
+        else:
+            data.pop("named_price", None)
+            return data
+        named_price = data["named_price"]
+        if not self.context["product"].escrow_enabled:
+            target_price = self.context["product"].starting_price
+            if self.context["product"].escrow_upgradable and data.get("escrow_upgrade"):
+                target_price = self.context["product"].shield_price
+        else:
+            target_price = self.context["product"].shield_price
+        if named_price < target_price:
+            raise ValidationError(
+                {
+                    "named_price": [
+                        f"Must be at least {target_price} to cover basic costs."
+                    ]
+                }
+            )
+        return data
+
     def create(self, validated_data):
         data = {
             key: value
@@ -368,6 +402,7 @@ class ProductNewOrderSerializer(
                 "email",
                 "escrow_upgrade",
                 "invoicing",
+                "named_price",
             )
         }
         return super().create(data)
@@ -388,10 +423,12 @@ class ProductNewOrderSerializer(
             "product_name",
             "invoicing",
             "escrow_upgrade",
+            "named_price",
         )
         extra_kwargs = {
             "characters": {"required": False},
         }
+        write_only_fields = ("named_price",)
         read_only_fields = (
             "status",
             "id",

@@ -470,6 +470,20 @@ class PlaceOrder(CreateAPIView):
             details=serializer.validated_data["details"],
         )
         deliverable.characters.set(serializer.validated_data.get("characters", []))
+        named_price = serializer.validated_data.get("named_price")
+        if named_price:
+            # This will always be at least as much as the default price.
+            # If there's a remainder, add a line item to make up the difference.
+            difference = named_price - deliverable.invoice.total()
+            if difference:
+                LineItem.objects.create(
+                    type=ADD_ON,
+                    invoice=deliverable.invoice,
+                    description="Offer",
+                    amount=difference,
+                    destination_account=ESCROW,
+                    destination_user=deliverable.order.seller,
+                )
         if self.request.user == user:
             for character in deliverable.characters.all():
                 character.shared_with.add(order.seller)

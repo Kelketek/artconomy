@@ -224,6 +224,7 @@ class Product(ImageModel, HitsMixin):
     catalog_enabled = BooleanField(default=False, db_index=True)
     revisions = IntegerField(validators=[MinValueValidator(0), MaxValueValidator(10)])
     international = BooleanField(default=False, db_index=True)
+    name_your_price = BooleanField(default=False, db_index=True)
     paypal = BooleanField(
         default=True,
         db_index=True,

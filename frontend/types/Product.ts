@@ -31,4 +31,5 @@ export default interface Product {
   display_position: number,
   over_order_limit: boolean,
   paypal: boolean,
+  name_your_price: boolean,
 }

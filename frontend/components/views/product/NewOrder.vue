@@ -79,6 +79,12 @@
                               :hint="privateHint"
                           />
                         </v-col>
+                        <v-col cols="12" sm="6" v-if="product.x.name_your_price">
+                          <ac-bound-field
+                              field-type="ac-price-field" :field="orderForm.fields.named_price" label="Price" :persistent-hint="true"
+                              :hint="`Enter the price you'd like to pay for this work.${currentPrice && ` Must be at least ${currentPrice.toFixed(2)} to cover the artist's costs.`}`"
+                          />
+                        </v-col>
                       </v-row>
                     </v-stepper-content>
                     <v-stepper-content step="2">
@@ -219,7 +225,10 @@
                 <v-col cols="12">
                   <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" />
                 </v-col>
-                <v-col class="subtitle-1" cols="12">
+                <v-col class="subtitle-1" cols="12" v-if="product.x.name_your_price">
+                  Name your price!
+                </v-col>
+                <v-col class="subtitle-1" cols="12" v-else>
                   Starts at ${{currentPrice.toFixed(2)}}
                   <p v-if="shielded">
                     <small>(${{product.x.starting_price.toFixed(2)}} + ${{shieldCost.toFixed(2)}} shield fee)</small>
@@ -447,6 +456,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
           details: {value: '', step: 2},
           references: {value: [], step: 2},
           invoicing: {value: false, step: 3},
+          named_price: {value: null, step: 1},
           // Note: There are agreements and warnings to display on step 3 even if there aren't fields,
           // so if this field gets moved to a lower step, a dummy field should be created for step 3 to persist.
           escrow_upgrade: {value: this.forceShield, step: 3},

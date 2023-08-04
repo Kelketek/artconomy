@@ -201,12 +201,15 @@
             <v-card-text>
               <v-row dense>
                 <v-col class="title" cols="12">
-                  <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable">
-                    <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" :content="product.x.shield_price.toFixed(2)">{{product.x.shield_price.toFixed(2)}}</span>
-                  </span>
-                  <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-else>
-                    <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" :content="product.x.starting_price.toFixed(2)">{{product.x.starting_price.toFixed(2)}}</span>
-                  </span>
+                  <span v-if="product.patchers.name_your_price.model">Name Your Price!</span>
+                  <fragment v-else>
+                    <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable">
+                      <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" :content="product.x.shield_price.toFixed(2)">{{product.x.shield_price.toFixed(2)}}</span>
+                    </span>
+                    <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-else>
+                      <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price" :content="product.x.starting_price.toFixed(2)">{{product.x.starting_price.toFixed(2)}}</span>
+                    </span>
+                  </fragment>
                   <v-btn v-show="editing" icon color="primary" @click="showTerms = true"><v-icon>edit</v-icon></v-btn>
                   <ac-expanded-property v-model="showTerms" :large="true">
                     <span slot="title">Edit Terms</span>
@@ -225,6 +228,17 @@
                                 hint="If turned on, the price you set is the price your commissioner will see, and you
                           will pay all fees from that price. If turned off, the price you set is the amount you
                           take home, and the total the customer pays includes the fees."
+                                :true-value="true"
+                                :false-value="false"
+                            />
+                          </v-col>
+                          <v-col cols="12" sm="6">
+                            <ac-patch-field
+                                :patcher="product.patchers.name_your_price" field-type="v-switch" label="Name Your Price" :persistent-hint="true"
+                                hint="If turned on, the base price is treated as a minimum price to cover costs,
+                                     and the client is prompted to put in their own price. This is useful for 'Pay
+                                     What You Want' commissions. You should note whatever impact the price has on the
+                                     commission in the product details in order to avoid any dispute issues."
                                 :true-value="true"
                                 :false-value="false"
                             />
