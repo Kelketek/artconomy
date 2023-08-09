@@ -8,8 +8,7 @@ from typing import Optional, TYPE_CHECKING
 from authlib.integrations.requests_client import OAuth2Session
 from django.conf import settings
 from django.db import transaction
-from django.utils import timezone
-from moneyed import Money, Currency
+from moneyed import Money
 from authlib.integrations.base_client.errors import OAuthError
 
 from apps.lib.utils import FakeRequest
@@ -22,7 +21,7 @@ from apps.sales.constants import (
     TAX,
     MONEY_HOLE,
 )
-from apps.sales.line_item_funcs import get_totals, reckon_lines, digits, down_context
+from apps.sales.line_item_funcs import get_totals, digits, down_context
 
 log = logging.getLogger("authlib")
 log.addHandler(logging.StreamHandler(sys.stdout))

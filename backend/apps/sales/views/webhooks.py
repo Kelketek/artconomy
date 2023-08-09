@@ -41,7 +41,6 @@ from apps.sales.models import (
 from apps.sales.paypal import (
     validate_paypal_request,
     reconcile_invoices,
-    transferable_lines,
 )
 from apps.sales.stripe import stripe
 from apps.sales.tasks import withdraw_all

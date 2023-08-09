@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, patch, call
 from authlib.integrations.base_client import MissingTokenError
 from ddt import ddt, data, unpack
 from django.test import TestCase, override_settings
-from freezegun import freeze_time
 from moneyed import Money
 
 from apps.lib.test_resources import EnsurePlansMixin
@@ -18,7 +17,7 @@ from apps.sales.constants import (
     RECONCILIATION,
     TAX,
 )
-from apps.sales.models import PaypalConfig, LineItem
+from apps.sales.models import PaypalConfig
 from apps.sales.paypal import (
     PayPal,
     paypal_api,
