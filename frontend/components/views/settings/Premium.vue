@@ -49,6 +49,7 @@
                 <li>PayPal's terms of service is hostile toward NSFW art commissions in most or all jurisdictions and circumstances.
                   <strong>You should not use PayPal to track NSFW art commissions.</strong></li>
                 <li>Invoices generated in PayPal will contain all relevant information, such as product names and line items.</li>
+                <li>Invoices will be denominated in USD.</li>
                 <li>PayPal <strong>WILL</strong> reveal your personal information to the client, and vice versa in most cases. Use Shield instead to avoid this.</li>
               </ul>
             </v-col>
@@ -68,12 +69,15 @@
               <li><strong>Optional, but highly recommended for security:</strong> Uncheck all of the features on the app aside from 'Invoicing.'</li>
               <li>Copy your Client ID and Secret using the icons next to them, and paste them into the fields below, and submit!</li>
             </ol>
+            <v-alert type="info" class="mt-4">
+              <strong>This feature is in beta. Please contact support if you encounter any issues!</strong>
+            </v-alert>
           </v-col>
           <v-col cols="12" md="6" lg="4" offset-lg="2">
             <ac-bound-field
                 label="Client ID"
                 :field="paypalForm.fields.key"
-                hint="Your API account key."
+                hint="Your API Client ID."
                 :persistent-hint="true"
             />
           </v-col>
@@ -82,7 +86,7 @@
                 label="Secret"
                 :field="paypalForm.fields.secret"
                 type="password"
-                hint="Your API secret."
+                hint="Your API Secret."
                 :persistent-hint="true"
             />
           </v-col>
@@ -169,11 +173,11 @@ import {FormController} from '@/store/forms/form-controller'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
-import { SingleController } from '@/store/singles/controller'
-import { PaypalConfig } from '@/types/PaypalConfig'
+import {SingleController} from '@/store/singles/controller'
+import {PaypalConfig} from '@/types/PaypalConfig'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
-import { Watch } from 'vue-property-decorator'
+import {Watch} from 'vue-property-decorator'
 
 @Component({
   components: {
