@@ -29,6 +29,7 @@ test_backend:
 	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"
 
 format:
+	${APP_COMMAND} "npm run lint:fix"
 	${APP_COMMAND} "black backend"
 	${APP_COMMAND} "ruff --fix backend"
 
