@@ -112,6 +112,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     shield_price = MoneyToFloatField(read_only=True)
     expected_turnaround = FloatField()
     over_order_limit = serializers.SerializerMethodField()
+    name_your_price = serializers.BooleanField(default=False)
 
     def get_over_order_limit(self, obj):
         if not obj.user.service_plan.max_simultaneous_orders:

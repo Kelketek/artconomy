@@ -110,6 +110,29 @@
                   </v-col>
                 </v-row>
                 <v-row>
+                  <v-col cols="12" sm="6">
+                    <ac-bound-field
+                        :field="newProduct.fields.name_your_price" field-type="v-switch" label="Name Your Price" :persistent-hint="true"
+                        hint="If turned on, the base price is treated as a minimum price to cover costs,
+                                     and the client is prompted to put in their own price. This is useful for 'Pay
+                                     What You Want' commissions. You should note whatever impact the price has on the
+                                     commission in the product details in order to avoid any dispute issues."
+                        :true-value="true"
+                        :false-value="false"
+                    />
+                  </v-col>
+                  <v-col cols="12" sm="6" v-if="subject.paypal_configured">
+                    <ac-bound-field
+                        :field="newProduct.fields.paypal"
+                        field-type="v-switch"
+                        label="PayPal Invoicing"
+                        :persistent-hint="true"
+                        hint="If the order is marked unshielded, generate a PayPal invoice upon acceptance."
+                        :true-value="true"
+                        :false-value="false"
+                    />
+                  </v-col>
+                  <v-col sm="6" v-else-if="$vuetify.breakpoint.smAndUp"></v-col>
                   <v-col cols="12" sm="6" >
                     <ac-bound-field :field="newProduct.fields.expected_turnaround" number
                                     label="Expected Days Turnaround"
@@ -374,6 +397,8 @@ export default class AcNewProduct extends Subjective {
           cascade_fees: {value: false, step: 2},
           escrow_enabled: {value: true, step: 2},
           escrow_upgradable: {value: false, step: 2},
+          paypal: {value: true, step: 2},
+          name_your_price: {value: false, step: 2},
         },
       })
     }
