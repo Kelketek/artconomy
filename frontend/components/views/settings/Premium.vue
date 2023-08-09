@@ -58,11 +58,20 @@
           </v-row>
         <v-row v-else-if="!paypal.ready">
           <v-col cols="12">
-            <p>Enter your PayPal API Credentials below. If you're not sure how to get these credentials, please contact support.</p>
+            <p>Enter your PayPal API Credentials below. <strong>These are not your username and password.</strong> You can get these credentials by following these steps:</p>
+            <ol>
+              <li>Log into your PayPal Dashboard.</li>
+              <li>Click the 'Developer' link in the toolbar.</li>
+              <li>Switch the toggle to 'Live' mode.</li>
+              <li>Under 'REST API Apps', click the 'Create App' button. You can name the app anything,
+                but you might want to name it something like 'Artconomy Integration' so you remember what it is.</li>
+              <li><strong>Optional, but highly recommended for security:</strong> Uncheck all of the features on the app aside from 'Invoicing.'</li>
+              <li>Copy your Client ID and Secret using the icons next to them, and paste them into the fields below, and submit!</li>
+            </ol>
           </v-col>
           <v-col cols="12" md="6" lg="4" offset-lg="2">
             <ac-bound-field
-                label="API Key"
+                label="Client ID"
                 :field="paypalForm.fields.key"
                 hint="Your API account key."
                 :persistent-hint="true"
@@ -70,7 +79,7 @@
           </v-col>
           <v-col cols="12" md="6" lg="4">
             <ac-bound-field
-                label="API Secret"
+                label="Secret"
                 :field="paypalForm.fields.secret"
                 type="password"
                 hint="Your API secret."

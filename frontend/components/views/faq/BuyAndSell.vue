@@ -304,6 +304,7 @@
               <li>Waitlisted orders</li>
               <li>Tipping after order completion</li>
               <li>Multi-stage orders</li>
+              <li>PayPal invoicing for non-shield orders</li>
               <li>Access to the Landscape channel on our Discord</li>
               <li>First consideration for
                 <router-link :to="{name: 'BuyAndSell', params: {question: 'virtual-table'}}">Virtual Table Events.</router-link>
@@ -628,12 +629,16 @@
     </v-expansion-panel>
     <v-expansion-panel>
       <v-expansion-panel-header>
-        <strong>Why not use PayPal?</strong>
+        <strong>Can I use PayPal?</strong>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
         <v-card>
           <v-card-text>
-            <p>You can! You can track an order and handle its payment off-site with PayPal.
+            <p><strong>You can!</strong> You can track an order and handle its payment off-site with PayPal. If you have a
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'Landscape'}}">Landscape subscription,</router-link>
+              Artconomy can generate
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'Landscape'}}">invoices on PayPal for you,</router-link>
+              and add orders to your queue once those invoices are paid.
               However, you might want to consider using
               <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link> instead.
             </p>
@@ -655,6 +660,10 @@
               <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
               to protect your orders.
             </p>
+            <p>However, if you need to use PayPal, such as if Shield is not supported in your country or you need
+              invoicing features Artconomy does not yet support, you can integrate Artconomy and PayPal together.
+              Setup for PayPal integration is in your
+              <router-link :to="{name: 'MyView', params: {viewName: 'Premium'}}">Premium Settings.</router-link></p>
           </v-card-text>
         </v-card>
       </v-expansion-panel-content>
@@ -885,7 +894,7 @@ const buySell = [
   'virtual-table', 'bank-accounts',
   'workload-management', 'outside-orders', 'waitlists',
   'why-commissions-disabled',
-  'why-not-paypal', 'patreon-comparison', 'featured-products', 'security',
+  'paypal', 'patreon-comparison', 'featured-products', 'security',
   'payouts', 'crypto-currencies',
   'auctions', 'physical-goods', 'digital-downloads',
 ]
