@@ -1194,10 +1194,23 @@ class HoldingsSummarySerializer(serializers.ModelSerializer):
     holdings = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
-        return str(account_balance(obj, ESCROW))
+        return str(
+            account_balance(
+                obj,
+                ESCROW,
+                additional_filters=[Q(finalized_on__lt=self.context["end_date"])],
+            )
+        )
 
     def get_holdings(self, obj):
-        return str(account_balance(obj, HOLDINGS, POSTED_ONLY))
+        return str(
+            account_balance(
+                obj,
+                HOLDINGS,
+                POSTED_ONLY,
+                additional_filters=[Q(finalized_on__lt=self.context["end_date"])],
+            )
+        )
 
     class Meta:
         model = User
@@ -1329,7 +1342,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     def qs_filters(self, obj):
         query_filters = [Q(targets=ref_for_instance(obj))]
         if obj.tip_invoice:
-            print("tip invoice found!")
             query_filters.append(~Q(targets=ref_for_instance(obj.tip_invoice)))
         return query_filters
 

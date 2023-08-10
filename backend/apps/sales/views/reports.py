@@ -1,6 +1,9 @@
 from datetime import datetime
 from typing import Union
 
+from moneyed import Money
+from pytz import UTC
+
 from apps.lib.permissions import IsStaff
 from apps.profiles.models import User
 from apps.profiles.permissions import IsSuperuser, UserControls
@@ -44,30 +47,6 @@ from django.utils.timezone import make_aware
 from rest_framework.generics import ListAPIView
 from rest_framework.request import Request
 from rest_framework_csv.renderers import CSVRenderer
-
-
-class CustomerHoldingsCSV(ListAPIView):
-    serializer_class = HoldingsSummarySerializer
-    permission_classes = [IsSuperuser]
-    pagination_class = None
-    renderer_classes = [CSVRenderer]
-
-    def get_queryset(self):
-        return (
-            User.objects.filter(guest=False, sales__isnull=False)
-            .order_by("username")
-            .distinct()
-        )
-
-    def get_renderer_context(self):
-        context = super().get_renderer_context()
-        context["header"] = ["id", "username", "escrow", "holdings"]
-        return context
-
-    def finalize_response(self, request, response, *args, **kwargs):
-        response = super().finalize_response(request, response, *args, **kwargs)
-        response["Content-Disposition"] = "attachment; filename=holdings.csv"
-        return response
 
 
 class DateConstrained:
@@ -129,6 +108,48 @@ class DateConstrained:
                 continue
             date_filter = new_filter
         return date_filter
+
+
+class CustomerHoldingsCSV(DateConstrained, ListAPIView):
+    date_fields = ["finalized_on"]
+    serializer_class = HoldingsSummarySerializer
+    permission_classes = [IsSuperuser]
+    pagination_class = None
+    renderer_classes = [CSVRenderer]
+
+    def get_queryset(self):
+        return (
+            User.objects.filter(guest=False, sales__isnull=False)
+            .order_by("username")
+            .distinct()
+        )
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        end_date = self.end_date
+        context["end_date"] = datetime(
+            year=end_date.year,
+            month=end_date.month,
+            day=end_date.day,
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+            tzinfo=UTC,
+        )
+        return context
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context["header"] = ["id", "username", "escrow", "holdings"]
+        return context
+
+    def finalize_response(self, request, response, *args, **kwargs):
+        response = super().finalize_response(request, response, *args, **kwargs)
+        response[
+            "Content-Disposition"
+        ] = f"attachment; filename=holdings_before_{self.end_date.date()}.csv"
+        return response
 
 
 class CSVReport:
@@ -218,7 +239,11 @@ class SubscriptionReportCSV(CSVReport, ListAPIView, DateConstrained):
                 type__in=[SUBSCRIPTION, TERM],
                 status=PAID,
             )
+            .filter(
+                line_items__amount__gt=Money("0", "USD"),
+            )
             .filter(self.date_filter)
+            .distinct()
             .order_by("paid_on")
         )
 

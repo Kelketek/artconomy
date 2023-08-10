@@ -18,7 +18,7 @@
       <v-col cols="12">
         <v-toolbar dense><v-toolbar-title>Current Holdings by Customer</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
-          <v-col><a href="/api/sales/reports/customer-holdings/csv/" download>Download CSV</a></v-col>
+          <v-col><a :href="`/api/sales/reports/customer-holdings/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
         <v-toolbar dense><v-toolbar-title>Order report</v-toolbar-title></v-toolbar>
         <v-row no-gutters>
@@ -41,9 +41,6 @@
           <v-col><a :href="`/api/sales/reports/tip-report/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
         <v-toolbar dense><v-toolbar-title>Dwolla Report</v-toolbar-title></v-toolbar>
-        <v-row no-gutters>
-          <v-col><a :href="`/api/sales/reports/dwolla-report/csv/${rangeString}`" download>Download CSV</a></v-col>
-        </v-row>
       </v-col>
     </v-row>
   </v-container>

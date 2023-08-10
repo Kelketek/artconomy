@@ -4,6 +4,8 @@ from io import StringIO
 from typing import Literal
 from unittest.mock import patch
 
+from dateutil.relativedelta import relativedelta
+
 from apps.lib.models import ref_for_instance
 from apps.lib.test_resources import APITestCase
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
@@ -94,7 +96,11 @@ class TestCustomerHoldings(APITestCase):
         )
         staff = UserFactory.create(is_superuser=True)
         self.login(staff)
-        response = self.client.get("/api/sales/v1/reports/customer-holdings/csv/")
+        end_date = timezone.now() + relativedelta(days=1)
+        response = self.client.get(
+            "/api/sales/v1/reports/customer-holdings/csv/"
+            f"?end_date={end_date.year}-{end_date.month}-{end_date.day}"
+        )
         reader = DictReader(StringIO(response.content.decode("utf-8")))
         lines = [line for line in reader]
         self.assertEqual(len(lines), 1)
@@ -572,6 +578,10 @@ class TestSubscriptionReport(APITestCase):
     def test_subscription_report(self):
         user = UserFactory.create()
         term_invoice = get_term_invoice(user)
+        LineItemFactory.create(
+            invoice=term_invoice,
+            amount=Money("5.00", "USD"),
+        )
         term_invoice.paid_on = timezone.now().replace(day=5)
         term_invoice.status = PAID
         term_invoice.save()
@@ -631,6 +641,10 @@ class TestSubscriptionReport(APITestCase):
     def test_default_date(self):
         user = UserFactory.create()
         term_invoice = get_term_invoice(user)
+        LineItemFactory.create(
+            invoice=term_invoice,
+            amount=Money("5.00", "USD"),
+        )
         term_invoice.paid_on = timezone.now().replace(day=5)
         term_invoice.status = PAID
         term_invoice.save()
@@ -683,6 +697,10 @@ class TestSubscriptionReport(APITestCase):
     def test_default_date_malformed_date(self):
         user = UserFactory.create()
         term_invoice = get_term_invoice(user)
+        LineItemFactory.create(
+            invoice=term_invoice,
+            amount=Money("5.00", "USD"),
+        )
         term_invoice.paid_on = timezone.now().replace(day=5)
         term_invoice.status = PAID
         term_invoice.save()
