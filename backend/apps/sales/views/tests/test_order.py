@@ -555,6 +555,27 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
         self.assertEqual(deliverable.invoice.total(), Money("50.00", "USD"))
 
+    def test_place_order_no_named_price_null(self):
+        product = ProductFactory.create(
+            base_price=Money("5.00", "USD"), name_your_price=False
+        )
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+                "email": "test@example.com",
+                "escrow_upgrade": False,
+                "named_price": None,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Order.objects.get(id=response.data["id"]).deliverables.get()
+        self.assertEqual(deliverable.invoice.total(), Money("5.00", "USD"))
+
     def test_place_order_named_price_too_low(self):
         product = ProductFactory.create(
             base_price=Money("5.00", "USD"), name_your_price=True

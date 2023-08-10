@@ -306,7 +306,7 @@ class ProductNewOrderSerializer(
     buyer = RelatedUserSerializer(read_only=True)
     characters = ListField(child=IntegerField(), required=False)
     # Field will be entirely deleted if product is not a name your price commission.
-    named_price = MoneyToFloatField(required=False)
+    named_price = MoneyToFloatField(required=False, allow_null=True)
     references = ListField(
         child=serializers.CharField(),
         required=False,
@@ -336,6 +336,8 @@ class ProductNewOrderSerializer(
             self.fields["email"].allow_blank = False
 
     def validate_named_price(self, value):
+        if value is None:
+            value = 0
         if value < 0:
             raise ValidationError("Price cannot be negative.")
         return Money(value, settings.DEFAULT_CURRENCY)
