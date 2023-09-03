@@ -454,8 +454,7 @@ class PlaceOrder(CreateAPIView):
         escrow_enabled = product.escrow_enabled
         if not escrow_enabled and product.escrow_upgradable:
             escrow_enabled = serializer.validated_data["escrow_upgrade"]
-        paypal = product.paypal and product.user.service_plan.paypal_invoicing
-        paypal = paypal and PaypalConfig.objects.filter(user=product.user).exists()
+        paypal = product.paypal
         paypal = paypal and not escrow_enabled
         deliverable = Deliverable.objects.create(
             order=order,
@@ -723,7 +722,7 @@ class DeliverableAccept(GenericAPIView):
             deliverable.revisions_hidden = False
             deliverable.escrow_enabled = False
         # Only actually generates if all conditions for generation are true.
-        generate_paypal_invoice(deliverable)
+        deliverable.paypal = generate_paypal_invoice(deliverable)
         deliverable.save()
         deliverable.invoice.status = OPEN
         deliverable.invoice.save()
@@ -802,7 +801,7 @@ class MarkPaid(GenericAPIView):
     def post(self, request, **_kwargs):
         deliverable = self.get_object()
         self.check_object_permissions(request, deliverable)
-        if deliverable.paypal:
+        if deliverable.invoice.paypal_token:
             # There exists a paypal invoice for this, which we need to cancel
             # since we're manually marking this paid.
             with paypal_api(deliverable.order.seller) as paypal:
@@ -810,6 +809,8 @@ class MarkPaid(GenericAPIView):
                 deliverable.paypal = False
                 deliverable.invoice.paypal_token = ""
                 deliverable.invoice.save()
+        else:
+            deliverable.paypal = False
         mark_deliverable_paid(deliverable)
         data = self.serializer_class(
             instance=deliverable, context=self.get_serializer_context()

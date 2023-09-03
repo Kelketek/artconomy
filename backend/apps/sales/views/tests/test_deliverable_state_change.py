@@ -313,6 +313,14 @@ class TestDeliverableStatusChange(APITestCase):
         self.deliverable.save()
         self.state_assertion("staffer", "mark-paid/", initial_status=PAYMENT_PENDING)
 
+    def test_mark_paid_paypal_never_generated(self, _mock_notify):
+        self.deliverable.escrow_enabled = False
+        self.deliverable.paypal = True
+        self.deliverable.save()
+        self.state_assertion("seller", "mark-paid/", initial_status=PAYMENT_PENDING)
+        self.deliverable.refresh_from_db()
+        self.assertFalse(self.deliverable.paypal)
+
     @patch("apps.sales.tasks.withdraw_all.delay")
     def test_approve_deliverable_buyer(self, mock_withdraw, _mock_notify):
         record = TransactionRecordFactory.create(
