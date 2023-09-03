@@ -454,7 +454,8 @@ class PlaceOrder(CreateAPIView):
         escrow_enabled = product.escrow_enabled
         if not escrow_enabled and product.escrow_upgradable:
             escrow_enabled = serializer.validated_data["escrow_upgrade"]
-        paypal = product.paypal
+        paypal = product.paypal and product.user.service_plan.paypal_invoicing
+        paypal = paypal and PaypalConfig.objects.filter(user=product.user).exists()
         paypal = paypal and not escrow_enabled
         deliverable = Deliverable.objects.create(
             order=order,

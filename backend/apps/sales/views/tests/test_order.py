@@ -45,6 +45,7 @@ from apps.sales.tests.factories import (
     RevisionFactory,
     StripeAccountFactory,
     add_adjustment,
+    PaypalConfigFactory,
 )
 from apps.sales.tests.test_utils import TransactionCheckMixin
 from ddt import data, ddt
@@ -276,6 +277,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         artist.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         artist.artist_profile.save()
         product = ProductFactory.create(
+            user=artist,
             task_weight=5,
             expected_turnaround=3,
             escrow_enabled=False,
@@ -304,6 +306,61 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(
             Deliverable.objects.get(order_id=response.data["id"]).escrow_enabled, True
         )
+
+    def test_place_order_escrow_disabled(self):
+        user = UserFactory.create()
+        self.login(user)
+        artist = UserFactory.create()
+        artist.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        artist.artist_profile.save()
+        product = ProductFactory.create(
+            user=artist,
+            task_weight=5,
+            expected_turnaround=3,
+            escrow_enabled=False,
+            escrow_upgradable=False,
+        )
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Deliverable.objects.get(order_id=response.data["id"])
+        self.assertFalse(deliverable.escrow_enabled)
+        self.assertFalse(deliverable.paypal)
+
+    def test_place_order_escrow_disabled_paypal(self):
+        user = UserFactory.create()
+        self.login(user)
+        artist = UserFactory.create(service_plan=self.landscape)
+        PaypalConfigFactory(user=artist)
+        artist.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        artist.artist_profile.save()
+        product = ProductFactory.create(
+            user=artist,
+            task_weight=5,
+            expected_turnaround=3,
+            escrow_enabled=False,
+            escrow_upgradable=False,
+        )
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Deliverable.objects.get(order_id=response.data["id"])
+        self.assertFalse(deliverable.escrow_enabled)
+        self.assertTrue(deliverable.paypal)
 
     def test_place_order_waitlisted_product(self):
         user = UserFactory.create()
