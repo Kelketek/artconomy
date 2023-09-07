@@ -77,7 +77,6 @@ describe('CharacterDetail.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Vulpes', characterName: 'Kai'},
-
       attachTo: docTarget(),
     },
     )
@@ -94,10 +93,11 @@ describe('CharacterDetail.vue', () => {
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/profiles/account/Vulpes/characters/Kai/share/', 'get',
         undefined, {cancelToken: expect.any(Object)}))
-    mockAxios.mockResponse(rs(genCharacter()))
-    mockAxios.mockResponse(rs([]))
-    mockAxios.mockResponse(rs([]))
-    mockAxios.mockResponse(rs([]))
+    const vm = wrapper.vm as any
+    vm.character.profile.makeReady(genCharacter())
+    vm.character.attributes.makeReady([])
+    vm.character.colors.makeReady([])
+    vm.character.submissions.makeReady([])
     await wrapper.vm.$nextTick()
   })
   it('Produces a relevant link to the primary submission', async() => {
@@ -108,7 +108,6 @@ describe('CharacterDetail.vue', () => {
       router,
       vuetify,
       propsData: {username: 'Vulpes', characterName: 'Kai'},
-
       attachTo: docTarget(),
     },
     )

@@ -8,9 +8,12 @@ import {User} from '@/store/profiles/types/User'
 import Viewer from './viewer'
 import {ProfileController} from '@/store/profiles/controller'
 import {profileRegistry} from '@/store/profiles/registry'
+import {SingleController} from '@/store/singles/controller'
+import Pricing from '@/types/Pricing'
+import PricingAware from '@/mixins/PricingAware'
 
 @Component
-export default class Subjective extends mixins(Viewer) {
+export default class Subjective extends mixins(Viewer, PricingAware) {
   @Prop({required: true})
   public username!: string
 
@@ -35,6 +38,13 @@ export default class Subjective extends mixins(Viewer) {
       return this.isSuperuser
     }
     return this.isStaff
+  }
+
+  public get subjectPlan() {
+    if (!this.subject || !this.subject.service_plan) {
+      return null
+    }
+    return this.getPlan(this.subject.service_plan)
   }
 
   @Watch('username')

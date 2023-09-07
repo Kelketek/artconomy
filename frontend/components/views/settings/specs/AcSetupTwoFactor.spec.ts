@@ -16,6 +16,7 @@ import {ArtStore, createStore} from '@/store'
 import AcSetupTwoFactor from '../AcSetupTwoFactor.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genUser} from '@/specs/helpers/fixtures'
+import {genPricing} from '@/lib/specs/helpers'
 
 const localVue = vueSetup()
 let store: ArtStore
@@ -49,7 +50,8 @@ describe('ac-setup-two-factor', () => {
     setViewer(store, genUser())
     mockError.mockImplementationOnce(() => undefined)
     wrapper = mount(AcSetupTwoFactor, {localVue, store, vuetify, propsData: {username: 'Fox'}})
-    // Have to respond to the other request first.
+    // Have to respond to the other requests first.
+    mockAxios.mockResponse(rs(genPricing()))
     mockAxios.mockResponse(rs({results: [], count: 0, size: 0}))
     await jest.runAllTimers()
     await flushPromises()
@@ -75,6 +77,7 @@ describe('ac-setup-two-factor', () => {
       AcSetupTwoFactor,
       {localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
+    mockAxios.mockResponse(rs(genPricing()))
     mockAxios.mockResponse(rs({results: [], count: 0, size: 0}))
     mockAxios.mockError({status: 404})
     await flushPromises()
@@ -90,7 +93,7 @@ describe('ac-setup-two-factor', () => {
       AcSetupTwoFactor,
       {localVue, store, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
-    const vm = wrapper.vm as any
+    mockAxios.mockResponse(rs(genPricing()))
     mockAxios.mockResponse(rs({results: [], count: 0, size: 0}))
     mockAxios.mockError({status: 404})
     await flushPromises()

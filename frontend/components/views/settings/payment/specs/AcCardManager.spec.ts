@@ -12,6 +12,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.vue'
 import {baseCardSchema} from '@/lib/lib'
 import {PROCESSORS} from '@/types/PROCESSORS'
 import {FormController} from '@/store/forms/form-controller'
+import {genPricing} from '@/lib/specs/helpers'
 
 const localVue = vueSetup()
 let store: ArtStore
@@ -49,7 +50,7 @@ describe('AcCardManager.vue Authorize', () => {
     cleanUp(wrapper)
   })
   it('Fetches the initial data', async() => {
-    expect(mockAxios.request.mock.calls[0][0]).toEqual(
+    expect(mockAxios.request.mock.calls[1][0]).toEqual(
       rq('/api/sales/account/Fox/cards/authorize/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
   })
@@ -87,6 +88,7 @@ describe('AcCardManager.vue Authorize', () => {
     const cardList = genList()
     cardList[0].cvv_verified = false
     wrapper.setProps({value: 1})
+    mockAxios.mockResponse(rs(genPricing()))
     mockAxios.mockResponse(rs(cardList))
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -124,7 +126,7 @@ describe('AcCardManager.vue Stripe', () => {
     cleanUp(wrapper)
   })
   it('Fetches the initial data', async() => {
-    expect(mockAxios.request.mock.calls[0][0]).toEqual(
+    expect(mockAxios.request.mock.calls[1][0]).toEqual(
       rq('/api/sales/account/Fox/cards/stripe/', 'get', undefined, {cancelToken: expect.any(Object)}),
     )
   })

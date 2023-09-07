@@ -1,17 +1,19 @@
 <template>
   <v-card>
     <v-card-text>
-      <v-row no-gutters v-if="!subject.landscape">
+      <v-row no-gutters v-if="!(subjectPlan && (subjectPlan.monthly_charge || subjectPlan.per_deliverable_price))">
         <v-col class="text-center" cols="12" >
-          <p>Premium settings are only available with a Landscape subscription.</p>
+          <p>Premium settings are only available with a subscription.</p>
           <v-btn :to="{name: 'Upgrade'}" color="secondary">Upgrade Now!</v-btn>
         </v-col>
       </v-row>
-      <v-row v-if="subject.landscape">
+      <v-row v-if="subjectPlan && subjectPlan.paypal_invoicing">
         <v-col class="text-center" cols="12" >
           <v-subheader>PayPal Integration</v-subheader>
           <v-btn color="primary" type="submit" @click="showPaypal = true">Configure PayPal Integration</v-btn>
         </v-col>
+      </v-row>
+      <v-row v-if="subject && subject.landscape">
         <v-col class="text-center" cols="2">
           <v-icon x-large>{{discordPath}}</v-icon>
         </v-col>

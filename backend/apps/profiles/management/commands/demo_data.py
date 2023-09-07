@@ -14,17 +14,19 @@ class Command(BaseCommand):
         fox = UserFactory.create(
             username="Fox",
             email="fox@artconomy.com",
-            password="muffinmuffin",
+            password="password",
             rating=MATURE,
             artist_mode=True,
             authorize_token="",
+            is_staff=True,
+            is_admin=True,
         )
         fox.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         fox.artist_profile.save()
         UserFactory.create(
             username="Vulpes",
             email="vulpes@vulpinity.com",
-            password="muffinmuffin",
+            password="password",
             rating=MATURE,
             authorize_token="",
         )

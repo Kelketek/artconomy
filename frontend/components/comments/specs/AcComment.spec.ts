@@ -315,6 +315,7 @@ describe('AcComment.vue', () => {
     })
     expect((wrapper.vm as any).comment.x).toBeTruthy()
     await wrapper.vm.$nextTick()
+    mockAxios.reset()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     await wrapper.vm.$nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(

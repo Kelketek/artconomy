@@ -10,6 +10,7 @@ import mockAxios from '@/__mocks__/axios'
 import Profile from '@/components/views/profile/Profile.vue'
 import {User} from '@/store/profiles/types/User'
 import {genConversation} from '@/components/views/specs/fixtures'
+import {genPricing} from '@/lib/specs/helpers'
 
 const localVue = vueSetup()
 localVue.use(Router)
@@ -75,6 +76,7 @@ describe('Profile.vue', () => {
     wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()},
     )
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/', 'get'))
+    mockAxios.mockResponse(rs(genPricing()))
     mockAxios.mockResponse(rs(fox))
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/artist-profile/', 'get', undefined, {
       params: {view: 'true'}, cancelToken: expect.any(Object),
@@ -92,6 +94,7 @@ describe('Profile.vue', () => {
     router.push({name: 'Profile', params: {username: fox.username}})
     wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()})
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/', 'get'))
+    mockAxios.mockResponse(rs(genPricing()))
     mockAxios.mockResponse(rs(fox))
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/profiles/account/Fox/artist-profile/', 'get', undefined, {
@@ -110,6 +113,7 @@ describe('Profile.vue', () => {
     fox.artist_mode = false
     router.push({name: 'Profile', params: {username: fox.username}})
     wrapper = mount(Profile, {localVue, store, router, vuetify, propsData: {username: 'Fox'}, attachTo: docTarget()})
+    mockAxios.mockResponse(rs(genPricing()))
     mockAxios.mockResponse(rs(fox))
     mockAxios.reset()
     await wrapper.vm.$nextTick()
