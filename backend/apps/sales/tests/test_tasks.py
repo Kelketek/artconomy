@@ -707,8 +707,9 @@ class TestDeliverableClear(EnsurePlansMixin, TestCase):
         DeliverableFactory(status=MISSED, cancelled_on=None)
         DeliverableFactory(status=MISSED, cancelled_on=None)
         clear_cancelled_deliverables()
-        mock_clear.assert_called_with(chosen.id)
-        self.assertEqual(mock_clear.call_count, 1)
+        mock_clear.delay.assert_called_with(chosen.id)
+        mock_clear.assert_not_called()
+        self.assertEqual(mock_clear.delay.call_count, 1)
 
     @patch("apps.sales.tasks.destroy_deliverable")
     def test_clear_deliverable(self, mock_destroy):

@@ -25,8 +25,9 @@ from apps.sales.constants import (
     SUCCESS,
     UNPROCESSED_EARNINGS,
     VOID,
+    MISSED,
 )
-from apps.sales.models import LineItem, TransactionRecord
+from apps.sales.models import LineItem, TransactionRecord, Deliverable
 from apps.sales.tests.factories import (
     DeliverableFactory,
     InvoiceFactory,
@@ -377,6 +378,11 @@ class TestDestroyDeliverable(EnsurePlansMixin, TestCase):
     def test_destroy_deliverable_fail_not_cancelled(self):
         deliverable = DeliverableFactory(status=IN_PROGRESS)
         self.assertRaises(IntegrityError, destroy_deliverable, deliverable)
+
+    def test_destroy_deliverable_accepts_missed(self):
+        deliverable = DeliverableFactory.create(status=MISSED)
+        destroy_deliverable(deliverable)
+        self.assertRaises(Deliverable.DoesNotExist, deliverable.refresh_from_db)
 
     @patch("apps.lib.utils.clear_events_subscriptions_and_comments")
     def test_destroy_deliverable(self, mock_clear):

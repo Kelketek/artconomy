@@ -955,7 +955,7 @@ def order_context_to_link(context: OrderContext):
 
 @atomic
 def destroy_deliverable(deliverable: "Deliverable"):
-    if deliverable.status != CANCELLED:
+    if deliverable.status not in [CANCELLED, MISSED]:
         raise IntegrityError("Can only destroy cancelled orders!")
     references = list(deliverable.reference_set.all())
     deliverable.reference_set.clear()

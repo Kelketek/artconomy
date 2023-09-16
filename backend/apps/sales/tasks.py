@@ -583,7 +583,7 @@ def clear_cancelled_deliverables():
         term_billed=False,
     )
     for deliverable in to_destroy:
-        clear_deliverable(deliverable.id)
+        clear_deliverable.delay(deliverable.id)
 
 
 @celery_app.task
