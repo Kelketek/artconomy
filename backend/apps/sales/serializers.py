@@ -231,6 +231,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "display_position",
             "over_order_limit",
             "name_your_price",
+            "details_template",
         )
         read_only_fields = (
             "tags",

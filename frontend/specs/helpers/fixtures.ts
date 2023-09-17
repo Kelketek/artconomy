@@ -124,6 +124,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     id: 1,
     name: 'Test product',
     description: 'This is a test product',
+    details_template: '',
     revisions: 2,
     hidden: false,
     max_rating: 2,

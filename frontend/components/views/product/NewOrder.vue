@@ -311,6 +311,10 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         return
       }
       this.orderForm.fields.rating.model = Math.min(newProduct.max_rating, this.orderForm.fields.rating.value)
+      if ((this.orderForm.fields.productId.value !== newProduct.id) && newProduct.details_template.length) {
+        this.orderForm.fields.details.model = newProduct.details_template
+      }
+      this.orderForm.fields.productId.model = newProduct.id
     }
 
     @Watch('orderForm.step')
@@ -449,6 +453,11 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
         persistent: true,
         step,
         fields: {
+          // productId field not actually used in submission, but used as a way to track
+          // whether the user is revisiting this product after navigating away, or if this is the first time.
+          // We start with zero to make sure we register a 'change' on the first product visited and copy over the
+          // details template from the product, if it exists.
+          productId: {value: 0},
           email: {value: (viewer.guest_email || ''), step: 1, validators: validators},
           private: {value: false, step: 1},
           characters: {value: [], step: 2},

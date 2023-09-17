@@ -56,6 +56,38 @@
                     can add these in your artist settings, and they will show on every product, so just include a
                     description of the product itself here." />
                   </v-col>
+                  <v-col cols="12" order="5" order-sm="5" >
+                    <v-expansion-panels>
+                      <v-expansion-panel>
+                        <v-expansion-panel-header>Details Template</v-expansion-panel-header>
+                        <v-expansion-panel-content>
+                          <v-row>
+                            <v-col cols="6">
+                              Optional. You may include a template for the commissioner to fill out. You might do this
+                              if you need to collect specific details for this commission and want to avoid a lot of
+                              back and forth.
+
+                              Here's an example template you might use:
+                            </v-col>
+                            <v-col cols="6">
+                              <blockquote>
+                                Preferred colors:<br /><br />
+                                Do you want shading? (yes/no):<br /><br />
+                                What are your social media accounts you'd like me to tag when the piece is done?:
+                              </blockquote>
+                            </v-col>
+                            <v-col cols="12">
+                              <ac-bound-field
+                                  :field="newProduct.fields.details_template" label="Details Template"
+                                  field-type="ac-editor" :save-indicator="false"
+                                  :persistent-hint="true"
+                                  />
+                            </v-col>
+                          </v-row>
+                        </v-expansion-panel-content>
+                      </v-expansion-panel>
+                    </v-expansion-panels>
+                  </v-col>
                 </v-row>
               </v-stepper-content>
               <v-stepper-content :step="2">
@@ -384,6 +416,7 @@ export default class AcNewProduct extends Subjective {
         fields: {
           name: {value: ''},
           description: {value: ''},
+          details_template: {value: ''},
           base_price: {value: '25.00', step: 2, validators: [{name: 'numeric'}]},
           expected_turnaround: {value: 5, step: 2, validators: [{name: 'numeric'}]},
           max_rating: {value: Ratings.GENERAL, step: 2},

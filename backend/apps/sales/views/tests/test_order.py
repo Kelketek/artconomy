@@ -45,7 +45,6 @@ from apps.sales.tests.factories import (
     RevisionFactory,
     StripeAccountFactory,
     add_adjustment,
-    PaypalConfigFactory,
 )
 from apps.sales.tests.test_utils import TransactionCheckMixin
 from ddt import data, ddt

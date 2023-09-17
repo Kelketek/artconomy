@@ -157,6 +157,13 @@ class Product(ImageModel, HitsMixin):
 
     name = CharField(max_length=250, db_index=True)
     description = CharField(max_length=5000)
+    details_template = CharField(
+        max_length=500,
+        help_text=(
+            "Prepopulate a template in the details field for a client to fill in."
+        ),
+        default="",
+    )
     expected_turnaround = DecimalField(
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],
         help_text="Number of days completion is expected to take.",

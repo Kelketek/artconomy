@@ -281,9 +281,5 @@ export default class AcProductPreview extends mixins(Formatting) {
     public get turnaround() {
       return Math.ceil(this.product.expected_turnaround)
     }
-
-    public created() {
-      console.log(this.product)
-    }
 }
 </script>

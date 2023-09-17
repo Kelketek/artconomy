@@ -6,6 +6,7 @@ export default interface Product {
   id: number,
   name: string,
   description: string,
+  details_template: string,
   revisions: number,
   hidden: boolean,
   max_parallel: number,

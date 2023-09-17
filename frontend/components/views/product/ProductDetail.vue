@@ -188,6 +188,39 @@
               other information used to set expectations with your clients."
                               :save-comparison="subjectHandler.artistProfile.x.commission_info" />
                         </v-col>
+                        <v-col cols="12" v-if="editing" class="pt-3">
+                          <v-expansion-panels>
+                            <v-expansion-panel>
+                              <v-expansion-panel-header>Details Template</v-expansion-panel-header>
+                              <v-expansion-panel-content>
+                                <v-row>
+                                  <v-col cols="6">
+                                    Optional. You may include a template for the commissioner to fill out. You might do
+                                    this if you need to collect specific details for this commission and want to avoid
+                                    a lot of back and forth.
+
+                                    Here's an example template you might use:
+                                  </v-col>
+                                  <v-col cols="6">
+                                    <blockquote>
+                                      Preferred colors:<br /><br />
+                                      Do you want shading? (yes/no):<br /><br />
+                                      What are your social media accounts you'd like me to tag when the piece is done?:
+                                    </blockquote>
+                                  </v-col>
+                                  <v-col cols="12">
+                                    <ac-patch-field
+                                        :patcher="product.patchers.details_template" label="Details Template"
+                                        field-type="ac-editor"
+                                        :auto-save="false"
+                                        :persistent-hint="true"
+                                    />
+                                  </v-col>
+                                </v-row>
+                              </v-expansion-panel-content>
+                            </v-expansion-panel>
+                          </v-expansion-panels>
+                        </v-col>
                       </v-row>
                     </template>
                   </ac-load-section>
@@ -536,9 +569,11 @@ import Sharable from '@/mixins/sharable'
 import {deliverableLines} from '@/lib/lineItemFunctions'
 import {LineItemSetMap} from '@/types/LineItemSetMap'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
+import AcBoundField from '@/components/fields/AcBoundField'
 
 @Component({
   components: {
+    AcBoundField,
     AcPriceComparison,
     AcShareButton,
     AcEscrowLabel,

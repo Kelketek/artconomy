@@ -202,6 +202,7 @@ describe('NewOrder.vue', () => {
       persistent: true,
       step: 1,
       fields: {
+        productId: {value: 0},
         email: {value: '', step: 1, validators: [{name: 'email'}]},
         private: {value: false, step: 1},
         characters: {value: [23, 50], step: 2},
@@ -211,6 +212,8 @@ describe('NewOrder.vue', () => {
         invoicing: {value: false, step: 3},
         // Let there be a 'step 3' even if there's not an actual field there.
         dummy: {value: '', step: 3},
+        named_price: {value: null, step: 1},
+        escrow_upgrade: {value: false, step: 3},
       },
     })
     wrapper = mount(
@@ -246,12 +249,16 @@ describe('NewOrder.vue', () => {
       endpoint: '/boop/',
       persistent: true,
       fields: {
+        productId: {value: 0},
         email: {value: ('')},
         private: {value: false},
         characters: {value: [23, 50]},
         rating: {value: 0},
         details: {value: ''},
         invoicing: {value: false, step: 3},
+        references: {value: [], step: 2},
+        named_price: {value: null, step: 1},
+        escrow_upgrade: {value: false, step: 3},
       },
     })
     wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
@@ -261,6 +268,90 @@ describe('NewOrder.vue', () => {
     vm.viewerHandler.user.updateX({guest_email: 'boop@snoot.com'})
     await vm.$nextTick()
     expect(form.fields.email.value).toEqual('boop@snoot.com')
+  })
+  it('Sets the details template when starting from nothing.', async() => {
+    const user = genAnon()
+    setViewer(store, user)
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    vm.product.makeReady(genProduct({details_template: 'Beep boop'}))
+    await vm.$nextTick()
+    expect(vm.orderForm.fields.details.model).toEqual('Beep boop')
+  })
+  it('Does not set the details template when revisiting.', async() => {
+    const form = mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+      endpoint: '/boop/',
+      persistent: true,
+      fields: {
+        productId: {value: 5},
+        email: {value: ('')},
+        private: {value: false},
+        characters: {value: [23, 50]},
+        rating: {value: 0},
+        details: {value: 'This is a test.'},
+        invoicing: {value: false, step: 3},
+        references: {value: [], step: 2},
+        named_price: {value: null, step: 1},
+        escrow_upgrade: {value: false, step: 3},
+      },
+    })
+    const user = genAnon()
+    setViewer(store, user)
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    vm.product.makeReady(genProduct({id: 5, details_template: 'Beep boop'}))
+    await vm.$nextTick()
+    expect(vm.orderForm.fields.details.model).toEqual('This is a test.')
+  })
+  it('Does not set the details template when it is blank.', async() => {
+    mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+      endpoint: '/boop/',
+      persistent: true,
+      fields: {
+        productId: {value: 1},
+        email: {value: ('')},
+        private: {value: false},
+        characters: {value: [23, 50]},
+        rating: {value: 0},
+        details: {value: 'This is a test.'},
+        invoicing: {value: false, step: 3},
+        references: {value: [], step: 2},
+        named_price: {value: null, step: 1},
+        escrow_upgrade: {value: false, step: 3},
+      },
+    })
+    const user = genAnon()
+    setViewer(store, user)
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    vm.product.makeReady(genProduct({id: 5, details_template: ''}))
+    await vm.$nextTick()
+    expect(vm.orderForm.fields.details.model).toEqual('This is a test.')
+  })
+  it('Sets the details template when the order ID changes.', async() => {
+    mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+      endpoint: '/boop/',
+      persistent: true,
+      fields: {
+        productId: {value: 1},
+        email: {value: ('')},
+        private: {value: false},
+        characters: {value: [23, 50]},
+        rating: {value: 0},
+        details: {value: 'This is a test.'},
+        invoicing: {value: false, step: 3},
+        references: {value: [], step: 2},
+        named_price: {value: null, step: 1},
+        escrow_upgrade: {value: false, step: 3},
+      },
+    })
+    const user = genAnon()
+    setViewer(store, user)
+    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    const vm = wrapper.vm as any
+    vm.product.makeReady(genProduct({id: 5, details_template: 'Beep Boop'}))
+    await vm.$nextTick()
+    expect(vm.orderForm.fields.details.model).toEqual('Beep Boop')
   })
   it('Redirects to step one if using the old order URL', async() => {
     const user = genAnon()
