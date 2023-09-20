@@ -8,7 +8,9 @@
             <v-row class="py-3">
               <v-col cols="4" sm="3" lg="2" v-for="linkedSubmission in gallery.list" :key="linkedSubmission.x.submission.id">
                 <ac-gallery-preview class="pa-1"
-                                    :submission="linkedSubmission.x.submission">
+                                    :submission="linkedSubmission.x.submission"
+                                    :show-footer="false"
+                >
                 </ac-gallery-preview>
               </v-col>
             </v-row>
