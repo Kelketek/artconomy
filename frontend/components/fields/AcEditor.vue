@@ -8,7 +8,7 @@
         </v-row>
       </v-col>
       <v-col cols="12" v-else>
-        <v-textarea v-bind="inputAttrs" ref="input" v-model="scratch" outlined :auto-grow="autoGrow" />
+        <v-textarea v-bind="inputAttrs" ref="input" v-model="scratch" outlined :auto-grow="autoGrow" :error-messages="errorMessages" />
       </v-col>
       <v-col cols="12">
         <v-row dense>
@@ -117,6 +117,9 @@ export default class AcEditor extends Vue {
 
     @Prop({default: false})
     public disabled!: boolean
+
+    @Prop({default: () => []})
+    public errorMessages!: string[]
 
     @Mutation('setMarkdownHelp')
     public setMarkdownHelp: any

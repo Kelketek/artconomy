@@ -84,7 +84,6 @@
                   label="Commission Info"
                   :persistent-hint="true"
                   :counter="5000"
-                  :auto-save="false"
                   hint="This information will be shown on all of your product pages. It could contain terms of service or
                   other information used to set expectations with your clients."
               >

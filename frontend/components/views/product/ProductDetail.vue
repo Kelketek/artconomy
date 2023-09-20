@@ -144,12 +144,12 @@
                   <ac-rendered :value="product.x.description" v-show="!editing" itemprop="description" />
                   <ac-patch-field
                       field-type="ac-editor"
-                      :auto-save="false"
                       :patcher="product.patchers.description"
                       v-if="controls"
                       v-show="editing"
                       label="Description"
                       hint="Tell the customer more about what you're offering."
+                      :counter="5000"
                       :save-comparison="product.x.description"/>
                 </v-col>
                 <v-col cols="12" class="my-2"><v-divider /></v-col>
@@ -175,18 +175,14 @@
                           </ac-expanded-property>
                         </v-col>
                         <v-col cols="12">
-                          <v-subheader v-if="subjectHandler.artistProfile.x.commission_info" v-show="!editing">Commission Info</v-subheader>
-                          <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500" v-show="!editing" />
-                          <ac-patch-field
-                              field-type="ac-editor"
-                              :auto-save="false"
-                              :patcher="subjectHandler.artistProfile.patchers.commission_info"
-                              v-if="controls"
-                              v-show="editing"
-                              label="Commission Info"
-                              hint="This information will be shown on ALL of your product pages. It could contain terms of service or
-              other information used to set expectations with your clients."
-                              :save-comparison="subjectHandler.artistProfile.x.commission_info" />
+                          <v-subheader v-if="subjectHandler.artistProfile.x.commission_info || editing">Commission Info</v-subheader>
+                          <div class="text-center">
+                            <v-btn color="primary" :to="{name: 'Artist', params: {username}}">
+                              <span v-if="subjectHandler.artistProfile.x.commission_info">Edit your Commission Info</span>
+                              <span v-else>Set your commission info</span>
+                            </v-btn>
+                          </div>
+                          <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500" />
                         </v-col>
                         <v-col cols="12" v-if="editing" class="pt-3">
                           <v-expansion-panels>
@@ -212,8 +208,8 @@
                                     <ac-patch-field
                                         :patcher="product.patchers.details_template" label="Details Template"
                                         field-type="ac-editor"
-                                        :auto-save="false"
                                         :persistent-hint="true"
+                                        :counter="500"
                                     />
                                   </v-col>
                                 </v-row>
