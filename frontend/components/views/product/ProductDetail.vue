@@ -176,7 +176,7 @@
                         </v-col>
                         <v-col cols="12">
                           <v-subheader v-if="subjectHandler.artistProfile.x.commission_info || editing">Commission Info</v-subheader>
-                          <div class="text-center">
+                          <div class="text-center" v-if="editing">
                             <v-btn color="primary" :to="{name: 'Artist', params: {username}}">
                               <span v-if="subjectHandler.artistProfile.x.commission_info">Edit your Commission Info</span>
                               <span v-else>Set your commission info</span>
