@@ -66,6 +66,9 @@
                   </ac-asset>
                 </ac-link>
               </v-col>
+              <v-col cols="12" v-if="more">
+                <v-btn color="primary" block :to="{name: 'ProductGallery', params: {productId, username}}">Show full gallery</v-btn>
+              </v-col>
             </v-row>
           </v-responsive>
         </v-col>

@@ -108,6 +108,11 @@ const routes: RouterOptions = {
         path: 'order/',
         component: Empty,
         props: true,
+      }, {
+        name: 'ProductGallery',
+        path: 'gallery/',
+        component: Empty,
+        props: true,
       }],
     }],
   }],

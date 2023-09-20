@@ -93,8 +93,8 @@ const TableProducts = () => import('@/components/views/table/TableProducts.vue')
 const TableOrders = () => import('@/components/views/table/TableOrders.vue')
 const TableInvoices = () => import('@/components/views/table/TableInvoices.vue')
 const Invoices = () => import('@/components/views/settings/payment/Invoices.vue')
-
 const TroubledDeliverables = () => import('@/components/views/TroubledDeliverables.vue')
+const ProductGallery = () => import('@/components/views/product/ProductGallery.vue')
 
 function orderViews() {
   const orderRoutes: RouteConfig[] = []
@@ -291,6 +291,12 @@ export const routes = [
             props(route: Route) {
               return {...route.params, invoiceMode: !!route.params.invoiceMode}
             },
+          },
+          {
+            name: 'ProductGallery',
+            path: 'gallery/',
+            component: ProductGallery,
+            props: true,
           },
         ],
       },
