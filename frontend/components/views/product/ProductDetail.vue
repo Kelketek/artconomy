@@ -2,37 +2,42 @@
   <ac-load-section :controller="product" itemscope itemtype="http://schema.org/Product" v-if="currentRoute" class="pt-3">
     <template v-slot:default>
       <v-row>
-        <v-col class="hidden-md-and-up" cols="12" style="position: relative" v-if="$vuetify.breakpoint.smAndDown">
-          <ac-sample-editor v-model="showChangePrimary" :large="true" :username="username" :product="product" :product-id="productId" :samples="samples" />
-          <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="showChangePrimary = true">
-            <v-container fluid class="pa-0 edit-container">
-              <v-col class="edit-layout justify-content d-flex">
-                <v-col class="d-flex" >
-                  <v-row no-gutters class="justify-content"   align="center" >
-                    <v-col class="edit-cta text-center">
-                      <slot name="edit-prompt">
-                        <v-icon large>photo_camera</v-icon>
-                        <p>Edit</p>
-                      </slot>
-                    </v-col>
-                  </v-row>
+        <fragment v-if="$vuetify.breakpoint.smAndDown">
+          <v-col class="hidden-md-and-up" cols="12" style="position: relative">
+            <ac-sample-editor v-model="showChangePrimary" :large="true" :username="username" :product="product" :product-id="productId" :samples="samples" />
+            <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="showChangePrimary = true">
+              <v-container fluid class="pa-0 edit-container">
+                <v-col class="edit-layout justify-content d-flex">
+                  <v-col class="d-flex" >
+                    <v-row no-gutters class="justify-content"   align="center" >
+                      <v-col class="edit-cta text-center">
+                        <slot name="edit-prompt">
+                          <v-icon large>photo_camera</v-icon>
+                          <p>Edit</p>
+                        </slot>
+                      </v-col>
+                    </v-row>
+                  </v-col>
                 </v-col>
-              </v-col>
-            </v-container>
-            <div class="backdrop"></div>
-          </div>
-          <v-carousel height="60vh" :cycle="false" :show-arrows="slides.length > 1" :hide-delimiters="slides.length <= 1">
-            <v-carousel-item v-if="product.x.primary_submission === null">
-              <ac-asset thumb-name="thumbnail" :asset="null" :contain="true" :terse="true" />
-            </v-carousel-item>
-            <v-carousel-item v-for="sample in slides" :key="sample.id">
-              <ac-gallery-preview :submission="sample"
-                        thumb-name="thumbnail" :terse="true"
-                        :text="false" :show-footer="false"
-              />
-            </v-carousel-item>
-          </v-carousel>
-        </v-col>
+              </v-container>
+              <div class="backdrop"></div>
+            </div>
+            <v-carousel height="60vh" :cycle="false" :show-arrows="slides.length > 1" :hide-delimiters="slides.length <= 1">
+              <v-carousel-item v-if="product.x.primary_submission === null">
+                <ac-asset thumb-name="thumbnail" :asset="null" :contain="true" :terse="true" />
+              </v-carousel-item>
+              <v-carousel-item v-for="sample in slides" :key="sample.id">
+                <ac-gallery-preview :submission="sample"
+                                    thumb-name="thumbnail" :terse="true"
+                                    :text="false" :show-footer="false"
+                />
+              </v-carousel-item>
+            </v-carousel>
+          </v-col>
+          <v-col class="hidden-md-and-up" cols="12" v-if="more">
+            <v-btn color="primary" block :to="{name: 'ProductGallery', params: {productId, username}}">Show full gallery</v-btn>
+          </v-col>
+        </fragment>
         <v-col v-else md="4" lg="5" >
           <v-responsive max-height="80vh">
             <v-row no-gutters  >
@@ -66,7 +71,7 @@
                   </ac-asset>
                 </ac-link>
               </v-col>
-              <v-col cols="12" v-if="more">
+              <v-col cols="12" v-if="more" class="pl-4 pt-2">
                 <v-btn color="primary" block :to="{name: 'ProductGallery', params: {productId, username}}">Show full gallery</v-btn>
               </v-col>
             </v-row>
