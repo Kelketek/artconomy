@@ -27,9 +27,7 @@ asgiref==3.7.2
 asttokens==2.2.1
     # via stack-data
 async-timeout==4.0.2
-    # via
-    #   aiohttp
-    #   redis
+    # via aiohttp
 attrs==23.1.0
     # via
     #   aiohttp
@@ -96,7 +94,7 @@ constantly==15.1.0
     # via twisted
 coverage==7.2.7
     # via -r requirements.in
-cryptography==41.0.3
+cryptography==41.0.4
     # via
     #   authlib
     #   autobahn
