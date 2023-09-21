@@ -163,6 +163,7 @@ class Product(ImageModel, HitsMixin):
             "Prepopulate a template in the details field for a client to fill in."
         ),
         default="",
+        blank=True,
     )
     expected_turnaround = DecimalField(
         validators=[MinValueValidator(settings.MINIMUM_TURNAROUND)],

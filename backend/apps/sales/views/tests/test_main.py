@@ -633,6 +633,7 @@ class TestProduct(APITestCase):
                 "base_price": 2.50,
                 "tags": ["a", "b", "c", "d"],
             },
+            format="json",
         )
         result = response.data
         self.assertEqual(result["description"], "I will draw you a porn.")
