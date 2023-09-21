@@ -4,9 +4,9 @@
 #
 #    pip-compile --output-file=requirements.txt constraints.in requirements.in
 #
-adrf==0.1.1
+adrf==0.1.2
     # via -r requirements.in
-aiofile==3.8.7
+aiofile==3.8.8
     # via -r requirements.in
 aiohttp==3.8.5
     # via discord-py-interactions
@@ -14,7 +14,7 @@ aiosignal==1.3.1
     # via aiohttp
 amqp==5.1.1
     # via kombu
-anyio==3.7.1
+anyio==4.0.0
     # via
     #   httpcore
     #   watchfiles
@@ -24,9 +24,11 @@ asgiref==3.7.2
     #   channels-redis
     #   daphne
     #   django
-asttokens==2.2.1
+asttokens==2.4.0
     # via stack-data
-async-timeout==4.0.2
+async-property==0.2.2
+    # via adrf
+async-timeout==4.0.3
     # via
     #   aiohttp
     #   redis
@@ -51,13 +53,13 @@ beautifulsoup4==4.12.2
     # via bs4
 billiard==4.1.0
     # via celery
-black==23.7.0
+black==23.9.1
     # via -r requirements.in
 bs4==0.0.1
     # via -r requirements.in
-caio==0.9.12
+caio==0.9.13
     # via aiofile
-celery[redis]==5.3.1
+celery[redis]==5.3.4
     # via
     #   -r requirements.in
     #   django-celery-email
@@ -78,7 +80,7 @@ charset-normalizer==3.2.0
     # via
     #   aiohttp
     #   requests
-click==8.1.6
+click==8.1.7
     # via
     #   black
     #   celery
@@ -94,9 +96,9 @@ click-repl==0.3.0
     # via celery
 constantly==15.1.0
     # via twisted
-coverage==7.2.7
+coverage==7.3.1
     # via -r requirements.in
-cryptography==41.0.3
+cryptography==41.0.4
     # via
     #   authlib
     #   autobahn
@@ -112,9 +114,9 @@ ddt==1.6.0
     # via -r requirements.in
 decorator==5.1.1
     # via ipython
-discord-py-interactions==5.8.0
+discord-py-interactions==5.10.0
     # via -r requirements.in
-discord-typings==0.6.0
+discord-typings==0.7.0
     # via discord-py-interactions
 django==4.2.3
     # via
@@ -151,9 +153,9 @@ django-hitcount @ git+https://github.com/thornomad/django-hitcount.git@fcf399698
     # via -r requirements.in
 django-markdown2==0.3.1
     # via -r requirements.in
-django-money==3.2.0
+django-money==3.3.0
     # via -r requirements.in
-django-otp==1.2.2
+django-otp==1.2.3
     # via -r requirements.in
 django-premailer==0.2.0
     # via -r requirements.in
@@ -161,7 +163,7 @@ django-redis==5.3.0
     # via -r requirements.in
 django-rest-recaptcha @ git+https://github.com/Artconomy/django-rest-recaptcha.git@django-4.0
     # via -r requirements.in
-django-reversion==5.0.4
+django-reversion==5.0.5
     # via -r requirements.in
 django-sendgrid-v5==1.2.2
     # via -r requirements.in
@@ -179,7 +181,7 @@ djangorestframework-bulk==0.2.1
     # via -r requirements.in
 djangorestframework-csv==2.1.1
     # via -r requirements.in
-dnspython==2.4.1
+dnspython==2.4.2
     # via django-avatar
 dotted-dict==1.1.3
     # via -r requirements.in
@@ -187,13 +189,13 @@ dwollav2==2.2.1
     # via -r requirements.in
 easy-thumbnails==2.8.5
     # via -r requirements.in
-emoji==2.7.0
+emoji==2.8.0
     # via discord-py-interactions
 executing==1.2.0
     # via stack-data
 factory-boy==3.3.0
     # via -r requirements.in
-faker==19.2.0
+faker==19.6.2
     # via factory-boy
 freezegun==1.2.2
     # via -r requirements.in
@@ -229,15 +231,15 @@ idna==3.4
     #   yarl
 incremental==22.10.0
     # via twisted
-ipython==8.14.0
+ipython==8.15.0
     # via -r requirements.in
 isort==5.12.0
     # via -r requirements.in
 jedi==0.19.0
     # via ipython
-kombu==5.3.1
+kombu==5.3.2
     # via celery
-lazy==1.5
+lazy==1.6
     # via -r requirements.in
 luhn==0.2.0
     # via -r requirements.in
@@ -251,7 +253,7 @@ markdown2==2.4.10
     # via django-markdown2
 matplotlib-inline==0.1.6
     # via ipython
-msgpack==1.0.5
+msgpack==1.0.6
     # via channels-redis
 multidict==6.0.4
     # via
@@ -259,11 +261,11 @@ multidict==6.0.4
     #   yarl
 mypy-extensions==1.0.0
     # via black
-numpy==1.25.2
+numpy==1.26.0
     # via pandas
 packaging==23.1
     # via black
-pandas==2.0.3
+pandas==2.1.1
     # via -r requirements.in
 parso==0.8.3
     # via jedi
@@ -273,7 +275,7 @@ pexpect==4.8.0
     # via ipython
 pickleshare==0.7.5
     # via ipython
-pillow==10.0.0
+pillow==10.0.1
     # via
     #   django-avatar
     #   easy-thumbnails
@@ -285,9 +287,9 @@ prompt-toolkit==3.0.39
     # via
     #   click-repl
     #   ipython
-psycopg[binary]==3.1.9
+psycopg[binary]==3.1.10
     # via -r requirements.in
-psycopg-binary==3.1.9
+psycopg-binary==3.1.10
     # via psycopg
 ptyprocess==0.7.0
     # via pexpect
@@ -305,7 +307,7 @@ pycountry==22.3.5
     # via -r requirements.in
 pycparser==2.21
     # via cffi
-pygments==2.15.1
+pygments==2.16.1
     # via ipython
 pyopenssl==23.2.0
     # via twisted
@@ -324,9 +326,9 @@ python-http-client==3.3.7
     # via
     #   django-sendgrid-v5
     #   sendgrid
-python-telegram-bot==20.4
+python-telegram-bot==20.5
     # via -r requirements.in
-pytz==2023.3
+pytz==2023.3.post1
     # via
     #   -r requirements.in
     #   djangorestframework
@@ -347,7 +349,7 @@ requests==2.31.0
     #   mailchimp3
     #   premailer
     #   stripe
-ruff==0.0.282
+ruff==0.0.290
     # via -r requirements.in
 sendgrid==6.10.0
     # via django-sendgrid-v5
@@ -366,7 +368,7 @@ sniffio==1.3.0
     #   anyio
     #   httpcore
     #   httpx
-soupsieve==2.4.1
+soupsieve==2.5
     # via beautifulsoup4
 sqlparse==0.4.4
     # via django
@@ -374,26 +376,27 @@ stack-data==0.6.2
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==5.5.0
+stripe==6.5.0
     # via -r requirements.in
 tblib==2.0.0
     # via -r requirements.in
 tomli==2.0.1
     # via discord-py-interactions
-traitlets==5.9.0
+traitlets==5.10.0
     # via
     #   ipython
     #   matplotlib-inline
-twisted[tls]==22.10.0
+twisted[tls]==23.8.0
     # via daphne
 txaio==23.1.1
     # via autobahn
-typing-extensions==4.7.1
+typing-extensions==4.8.0
     # via
     #   discord-typings
     #   psycopg
     #   py-moneyed
     #   qrcode
+    #   stripe
     #   twisted
 tzdata==2023.3
     # via
@@ -401,7 +404,7 @@ tzdata==2023.3
     #   pandas
 unicodecsv==0.14.1
     # via djangorestframework-csv
-urllib3==2.0.4
+urllib3==2.0.5
     # via requests
 uvicorn[standard]==0.23.2
     # via -r requirements.in
@@ -414,7 +417,7 @@ vine==5.0.0
     #   amqp
     #   celery
     #   kombu
-watchfiles==0.19.0
+watchfiles==0.20.0
     # via uvicorn
 wcwidth==0.2.6
     # via prompt-toolkit
