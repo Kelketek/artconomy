@@ -584,6 +584,15 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     commission_info = serializers.SerializerMethodField()
     paypal_token = serializers.SerializerMethodField()
 
+    def get_fields(self):
+        fields = super().get_fields()
+        if not self.is_seller:
+            fields["notes"] = serializers.SerializerMethodField()
+        return fields
+
+    def get_notes(self, _instance):
+        return ""
+
     def get_commission_info(self, obj):
         return obj.commission_info.text
 
@@ -651,6 +660,7 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                         pass
             # Should never be harmful. Helpful in many statuses.
             self.fields["stream_link"].read_only = False
+            self.fields["notes"].read_only = False
 
     def validate_adjustment_revisions(self, val):
         base = self.instance.product or self.instance
@@ -736,6 +746,7 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "international",
             "paypal",
             "paypal_token",
+            "notes",
         )
         read_only_fields = [field for field in fields if field != "subscribed"]
         extra_kwargs = {

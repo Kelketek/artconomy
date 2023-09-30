@@ -438,6 +438,7 @@ class Deliverable(Model):
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
     details = TextField(max_length=5000)
+    notes = TextField(max_length=5000, blank=True, default="")
     adjustment_expected_turnaround = DecimalField(
         default=0, max_digits=5, decimal_places=2
     )

@@ -127,6 +127,22 @@
             </v-card-text>
           </v-card>
         </v-col>
+        <v-col cols="12" v-if="isSeller">
+          <v-card>
+            <v-card-text>
+              <ac-patch-field
+                  :patcher="deliverable.patchers.notes"
+                  field-type="ac-editor"
+                  label="Notes"
+                  :persistent-hint="true"
+                  :counter="5000"
+                  hint="Notes on this deliverable.
+                  These are not shown to the client, but can be used to write down any notes you need for your
+                  own records."
+              />
+            </v-card-text>
+          </v-card>
+        </v-col>
       </v-row>
       <v-row no-gutters>
         <v-col cols="12" v-if="$vuetify.breakpoint.mdAndUp">

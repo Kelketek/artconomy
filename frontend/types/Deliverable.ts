@@ -47,4 +47,5 @@ export default interface Deliverable {
   cascade_fees: boolean,
   paypal: boolean,
   paypal_token: string,
+  notes: string,
 }

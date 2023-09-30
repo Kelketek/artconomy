@@ -176,6 +176,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     status: DeliverableStatus.NEW,
     price: 10.00,
     details: 'Stuff and things',
+    notes: '',
     adjustment: 0,
     commission_info: '',
     adjustment_revisions: 0,
