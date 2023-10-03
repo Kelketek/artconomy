@@ -29,9 +29,7 @@ asttokens==2.4.0
 async-property==0.2.2
     # via adrf
 async-timeout==4.0.3
-    # via
-    #   aiohttp
-    #   redis
+    # via aiohttp
 attrs==23.1.0
     # via
     #   aiohttp
@@ -404,7 +402,7 @@ tzdata==2023.3
     #   pandas
 unicodecsv==0.14.1
     # via djangorestframework-csv
-urllib3==2.0.5
+urllib3==2.0.6
     # via requests
 uvicorn[standard]==0.23.2
     # via -r requirements.in
