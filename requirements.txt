@@ -68,7 +68,7 @@ certifi==2023.7.22
     #   httpcore
     #   httpx
     #   requests
-cffi==1.15.1
+cffi==1.16.0
     # via cryptography
 channels[daphne]==4.0.0
     # via
@@ -76,7 +76,7 @@ channels[daphne]==4.0.0
     #   channels-redis
 channels-redis==4.1.0
     # via -r requirements.in
-charset-normalizer==3.2.0
+charset-normalizer==3.3.0
     # via
     #   aiohttp
     #   requests
@@ -96,7 +96,7 @@ click-repl==0.3.0
     # via celery
 constantly==15.1.0
     # via twisted
-coverage==7.3.1
+coverage==7.3.2
     # via -r requirements.in
 cryptography==41.0.4
     # via
@@ -159,11 +159,11 @@ django-otp==1.2.3
     # via -r requirements.in
 django-premailer==0.2.0
     # via -r requirements.in
-django-redis==5.3.0
+django-redis==5.4.0
     # via -r requirements.in
 django-rest-recaptcha @ git+https://github.com/Artconomy/django-rest-recaptcha.git@django-4.0
     # via -r requirements.in
-django-reversion==5.0.5
+django-reversion==5.0.6
     # via -r requirements.in
 django-sendgrid-v5==1.2.2
     # via -r requirements.in
@@ -191,7 +191,7 @@ easy-thumbnails==2.8.5
     # via -r requirements.in
 emoji==2.8.0
     # via discord-py-interactions
-executing==1.2.0
+executing==2.0.0
     # via stack-data
 factory-boy==3.3.0
     # via -r requirements.in
@@ -231,11 +231,11 @@ idna==3.4
     #   yarl
 incremental==22.10.0
     # via twisted
-ipython==8.15.0
+ipython==8.16.1
     # via -r requirements.in
 isort==5.12.0
     # via -r requirements.in
-jedi==0.19.0
+jedi==0.19.1
     # via ipython
 kombu==5.3.2
     # via celery
@@ -253,7 +253,7 @@ markdown2==2.4.10
     # via django-markdown2
 matplotlib-inline==0.1.6
     # via ipython
-msgpack==1.0.6
+msgpack==1.0.7
     # via channels-redis
 multidict==6.0.4
     # via
@@ -263,7 +263,7 @@ mypy-extensions==1.0.0
     # via black
 numpy==1.26.0
     # via pandas
-packaging==23.1
+packaging==23.2
     # via black
 pandas==2.1.1
     # via -r requirements.in
@@ -279,7 +279,7 @@ pillow==10.0.1
     # via
     #   django-avatar
     #   easy-thumbnails
-platformdirs==3.10.0
+platformdirs==3.11.0
     # via black
 premailer==3.0.0
     # via django-premailer
@@ -287,9 +287,9 @@ prompt-toolkit==3.0.39
     # via
     #   click-repl
     #   ipython
-psycopg[binary]==3.1.10
+psycopg[binary]==3.1.12
     # via -r requirements.in
-psycopg-binary==3.1.10
+psycopg-binary==3.1.12
     # via psycopg
 ptyprocess==0.7.0
     # via pexpect
@@ -349,7 +349,7 @@ requests==2.31.0
     #   mailchimp3
     #   premailer
     #   stripe
-ruff==0.0.290
+ruff==0.0.292
     # via -r requirements.in
 sendgrid==6.10.0
     # via django-sendgrid-v5
@@ -372,17 +372,17 @@ soupsieve==2.5
     # via beautifulsoup4
 sqlparse==0.4.4
     # via django
-stack-data==0.6.2
+stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==6.5.0
+stripe==6.6.0
     # via -r requirements.in
 tblib==2.0.0
     # via -r requirements.in
 tomli==2.0.1
     # via discord-py-interactions
-traitlets==5.10.0
+traitlets==5.10.1
     # via
     #   ipython
     #   matplotlib-inline
@@ -404,7 +404,7 @@ tzdata==2023.3
     #   pandas
 unicodecsv==0.14.1
     # via djangorestframework-csv
-urllib3==2.0.5
+urllib3==2.0.6
     # via requests
 uvicorn[standard]==0.23.2
     # via -r requirements.in
@@ -419,7 +419,7 @@ vine==5.0.0
     #   kombu
 watchfiles==0.20.0
     # via uvicorn
-wcwidth==0.2.6
+wcwidth==0.2.8
     # via prompt-toolkit
 websockets==11.0.3
     # via uvicorn
