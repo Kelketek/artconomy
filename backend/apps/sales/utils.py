@@ -1212,10 +1212,11 @@ def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
     from apps.sales.models import TransactionRecord
 
     base_percentage = Decimal("0")
-    if (
-        stripe_event["payment_method_details"]["card"]["country"]
-        != settings.SOURCE_COUNTRY
-    ):
+    payment_details = stripe_event["payment_method_details"]
+    card_details = payment_details.get("card", payment_details.get("card_present"))
+    if card_details is None:
+        raise ValidationError("No card information provided with transaction!")
+    if card_details["country"] != settings.SOURCE_COUNTRY:
         base_percentage += settings.STRIPE_INTERNATIONAL_PERCENTAGE_ADDITION
     if "card_present" in stripe_event["payment_method_details"]:
         percentage = base_percentage + settings.STRIPE_CARD_PRESENT_PERCENTAGE

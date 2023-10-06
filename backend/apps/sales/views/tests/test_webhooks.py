@@ -272,7 +272,10 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         )
         event["data"]["object"]["metadata"] = {"invoice_id": deliverable.invoice.id}
         event["data"]["object"]["customer"] = "beep"
-        event["data"]["object"]["payment_method_details"]["card_present"] = True
+        event["data"]["object"]["payment_method_details"]["card_present"] = event[
+            "data"
+        ]["object"]["payment_method_details"]["card"]
+        del event["data"]["object"]["payment_method_details"]["card"]
         handle_stripe_event(connect=False, event=event)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, QUEUED)
