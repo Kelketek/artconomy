@@ -348,7 +348,7 @@ EMAIL_HOST_PASSWORD = get_env("EMAIL_PASSWORD", "")
 EMAIL_PORT = int(get_env("EMAIL_PORT", "25"))
 # These next two settings are mutually exclusive. See Django settings docs.
 EMAIL_USE_SSL = bool(int(get_env("EMAIL_USE_SSL", "0")))
-EMAIL_USE_TLS = bool(int(get_env("EMAIL_USE_SSL", "0")))
+EMAIL_USE_TLS = bool(int(get_env("EMAIL_USE_TLS", "0")))
 
 CELERY_EMAIL_BACKEND = get_env(
     "CELERY_EMAIL_BACKEND", "sendgrid_backend.SendgridBackend"
