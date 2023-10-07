@@ -344,7 +344,7 @@ EMAIL_BACKEND = get_env("EMAIL_BACKEND", "djcelery_email.backends.CeleryEmailBac
 # Settings for the SMTP backend, if using.
 EMAIL_HOST = get_env("EMAIL_HOST", "localhost")
 EMAIL_HOST_USER = get_env("EMAIL_HOST_USER", "")
-EMAIL_HOST_PASSWORD = get_env("EMAIL_PASSWORD", "")
+EMAIL_HOST_PASSWORD = get_env("EMAIL_HOST_PASSWORD", "")
 EMAIL_PORT = int(get_env("EMAIL_PORT", "25"))
 # These next two settings are mutually exclusive. See Django settings docs.
 EMAIL_USE_SSL = bool(int(get_env("EMAIL_USE_SSL", "0")))
