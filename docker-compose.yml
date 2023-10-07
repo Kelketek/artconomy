@@ -47,6 +47,7 @@ services:
       - HTTPS=1
       - CELERY_ALWAYS_EAGER=1
       - CELERY_BROKER_CONNECTION_RETRY=1
+      - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=1
       - EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
       - OTP_TOTP_ISSUER=Artconomy Dev
       - SERVICE_PERCENTAGE_FEE=5

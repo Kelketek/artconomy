@@ -577,6 +577,10 @@ CELERY_BROKER_CONNECTION_RETRY = bool(
     int(get_env("CELERY_BROKER_CONNECTION_RETRY", True))
 )
 
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = bool(
+    int(get_env("CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP", True))
+)
+
 CELERYBEAT_SCHEDULE = {
     "run_billing": {
         "task": "apps.sales.tasks.run_billing",
