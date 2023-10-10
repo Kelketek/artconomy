@@ -137,7 +137,7 @@
           <v-avatar size="32px">
             <img :src="viewer.avatar_url" :alt="viewer.username">
           </v-avatar>
-          <div style="padding-left: 1rem;" v-if="isLoggedIn" class="hidden-xs-only">{{ viewer.username }}</div>
+          <div style="padding-left: 1rem;" v-if="isLoggedIn" class="hidden-sm-and-down">{{ viewer.username }}</div>
         </v-btn>
         <v-btn v-else-if="viewer" class="nav-login-item" text :to="loginLink">Login</v-btn>
         <v-btn v-else class="nav-login-item" aria-label="Login button loading."/>
