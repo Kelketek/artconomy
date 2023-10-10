@@ -96,7 +96,7 @@
         <v-btn text class="pa-0 mr-1" :to="{name: 'SearchProducts'}" aria-label="Search">
           <v-icon large>search</v-icon>
         </v-btn>
-        <div class="d-flex">
+        <div class="hidden-sm-and-down">
           <ac-bound-field
               :field="searchForm.fields.q"
               placeholder="Search..."
