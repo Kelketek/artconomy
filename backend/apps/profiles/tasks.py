@@ -3,7 +3,9 @@ import random
 from requests import HTTPError
 from rest_framework import status
 
-from apps.profiles.models import Conversation, User
+from apps.lib.abstract_models import ADULT, MATURE
+from apps.profiles.models import Conversation, User, Character
+from apps.sales.constants import PURCHASED_STATUSES
 from apps.sales.mail_campaign import chimp, drip
 from apps.sales.stripe import stripe
 from conf.celery_config import celery_app
@@ -68,9 +70,48 @@ def drip_tag(self, user_id):
     tags = []
     if user.artist_mode:
         tags.append("artist")
+        if user.sales.filter(deliverables__status__in=PURCHASED_STATUSES).exists():
+            tags.append("has_sold")
+        # User has a product that is available for NSFW art. Indication that they
+        # (probably) do porn at least some of the time. This could also be gore or other
+        # offensive content, though.
+        if user.products.filter(max_rating__gte=ADULT, active=True).exists():
+            tags.append("nsfw_artist")
+        # User has a product that is at most risque. Indication that they prefer to do
+        # clean work at least some of the time.
+        if user.products.filter(max_rating__lte=MATURE, active=True).exists():
+            tags.append("clean_artist")
+    if user.buys.filter(deliverables__status__in=PURCHASED_STATUSES).exists():
+        tags.append("has_bought")
+    # We don't collect our users' real names. When sending personalized emails, we
+    # use their username as their 'first_name' in templates.
+    user_info = {
+        "id": user.drip_id,
+        "email": user.email,
+        "tags": tags,
+        "first_name": user.username,
+    }
+    # Randomly pick from the user's characters without showcase submissions.
+    character = (
+        Character.objects.filter(
+            user=user,
+            primary_submission__isnull=True,
+            private=False,
+        )
+        .order_by("?")
+        .first()
+    )
+    if character:
+        # These custom fields are defined within Drip's dashboard.
+        # If they're not present, these calls might fail, or maybe this info will be
+        # dropped. Not sure-- haven't tried it.
+        user_info["character_no_ref"] = character.name
+        species = character.attributes.filter(key="species").first()
+        if species and species.value:
+            user_info["character_no_ref_species"] = species.value
     result = drip.post(
         f"/v2/{settings.DRIP_ACCOUNT_ID}/subscribers",
-        json={"subscribers": [{"id": user.drip_id, "email": user.email, "tags": tags}]},
+        json={"subscribers": [user_info]},
     )
     # Retry in this case, as we hit a rate limit.
     try:
@@ -110,7 +151,6 @@ def drip_subscribe(user_id):
     )
     user.drip_id = result.json()["subscribers"][0]["id"]
     user.save(update_fields=["drip_id"])
-    drip_tag.delay(user.id)
 
 
 @celery_app.task

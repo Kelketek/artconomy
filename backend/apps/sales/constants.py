@@ -142,6 +142,9 @@ WEIGHTED_STATUSES = (IN_PROGRESS, PAYMENT_PENDING, QUEUED)
 CONCURRENCY_STATUSES = (NEW, PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW)
 # For all statuses where the artist has made some commitment they're seeing through.
 WORK_IN_PROGRESS_STATUSES = (PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REVIEW)
+# Used for determining if a user has made a purchase, or is in the process of making
+# one. Considers cases where the customer cancelled their order as not a purchase.
+PURCHASED_STATUSES = (NEW, IN_PROGRESS, QUEUED, REVIEW, COMPLETED, DISPUTED, REFUNDED)
 
 
 ####

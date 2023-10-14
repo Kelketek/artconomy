@@ -1176,14 +1176,31 @@ def post_commit_defer(func):
     Use this to have a signal function called after the transaction is completed. Useful
     for post_save signals that require a transaction to be completed before they should
     be run.
+
+    This function will make sure that a call is also only run ONCE upon commit, so that
+    redundant work is not done. The calls are distinguished by distinct values for
+    arguments. This may fail if the arguments are not hashably equivalent.
     """
+
+    calls = set()
+
+    def run_once(func_to_run, call):
+        if call not in calls:
+            return
+        try:
+            args, kwargs = call
+            func_to_run(*args, **dict(kwargs))
+        finally:
+            calls.remove(call)
 
     def wrapped(sender, instance, *args, **kwargs):
         # Some actions delete an object and thus remove the primary key,
         # which may be needed explicitly by a client function.
-        pk = instance.pk or kwargs.pop("pk", None)
-        transaction.on_commit(
-            partial(func, sender=sender, instance=instance, pk=pk, *args, **kwargs)
-        )
+        kwargs["pk"] = instance.pk or kwargs.pop("pk", None)
+        kwargs["sender"] = sender
+        kwargs["instance"] = instance
+        call = (args, tuple(sorted(list(kwargs.items()))))
+        calls.add(call)
+        transaction.on_commit(partial(run_once, func, call))
 
     return wrapped
