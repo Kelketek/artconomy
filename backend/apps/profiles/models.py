@@ -60,6 +60,7 @@ from apps.lib.utils import (
     tag_list_cleaner,
     watch_subscriptions,
     websocket_send,
+    post_commit_defer,
 )
 from apps.profiles.permissions import (
     IsRegistered,
@@ -482,8 +483,6 @@ def create_user_subscriptions(instance):
 @receiver(post_save, sender=User)
 @disable_on_load
 def auto_subscribe(sender, instance, created=False, **_kwargs):
-    from apps.profiles.tasks import drip_tag, mailchimp_tag
-
     if created:
         if not instance.guest:
             create_user_subscriptions(instance)
@@ -505,12 +504,21 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
     except ArtistProfile.DoesNotExist:
         return
     artist_profile.save()
+
+
+@receiver(post_save, sender=User)
+@disable_on_load
+@post_commit_defer
+def mail_tag_tasks(sender, instance, **_kwargs):
+    from apps.profiles.tasks import drip_tag, mailchimp_tag
+
     mailchimp_tag.delay(instance.id)
     drip_tag.delay(instance.id)
 
 
 @receiver(post_save, sender=User)
 @disable_on_load
+@post_commit_defer
 def stripe_setup(sender, instance, created=False, **kwargs):
     from apps.profiles.tasks import create_or_update_stripe_user
 
@@ -518,7 +526,7 @@ def stripe_setup(sender, instance, created=False, **kwargs):
         return
     if not settings.STRIPE_KEY:
         return
-    create_or_update_stripe_user.apply_async((instance.id,), countdown=3)
+    create_or_update_stripe_user.apply_async((instance.id,))
 
 
 class ArtistProfile(Model):

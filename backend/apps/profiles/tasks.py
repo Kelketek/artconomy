@@ -1,3 +1,8 @@
+import random
+
+from requests import HTTPError
+from rest_framework import status
+
 from apps.profiles.models import Conversation, User
 from apps.sales.mail_campaign import chimp, drip
 from apps.sales.stripe import stripe
@@ -36,8 +41,21 @@ def mailchimp_tag(user_id):
     )
 
 
-@celery_app.task
-def drip_tag(user_id):
+# Celery rate limits are per-worker, not per-task across the cluster. We use two workers
+# in production, and the rate limit for drip is 3600/hour (or, once a second). The more
+# robust way to fix this would be to make this its own queue and then throttle the queue
+# somehow. The apparent way of doing that is by creating a worker that is the only
+# worker for that queue. Lame. There may be some other way to do it, but we can
+# cross that bridge when we come to it.
+#
+# To make this a bit more robust, we're adding in retries as well.
+@celery_app.task(
+    bind=True,
+    rate_limit="1800/h",
+    max_retries=50,
+    retry_jitter=True,
+)
+def drip_tag(self, user_id):
     user = (
         User.objects.filter(id=user_id)
         .exclude(drip_id="")
@@ -54,7 +72,14 @@ def drip_tag(user_id):
         f"/v2/{settings.DRIP_ACCOUNT_ID}/subscribers",
         json={"subscribers": [{"id": user.drip_id, "email": user.email, "tags": tags}]},
     )
-    result.raise_for_status()
+    # Retry in this case, as we hit a rate limit.
+    try:
+        result.raise_for_status()
+    except HTTPError as err:
+        status_code = getattr(getattr(err, "response", None), "status_code", None)
+        if status_code == status.HTTP_429_TOO_MANY_REQUESTS:
+            self.retry(exc=err)
+        raise
 
 
 @celery_app.task

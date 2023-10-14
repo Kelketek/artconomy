@@ -1,5 +1,6 @@
 import logging
 import os
+from functools import partial
 from hashlib import sha256
 from itertools import chain
 from pathlib import Path
@@ -1168,3 +1169,21 @@ def multi_filter(qs, filters: List[Q]):
     for qs_filter in filters:
         qs = qs.filter(qs_filter)
     return qs
+
+
+def post_commit_defer(func):
+    """
+    Use this to have a signal function called after the transaction is completed. Useful
+    for post_save signals that require a transaction to be completed before they should
+    be run.
+    """
+
+    def wrapped(sender, instance, *args, **kwargs):
+        # Some actions delete an object and thus remove the primary key,
+        # which may be needed explicitly by a client function.
+        pk = instance.pk or kwargs.pop("pk", None)
+        transaction.on_commit(
+            partial(func, sender=sender, instance=instance, pk=pk, *args, **kwargs)
+        )
+
+    return wrapped

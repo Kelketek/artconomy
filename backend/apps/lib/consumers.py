@@ -10,7 +10,7 @@ from apps.lib.consumer_serializers import (
     WatchNewSpecSerializer,
     WatchSpecSerializer,
 )
-from apps.lib.utils import FakeRequest
+from apps.lib.utils import FakeRequest, post_commit_defer
 from apps.profiles.models import User
 from apps.profiles.utils import empty_user
 from asgiref.sync import async_to_sync, sync_to_async
@@ -117,24 +117,15 @@ def update_websocket(model):
     to the listening clients.
     """
 
+    @post_commit_defer
     def update_broadcaster(instance: Model, created=False, **kwargs):
-        if not transaction.get_autocommit():
-            # If we're in a transaction, delay this until we're completely finished.
-            transaction.on_commit(
-                lambda: update_broadcaster(instance, created=created, **kwargs)
-            )
-            return
         if created:
             send_new(model, instance)
         else:
             send_updated(model, instance)
 
-    def delete_broadcaster(instance: Model, **kwargs):
-        pk = instance.pk or kwargs.get("pk", None)
-        if not transaction.get_autocommit():
-            # If we're in a transaction, delay this until we're completely finished.
-            transaction.on_commit(lambda: delete_broadcaster(instance, pk=pk, **kwargs))
-            return
+    @post_commit_defer
+    def delete_broadcaster(instance: Model, pk: int, **kwargs):
         send_deleted(model, instance, pk=pk)
 
     post_save.connect(update_broadcaster, sender=model, weak=False)
