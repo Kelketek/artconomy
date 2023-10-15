@@ -90,12 +90,13 @@ def drip_tag(self, user_id):
         "email": user.email,
         "tags": tags,
         "first_name": user.username,
+        "custom_fields": {},
     }
     # Randomly pick from the user's characters without showcase submissions.
     character = (
         Character.objects.filter(
             user=user,
-            primary_submission__isnull=True,
+            submissions__isnull=True,
             private=False,
         )
         .order_by("?")
@@ -105,10 +106,10 @@ def drip_tag(self, user_id):
         # These custom fields are defined within Drip's dashboard.
         # If they're not present, these calls might fail, or maybe this info will be
         # dropped. Not sure-- haven't tried it.
-        user_info["character_no_ref"] = character.name
+        user_info["custom_fields"]["character_no_ref"] = character.name
         species = character.attributes.filter(key="species").first()
         if species and species.value:
-            user_info["character_no_ref_species"] = species.value
+            user_info["custom_fields"]["character_no_ref_species"] = species.value
     result = drip.post(
         f"/v2/{settings.DRIP_ACCOUNT_ID}/subscribers",
         json={"subscribers": [user_info]},

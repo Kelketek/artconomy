@@ -123,6 +123,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": [],
                         "first_name": "Bork",
+                        "custom_fields": {},
                     }
                 ]
             },
@@ -140,6 +141,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": ["artist"],
                         "first_name": "Bork",
+                        "custom_fields": {},
                     }
                 ]
             },
@@ -167,6 +169,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": ["artist", "has_sold"],
                         "first_name": "Bork",
+                        "custom_fields": {},
                     }
                 ]
             },
@@ -189,6 +192,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": ["has_bought"],
                         "first_name": "Bork",
+                        "custom_fields": {},
                     }
                 ]
             },
@@ -212,6 +216,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": ["artist", "nsfw_artist"],
                         "first_name": "Bork",
+                        "custom_fields": {},
                     }
                 ]
             },
@@ -235,6 +240,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": ["artist", "clean_artist"],
                         "first_name": "Bork",
+                        "custom_fields": {},
                     }
                 ]
             },
@@ -261,7 +267,9 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": [],
                         "first_name": "Bork",
-                        "character_no_ref": "Boop",
+                        "custom_fields": {
+                            "character_no_ref": "Boop",
+                        },
                     }
                 ]
             },
@@ -289,8 +297,10 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "email": "bork@bork.com",
                         "tags": [],
                         "first_name": "Bork",
-                        "character_no_ref": "Boop",
-                        "character_no_ref_species": "Dork",
+                        "custom_fields": {
+                            "character_no_ref": "Boop",
+                            "character_no_ref_species": "Dork",
+                        },
                     }
                 ]
             },
