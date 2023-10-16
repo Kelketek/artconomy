@@ -1181,7 +1181,7 @@ def call_to_key(call):
     kwargs = dict(raw_kwargs)
     pk = kwargs.get("pk")
     for key in ["instance", "origin"]:
-        if key in kwargs and hasattr(kwargs[key], 'id'):
+        if key in kwargs and hasattr(kwargs[key], "id"):
             kwargs[key] = (kwargs[key].__class__.__name__, kwargs[key].id or pk)
     return args, tuple(list(kwargs.items()))
 
