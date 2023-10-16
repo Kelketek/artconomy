@@ -1171,6 +1171,21 @@ def multi_filter(qs, filters: List[Q]):
     return qs
 
 
+def call_to_key(call):
+    """
+    Helper function that distinguishes between particular calls of a function for
+    post_commit_defer. Helps work around weirdness like a primary key being deleted for
+    the affected instance.
+    """
+    args, raw_kwargs = call
+    kwargs = dict(raw_kwargs)
+    pk = kwargs.get("pk")
+    for key in ["instance", "origin"]:
+        if key in kwargs and hasattr(kwargs[key], 'id'):
+            kwargs[key] = (kwargs[key].__class__.__name__, kwargs[key].id or pk)
+    return args, tuple(list(kwargs.items()))
+
+
 def post_commit_defer(func):
     """
     Use this to have a signal function called after the transaction is completed. Useful
@@ -1184,14 +1199,14 @@ def post_commit_defer(func):
 
     calls = set()
 
-    def run_once(func_to_run, call):
-        if call not in calls:
+    def run_once(func_to_run, call, key):
+        if key not in calls:
             return
         try:
             args, kwargs = call
             func_to_run(*args, **dict(kwargs))
         finally:
-            calls.remove(call)
+            calls.remove(key)
 
     def wrapped(sender, instance, *args, **kwargs):
         # Some actions delete an object and thus remove the primary key,
@@ -1200,7 +1215,8 @@ def post_commit_defer(func):
         kwargs["sender"] = sender
         kwargs["instance"] = instance
         call = (args, tuple(sorted(list(kwargs.items()))))
-        calls.add(call)
-        transaction.on_commit(partial(run_once, func, call))
+        key = call_to_key(call)
+        calls.add(key)
+        transaction.on_commit(partial(run_once, func, call, key))
 
     return wrapped
