@@ -20,7 +20,7 @@
               <ac-ref-color :color="color" :key="color.id" :username="username" />
               <v-divider v-if="index + 1 < character.colors.list.length" :key="`color-${index}-divider`" />
             </template>
-            <ac-form @submit.prevent="newColor.submitThen(character.colors.push)" v-if="editing && character.colors.list.length < 10" :id="newColor.bind.id">
+            <ac-form @submit.prevent="newColor.submitThen(character.colors.push)" v-if="editing && character.colors.list.length < 24" :id="newColor.bind.id">
               <ac-form-container>
                 <v-row no-gutters  class="compact-fields">
                   <v-col cols="12"><v-divider></v-divider></v-col>

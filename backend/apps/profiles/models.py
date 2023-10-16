@@ -826,7 +826,7 @@ class Character(Model, HitsMixin):
         related_query_name="hit_counter",
     )
     tags__max = 100
-    colors__max = 10
+    colors__max = 24
     shared_with__max = 150  # Dunbar limit
 
     def __str__(self):
