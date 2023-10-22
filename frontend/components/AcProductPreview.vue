@@ -102,11 +102,12 @@
               <v-col class="grow" v-else><small>From</small> ${{product.starting_price.toFixed(2)}}</v-col>
               <v-col class="no-underline shrink">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                  <v-tooltip bottom v-if="product.escrow_enabled">
+                  <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable">
                     <template v-slot:activator="{on}">
-                      <v-icon color="green" class="pl-1" small v-on="on">fa-shield</v-icon>
+                      <v-icon :color="shieldColor" class="pl-1" small v-on="on">fa-shield</v-icon>
                     </template>
-                    <span>Protected by Artconomy Shield</span>
+                    <span v-if="product.escrow_enabled || forceShield">Protected by Artconomy Shield</span>
+                    <span v-else>Shield upgrade available for this product</span>
                   </v-tooltip>
                 </ac-link>
               </v-col>

@@ -49,7 +49,7 @@
                   You can disable this on a per-product and per-order basis.</li>
                 <li>You <strong>MUST</strong> have a PayPal business account for this to work.</li>
                 <li>PayPal's terms of service is hostile toward NSFW art commissions in most or all jurisdictions and circumstances.
-                  <strong>You should not use PayPal to track NSFW art commissions.</strong></li>
+                  <strong>You should not use PayPal to track NSFW art commissions. If you do so, you do so at your own risk!</strong></li>
                 <li>Invoices generated in PayPal will contain all relevant information, such as product names and line items.</li>
                 <li>Invoices will be denominated in USD.</li>
                 <li>PayPal <strong>WILL</strong> reveal your personal information to the client, and vice versa in most cases. Use Shield instead to avoid this.</li>

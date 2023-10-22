@@ -195,7 +195,7 @@
                   </v-col>
                   <v-col cols="12" sm="6">
                     <ac-bound-field :field="newProduct.fields.task_weight" number
-                                    label="Slots"
+                                    label="Workload Points"
                                     hint="How many slots an order of this product should take up. If this task is
                                         particularly big, you may want it to take up more than one slot."
                                     :persistent-hint="true"
