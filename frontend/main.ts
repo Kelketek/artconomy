@@ -37,7 +37,7 @@ declare global {
     PRERENDERING: number,
     windowId: string,
     USER_PRELOAD: User|AnonUser,
-    CARD_TEST: boolean,
+    SANDBOX_APIS: boolean,
     RECAPTCHA_SITE_KEY: string,
     STRIPE_PUBLIC_KEY: string,
     DEFAULT_CARD_PROCESSOR: PROCESSORS,

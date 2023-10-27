@@ -937,7 +937,7 @@ export const paypalTokenToUrl = (invoiceToken: string, sender: boolean): string 
     const token = tokenSegments[tokenSegments.length - 1].replace(/-/g, '')
     extension = `/invoice/p/#${token}`
   }
-  if (window.CARD_TEST) {
+  if (window.SANDBOX_APIS) {
     baseUrl = 'https://www.sandbox.paypal.com'
   } else {
     baseUrl = 'https://www.paypal.com'

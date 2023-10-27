@@ -33,7 +33,7 @@
   <title>{{title}}</title>
 </head>
 <body>
-{{ settings.CARD_TEST|json_script:"card-test-flag" }}
+{{ settings.SANDBOX_APIS|json_script:"card-test-flag" }}
 <script>
   {% if request.META.HTTP_X_PRERENDER == '1' %}PRERENDERING = 1;{% else %}PRERENDERING = 0;{% endif %}
   USER_PRELOAD={{ user_serialized|safe }};
@@ -41,7 +41,7 @@
   STRIPE_PUBLIC_KEY = "{{ settings.STRIPE_PUBLIC_KEY }}";
   DEFAULT_CARD_PROCESSOR = "{{ settings.DEFAULT_CARD_PROCESSOR }}";
   DEFAULT_SERVICE_PLAN_NAME = "{{ settings.DEFAULT_SERVICE_PLAN_NAME }}";
-  CARD_TEST = JSON.parse(document.getElementById('card-test-flag').textContent);
+  SANDBOX_APIS = JSON.parse(document.getElementById('card-test-flag').textContent);
 </script>
 <div id="app"></div>
 {% include env_file %}

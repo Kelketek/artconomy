@@ -54,7 +54,7 @@ class TestPayPalClass(UnitTest):
     )
     @unpack
     def test_instantiation(self, setting, result):
-        with override_settings(CARD_TEST=setting):
+        with override_settings(SANDBOX_APIS=setting):
             paypal = PayPal(key="Dude", secret="wat", template_id="sweet")
             self.assertEqual(paypal.base_url, result)
             self.assertEqual(paypal.template_id, "sweet")
@@ -427,7 +427,7 @@ class TestPaypalInvoiceUrl(UnitTest):
     )
     @unpack
     def test_sender_url(self, test_mode, sender, result):
-        with override_settings(CARD_TEST=test_mode):
+        with override_settings(SANDBOX_APIS=test_mode):
             self.assertEqual(
                 paypal_invoice_url("INV2-BEEP-BOOP", sender=sender),
                 result,

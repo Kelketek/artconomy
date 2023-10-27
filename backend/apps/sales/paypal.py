@@ -37,7 +37,7 @@ class PayPal:
     """
 
     def __init__(self, *, key: str, secret: str, template_id: str):
-        if settings.CARD_TEST:
+        if settings.SANDBOX_APIS:
             self.base_url = "https://api-m.sandbox.paypal.com/"
         else:
             self.base_url = "https://api-m.paypal.com/"
@@ -216,7 +216,7 @@ def paypal_invoice_url(invoice_token: str, sender=False):
     else:
         token = invoice_token.split("INV2-", maxsplit=1)[-1].replace("-", "")
         extension = f"/invoice/p/#{token}"
-    if settings.CARD_TEST:
+    if settings.SANDBOX_APIS:
         base_url = "https://www.sandbox.paypal.com"
     else:
         base_url = "https://www.paypal.com"
