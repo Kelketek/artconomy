@@ -27,8 +27,9 @@
     <v-col cols="12" md="3" >
       <ac-bound-field
           :field="newInvoice.fields.cascade_fees"
-          field-type="v-switch"
+          field-type="ac-checkbox"
           label="Absorb Fees"
+          :false-value="false"
           :persistent-hint="true"
           hint="If turned on, the price you set is the price your commissioner will see, and you
                 will pay all fees from that price. If turned off, the price you set is the amount you
