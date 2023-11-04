@@ -286,7 +286,7 @@ export const routes = [
         children: [
           {
             name: 'NewOrder',
-            path: 'order/:stepId?/:invoiceMode(invoice)?',
+            path: 'order/:invoiceMode(invoice)?',
             component: NewOrder,
             props(route: Route) {
               return {...route.params, invoiceMode: !!route.params.invoiceMode}
@@ -749,13 +749,13 @@ export const routes = [
     path: '/who-is-open/',
     name: 'WhoIsOpenRedirect',
     component: Redirect,
-    props: {endpoint: '/search/products/'},
+    props: {route: '/search/products/'},
   },
   {
     path: '/recent-art/',
     name: 'RecentArtRedirect',
     component: Redirect,
-    props: {endpoint: '/search/submissions/'},
+    props: {route: '/search/submissions/'},
   },
   {
     path: '*',

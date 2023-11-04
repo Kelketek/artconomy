@@ -172,7 +172,7 @@ describe('NewOrder.vue', () => {
     const mockReplace = jest.spyOn(vm.$router, 'replace')
     vm.orderForm.step = 3
     await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '3'}})
+    expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
     wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
@@ -223,7 +223,7 @@ describe('NewOrder.vue', () => {
         store,
         vuetify,
         router,
-        propsData: {productId: '1', username: 'Fox', stepId: '1'},
+        propsData: {productId: '1', username: 'Fox'},
         attachTo: docTarget(),
       })
     const vm = wrapper.vm as any
@@ -361,32 +361,32 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
     const vm = wrapper.vm as any
     await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '1'}})
+    expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '1'}})
   })
   it('Redirects to step one if the starting URL marks a lower number', async() => {
     const user = genAnon()
     setViewer(store, user)
-    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1', stepId: '-1'}})
+    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}, query: {stepId: '-1'}})
     const mockReplace = jest.spyOn(router, 'replace')
     wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
     const vm = wrapper.vm as any
     await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '1'}})
+    expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '1'}})
   })
-  it('Redirects to step three if the starting URL marks a lower number', async() => {
+  it('Redirects to step three if the starting URL marks a higher number', async() => {
     const user = genAnon()
     setViewer(store, user)
-    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1', stepId: '4'}})
+    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}, query: {stepId: '4'}})
     const mockReplace = jest.spyOn(router, 'replace')
     wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
     const vm = wrapper.vm as any
     await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '3'}})
+    expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
   })
   it('Does not submit if the last step is not selected.', async() => {
     const user = genAnon()
     setViewer(store, user)
-    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1', stepId: '2'}})
+    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}, query: {stepId: '2'}})
     const mockReplace = jest.spyOn(router, 'replace')
     wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
     const vm = wrapper.vm as any
@@ -396,7 +396,7 @@ describe('NewOrder.vue', () => {
     const mockSubmitThen = jest.spyOn(vm.orderForm, 'submitThen')
     wrapper.find('input').trigger('submit')
     await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({params: {stepId: '3'}})
+    expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
     expect(mockSubmitThen).not.toHaveBeenCalled()
   })
 })

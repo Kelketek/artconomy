@@ -17,11 +17,12 @@ import Vue from 'vue'
 import {setMetaContent} from '@/lib/lib'
 import Component from 'vue-class-component'
 import {Prop} from 'vue-property-decorator'
+import {RawLocation} from 'vue-router'
 
 @Component
 export default class Redirect extends Vue {
-  @Prop({required: true})
-  public endpoint!: string
+  @Prop({required: false})
+  public route!: RawLocation
 
   public get portString() {
     if (window.location.port) {
@@ -30,16 +31,8 @@ export default class Redirect extends Vue {
     return ''
   }
 
-  public get url() {
-    return `${window.location.protocol}//${window.location.host}${this.portString}${this.endpoint}`
-  }
-
   public created() {
-    setMetaContent('prerender-status-code', '', {content: this.url})
-    // @ts-ignore
-    if (!window.PRERENDERING) {
-      this.$router.replace(this.endpoint)
-    }
+    this.$router.replace(this.route)
   }
 }
 </script>

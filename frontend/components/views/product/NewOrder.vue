@@ -319,7 +319,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
 
     @Watch('orderForm.step')
     public updateRoute(val: number) {
-      this.$router.replace({params: {stepId: `${val}`}})
+      this.$router.replace({query: {...this.$route.query, stepId: `${val}`}})
     }
 
     public submitAction() {
@@ -438,7 +438,7 @@ export default class NewOrder extends mixins(ProductCentric, Formatting) {
       window.scrollTo(0, 0)
       this.product.get()
       const viewer = this.viewer as User
-      let step = parseInt(this.$route.params.stepId) || 1
+      let step = parseInt(this.$route.query.stepId + '') || 1
       if (step > 3) {
         step = 3
       } else if (step < 1) {
