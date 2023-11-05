@@ -634,9 +634,9 @@ export default class ProductDetail extends mixins(ProductCentric, Formatting, Ed
       }
       const path: Location = {
         name: 'NewOrder',
-        params: {username: this.username, productId: `${this.productId}`, stepId: '1'},
+        params: {username: this.username, productId: `${this.productId}`},
       }
-      path.query = {...this.$route.query}
+      path.query = {...this.$route.query, stepId: '1'}
       if (this.isCurrent) {
         path.params!.invoiceMode = 'invoice'
       }
