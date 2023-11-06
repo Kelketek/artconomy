@@ -223,6 +223,9 @@ MONEY_HOLE_STAGE = 310
 # Where taxes go
 MONEY_HOLE = 311
 
+# Similar to money hole, when money is stolen and there's no getting it back :/
+FRAUD_LOSS = 312
+
 # For when a customer gives us cash, like at an event.
 CASH_DEPOSIT = 407
 
@@ -255,6 +258,7 @@ ACCOUNT_TYPES = (
     (ACH_MISC_FEES, "Other ACH fees"),
     (MONEY_HOLE_STAGE, "Tax staging"),
     (MONEY_HOLE, "Tax"),
+    (FRAUD_LOSS, "Fraud loss"),
 )
 
 # Transaction types

@@ -1337,7 +1337,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         return multi_filter(
             TransactionRecord.objects.filter(
                 status=SUCCESS,
-                # Will need this to expand to cash or similar?
                 source__in=[CARD, CASH_DEPOSIT],
             ),
             self.qs_filters(obj),

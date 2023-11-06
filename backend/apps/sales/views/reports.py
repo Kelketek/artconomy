@@ -5,6 +5,7 @@ from moneyed import Money
 from pytz import UTC
 
 from apps.lib.permissions import IsStaff
+from apps.lib.utils import utc_now, utc
 from apps.profiles.models import User
 from apps.profiles.permissions import IsSuperuser, UserControls
 from apps.sales.constants import (
@@ -63,7 +64,7 @@ class DateConstrained:
     @property
     def start_date(self) -> datetime:
         start_date = None
-        default_start = timezone.now().replace(
+        default_start = utc_now().replace(
             day=1,
             hour=0,
             minute=0,
@@ -84,9 +85,9 @@ class DateConstrained:
     def end_date(self) -> Union[datetime, None]:
         end_date = None
         date_string = self.request.GET.get("end_date", "")
-        default_end = timezone.now()
+        default_end = datetime.now(utc)
         try:
-            end_date = make_aware(parse(date_string))
+            end_date = make_aware(parse(date_string), timezone=utc)
         except ParserError:
             pass
         if not end_date:

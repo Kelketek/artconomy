@@ -8,6 +8,7 @@ from dateutil.relativedelta import relativedelta
 
 from apps.lib.models import ref_for_instance
 from apps.lib.test_resources import APITestCase
+from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
@@ -52,7 +53,6 @@ from apps.sales.utils import (
 from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.parser import parse
 from django.test import override_settings
-from django.utils import timezone
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
@@ -96,7 +96,7 @@ class TestCustomerHoldings(APITestCase):
         )
         staff = UserFactory.create(is_superuser=True)
         self.login(staff)
-        end_date = timezone.now() + relativedelta(days=1)
+        end_date = utc_now() + relativedelta(days=1)
         response = self.client.get(
             "/api/sales/v1/reports/customer-holdings/csv/"
             f"?end_date={end_date.year}-{end_date.month}-{end_date.day}"
@@ -115,21 +115,21 @@ class TestUnaffiliatedSales(APITestCase):
     def test_unaffiliated_sales(self):
         # Too Early
         LineItemFactory.create(
-            invoice__created_on=timezone.now().replace(month=1),
-            invoice__paid_on=timezone.now().replace(month=1),
+            invoice__created_on=utc_now().replace(month=1),
+            invoice__paid_on=utc_now().replace(month=1),
             invoice__status=PAID,
         )
         # Wrong Status
         LineItemFactory.create(
-            invoice__created_on=timezone.now().replace(day=5),
+            invoice__created_on=utc_now().replace(day=5),
             invoice__status=OPEN,
         )
         # Deliverable creates invoice, which shouldn't appear.
         DeliverableFactory.create(invoice__status=PAID)
         # Card invoice
         card_line_item = LineItemFactory.create(
-            invoice__created_on=timezone.now().replace(day=5),
-            invoice__paid_on=timezone.now().replace(day=5),
+            invoice__created_on=utc_now().replace(day=5),
+            invoice__paid_on=utc_now().replace(day=5),
             invoice__status=PAID,
             amount=Money("15.00", "USD"),
         )
@@ -159,8 +159,8 @@ class TestUnaffiliatedSales(APITestCase):
         fees.targets.add(ref_for_instance(card_line_item.invoice))
         # Cash invoice
         cash_line_item = LineItemFactory.create(
-            invoice__created_on=timezone.now().replace(day=1, month=1),
-            invoice__paid_on=timezone.now().replace(day=7),
+            invoice__created_on=utc_now().replace(day=1, month=1),
+            invoice__paid_on=utc_now().replace(day=7),
             invoice__status=PAID,
             amount=Money("10", "USD"),
         )
@@ -180,7 +180,7 @@ class TestUnaffiliatedSales(APITestCase):
         cash_tax.targets.add(ref_for_instance(cash_line_item.invoice))
         # Last invoice-- one that is weird, and we don't know the source of it
         unknown_main_transaction = LineItemFactory.create(
-            invoice__paid_on=timezone.now().replace(day=8),
+            invoice__paid_on=utc_now().replace(day=8),
             invoice__status=PAID,
             amount=Money("25.00", "USD"),
         )
@@ -189,8 +189,8 @@ class TestUnaffiliatedSales(APITestCase):
         response = self.client.get(
             "/api/sales/v1/reports/unaffiliated-sales/csv/",
             {
-                "start_date": timezone.now().replace(day=1).date().isoformat(),
-                "end_date": timezone.now().date().isoformat(),
+                "start_date": utc_now().replace(day=1).date().isoformat(),
+                "end_date": utc_now().date().isoformat(),
             },
         )
         reader = DictReader(StringIO(response.content.decode("utf-8")))
@@ -228,8 +228,8 @@ class TestPayoutReport(APITestCase):
             source=HOLDINGS,
             destination=BANK,
             remote_ids=["1234", "5678"],
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "USD"),
             payer=user,
             payee=user,
@@ -256,8 +256,8 @@ class TestPayoutReport(APITestCase):
             source=HOLDINGS,
             destination=BANK,
             remote_ids=["1234", "5678"],
-            created_on=timezone.now().replace(month=1),
-            finalized_on=timezone.now().replace(month=1),
+            created_on=utc_now().replace(month=1),
+            finalized_on=utc_now().replace(month=1),
             payer=user,
             payee=user,
             status=SUCCESS,
@@ -267,8 +267,8 @@ class TestPayoutReport(APITestCase):
         response = self.client.get(
             "/api/sales/v1/reports/payout-report/csv/",
             {
-                "start_date": timezone.now().replace(day=1).date().isoformat(),
-                "end_date": timezone.now().date().isoformat(),
+                "start_date": utc_now().replace(day=1).date().isoformat(),
+                "end_date": utc_now().date().isoformat(),
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -297,8 +297,8 @@ class TestUserPayoutReport(APITestCase):
         transaction = TransactionRecordFactory.create(
             source=PAYOUT_MIRROR_SOURCE,
             destination=PAYOUT_MIRROR_DESTINATION,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "GBP"),
             payer=user,
             payee=user,
@@ -327,8 +327,8 @@ class TestUserPayoutReport(APITestCase):
         TransactionRecordFactory.create(
             source=PAYOUT_MIRROR_SOURCE,
             destination=PAYOUT_MIRROR_DESTINATION,
-            created_on=timezone.now().replace(month=1),
-            finalized_on=timezone.now().replace(month=1),
+            created_on=utc_now().replace(month=1),
+            finalized_on=utc_now().replace(month=1),
             payer=user,
             payee=user,
             status=SUCCESS,
@@ -337,8 +337,8 @@ class TestUserPayoutReport(APITestCase):
         response = self.client.get(
             f"/api/sales/v1/account/{user.username}/reports/payout/",
             {
-                "start_date": timezone.now().replace(day=1).date().isoformat(),
-                "end_date": timezone.now().date().isoformat(),
+                "start_date": utc_now().replace(day=1).date().isoformat(),
+                "end_date": utc_now().date().isoformat(),
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -354,7 +354,7 @@ class TestUserPayoutReport(APITestCase):
             f"[{deliverable.name}], TransactionRecord #{source_transaction.id} "
             f"($10.00)",
         )
-        timezone.now().isoformat()
+        utc_now().isoformat()
         self.assertEqual(parse(lines[0]["created_on"]), transaction.created_on)
         self.assertEqual(parse(lines[0]["finalized_on"]), transaction.finalized_on)
 
@@ -364,15 +364,15 @@ class TestTipReport(APITestCase):
     def test_tip_report_all_data_available(self):
         user = UserFactory.create()
         invoice = InvoiceFactory.create(type=TIPPING, issued_by=user)
-        invoice.paid_on = timezone.now().replace(day=5)
+        invoice.paid_on = utc_now().replace(day=5)
         invoice.status = PAID
         invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=HOLDINGS,
             category=TIP_SEND,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=invoice.bill_to,
@@ -384,8 +384,8 @@ class TestTipReport(APITestCase):
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=PROCESSING_FEE,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("5.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=invoice.bill_to,
@@ -397,8 +397,8 @@ class TestTipReport(APITestCase):
             source=UNPROCESSED_EARNINGS,
             destination=CARD_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("1.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=None,
@@ -410,8 +410,8 @@ class TestTipReport(APITestCase):
             source=HOLDINGS,
             destination=BANK,
             category=CASH_WITHDRAW,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=user,
@@ -423,8 +423,8 @@ class TestTipReport(APITestCase):
             source=UNPROCESSED_EARNINGS,
             destination=ACH_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money(".50", "USD"),
             remote_ids=["1234", "5678"],
             payer=None,
@@ -439,8 +439,8 @@ class TestTipReport(APITestCase):
         response = self.client.get(
             "/api/sales/v1/reports/tip-report/csv/",
             {
-                "start_date": timezone.now().replace(day=1).date().isoformat(),
-                "end_date": timezone.now().date().isoformat(),
+                "start_date": utc_now().replace(day=1).date().isoformat(),
+                "end_date": utc_now().date().isoformat(),
             },
         )
         reader = DictReader(StringIO(response.content.decode("utf-8")))
@@ -463,15 +463,15 @@ class TestTipReport(APITestCase):
         invoice.bill_to.username = f"__{invoice.bill_to.id}"
         invoice.bill_to.guest = True
         invoice.bill_to.save()
-        invoice.paid_on = timezone.now().replace(day=5)
+        invoice.paid_on = utc_now().replace(day=5)
         invoice.status = PAID
         invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=HOLDINGS,
             category=TIP_SEND,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=invoice.bill_to,
@@ -483,8 +483,8 @@ class TestTipReport(APITestCase):
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=PROCESSING_FEE,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("5.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=invoice.bill_to,
@@ -497,8 +497,8 @@ class TestTipReport(APITestCase):
         response = self.client.get(
             "/api/sales/v1/reports/tip-report/csv/",
             {
-                "start_date": timezone.now().replace(day=1).date().isoformat(),
-                "end_date": timezone.now().date().isoformat(),
+                "start_date": utc_now().replace(day=1).date().isoformat(),
+                "end_date": utc_now().date().isoformat(),
             },
         )
         reader = DictReader(StringIO(response.content.decode("utf-8")))
@@ -513,15 +513,15 @@ class TestTipReport(APITestCase):
     def test_tip_report_fees_not_yet_calculated(self):
         user = UserFactory.create()
         invoice = InvoiceFactory.create(type=TIPPING, issued_by=user)
-        invoice.paid_on = timezone.now().replace(day=5)
+        invoice.paid_on = utc_now().replace(day=5)
         invoice.status = PAID
         invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=HOLDINGS,
             category=TIP_SEND,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=invoice.bill_to,
@@ -533,8 +533,8 @@ class TestTipReport(APITestCase):
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=PROCESSING_FEE,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("5.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=invoice.bill_to,
@@ -546,8 +546,8 @@ class TestTipReport(APITestCase):
             source=HOLDINGS,
             destination=BANK,
             category=CASH_WITHDRAW,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "USD"),
             remote_ids=["1234", "5678"],
             payer=user,
@@ -560,8 +560,8 @@ class TestTipReport(APITestCase):
         response = self.client.get(
             "/api/sales/v1/reports/tip-report/csv/",
             {
-                "start_date": timezone.now().replace(day=1).date().isoformat(),
-                "end_date": timezone.now().date().isoformat(),
+                "start_date": utc_now().replace(day=1).date().isoformat(),
+                "end_date": utc_now().date().isoformat(),
             },
         )
         reader = DictReader(StringIO(response.content.decode("utf-8")))
@@ -582,15 +582,15 @@ class TestSubscriptionReport(APITestCase):
             invoice=term_invoice,
             amount=Money("5.00", "USD"),
         )
-        term_invoice.paid_on = timezone.now().replace(day=5)
+        term_invoice.paid_on = utc_now().replace(day=5)
         term_invoice.status = PAID
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=SUBSCRIPTION_DUES,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "GBP"),
             remote_ids=["1234", "5678"],
             payer=user,
@@ -601,15 +601,15 @@ class TestSubscriptionReport(APITestCase):
         # Too old
         old_invoice = get_term_invoice(user)
         old_invoice.status = PAID
-        old_invoice.created_on = timezone.now().replace(month=1)
-        old_invoice.paid_on = timezone.now().replace(month=1)
+        old_invoice.created_on = utc_now().replace(month=1)
+        old_invoice.paid_on = utc_now().replace(month=1)
         old_invoice.save()
         old_transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=SUBSCRIPTION_DUES,
-            created_on=timezone.now().replace(month=1),
-            finalized_on=timezone.now().replace(month=1),
+            created_on=utc_now().replace(month=1),
+            finalized_on=utc_now().replace(month=1),
             amount=Money("20.00", "GBP"),
             payer=user,
             payee=None,
@@ -621,8 +621,8 @@ class TestSubscriptionReport(APITestCase):
         response = self.client.get(
             "/api/sales/v1/reports/subscription-report/csv/",
             {
-                "start_date": timezone.now().replace(day=1).date().isoformat(),
-                "end_date": timezone.now().date().isoformat(),
+                "start_date": utc_now().replace(day=1).date().isoformat(),
+                "end_date": utc_now().date().isoformat(),
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -645,15 +645,15 @@ class TestSubscriptionReport(APITestCase):
             invoice=term_invoice,
             amount=Money("5.00", "USD"),
         )
-        term_invoice.paid_on = timezone.now().replace(day=5)
+        term_invoice.paid_on = utc_now().replace(day=5)
         term_invoice.status = PAID
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=SUBSCRIPTION_DUES,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "GBP"),
             remote_ids=["1234", "5678"],
             payer=user,
@@ -664,14 +664,14 @@ class TestSubscriptionReport(APITestCase):
         # Too old
         old_invoice = get_term_invoice(user)
         old_invoice.status = PAID
-        old_invoice.paid_on = timezone.now().replace(year=2021)
+        old_invoice.paid_on = utc_now().replace(year=2021)
         old_invoice.save()
         old_record = TransactionRecordFactory.create(
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=SUBSCRIPTION_DUES,
-            created_on=timezone.now().replace(year=2021),
-            finalized_on=timezone.now().replace(year=2021),
+            created_on=utc_now().replace(year=2021),
+            finalized_on=utc_now().replace(year=2021),
             amount=Money("20.00", "GBP"),
             payer=user,
             payee=None,
@@ -701,15 +701,15 @@ class TestSubscriptionReport(APITestCase):
             invoice=term_invoice,
             amount=Money("5.00", "USD"),
         )
-        term_invoice.paid_on = timezone.now().replace(day=5)
+        term_invoice.paid_on = utc_now().replace(day=5)
         term_invoice.status = PAID
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=SUBSCRIPTION_DUES,
-            created_on=timezone.now().replace(day=5),
-            finalized_on=timezone.now().replace(day=5),
+            created_on=utc_now().replace(day=5),
+            finalized_on=utc_now().replace(day=5),
             amount=Money("20.00", "GBP"),
             remote_ids=["1234", "5678"],
             payer=user,
@@ -720,14 +720,14 @@ class TestSubscriptionReport(APITestCase):
         # Too old
         old_invoice = get_term_invoice(user)
         old_invoice.status = PAID
-        old_invoice.paid_on = timezone.now().replace(year=2021)
+        old_invoice.paid_on = utc_now().replace(year=2021)
         old_invoice.save()
         old_transaction = TransactionRecordFactory.create(
             source=CARD,
             destination=UNPROCESSED_EARNINGS,
             category=SUBSCRIPTION_DUES,
-            created_on=timezone.now().replace(year=2021),
-            finalized_on=timezone.now().replace(year=2021),
+            created_on=utc_now().replace(year=2021),
+            finalized_on=utc_now().replace(year=2021),
             amount=Money("20.00", "GBP"),
             payer=user,
             payee=None,
@@ -835,11 +835,11 @@ class TestOrderValues(APITestCase):
 
     def test_participant_display(self):
         deliverable_normal = DeliverableFactory.create(
-            created_on=timezone.now().replace(day=1), status=PAYMENT_PENDING
+            created_on=utc_now().replace(day=1), status=PAYMENT_PENDING
         )
         self.charge_transaction(deliverable_normal)
         deliverable_guest = DeliverableFactory.create(
-            created_on=timezone.now().replace(day=2),
+            created_on=utc_now().replace(day=2),
             status=PAYMENT_PENDING,
             order__buyer__guest=True,
         )
@@ -857,12 +857,12 @@ class TestOrderValues(APITestCase):
 
     def test_completed_values(self):
         deliverable = DeliverableFactory.create(
-            created_on=timezone.now().replace(day=1),
+            created_on=utc_now().replace(day=1),
             status=PAYMENT_PENDING,
             product__base_price=Money("15.00", "USD"),
         )
         self.charge_transaction(deliverable)
-        deliverable.invoice.paid_on = timezone.now().replace(day=1)
+        deliverable.invoice.paid_on = utc_now().replace(day=1)
         deliverable.invoice.save()
         self.payout_transactions(deliverable)
         lines = self.get_lines(
@@ -878,7 +878,7 @@ class TestOrderValues(APITestCase):
 
     def test_annotate_failure(self):
         deliverable = DeliverableFactory.create(
-            created_on=timezone.now().replace(day=1),
+            created_on=utc_now().replace(day=1),
             status=PAYMENT_PENDING,
             product__base_price=Money("15.00", "USD"),
         )
@@ -896,7 +896,7 @@ class TestOrderValues(APITestCase):
 
     def test_refunded_transaction(self):
         deliverable = DeliverableFactory.create(
-            created_on=timezone.now().replace(day=1),
+            created_on=utc_now().replace(day=1),
             status=PAYMENT_PENDING,
             product__base_price=Money("15.00", "USD"),
         )

@@ -1,5 +1,7 @@
 import logging
 import os
+from datetime import datetime
+from datetime import timezone
 from functools import partial
 from hashlib import sha256
 from itertools import chain
@@ -39,7 +41,7 @@ from django.dispatch import receiver
 from django.http import HttpRequest
 from django.template import Context, Template
 from django.template.loader import get_template
-from django.utils import timezone
+from django.utils import timezone as current_timezone
 from django.utils.datetime_safe import date
 from django.utils.deconstruct import deconstructible
 from django.utils.text import slugify
@@ -130,7 +132,7 @@ def update_event(
 ):
     event.recalled = False
     if mark_unread or time_override:
-        event.date = time_override or timezone.now()
+        event.date = time_override or current_timezone.now()
     if transform:
         try:
             data = transform(event.data, data)
@@ -835,7 +837,7 @@ def check_read(*, obj: Model, user: Union["User", "ArtconomyAnonymousUser"]):
 def mark_read(*, obj: Model, user: "User"):
     content_type = ContentType.objects.get_for_model(obj)
     ReadMarker.objects.update_or_create(
-        {"last_read_on": timezone.now()},
+        {"last_read_on": current_timezone.now()},
         user=user,
         content_type=ContentType.objects.get_for_model(obj),
         object_id=obj.id,
@@ -854,7 +856,7 @@ def mark_modified(
     if order is not None:
         kwargs["order"] = order
     ModifiedMarker.objects.update_or_create(
-        {"modified_on": timezone.now(), **kwargs},
+        {"modified_on": current_timezone.now(), **kwargs},
         content_type=ContentType.objects.get_for_model(obj),
         object_id=obj.id,
     )
@@ -1220,3 +1222,10 @@ def post_commit_defer(func):
         transaction.on_commit(partial(run_once, func, call, key))
 
     return wrapped
+
+
+utc = timezone.utc
+
+
+def utc_now():
+    return datetime.now(tz=utc)
