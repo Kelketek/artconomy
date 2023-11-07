@@ -1,22 +1,22 @@
 <template>
   <ac-base-notification :asset-link="assetLink" :notification="notification">
-    <span slot="title">
+    <template v-slot:title>
       <router-link :to="assetLink">
         <span v-if="event.target.status === 10">New Order in Limbo</span>
         <span v-else>Sale #{{event.target.order.id}} [{{event.target.name}}]</span>
       </router-link>
-    </span>
-    <span slot="subtitle">
+    </template>
+    <template v-slot:subtitle>
       <router-link :to="assetLink">{{message}}</router-link>
-    </span>
+    </template>
   </ac-base-notification>
 </template>
 
 <style scoped>
-  .notification-asset img {
-    max-width: 100%;
-    max-height: 100%;
-  }
+.notification-asset img {
+  max-width: 100%;
+  max-height: 100%;
+}
 </style>
 
 <script>

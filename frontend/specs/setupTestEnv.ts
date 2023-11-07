@@ -1,10 +1,18 @@
-/* This is run after initial Jest environment setup. It has access to the Jest globals, so we can access expect here. */
-
 // Polyfills the CSS.escape function, needed for dynamic CSS class/identifier creation.
 require('css.escape')
+import {expect, vi} from 'vitest'
 
-export function testName() {
-  return expect.getState().currentTestName
+vi.mock('axios', async (importOriginal) => {
+  const realAxios = await importOriginal<typeof import('axios')>()
+  const mockAxios = await vi.importActual('vitest-mock-axios')
+  return {
+    default: mockAxios.default,
+    AxiosHeaders: realAxios.AxiosHeaders,
+  }
+})
+
+export function testName(): string {
+  return expect.getState().currentTestName as string
 }
 
 export class LocalStorageMock {
@@ -37,9 +45,13 @@ export class LocalStorageMock {
 
 Object.defineProperty(window, 'localStorage', {value: new LocalStorageMock()})
 
+global.ResizeObserver = require('resize-observer-polyfill')
+
+window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
 // @ts-ignore
-window.ResizeObserver = window.ResizeObserver || jest.fn().mockImplementation(() => ({
-  disconnect: jest.fn(),
-  observe: jest.fn(),
-  unobserve: jest.fn(),
-}))
+// window.ResizeObserver = window.ResizeObserver || vi.fn().mockImplementation(() => ({
+//   disconnect: vi.fn(),
+//   observe: vi.fn(),
+//   unobserve: vi.fn(),
+// }))

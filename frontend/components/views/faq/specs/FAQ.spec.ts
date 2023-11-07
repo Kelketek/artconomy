@@ -1,32 +1,30 @@
-import Vue from 'vue'
-import Router from 'vue-router'
+import {createRouter, Router} from 'vue-router'
 import FAQ from '@/components/views/faq/FAQ.vue'
 import {faqRoutes} from './helpers'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
-import Vuetify from 'vuetify/lib'
-
-const localVue = vueSetup()
-localVue.use(Router)
+import {cleanUp, flushPromises, mount, vueSetup, waitFor} from '@/specs/helpers'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 describe('FAQ.vue', () => {
   let router: Router
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   let store: ArtStore
-  let vuetify: Vuetify
   beforeEach(() => {
-    router = new Router(faqRoutes)
+    router = createRouter(faqRoutes())
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('mounts', async() => {
-    router.push('/faq/')
-    wrapper = mount(FAQ, {localVue, router, store, vuetify, attachTo: docTarget()})
+  test('mounts', async() => {
+    await router.push('/faq/')
+    wrapper = mount(FAQ, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
     await wrapper.vm.$nextTick()
-    expect(router.currentRoute.name).toEqual('About')
+    await flushPromises()
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('About'))
   })
 })

@@ -4,4 +4,7 @@ export interface Journal {
   body: string,
   comments_disabled: boolean,
   created_on: string,
+  edited_on: string
+  edited: boolean,
+  subscribed: boolean,
 }

@@ -1,17 +1,18 @@
-import Vue from 'vue'
 import {formRegistry} from './registry'
-import Component from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
 import cloneDeep from 'lodash/cloneDeep'
 import debounce from 'lodash/debounce'
-import axios, {CancelTokenSource} from 'axios'
+import axios from 'axios'
 import deepEqual from 'fast-deep-equal'
-import {dotTraverse, flatten} from '@/lib/lib'
+import {ComputedGetters, dotTraverse, flatten} from '@/lib/lib'
 import {FormError} from '@/store/forms/types/FormError'
 import {FormState} from '@/store/forms/types/FormState'
 import {ValidatorSpec} from '@/store/forms/types/ValidatorSpec'
 import {RawData} from '@/store/forms/types/RawData'
 import {Field} from '@/store/forms/types/Field'
+import {ArtVueInterface} from '@/types/ArtVueInterface'
+import {ControllerArgs} from '@/store/controller-base'
+import {ArtStore} from '@/store'
+import {ComputedGetter, ref, toValue, watch} from 'vue'
 
 export function axiosCatch(error: Error) {
   if (axios.isCancel(error)) {
@@ -21,20 +22,39 @@ export function axiosCatch(error: Error) {
   return []
 }
 
-@Component
-export class FieldController extends Vue {
-  // Manages the state of a field. Useful for plugging into forms.
-  @Prop()
-  public fieldName!: string
+declare interface FieldControllerArgs extends Omit<ControllerArgs<undefined>, "initName" | "schema" > {
+  fieldName: string,
+  formName: string,
+}
 
-  @Prop()
-  public formName!: string
-
+@ComputedGetters
+export class FieldController {
+  public __getterMap: Map<keyof FieldController, ComputedGetter<any>>
+  public $root: ArtVueInterface
+  public fieldName: string
+  public formName: string
+  public $store: ArtStore
   public validate!: ReturnType<typeof debounce>
-  public cancelSource: CancelTokenSource = axios.CancelToken.source()
-  public localCache: any = null
+  public cancelSource = new AbortController()
+  public localCache: any = ref(null)
 
-  public get value() {
+  constructor({fieldName, formName, $root, $store}: FieldControllerArgs) {
+    // Used by the ComputedGetters decorator
+    this.__getterMap = new Map()
+    this.fieldName = fieldName
+    this.formName = formName
+    this.$root = $root
+    this.$store = $store
+    this.validate = debounce(
+      this.runValidation, this.debounceRate, {trailing: true},
+    )
+    // Force creation of the value computed getter.
+    this.value
+    watch(this.__getterMap.get('value'), this.syncCache, {immediate: true})
+    watch(this.localCache, this.updateInternal, {deep: true})
+  }
+
+  public get value () {
     return this.attr('value')
   }
 
@@ -47,7 +67,7 @@ export class FieldController extends Vue {
   }
 
   public get model() {
-    return this.localCache
+    return toValue(this.localCache)
   }
 
   public set model(value) {
@@ -64,17 +84,17 @@ export class FieldController extends Vue {
     this.$store.commit('forms/updateInitialData', {name: this.formName, data})
   }
 
-  @Watch('value', {immediate: true})
-  public syncCache(val: any) {
+  // Watcher for value
+  public syncCache = (val: any)=> {
     if (val === undefined) {
       // Should not happen unless we're tearing down.
       return
     }
-    Vue.set(this, 'localCache', cloneDeep(val))
+    this.localCache.value = cloneDeep(val)
   }
 
-  @Watch('localCache', {deep: true})
-  public updateInternal(newVal: any) {
+  // Watcher for localCache
+  public updateInternal = (newVal: any) => {
     /* istanbul ignore if */
     if (newVal === undefined) {
       // Should not happen unless we're tearing down.
@@ -100,50 +120,55 @@ export class FieldController extends Vue {
     return destString
   }
 
-  public get bind() {
+  public get rawBind() {
+    // For fields which are raw html fields, like the input tag.
     return {
-      // Checkboxes use inputValue due to naming conflicts with the native DOM.
+      // Native elements use value
       value: this.value,
-      inputValue: this.value,
-      errorMessages: this.errors,
       disabled: this.attr('disabled') || this.formAttr('sending'),
       id: this.id,
+      onBlur: this.forceValidate,
+      onInput: this.domUpdate,
+      onChange: this.domUpdate,
       ...this.attr('extra'),
     }
   }
 
-  public created() {
-    this.validate = debounce(
-      this.runValidation, this.debounceRate, {trailing: true},
-    )
+  public get bind() {
+    // Downstream wrapper will need to remove irrelevant entries.
+    return {
+      modelValue: this.value,
+      errorMessages: this.errors,
+      disabled: this.attr('disabled') || this.formAttr('sending'),
+      id: this.id,
+      onBlur: this.forceValidate,
+      'onUpdate:modelValue': this.update,
+      ...this.attr('extra'),
+    }
   }
 
-  public forceValidate() {
+  public forceValidate = () => {
     // Calls the debounced validator, then forcibly flushes it, making sure we don't screw up the debounce handling if
     // we need to validate immediately.
     this.validate()
     this.validate.flush()
   }
 
-  public cancelValidation() {
+  public cancelValidation = () => {
     this.validate.cancel()
-    this.cancelSource.cancel()
-    this.cancelSource = axios.CancelToken.source()
+    this.cancelSource.abort()
+    this.cancelSource = new AbortController()
   }
 
-  public kill() {
+  public kill = () => {
     // no-op for compatibility
-  }
-
-  public get on() {
-    return {change: this.update, input: this.update, blur: this.forceValidate}
   }
 
   public get debounceRate() {
     if (this.attr('debounce') !== null) {
       return this.attr('debounce')
     }
-    return this.$store.state.forms[this.formName].debounce
+    return this.$store.state.forms![this.formName]!.debounce
   }
 
   public get form() {
@@ -152,25 +177,25 @@ export class FieldController extends Vue {
     return formRegistry.controllers[this.formName]
   }
 
-  public attr(attrName: keyof Field): any {
-    const form = this.$store.state.forms[this.formName]
+  public attr = (attrName: keyof Field): any => {
     return dotTraverse(
       this, `$store.state.forms.${this.formName}.fields.${this.fieldName}.${attrName}`, true,
     )
   }
 
-  public formAttr(attrName: keyof FormState): any {
-    return this.$store.state.forms[this.formName][attrName]
+  public formAttr = (attrName: keyof FormState): any => {
+    return this.$store.state.forms![this.formName][attrName]
   }
 
   public get validators() {
     return this.attr('validators')
   }
 
-  public update(value: any, validate?: boolean) {
-    if (validate === undefined) {
-      validate = true
-    }
+  public domUpdate = (event: InputEvent) => {
+    this.update((event.target as HTMLInputElement).value)
+  }
+
+  public update = (value: any, validate: boolean = true) => {
     const data: RawData = {}
     data[this.fieldName] = cloneDeep(value)
     this.$store.commit('forms/updateValues', {name: this.formName, data})
@@ -179,7 +204,7 @@ export class FieldController extends Vue {
     }
   }
 
-  private runValidation() {
+  private runValidation = ()=> {
     const errors: string[] = []
     const allValidators = this.attr('validators')
     const syncValidators = allValidators.filter((validator: ValidatorSpec) => !validator.async)
@@ -206,7 +231,7 @@ export class FieldController extends Vue {
         continue
       }
       const args = cloneDeep(validator.args || [])
-      args.unshift(this.cancelSource.token)
+      args.unshift(this.cancelSource.signal)
       promiseSet.push(
         formRegistry.asyncValidators[validator.name](this, ...args).catch(axiosCatch),
       )
@@ -221,7 +246,7 @@ export class FieldController extends Vue {
     })
   }
 
-  public toJSON() {
+  public toJSON = () => {
     // Used to prevent the pretty printing service from exhausting all memory.
     return {type: this.constructor.name, name: this.fieldName, state: this.value}
   }

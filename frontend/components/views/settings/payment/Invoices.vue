@@ -4,22 +4,23 @@
       <template v-slot:default>
         <v-col cols="12" md="8" offset-md="2">
           <v-list>
-            <v-list-item v-for="invoice in invoices.list" :key="invoice.x.id">
-              <v-list-item-content>
-                <v-list-item-title>
-                  <ac-link :to="{name: 'Invoice', params: {username, invoiceId: invoice.x.id}}">{{invoice.x.id}}</ac-link>
-                  ({{INVOICE_TYPES[invoice.x.type]}})
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{formatDateTime(invoice.x.created_on)}}
-                  <span v-for="ref, index in invoice.x.targets" :key="index">
-                    <ac-link :to="ref.link"><span v-if="ref.display_name">{{ref.display_name}}</span><span v-else>{{ref.model}} #{{ref.id}}</span></ac-link><span v-if="index !== (invoice.x.targets.length - 1)">,</span>
-                  </span>
-                </v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-action>
-                {{invoice.x.total}} <ac-invoice-status :invoice="invoice.x" />
-              </v-list-item-action>
+            <v-list-item v-for="invoice in invoices.list" :key="invoice.x!.id">
+              <v-list-item-title>
+                <ac-link :to="{name: 'Invoice', params: {username, invoiceId: invoice.x!.id}}">{{invoice.x!.id}}
+                </ac-link>
+                ({{INVOICE_TYPES[invoice.x!.type]}})
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                {{formatDateTime(invoice.x!.created_on)}}
+                <span v-for="ref, index in invoice.x!.targets" :key="index">
+                  <ac-link :to="ref.link"><span v-if="ref.display_name">{{ref.display_name}}</span><span v-else>{{ref.model}} #{{ref.id}}</span></ac-link><span
+                    v-if="index !== (invoice.x!.targets.length - 1)">,</span>
+                </span>
+              </v-list-item-subtitle>
+              <template v-slot:append>
+                {{invoice.x!.total}}
+                <ac-invoice-status :invoice="invoice.x"/>
+              </template>
             </v-list-item>
           </v-list>
         </v-col>
@@ -30,16 +31,16 @@
     <v-toolbar class="invoice-toolbar">
       <v-toolbar-items>
         <v-btn @click="goBack" color="secondary">
-          <v-icon left>arrow_back</v-icon>
+          <v-icon left icon="mdi-arrow-back"/>
           Back
         </v-btn>
-        <v-btn color="primary" @click="performPrint">
-          <v-icon left>print</v-icon>
+        <v-btn color="primary" variant="flat" @click="performPrint">
+          <v-icon left icon="mdi-print"/>
           Print
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
-    <router-view />
+    <router-view/>
   </v-container>
 </template>
 
@@ -52,7 +53,7 @@
 </style>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import {ListController} from '@/store/lists/controller'
 import Invoice from '@/types/Invoice'
@@ -61,9 +62,9 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
 import {SingleController} from '@/store/singles/controller'
 import {NavSettings} from '@/types/NavSettings'
-import {Prop} from 'vue-property-decorator'
 import {initDrawerValue, INVOICE_TYPES} from '@/lib/lib'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
+import {InvoiceType} from '@/types/InvoiceType'
 
 @Component({
   components: {
@@ -72,20 +73,23 @@ import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
     AcPaginated,
   },
 })
-export default class Invoices extends mixins(Subjective, Formatting) {
+class Invoices extends mixins(Subjective, Formatting) {
   public invoices = null as unknown as ListController<Invoice>
   public navSettings = null as unknown as SingleController<NavSettings>
   public INVOICE_TYPES = INVOICE_TYPES
 
   @Prop({default: initDrawerValue})
-  public initialState!: null|boolean
+  public initialState!: null | boolean
 
   public get currentRoute() {
     return this.$route.name === 'Invoices'
   }
 
   public goBack() {
-    this.$router.replace({name: 'Invoices', params: {username: this.username}})
+    this.$router.replace({
+      name: 'Invoices',
+      params: {username: this.username},
+    })
   }
 
   public performPrint() {
@@ -97,7 +101,7 @@ export default class Invoices extends mixins(Subjective, Formatting) {
 
   public created() {
     let drawer: boolean | null
-    if (this.$vuetify.breakpoint.mdAndDown) {
+    if (this.$vuetify.display.mdAndDown) {
       // Never begin with the drawer open on a small screen.
       drawer = false
     } else {
@@ -111,4 +115,6 @@ export default class Invoices extends mixins(Subjective, Formatting) {
     this.invoices.firstRun()
   }
 }
+
+export default toNative(Invoices)
 </script>

@@ -1,39 +1,30 @@
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import {genCharacter} from '@/store/characters/specs/fixtures'
+import {afterEach, beforeEach, describe, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let store: ArtStore
-let vuetify: Vuetify
 
-const mockError = jest.spyOn(console, 'error')
+const mockError = vi.spyOn(console, 'error')
 
 describe('AcMiniCharacter.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
     mockError.mockClear()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts', async() => {
+  test('Mounts', async() => {
     setViewer(store, genUser())
     wrapper = mount(
       AcMiniCharacter, {
-        store,
-        localVue,
-        vuetify,
-
-        attachTo: docTarget(),
-        propsData: {character: genCharacter()},
-        stubs: ['router-link'],
+        ...vueSetup({stubs: ['router-link']}),
+        props: {character: genCharacter()},
       },
     )
   })

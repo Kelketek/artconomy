@@ -1,39 +1,45 @@
-import Vue from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import AcContextGallery from '@/components/views/character/AcContextGallery.vue'
 import {genCharacter} from '@/store/characters/specs/fixtures'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import Submission from '@/types/Submission'
-import {cleanUp, createVuetify, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
 import {SingleController} from '@/store/singles/controller'
-import Vuetify from 'vuetify/lib'
-
-const localVue = vueSetup()
-let vuetify: Vuetify
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 describe('AcContextGallery.vue', () => {
   let store: ArtStore
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Determines the featured submission', async() => {
+  test('Determines the featured submission', async() => {
     setViewer(store, genUser())
     wrapper = mount(
       AcContextGallery, {
-        localVue,
-        vuetify,
-        store,
-        propsData: {username: 'Fox', characterName: 'Kai'},
-        mocks: {$route: {name: 'Character', params: {username: 'Fox', characterName: 'Kai'}, query: {}}},
-        stubs: ['router-link'],
-
+        ...vueSetup({
+          store,
+          mocks: {
+            $route: {
+              name: 'Character',
+              params: {
+                username: 'Fox',
+                characterName: 'Kai',
+              },
+              query: {},
+            },
+          },
+          stubs: ['router-link'],
+        }),
+        props: {
+          username: 'Fox',
+          characterName: 'Kai',
+        },
       },
     )
     const vm = wrapper.vm as any

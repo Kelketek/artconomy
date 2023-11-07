@@ -1,25 +1,18 @@
-import {createVuetify, mount, vueSetup} from '@/specs/helpers'
-import TableDashboard from '@/components/views/table/TableDashboard.vue'
-import {VueConstructor} from 'vue'
+import {mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import Router, {RouterOptions} from 'vue-router'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import {createRouter, createWebHistory, Router, RouterOptions} from 'vue-router'
 import TableProducts from '@/components/views/table/TableProducts.vue'
-import Vuetify from 'vuetify/lib'
+import {beforeEach, describe, test} from 'vitest'
 
-let localVue: VueConstructor<Vue>
 let store: ArtStore
 let router: Router
-let vuetify: Vuetify
 
 describe('TableProducts.vue', () => {
   beforeEach(() => {
-    localVue = vueSetup()
-    localVue.use(Router)
-    vuetify = createVuetify()
     store = createStore()
     const routes: RouterOptions = {
-      mode: 'history',
+      history: createWebHistory(),
       routes: [{
         path: '/table',
         name: 'TableDashboard',
@@ -37,10 +30,13 @@ describe('TableProducts.vue', () => {
         props: true,
       }],
     }
-    router = new Router(routes)
+    router = createRouter(routes)
   })
-  it('Mounts', async() => {
+  test('Mounts', async() => {
     await router.push({name: 'TableProducts'})
-    mount(TableProducts, {localVue, store, router, vuetify})
+    mount(TableProducts, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
   })
 })

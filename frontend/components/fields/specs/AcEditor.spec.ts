@@ -1,83 +1,61 @@
-import {Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify/lib'
-import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import Editor from '@/specs/helpers/dummy_components/editor.vue'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import AcEditor from '@/components/fields/AcEditor.vue'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
-const mockError = jest.spyOn(console, 'error')
+const mockError = vi.spyOn(console, 'error')
 
 describe('ac-editor', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
     mockError.mockImplementationOnce(() => undefined)
   })
   afterEach(() => {
     mockError.mockClear()
     cleanUp(wrapper)
   })
-  it('Mounts the editor', async() => {
-    wrapper = mount(Editor, {
-      localVue,
-      store,
-      vuetify,
-      attachTo: docTarget(),
-    })
+  test('Mounts the editor', async() => {
+    wrapper = mount(Editor, vueSetup({store}))
   })
-  it('Auto saves changes', async() => {
-    wrapper = mount(Editor, {
-      localVue,
-      store,
-      vuetify,
-      attachTo: docTarget(),
+  test('Auto saves changes', async() => {
+    wrapper = mount(AcEditor, {
+      ...vueSetup({store}),
+      props: {
+        autoSave: true,
+        modelValue: '',
+      },
     })
-    const mockEmit = jest.spyOn(wrapper.vm.$refs.auto as any, '$emit')
-    wrapper.find('#editor textarea').setValue('Hello there!')
+    wrapper.vm.scratch = 'Hello there!'
     await wrapper.vm.$nextTick()
-    expect((wrapper.vm as any).stuff).toBe('Hello there!')
-    expect(mockEmit).toHaveBeenCalledWith('input', 'Hello there!')
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual(['Hello there!'])
   })
-  it('Saves changes manually', async() => {
-    wrapper = mount(Editor, {
-      localVue,
-      store,
-      vuetify,
-    })
-    wrapper.find('#editor-manual textarea').setValue('Hello there!')
+  test('Saves changes manually', async() => {
+    wrapper = mount(Editor, vueSetup({store}))
+    await wrapper.find('#editor-manual textarea').setValue('Hello there!')
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).things).toBe('')
   })
-  it('Does not propagate the changes down when manually controlled', async() => {
-    wrapper = mount(Editor, {
-      localVue,
-      store,
-      vuetify,
-      attachTo: docTarget(),
-    })
-    const mockEmit = jest.spyOn(wrapper.vm.$refs.auto as any, '$emit');
+  test('Does not propagate the changes down when manually controlled', async() => {
+    wrapper = mount(Editor, vueSetup({store}))
+    const mockEmit = vi.spyOn(wrapper.vm.$refs.auto as any, '$emit');
     (wrapper.vm as any).things = 'Hello there!'
     await wrapper.vm.$nextTick()
     expect((wrapper.vm.$refs.manual as any).scratch).toBe('')
     expect(mockEmit).not.toHaveBeenCalled()
   })
-  it('Previews the result', async() => {
-    wrapper = mount(Editor, {
-      localVue,
-      store,
-      vuetify,
-      attachTo: docTarget(),
+  test('Previews the result', async() => {
+    wrapper = mount(AcEditor, {
+      ...vueSetup({store}),
+      props: {modelValue: '# Hello there!'},
     })
-    wrapper.find('#editor-manual textarea').setValue('# Hello there!')
+    await wrapper.find('.preview-mode-toggle').trigger('click')
     await wrapper.vm.$nextTick()
-    wrapper.find('#editor-manual .preview-mode-toggle').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect((wrapper.vm.$refs.manual as any).previewMode).toBe(true)
+    expect((wrapper.vm as any).previewMode).toBe(true)
     expect(wrapper.find('.editor-preview h1').text()).toBe('Hello there!')
   })
 })

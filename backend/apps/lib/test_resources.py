@@ -266,15 +266,6 @@ class NPMBuildTestRunner(DiscoverRunner):
 
     def setup_test_environment(self, **kwargs):
         super().setup_test_environment(**kwargs)
-        if self.run_build:
-            call(["cp", "webpack-stats.json", "webpack-stats-bak.json"])
-            call(["npm", "run", "build"])
-            call(["cp", "webpack-stats.json", "webpack-stats-saved.json"])
-            call(["cp", "webpack-stats-bak.json", "webpack-stats.json"])
-            call(["./manage.py", "collectstatic", "--noinput", "-v0"])
-        settings.WEBPACK_LOADER["DEFAULT"]["STATS_FILE"] = os.path.join(
-            settings.BASE_DIR, "webpack-stats.json"
-        )
         settings.MEDIA_ROOT = self.media_root.name
         if self.time:
             self.instrument_time_checks()

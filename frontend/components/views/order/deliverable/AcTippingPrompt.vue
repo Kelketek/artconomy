@@ -1,7 +1,7 @@
 <template>
   <ac-load-section :controller="invoice">
     <template v-slot:default>
-      <ac-load-section :controller="lineItems">
+      <ac-load-section :controller="lineItems" v-if="invoice.x">
         <template v-slot:default>
           <v-card elevation="10" v-if="(invoice.x.status === DRAFT) && isBuyer">
             <v-card-text>
@@ -12,16 +12,20 @@
                     <ac-form @submit.prevent="statusEndpoint('finalize')()">
                       <v-row>
                         <v-col cols="12">
-                          <strong>Tips are not required, as artists set their own prices,</strong> but they are always appreciated.
+                          <strong>Tips are not required, as artists set their own prices,</strong> but they are always
+                          appreciated.
                         </v-col>
                         <v-col cols="4" sm="2" offset-sm="3" class="text-center">
-                          <v-btn small color="secondary" class="preset10" fab @click="setTip(.1)"><strong>10%</strong></v-btn>
+                          <v-btn small color="secondary" class="preset10" icon @click="setTip(.1)"><strong>10%</strong>
+                          </v-btn>
                         </v-col>
                         <v-col cols="4" sm="2" class="text-center">
-                          <v-btn small color="secondary" class="preset15" fab @click="setTip(.15)"><strong>15%</strong></v-btn>
+                          <v-btn small color="secondary" class="preset15" icon @click="setTip(.15)"><strong>15%</strong>
+                          </v-btn>
                         </v-col>
                         <v-col cols="4" sm="2" class="text-center">
-                          <v-btn small color="secondary" class="preset20" fab @click="setTip(.2)"><strong>20%</strong></v-btn>
+                          <v-btn small color="secondary" class="preset20" icon @click="setTip(.2)"><strong>20%</strong>
+                          </v-btn>
                         </v-col>
                         <v-col cols="12" v-if="tip">
                           <ac-patch-field
@@ -31,14 +35,15 @@
                           />
                         </v-col>
                         <v-col cols="12" v-if="total">
-                          <v-btn @click="statusEndpoint('finalize')()" color="primary">Send Tip</v-btn>
+                          <v-btn @click="statusEndpoint('finalize')()" color="primary" variant="flat">Send Tip</v-btn>
                         </v-col>
                       </v-row>
                     </ac-form>
                   </ac-form-container>
                 </v-col>
                 <v-col class="text-center" cols="12" v-if="tip">
-                  <ac-price-preview :line-items="lineItems" :username="viewer.username" :isSeller="false" :transfer="true" :hide-hourly-form="true" />
+                  <ac-price-preview :line-items="lineItems" :username="viewer!.username" :isSeller="false"
+                                    :transfer="true" :hide-hourly-form="true"/>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -50,6 +55,7 @@
               submit-text="Send Tip"
               cancel-text="Cancel Tip"
               v-bind="paymentForm.bind"
+              :large="true"
               @submit.prevent="paymentSubmit"
           >
             <v-card-text>
@@ -69,7 +75,7 @@
                 <v-col cols="12">
                   <ac-price-preview
                       :line-items="lineItems"
-                      :username="viewer.username"
+                      :username="viewer!.username"
                       :isSeller="false"
                       :transfer="true"
                       :hide-hourly-form="true"
@@ -83,21 +89,23 @@
               <ac-form-container v-bind="tipForm.bind">
                 <v-row>
                   <v-col cols="12"><strong>You declined to tip.</strong></v-col>
-                  <v-col cols="12"><v-btn color="primary" @click="reissueTipInvoice">I changed my mind</v-btn></v-col>
+                  <v-col cols="12">
+                    <v-btn color="primary" @click="reissueTipInvoice" variant="flat">I changed my mind</v-btn>
+                  </v-col>
                 </v-row>
               </ac-form-container>
             </v-card-text>
           </v-card>
           <v-card v-else-if="invoice.x.status === PAID">
             <v-col class="text-center">
-              <v-icon left color="green">check_circle</v-icon>
+              <v-icon left color="green" icon="mdi-check-circle"/>
               <span v-if="isBuyer">Tip Sent!</span>
               <span v-else>Tip Received!</span>
             </v-col>
             <v-col cols="12">
               <ac-price-preview
                   :line-items="lineItems"
-                  :username="viewer.username"
+                  :username="viewer!.username"
                   :isSeller="false"
                   :transfer="true"
                   :hide-hourly-form="true"
@@ -111,12 +119,11 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
-import {getTotals, quantize, totalForTypes, reckonLines} from '@/lib/lineItemFunctions'
+import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
+import {getTotals, quantize, reckonLines, totalForTypes} from '@/lib/lineItemFunctions'
 import {LineTypes} from '@/types/LineTypes'
 import LineItem from '@/types/LineItem'
 import {ListController} from '@/store/lists/controller'
-import {Prop, Watch} from 'vue-property-decorator'
 import {FormController} from '@/store/forms/form-controller'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -126,7 +133,7 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Invoice from '@/types/Invoice'
 import {SingleController} from '@/store/singles/controller'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
-import {baseCardSchema, artCall} from '@/lib/lib'
+import {artCall, baseCardSchema} from '@/lib/lib'
 import StripeHostMixin from '../mixins/StripeHostMixin'
 import {InvoiceStatus} from '@/types/InvoiceStatus'
 import Subjective from '@/mixins/subjective'
@@ -144,7 +151,7 @@ import Deliverable from '@/types/Deliverable'
     AcPricePreview,
   },
 })
-export default class AcTippingPrompt extends mixins(Subjective, StripeHostMixin) {
+class AcTippingPrompt extends mixins(Subjective, StripeHostMixin) {
   @Prop({required: true})
   public invoiceId!: string
 
@@ -214,7 +221,10 @@ export default class AcTippingPrompt extends mixins(Subjective, StripeHostMixin)
   public reissueTipInvoice() {
     this.tipForm.sending = true
     // Will update invoice by updating the deliverable over websocket, reloading this component with the new invoice ID.
-    artCall({url: `${this.deliverableUrl}issue-tip-invoice/`, method: 'post'}).then((invoice: Invoice) => {
+    artCall({
+      url: `${this.deliverableUrl}issue-tip-invoice/`,
+      method: 'post',
+    }).then((invoice: Invoice) => {
       this.deliverable.updateX({invoice: invoice.id})
     }).finally(() => {
       this.tipForm.sending = false
@@ -264,9 +274,9 @@ export default class AcTippingPrompt extends mixins(Subjective, StripeHostMixin)
       cash: {value: false},
     }
     this.clientSecret = this.$getSingle(
-    `${this.invoiceId}__clientSecret`, {
-      endpoint: `${this.url}payment-intent/`,
-    })
+        `${this.invoiceId}__clientSecret`, {
+          endpoint: `${this.url}payment-intent/`,
+        })
     this.paymentForm = this.$getForm(`${this.invoiceId}__payment`, schema)
     this.invoice = this.$getSingle(
         `${this.invoiceId}`,
@@ -299,8 +309,13 @@ export default class AcTippingPrompt extends mixins(Subjective, StripeHostMixin)
     this.lineItems.firstRun()
     // Used as wrapper for state change events.
     this.stateChange = this.$getForm(
-        `${this.invoiceId}__stateChange`, {endpoint: this.url, fields: {}},
+        `${this.invoiceId}__stateChange`, {
+          endpoint: this.url,
+          fields: {},
+        },
     )
   }
 }
+
+export default toNative(AcTippingPrompt)
 </script>

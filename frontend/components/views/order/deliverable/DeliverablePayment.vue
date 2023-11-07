@@ -3,16 +3,16 @@
     <template v-slot:default>
       <ac-load-section :controller="lineItems">
         <template v-slot:default>
-          <v-row>
+          <v-row v-if="deliverable.x && order.x">
             <v-col cols="12" md="6">
               <v-col cols="12" class="text-center text-md-left">
                 <div>
-                  <span>Placed on: {{formatDateTime(deliverable.x.created_on)}}</span><br />
+                  <span>Placed on: {{ formatDateTime(deliverable.x.created_on) }}</span><br/>
                   <span v-if="revisionCount">
-                    <strong>{{revisionCount}}</strong> revision<span v-if="revisionCount > 1">s</span> included.
-                </span><br />
-                  <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span><br />
-                  <span v-if="isSeller">Slots taken: <strong>{{taskWeight}}</strong></span>
+                    <strong>{{ revisionCount }}</strong> revision<span v-if="revisionCount > 1">s</span> included.
+                </span><br/>
+                  <span v-if="deliveryDate">Estimated completion: <strong>{{ formatDateTerse(deliveryDate.toISOString()) }}</strong></span><br/>
+                  <span v-if="isSeller">Slots taken: <strong>{{ taskWeight }}</strong></span>
                 </div>
               </v-col>
               <v-col cols="12" v-if="is(NEW) && isBuyer">
@@ -22,7 +22,7 @@
                 </v-alert>
               </v-col>
               <v-col cols="12" v-if="isSeller && editable">
-                <v-row no-gutters  >
+                <v-row no-gutters>
                   <v-col cols="12">
                     <ac-patch-field
                         :patcher="deliverable.patchers.adjustment"
@@ -52,24 +52,30 @@
               </v-col>
               <v-col cols="12" v-if="isSeller && editable">
                 <ac-patch-field
-                    :patcher="deliverable.patchers.escrow_enabled" field-type="v-switch" label="Shield Protection" :persistent-hint="true"
+                    :patcher="deliverable.patchers.escrow_enabled" field-type="v-switch" label="Shield Protection"
+                    :persistent-hint="true"
                     hint="If turned off, disables shield protection. In this case, you
                   will have to handle payment using a third party service, or collecting it in person."
+                    color="primary"
                 />
               </v-col>
               <v-col cols="12" v-if="isSeller && editable && seller.paypal_configured">
                 <ac-patch-field
-                    :patcher="deliverable.patchers.paypal" field-type="v-switch" label="Paypal Invoicing" :persistent-hint="true"
+                    :patcher="deliverable.patchers.paypal" field-type="v-switch" label="Paypal Invoicing"
+                    :persistent-hint="true"
                     :disabled="deliverable.patchers.escrow_enabled.model"
                     hint="Create an invoice in PayPal for this order."
+                    color="primary"
                 />
               </v-col>
               <v-col cols="12" v-if="isSeller && editable">
                 <ac-patch-field
-                    :patcher="deliverable.patchers.cascade_fees" field-type="v-switch" label="Absorb fees" :persistent-hint="true"
+                    :patcher="deliverable.patchers.cascade_fees" field-type="v-switch" label="Absorb fees"
+                    :persistent-hint="true"
                     hint="If turned on, the price you set is the price your commissioner will see, and you
                             will pay all fees from that price. If turned off, the price you set is the amount you
                             take home, and the total the customer pays includes the fees."
+                    color="primary"
                 />
               </v-col>
             </v-col>
@@ -89,17 +95,19 @@
                     />
                     <v-row v-if="deliverable.x.paid_on">
                       <v-col class="text-center">
-                        <v-icon left color="green">check_circle</v-icon> Paid on {{formatDate(deliverable.x.paid_on)}}
+                        <v-icon left color="green" icon="mdi-check-circle"/>
+                        Paid on {{ formatDate(deliverable.x.paid_on) }}
                       </v-col>
                     </v-row>
                     <v-row v-if="isBuyer && is(NEW)">
                       <v-col class="text-center">
-                        <p><strong>Note:</strong> The artist may adjust the above price based on the requirements you have given before accepting it.</p>
+                        <p><strong>Note:</strong> The artist may adjust the above price based on the requirements you
+                          have given before accepting it.</p>
                       </v-col>
                     </v-row>
-                    <ac-escrow-label :escrow="escrow" name="order" />
+                    <ac-escrow-label :escrow="escrow" name="order"/>
                     <v-col class="text-center" cols="12" v-if="paypalUrl">
-                      <v-btn color="primary" target="_blank" rel="noopener" :href="paypalUrl">
+                      <v-btn color="primary" target="_blank" rel="noopener" variant="elevated" :href="paypalUrl">
                         <span v-if="is(PAYMENT_PENDING) && isBuyer">Pay with PayPal</span>
                         <span v-else>View Invoice on PayPal</span>
                       </v-btn>
@@ -107,40 +115,56 @@
                     <v-col class="text-center" cols="12" v-if="isSeller && editable">
                       <ac-confirmation :action="statusEndpoint('accept')" v-if="(is(NEW) || is(WAITING)) && isSeller">
                         <template v-slot:default="{on}">
-                          <v-btn v-on="on" color="green" class="accept-order" :disabled="stateChange.sending">Accept Order</v-btn>
+                          <v-btn v-on="on" color="green" class="accept-order" variant="elevated" :disabled="stateChange.sending">Accept
+                            Order
+                          </v-btn>
                         </template>
                         <template v-slot:confirmation-text>
                           <v-col>
                             I understand the commissioner's requirements, and I agree to be bound by the
-                            <router-link :to="{name: 'CommissionAgreement'}">Commission agreement</router-link>.
+                            <router-link :to="{name: 'CommissionAgreement'}">Commission agreement</router-link>
+                            .
                           </v-col>
                         </template>
-                        <span slot="title">Accept Order</span>
-                        <span slot="confirm-text">I agree</span>
+                        <template v-slot:title>
+                          <span>Accept Order</span>
+                        </template>
+                        <template v-slot:confirm-text>
+                          <span>I agree</span>
+                        </template>
                       </ac-confirmation>
-                      <v-btn color="green" class="accept-order" :disabled="stateChange.sending" @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
+                      <v-btn color="green" class="accept-order" :disabled="stateChange.sending"
+                             variant="flat"
+                             @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
                         Accept Order
                       </v-btn>
                     </v-col>
-                    <v-col class="text-center" v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED)) && !paypalUrl" cols="12" >
+                    <v-col class="text-center"
+                           v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED)) && !paypalUrl"
+                           cols="12">
                       <ac-confirmation :action="statusEndpoint('refund')">
                         <template v-slot:default="{on}">
-                          <v-btn v-on="on">
+                          <v-btn v-on="on" variant="flat">
                             <span v-if="escrow">Refund</span>
                             <span v-else>Mark Refunded</span>
                           </v-btn>
                         </template>
                       </ac-confirmation>
                     </v-col>
-                    <v-col class="text-center payment-section" v-if="is(PAYMENT_PENDING) && (isBuyer || isStaff) && deliverable.x.escrow_enabled" cols="12" >
-                      <v-btn color="green" @click="viewSettings.patchers.showPayment.model = true" class="payment-button">Send Payment</v-btn>
+                    <v-col class="text-center payment-section"
+                           v-if="is(PAYMENT_PENDING) && (isBuyer || isStaff) && deliverable.x.escrow_enabled" cols="12">
+                      <v-btn color="green" @click="viewSettings.patchers.showPayment.model = true"
+                             variant="flat"
+                             class="payment-button">Send Payment
+                      </v-btn>
                       <ac-form-dialog
                           v-model="viewSettings.patchers.showPayment.model" @submit.prevent="paymentSubmit"
                           :large="true" v-bind="paymentForm.bind"
                           :show-submit="showSubmit"
                       >
                         <v-row>
-                          <v-col class="text-center" cols="12" >Total Charge: <strong>${{totalCharge.toFixed(2)}}</strong></v-col>
+                          <v-col class="text-center" cols="12">Total Charge:
+                            <strong>${{ totalCharge.toFixed(2) }}</strong></v-col>
                           <v-col cols="12">
                             <ac-load-section :controller="deliverable">
                               <template v-slot:default>
@@ -149,12 +173,12 @@
                                   <v-tab>Terminal</v-tab>
                                   <v-tab>Cash</v-tab>
                                 </v-tabs>
-                                <v-tabs-items v-model="cardTabs">
-                                  <v-tab-item>
+                                <v-window v-model="cardTabs">
+                                  <v-window-item>
                                     <ac-card-manager
                                         ref="cardManager"
                                         :payment="true"
-                                        :username="buyer.username"
+                                        :username="buyer!.username"
                                         :processor="deliverable.x.processor"
                                         :cc-form="paymentForm"
                                         :field-mode="true"
@@ -162,8 +186,8 @@
                                         v-model="paymentForm.fields.card_id.model"
                                         @paymentSent="hideForm"
                                     />
-                                  </v-tab-item>
-                                  <v-tab-item>
+                                  </v-window-item>
+                                  <v-window-item>
                                     <ac-paginated :list="readers">
                                       <template v-slot:default>
                                         <ac-form-container v-bind="readerForm.bind">
@@ -172,18 +196,18 @@
                                               <v-card elevation="10">
                                                 <v-card-text>
                                                   <v-row>
-                                                    <v-col v-for="reader in readers.list" :key="reader.x.id" cols="12">
+                                                    <v-col v-for="reader in readers.list" :key="reader.x!.id" cols="12">
                                                       <v-radio-group v-model="readerForm.fields.reader.model">
                                                         <ac-bound-field
                                                             field-type="v-radio"
                                                             :field="readerForm.fields.reader"
-                                                            :value="reader.x.id"
-                                                            :label="reader.x.name"
+                                                            :value="reader.x!.id"
+                                                            :label="reader.x!.name"
                                                         />
                                                       </v-radio-group>
                                                     </v-col>
                                                     <v-col cols="12" @click="readerForm.submit()">
-                                                      <v-btn color="green" block>Activate Reader</v-btn>
+                                                      <v-btn color="green" block variant="flat">Activate Reader</v-btn>
                                                     </v-col>
                                                   </v-row>
                                                 </v-card-text>
@@ -193,25 +217,31 @@
                                         </ac-form-container>
                                       </template>
                                     </ac-paginated>
-                                  </v-tab-item>
-                                  <v-tab-item>
+                                  </v-window-item>
+                                  <v-window-item>
                                     <v-row>
                                       <v-col cols="12" md="6" offset-md="3" class="pa-5">
-                                        <v-btn color="primary" block class="mark-paid-cash" @click="paymentForm.submitThen(updateDeliverable)">
+                                        <v-btn color="primary" block class="mark-paid-cash"
+                                               variant="flat"
+                                               @click="paymentForm.submitThen(updateDeliverable)">
                                           Mark Paid by Cash
                                         </v-btn>
                                       </v-col>
                                     </v-row>
-                                  </v-tab-item>
-                                </v-tabs-items>
+                                  </v-window-item>
+                                </v-window>
                               </template>
                             </ac-load-section>
                           </v-col>
-                          <v-col class="text-center" cols="12" >
+                          <v-col class="text-center" cols="12">
                             <p>Use of Artconomy is subject to the
-                              <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.<br />
-                              This order is subject to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link>.<br />
-                              Artconomy is based in the United States of America.</p>
+                              <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+                              .<br/>
+                              This order is subject to the
+                              <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link>
+                              .<br/>
+                              Artconomy is based in the United States of America.
+                            </p>
                           </v-col>
                         </v-row>
                       </ac-form-dialog>
@@ -223,8 +253,8 @@
             <v-col cols="12">
               <v-card>
                 <v-card-text>
-                  <v-subheader v-if="commissionInfo">Commission Info</v-subheader>
-                  <ac-rendered :value="commissionInfo" :truncate="200" />
+                  <v-list-subheader v-if="commissionInfo">Commission Info</v-list-subheader>
+                  <ac-rendered :value="commissionInfo" :truncate="200"/>
                 </v-card-text>
               </v-card>
             </v-col>
@@ -236,10 +266,9 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import LineItem from '@/types/LineItem'
 import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
-import {Watch} from 'vue-property-decorator'
 import {Decimal} from 'decimal.js'
 import LineAccumulator from '@/types/LineAccumulator'
 import {getTotals} from '@/lib/lineItemFunctions'
@@ -282,7 +311,7 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
     AcRendered,
   },
 })
-export default class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin, StripeMixin) {
+class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin, StripeMixin) {
   public clientSecret = null as unknown as SingleController<ClientSecret>
   public PROCESSORS = PROCESSORS
   public socketState = null as unknown as SingleController<SocketState>
@@ -311,7 +340,7 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   }
 
   @Watch('proxyTotalCharge')
-  public updateAmount(newValue: Decimal, oldValue: Decimal|undefined) {
+  public updateAmount() {
     this.paymentForm.fields.amount.update(this.totalCharge)
   }
 
@@ -375,12 +404,16 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
   public get priceData(): LineAccumulator {
     /* istanbul ignore if */
     if (!this.lineItems) {
-      return {total: new Decimal(0), subtotals: new Map(), discount: new Decimal(0)}
+      return {
+        total: new Decimal(0),
+        subtotals: new Map(),
+        discount: new Decimal(0),
+      }
     }
     return getTotals(this.bareLines)
   }
 
-  public get proxyTotalCharge(): Decimal|undefined {
+  public get proxyTotalCharge(): Decimal | undefined {
     // We return zero on the normal priceData if lineItems is null, but this causes the
     // watcher to trigger when it shouldn't.
     if (this.lineItems === null) {
@@ -444,4 +477,6 @@ export default class DeliverablePayment extends mixins(DeliverableMixin, Formatt
         })
   }
 }
+
+export default toNative(DeliverablePayment)
 </script>

@@ -1,11 +1,10 @@
-import {thumbFromSpec} from '@/lib/lib'
+import {ArtVue, thumbFromSpec} from '@/lib/lib'
 import {Ratings} from '@/store/profiles/types/Ratings'
-import Vue from 'vue'
 import FileSpec from '@/types/FileSpec'
-import Component from 'vue-class-component'
+import {Component} from 'vue-facing-decorator'
 
 @Component
-export default class Sharable extends Vue {
+export default class Sharable extends ArtVue {
   /* istanbul ignore next */
   public get shareMedia(): null|{file: FileSpec, rating: Ratings} {
     return null

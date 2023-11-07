@@ -1,10 +1,7 @@
-import Vue from 'vue'
-import {Watch} from 'vue-property-decorator'
-import Component from 'vue-class-component'
 import {ProfileModule} from './index'
 import {ProfileModuleOpts} from './types/ProfileModuleOpts'
 import {User} from '@/store/profiles/types/User'
-import {guestName} from '@/lib/lib'
+import {ComputedGetters, guestName} from '@/lib/lib'
 import {SingleController} from '@/store/singles/controller'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
@@ -17,11 +14,12 @@ import {
   pathFor,
   userPathFor,
 } from '@/store/profiles/helpers'
-import {BaseController} from '@/store/controller-base'
+import {BaseController, ControllerArgs} from '@/store/controller-base'
 import {ListController} from '@/store/lists/controller'
 import Product from '@/types/Product'
+import {toValue, watch} from 'vue'
 
-@Component
+@ComputedGetters
 export class ProfileController extends BaseController<ProfileModuleOpts, ProfileState> {
   public baseClass = ProfileModule
   public submoduleKeys = ['user', 'artistProfile']
@@ -34,7 +32,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   public artistProfile: SingleController<ArtistProfile> = null as unknown as SingleController<ArtistProfile>
   public products: ListController<Product> = null as unknown as ListController<Product>
 
-  public updateRoute(newUsername: string, oldUsername: string|undefined) {
+  public updateRoute = (newUsername: string, oldUsername: string|undefined) => {
     if (newUsername === '_') {
       return
     }
@@ -43,24 +41,25 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     }
     // Most relevant routes will have the username right in them, so we need to change these.
     /* istanbul ignore next */
-    const name = this.$route.name || undefined
+    const currentRoute = toValue(this.$root.$route)
+    const name = currentRoute.name || undefined
     const route = {
       name,
-      params: {...this.$route.params},
-      query: {...this.$route.query},
-      hash: this.$route.hash,
+      params: {...currentRoute.params},
+      query: {...currentRoute.query},
+      hash: currentRoute.hash,
     }
     if ('username' in route.params && (oldUsername === route.params.username)) {
       route.params.username = newUsername
-      this.$router.replace(route)
+      this.$root.$router.replace(route)
     }
   }
 
-  public kill() {
+  public kill = () => {
     // no-op for compatibility.
   }
 
-  public refresh() {
+  public refresh = () => {
     // Refreshes all subordinate handlers.
     return this.user.refresh().then(() => {
       const user = this.user.x as User
@@ -69,7 +68,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
       if (user.username === '_' || guestName(user.username)) {
         this.artistProfile.setX(null)
       } else {
-        return this.$nextTick(() => {
+        return this.$root.$nextTick(() => {
           return this.artistProfile.refresh()
         })
       }
@@ -90,12 +89,13 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     return user.username
   }
 
-  public created() {
+  constructor(args: ControllerArgs<ProfileModuleOpts>) {
+    super(args)
     this.register()
-    Vue.set(this, 'user', this.$getSingle(
-      userPathFor(this.name).join('/'),
+    this.user = this.$root.$getSingle(
+      userPathFor(this.name.value).join('/'),
       {
-        endpoint: endpointFor(this.name),
+        endpoint: endpointFor(this.name.value),
         socketSettings: {
           appLabel: 'profiles',
           modelName: 'User',
@@ -103,10 +103,11 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
           serializer: this.viewer ? 'UserSerializer' : 'UserInfoSerializer',
         },
       },
-    ))
-    Vue.set(this, 'artistProfile', this.$getSingle(
-      artistProfilePathFor(this.name).join('/'), {
-        endpoint: artistProfileEndpointFor(this.name),
+      this._uid,
+    )
+    this.artistProfile = this.$root.$getSingle(
+      artistProfilePathFor(this.name.value).join('/'), {
+        endpoint: artistProfileEndpointFor(this.name.value),
         params: {view: 'true'},
         socketSettings: {
           appLabel: 'profiles',
@@ -115,12 +116,14 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
           serializer: 'ArtistProfileSerializer',
         },
       },
-    ))
+      this._uid,
+    )
+    watch(() => this.user.x?.username || '', this.updateUsername)
   }
 
-  @Watch('user.x.username')
-  public updateUsername(newUsername: string, oldUsername: string|undefined) {
-    if (this.name === newUsername) {
+  // Watcher for user.x.username
+  public updateUsername = (newUsername: string, oldUsername: string|undefined) => {
+    if (this.name.value === newUsername) {
       // Initial load. Ignore.
       return
     }
@@ -137,8 +140,8 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     this.updateRoute(newUsername, oldUsername)
   }
 
-  public attr(name: keyof ProfileState) {
-    return this.state[name]
+  public attr = <T extends keyof ProfileState>(name: T) => {
+    return this.state![name]
   }
 
   public get viewer() {
@@ -146,7 +149,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   }
 
   public get path() {
-    return pathFor(this.name)
+    return pathFor(toValue(this.name))
   }
 
   public get prefix() {

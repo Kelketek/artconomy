@@ -1,6 +1,6 @@
 import {RelatedUser} from '@/store/profiles/types/RelatedUser'
 import {Asset} from '@/types/Asset'
-import {RawLocation} from 'vue-router'
+import {RouteLocationRaw} from 'vue-router'
 
 export default interface Submission extends Asset {
   id: number,
@@ -15,6 +15,7 @@ export default interface Submission extends Asset {
   subscribed: boolean,
   hits: number,
   display_position: number,
-  commission_link: RawLocation|null,
+  commission_link: RouteLocationRaw|null,
   comments_disabled: boolean,
+  order: {order_id: number, deliverable_id: number}|null,
 }

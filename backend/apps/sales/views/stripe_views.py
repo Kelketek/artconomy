@@ -65,7 +65,7 @@ class StripeAccountLink(GenericAPIView):
         context = super().get_serializer_context()
         with stripe as api:
             countries = tuple(
-                (item["value"], item["text"]) for item in get_country_list(api=api)
+                (item["value"], item["title"]) for item in get_country_list(api=api)
             )
             context["countries"] = countries
         return context

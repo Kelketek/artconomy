@@ -1,11 +1,17 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">Order #{{event.target.order.id}} [{{event.target.name}}]</router-link></span>
-    <span slot="subtitle"><router-link :to="assetLink">{{ message }}</router-link></span>
-      <v-list-item-subtitle slot="extra">
+    <template v-slot:title>
+      <router-link :to="assetLink">Order #{{event.target.order.id}} [{{event.target.name}}]</router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="assetLink">{{ message }}</router-link>
+    </template>
+    <template v-slot:extra>
+      <v-list-item-subtitle>
         <a target="_blank" :href="streamingLink" v-if="streamingLink">Click here for stream!</a>
         <span v-if="autofinalizeDisplay">Will autofinalize on {{formatDate(event.target.auto_finalize_on)}}.</span>
       </v-list-item-subtitle>
+    </template>
   </ac-base-notification>
 </template>
 

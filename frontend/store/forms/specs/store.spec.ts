@@ -1,26 +1,24 @@
-import Vue from 'vue'
-import Vuex from 'vuex'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {ArtStore, createStore} from '../../index'
+import {ArtStore, createStore} from '@/store'
 import {fieldFromSchema} from '../index'
 import {formRegistry} from '../registry'
-import {rq, rs} from '@/specs/helpers'
+import {cleanUp, rq, rs} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {RootFormState} from '@/store/forms/types/RootFormState'
-
-Vue.use(Vuex)
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 describe('Forms store', () => {
   let store: ArtStore
   let state: RootFormState
   beforeEach(() => {
-    formRegistry.reset()
     formRegistry.resetValidators()
-    mockAxios.reset()
     store = createStore()
     state = (store.state as any).forms as RootFormState
   })
-  it('Creates a form', () => {
+  afterEach(() => {
+    cleanUp()
+  })
+  test('Creates a form', () => {
     store.commit('forms/initForm', {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
     expect(state.example.fields.name.initialData).toBe('Fox')
     expect(state.example.method).toBe('post')
@@ -31,20 +29,20 @@ describe('Forms store', () => {
     expect(state.example.fields.name.errors).toEqual([])
     expect(state.example.fields.age.errors).toEqual([])
   })
-  it('Deletes a form', () => {
+  test('Deletes a form', () => {
     store.commit('forms/initForm', {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
     expect(state.example).toBeTruthy()
     store.commit('forms/delForm', {name: 'example'})
     expect(state.example).toBe(undefined)
   })
-  it('Creates a form with a different method', () => {
+  test('Creates a form with a different method', () => {
     store.commit(
       'forms/initForm',
       {name: 'example', method: 'get', fields: {name: {value: 'Fox'}, age: {value: 30}}},
     )
     expect(state.example.method).toBe('get')
   })
-  it('Creates a form with errors', () => {
+  test('Creates a form with errors', () => {
     store.commit(
       'forms/initForm',
       {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}},
@@ -54,7 +52,7 @@ describe('Forms store', () => {
     expect(state.example.fields.name.errors).toEqual(['Too cool.'])
     expect(state.example.fields.age.errors).toEqual([])
   })
-  it('Updates form data', () => {
+  test('Updates form data', () => {
     store.commit(
       'forms/initForm',
       {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}},
@@ -68,7 +66,7 @@ describe('Forms store', () => {
     expect(state.example.fields.name.initialData).toBe('Fox')
     expect(state.example.fields.age.initialData).toBe(30)
   })
-  it('Updates errors', () => {
+  test('Updates errors', () => {
     store.commit(
       'forms/initForm',
       {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
@@ -78,7 +76,7 @@ describe('Forms store', () => {
     expect(state.example.fields.name.errors).toEqual(['Too cool.'])
     expect(state.example.errors).toEqual(['Borked.'])
   })
-  it('Updates meta errors', () => {
+  test('Updates meta errors', () => {
     store.commit(
       'forms/initForm',
       {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}}},
@@ -86,7 +84,7 @@ describe('Forms store', () => {
     store.commit('forms/setMetaErrors', {name: 'example', errors: ['Borked.']})
     expect(state.example.errors).toEqual(['Borked.'])
   })
-  it('Updates field errors', () => {
+  test('Updates field errors', () => {
     store.commit(
       'forms/initForm',
       {name: 'example', fields: {name: {value: 'Fox', errors: ['Too cool.']}}},
@@ -94,7 +92,7 @@ describe('Forms store', () => {
     store.commit('forms/setFieldErrors', {name: 'example', fields: {name: ['Way too cool!']}})
     expect(state.example.fields.name.errors).toEqual(['Way too cool!'])
   })
-  it('Clears all errors', () => {
+  test('Clears all errors', () => {
     store.commit(
       'forms/initForm',
       {
@@ -109,7 +107,7 @@ describe('Forms store', () => {
     expect(state.example.fields.name.errors).toEqual([])
     expect(state.example.errors).toEqual([])
   })
-  it('Handles missing data in set errors sanely', () => {
+  test('Handles missing data in set errors sanely', () => {
     store.commit(
       'forms/initForm',
       {
@@ -124,7 +122,7 @@ describe('Forms store', () => {
     expect(state.example.fields.name.errors).toEqual([])
     expect(state.example.errors).toEqual([])
   })
-  it('Adds a field', () => {
+  test('Adds a field', () => {
     store.commit('forms/initForm', {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
     store.commit('forms/addField', {name: 'example', field: {name: 'sex', schema: {value: 'Male'}}})
     expect(state.example.fields.name.value).toBe('Fox')
@@ -132,7 +130,7 @@ describe('Forms store', () => {
     expect(state.example.fields.sex.initialData).toBe('Male')
     expect(state.example.fields.sex.errors).toEqual([])
   })
-  it('Adds a field with errors', () => {
+  test('Adds a field with errors', () => {
     store.commit('forms/initForm', {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
     store.commit(
       'forms/addField',
@@ -143,13 +141,13 @@ describe('Forms store', () => {
     expect(state.example.fields.sex.initialData).toBe('Male')
     expect(state.example.fields.sex.errors).toEqual(['So much dick!'])
   })
-  it('Removes a field', () => {
+  test('Removes a field', () => {
     store.commit('forms/initForm', {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
     expect(state.example.fields.age).toBeTruthy()
     store.commit('forms/delField', {name: 'example', field: 'age'})
     expect(state.example.fields.age).toBe(undefined)
   })
-  it('Submits a form', async() => {
+  test('Submits a form', async() => {
     store.commit('forms/initForm', {
       name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}, endpoint: '/test/endpoint/',
     })
@@ -162,7 +160,7 @@ describe('Forms store', () => {
         {headers: {'Content-Type': 'application/json; charset=utf-8'}},
       ))
   })
-  it('Resets after submission', async() => {
+  test('Resets after submission', async() => {
     store.commit('forms/initForm', {
       name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}, endpoint: '/test/endpoint/',
     })
@@ -173,7 +171,7 @@ describe('Forms store', () => {
     expect(state.example.fields.name.value).toBe('Fox')
     expect(state.example.fields.age.value).toBe(30)
   })
-  it('Does not reset after submitting if reset is disabled', async() => {
+  test('Does not reset after submitting if reset is disabled', async() => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {name: {value: 'Fox'}, age: {value: 30}},
@@ -187,7 +185,7 @@ describe('Forms store', () => {
     expect(state.example.fields.name.value).toBe('Amber')
     expect(state.example.fields.age.value).toBe(20)
   })
-  it('Submits a form with ommissions', async() => {
+  test('Submits a form with ommissions', async() => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {name: {value: 'Fox', omitIf: ''}, age: {value: 0, omitIf: 0}},
@@ -201,7 +199,7 @@ describe('Forms store', () => {
       {headers: {'Content-Type': 'application/json; charset=utf-8'}},
     ))
   })
-  it('Merges defaults for field Schemas', () => {
+  test('Merges defaults for field Schemas', () => {
     let field = fieldFromSchema({value: 'Derp'})
     expect(field).toEqual({
       disabled: false,

@@ -1,17 +1,13 @@
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Mutation, State} from 'vuex-class'
+import {Component} from 'vue-facing-decorator'
+import {ArtVue} from '@/lib/lib'
 
 @Component
-export default class Upload extends Vue {
-  @State('uploadVisible') public uploadVisible!: boolean
-  @Mutation('setUploadVisible') public setUploadVisible: any
-
+export default class Upload extends ArtVue {
   public get showUpload() {
-    return this.uploadVisible
+    return this.$store.state.uploadVisible
   }
 
   public set showUpload(val: boolean) {
-    this.setUploadVisible(val)
+    this.$store.commit('setUploadVisible', val)
   }
 }

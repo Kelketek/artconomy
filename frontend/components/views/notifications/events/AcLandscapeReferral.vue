@@ -1,8 +1,13 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">You've been credited for a referral!</router-link></span>
-    <span slot="subtitle"><router-link
-        :to="assetLink">You've received a month of Artconomy Landscape.</router-link></span>
+    <template v-slot:title>
+      <router-link :to="assetLink">You've been credited for a referral!</router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link
+          :to="assetLink">You've received a month of Artconomy Landscape.
+      </router-link>
+    </template>
   </ac-base-notification>
 </template>
 

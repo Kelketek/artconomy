@@ -1,20 +1,12 @@
-import {createVuetify, mount, vueSetup} from '@/specs/helpers'
+import {mount, vueSetup} from '@/specs/helpers'
 import AcColorPrepend from '@/components/fields/AcColorPrepend.vue'
-import {VueConstructor} from 'vue'
-import Vuetify from 'vuetify/lib'
-
-let localVue: VueConstructor
-let vuetify: Vuetify
+import {describe, expect, test, vi} from 'vitest'
 
 describe('AcColorPrepend.vue', () => {
-  beforeEach(() => {
-    localVue = vueSetup()
-    vuetify = createVuetify()
-  })
-  it('Mounts', () => {
-    const wrapper = mount(AcColorPrepend, {localVue, vuetify})
+  test('Mounts', () => {
+    const wrapper = mount(AcColorPrepend, vueSetup())
     const input = wrapper.find('.picker').element as HTMLInputElement
-    const mockClick = jest.fn()
+    const mockClick = vi.fn()
     input.onclick = mockClick
     wrapper.find('.picker-button').trigger('click')
     expect(mockClick).toHaveBeenCalled()

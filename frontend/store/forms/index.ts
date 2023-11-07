@@ -1,6 +1,5 @@
 import {State as RootState} from '../state'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
-import Vue from 'vue'
 import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
 import {artCall} from '@/lib/lib'
@@ -14,6 +13,7 @@ import {FieldSchema} from '@/store/forms/types/FieldSchema'
 import {RawData} from '@/store/forms/types/RawData'
 import {RootFormState} from '@/store/forms/types/RootFormState'
 import {Field} from '@/store/forms/types/Field'
+import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 
 const getters: GetterTree<RootFormState, RootState> = {}
 
@@ -62,15 +62,15 @@ const mutations: MutationTree<RootFormState> = {
       persistent: false,
       submitted: false,
       disabled: false,
-      method: 'post',
+      method: 'post' as HttpVerbs,
       errors: [],
       sending: false,
       step: 1,
     }
-    Vue.set(state, payload.name, {...defaults, ...payload, ...{fields}})
+    state[payload.name] = {...defaults, ...payload, ...{fields}}
   },
   delForm(state: RootFormState, payload: { name: string }) {
-    Vue.delete(state, payload.name)
+    delete state[payload.name]
   },
   setErrors(state: RootFormState, payload: { name: string, errors: FormErrorSet }) {
     // Sets the errors across an entire form. Fills in blanks for any missing fields.
@@ -118,13 +118,13 @@ const mutations: MutationTree<RootFormState> = {
   updateValues(state: RootFormState, payload: { name: string, data: RawData }) {
     // Updates the data to contain whatever additional information is given.
     for (const key of Object.keys(payload.data)) {
-      Vue.set(state[payload.name].fields[key], 'value', payload.data[key])
+      state[payload.name].fields[key].value = payload.data[key]
     }
   },
   updateInitialData(state: RootFormState, payload: { name: string, data: RawData }) {
     // Updates the data to contain whatever additional information is given.
     for (const key of Object.keys(payload.data)) {
-      Vue.set(state[payload.name].fields[key], 'initialData', payload.data[key])
+      state[payload.name].fields[key].initialData = payload.data[key]
     }
   },
   addField(state: RootFormState, payload: {
@@ -132,15 +132,15 @@ const mutations: MutationTree<RootFormState> = {
            },
   ) {
     // Adds a field to the form, with whatever data and optionally with errors pre-added.
-    Vue.set(state[payload.name].fields, payload.field.name, fieldFromSchema(payload.field.schema))
+    state[payload.name].fields[payload.field.name] = fieldFromSchema(payload.field.schema)
   },
   delField(state: RootFormState, payload: { name: string, field: string }) {
     // Deletes a field from a form.
-    Vue.delete(state[payload.name].fields, payload.field)
+    delete state[payload.name].fields[payload.field]
   },
   resetForm(state: RootFormState, payload: { name: string }) {
     for (const field of Object.values(state[payload.name].fields)) {
-      Vue.set(field, 'value', field.initialData)
+      field.value = field.initialData
     }
     state[payload.name].step = 1
   },

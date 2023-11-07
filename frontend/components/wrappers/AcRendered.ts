@@ -3,39 +3,47 @@
  *
  * This component renders markdown conveniently with truncation by default.
  *
- * We used to pass all of the markdown over to Vue's internal templating system, but it ballooned the size of the
+ * We used to pass all the markdown over to Vue's internal templating system, but it ballooned the size of the
  * file users must download. It has now been augmented with a series of manual rendering hacks to make it no longer
  * necessary to include the full template compiler.
  */
-import Component, {mixins} from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Formatting from '@/mixins/formatting'
-import {CreateElement} from 'vue'
+import {h} from 'vue'
 import {genId} from '@/lib/lib'
 
-/* istanbul ignore else */
-// @ts-ignore
-if (!window.renderAnchors) {
-  // @ts-ignore
-  window.renderAnchors = {}
+function fromHTML(html: string, inline: boolean) {
+  // Adapted from: https://stackoverflow.com/a/35385518/927224
+  // Process the HTML string.
+  if (!html) return [document.createElement('span')]
+
+  if (inline) {
+    const span = document.createElement('span')
+    span.innerHTML = html
+    return [span]
+  }
+  // Then set up a new template element.
+  const template = document.createElement('template')
+  template.innerHTML = html
+  return Array.from(template.content.children)
 }
 
 @Component
-export default class AcRendered extends mixins(Formatting) {
+class AcRendered extends mixins(Formatting) {
   @Prop({default: ''})
   public value!: string
 
   @Prop({default: 'div'})
   public tag!: string
 
-  @Prop({default: () => ({col: true})})
-  public classes!: {[key: string]: boolean}
+  @Prop({default: () => ({'v-col': true})})
+  public classes!: { [key: string]: boolean }
 
   @Prop({default: false})
   public inline!: boolean
 
   @Prop({default: false})
-  public truncate!: boolean|number
+  public truncate!: boolean | number
 
   @Prop({default: true})
   public showMore!: boolean
@@ -45,23 +53,32 @@ export default class AcRendered extends mixins(Formatting) {
   public refId = genId()
 
   public get rendered() {
+    let content: string
     if (this.inline) {
-      return this.mdRenderInline(this.availableText)
+      content = this.mdRenderInline(this.availableText)
     } else {
-      return this.mdRender(this.availableText)
+      content = this.mdRender(this.availableText)
     }
+    const elements = fromHTML(content, this.inline)
+    if (this.inline) {
+      const renderedTag = elements[0]
+      return [h(renderedTag.tagName, {innerHTML: renderedTag.innerHTML})]
+    }
+    return elements.map((element) => h(element.tagName, {
+      ...element.attributes,
+      innerHTML: element.innerHTML,
+    }))
   }
 
-  public render(h: CreateElement) {
+  public render() {
     if (!this.availableText && this.$slots.empty) {
-      return this.$slots.empty
+      return this.$slots.empty()
     }
-    return h(this.tag, {
-      domProps: {
-        innerHTML: this.rendered + this.readMore,
-      },
-      class: this.classes,
-    })
+    const rendered = this.rendered
+    if (this.inline) {
+      return rendered[0]
+    }
+    return h(this.tag, {class: this.classes}, [...rendered, ...this.readMore])
   }
 
   public get availableText(): string {
@@ -69,7 +86,7 @@ export default class AcRendered extends mixins(Formatting) {
       return this.value
     }
     let value = this.value || ''
-    let truncateLength: number|undefined
+    let truncateLength: number | undefined
     if (this.truncate) {
       if (typeof this.truncate === 'number') {
         truncateLength = this.truncate
@@ -87,31 +104,24 @@ export default class AcRendered extends mixins(Formatting) {
 
   public get readMore() {
     if ((!this.truncated) || !this.showMore) {
-      return ''
+      return []
     }
-    return (
-      `<header class="read-more-bar v-sheet theme--dark v-toolbar v-toolbar--dense black"
-        onclick="window.renderAnchors['${this.refId}'].more = true"
-      >` +
-        '<div class="v-toolbar__content" style="height: 48px;">' +
-          '<div class="text-center col">' +
-            '<strong>Read More</strong>' +
-          '</div>' +
-        '</div>' +
-      '</header>'
-    )
-  }
-
-  // We need a way to reference this object from our ad-hoc js calls.
-  public created() {
-    // @ts-ignore
-    window.renderAnchors[this.refId] = this
-  }
-
-  public destroy() {
-    // Can't test this circuit through Jest for some reason.
-    /* istanbul ignore next */
-    // @ts-ignore
-    delete window.renderAnchors[this.refId]
+    return [
+      h('header', {
+        class: 'read-more-bar v-toolbar v-toolbar--density-compact bg-black v-theme--dark v-locale--is-ltr',
+        onClick: () => this.more = true,
+      }, [
+        h('div', {
+          class: 'v-toolbar__content',
+          style: 'height: 48px;',
+        }, [
+          h('div', {class: 'v-col text-center'}, [
+            h('strong', ['Read More']),
+          ]),
+        ]),
+      ]),
+    ]
   }
 }
+
+export default toNative(AcRendered)

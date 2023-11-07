@@ -5,4 +5,4 @@ class ProfilesConfig(AppConfig):
     name = "apps.profiles"
 
     def ready(self) -> None:
-        pass
+        import apps.profiles.serializers

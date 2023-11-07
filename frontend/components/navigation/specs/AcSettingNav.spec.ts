@@ -1,33 +1,29 @@
-import Vue from 'vue'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
-import {Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify/lib'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
-import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, createVuetify, mount, vueSetup} from '@/specs/helpers'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let vuetify: Vuetify
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 
 describe('AcSettingNav.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Shows artist panel when artist mode is on', async() => {
+  test('Shows artist panel when artist mode is on', async() => {
     const wrapper = mount(
       AcSettingNav, {
-        localVue,
-        store,
-        vuetify,
-        stubs: ['router-link'],
-        propsData: {username: 'Fox'},
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {username: 'Fox'},
       },
     )
     const vm = wrapper.vm as any
@@ -35,14 +31,14 @@ describe('AcSettingNav.vue', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.artist-panel-link').exists()).toBe(true)
   })
-  it('Hides artist panel when artist mode is off', async() => {
+  test('Hides artist panel when artist mode is off', async() => {
     const wrapper = mount(
       AcSettingNav, {
-        localVue,
-        store,
-        vuetify,
-        stubs: ['router-link'],
-        propsData: {username: 'Fox'},
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {username: 'Fox'},
       },
     )
     const vm = wrapper.vm as any
@@ -54,14 +50,14 @@ describe('AcSettingNav.vue', () => {
     expect(wrapper.find('.artist-panel-link').exists()).toBe(false)
     expect(wrapper.find('.payout-link').exists()).toBe(false)
   })
-  it('Shows payout panel if banking is configured, even if not an artist', async() => {
+  test('Shows payout panel if banking is configured, even if not an artist', async() => {
     const wrapper = mount(
       AcSettingNav, {
-        localVue,
-        store,
-        vuetify,
-        stubs: ['router-link'],
-        propsData: {username: 'Fox'},
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {username: 'Fox'},
       },
     )
     const vm = wrapper.vm as any

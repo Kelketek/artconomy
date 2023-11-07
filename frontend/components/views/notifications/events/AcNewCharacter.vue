@@ -1,9 +1,15 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="characterLink">
-    <span slot="title"><ac-link
-        :to="characterLink">New Character: {{event.data.character.name}}</ac-link></span>
-    <span slot="subtitle"><ac-link
-        :to="characterLink">By {{event.data.character.user.username}}</ac-link></span>
+    <template v-slot:title>
+      <ac-link
+          :to="characterLink">New Character: {{event.data.character.name}}
+      </ac-link>
+    </template>
+    <template v-slot:subtitle>
+      <ac-link
+          :to="characterLink">By {{event.data.character.user.username}}
+      </ac-link>
+    </template>
   </ac-base-notification>
 </template>
 
@@ -14,7 +20,10 @@ import AcLink from '@/components/wrappers/AcLink'
 
 export default {
   name: 'ac-new-character',
-  components: {AcLink, AcBaseNotification},
+  components: {
+    AcLink,
+    AcBaseNotification,
+  },
   mixins: [Notifiction],
   computed: {
     characterLink() {
@@ -22,7 +31,8 @@ export default {
         return {
           name: 'Character',
           params: {
-            username: this.event.data.character.user.username, characterName: this.event.data.character.name,
+            username: this.event.data.character.user.username,
+            characterName: this.event.data.character.name,
           },
         }
       }

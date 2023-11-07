@@ -1,12 +1,13 @@
-import Component from 'vue-class-component'
-import Vue from 'vue'
+import {Component, Vue} from 'vue-facing-decorator'
+import {ArtVue} from '@/lib/lib'
 
 @Component
-export default class RangeReport extends Vue {
+export default class RangeReport extends ArtVue {
   public startDate = ''
   public endDate = ''
+
   public get rangeKwargs() {
-    const kwargs: {[key: string]: string} = {}
+    const kwargs: { [key: string]: string } = {}
     if (this.startDate) {
       kwargs.start_date = this.startDate
     }

@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row no-gutters >
+    <v-row no-gutters>
       <v-col>
         <v-card>
           <v-card-text>
@@ -13,16 +13,13 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import {setMetaContent} from '@/lib/lib'
-import Component from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
-import {RawLocation} from 'vue-router'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+import {RouteLocationRaw} from 'vue-router'
 
 @Component
-export default class Redirect extends Vue {
+class Redirect extends Vue {
   @Prop({required: false})
-  public route!: RawLocation
+  public route!: RouteLocationRaw
 
   public get portString() {
     if (window.location.port) {
@@ -35,4 +32,6 @@ export default class Redirect extends Vue {
     this.$router.replace(this.route)
   }
 }
+
+export default toNative(Redirect)
 </script>

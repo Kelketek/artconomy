@@ -1,27 +1,25 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
   <v-container fluid class="pa-0">
     <v-row dense>
-      <v-col class="shrink">
+      <v-col>
         <v-tooltip top v-if="controls">
-          <template v-slot:activator="{on}">
-            <v-btn color="primary" fab small v-on="on" @click="editTags" class="edit-button"><v-icon>fa-tags</v-icon></v-btn>
+          <template v-slot:activator="{props}">
+            <v-btn color="primary" icon size="small" v-bind="props" @click="editTags" class="edit-button">
+              <v-icon size="x-large" icon="mdi-tag-multiple"/>
+            </v-btn>
           </template>
           Edit Tags
         </v-tooltip>
         <v-tooltip top v-else>
-          <template v-slot:activator="{on}">
-            <v-icon v-on="on">fa-tags</v-icon>
+          <template v-slot:activator="{props}">
+            <v-icon v-bind="props" icon="mdi-tag-multiple"/>
           </template>
           Tags
         </v-tooltip>
-      </v-col>
-      <v-col v-for="tag in displayedTags" :key="tag" class="shrink">
-        <v-chip @click.stop.native="setSearch(tag)" class="tag-search-link">
+        <v-chip v-for="tag in displayedTags" :key="tag" @click.stop="setSearch(tag)" class="tag-search-link ml-2">
           <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
         </v-chip>
-      </v-col>
-      <v-col v-if="moreTags" class="shrink">
-        <v-chip @click="showMore" class="show-more-tags">...</v-chip>
+        <v-chip v-if="moreTags" @click="showMore" class="show-more-tags ml-2">...</v-chip>
       </v-col>
       <v-col v-if="displayedTags.length === 0">
         <span>
@@ -31,21 +29,23 @@
         </span>
       </v-col>
       <ac-expanded-property v-model="toggle">
-        <span slot="title">All Tags</span>
+        <template v-slot:title>
+          All Tags
+        </template>
         <v-row>
           <v-col cols="12" v-if="editing && controls">
-            <ac-patch-field field-type="ac-tag-field" :patcher="patcher" />
+            <ac-patch-field field-type="ac-tag-field" :patcher="patcher"/>
           </v-col>
           <v-col cols="12" v-show="!editing">
-            <v-chip v-for="tag in patcher.rawValue" :key="tag" class="mx-1">
+            <v-chip v-for="tag in patcher.rawValue" :key="tag" class="mx-1" :color="$vuetify.theme.current.colors['well-darken-4']">
               <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
             </v-chip>
           </v-col>
         </v-row>
-        <template slot="actions">
-          <v-switch v-model="editing" label="Editing" v-if="controls" />
-          <v-spacer />
-          <v-btn color="primary" type="submit">
+        <template v-slot:actions>
+          <v-switch v-model="editing" label="Editing" v-if="controls" color="primary"/>
+          <v-spacer/>
+          <v-btn color="primary" type="submit" variant="flat">
             Done
           </v-btn>
         </template>
@@ -55,9 +55,8 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcTagField from '@/components/fields/AcTagField.vue'
-import {Prop} from 'vue-property-decorator'
 import {Patch} from '@/store/singles/patcher'
 import Subjective from '@/mixins/subjective'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
@@ -65,63 +64,73 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {FormController} from '@/store/forms/form-controller'
 
-  @Component({
-    components: {AcLink, AcPatchField, AcExpandedProperty, AcTagField},
-  })
-export default class AcTagDisplay extends mixins(Subjective) {
-    public searchForm: FormController = null as unknown as FormController
-    @Prop({required: true})
-    public patcher!: Patch
+@Component({
+  components: {
+    AcLink,
+    AcPatchField,
+    AcExpandedProperty,
+    AcTagField,
+  },
+})
+class AcTagDisplay extends mixins(Subjective) {
+  public searchForm: FormController = null as unknown as FormController
+  @Prop({required: true})
+  public patcher!: Patch
 
-    @Prop({default: false})
-    public editable!: boolean
+  @Prop({default: false})
+  public editable!: boolean
 
-    @Prop({required: true})
-    public scope!: string
+  @Prop({required: true})
+  public scope!: string
 
-    public toggle = false
-    public editing = false
+  public toggle = false
+  public editing = false
 
-    public editTags() {
-      this.toggle = true
-      this.editing = true
+  public editTags() {
+    this.toggle = true
+    this.editing = true
+  }
+
+  public showMore() {
+    this.editing = false
+    this.toggle = true
+  }
+
+  public setSearch(tag: string) {
+    this.searchForm.reset()
+    this.searchForm.fields.q.update(tag)
+    this.$router.push(this.tagLink(tag))
+  }
+
+  public tagLink(tag: string) {
+    return {
+      name: 'Search' + this.scope,
+      query: {q: tag},
     }
+  }
 
-    public showMore() {
-      this.editing = false
-      this.toggle = true
-    }
+  public get displayedTags() {
+    return this.patcher.rawValue.slice(0, 10)
+  }
 
-    public setSearch(tag: string) {
-      this.searchForm.reset()
-      this.searchForm.fields.q.update(tag)
-      this.$router.push(this.tagLink(tag))
+  public get controls() {
+    if (this.editable && this.isRegistered) {
+      return true
     }
+    if (this.isCurrent) {
+      return true
+    }
+    return this.isStaff
+  }
 
-    public tagLink(tag: string) {
-      return {name: 'Search' + this.scope, query: {q: tag}}
-    }
+  public get moreTags() {
+    return this.patcher.rawValue.length - this.displayedTags.length
+  }
 
-    public get displayedTags() {
-      return this.patcher.rawValue.slice(0, 10)
-    }
-
-    public get controls() {
-      if (this.editable && this.isRegistered) {
-        return true
-      }
-      if (this.isCurrent) {
-        return true
-      }
-      return this.isStaff
-    }
-
-    public get moreTags() {
-      return this.patcher.rawValue.length - this.displayedTags.length
-    }
-
-    public created() {
-      this.searchForm = this.$getForm('search')
-    }
+  public created() {
+    this.searchForm = this.$getForm('search')
+  }
 }
+
+export default toNative(AcTagDisplay)
 </script>

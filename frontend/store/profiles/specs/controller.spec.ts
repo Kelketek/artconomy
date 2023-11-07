@@ -1,127 +1,115 @@
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
-import {flushPromises, genAnon, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
-import {shallowMount, Wrapper} from '@vue/test-utils'
+import {cleanUp, flushPromises, genAnon, mount, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import Vue from 'vue'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {singleRegistry} from '@/store/singles/registry'
-import {profileRegistry} from '@/store/profiles/registry'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
 import {ProfileController} from '@/store/profiles/controller'
-import {getCookie} from '@/lib/lib'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import Empty from '@/specs/helpers/dummy_components/empty'
 
 const localVue = vueSetup()
 
 describe('Profile controller', () => {
   let store: ArtStore
-  let wrapper: Wrapper<Vue> | null
+  let wrapper: VueWrapper<any>
   beforeEach(() => {
     mockAxios.reset()
-    singleRegistry.reset()
-    profileRegistry.reset()
     store = createStore()
-    wrapper = null
   })
   afterEach(() => {
-    if (wrapper) {
-      wrapper.destroy()
-    }
+    cleanUp(wrapper)
   })
-  it('Updates the route if the username changed', async() => {
+  test('Updates the route if the username changed', async() => {
     const user = genUser()
     setViewer(store, user)
-    const replace = jest.fn()
-    wrapper = mount(ProfileController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox', schema: {}},
-      mocks: {
-        $route: {name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee'},
-        $router: {replace},
-      },
-
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee'},
+          $router: {replace},
+        },
+      }),
     })
+    const controller = wrapper.vm.$getProfile('Fox', {})
     await wrapper.vm.$nextTick();
-    (wrapper.vm as any).user.updateX({username: 'Vulpes_Veritas'})
+    controller.user.updateX({username: 'Vulpes_Veritas'})
     await wrapper.vm.$nextTick()
     expect(replace).toHaveBeenCalled()
     expect(replace).toHaveBeenCalledWith({
       name: 'Place', params: {username: 'Vulpes_Veritas'}, query: {stuff: 'things'}, hash: 'Wheee',
     },
     )
-    // Should udpate the viewer name as well.
+    // Should update the viewer name as well.
     expect((store.state as any).profiles.viewerRawUsername).toBe('Vulpes_Veritas')
   })
-  it('Does not mess with the route if the username is unrelated', async() => {
+  test('Does not mess with the route if the username is unrelated', async() => {
     const user = genUser()
     setViewer(store, user)
-    const replace = jest.fn()
-    wrapper = mount(ProfileController, {
-      localVue,
-      store,
-      propsData: {initName: 'Arctic', schema: {}},
-      mocks: {
-        $route: {name: 'Place', params: {username: 'Fennec'}, query: {stuff: 'things'}, hash: 'Wheee'},
-        $router: {replace},
-      },
-
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {name: 'Place', params: {username: 'Fennec'}, query: {stuff: 'things'}, hash: 'Wheee'},
+          $router: {replace},
+        },
+      }),
     })
+    const controller = wrapper.vm.$getProfile('Arctic', {})
     await wrapper.vm.$nextTick()
     const arctic = genUser()
     arctic.username = 'Arctic';
-    (wrapper.vm as any).user.setX(arctic)
+    controller.user.setX(arctic)
     await wrapper.vm.$nextTick();
-    (wrapper.vm as any).user.updateX({username: 'Vulpes_Veritas'})
+    controller.user.updateX({username: 'Vulpes_Veritas'})
     await wrapper.vm.$nextTick()
     expect(replace).not.toHaveBeenCalled()
     // No change to the viewer, so don't update the viewer name.
     expect((store.state as any).profiles.viewerRawUsername).toBe('Fox')
   })
-  it('Does not mess with the route if there is no username param.', async() => {
+  test('Does not mess with the route if there is no username param.', async() => {
     setViewer(store, genUser())
-    const replace = jest.fn()
-    wrapper = mount(ProfileController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox', schema: {}},
-      mocks: {
-        $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
-        $router: {replace},
-      },
-
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
+          $router: {replace},
+        },
+      })
     });
-    (wrapper.vm as any).user.updateX({username: 'Vulpes_Veritas'})
+    const controller = wrapper.vm.$getProfile('Fox', {})
+    controller.user.updateX({username: 'Vulpes_Veritas'})
     await wrapper.vm.$nextTick()
     // Doesn't automatically change the subjective user. The router will do this in the real world.
     // Thus, this should become null.
     expect(replace).toHaveBeenCalledTimes(0)
   })
-  it('Does not mess with the route if the username has not changed.', async() => {
+  test('Does not mess with the route if the username has not changed.', async() => {
     setViewer(store, genUser())
-    const replace = jest.fn()
-    wrapper = shallowMount(SubjectiveComponent, {
-      localVue,
-      store,
-      propsData: {username: 'Fox'},
-      mocks: {
-        $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
-        $router: {replace},
-      },
-
-    });
-    (wrapper.vm as any).subjectHandler.user.updateX({username: 'Fox', email: 'test@example.com'})
+    const replace = vi.fn()
+    wrapper = mount(SubjectiveComponent, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
+          $router: {replace},
+        },
+      }),
+      props: {username: 'Fox'},
+    })
+    wrapper.vm.subjectHandler.user.updateX({username: 'Fox', email: 'test@example.com'})
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).subject.username).toBe('Fox')
     expect((wrapper.vm as any).subject.email).toBe('test@example.com')
     expect(replace).toHaveBeenCalledTimes(0)
   })
-  it('Migrates subcomponents if migrated', () => {
-    const controller = mount(ProfileController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox', schema: {}},
-
-    }).vm as ProfileController
+  test('Migrates subcomponents if migrated', () => {
+    const controller = mount(Empty, vueSetup({store})).vm.$getProfile('Fox', {})
     expect((store.state as any).userModules.goof).toBeFalsy()
     expect((store.state as any).userModules.Fox).toBeTruthy()
     expect((store.state as any).userModules.Fox.user).toBeTruthy()
@@ -135,14 +123,9 @@ describe('Profile controller', () => {
     expect((store.state as any).userModules.goof.user).toBeTruthy()
     expect((store.state as any).userModules.Fox).toBeFalsy()
   })
-  it('Refreshes user data to an anonymous user', async() => {
+  test('Refreshes user data to an anonymous user', async() => {
     setViewer(store, genUser())
-    const controller = mount(ProfileController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox', schema: {}},
-
-    }).vm as ProfileController
+    const controller = mount(Empty, vueSetup({store})).vm.$getProfile('Fox', {}) as ProfileController
     controller.artistProfile.setX(genArtistProfile())
     controller.artistProfile.fetching = false
     controller.artistProfile.ready = true
@@ -153,13 +136,8 @@ describe('Profile controller', () => {
     mockAxios.mockResponse(rs(genAnon()))
     await flushPromises()
   })
-  it('Refreshes user data to a registered user', async() => {
-    const controller = mount(ProfileController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox', schema: {}},
-
-    }).vm as ProfileController
+  test('Refreshes user data to a registered user', async() => {
+    const controller = mount(Empty, vueSetup({store})).vm.$getProfile('Fox', {})
     const profile = genArtistProfile()
     profile.auto_withdraw = false
     controller.artistProfile.setX(genArtistProfile())

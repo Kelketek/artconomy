@@ -1,60 +1,58 @@
 <template>
   <v-container fluid class="pa-0" :id="id">
-    <ac-tab-nav :items="items" label="Select gallery"></ac-tab-nav>
-    <v-row class="d-none d-md-flex align-content-end" v-if="controls">
-      <v-col class="text-right">
-        <v-btn @click="showUpload = true" v-if="artPage || collectionPage" color="green" class="mx-2"><v-icon left>add</v-icon>New Submission</v-btn>
-        <v-btn @click="managing = !managing" color="primary"><v-icon left>settings</v-icon>
+    <v-card>
+      <ac-tab-nav :items="items" label="Select gallery" />
+    </v-card>
+    <v-row class="d-flex align-content-end" v-if="controls">
+      <v-col class="text-center mt-3 text-md-right">
+        <v-btn @click="showUpload = true" v-if="artPage || collectionPage" color="green" class="mx-2" variant="flat">
+          <v-icon left icon="mdi-plus"/>
+          New Submission
+        </v-btn>
+        <v-btn @click="managing = !managing" color="primary" variant="flat">
+          <v-icon left icon="mdi-cog"/>
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
       </v-col>
     </v-row>
-    <v-row class="d-flex d-md-none" v-if="controls">
-      <v-col class="text-center">
-        <v-btn @click="managing = !managing" color="primary"><v-icon left>settings</v-icon>
-          <span v-if="managing">Finish</span>
-          <span v-else>Manage</span>
-        </v-btn>
-      </v-col>
-    </v-row>
-    <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${$route.name}`"></router-view>
-    <ac-add-button v-model="showUpload" v-if="controls && (artPage || collectionPage)">New Submission</ac-add-button>
+    <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${String($route.name)}`"></router-view>
     <ac-new-submission
         ref="newSubmissionForm"
         :username="username"
         v-model="showUpload"
-        :post-add="postAdd"
+        @success="postAdd"
         :allow-multiple="true"
-    ></ac-new-submission>
+    />
   </v-container>
 </template>
 
 <style>
-  .gallery-container {
-    position: relative;
-  }
+.gallery-container {
+  position: relative;
+}
 </style>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
-import {FormController} from '@/store/forms/form-controller'
-import {flatten, genId, newUploadSchema} from '@/lib/lib'
+import {flatten, genId} from '@/lib/lib'
 import AcTab from '@/components/AcTab.vue'
-import AcAddButton from '@/components/AcAddButton.vue'
 import Upload from '@/mixins/upload'
 import AcNewSubmission from '@/components/AcNewSubmission.vue'
-import {Watch} from 'vue-property-decorator'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import Editable from '@/mixins/editable'
 import ArtistTag from '@/types/ArtistTag'
+
 @Component({
-  components: {AcTabNav, AcNewSubmission, AcAddButton, AcTab},
+  components: {
+    AcTabNav,
+    AcNewSubmission,
+    AcTab,
+  },
 })
-export default class Gallery extends mixins(Subjective, Upload) {
+class Gallery extends mixins(Subjective, Upload) {
   public art = null as unknown as ListController<ArtistTag>
   public collection = null as unknown as ListController<Submission>
   public id = genId()
@@ -65,12 +63,12 @@ export default class Gallery extends mixins(Subjective, Upload) {
   }
 
   public get managing() {
-    return !!this.$route.name?.includes('Manage')
+    return String(this.$route.name).includes('Manage')
   }
 
   public postAdd(submission: Submission) {
-    const routeName = this.$route.name + ''
-    for (const group of (['collection', 'art'] as Array<keyof Gallery>)) {
+    const routeName = String(this.$route.name) + ''
+    for (const group of (['collection', 'art'] as Array<keyof Gallery & string>)) {
       if (routeName.toLowerCase().includes(group) && this[group].currentPage === 1) {
         this[group].unshift(submission)
       }
@@ -78,11 +76,15 @@ export default class Gallery extends mixins(Subjective, Upload) {
   }
 
   public set managing(val) {
-    const route = {name: this.$route.name + '', params: this.$route.params, query: this.$route.query}
+    const route = {
+      name: String(this.$route.name) + '',
+      params: this.$route.params,
+      query: this.$route.query,
+    }
     if (val && !this.managing) {
       route.name = `Manage${route.name}`
     } else if (!val && this.managing) {
-      for (const group of (['collection', 'art'] as Array<keyof Gallery>)) {
+      for (const group of (['collection', 'art'] as Array<keyof Gallery & string>)) {
         if (route.name.toLowerCase().includes(group)) {
           this[group].get()
         }
@@ -96,17 +98,21 @@ export default class Gallery extends mixins(Subjective, Upload) {
 
   public get items() {
     return [{
-      value: {name: 'Art', params: {username: this.username}},
+      value: {
+        name: 'Art',
+        params: {username: this.username},
+      },
       count: this.art.count,
-      icon: 'palette',
-      text: `${this.possessive} Art`,
+      icon: 'mdi-palette',
+      title: `${this.possessive} Art`,
     }, {
       value: {
-        name: 'Collection', params: {username: this.username},
+        name: 'Collection',
+        params: {username: this.username},
       },
       count: this.collection.count,
-      icon: 'collections',
-      text: `${this.possessive} Collection`,
+      icon: 'mdi-image-multiple',
+      title: `${this.possessive} Collection`,
     }]
   }
 
@@ -142,8 +148,13 @@ export default class Gallery extends mixins(Subjective, Upload) {
       this.collection.firstRun().then()
     }
     if (this.$route.name === 'Gallery') {
-      this.$router.push({name: 'Art', params: {username: this.username}})
+      this.$router.push({
+        name: 'Art',
+        params: {username: this.username},
+      })
     }
   }
 }
+
+export default toNative(Gallery)
 </script>

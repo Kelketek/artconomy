@@ -1,20 +1,22 @@
-import Component from 'vue-class-component'
-import Vue from 'vue'
+import {Component} from 'vue-facing-decorator'
 import {
+  ArtVue,
+  deriveDisplayName,
   formatDate,
+  formatDateTerse,
   formatDateTime,
+  formatSize,
+  guestName,
   md,
+  profileLink,
   textualize,
   truncateText,
-  formatDateTerse,
-  deriveDisplayName,
-  guestName,
-  profileLink,
 } from '@/lib/lib'
 import {User} from '@/store/profiles/types/User'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser'
 
 @Component
-export default class Formatting extends Vue {
+export default class Formatting extends ArtVue {
   // noinspection JSMethodCanBeStatic
   public mdRender(text: string): string {
     return md.render(text)
@@ -57,7 +59,11 @@ export default class Formatting extends Vue {
     return guestName(username)
   }
 
-  public profileLink(user: User|null) {
+  public profileLink(user: User|RelatedUser|null) {
     return profileLink(user)
+  }
+
+  public formatSize(num: number) {
+    return formatSize(num)
   }
 }

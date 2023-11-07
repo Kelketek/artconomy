@@ -1,4 +1,3 @@
-import Vue from 'vue'
 // @ts-ignore
 import * as Sentry from '@sentry/browser'
 import {ActionTree, GetterTree, Module, MutationTree} from 'vuex'
@@ -33,7 +32,7 @@ export const actions: ActionTree<UserStoreState, RootState> = {
 
 const mutations: MutationTree<UserStoreState> = {
   setViewerUsername(state, username: string) {
-    Vue.set(state, 'viewerRawUsername', username)
+    state.viewerRawUsername = username
     /* istanbul ignore next */
     try {
       // @ts-ignore

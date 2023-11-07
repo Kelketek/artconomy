@@ -1,41 +1,37 @@
-import {Wrapper} from '@vue/test-utils'
-import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers'
 import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
 import {ArtStore, createStore} from '@/store'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import Vuetify from 'vuetify/lib'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-jest.useFakeTimers()
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+vi.useFakeTimers()
+let wrapper: VueWrapper<any>
 
 describe('AcSubmissionSelect.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
     setViewer(store, genAnon())
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Gets the right comparison ID when comparison is specified', async() => {
+  test('Gets the right comparison ID when comparison is specified', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
     wrapper = mount(
       AcSubmissionSelect, {
-        localVue,
-        store,
-        vuetify,
-        propsData: {
-          value: 2, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {
+          modelValue: 2,
+          queryEndpoint: '/stuff/',
+          saveComparison: currentSubmission,
         },
-
-        attachTo: docTarget(),
-        stubs: ['router-link'],
       },
     )
     const vm = wrapper.vm as any
@@ -45,34 +41,44 @@ describe('AcSubmissionSelect.vue', () => {
     vm.submissionList.ready = true
     vm.submissionList.fetching = false
     vm.submissionList.setList(submissions)
-    vm.submissionList.response = {count: 3, size: 10}
+    vm.submissionList.response = {
+      count: 3,
+      size: 10,
+    }
     await wrapper.vm.$nextTick()
     expect(vm.compare).toBe(1)
   })
-  it('Gets the right comparison ID when comparison is specified and the related switch is enabled', async() => {
+  test('Gets the right comparison ID when comparison is specified and the related switch is enabled', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
     wrapper = mount(
       AcSubmissionSelect, {
-        localVue,
-        store,
-        vuetify,
-        propsData: {
-          value: 2,
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {
+          modelValue: 2,
           queryEndpoint: '/stuff/',
           saveComparison: currentSubmission,
           related: true,
         },
-
-        attachTo: docTarget(),
-        stubs: ['router-link'],
       },
     )
     const vm = wrapper.vm as any
     const submissions = [
-      {id: 4, submission: currentSubmission},
-      {id: 5, submission: genSubmission()},
-      {id: 6, submission: genSubmission()},
+      {
+        id: 4,
+        submission: currentSubmission,
+      },
+      {
+        id: 5,
+        submission: genSubmission(),
+      },
+      {
+        id: 6,
+        submission: genSubmission(),
+      },
     ]
     submissions[1].submission.id = 2
     submissions[2].submission.id = 3
@@ -80,24 +86,26 @@ describe('AcSubmissionSelect.vue', () => {
     vm.submissionList.fetching = false
     // @ts-ignore
     vm.submissionList.setList(submissions)
-    vm.submissionList.response = {count: 3, size: 10}
+    vm.submissionList.response = {
+      count: 3,
+      size: 10,
+    }
     await wrapper.vm.$nextTick()
     expect(vm.compare).toBe(1)
   })
-  it('Falls back to normal value comparison when comparison override is not specified', async() => {
+  test('Falls back to normal value comparison when comparison override is not specified', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
     wrapper = mount(
       AcSubmissionSelect, {
-        localVue,
-        store,
-        vuetify,
-        propsData: {
-          value: 2, queryEndpoint: '/stuff/',
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {
+          modelValue: 2,
+          queryEndpoint: '/stuff/',
         },
-
-        attachTo: docTarget(),
-        stubs: ['router-link'],
       },
     )
     const vm = wrapper.vm as any
@@ -108,24 +116,27 @@ describe('AcSubmissionSelect.vue', () => {
     vm.submissionList.ready = true
     vm.submissionList.fetching = false
     vm.submissionList.setList(submissions)
-    vm.submissionList.response = {count: 3, size: 10}
+    vm.submissionList.response = {
+      count: 3,
+      size: 10,
+    }
     await wrapper.vm.$nextTick()
     expect(vm.compare).toBe(2)
   })
-  it('Selects a submission', async() => {
+  test('Selects a submission', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
     wrapper = mount(
       AcSubmissionSelect, {
-        localVue,
-        store,
-        vuetify,
-        propsData: {
-          value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {
+          modelValue: 1,
+          queryEndpoint: '/stuff/',
+          saveComparison: currentSubmission,
         },
-
-        attachTo: docTarget(),
-        stubs: ['router-link'],
       },
     )
     const vm = wrapper.vm as any
@@ -136,30 +147,32 @@ describe('AcSubmissionSelect.vue', () => {
     vm.submissionList.ready = true
     vm.submissionList.fetching = false
     vm.submissionList.setList(submissions)
-    vm.submissionList.response = {count: 3, size: 10}
+    vm.submissionList.response = {
+      count: 3,
+      size: 10,
+    }
     await wrapper.vm.$nextTick()
     expect(vm.compare).toBe(1)
-    const mockEmit = jest.spyOn(wrapper.vm, '$emit')
     expect(vm.loading).toBe(false)
-    wrapper.find('.submission').trigger('click')
+    await wrapper.find('.submission').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(mockEmit).toHaveBeenCalledWith('input', 2)
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([2])
     expect(vm.loading).toBe(2)
   })
-  it('Resets the loading marker as needed', async() => {
+  test('Resets the loading marker as needed', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
     wrapper = mount(
       AcSubmissionSelect, {
-        localVue,
-        store,
-        vuetify,
-        propsData: {
-          value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {
+          modelValue: 1,
+          queryEndpoint: '/stuff/',
+          saveComparison: currentSubmission,
         },
-
-        attachTo: docTarget(),
-        stubs: ['router-link'],
       },
     )
     const vm = wrapper.vm as any
@@ -170,66 +183,75 @@ describe('AcSubmissionSelect.vue', () => {
     vm.submissionList.ready = true
     vm.submissionList.fetching = false
     vm.submissionList.setList(submissions)
-    vm.submissionList.response = {count: 3, size: 10}
+    vm.submissionList.response = {
+      count: 3,
+      size: 10,
+    }
     await wrapper.vm.$nextTick()
-    wrapper.find('.submission').trigger('click')
+    await wrapper.find('.submission').trigger('click')
     await wrapper.vm.$nextTick()
-    wrapper.setProps({
-      value: 1, queryEndpoint: '/stuff/', saveComparison: submissions[0],
+    await wrapper.setProps({
+      value: 1,
+      queryEndpoint: '/stuff/',
+      saveComparison: submissions[0],
     })
     await wrapper.vm.$nextTick()
     expect(vm.loading).toBe(false)
   })
-  it('Handles a late-coming list', async() => {
+  test('Handles a late-coming list', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
     wrapper = mount(
       AcSubmissionSelect, {
-        localVue,
-        store,
-        vuetify,
-        propsData: {
-          value: 1, saveComparison: currentSubmission,
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {
+          modelValue: 1,
+          saveComparison: currentSubmission,
         },
-
-        attachTo: docTarget(),
-        stubs: ['router-link'],
       },
     )
     const vm = wrapper.vm as any
     const submissions = [genSubmission(), genSubmission(), genSubmission()]
-    const submissionList = mount(Empty, {localVue, store}).vm.$getList('submissions', {endpoint: '/wat/'})
+    const submissionList = mount(Empty, vueSetup({store})).vm.$getList('submissions', {endpoint: '/wat/'})
     submissions[0].id = 2
     submissions[1].id = 3
     submissions[2].id = 4
     submissionList.ready = true
     submissionList.fetching = false
     submissionList.setList(submissions)
-    submissionList.response = {count: 3, size: 10}
-    wrapper.setProps({list: submissionList})
+    submissionList.response = {
+      count: 3,
+      size: 10,
+    }
+    await wrapper.setProps({list: submissionList})
     await wrapper.vm.$nextTick()
-    wrapper.find('.submission').trigger('click')
+    await wrapper.find('.submission').trigger('click')
     await wrapper.vm.$nextTick()
-    wrapper.setProps({
-      value: 1, queryEndpoint: '/stuff/', saveComparison: submissions[0],
+    await wrapper.setProps({
+      value: 1,
+      queryEndpoint: '/stuff/',
+      saveComparison: submissions[0],
     })
     await wrapper.vm.$nextTick()
     expect(vm.loading).toBe(false)
   })
-  it('Does not mark as loading when selecting the selected item', async() => {
+  test('Does not mark as loading when selecting the selected item', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
     wrapper = mount(
       AcSubmissionSelect, {
-        localVue,
-        store,
-        vuetify,
-        propsData: {
-          value: 1, queryEndpoint: '/stuff/', saveComparison: currentSubmission,
+        ...vueSetup({
+          store,
+          stubs: ['router-link'],
+        }),
+        props: {
+          modelValue: 1,
+          queryEndpoint: '/stuff/',
+          saveComparison: currentSubmission,
         },
-
-        attachTo: docTarget(),
-        stubs: ['router-link'],
       },
     )
     const vm = wrapper.vm as any
@@ -239,12 +261,14 @@ describe('AcSubmissionSelect.vue', () => {
     vm.submissionList.ready = true
     vm.submissionList.fetching = false
     vm.submissionList.setList(submissions)
-    vm.submissionList.response = {count: 3, size: 10}
-    const mockEmit = jest.spyOn(wrapper.vm, '$emit')
+    vm.submissionList.response = {
+      count: 3,
+      size: 10,
+    }
     await wrapper.vm.$nextTick()
-    wrapper.find('.submission').trigger('click')
+    await wrapper.find('.submission').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(mockEmit).toHaveBeenCalledWith('input', 1)
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([1])
     expect(vm.loading).toBe(false)
   })
 })

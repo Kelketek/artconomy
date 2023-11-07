@@ -1,10 +1,9 @@
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, Vue} from 'vue-facing-decorator'
 
 @Component
 export default class Nav extends Vue {
   public get fullInterface() {
-    const name = this.$route.name || ''
+    const name = String(this.$route.name || '')
     if (['NewOrder'].indexOf(name) !== -1) {
       return false
     }

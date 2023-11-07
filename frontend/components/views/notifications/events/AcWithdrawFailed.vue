@@ -1,7 +1,11 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">We had an issue sending money to your bank.</router-link></span>
-    <span slot="subtitle"><router-link :to="assetLink">Click here to change your bank settings.</router-link></span>
+    <template v-slot:title>
+      <router-link :to="assetLink">We had an issue sending money to your bank.</router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="assetLink">Click here to change your bank settings.</router-link>
+    </template>
   </ac-base-notification>
 </template>
 

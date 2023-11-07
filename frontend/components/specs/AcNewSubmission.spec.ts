@@ -1,53 +1,59 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import {Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 import DummySubmit from '@/components/specs/DummySubmit.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let store: ArtStore
-let vuetify: Vuetify
 
-const mockError = jest.spyOn(console, 'error')
+const mockError = vi.spyOn(console, 'error')
+
+const WrappedDummySubmit = VuetifyWrapped(DummySubmit)
 
 describe('AcNewSubmission.vue', () => {
   beforeEach(() => {
-    vuetify = createVuetify()
     store = createStore()
     mockError.mockClear()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts the submission form', async() => {
+  test('Mounts the submission form', async() => {
     setViewer(store, genUser())
     wrapper = mount(DummySubmit, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
-
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Profile',
+            params: {username: 'Fox'},
+            query: {editing: false},
+          },
+        },
+      }),
+      props: {username: 'Fox'},
     })
   })
-  it('Toggles the isArtist computed field', async() => {
+  test('Toggles the isArtist computed field', async() => {
     const user = genUser()
     user.id = 1
     setViewer(store, user)
     wrapper = mount(DummySubmit, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      mocks: {$route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}}},
-
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Profile',
+            params: {username: 'Fox'},
+            query: {editing: false},
+          },
+        },
+      }),
+      props: {username: 'Fox'},
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -65,22 +71,24 @@ describe('AcNewSubmission.vue', () => {
     expect(form.isArtist).toBe(false)
     expect(form.newUpload.fields.artists.value).toEqual([])
   })
-  it('Submits and pushes you to the new Submission', async() => {
+  test('Submits and pushes you to the new Submission', async() => {
     const user = genUser()
     user.id = 1
     setViewer(store, user)
-    const mockPush = jest.fn()
-    wrapper = mount(DummySubmit, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      mocks: {
-        $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
-        $router: {push: mockPush},
-      },
-
-      attachTo: docTarget(),
+    const mockPush = vi.fn()
+    wrapper = mount(WrappedDummySubmit, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Profile',
+            params: {username: 'Fox'},
+            query: {editing: false},
+          },
+          $router: {push: mockPush},
+        },
+      }),
+      props: {username: 'Fox'},
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -88,7 +96,7 @@ describe('AcNewSubmission.vue', () => {
     const form = vm.$getForm('newUpload')
     form.step = 2
     await vm.$nextTick()
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalled()
     const submission = genSubmission()
     submission.id = 3
@@ -96,24 +104,32 @@ describe('AcNewSubmission.vue', () => {
     await flushPromises()
     await vm.$nextTick()
     expect(mockPush).toHaveBeenCalledWith({
-      name: 'Submission', params: {submissionId: '3'}, query: {editing: 'true'},
+      name: 'Submission',
+      params: {submissionId: '3'},
+      query: {editing: 'true'},
     })
   })
-  it('Submits and resets if multi-upload is enabled', async() => {
+  test('Submits and resets if multi-upload is enabled', async() => {
     const user = genUser()
     user.id = 1
     setViewer(store, user)
-    const mockPush = jest.fn()
+    const mockPush = vi.fn()
     wrapper = mount(DummySubmit, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox', allowMultiple: true},
-      mocks: {
-        $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
-        $router: {push: mockPush},
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Profile',
+            params: {username: 'Fox'},
+            query: {editing: false},
+          },
+          $router: {push: mockPush},
+        },
+      }),
+      props: {
+        username: 'Fox',
+        allowMultiple: true,
       },
-      attachTo: docTarget(),
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -122,7 +138,7 @@ describe('AcNewSubmission.vue', () => {
     const form = vm.$getForm('newUpload')
     form.step = 2
     await vm.$nextTick()
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalled()
     const submission = genSubmission()
     mockAxios.mockResponse(rs(submission))
@@ -131,30 +147,33 @@ describe('AcNewSubmission.vue', () => {
     expect(mockPush).not.toHaveBeenCalled()
     expect(form.step).toBe(1)
   })
-  it('Shows the upload form based on vuex state', async() => {
+  test('Shows the upload form based on vuex state', async() => {
     // v-dialog__content--active
     const user = genUser()
     user.id = 1
     setViewer(store, user)
-    const mockPush = jest.fn()
+    const mockPush = vi.fn()
     wrapper = mount(DummySubmit, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      mocks: {
-        $route: {name: 'Profile', params: {username: 'Fox'}, query: {editing: false}},
-        $router: {push: mockPush},
-      },
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Profile',
+            params: {username: 'Fox'},
+            query: {editing: false},
+          },
+          $router: {push: mockPush},
+        },
+      }),
+      props: {username: 'Fox'},
     })
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-dialog__content--active').exists()).toBe(true)
+    expect(wrapper.find('.v-overlay--active').exists()).toBe(true)
     expect(store.state.uploadVisible).toBe(true)
-    wrapper.find('.dialog-closer').trigger('click')
+    await wrapper.find('.dialog-closer').trigger('click')
     await wrapper.vm.$nextTick()
     expect(store.state.uploadVisible).toBe(false)
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-dialog__content--active').exists()).toBe(false)
+    expect(wrapper.find('.v-overlay--active').exists()).toBe(false)
   })
 })

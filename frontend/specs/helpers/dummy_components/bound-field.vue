@@ -3,15 +3,15 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative} from 'vue-facing-decorator'
 import AcBoundField from '@/components/fields/AcBoundField'
 import {FormController} from '@/store/forms/form-controller'
+import {ArtVue} from '@/lib/lib'
 
-  @Component({
+@Component({
     components: {AcBoundField},
   })
-export default class BoundField extends Vue {
+class BoundField extends ArtVue {
     public form: FormController = null as unknown as FormController
 
     public created() {
@@ -24,4 +24,5 @@ export default class BoundField extends Vue {
       })
     }
 }
+export default toNative(BoundField)
 </script>

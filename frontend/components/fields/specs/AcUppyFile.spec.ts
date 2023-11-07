@@ -1,79 +1,71 @@
 import AcUppyFile from '../AcUppyFile.vue'
-import Vuetify from 'vuetify/lib'
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {ArtStore, createStore} from '@/store'
 import {UppyFile} from '@uppy/core'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 let store: ArtStore
 
 describe('ac-uppy-file.vue', () => {
   beforeEach(() => {
-    vuetify = createVuetify()
     store = createStore()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  const makeUppy = (propsData?: any) => {
+  const makeUppy = (props?: any) => {
     return mount(AcUppyFile, {
-      localVue,
-      vuetify,
-      store,
-      attachTo: docTarget(),
-      propsData: {uppyId: 'uppyTest', ...propsData},
+      ...vueSetup({store}),
+      props: {uppyId: 'uppyTest', ...props},
     })
   }
-  it('Mounts and initializes the uppy object', async() => {
+  test('Mounts and initializes the uppy object', async() => {
     wrapper = makeUppy()
     await flushPromises()
     expect((wrapper.vm as any).uppy).toBeTruthy()
   })
-  it('Resets uppy when the reset button is clicked.', async() => {
-    wrapper = makeUppy({value: '123'})
+  test('Resets uppy when the reset button is clicked.', async() => {
+    wrapper = makeUppy({modelValue: '123'})
     await flushPromises()
-    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
-    const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
-    wrapper.find('.uppy-reset-button').trigger('click')
-    expect(spyEmit).toHaveBeenCalledWith('input', '')
+    const spyEmit = vi.spyOn(wrapper.vm, '$emit')
+    const spyReset = vi.spyOn((wrapper.vm as any).uppy, 'cancelAll')
+    await wrapper.find('.uppy-reset-button').trigger('click')
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([''])
     expect(spyReset).toHaveBeenCalled()
   })
-  it('Resets uppy when the value is cleared.', async() => {
-    wrapper = makeUppy({value: '123'})
+  test('Resets uppy when the modelValue is cleared.', async() => {
+    wrapper = makeUppy({modelValue: '123'})
     await flushPromises()
-    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
-    const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
-    expect(spyEmit).not.toHaveBeenCalled()
-    wrapper.setProps({value: ''})
+    const spyReset = vi.spyOn((wrapper.vm as any).uppy, 'cancelAll')
+    expect(wrapper.emitted('update:modelValue')).toBe(undefined)
+    await wrapper.setProps({modelValue: ''})
     await wrapper.vm.$nextTick()
     expect(spyReset).toHaveBeenCalled()
   })
-  it('Does not reset the value when uppy is populated.', async() => {
-    wrapper = makeUppy({value: ''})
+  test('Does not reset the modelValue when uppy is populated.', async() => {
+    wrapper = makeUppy({modelValue: ''})
     await flushPromises()
-    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
-    const spyReset = jest.spyOn((wrapper.vm as any).uppy, 'reset')
-    expect(spyEmit).not.toHaveBeenCalled()
-    wrapper.setProps({value: 'stuff'})
+    const spyReset = vi.spyOn((wrapper.vm as any).uppy, 'cancelAll')
+    expect(wrapper.emitted('update:modelValue')).toBe(undefined)
+    await wrapper.setProps({modelValue: 'stuff'})
     await wrapper.vm.$nextTick()
     expect(spyReset).not.toHaveBeenCalled()
   })
-  it('Clears the file when the clear button is clicked.', async() => {
-    wrapper = makeUppy({value: '123', showClear: true})
+  test('Clears the file when the clear button is clicked.', async() => {
+    wrapper = makeUppy({
+      modelValue: '123',
+      showClear: true,
+    })
     await flushPromises()
-    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
-    wrapper.find('.uppy-clear-button').trigger('click')
-    expect(spyEmit).toHaveBeenCalledWith('input', null)
+    await wrapper.find('.uppy-clear-button').trigger('click')
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([null])
   })
-  it('Handles a successfully uploaded file.', async() => {
+  test('Handles a successfully uploaded file.', async() => {
     wrapper = makeUppy()
     await wrapper.vm.$nextTick()
-    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const file = {
       data: new Blob(),
       extension: 'jpg',
@@ -83,19 +75,28 @@ describe('ac-uppy-file.vue', () => {
       size: 100,
       name: 'test.jpg',
       providerName: 'URL',
-      remote: {host: 'example.com', url: 'https://example.com/example.jpg'},
+      remote: {
+        host: 'example.com',
+        url: 'https://example.com/example.jpg',
+      },
       progress: {
-        uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
+        uploadStarted: 1,
+        uploadComplete: true,
+        bytesTotal: 100,
+        percentage: 100,
+        bytesUploaded: 100,
       },
     };
     (wrapper.vm as any).uppy.setState({files: {1: file}});
     (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
-    expect(spyEmit).toHaveBeenCalledWith('input', 'wat')
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual(['wat'])
   })
-  it('Handles multiple files.', async() => {
-    wrapper = makeUppy({maxNumberOfFiles: 3, value: ['wat']})
+  test('Handles multiple files.', async() => {
+    wrapper = makeUppy({
+      maxNumberOfFiles: 3,
+      modelValue: ['wat'],
+    })
     await wrapper.vm.$nextTick()
-    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
     const file: UppyFile = {
       data: new Blob(),
       extension: 'jpg',
@@ -104,19 +105,29 @@ describe('ac-uppy-file.vue', () => {
       meta: {name: 'test2.jpg'},
       size: 100,
       name: 'test2.jpg',
-      remote: {host: 'example.com', url: 'https://example.com/example.jpg'},
+      remote: {
+        host: 'example.com',
+        url: 'https://example.com/example.jpg',
+      },
       progress: {
-        uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
+        uploadStarted: 1,
+        uploadComplete: true,
+        bytesTotal: 100,
+        percentage: 100,
+        bytesUploaded: 100,
       },
     }
     const vm = wrapper.vm as any
     vm.uppy.setState({files: {1: file}})
     vm.uppy.emit('upload-success', file, {body: {id: 'do'}})
-    expect(spyEmit).toHaveBeenCalledWith('input', ['wat', 'do'])
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([['wat', 'do']])
   })
-  it('Calls a callback on a successfully uploaded file.', async() => {
-    const mockSuccess = jest.fn()
-    wrapper = makeUppy({success: mockSuccess, uppyId: 'uppyTest'})
+  test('Calls a callback on a successfully uploaded file.', async() => {
+    const mockSuccess = vi.fn()
+    wrapper = makeUppy({
+      success: mockSuccess,
+      uppyId: 'uppyTest',
+    })
     await wrapper.vm.$nextTick() // Created
     // await wrapper.vm.$nextTick() // Mounted
     const file = {
@@ -127,25 +138,35 @@ describe('ac-uppy-file.vue', () => {
       meta: {name: 'test.jpg'},
       size: 100,
       name: 'test.jpg',
-      remote: {host: 'example.com', url: 'https://example.com/example.jpg'},
+      remote: {
+        host: 'example.com',
+        url: 'https://example.com/example.jpg',
+      },
       progress: {
-        uploadStarted: 1, uploadComplete: true, bytesTotal: 100, percentage: 100, bytesUploaded: 100,
+        uploadStarted: 1,
+        uploadComplete: true,
+        bytesTotal: 100,
+        percentage: 100,
+        bytesUploaded: 100,
       },
     };
     (wrapper.vm as any).uppy.setState({files: {1: file}});
     (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
     expect(mockSuccess).toHaveBeenCalledWith({id: 'wat'})
   })
-  it('Sets the proper label color when there are no errors.', async() => {
+  test('Sets the proper label color when there are no errors.', async() => {
     const errorMessages: string[] = []
     wrapper = makeUppy({errorMessages})
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('primary')
   })
-  it('Sets the proper label color when there are errors.', async() => {
+  test('Sets the proper label color when there are errors.', async() => {
     const errorMessages: string[] = ['Stuff']
-    wrapper = makeUppy({errorMessages, uppyId: 'uppyTest'})
+    wrapper = makeUppy({
+      errorMessages,
+      uppyId: 'uppyTest',
+    })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('red')

@@ -1154,6 +1154,10 @@ class DeliverableRevisions(ListCreateAPIView):
         return super().post(*args, **kwargs)
 
     def perform_create(self, serializer):
+        comment_serializer: Optional[CommentSerializer] = None
+        if text := serializer.validated_data.get("text", None):
+            comment_serializer = CommentSerializer(data={"text": text})
+            comment_serializer.is_valid(raise_exception=True)
         deliverable = self.get_object()
         revision = serializer.save(
             deliverable=deliverable, owner=self.request.user, rating=deliverable.rating
@@ -1184,6 +1188,8 @@ class DeliverableRevisions(ListCreateAPIView):
         recall_notification(
             STREAMING, deliverable.order.seller, data={"order": deliverable.id}
         )
+        if comment_serializer:
+            create_comment(revision, comment_serializer, self.request.user)
         return revision
 
 

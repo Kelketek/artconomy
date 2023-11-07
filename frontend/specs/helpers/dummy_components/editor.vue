@@ -6,16 +6,17 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative} from 'vue-facing-decorator'
 import AcEditor from '@/components/fields/AcEditor.vue'
+import {ArtVue} from '@/lib/lib'
 
-  @Component({
-    components: {AcEditor},
-  })
-export default class Editor extends Vue {
-    public stuff = ''
-    public things = ''
-    public base = ''
+@Component({
+  components: {AcEditor},
+})
+class Editor extends ArtVue {
+  public stuff = ''
+  public things = ''
+  public base = ''
 }
+export default toNative(Editor)
 </script>

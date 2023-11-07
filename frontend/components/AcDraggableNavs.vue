@@ -41,20 +41,18 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import {Prop} from 'vue-property-decorator'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import draggable from 'vuedraggable'
 import {artCall} from '@/lib/lib'
 import {SingleController} from '@/store/singles/controller'
 import {ListController} from '@/store/lists/controller'
-import Component from 'vue-class-component'
 
 @Component({
   components: {
     draggable,
   },
 })
-export default class AcDraggableNavs<T> extends Vue {
+class AcDraggableNavs<T extends object> extends Vue {
   @Prop({required: true})
   public sortableList!: SingleController<T>[]
 
@@ -95,7 +93,11 @@ export default class AcDraggableNavs<T> extends Vue {
       borderIndex = this.sortableList.length - 1
     }
     const borderController = this.sortableList[borderIndex]
-    artCall({url: `${controller.endpoint}${suffix}/`, method: 'post', data: {current_value: borderController.x![this.positionField]}}).catch(() => {
+    artCall({
+      url: `${controller.endpoint}${suffix}/`,
+      method: 'post',
+      data: {current_value: borderController.x![this.positionField]},
+    }).catch(() => {
       if (controller.purged) {
         return
       }
@@ -104,4 +106,6 @@ export default class AcDraggableNavs<T> extends Vue {
     controller.deleted = true
   }
 }
+
+export default toNative(AcDraggableNavs)
 </script>

@@ -1,15 +1,13 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import Router from 'vue-router'
-import {cleanUp, createVuetify, docTarget, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import {cleanUp, flushPromises, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
 import SearchProducts from '@/components/views/search/SearchProducts.vue'
 import SearchCharacters from '@/components/views/search/SearchCharacters.vue'
 import SearchProfiles from '@/components/views/search/SearchProfiles.vue'
 import SearchSubmissions from '@/components/views/search/SearchSubmissions.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import ProductExtra from '@/components/views/search/extra/ProductExtra.vue'
 import ProductHints from '@/components/views/search/hints/ProductHints.vue'
 import SubmissionHints from '@/components/views/search/hints/SubmissionHints.vue'
@@ -20,21 +18,18 @@ import {FormController} from '@/store/forms/form-controller'
 import {genUser} from '@/specs/helpers/fixtures'
 import {Ratings} from '@/store/profiles/types/Ratings'
 import SubmissionExtra from '@/components/views/search/extra/SubmissionExtra.vue'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
 let searchForm: FormController
-let vuetify: Vuetify
 
 describe('Search.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: [{
         path: '/search/:tabName?/',
         name: 'Search',
@@ -85,55 +80,77 @@ describe('Search.vue', () => {
         path: '/profile/:username/settings/options',
         component: Empty,
         props: true,
+      }, {
+        name: 'Home',
+        path: '/',
+        component: Empty,
+        props: true,
       }],
     })
-    searchForm = mount(Empty, {
-      localVue,
-      store,
-      vuetify,
-    }).vm.$getForm('search', searchSchema())
+    searchForm = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
     store.commit('setSearchInitialized', true)
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts', () => {
-    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
+  test('Mounts', () => {
+    wrapper = mount(Search, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
   })
-  it('Tabs through each search option', async() => {
+  test('Tabs through each search option', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
+    wrapper = mount(Search, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
     const routes = ['SearchProducts', 'SearchSubmissions', 'SearchCharacters', 'SearchProfiles']
-    for (const [index, el] of wrapper.findAll('.v-item-group .v-btn').wrappers.entries()) {
-      el.trigger('click')
+    await Promise.all(wrapper.findAll('.v-item-group .v-btn').map(async (el, index) => {
+      await el.trigger('click')
       await wrapper.vm.$nextTick()
       expect(wrapper.vm.$route.name).toBe(routes[index])
-    }
+    }))
   })
-  it('Opens the default view', async() => {
+  test('Opens the default view', async() => {
     setViewer(store, genUser())
-    router.push({name: 'Search'})
+    await router.push({name: 'Search'})
     searchForm.fields.featured.update(true)
-    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget()})
+    wrapper = mount(Search, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
+    await flushPromises()
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$route.name).toBe('SearchProducts')
   })
-  it('Updates the route when the values change', async() => {
+  test('Updates the route when the values change', async() => {
     setViewer(store, genUser())
-    router.push({name: 'SearchProducts'})
-    wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
+    await router.push({name: 'SearchProducts'})
+    wrapper = mount(SearchProducts, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
     const vm = wrapper.vm as any
-    const mockUpdate = jest.spyOn(vm, 'debouncedUpdate')
+    const mockUpdate = vi.spyOn(vm, 'debouncedUpdate')
     mockUpdate.mockImplementation(vm.rawUpdate)
     await wrapper.vm.$nextTick()
     searchForm.fields.featured.update(true)
     await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$route.query).toEqual({featured: 'true', page: '1', size: '24'})
+    await flushPromises()
+    expect(wrapper.vm.$route.query).toEqual({
+      featured: 'true',
+      page: '1',
+      size: '24',
+    })
   })
-  it('Shows an alert when an anonymous user has a max rating under the current search', async() => {
-    router.push({name: 'SearchProducts'})
+  test('Shows an alert when an anonymous user has a max rating under the current search', async() => {
+    await router.push({name: 'SearchProducts'})
     setViewer(store, genAnon())
-    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget(), stubs: ['v-badge']})
+    wrapper = mount(Search, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(false)
@@ -142,26 +159,40 @@ describe('Search.vue', () => {
     expect(wrapper.find('.v-alert').exists()).toBe(true)
     expect(wrapper.find('.v-alert .rating-button').exists()).toBe(true)
   })
-  it('Shows an alert when a registered user has a max rating under the current search', async() => {
-    router.push({name: 'SearchSubmissions'})
+  test('Shows an alert when a registered user has a max rating under the current search', async() => {
+    await router.push({name: 'SearchSubmissions'})
     searchForm.fields.content_ratings.update('2,3')
-    setViewer(store, genUser({username: 'Fox', rating: Ratings.GENERAL}))
-    wrapper = mount(Search, {localVue, store, vuetify, router, attachTo: docTarget(), stubs: ['v-badge']})
+    setViewer(store, genUser({
+      username: 'Fox',
+      rating: Ratings.GENERAL,
+    }))
+    wrapper = mount(Search, vueSetup({
+      store,
+      extraPlugins: [router],
+      stubs: ['v-badge'],
+    }))
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(wrapper.find('.v-alert').exists()).toBe(true)
     expect(wrapper.find('.v-alert .rating-button').exists()).toBe(true)
   })
-  it('Properly handles setting and getting the allowed content ratings', async() => {
+  test('Properly handles setting and getting the allowed content ratings', async() => {
     setViewer(store, genUser())
-    wrapper = mount(SubmissionExtra, {localVue, store, vuetify, router, attachTo: docTarget(), stubs: ['v-badge']})
+    wrapper = mount(SubmissionExtra, vueSetup({
+      store,
+      extraPlugins: [router],
+      stubs: ['v-badge'],
+    }))
     const vm = wrapper.vm as any
     vm.contentRatings = ['1', '3', '0']
-    expect(vm.contentRatings).toEqual(['0', '1', '3'])
+    expect(vm.contentRatings).toEqual([0, 1, 3])
     expect(searchForm.fields.content_ratings.value).toBe('0,1,3')
   })
-  it('Synchronizes the value of the form page value and the list page value', async() => {
-    wrapper = mount(SearchProducts, {localVue, store, vuetify, router, attachTo: docTarget()})
+  test('Synchronizes the value of the form page value and the list page value', async() => {
+    wrapper = mount(SearchProducts, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
     const vm = wrapper.vm as any
     vm.list.currentPage = 3
     await vm.$nextTick()

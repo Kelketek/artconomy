@@ -1,38 +1,33 @@
-import Vue from 'vue'
-import {shallowMount, Wrapper} from '@vue/test-utils'
+import {shallowMount, VueWrapper} from '@vue/test-utils'
 import AcError from '../AcError.vue'
 import {ArtStore, createStore} from '../../../store'
-import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
-import Vuetify from 'vuetify/lib'
-
-const localVue = vueSetup()
+import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 describe('ac-error', () => {
   let store: ArtStore
-  let vuetify: Vuetify
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Shows an error message.', async() => {
-    wrapper = shallowMount(AcError, {
-      store, localVue, vuetify,
-    })
+  test('Shows an error message.', async() => {
+    wrapper = shallowMount(AcError, vueSetup({
+      store,
+    }))
     store.commit('errors/setError', {response: {status: 500}})
     await wrapper.vm.$nextTick()
     expect(
       wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png',
     )
   })
-  it('Clears out when error is removed', async() => {
+  test('Clears out when error is removed', async() => {
     store.commit('errors/setError', {response: {status: 500}})
-    wrapper = shallowMount(AcError, {
-      store, localVue, vuetify,
-    })
+    wrapper = shallowMount(AcError, vueSetup({
+      store,
+    }))
     store.commit('errors/clearError')
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.error-container').exists()).toBe(false)

@@ -1,20 +1,25 @@
 <template>
   <ac-load-section :controller="deliverable">
-    <template v-slot:default v-if="seller">
-      <v-row>
+    <template v-slot:default>
+      <v-row v-if="seller && deliverable.x && order.x">
         <v-col cols="12" sm="6" md="4">
           <v-toolbar dense color="black">
-            <ac-avatar :user="order.x.seller" :show-name="false" />
-            <v-toolbar-title class="ml-1"><ac-link :to="profileLink(order.x.seller)">{{order.x.seller.username}}</ac-link></v-toolbar-title>
+            <ac-avatar :user="order.x.seller" :show-name="false" class="ml-3"/>
+            <v-toolbar-title class="ml-1">
+              <ac-link :to="profileLink(order.x.seller)">{{ order.x.seller.username }}</ac-link>
+            </v-toolbar-title>
           </v-toolbar>
-          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
-            <v-card-text >
+          <v-card :color="$vuetify.theme.current.colors['well-darken-2']">
+            <v-card-text>
               <v-row dense>
-                <v-col class="py-2 subheading" cols="12" >
-                  <ac-link :to="product && {name: 'Product', params: {username: product.user.username, productId: product.id}}">{{name}}</ac-link>
+                <v-col class="py-2 subheading" cols="12">
+                  <ac-link
+                      :to="product && {name: 'Product', params: {username: product.user.username, productId: product.id}}">
+                    {{ name }}
+                  </ac-link>
                 </v-col>
                 <v-col cols="6" md="12">
-                  <ac-asset :asset="deliverable.x.display" thumb-name="thumbnail" />
+                  <ac-asset :asset="deliverable.x.display" thumb-name="thumbnail"/>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -22,18 +27,23 @@
         </v-col>
         <v-col cols="12" sm="6" md="8">
           <v-toolbar dense color="black" v-if="order.x.buyer">
-            <ac-avatar :user="order.x.buyer" :show-name="false" />
-            <v-toolbar-title class="ml-1"><ac-link :to="profileLink(order.x.buyer)">{{deriveDisplayName(order.x.buyer.username)}}</ac-link><span v-if="order.x.guest_email && isSeller"> ({{order.x.guest_email}})</span></v-toolbar-title>
+            <ac-avatar :user="order.x.buyer" :show-name="false" class="ml-3"/>
+            <v-toolbar-title class="ml-1">
+              <ac-link :to="profileLink(order.x.buyer)">{{ deriveDisplayName(order.x.buyer.username) }}</ac-link>
+              <span v-if="order.x.guest_email && isSeller"> ({{order.x.guest_email}})</span>
+            </v-toolbar-title>
           </v-toolbar>
-          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
+          <v-card :color="$vuetify.theme.current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
                 <v-col cols="12" md="9" order="1">
                   <h2><span v-if="isSeller">Sale</span>
                     <span v-else-if="isArbitrator">Case</span>
                     <span v-else>Order</span>
-                    #{{order.x.id}} <span v-if="!isSeller || !(is(NEW) || is(WAITING))">- [{{deliverable.x.name}}] Details:</span></h2>
-                  <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name" v-if="isSeller && (is(NEW) || is(WAITING))"></ac-patch-field>
+                    #{{ order.x.id }} <span v-if="!isSeller || !(is(NEW) || is(WAITING))">- [{{ deliverable.x.name }}] Details:</span>
+                  </h2>
+                  <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name"
+                                  v-if="isSeller && (is(NEW) || is(WAITING))"></ac-patch-field>
                 </v-col>
                 <v-col cols="12" md="12" order="2" order-md="3" v-if="isSeller">
                   <ac-patch-field
@@ -48,42 +58,47 @@
                   />
                 </v-col>
                 <v-col cols="12" md="3" class="text-md-right text-center" order="3" order-md="2" align-self="center">
-                  <v-chip color="white" light v-if="order.x.private" class="ma-1">
-                    <v-icon left>visibility_off</v-icon>
+                  <v-chip color="white" variant="flat" light v-if="order.x.private" class="ma-1">
+                    <v-icon left icon="mdi-eye-off"/>
                     Private
                   </v-chip>
-                  <ac-deliverable-status :deliverable="deliverable.x" class="ma-1" />
-                  <v-btn class="ma-1 rating-button pa-1" small :color="ratingColor[deliverable.x.rating]" @click="showRating" :ripple="editable">
-                    <v-icon left v-if="editable">edit</v-icon>
-                    {{ratingsShort[deliverable.x.rating]}}
+                  <ac-deliverable-status :deliverable="deliverable.x" class="ma-1"/>
+                  <v-btn class="ma-1 rating-button pa-1" variant="flat" small :color="ratingColor[deliverable.x.rating]"
+                         @click="showRating" :ripple="editable">
+                    <v-icon left v-if="editable" icon="mdi-pencil"/>
+                    {{ ratingsShort[deliverable.x.rating] }}
                   </v-btn>
                   <ac-expanded-property v-model="ratingDialog">
-                    <ac-patch-field field-type="ac-rating-field" :patcher="deliverable.patchers.rating" />
+                    <ac-patch-field field-type="ac-rating-field" :patcher="deliverable.patchers.rating"/>
                   </ac-expanded-property>
                 </v-col>
               </v-row>
-              <v-col v-if="isSeller && (!buyer || buyer.guest) && !(is(COMPLETED) || is(DISPUTED) || is(REFUNDED) || is(CANCELLED))" cols="12">
+              <v-col
+                  v-if="isSeller && unregisteredBuyer && !(is(COMPLETED) || is(DISPUTED) || is(REFUNDED) || is(CANCELLED))"
+                  cols="12">
                 <ac-form @submit.prevent="orderEmail.submitThen(markInviteSent)">
                   <ac-form-container v-bind="orderEmail.bind">
-                    <v-row dense class="justify-content"  align-content="center">
+                    <v-row dense class="justify-content" align-content="center">
                       <v-col>
                         <ac-patch-field
-                          label="Customer email address"
-                          hint="Set and save this to send the customer an invite link."
-                          :persistent-hint="true"
-                          :patcher="order.patchers.customer_email"
-                          :disabled="buyer && buyer.verified_email"
-                          :refresh="false"
+                            label="Customer email address"
+                            hint="Set and save this to send the customer an invite link."
+                            :persistent-hint="true"
+                            :patcher="order.patchers.customer_email"
+                            :disabled="verifiedEmail"
+                            :refresh="false"
                         />
-                        <small v-if="buyer && buyer.verified_email">Email verified. It may no longer be changed.</small>
+                        <small v-if="verifiedEmail">Email verified. It may no longer be changed.</small>
                       </v-col>
                       <v-col class="shrink d-flex" align-self="center">
                         <v-btn
-                          :disabled="inviteDisabled"
-                          color="primary"
-                          type="submit"
-                          class="send-invite-button"
-                        >Send Invite Link</v-btn>
+                            :disabled="inviteDisabled"
+                            color="primary"
+                            type="submit"
+                            variant="flat"
+                            class="send-invite-button"
+                        >Send Invite Link
+                        </v-btn>
                       </v-col>
                     </v-row>
                     <v-row no-gutters>
@@ -98,21 +113,27 @@
               </v-col>
               <v-row>
                 <v-col class="text-center" v-if="isSeller && seller.landscape">
-                  <v-btn color="green" class="add-deliverable" @click="viewSettings.patchers.showAddDeliverable.model = true">Add Stage/Deliverable</v-btn>
+                  <v-btn color="green" variant="flat" class="add-deliverable"
+                         @click="viewSettings.patchers.showAddDeliverable.model = true">Add Stage/Deliverable
+                  </v-btn>
                 </v-col>
                 <v-col class="text-center" v-if="order.x.deliverable_count > 1">
-                  <v-btn color="primary" :to="{name: baseName, params: {orderId, username: $route.params.username}}">See All Deliverables</v-btn>
+                  <v-btn color="primary" variant="flat" :to="{name: baseName, params: {orderId, username: $route.params.username}}">See
+                    All Deliverables
+                  </v-btn>
                 </v-col>
               </v-row>
               <v-card-text>
                 <v-row dense>
                   <v-col cols="12">
-                    <v-divider />
+                    <v-divider/>
                   </v-col>
                   <v-col cols="12">
-                    <h2>Details:<v-btn v-show="(!editDetails) && editable" icon color="primary" @click="editDetails = true">
-                      <v-icon>edit</v-icon>
-                    </v-btn></h2>
+                    <h2>Details:
+                      <v-btn v-show="(!editDetails) && editable" icon="mdi-pencil" variant="plain" @click="editDetails = true">
+                        <v-icon icon="mdi-pencil"/>
+                      </v-btn>
+                    </h2>
                   </v-col>
                   <v-col cols="12">
                     <ac-patch-field
@@ -120,7 +141,7 @@
                         field-type="ac-editor"
                         v-if="editable && editDetails"
                     />
-                    <ac-rendered v-else :value="deliverable.x.details" />
+                    <ac-rendered v-else :value="deliverable.x.details"/>
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -145,35 +166,40 @@
         </v-col>
       </v-row>
       <v-row no-gutters>
-        <v-col cols="12" v-if="$vuetify.breakpoint.mdAndUp">
-          <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved" :guest-ok="true" :show-history="isArbitrator" />
+        <v-col cols="12" v-if="$vuetify.display.mdAndUp">
+          <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved" :guest-ok="true"
+                              :show-history="isArbitrator"/>
         </v-col>
       </v-row>
       <ac-expanded-property v-model="showConfirm">
-        <span slot="title">We're on it!</span>
+        <template v-slot:title>We're on it!</template>
         <v-row align="center" class="order-confirmation justify-content-center">
           <v-col cols="12" sm="6" md="3" align-self="center">
-            <v-img src="/static/images/cheering.png" :contain="true" max-height="30vh" />
+            <v-img :src="cheering" :contain="true" max-height="30vh"/>
           </v-col>
           <v-col cols="12" sm="6" md="9" align-self="center">
-            <h1 class="display-1">Order Placed.</h1>
-            <h2 class="headline">Check your email!</h2>
-            <p>We've sent a confirmation to your email address. If you haven't received it, please check your spam folder.</p>
+            <h1 class="display-1 mb-4">Order Placed.</h1>
+            <h2 class="headline mb-2">Check your email!</h2>
+            <p>We've sent a confirmation to your email address. If you haven't received it, please check your spam
+              folder.</p>
             <p>
               <strong>It is very important that you verify you're getting emails from Artconomy, or else your artist
                 won't be able to send you messages on their progress.</strong> If you're having trouble,
-              <a href="#" @click.prevent="setSupport(true)">please contact support</a> or ask for help in the <a href="https://discord.gg/4nWK9mf" target="_blank">Artconomy Discord</a>.</p>
-            <p>Your artist will contact you soon to confirm acceptance of your commission, or ask additional questions.</p>
+              <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact support</a> or ask for
+              help in the <a href="https://discord.gg/4nWK9mf" target="_blank">Artconomy Discord</a>.</p>
+            <p>Your artist will contact you soon to confirm acceptance of your commission, or ask additional
+              questions.</p>
           </v-col>
         </v-row>
       </ac-expanded-property>
-      <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved || is(LIMBO) || is(MISSED)" :guest-ok="true" :show-history="isArbitrator" v-if="$vuetify.breakpoint.smAndDown" />
+      <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved || is(LIMBO) || is(MISSED)"
+                          :guest-ok="true" :show-history="isArbitrator" v-if="$vuetify.display.smAndDown"/>
     </template>
   </ac-load-section>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
@@ -192,8 +218,10 @@ import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Order from '@/types/Order'
-import {Watch} from 'vue-property-decorator'
 import AcAvatar from '@/components/AcAvatar.vue'
+import {BASE_URL} from '@/lib/lib'
+import {User} from '@/store/profiles/types/User'
+
 @Component({
   components: {
     AcAvatar,
@@ -213,11 +241,12 @@ import AcAvatar from '@/components/AcAvatar.vue'
     AcLoadSection,
   },
 })
-export default class DeliverableOverview extends mixins(DeliverableMixin, Formatting, Ratings) {
+class DeliverableOverview extends mixins(DeliverableMixin, Formatting, Ratings) {
   public showConfirm = false
   public inviteSent = false
   public editDetails = false
   public ratingDialog = false
+  public cheering = new URL('/static/images/cheering.png', BASE_URL).href
 
   @Watch('order.patchers.customer_email.model')
   public resetSent() {
@@ -236,6 +265,14 @@ export default class DeliverableOverview extends mixins(DeliverableMixin, Format
     if (this.editable) {
       this.ratingDialog = true
     }
+  }
+
+  public get unregisteredBuyer() {
+    return !this.buyer || (this.buyer as User).guest
+  }
+
+  public get verifiedEmail() {
+    return this.buyer && (this.buyer as User).verified_email
   }
 
   public get inviteDisabled() {
@@ -258,4 +295,6 @@ export default class DeliverableOverview extends mixins(DeliverableMixin, Format
     }
   }
 }
+
+export default toNative(DeliverableOverview)
 </script>

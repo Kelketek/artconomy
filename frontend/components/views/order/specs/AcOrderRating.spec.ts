@@ -1,31 +1,27 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import AcDeliverableRating from '@/components/views/order/AcDeliverableRating.vue'
+import {afterEach, beforeEach, describe, test} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
 describe('AcDeliverableRating.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts', async() => {
+  test('Mounts', async() => {
     wrapper = mount(AcDeliverableRating, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {orderId: 3, end: 'buyer', deliverableId: 5},
-
-      attachTo: docTarget(),
+      ...vueSetup({store}),
+      props: {
+        orderId: 3,
+        end: 'buyer',
+        deliverableId: 5,
+      },
     })
   })
 })

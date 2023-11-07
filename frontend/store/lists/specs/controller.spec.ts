@@ -1,25 +1,24 @@
 import {ListController} from '../controller'
 import {listRegistry} from '../registry'
-import {ArtStore, createStore} from '../../index'
-import {Wrapper} from '@vue/test-utils'
+import {ArtStore, createStore} from '@/store'
+import {VueWrapper} from '@vue/test-utils'
 import mockAxios from '@/specs/helpers/mock-axios'
-import Vue, {VueConstructor} from 'vue'
-import {rq, rs, mount, cleanUp, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, rq, rs, vueSetup, waitFor} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
 import {ListModuleOpts} from '../types/ListModuleOpts'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {SingleController} from '@/store/singles/controller'
-import WS from 'jest-websocket-mock'
+import WS from 'vitest-websocket-mock'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
 import {cloneDeep} from 'lodash'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let store: ArtStore
 let state: any
-let empty: Wrapper<Vue>
+let empty: VueWrapper<any>
 let socketSettings: ListSocketSettings
-let localVue: VueConstructor
 
-const mockWarning = jest.spyOn(console, 'warn')
+const mockWarning = vi.spyOn(console, 'warn')
 
 describe('List controller', () => {
   function makeController(extra?: Partial<ListModuleOpts>) {
@@ -28,10 +27,9 @@ describe('List controller', () => {
   }
 
   beforeEach(() => {
-    localVue = vueSetup()
     store = createStore()
     state = (store.state as any).lists
-    empty = mount(Empty, {localVue, store})
+    empty = mount(Empty, vueSetup({store}))
     socketSettings = {
       appLabel: 'sales',
       modelName: 'LineItem',
@@ -47,43 +45,44 @@ describe('List controller', () => {
   afterEach(() => {
     cleanUp()
   })
-  it('Initializes a list', () => {
+  test('Initializes a list', () => {
     const controller = makeController()
     expect(state.example).toBeTruthy()
     expect(state.example.endpoint).toBe('/endpoint/')
   })
-  it('Picks up an existing list', () => {
+  test('Picks up an existing list', () => {
     const controller = makeController()
     const newController = new ListController({
-      store, propsData: {initName: 'example', schema: {endpoint: '/test/'}},
+      $store: store, initName: 'example', schema: {endpoint: '/test/'},
+      $root: controller.$root,
     })
     expect(controller.endpoint).toBe(newController.endpoint)
     expect(controller.endpoint).toBe('/endpoint/')
   })
-  it('Returns the endpoint', () => {
+  test('Returns the endpoint', () => {
     const controller = makeController()
     expect(controller.endpoint).toBe('/endpoint/')
   })
-  it('Sets the endpoint', () => {
+  test('Sets the endpoint', () => {
     const controller = makeController()
     controller.endpoint = '/test/'
     expect(state.example.endpoint).toBe('/test/')
   })
-  it('Retrieves the page size', () => {
+  test('Retrieves the page size', () => {
     const controller = makeController({params: {size: 5}})
     expect(controller.pageSize).toBe(5)
   })
-  it('Retrieves the page number', () => {
+  test('Retrieves the page number', () => {
     const controller = makeController({params: {page: 5}})
     expect(controller.currentPage).toBe(5)
     controller.params = {}
     expect(controller.currentPage).toBe(1)
   })
-  it('Proclaims the total pagecount as 1 when response is null', () => {
+  test('Proclaims the total pagecount as 1 when response is null', () => {
     const controller = makeController()
     expect(controller.totalPages).toBe(1)
   })
-  it('Calculates the correct number of total pages', () => {
+  test('Calculates the correct number of total pages', () => {
     const controller = makeController()
     store.commit('lists/example/setResponse', {
       results: [],
@@ -92,16 +91,16 @@ describe('List controller', () => {
     })
     expect(controller.totalPages).toBe(3)
   })
-  it('Gets the ready status', () => {
+  test('Gets the ready status', () => {
     const controller = makeController()
     expect(controller.ready).toBe(false)
   })
-  it('Gets the list', async() => {
+  test('Gets the list', async() => {
     const controller = makeController()
-    await store.commit('lists/example/setList', [{id: 1, test: 'thing', test2: 'thingy'}])
+    store.commit('lists/example/setList', [{id: 1, test: 'thing', test2: 'thingy'}])
     expect(controller.list.map((x: any) => x.x)).toEqual([{id: 1, test: 'thing', test2: 'thingy'}])
   })
-  it('Sets the list', () => {
+  test('Sets the list', () => {
     const controller = makeController()
     controller.setList([{id: 1}, {id: 2}, {id: 3}, {id: 4}])
     expect(state.example.refs).toEqual(['1', '2', '3', '4'])
@@ -110,7 +109,7 @@ describe('List controller', () => {
     expect(state.example.items['3'].x.id).toBe(3)
     expect(state.example.items['4'].x.id).toBe(4)
   })
-  it('Resets the list', () => {
+  test('Resets the list', () => {
     const controller = makeController()
     controller.response = {
       count: 2,
@@ -125,7 +124,7 @@ describe('List controller', () => {
     expect(controller.currentPage).toBe(1)
     expect(controller.fetching).toBe(true)
   })
-  it('Grabs and sets the params', () => {
+  test('Grabs and sets the params', () => {
     const controller = makeController({params: {stuff: 'things', wat: 'do'}})
     expect(controller.params).toEqual({stuff: 'things', wat: 'do', page: 1, size: 24})
     controller.params = {dude: 'sweet'}
@@ -133,7 +132,7 @@ describe('List controller', () => {
     controller.params = null
     expect(controller.params).toEqual({page: 1, size: 24})
   })
-  it('Grabs and sets the params without pagination', () => {
+  test('Grabs and sets the params without pagination', () => {
     const controller = makeController({params: {stuff: 'things', wat: 'do'}, paginated: false})
     expect(controller.params).toEqual({stuff: 'things', wat: 'do'})
     controller.params = {dude: 'sweet', page: 2}
@@ -141,7 +140,7 @@ describe('List controller', () => {
     controller.params = null
     expect(controller.params).toEqual(null)
   })
-  it('Removes an item from the list', async() => {
+  test('Removes an item from the list', async() => {
     const controller = makeController()
     const item1 = {id: 1}
     const item2 = {id: 2}
@@ -150,7 +149,7 @@ describe('List controller', () => {
     controller.remove(item2)
     expect(state.example.refs).toEqual(['1', '3'])
   })
-  it('Replaces an item in the list', () => {
+  test('Replaces an item in the list', () => {
     const controller = makeController()
     const item1 = {id: 1, test: 'Hello'}
     const item2 = {id: 2, test: 'Goodbye'}
@@ -161,7 +160,7 @@ describe('List controller', () => {
     expect(state.example.refs).toEqual(['1', '2', '3'])
     expect(state.example.items['2'].x).toEqual(replacement)
   })
-  it('Pushes an onto the end of the list', () => {
+  test('Pushes an onto the end of the list', () => {
     const controller = makeController()
     const item1 = {id: 1, test: 'Hello'}
     const item2 = {id: 2, test: 'Goodbye'}
@@ -171,7 +170,7 @@ describe('List controller', () => {
     controller.push(item4)
     expect(state.example.refs).toEqual(['1', '2', '3', '4'])
   })
-  it('Unshifts onto the beginning of the list', () => {
+  test('Unshifts onto the beginning of the list', () => {
     const controller = makeController()
     const item1 = {id: 2, test: 'Hello'}
     const item2 = {id: 3, test: 'Goodbye'}
@@ -181,7 +180,7 @@ describe('List controller', () => {
     controller.unshift(item4)
     expect(state.example.refs).toEqual(['1', '2', '3', '4'])
   })
-  it('Does nothing if attempting to remove a non-existent item', () => {
+  test('Does nothing if attempting to remove a non-existent item', () => {
     const controller = makeController()
     const item1 = {id: 1}
     const item2 = {id: 2}
@@ -190,14 +189,14 @@ describe('List controller', () => {
     controller.remove({test: 4})
     expect(state.example.refs).toEqual(['1', '2', '3'])
   })
-  it('Fetches from the desired endpoint', () => {
+  test('Fetches from the desired endpoint', () => {
     const controller = makeController()
     controller.get().then()
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/endpoint/', 'get', undefined, {params: {page: 1, size: 24}, cancelToken: expect.any(Object)}),
+      rq('/endpoint/', 'get', undefined, {params: {page: 1, size: 24}, signal: expect.any(Object)}),
     )
   })
-  it('Sets from the resulting response', async() => {
+  test('Sets from the resulting response', async() => {
     const controller = makeController()
     controller.get().then()
     const response = {
@@ -212,7 +211,7 @@ describe('List controller', () => {
     await flushPromises()
     expect(state.example.response).toEqual({count: 2, size: 24})
   })
-  it('Properly replaces old items in the response', async() => {
+  test('Properly replaces old items in the response', async() => {
     const controller = makeController()
     controller.setList([{id: 1}, {id: 2}, {id: 3}, {id: 4}])
     controller.get().then()
@@ -233,7 +232,7 @@ describe('List controller', () => {
     expect(state.example.items['4']).toBe(undefined)
     expect(state.example.items['5'].x.id).toBe(5)
   })
-  it('Grows the list', async() => {
+  test('Grows the list', async() => {
     const controller = makeController({grow: true})
     controller.get().then()
     const item1 = {id: 1}
@@ -254,12 +253,12 @@ describe('List controller', () => {
     await flushPromises()
     expect(state.example.refs).toEqual(['1', '2', '3', '4', '5'])
   })
-  it('Posts to the list', async() => {
+  test('Posts to the list', async() => {
     const controller = makeController()
     controller.post({}).then()
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/endpoint/', 'post', {}))
   })
-  it('Posts, then pushes to the list', async() => {
+  test('Posts, then pushes to the list', async() => {
     const controller = makeController()
     controller.postPush({})
     mockAxios.mockResponse(rs({id: 1}))
@@ -267,37 +266,37 @@ describe('List controller', () => {
     expect(controller.list[0]).toBeTruthy()
     expect((controller.list[0] as any).x.id).toBe(1)
   })
-  it('Fetches the loading state', () => {
+  test('Fetches the loading state', () => {
     const controller = makeController()
     expect(controller.fetching).toBe(false)
   })
-  it('Sets and fetches the response', () => {
+  test('Sets and fetches the response', () => {
     const controller = makeController()
     controller.response = {count: 3, size: 10}
     expect(state.example.response).toEqual({count: 3, size: 10})
     expect(controller.response).toEqual({count: 3, size: 10})
   })
-  it('Listens for a list', async() => {
-    const wrapper = mount(Empty, {localVue, store})
+  test('Listens for a list', async() => {
+    const wrapper = mount(Empty, vueSetup({store}))
     const vm = wrapper.vm as any
     wrapper.vm.$listenForList('testList')
     expect(listRegistry.listeners.testList).toEqual([vm._uid])
-    const otherWrapper = mount(Empty, {localVue, store})
-    otherWrapper.vm.$getList('testList', {endpoint: '/'}).setList([{id: 1}, {id: 2}, {id: 3}])
+    const otherVueWrapper = mount(Empty, vueSetup({store}))
+    otherVueWrapper.vm.$getList('testList', {endpoint: '/'}).setList([{id: 1}, {id: 2}, {id: 3}])
     await vm.$nextTick()
-    otherWrapper.destroy()
+    otherVueWrapper.unmount()
     await wrapper.vm.$nextTick()
     expect(
       wrapper.vm.$getList('testList').list.map((item: SingleController<any>) => item.x),
     ).toEqual([{id: 1}, {id: 2}, {id: 3}])
   })
-  it('Fetches the next page', () => {
+  test('Fetches the next page', () => {
     const controller = makeController()
     controller.response = {count: 30, size: 5}
     controller.setList([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}])
     controller.next().then(() => {
       expect(controller.currentPage).toBe(2)
-      expect(controller.list.map((x) => x.x)).toEqual([
+      expect(controller.list.map((x: SingleController<{id: number}>) => x.x)).toEqual([
         {id: 6}, {id: 7}, {id: 8}, {id: 9}, {id: 10},
       ])
     })
@@ -308,7 +307,7 @@ describe('List controller', () => {
       size: 5,
     }))
   })
-  it('Does not refetch the page if told to get the current page', () => {
+  test('Does not refetch the page if told to get the current page', () => {
     const controller = makeController()
     controller.response = {count: 30, size: 5}
     controller.setList([{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}])
@@ -316,9 +315,9 @@ describe('List controller', () => {
     controller.currentPage = 1
     expect(mockAxios.request).not.toHaveBeenCalled()
   })
-  it('Determines whether more is available', async() => {
+  test('Determines whether more is available', async() => {
     const controller = makeController()
-    controller.response = {count: 30, size: 5}
+    controller.response = {count: 30, size: 5, page: 1}
     expect(controller.moreAvailable).toBe(true)
     controller.currentPage = 2
     mockAxios.mockResponse(rs({
@@ -345,10 +344,10 @@ describe('List controller', () => {
     await flushPromises()
     expect(controller.moreAvailable).toBe(false)
   })
-  it('Handles a reversed endpoint', async() => {
+  test('Handles a reversed endpoint', async() => {
     const controller = makeController({grow: true, reverse: true})
     controller.get().then(() => {
-      expect(controller.list.map((x) => x.x)).toEqual([{id: 6}, {id: 7}, {id: 8}, {id: 9}, {id: 10}])
+      expect(controller.list.map((x: SingleController<{id: number}>) => x.x)).toEqual([{id: 6}, {id: 7}, {id: 8}, {id: 9}, {id: 10}])
     })
     mockAxios.mockResponse(rs({
       results: [{id: 10}, {id: 9}, {id: 8}, {id: 7}, {id: 6}],
@@ -357,29 +356,30 @@ describe('List controller', () => {
     }))
     await flushPromises()
     controller.currentPage += 1
-    mockAxios.mockResponse(rs({
+    await waitFor(() => mockAxios.mockResponse(rs({
       results: [{id: 5}, {id: 4}, {id: 3}, {id: 2}, {id: 1}],
       count: 10,
       size: 5,
-    }))
+    })))
     await flushPromises()
-    expect(controller.list.map((x) => x.x)).toEqual([
+    expect(controller.list.map((x: SingleController<{id: number}>) => x.x)).toEqual([
       {id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}, {id: 6}, {id: 7}, {id: 8}, {id: 9}, {id: 10},
     ])
   })
-  it('Does nothing if we are already on the last page and try to go next.', () => {
+  test('Does nothing if we are already on the last page and try to go next.', async () => {
     const controller = makeController()
-    controller.response = {count: 2, size: 5}
+    controller.response = {count: 2, size: 5, page: 1}
+    mockAxios.reset()
     controller.next().then()
     expect(mockAxios.request).not.toHaveBeenCalled()
     expect(controller.currentPage).toBe(1)
   })
-  it('Reports a verified empty list', () => {
+  test('Reports a verified empty list', () => {
     const controller = makeController()
     controller.ready = true
     expect(controller.empty).toBe(true)
   })
-  it('Adds unique items to a list', () => {
+  test('Adds unique items to a list', () => {
     const controller = makeController()
     controller.ready = true
     controller.uniquePush({id: 1})
@@ -387,58 +387,58 @@ describe('List controller', () => {
     controller.uniquePush({id: 1, text: 'other'})
     expect(controller.list.length).toBe(1)
   })
-  it('Retries a fetch if there was a previous failure', () => {
+  test('Retries a fetch if there was a previous failure', () => {
     const controller = makeController()
     store.commit('lists/example/setFailed', true)
     controller.retryGet().then()
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 1}, cancelToken: expect.any(Object)}),
+      rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 1}, signal: expect.any(Object)}),
     )
   })
-  it('Grows on command', async() => {
+  test('Grows on command', async() => {
     const controller = makeController()
     controller.response = {count: 100, size: 10}
     controller.grower(true)
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 2}, cancelToken: expect.any(Object)}),
+      rq('/endpoint/', 'get', undefined, {params: {size: 24, page: 2}, signal: expect.any(Object)}),
     )
     mockAxios.reset()
     controller.grower(true)
     expect(mockAxios.request).not.toHaveBeenCalled()
   })
-  it('Reports the count', async() => {
+  test('Reports the count', async() => {
     const controller = makeController()
     controller.response = {count: 100, size: 10}
     expect(controller.count).toBe(100)
   })
-  it('Manually sets a null response', async() => {
+  test('Manually sets a null response', async() => {
     const controller = makeController()
     controller.response = {count: 100, size: 10}
     controller.response = null
     expect(controller.response).toBe(null)
   })
-  it('Handles a non-paginated list', async() => {
+  test('Handles a non-paginated list', async() => {
     const controller = makeController({paginated: false})
     controller.firstRun().then()
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/endpoint/', 'get', undefined, {cancelToken: expect.any(Object)}),
+      rq('/endpoint/', 'get', undefined, {signal: expect.any(Object)}),
     )
     mockAxios.mockResponse(rs([{id: 1}, {id: 2}]))
     await flushPromises()
     expect(controller.list.length).toBe(2)
   })
-  it('Receives new items from the server.', async() => {
+  test('Receives new items from the server.', async() => {
     const controller = makeController({socketSettings})
-    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    const server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
     controller.$root.$sock.open()
     controller.makeReady([])
     await server.connected
-    await controller.$nextTick()
-    // await expect(server).toReceiveMessage()
+    await controller.$root.$nextTick()
     server.send({command: 'sales.Deliverable.pk.100.line_items.LineItemSerializer.new', payload: {id: 5, name: 'stuff'}})
-    await controller.$nextTick()
+    await controller.$root.$nextTick()
+    await flushPromises()
     expect(controller.list[0].x.name).toBe('stuff')
-    const mockSend = jest.spyOn(controller.$sock, 'send')
+    const mockSend = vi.spyOn(controller.$root.$sock, 'send')
     controller.purge()
     // The mock socket doesn't recognize this as being sent no matter what I do, so capturing it here.
     expect(mockSend).toHaveBeenCalledWith(
@@ -452,20 +452,20 @@ describe('List controller', () => {
       },
     )
   })
-  it('Receives new items from the server, sans primary key.', async() => {
+  test('Receives new items from the server, sans primary key.', async() => {
     const settings = cloneDeep(socketSettings)
     delete settings.list.pk
     const controller = makeController({socketSettings: settings})
-    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    const server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
     controller.$root.$sock.open()
     controller.makeReady([])
     await server.connected
-    await controller.$nextTick()
+    await controller.$root.$nextTick()
     // await expect(server).toReceiveMessage()
     server.send({command: 'sales.Deliverable.line_items.LineItemSerializer.new', payload: {id: 5, name: 'stuff'}})
-    await controller.$nextTick()
+    await controller.$root.$nextTick()
     expect(controller.list[0].x.name).toBe('stuff')
-    const mockSend = jest.spyOn(controller.$sock, 'send')
+    const mockSend = vi.spyOn(controller.$root.$sock, 'send')
     controller.purge()
     // The mock socket doesn't recognize this as being sent no matter what I do, so capturing it here.
     expect(mockSend).toHaveBeenCalledWith(
@@ -478,13 +478,13 @@ describe('List controller', () => {
       },
     )
   })
-  it('Detects if the content is stale and refetches upon reconnection.', async() => {
+  test('Detects if the content is stale and refetches upon reconnection.', async() => {
     const controller = makeController({socketSettings})
     controller.makeReady([])
-    let server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    let server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
     controller.$root.$sock.open()
     await server.connected
-    await controller.$nextTick()
+    await controller.$root.$nextTick()
     await expect(server).toReceiveMessage({
       command: 'watch_new',
       payload: {
@@ -495,23 +495,23 @@ describe('List controller', () => {
         serializer: 'LineItemSerializer',
       },
     })
-    controller.$sock.socket!.close()
-    controller.$sock.endpoint = 'ws://localhost/boop/snoot'
-    await server.close()
-    await controller.$nextTick()
+    controller.$root.$sock.socket!.close()
+    controller.$root.$sock.endpoint = 'ws://localhost/boop/snoot'
+    server.close()
+    await controller.$root.$nextTick()
     expect(controller.stale).toBe(true)
     mockAxios.reset()
     WS.clean()
     await flushPromises()
-    server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
     await controller.$root.$sock.open()
     await server.connected
     await flushPromises()
-    await controller.$nextTick()
+    await controller.$root.$nextTick()
     const lastRequest = mockAxios.lastReqGet()
     expect(lastRequest.url).toBe('/endpoint/')
   })
-  it('Reads and sets socket settings.', async() => {
+  test('Reads and sets socket settings.', async() => {
     const controller = makeController()
     expect(controller.socketSettings).toBe(null)
     controller.socketSettings = socketSettings

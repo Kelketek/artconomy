@@ -1,11 +1,9 @@
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Watch} from 'vue-property-decorator'
+import {Component, Watch} from 'vue-facing-decorator'
 import {Ratings} from '@/store/profiles/types/Ratings'
-import {dotTraverse} from '@/lib/lib'
+import {ArtVue, dotTraverse} from '@/lib/lib'
 
 @Component
-export default class RatingRefresh extends Vue {
+export default class RatingRefresh extends ArtVue {
   public refreshLists: string[] = []
   @Watch('rawRating')
   public refreshListing(newValue: Ratings, oldValue: Ratings|undefined) {

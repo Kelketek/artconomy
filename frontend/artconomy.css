@@ -6,7 +6,7 @@ img {
     max-width: 100%;
 }
 
-#app.theme--dark a {
+.v-application.v-theme--dark a {
     color: #fff;
 }
 
@@ -21,7 +21,7 @@ img {
 
 #app p a, #app ul a, #app ol a, #app .v-responsive__content a,
 .v-alert a {
-    color: #000;
+    color: #fff;
     text-decoration: underline;
 }
 
@@ -73,6 +73,21 @@ blockquote {
     margin-bottom: 0;
 }
 
-.v-toolbar__title a {
+.v-toolbar-title a {
     text-decoration: none;
 }
+
+p {
+    margin-bottom: 1rem;
+}
+
+/*.v-list-item__prepend .v-input__details {*/
+/*    !** For switch toggles in menus. **!*/
+/*    display: none;*/
+/*}*/
+
+/*.v-list-item__prepend .v-selection-control__input {*/
+/*    !** For switch toggles in menus. **!*/
+/*    margin-left: -.5rem;*/
+/*    margin-right: 1rem;*/
+/*}*/

@@ -1,18 +1,22 @@
 <template>
-  <ac-form-dialog v-model="expanded"></ac-form-dialog>
+  <v-app>
+    <ac-form-dialog v-model="expanded" ref="dialog"/>
+    <div id="modal-target" />
+  </v-app>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative} from 'vue-facing-decorator'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
+import {ArtVue} from '@/lib/lib'
 
-  @Component({
-    components: {AcFormDialog},
-  })
-export default class FormDialogContainer extends Vue {
-    public expanded = false
+@Component({
+  components: {AcFormDialog},
+})
+class FormDialogContainer extends ArtVue {
+  public expanded = false
 }
+export default toNative(FormDialogContainer)
 </script>
 
 <style scoped>

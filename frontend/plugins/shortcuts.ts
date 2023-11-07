@@ -1,37 +1,14 @@
 import {extPreview, getExt, isImage} from '@/lib/lib'
-import _Vue from 'vue'
-import {Ratings} from '@/store/profiles/types/Ratings'
-// TODO: Declaration file? Not sure why this doesn't exist already, considering the lib.
-// @ts-ignore
-import goTo from 'vuetify/es5/services/goto'
+import {createApp} from 'vue'
+import {Asset} from '@/types/Asset'
+import {v4 as uuidv4} from 'uuid'
 
-declare module 'vue/types/vue' {
-  // Global properties can be declared
-  // on the `VueConstructor` interface
-  interface Vue {
-    $displayImage: (asset: object, thumbName: string) => string,
-    $img: (asset: object|null, thumbName: string, fallback?: boolean) => string,
-    $goTo: (target: any) => void,
-  }
-}
-
-declare interface Asset {
-  rating: Ratings,
-  file: null | { [key: string]: string }
-  preview: null | { [key: string]: string }
-}
-
-// Super hacky place to put this so it can be mocked out. Side-steps Jest's unbearable module mocker.
-export const goToNameSpace = {
-  goTo(target: any) {
-    goTo(target)
-  },
-}
-
-export function Shortcuts(Vue: typeof _Vue): void {
-  Vue.mixin({
+export function Shortcuts(app: ReturnType<typeof createApp>): void {
+  app.mixin({
+    // eslint-disable-next-line vue/no-reserved-keys
+    data: () => ({_uid: uuidv4()}),
     methods: {
-      $img(asset, thumbName, fallback) {
+      $img(asset: Asset, thumbName: string, fallback: boolean) {
         if (!asset || !asset.file) {
           return '/static/images/default-avatar.png'
         }
@@ -44,7 +21,15 @@ export function Shortcuts(Vue: typeof _Vue): void {
         }
         return this.$displayImage(asset, thumbName)
       },
-      $displayImage(asset, thumbName) {
+      $goTo(selector: string) {
+        const target = document.querySelector(selector)
+        if (!target) {
+          console.error(`Could not find target for selector ${selector}`)
+          return
+        }
+        target.scrollIntoView()
+      },
+      $displayImage(asset: Asset, thumbName: string) {
         if (['gallery', 'full', 'preview'].indexOf(thumbName) === -1) {
           if (asset.preview) {
             return asset.preview.thumbnail
@@ -57,9 +42,6 @@ export function Shortcuts(Vue: typeof _Vue): void {
           return extPreview(asset.file.full)
         }
         return asset.file[thumbName]
-      },
-      $goTo(target: any) {
-        goToNameSpace.goTo(target)
       },
     },
   })

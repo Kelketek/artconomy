@@ -1,7 +1,8 @@
 import {NullClass} from '@/store/helpers/NullClass'
+import {describe, expect, test} from 'vitest'
 
 describe('NullClass', () => {
-  it('Throws an error', () => {
+  test('Throws an error', () => {
     expect(() => new NullClass()).toThrow(Error('Class not specified.'))
   })
 })

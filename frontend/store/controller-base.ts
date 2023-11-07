@@ -1,24 +1,31 @@
-import Vue, {CreateElement} from 'vue'
-import {Prop} from 'vue-property-decorator'
-import Component from 'vue-class-component'
+import type {Ref} from 'vue'
+import {h, ref, toValue} from 'vue'
+import {v4 as uuidv4} from 'uuid'
 import {NullClass} from '@/store/helpers/NullClass'
 import deepEqual from 'fast-deep-equal'
-import {Registry, AttrKeys} from '@/store/registry-base'
+import {AttrKeys, Registry} from '@/store/registry-base'
+import {ArtVueInterface} from '@/types/ArtVueInterface'
+import {ArtStore} from '@/store/index'
 
-@Component
-export class BaseController<S, D extends AttrKeys> extends Vue {
-  @Prop({required: true})
+export interface ControllerArgs<S> {
+  initName: string,
+  schema: S,
+  $store: ArtStore,
+  $root: ArtVueInterface,
+}
+
+
+export abstract class BaseController<S, D extends AttrKeys> {
+  // Used by @ComputedGetters decorator
+  public __getterMap: Map<any, any>
+  public $store: ArtStore
   public initName!: string
-
-  public _uid!: number
-
+  public _uid!: string
+  public name: Ref<string>
+  public schema: S
+  public $root: ArtVueInterface
   // Set this to false if the controller never fetches anything, and so should never be waited on to load.
   public isFetchableController = true
-
-  @Prop({required: true})
-  public schema!: S
-
-  public name: string = ''
 
   // Replace this with the default module new instances should be installed under, like 'lists' or 'singles'.
   public baseModuleName = 'base'
@@ -32,7 +39,17 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   // For some reason, Array<keyof D> set as the type does not work as expected, and so we lose some type safety here.
   public submoduleKeys: string[] = []
 
-  public purge(path?: string[]) {
+  constructor({initName, schema, $store, $root}: ControllerArgs<S>) {
+    this.__getterMap = new Map()
+    this.initName = initName
+    this.name = ref(initName)
+    this.schema = schema
+    this.$store = $store
+    this._uid = uuidv4()
+    this.$root = $root
+  }
+
+  public purge = (path?: string[]) => {
     path = path || this.path
     if (this.state === undefined) {
       // Already purged.
@@ -43,25 +60,24 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     }
     this.socketUnmount()
     this.kill()
-    if (this.$sock) {
-      delete this.$sock.connectListeners[`${(this as any)._uid}`]
-      delete this.$sock.disconnectListeners[`${(this as any)._uid}`]
+    if (this.$root.$sock) {
+      delete this.$root.$sock.connectListeners[`${(this as any)._uid}`]
+      delete this.$root.$sock.disconnectListeners[`${(this as any)._uid}`]
     }
     this.$store.unregisterModule(path)
   }
 
-  public kill() {
+  public kill = () => {
     // Kills any AJAX request this module is making.
     this.commit('kill')
   }
 
-  public register(path?: string[]) {
+  public register = (path?: string[])=> {
     let data: Partial<D> = {}
     path = path || this.path
-    // Not sure why I have to invoke this at the root here, but I do, at least in the test environment. :/
-    if (this.$sock) {
-      this.$sock.connectListeners[`${(this as any)._uid}`] = this.socketOpened
-      this.$sock.disconnectListeners[`${(this as any)._uid}`] = this.socketClosed
+    if (this.$root.$sock) {
+      this.$root.$sock.connectListeners[`${(this as any)._uid}`] = this.socketOpened
+      this.$root.$sock.disconnectListeners[`${(this as any)._uid}`] = this.socketClosed
     }
     if (this.state) {
       if (deepEqual(path, this.path) || this.stateFor(path)) {
@@ -89,34 +105,35 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   }
 
   public get registry(): Registry<D, BaseController<S, D>> {
-    return this[`$registryFor${this.typeName}` as keyof BaseController<S, D>]()
+    // @ts-ignore
+    return this.$root[`$registryFor${this.typeName}`]()
   }
 
-  public socketOpened() {
+  public socketOpened = () => {
     // Any calls, such as update listening registration, that the controller should make upon the socket opening should
     // be placed here.
   }
 
-  public socketClosed() {
+  public socketClosed = () => {
 
   }
 
-  public socketUnmount() {
+  public socketUnmount = () => {
     // Any actions that should be taken when unmounting as they pertain to sockets should be placed here.
   }
 
-  public abandon(uid: number) {
+  public abandon = (uid: string) => {
     this.registry.unhook(uid, this)
   }
 
-  public migrate(name: string) {
+  public migrate = (name: string) => {
     if (deepEqual(this.derivePath(name), this.path)) {
       // We're already here. Might mean that another parent module that referenced this one was updated.
       return
     }
-    const oldName = this.name
+    const oldName = this.name.value
     this.register(this.derivePath(name))
-    this.name = name
+    this.name.value = name
     for (const key of this.submoduleKeys) {
       (this as any)[key].migrate(this.prefix + key)
     }
@@ -124,7 +141,7 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     this.$store.unregisterModule(this.derivePath(oldName))
   }
 
-  public derivePath(name: string) {
+  public derivePath = (name: string) => {
     const path = name.split('/')
     if (path.length === 1) {
       path.unshift(this.baseModuleName)
@@ -133,26 +150,28 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
   }
 
   public get path() {
-    return this.derivePath(this.name)
+    return this.derivePath(toValue(this.name))
   }
 
-  public stateFor(path: string[]) {
-    let state = this.$store.state
+  public stateFor = (path: string[]) => {
+    const self = this as unknown as ArtVueInterface
+    let state = self.$store.state as unknown
     for (const namespace of path) {
       if (state === undefined) {
         return undefined
       }
+      // @ts-ignore
       state = state[namespace]
     }
-    return state
+    return state as undefined | D
   }
 
-  public get state() {
+  public get state(): undefined | D {
     return this.stateFor(this.path)
   }
 
-  public attr(attrName: keyof D) {
-    return this.state && this.state[attrName]
+  public attr = <T extends keyof D>(attrName: T) => {
+    return (this.state && this.state[attrName]) as D[T]
   }
 
   public get prefix() {
@@ -163,33 +182,29 @@ export class BaseController<S, D extends AttrKeys> extends Vue {
     return this.state === undefined
   }
 
-  public getter(getterName: string) {
-    return this.$store.getters[`${this.prefix}${getterName}`]
+  public getter = (getterName: string) => {
+    return (this as unknown as ArtVueInterface).$store.getters[`${this.prefix}${getterName}`]
   }
 
-  public commit(mutationName: string, payload?: any) {
-    this.$store.commit(`${this.prefix}${mutationName}`, payload)
+  public commit = (mutationName: string, payload?: any) => {
+    (this as unknown as ArtVueInterface).$store.commit(`${this.prefix}${mutationName}`, payload)
   }
 
-  public dispatch(actionName: string, payload?: any) {
-    return this.$store.dispatch(`${this.prefix}${actionName}`, payload)
+  public dispatch = (actionName: string, payload?: any) => {
+    return (this as unknown as ArtVueInterface).$store.dispatch(`${this.prefix}${actionName}`, payload)
   }
 
   public get socketLabelBase() {
     return `${this.typeName}Controller::${this._uid}`
   }
 
-  public created() {
-    this.name = this.initName
-  }
-
   // noinspection JSMethodCanBeStatic
-  public render(createElement: CreateElement) {
+  public render = () => {
     // Used in tests so we can mount directly.
-    return createElement('div')
+    return h('div')
   }
 
-  public toJSON() {
+  public toJSON = (): object => {
     // Used to prevent the pretty printing service from exhausting all memory.
     return {type: this.constructor.name, name: this.name, state: this.state}
   }

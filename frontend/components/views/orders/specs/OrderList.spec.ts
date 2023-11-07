@@ -1,68 +1,85 @@
-import Vue from 'vue'
-import {cleanUp, confirmAction, qMount, rs, vueSetup} from '@/specs/helpers'
-import {Wrapper} from '@vue/test-utils'
+import {cleanUp, confirmAction, mount, rs, vueSetup, VuetifyWrapped} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
 import OrderList from '@/components/views/orders/OrderList.vue'
 import mockAxios from '@/__mocks__/axios'
 import {genArtistProfile, genOrder, genProduct} from '@/specs/helpers/fixtures'
+import {afterEach, describe, expect, test} from 'vitest'
 
-let wrapper: Wrapper<Vue>
-const localVue = vueSetup()
+let wrapper: VueWrapper<any>
+
+const WrappedOrderList = VuetifyWrapped(OrderList)
 
 describe('OrderList.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Recognizes when it is on the waiting list page.', async() => {
-    wrapper = qMount(OrderList, {
-      localVue,
-      propsData: {
+  test('Recognizes when it is on the waiting list page.', async() => {
+    wrapper = mount(OrderList, {
+      ...vueSetup({
+        stubs: ['router-link'],
+        mocks: {$route: {query: {}}},
+      }),
+      props: {
         type: 'sales',
         category: 'waiting',
         username: 'Fox',
       },
-      mocks: {$route: {query: {}}},
     })
     const vm = wrapper.vm as any
     expect(vm.salesWaiting).toBe(true)
-    wrapper.setProps({category: 'current'})
+    await wrapper.setProps({category: 'current'})
     await vm.$nextTick()
     expect(vm.salesWaiting).toBe(false)
-    wrapper.setProps({category: 'orders'})
+    await wrapper.setProps({category: 'orders'})
     await vm.$nextTick()
     expect(vm.salesWaiting).toBe(false)
   })
-  it('Loads state from query', async() => {
-    wrapper = qMount(OrderList, {
-      localVue,
-      propsData: {
+  test('Loads state from query', async() => {
+    wrapper = mount(OrderList, {
+      ...vueSetup({
+        stubs: ['router-link'],
+        mocks: {
+          $route: {
+            query: {
+              q: 'lol',
+              product: 10,
+            },
+          },
+        },
+      }),
+      props: {
         type: 'sales',
         category: 'waiting',
         username: 'Fox',
       },
-      mocks: {$route: {query: {q: 'lol', product: 10}}},
     })
     const vm = wrapper.vm as any
     expect(vm.showProduct).toBe(false)
     expect(vm.productInitItems.length).toBe(0)
     const request = mockAxios.getReqByUrl('/api/sales/account/Fox/products/10/')
     expect(request.method).toBe('get')
-    mockAxios.mockResponse(rs(genProduct({id: 10, name: 'stuff'})), request)
+    mockAxios.mockResponse(rs(genProduct({
+      id: 10,
+      name: 'stuff',
+    })), request)
     await vm.$nextTick()
     expect(vm.showProduct).toBe(true)
     expect(vm.productInitItems.length).toBe(1)
     expect(vm.productInitItems[0].name).toBe('stuff')
   })
-  it('Clears a waitlist', async() => {
-    wrapper = qMount(OrderList, {
-      localVue,
-      propsData: {
+  test('Clears a waitlist', async() => {
+    wrapper = mount(WrappedOrderList, {
+      ...vueSetup({
+        stubs: ['router-link'],
+        mocks: {$route: {query: {}}},
+      }),
+      props: {
         type: 'sales',
         category: 'waiting',
         username: 'Fox',
       },
-      mocks: {$route: {query: {}}},
     })
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm.$refs.vm as any
     vm.viewerHandler.artistProfile.makeReady(genArtistProfile())
     vm.list.setList([])
     vm.list.ready = true
@@ -77,10 +94,13 @@ describe('OrderList.vue', () => {
     await vm.$nextTick()
     expect(vm.list.ready).toBe(false)
   })
-  it('Displays orders in a tabulated manner', async() => {
-    wrapper = qMount(OrderList, {
-      localVue,
-      propsData: {
+  test('Displays orders in a tabulated manner', async() => {
+    wrapper = mount(OrderList, {
+      ...vueSetup({
+        stubs: ['router-link'],
+        mocks: {$route: {query: {}}},
+      }),
+      props: {
         type: 'sales',
         category: 'waiting',
         username: 'Fox',
@@ -93,8 +113,14 @@ describe('OrderList.vue', () => {
     vm.list.setList(
       [
         genOrder({id: 1}),
-        genOrder({id: 2, read: false}),
-        genOrder({id: 3, buyer: null}),
+        genOrder({
+          id: 2,
+          read: false,
+        }),
+        genOrder({
+          id: 3,
+          buyer: null,
+        }),
       ],
     )
     vm.list.ready = true

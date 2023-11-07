@@ -1,44 +1,45 @@
 <template>
   <v-col v-observe-visibility="grower">
-    <ac-loading-spinner :min-height="minHeight" v-if="list.fetching && list.currentPage > 1" />
+    <ac-loading-spinner :min-height="minHeight" v-if="list.fetching && list.currentPage > 1"/>
   </v-col>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
 import AcLoadingSpinner from './wrappers/AcLoadingSpinner.vue'
 import {ListController} from '@/store/lists/controller'
-  @Component({
-    components: {AcLoadingSpinner},
-  })
-export default class AcGrowSpinner extends Vue {
-    @Prop({default: '3rem'})
-    public minHeight!: string
 
-    @Prop({required: true})
-    public list!: ListController<any>
+@Component({
+  components: {AcLoadingSpinner},
+})
+class AcGrowSpinner extends Vue {
+  @Prop({default: '3rem'})
+  public minHeight!: string
 
-    public visible = false
+  @Prop({required: true})
+  public list!: ListController<any>
 
-    @Watch('list.fetching', {immediate: true})
-    public updateFetching(val: boolean) {
-      if (!val) {
-        this.grower(this.visible)
-      }
+  public visible = false
+
+  @Watch('list.fetching', {immediate: true})
+  public updateFetching(val: boolean) {
+    if (!val) {
+      this.grower(this.visible)
     }
+  }
 
-    @Watch('list.moreAvailable', {immediate: true})
-    public updateMore(val: boolean) {
-      if (val) {
-        this.list.grower(this.visible)
-      }
+  @Watch('list.moreAvailable', {immediate: true})
+  public updateMore(val: boolean) {
+    if (val) {
+      this.list.grower(this.visible)
     }
+  }
 
-    public grower(val: boolean) {
-      this.visible = val
-      this.list.grower(val)
-    }
+  public grower(val: boolean) {
+    this.visible = val
+    this.list.grower(val)
+  }
 }
+
+export default toNative(AcGrowSpinner)
 </script>

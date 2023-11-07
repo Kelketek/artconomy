@@ -16,11 +16,11 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Formatting from '@/mixins/formatting'
 
-  @Component
-export default class FormattedComponent extends mixins(Formatting) {
+@Component({})
+class FormattedComponent extends mixins(Formatting) {
     public toText = '# Hello!'
     public dateString = '2020-08-10'
     public truncatable = 'This is a test. Please enjoy the test.'
@@ -29,4 +29,5 @@ export default class FormattedComponent extends mixins(Formatting) {
       return this.guestName('Guest #3')
     }
 }
+export default toNative(FormattedComponent)
 </script>

@@ -1,15 +1,38 @@
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component} from 'vue-facing-decorator'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
-import {Mutation} from 'vuex-class'
+import {ArtVue} from '@/lib/lib'
+import {ArtVueInterface} from '@/types/ArtVueInterface'
 
 @Component
-export default class QuestionSet extends Vue {
-  public tab!: number
+export default class QuestionSet extends ArtVue {
+  public questions: string[] = []
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
   public attempts: number = 0
-  @Mutation('supportDialog') public setSupport: any
+
+  public updatePath(value: number) {
+    const params: {[key: string]: any} = {}
+    params.question = this.questions[value]
+    const newParams = Object.assign({}, this.$route.params, params)
+    const newQuery = Object.assign({}, this.$route.query)
+    delete newQuery.page
+    /* istanbul ignore next */
+    const name = this.$route.name || undefined
+    const newPath = {name, params: newParams, query: newQuery}
+    this.$router.replace(newPath)
+  }
+
+  public get tab() {
+    if (!this.$route.params.question) {
+      this.updatePath(0)
+      return 0
+    }
+    return this.questions.indexOf(this.$route.params.question as string)
+  }
+
+  public set tab(value) {
+    this.updatePath(value)
+  }
 
   // It will be hard to know if this is correct until production. For now, ignoring in code coverage.
   /* istanbul ignore next */
@@ -31,7 +54,10 @@ export default class QuestionSet extends Vue {
         return
       }
       this.attempts = 0
-      target.scrollIntoView({block: 'center', behavior: 'smooth'})
+      target.scrollIntoView({
+        block: 'center',
+        behavior: 'smooth',
+      })
     })
   }
 

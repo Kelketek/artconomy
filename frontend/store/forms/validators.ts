@@ -1,9 +1,7 @@
 import {formRegistry} from './registry'
 import {FieldController} from './field-controller'
-import {CancelToken} from 'axios'
 import deepEqual from 'fast-deep-equal'
 import {artCall} from '@/lib/lib'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
 import {RawData} from '@/store/forms/types/RawData'
 
 export function required(field: FieldController): string[] {
@@ -44,115 +42,6 @@ export function email(field: FieldController): string[] {
 
 export type CardType = 'mastercard' | 'amex' | 'discover' | 'visa' | 'diners' | 'unknown'
 
-export function cardType(value: string): CardType {
-  if (/^5[1-5]/.test(value)) {
-    return 'mastercard'
-  }
-  if (/^4/.test(value)) {
-    return 'visa'
-  }
-  if (/^3[47]/.test(value)) {
-    return 'amex'
-  }
-  if (/^6011/.test(value)) {
-    return 'discover'
-  }
-  if (/^(30[0-5]|(36|38))/.test(value)) {
-    return 'diners'
-  }
-  return 'unknown'
-}
-
-export function cvv(field: FieldController, numberField: string) {
-  const cardValue = field.form.fields[numberField].value
-  let len = 3
-  if (!/^\d+$/.test(field.value)) {
-    return ['Digits only, please']
-  }
-  if (cardType(cardValue.replace(/[^0-9]+/g, '')) === 'amex') {
-    len = 4
-  }
-  if (field.value.length !== len) {
-    return [`Must be ${len} digits long`]
-  }
-  return []
-}
-
-export function creditCard(field: FieldController) {
-  if (validateCard(field.value)) {
-    return []
-  } else {
-    return ['That is not a valid card number. Please check the card.']
-  }
-}
-
-// Yoinked from Vue Form Generator
-export function validateCard(input: string) {
-  /*  From validator.js code
-    https://github.com/chriso/validator.js/blob/master/src/lib/isCreditCard.js
-  */
-  const cardRegEx = new RegExp(
-    '^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|6(?:011|5[0-9][0-9])[0-9]{12}|3[47][0-9]{13}|3(?:0[0-5]|' +
-    '[68][0-9])[0-9]{11}|(?:2131|1800|35\\d{3})\\d{11})$',
-  )
-  const sanitized = input.replace(/[^0-9]+/g, '')
-  if (!cardRegEx.test(sanitized)) {
-    return false
-  }
-  let sum = 0
-  let digit
-  let tmpNum
-  let shouldDouble
-  for (let i = sanitized.length - 1; i >= 0; i--) {
-    digit = sanitized.substring(i, i + 1)
-    tmpNum = parseInt(digit, 10)
-    if (shouldDouble) {
-      tmpNum *= 2
-      if (tmpNum >= 10) {
-        sum += tmpNum % 10 + 1
-      } else {
-        sum += tmpNum
-      }
-    } else {
-      sum += tmpNum
-    }
-    shouldDouble = !shouldDouble
-  }
-
-  return sum % 10 === 0 ? sanitized : false
-}
-
-export function cardExp(field: FieldController) {
-  if (!field.value) {
-    // Handled by required validator.
-    return []
-  }
-  if (!/^(\d)+\/(\d)+$/.test(field.value)) {
-    return ['Please write the date in the format MM/YY, like 08/22.']
-  }
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const yearFloor = currentYear - (currentYear % 100)
-  const currentMonth = now.getMonth()
-  const yearString = field.value.slice(3)
-  let year = parseInt(yearString, 10)
-  if (yearString.length === 2) {
-    year += yearFloor
-    // We'll silently support a four digit year as well, since this confuses some customers.
-  } else if (yearString.length !== 4) {
-    return ['Please enter a two digit year.']
-  }
-  // Months are zero indexed.
-  const month = parseInt(field.value.slice(0, 2), 10) - 1
-  if ((month > 11) || (month < 0)) {
-    return ['That is not a valid month.']
-  }
-  if (new Date(year, month) < new Date(currentYear, currentMonth)) {
-    return ['This card has expired.']
-  }
-  return []
-}
-
 export function matches(field: FieldController, fieldName: string, error: string) {
   if (!deepEqual(field.value, field.form.fields[fieldName].value)) {
     return [error || 'Values do not match.']
@@ -168,11 +57,11 @@ export function validateStatus(status: number) {
 }
 
 export function simpleAsyncValidator(url: string) {
-  return async(field: FieldController, cancelToken: CancelToken, sendAs?: string): Promise<string[]> => {
+  return async(field: FieldController, signal: AbortSignal, sendAs?: string): Promise<string[]> => {
     const data: RawData = {}
     sendAs = sendAs || field.fieldName
     data[sendAs] = field.value
-    return artCall({url, method: 'post', data, cancelToken, validateStatus},
+    return artCall({url, method: 'post', data, signal, validateStatus},
     ).then((responseData: any) => {
       return responseData[sendAs as string] || []
     })
@@ -220,9 +109,6 @@ export function registerValidators() {
   formRegistry.validators.required = required
   formRegistry.validators.email = email
   formRegistry.validators.matches = matches
-  formRegistry.validators.creditCard = creditCard
-  formRegistry.validators.cardExp = cardExp
-  formRegistry.validators.cvv = cvv
   formRegistry.validators.colorRef = colorRef
   formRegistry.validators.numeric = numeric
   formRegistry.validators.minLength = minLength

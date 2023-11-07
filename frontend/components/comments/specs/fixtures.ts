@@ -1,5 +1,8 @@
 export const commentSet = {
-  links: {next: null, previous: null},
+  links: {
+    next: null,
+    previous: null,
+  },
   count: 3,
   results: [{
     id: 17,

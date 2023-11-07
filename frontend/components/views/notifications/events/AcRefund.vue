@@ -1,6 +1,8 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">Sale #{{event.target.id}} [{{event.target.name}}] was refunded. :(</router-link></span>
+    <template v-slot:title>
+      <router-link :to="assetLink">Sale #{{event.target.id}} [{{event.target.name}}] was refunded. :(</router-link>
+    </template>
   </ac-base-notification>
 </template>
 

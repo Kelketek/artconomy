@@ -5,17 +5,18 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative} from 'vue-facing-decorator'
 import {Patch} from '@/store/singles/patcher'
+import {ArtVue} from '@/lib/lib'
 
-  @Component
-export default class PatcherBroken extends Vue {
-    private sfwMode: Patch = null as unknown as Patch
+@Component
+class PatcherBroken extends ArtVue {
+    public sfwMode: Patch = null as unknown as Patch
     public created() {
       this.sfwMode = this.$makePatcher({modelProp: 'subjectHandler.user', attrName: 'sfw_mode'})
     }
 }
+export default toNative(PatcherBroken)
 </script>
 
 <style scoped>

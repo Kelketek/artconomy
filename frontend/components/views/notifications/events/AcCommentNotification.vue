@@ -1,7 +1,11 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="event.data.link">
-    <span slot="title"><ac-link :to="event.data.link">{{titleText}}</ac-link></span>
-    <span slot="subtitle"><ac-link :to="event.data.link">{{byLine}}</ac-link></span>
+    <template v-slot:title>
+      <ac-link :to="event.data.link">{{titleText}}</ac-link>
+    </template>
+    <template v-slot:subtitle>
+      <ac-link :to="event.data.link">{{byLine}}</ac-link>
+    </template>
   </ac-base-notification>
 </template>
 
@@ -13,7 +17,10 @@ import AcLink from '@/components/wrappers/AcLink'
 
 export default {
   name: 'ac-comment-notification',
-  components: {AcLink, AcBaseNotification},
+  components: {
+    AcLink,
+    AcBaseNotification,
+  },
   mixins: [Notification],
   data() {
     return {}

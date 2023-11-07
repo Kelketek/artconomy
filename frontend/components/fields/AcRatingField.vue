@@ -1,29 +1,54 @@
 <template>
   <v-input v-bind="passedProps" class="ac-rating-field">
     <v-card-text>
-      <v-row no-gutters v-if="label" class="mb-5">
-        <label :for="$attrs.id" class="v-label">{{label}}</label>
-      </v-row>
-      <v-slider
-          field-type="v-slider"
-          v-model="scratch"
-          :always-dirty="true"
-          :max="max"
-          step="1"
-          ticks="always"
-          tick-size="2"
-          thumb-size="24"
-          thumb-label="always"
-          :color="ratingColor[scratch]"
-          :disabled="disabled"
-      >
-        <template v-slot:thumb-label></template>
-      </v-slider>
-      <v-row no-gutters   :class="{disabled}">
-        <v-col class="text-center" cols="12" ><h2>{{ratingOptions[scratch]}}</h2></v-col>
-        <v-col class="text-center" cols="12" >
-              <span v-text="ratingLongDesc[scratch]">
+      <v-row>
+        <v-col cols="12" v-if="label">
+          <label :for="$attrs.id as string | undefined" class="v-label">{{label}}</label>
+        </v-col>
+        <v-col cols="12" class="text-center hidden-sm-and-down">
+          <v-btn-toggle v-model="scratch" mandatory elevation="3" variant="flat">
+            <template v-for="(label, index) in ratingLabels">
+              <v-btn
+                  :value="index"
+                  :key="label"
+                  :color="ratingColor[index as ContentRating]"
+                  :disabled="disabled"
+                  v-if="index <= max"
+                  variant="flat"
+              >{{label}}</v-btn>
+            </template>
+          </v-btn-toggle>
+        </v-col>
+        <v-col cols="12" class="hidden-md-and-up">
+          <v-row no-gutters>
+            <v-col cols="12" v-for="(label, index) in ratingOptions" :key="label">
+              <v-btn
+                  :color="(String(scratch) === String(index)) ? ratingColor[index] : ''"
+                  @click="scratch = index"
+                  :disabled="disabled"
+                  block
+                  variant="flat"
+                  size="x-large"
+                  v-if="index <= max"
+              >{{label}}</v-btn>
+            </v-col>
+          </v-row>
+        </v-col>
+        <v-col cols="12" :class="{disabled}">
+          <v-row>
+            <v-col class="text-center" cols="12"><h2>{{ratingOptions[scratch]}}</h2></v-col>
+            <v-col class="text-center" cols="12">
+              <span>
+                {{ratingLongDesc[scratch]}}
               </span>
+            </v-col>
+            <v-col cols="12" v-if="showWarning && scratch === EXTREME">
+              <v-alert type="warning" class="my-2">
+                What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this
+                content.
+              </v-alert>
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-card-text>
@@ -31,46 +56,49 @@
 </template>
 
 <style scoped>
-  .disabled {
-    opacity: .5;
-  }
+.disabled {
+  opacity: .5;
+}
 </style>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcAsset from '../AcAsset.vue'
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib'
-import {Prop} from 'vue-property-decorator'
 import ExtendedInput from '@/components/fields/mixins/extended_input'
+import {ContentRating} from '@/types/ContentRating'
 
-  @Component({
-    components: {AcAsset},
-  })
-export default class AcRatingField extends mixins(ExtendedInput) {
-    @Prop({default: false})
-    public disabled!: boolean
+@Component({
+  components: {AcAsset},
+  emits: ['update:modelValue'],
+})
+class AcRatingField extends mixins(ExtendedInput) {
+  @Prop({default: false})
+  public disabled!: boolean
 
-    @Prop({required: true})
-    public value!: number
+  @Prop({required: true})
+  public modelValue!: ContentRating
 
-    @Prop()
-    public label!: string
+  @Prop({default: 3})
+  public max!: number
 
-    @Prop({default: 3})
-    public max!: number
+  @Prop({default: false})
+  public showWarning!: boolean
 
-    public ratingLabels = Object.values(RATINGS_SHORT)
-    public ratingLongDesc = RATING_LONG_DESC
-    public ratingColor = RATING_COLOR
-    public ratingOptions = RATINGS_SHORT
+  public ratingLabels = Object.values(RATINGS_SHORT)
+  public ratingLongDesc = RATING_LONG_DESC
+  public ratingColor = RATING_COLOR
+  public ratingOptions = RATINGS_SHORT
+  public EXTREME = 3
 
-    public get scratch() {
-      return this.value
-    }
+  public get scratch(): ContentRating {
+    return this.modelValue
+  }
 
-    public set scratch(val: number) {
-      this.$emit('input', val)
-    }
+  public set scratch(val: ContentRating) {
+    this.$emit('update:modelValue', val)
+  }
 }
+
+export default toNative(AcRatingField)
 </script>

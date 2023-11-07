@@ -4,7 +4,10 @@
       <v-col cols="12" class="text-center py-8">
         <ac-form-container v-bind="invoiceForm.bind">
           <ac-form @submit.prevent="invoiceForm.submitThen(goToInvoice)">
-            <v-btn color="green" block type="submit"><v-icon>receipt</v-icon>New invoice</v-btn>
+            <v-btn color="green" block type="submit" variant="flat">
+              <v-icon icon="mdi-receipt-text"/>
+              New invoice
+            </v-btn>
           </ac-form>
         </ac-form-container>
       </v-col>
@@ -16,18 +19,16 @@
             <v-toolbar-title>History</v-toolbar-title>
           </v-toolbar>
           <v-list>
-            <v-list-item v-for="invoice in invoices.list" :key="invoice.x.id">
-              <v-list-item-content>
-                <v-list-item-title>
-                  <ac-link :to="linkFor(invoice.x)">{{invoice.x.id}}</ac-link>
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{formatDateTime(invoice.x.created_on)}}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-action>
-                {{invoice.x.total}}
-              </v-list-item-action>
+            <v-list-item v-for="invoice in invoices.list" :key="invoice.x!.id">
+              <v-list-item-title>
+                <ac-link :to="linkFor(invoice.x!)">{{ invoice.x!.id }}</ac-link>
+              </v-list-item-title>
+              <v-list-item-subtitle>
+                {{ formatDateTime(invoice.x!.created_on) }}
+              </v-list-item-subtitle>
+              <template v-slot:append>
+                {{ invoice.x!.total }}
+              </template>
             </v-list-item>
           </v-list>
         </v-col>
@@ -37,17 +38,17 @@
   <v-container class="pa-0" v-else>
     <v-toolbar class="table-invoice-toolbar">
       <v-toolbar-items>
-        <v-btn @click="() => $router.go(-1)" color="secondary">
-          <v-icon left>arrow_back</v-icon>
+        <v-btn @click="() => $router.go(-1)" color="secondary" variant="flat">
+          <v-icon left icon="mdi-arrow-back"/>
           Back
         </v-btn>
-        <v-btn color="primary" @click="performPrint">
-          <v-icon left>print</v-icon>
+        <v-btn color="primary" @click="performPrint" variant="flat">
+          <v-icon left icon="mdi-print"/>
           Print
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
-    <router-view />
+    <router-view/>
   </v-container>
 </template>
 
@@ -56,9 +57,11 @@
   .table-invoice-toolbar {
     display: none;
   }
+
   .table-dashboard-nav {
     display: none;
   }
+
   .main-navigation {
     display: none;
   }
@@ -66,7 +69,7 @@
 </style>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
 import {ListController} from '@/store/lists/controller'
 import Invoice from '@/types/Invoice'
@@ -78,19 +81,23 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting'
 import {SingleController} from '@/store/singles/controller'
 import {NavSettings} from '@/types/NavSettings'
-import {Prop} from 'vue-property-decorator'
 import {initDrawerValue} from '@/lib/lib'
 
 @Component({
-  components: {AcLink, AcForm, AcFormContainer, AcPaginated},
+  components: {
+    AcLink,
+    AcForm,
+    AcFormContainer,
+    AcPaginated,
+  },
 })
-export default class TableInvoices extends mixins(Viewer, Formatting) {
+class TableInvoices extends mixins(Viewer, Formatting) {
   invoices = null as unknown as ListController<Invoice>
   invoiceForm = null as unknown as FormController
   navSettings = null as unknown as SingleController<NavSettings>
 
   @Prop({default: initDrawerValue})
-  public initialState!: null|boolean
+  public initialState!: null | boolean
 
   public get currentRoute() {
     return this.$route.name === 'TableInvoices'
@@ -113,12 +120,18 @@ export default class TableInvoices extends mixins(Viewer, Formatting) {
   }
 
   public linkFor(invoice: Invoice) {
-    return {name: 'TableInvoice', params: {username: this.usernameFor(invoice), invoiceId: invoice.id}}
+    return {
+      name: 'TableInvoice',
+      params: {
+        username: this.usernameFor(invoice),
+        invoiceId: invoice.id,
+      },
+    }
   }
 
   public created() {
     let drawer: boolean | null
-    if (this.$vuetify.breakpoint.mdAndDown) {
+    if (this.$vuetify.display.mdAndDown) {
       // Never begin with the drawer open on a small screen.
       drawer = false
     } else {
@@ -129,9 +142,14 @@ export default class TableInvoices extends mixins(Viewer, Formatting) {
       x: {drawer},
     })
     this.navSettings = this.$getSingle('navSettings')
-    this.invoiceForm = this.$getForm('new_invoice_button', {endpoint: '/api/sales/create-anonymous-invoice/', fields: {}})
+    this.invoiceForm = this.$getForm('new_invoice_button', {
+      endpoint: '/api/sales/create-anonymous-invoice/',
+      fields: {},
+    })
     this.invoices = this.$getList('table_invoices', {endpoint: '/api/sales/recent-invoices/'})
     this.invoices.firstRun()
   }
 }
+
+export default toNative(TableInvoices)
 </script>

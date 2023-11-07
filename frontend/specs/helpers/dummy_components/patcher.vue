@@ -1,25 +1,25 @@
 <template>
-  <div>
+  <div v-if="sfwMode !== null">
     <div id="sfw_mode">{{sfwMode.model}}</div>
     <div id="max_load">{{maxLoad.model}}</div>
   </div>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative} from 'vue-facing-decorator'
 import {Patch} from '@/store/singles/patcher'
 import {ProfileController} from '@/store/profiles/controller'
 import {genArtistProfile} from '@/specs/helpers/fixtures'
 import {SingleController} from '@/store/singles/controller'
 import DeliverableViewSettings from '@/types/DeliverableViewSettings'
+import {ArtVue} from '@/lib/lib'
 
-  @Component
-export default class Patcher extends Vue {
+@Component({})
+class Patcher extends ArtVue {
     public subjectHandler: ProfileController = null as unknown as ProfileController
-    private maxLoad: Patch = null as unknown as Patch
-    private sfwMode: Patch = null as unknown as Patch
-    private localShare: SingleController<DeliverableViewSettings> = null as unknown as SingleController<DeliverableViewSettings>
+    public maxLoad: Patch = null as unknown as Patch
+    public sfwMode: Patch = null as unknown as Patch
+    public localShare: SingleController<DeliverableViewSettings> = null as unknown as SingleController<DeliverableViewSettings>
 
     public created() {
       this.subjectHandler = this.$getProfile('Fox', {})
@@ -33,6 +33,8 @@ export default class Patcher extends Vue {
       this.localShare = this.$getSingle('TestSingle', {endpoint: '#'})
     }
 }
+
+export default toNative(Patcher)
 </script>
 
 <style scoped>

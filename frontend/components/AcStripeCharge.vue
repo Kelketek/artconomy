@@ -1,29 +1,31 @@
 <template>
-    <div :id="`${id}-card-number`" />
+  <div :id="`${id}-card-number`"/>
 </template>
 
 <style>
-  .StripeElement {
-    border-bottom-style: solid;
-    border-bottom-color: rgba(255, 255, 255, 0.7);
-    border-bottom-width: 1px;
-  }
-  .StripeElement.focus {
-    border-bottom-color: white;
-  }
-  .StripeElement.invalid {
-    border-bottom-color: darkred;
-  }
+.StripeElement {
+  border-bottom-style: solid;
+  border-bottom-color: rgba(255, 255, 255, 0.7);
+  border-bottom-width: 1px;
+}
+
+.StripeElement.focus {
+  border-bottom-color: white;
+}
+
+.StripeElement.invalid {
+  border-bottom-color: darkred;
+}
 </style>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import StripeMixin from './views/order/mixins/StripeMixin'
 import {genId} from '@/lib/lib'
 import {StripeCardElement} from '@stripe/stripe-js'
 
-@Component
-export default class AcStripeCharge extends mixins(StripeMixin) {
+@Component({emits: ['card']})
+class AcStripeCharge extends mixins(StripeMixin) {
   public elements = null
   public style = {}
   public card = null as unknown as StripeCardElement
@@ -35,7 +37,11 @@ export default class AcStripeCharge extends mixins(StripeMixin) {
 
   created() {
     const elements = this.stripe()!.elements()
-    const classes = {focus: 'focus', empty: 'empty', invalid: 'invalid'}
+    const classes = {
+      focus: 'focus',
+      empty: 'empty',
+      invalid: 'invalid',
+    }
     const style = {
       base: {
         color: 'rgba(255, 255, 255, 0.7)',
@@ -48,8 +54,14 @@ export default class AcStripeCharge extends mixins(StripeMixin) {
         },
       },
     }
-    this.card = elements.create('card', {style: style, iconStyle: 'solid', classes})
+    this.card = elements.create('card', {
+      style: style,
+      iconStyle: 'solid',
+      classes,
+    })
     this.$emit('card', this.card)
   }
 }
+
+export default toNative(AcStripeCharge)
 </script>

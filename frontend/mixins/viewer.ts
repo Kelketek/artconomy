@@ -1,4 +1,4 @@
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins} from 'vue-facing-decorator'
 import {differenceInYears} from 'date-fns'
 import {User} from '@/store/profiles/types/User'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
@@ -74,7 +74,7 @@ export default class Viewer extends mixins(ErrorHandling) {
   }
 
   public get rawViewerName() {
-    return this.$store.state.profiles.viewerRawUsername
+    return this.$store.state.profiles!.viewerRawUsername
   }
 
   public get adultAllowed() {

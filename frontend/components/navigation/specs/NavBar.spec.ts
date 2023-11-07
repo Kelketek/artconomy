@@ -1,97 +1,73 @@
-import Vue, {VueConstructor} from 'vue'
-import Vuetify from 'vuetify/lib'
-import {shallowMount, Wrapper} from '@vue/test-utils'
+import {shallowMount, VueWrapper} from '@vue/test-utils'
 import NavBar from '../NavBar.vue'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
 import {
   cleanUp,
-  createVuetify, docTarget,
   flushPromises,
   genAnon,
+  mount,
   rq,
   rs,
   setViewer,
   vueSetup,
-  mount,
 } from '@/specs/helpers'
 import mockAxios from '@/specs/helpers/mock-axios'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {initDrawerValue} from '@/lib/lib'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import NavBarContainer from '@/components/navigation/specs/NavBarContainer.vue'
+import {reactive} from 'vue'
 
 // Must use it directly, due to issues with package imports upstream.
-let localVue: VueConstructor
-let wrapper: Wrapper<Vue>
-let empty: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
+let empty: VueWrapper<any>
 
 describe('NavBar.vue', () => {
   let store: ArtStore
   beforeEach(() => {
-    mockAxios.reset()
-    jest.useFakeTimers()
-    localVue = vueSetup()
+    vi.useFakeTimers()
     store = createStore()
-    vuetify = createVuetify()
-    empty = mount(Empty, {localVue, store})
-    empty.vm.$getForm('search', {endpoint: '/', fields: {q: {value: ''}}})
+    empty = mount(Empty, vueSetup({store}))
+    empty.vm.$getForm('search', {
+      endpoint: '/',
+      fields: {q: {value: ''}},
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Starts with the drawer closed on small screens', async() => {
-    (window as any).innerWidth = 300
-    dispatchEvent(new Event('resize'))
-    await jest.runAllTimers()
-    wrapper = shallowMount(NavBar, {
+  test('Starts the notifications loop when a viewer is set and is real.', async() => {
+    const dispatch = vi.spyOn(store, 'dispatch')
+    wrapper = shallowMount(NavBar, vueSetup({
       store,
-      localVue,
-      vuetify,
-      propsData: {initialState: null},
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      attachTo: docTarget(),
-    })
-    await wrapper.vm.$nextTick()
-    expect((wrapper.vm as any).navSettings.patchers.drawer.model).toBe(false)
-  })
-  it('Starts with the drawer open on large screens', async() => {
-    (window as any).innerWidth = 1500
-    dispatchEvent(new Event('resize'))
-    await jest.runAllTimers()
-    wrapper = shallowMount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      propsData: {initialState: null},
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      attachTo: docTarget(),
-    })
-    expect((wrapper.vm as any).navSettings.patchers.drawer.model).toBe(true)
-  })
-  it('Starts the notifications loop when a viewer is set and is real.', async() => {
-    const dispatch = jest.spyOn(store, 'dispatch')
-    wrapper = shallowMount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-    })
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+      },
+    }))
     const vm = wrapper.vm as any
     vm.viewerHandler.user.makeReady(genUser())
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).viewer.username).toBe('Fox')
     expect(dispatch).toHaveBeenCalledWith('notifications/startLoop')
   })
-  it('Stops the notifications loop when a viewer is set and is anonymous.', async() => {
-    const dispatch = jest.spyOn(store, 'dispatch')
-    wrapper = mount(NavBar, {
+  test('Stops the notifications loop when a viewer is set and is anonymous.', async() => {
+    const dispatch = vi.spyOn(store, 'dispatch')
+    wrapper = shallowMount(NavBar, vueSetup({
       store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+      },
       stubs: ['router-link'],
-      attachTo: docTarget(),
-    })
+    }))
     // Have to start as logged in to trigger the event.
     const vm = wrapper.vm as any
     vm.viewerHandler.user.makeReady(genUser())
@@ -101,100 +77,82 @@ describe('NavBar.vue', () => {
     await wrapper.vm.$nextTick()
     expect(dispatch).toHaveBeenCalledWith('notifications/stopLoop')
   })
-  it('Stops the notifications loop when destroyed.', async() => {
-    const dispatch = jest.spyOn(store, 'dispatch')
-    wrapper = shallowMount(NavBar, {
+  test('Stops the notifications loop when destroyed.', async() => {
+    const dispatch = vi.spyOn(store, 'dispatch')
+    wrapper = shallowMount(NavBar, vueSetup({
       store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-    })
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+      },
+      stubs: ['router-link'],
+    }))
     const vm = wrapper.vm as any
     vm.viewerHandler.user.makeReady(genUser())
     await wrapper.vm.$nextTick()
     dispatch.mockClear()
-    wrapper.destroy()
+    wrapper.unmount()
     expect(dispatch).toHaveBeenCalledWith('notifications/stopLoop')
   })
-  it('Handles the drawer preference via local storage', async() => {
-    expect(initDrawerValue()).toBe(null)
-    wrapper = shallowMount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      attachTo: docTarget(),
-    })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    vm.navSettings.patchers.drawer.model = false
-    expect(vm.navSettings.patchers.drawer.model).toBe(false)
-    await wrapper.vm.$nextTick()
-    expect(initDrawerValue()).toBe(false)
-    vm.navSettings.patchers.drawer.model = null
-    await wrapper.vm.$nextTick()
-    expect(vm.navSettings.patchers.drawer.model).toBe(true)
-    expect(initDrawerValue()).toBe(true)
-    wrapper.destroy()
-  })
-  it('Loads the previous preference from localStorage', async() => {
-    expect(initDrawerValue()).toBe(null)
-    localStorage.setItem('drawerOpen', 'false');
-    (window as any).innerWidth = 1500
-    dispatchEvent(new Event('resize'))
-    wrapper = shallowMount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      attachTo: docTarget(),
-    })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.navSettings.patchers.drawer.model).toBe(false)
-    expect(initDrawerValue()).toBe(false)
-  })
-  it('Generates a profile link', async() => {
+  test('Generates a profile link', async() => {
     const user = genUser()
     user.username = 'Goober'
     user.artist_mode = false
     setViewer(store, user)
-    wrapper = shallowMount(NavBar, {
+    wrapper = shallowMount(NavBar, vueSetup({
       store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-    })
-    await wrapper.vm.$nextTick()
-    expect((wrapper.vm as any).profileRoute).toEqual({name: 'AboutUser', params: {username: 'Goober'}})
-  })
-  it('Toggles the support form', async() => {
-    setViewer(store, genUser())
-    wrapper = mount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+      },
       stubs: ['router-link'],
-      attachTo: docTarget(),
+    }))
+    await wrapper.vm.$nextTick()
+    expect((wrapper.vm as any).profileRoute).toEqual({
+      name: 'AboutUser',
+      params: {username: 'Goober'},
     })
+  })
+  test('Toggles the support form', async() => {
+    setViewer(store, genUser())
+    wrapper = mount(NavBarContainer, vueSetup({
+      store,
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+      },
+      stubs: ['router-link'],
+    }))
     await wrapper.vm.$nextTick()
     expect(store.state.showSupport).toBe(false)
     wrapper.find('.support-button').trigger('click')
     await wrapper.vm.$nextTick()
     expect(store.state.showSupport).toBe(true)
   })
-  it('Logs out a user', async() => {
+  test('Logs out a user', async() => {
     setViewer(store, genUser())
-    const mockPush = jest.fn()
-    wrapper = mount(NavBar, {
+    const mockPush = vi.fn()
+    wrapper = mount(NavBarContainer, vueSetup({
       store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+        $router: {push: mockPush},
+      },
       stubs: ['router-link'],
-      attachTo: docTarget(),
-    })
+    }))
     await wrapper.vm.$nextTick()
     mockAxios.reset()
     wrapper.find('.logout-button').trigger('click')
@@ -202,111 +160,154 @@ describe('NavBar.vue', () => {
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/logout/', 'post', undefined, {}))
     mockAxios.mockResponse(rs(genAnon()))
     await flushPromises()
-    expect((wrapper.vm as any).viewerName).toBe('')
+    expect((wrapper.vm as any).$refs.nav.viewerName).toBe('')
     expect(mockPush).toHaveBeenCalledWith({name: 'Home'})
   })
-  it('Loads the notifications view', async() => {
+  test('Loads the notifications view', async() => {
     setViewer(store, genUser())
-    const mockPush = jest.fn()
-    const mockReplace = jest.fn()
-    wrapper = mount(NavBar, {
+    const mockPush = vi.fn()
+    const mockReplace = vi.fn()
+    wrapper = mount(NavBarContainer, vueSetup({
       store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush, replace: mockReplace}},
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+        $router: {
+          push: mockPush,
+          replace: mockReplace,
+        },
+      },
       stubs: ['router-link'],
-
-      attachTo: docTarget(),
-    })
+    }))
     await wrapper.vm.$nextTick()
     mockAxios.reset()
     wrapper.find('.notifications-button').trigger('click')
     await wrapper.vm.$nextTick()
     expect(mockPush).toHaveBeenCalledWith({name: 'CommunityNotifications'})
-    const vm = wrapper.vm as any
-    vm.$route = {name: 'CommunityNotifications', params: {}, path: '/notifications/community/'}
+    const vm = wrapper.vm.$refs.nav as any
+    vm.$route = {
+      name: 'CommunityNotifications',
+      params: {},
+      path: '/notifications/community/',
+    }
     wrapper.find('.notifications-button').trigger('click')
     await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({name: 'Reload', params: {path: '/notifications/community/'}})
-  })
-  it('Loads a login link', async() => {
-    setViewer(store, genUser())
-    wrapper = mount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}},
-      stubs: ['router-link'],
-
-      attachTo: docTarget(),
+    expect(mockReplace).toHaveBeenCalledWith({
+      name: 'Reload',
+      params: {path: '/notifications/community/'},
     })
+  })
+  test('Loads a login link', async() => {
+    setViewer(store, genUser())
+    wrapper = mount(NavBarContainer, vueSetup({
+      store,
+      mocks: {
+        $route: reactive({
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        }),
+      },
+      stubs: ['router-link'],
+    }))
     await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.loginLink).toEqual({name: 'Login', params: {tabName: 'login'}, query: {next: '/'}})
+    const vm = wrapper.vm.$refs.nav as any
+    expect(vm.loginLink).toEqual({
+      name: 'Login',
+      query: {next: '/'},
+    })
     vm.$route.name = 'Login'
     await vm.$nextTick()
-    expect(vm.loginLink).toEqual({name: 'Login', params: {tabName: 'login'}})
-  })
-  it('Sends you to the search page', async() => {
-    const mockPush = jest.fn()
-    wrapper = mount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
-      stubs: ['router-link'],
-
-      attachTo: docTarget(),
+    expect(vm.loginLink).toEqual({
+      name: 'Login',
     })
+  })
+  test('Sends you to the search page', async() => {
+    const mockPush = vi.fn()
+    wrapper = mount(NavBarContainer, vueSetup({
+      store,
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+        $router: {push: mockPush},
+      },
+      stubs: ['router-link'],
+    }))
     const field = wrapper.find('#nav-bar-search')
-    field.setValue('Stuff')
-    field.trigger('keyup')
-    expect(mockPush).toHaveBeenCalledWith({name: 'SearchProducts', query: {q: 'Stuff'}})
-  })
-  it('Sends you to the search page for recent products', async() => {
-    setViewer(store, genUser())
-    const mockPush = jest.fn()
-    wrapper = mount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
-      stubs: ['router-link'],
-      attachTo: docTarget(),
+    await field.setValue('Stuff')
+    await field.trigger('keyup')
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'SearchProducts',
+      query: {q: 'Stuff'},
     })
+  })
+  test('Sends you to the search page for recent products', async() => {
+    setViewer(store, genUser())
+    const mockPush = vi.fn()
+    wrapper = mount(NavBarContainer, vueSetup({
+      store,
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+        $router: {push: mockPush},
+      },
+      stubs: ['router-link'],
+    }))
     await wrapper.vm.$nextTick()
-    wrapper.find('.who-is-open').trigger('click')
-    expect(mockPush).toHaveBeenCalledWith({name: 'SearchProducts', query: {q: ''}})
-  })
-  it('Sends you to the search page for recent art', async() => {
-    setViewer(store, genUser())
-    const mockPush = jest.fn()
-    wrapper = mount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/', name: 'Home', path: '/'}, $router: {push: mockPush}},
-      stubs: ['router-link'],
-      attachTo: docTarget(),
+    await wrapper.find('.who-is-open').trigger('click')
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'SearchProducts',
+      query: {q: ''},
     })
+  })
+  test('Sends you to the search page for recent art', async() => {
+    setViewer(store, genUser())
+    const mockPush = vi.fn()
+    wrapper = mount(NavBarContainer, vueSetup({
+      store,
+      mocks: {
+        $route: {
+          fullPath: '/',
+          name: 'Home',
+          path: '/',
+        },
+        $router: {push: mockPush},
+      },
+      stubs: ['router-link'],
+    }))
     await wrapper.vm.$nextTick()
     wrapper.find('.recent-art').trigger('click')
-    expect(mockPush).toHaveBeenCalledWith({name: 'SearchSubmissions', query: {q: ''}})
-  })
-  it('Does not alter the route if we are already on a search page', async() => {
-    const mockPush = jest.fn()
-    wrapper = mount(NavBar, {
-      store,
-      localVue,
-      vuetify,
-      mocks: {$route: {fullPath: '/search/products', name: 'SearchProducts', path: '/'}, $router: {push: mockPush}},
-      stubs: ['router-link'],
-
-      attachTo: docTarget(),
+    expect(mockPush).toHaveBeenCalledWith({
+      name: 'SearchSubmissions',
+      query: {q: ''},
     })
+  })
+  test('Does not alter the route if we are already on a search page', async() => {
+    const mockPush = vi.fn()
+    wrapper = mount(NavBarContainer, vueSetup({
+      store,
+      mocks: {
+        $route: {
+          fullPath: '/search/products',
+          name: 'SearchProducts',
+          path: '/',
+        },
+        $router: {push: mockPush},
+      },
+      stubs: ['router-link'],
+    }))
     const field = wrapper.find('#nav-bar-search')
-    field.setValue('Stuff')
-    field.trigger('keyup')
+    await field.setValue('Stuff')
+    await field.trigger('keyup')
     expect(mockPush).not.toHaveBeenCalled()
   })
 })

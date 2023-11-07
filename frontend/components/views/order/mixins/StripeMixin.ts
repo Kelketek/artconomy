@@ -1,6 +1,4 @@
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Stripe} from '@stripe/stripe-js'
+import {Component, Vue} from 'vue-facing-decorator'
 
 @Component
 export default class StripeMixin extends Vue {

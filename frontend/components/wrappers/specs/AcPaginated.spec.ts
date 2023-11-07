@@ -1,40 +1,34 @@
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {Route} from 'vue-router/types/router'
-import Vuetify from 'vuetify/lib'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import {RouteLocationRaw} from 'vue-router'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let store: ArtStore
 let router: any
-let route: Partial<Route>
-let vuetify: Vuetify
+let route: Partial<RouteLocationRaw>
 
 describe('AcPaginated.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
     route = {
       query: {stuff: 'things'},
     }
     router = {
-      replace: jest.fn(),
+      replace: vi.fn(),
     }
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Loads a paginated list', async() => {
-    const paginatedList = mount(Empty, {
-      localVue,
+  test('Loads a paginated list', async() => {
+    const paginatedList = mount(Empty, vueSetup({
       store,
-
-    }).vm.$getList('stuff', {endpoint: '/wat/'})
+    })).vm.$getList('stuff', {endpoint: '/wat/'})
     const firstPage = []
     for (let i = 1; i <= 10; i++) {
       const sub = genSubmission()
@@ -42,29 +36,33 @@ describe('AcPaginated.vue', () => {
       firstPage.push(sub)
     }
     paginatedList.setList(firstPage)
-    paginatedList.response = ({size: 10, count: 30})
+    paginatedList.response = ({
+      size: 10,
+      count: 30,
+    })
     wrapper = mount(AcPaginated, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {list: paginatedList},
+      ...vueSetup({
+        store,
+      }),
+      props: {list: paginatedList},
     })
   })
-  it('Does not load a list initially if autoRun is false', () => {
-    const paginatedList = mount(Empty, {localVue, store}).vm.$getList('stuff', {endpoint: '/wat/'})
+  test('Does not load a list initially if autoRun is false', () => {
+    const paginatedList = mount(Empty, vueSetup(vueSetup({store}))).vm.$getList('stuff', {endpoint: '/wat/'})
     wrapper = mount(AcPaginated, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {list: paginatedList, autoRun: false},
-
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+      }),
+      props: {
+        list: paginatedList,
+        autoRun: false,
+      },
     })
     expect(paginatedList.fetching).toBe(false)
   })
-  it('Updates the router when changing pages', async() => {
+  test('Updates the router when changing pages', async() => {
     const paginatedList = mount(
-      Empty, {localVue, store},
+      Empty, vueSetup({store}),
     ).vm.$getList('stuff', {endpoint: '/wat/'})
     const firstPage = []
     for (let i = 1; i <= 10; i++) {
@@ -73,23 +71,35 @@ describe('AcPaginated.vue', () => {
       firstPage.push(sub)
     }
     paginatedList.setList(firstPage)
-    paginatedList.response = ({size: 10, count: 30})
+    paginatedList.response = ({
+      size: 10,
+      count: 30,
+    })
     wrapper = mount(AcPaginated, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {list: paginatedList, trackPages: true},
-
-      attachTo: docTarget(),
-      mocks: {$router: router, $route: route},
+      ...vueSetup({
+        store,
+        mocks: {
+          $router: router,
+          $route: route,
+        },
+      }),
+      props: {
+        list: paginatedList,
+        trackPages: true,
+      },
     })
     paginatedList.currentPage = 2
     await wrapper.vm.$nextTick()
-    expect(router.replace).toHaveBeenCalledWith({query: {page: '2', stuff: 'things'}})
+    expect(router.replace).toHaveBeenCalledWith({
+      query: {
+        page: '2',
+        stuff: 'things',
+      },
+    })
   })
-  it('Does not update the router if told not to', async() => {
+  test('Does not update the router if told not to', async() => {
     const paginatedList = mount(
-      Empty, {localVue, store},
+      Empty, vueSetup({store}),
     ).vm.$getList('stuff', {endpoint: '/wat/'})
     const firstPage = []
     for (let i = 1; i <= 10; i++) {
@@ -98,34 +108,42 @@ describe('AcPaginated.vue', () => {
       firstPage.push(sub)
     }
     paginatedList.setList(firstPage)
-    paginatedList.response = ({size: 10, count: 30})
+    paginatedList.response = ({
+      size: 10,
+      count: 30,
+    })
     wrapper = mount(AcPaginated, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {list: paginatedList},
-
-      attachTo: docTarget(),
-      mocks: {$router: router, $route: route},
+      ...vueSetup({
+        store,
+        mocks: {
+          $router: router,
+          $route: route,
+        },
+      }),
+      props: {list: paginatedList},
     })
     paginatedList.currentPage = 2
     await wrapper.vm.$nextTick()
     expect(router.replace).not.toHaveBeenCalled()
   })
-  it('Loads the right page to start', async() => {
+  test('Loads the right page to start', async() => {
     const paginatedList = mount(
-      Empty, {localVue, store},
+      Empty, vueSetup({store}),
     ).vm.$getList('stuff', {endpoint: '/wat/'})
     // @ts-ignore
     route.query.page = '2'
     wrapper = mount(AcPaginated, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {list: paginatedList, trackPages: true},
-
-      attachTo: docTarget(),
-      mocks: {$router: router, $route: route},
+      ...vueSetup({
+        store,
+        mocks: {
+          $router: router,
+          $route: route,
+        },
+      }),
+      props: {
+        list: paginatedList,
+        trackPages: true,
+      },
     })
     await wrapper.vm.$nextTick()
     expect(paginatedList.currentPage).toBe(2)

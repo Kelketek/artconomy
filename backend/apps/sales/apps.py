@@ -5,4 +5,4 @@ class SalesConfig(AppConfig):
     name = "apps.sales"
 
     def ready(self) -> None:
-        pass
+        import apps.sales.serializers

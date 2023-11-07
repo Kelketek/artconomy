@@ -1,17 +1,18 @@
-import Vue, {ComponentOptions} from 'vue'
 import {FieldController} from './field-controller'
 import {MutationPayload} from 'vuex'
 import {formRegistry} from './registry'
-import Component from 'vue-class-component'
 import {AxiosError} from 'axios'
 import {deriveErrors} from './helpers'
 import {NamelessFormSchema} from './types/NamelessFormSchema'
-import {BaseController} from '@/store/controller-base'
+import {BaseController, ControllerArgs} from '@/store/controller-base'
 import {dataFromForm} from '@/store/forms/index'
 import StepSpec from '@/store/forms/types/StepSpec'
 import {FormState} from '@/store/forms/types/FormState'
 import {RawData} from '@/store/forms/types/RawData'
-import {flatten} from '@/lib/lib'
+import {ComputedGetters, flatten} from '@/lib/lib'
+import {ArtVueInterface} from '@/types/ArtVueInterface'
+import {toValue} from 'vue'
+import {AcServerError} from '@/types/AcServerError'
 
 export interface FieldBank {
   [key: string]: FieldController
@@ -20,8 +21,9 @@ export interface FieldBank {
 // This module is the oldest of the store now. So some things may not behave as the other modules do.
 // At some point we should refactor this component to behave in the same way as the rest of the modules-- with fields
 // as their own component type with their own registry.
-@Component
+@ComputedGetters
 export class FormController extends BaseController<NamelessFormSchema, FormState> {
+  public __getterMap = new Map()
   public fields: FieldBank = {}
   public watcherMap: { [key: string]: (mutation: MutationPayload) => void } = {}
 
@@ -31,51 +33,52 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   // tslint:disable-next-line:no-empty
   private unsubscribe: (() => void) = null as unknown as (() => void)
 
-  public created() {
+  constructor(args: ControllerArgs<NamelessFormSchema>) {
+    super(args)
     this.watcherMap = {
       'forms/addField': this.watchAddField,
       'forms/delField': this.watchDelField,
       'forms/delForm': this.watchDelForm,
     }
-    this.$store.commit('forms/initForm', {...{name: this.name}, ...this.schema})
+    this.$store.commit('forms/initForm', {...{name: this.name.value}, ...this.schema})
     for (const key of Object.keys(this.schema.fields)) {
-      const options: ComponentOptions<Vue> = {
-        store: this.$store,
-        propsData: {formName: this.name, fieldName: key},
-        parent: this,
-        // I wonder how THIS is gonna change in Vue 3 >.>
-        // @ts-ignore
-        extends: this.$root.$options._base,
-      }
-      Vue.set(this.fields, key, new FieldController(options))
+      this.fields[key] = new FieldController({
+        formName: this.name.value,
+        fieldName: key,
+        $root: this.$root,
+        $store: this.$store
+      })
     }
     this.unsubscribe = this.$store.subscribe(this.formWatch)
   }
 
-  public stopValidators() {
+  public stopValidators = () => {
     for (const key of Object.keys(this.fields)) {
       // Make sure we don't end up with lingering validation requests.
       this.fields[key].cancelValidation()
     }
   }
 
-  public submitThen(success: (response: any) => void, error?: (response: AxiosError) => void) {
+  public submitThen = (success: (response: any) => void, error?: (response: AcServerError) => void) => {
     error = error || this.setErrors
     return this.submit().then(success).catch(error)
   }
 
-  public submit() {
+  public submit = () =>  {
+    const self = this as unknown as ArtVueInterface
     this.stopValidators()
-    return this.$store.dispatch('forms/submit', {name: this.name})
+    return self.$store.dispatch('forms/submit', {name: this.name.value})
   }
 
-  public reset() {
-    this.$store.commit('forms/resetForm', {name: this.name})
+  public reset = () => {
+    const self = this as unknown as ArtVueInterface
+    self.$store.commit('forms/resetForm', {name: this.name.value})
   }
 
-  public purge() {
+  public purge = () => {
+    const self = this as unknown as ArtVueInterface
     this.stopValidators()
-    this.$store.commit('forms/delForm', {name: this.name})
+    self.$store.commit('forms/delForm', {name: this.name.value})
   }
 
   public get errors() {
@@ -86,7 +89,8 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public set errors(errors: string[]) {
-    this.$store.commit('forms/setMetaErrors', {name: this.name, errors})
+    const self = this as unknown as ArtVueInterface
+    self.$store.commit('forms/setMetaErrors', {name: toValue(this.name), errors})
   }
 
   public get disabled(): boolean {
@@ -99,15 +103,16 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
 
   public set sending(value: boolean) {
     // Not only used internally -- Sometimes useful when doing custom error handling.
-    this.$store.commit('forms/updateMeta', {name: this.name, meta: {sending: value}})
+    this.$store.commit('forms/updateMeta', {name: toValue(this.name), meta: {sending: value}})
   }
 
   public get bind() {
-    return {errors: this.errors, sending: this.sending, id: `form-${flatten(this.name)}`}
+    return {errors: this.errors, sending: this.sending, id: `form-${flatten(toValue(this.name))}`}
   }
 
   public get rawData(): RawData {
-    return dataFromForm(this.$store.state.forms[this.name])
+    const self = this as unknown as ArtVueInterface
+    return dataFromForm(self.$store.state.forms![toValue(this.name)])
   }
 
   public get endpoint() {
@@ -115,7 +120,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public set endpoint(endpoint) {
-    this.$store.commit('forms/setEndpoint', {name: this.name, endpoint})
+    this.$store.commit('forms/setEndpoint', {name: toValue(this.name), endpoint})
   }
 
   public get step() {
@@ -123,7 +128,8 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public set step(step: number) {
-    this.$store.commit('forms/setStep', {name: this.name, step})
+    const self = this as unknown as ArtVueInterface
+    self.$store.commit('forms/setStep', {name: toValue(this.name), step})
   }
 
   public get lastStep() {
@@ -161,54 +167,56 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     return steps
   }
 
-  public attr(attrName: keyof FormState): any {
-    return this.$store.state.forms[this.name][attrName]
+  public attr = (attrName: keyof FormState): any => {
+    const form = this.$store.state.forms![this.name.value]
+    return form && form[attrName]
   }
 
-  public clearErrors() {
-    this.$store.commit('forms/clearErrors', {name: this.name})
+  public clearErrors = () => {
+    const self = this as unknown as ArtVueInterface
+    self.$store.commit('forms/clearErrors', {name: this.name.value})
   }
 
-  public formWatch(mutation: MutationPayload) {
+  public formWatch = (mutation: MutationPayload) => {
     if (this.watcherMap[mutation.type]) {
       this.watcherMap[mutation.type](mutation)
     }
   }
 
-  public kill() {
+  public kill = () => {
     // no-op for compatibility
   }
 
-  public watchAddField(mutation: MutationPayload) {
-    if (mutation.payload.name !== this.name) {
+  public watchAddField = (mutation: MutationPayload) => {
+    if (mutation.payload.name !== this.name.value) {
       return
     }
-    Vue.set(
-      this.fields,
-      mutation.payload.field.name,
-      new FieldController(
-        {store: this.$store, propsData: {formName: this.name, fieldName: mutation.payload.field.name}}),
-    )
+    this.fields[mutation.payload.field.name] = new FieldController({
+      formName: this.name.value,
+      fieldName: mutation.payload.field.name,
+      $root: this.$root,
+      $store: this.$store,
+    })
   }
 
-  public watchDelField(mutation: MutationPayload) {
-    if (mutation.payload.name !== this.name) {
+  public watchDelField = (mutation: MutationPayload) => {
+    if (mutation.payload.name !== this.name.value) {
       return
     }
-    Vue.delete(this.fields, mutation.payload.field)
-    formRegistry.delete(this.name)
+    delete this.fields[mutation.payload.field]
+    formRegistry.delete(this.name.value)
   }
 
-  public watchDelForm(mutation: MutationPayload) {
-    if (mutation.payload.name !== this.name) {
+  public watchDelForm = (mutation: MutationPayload) => {
+    if (mutation.payload.name !== this.name.value) {
       return
     }
     this.fields = {}
     this.unsubscribe()
-    formRegistry.delete(this.name)
+    formRegistry.delete(this.name.value)
   }
 
-  public scrollToError() {
+  public scrollToError = () => {
     let scrollables = document.querySelectorAll(`#${this.bind.id} .scrollableText`)
     if (!scrollables.length) {
       scrollables = document.querySelectorAll(`#${this.bind.id}`)
@@ -223,24 +231,24 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     }
   }
 
-  public setErrors(error: AxiosError) {
+  public setErrors = (error: AcServerError) => {
     this.stopValidators()
     const errorSet = deriveErrors(error, Object.keys(this.fields))
     if (errorSet.errors.length && !Object.keys(errorSet.fields).length) {
       this.$store.commit(
         'forms/setMetaErrors',
-        {name: this.name, errors: errorSet.errors})
+        {name: this.name.value, errors: errorSet.errors})
       this.sending = false
       return
     }
-    this.$store.commit('forms/setErrors', {name: this.name, errors: errorSet})
+    this.$store.commit('forms/setErrors', {name: this.name.value, errors: errorSet})
     this.sending = false
-    this.$nextTick(this.scrollToError)
+    this.$root.$nextTick(this.scrollToError)
     return error
   }
 
-  public toJSON() {
+  public toJSON = () => {
     // Used to prevent the pretty printing service from exhausting all memory.
-    return {type: this.constructor.name, name: this.name, state: this.rawData}
+    return {type: this.constructor.name, name: this.name.value, state: this.rawData}
   }
 }

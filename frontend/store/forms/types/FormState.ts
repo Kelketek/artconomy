@@ -12,4 +12,5 @@ export interface FormState {
   sending: boolean,
   persistent: boolean,
   step: number,
+  debounce: number,
 }

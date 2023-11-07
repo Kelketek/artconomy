@@ -1,13 +1,14 @@
 <template>
   <ac-base-notification :asset-link="assetLink" :notification="notification">
-        <span slot="title">
+    <template v-slot:title>
       <router-link :to="assetLink">
         A submission was shared with you
       </router-link>
-    </span>
-    <span slot="subtitle">
-      <router-link :to="assetLink">"{{event.data.submission.title}}" was shared by {{event.data.user.username}}</router-link>
-    </span>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="assetLink">"{{event.data.submission.title}}" was shared by {{event.data.user.username}}
+      </router-link>
+    </template>
   </ac-base-notification>
 </template>
 
@@ -25,7 +26,10 @@ export default {
   computed: {
     assetLink() {
       if (this.event.data.submission) {
-        return {name: 'Submission', params: {submissionId: this.event.data.submission.id}}
+        return {
+          name: 'Submission',
+          params: {submissionId: this.event.data.submission.id},
+        }
       } else {
         return {}
       }

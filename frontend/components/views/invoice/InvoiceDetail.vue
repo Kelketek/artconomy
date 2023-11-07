@@ -1,13 +1,15 @@
 <template>
   <ac-load-section :controller="invoice">
     <template v-slot:default>
-      <v-container>
+      <v-container v-if="invoice.x">
         <v-row>
           <v-col cols="12">
             <v-card>
               <v-card-text>
                 <v-row>
-                  <v-col cols="2" class="text-left"><v-img src="/static/images/logo.svg" max-height="3rem" max-width="3rem"/></v-col>
+                  <v-col cols="2" class="text-left">
+                    <v-img :src="logo" max-height="3rem" max-width="3rem"/>
+                  </v-col>
                   <v-col cols="7" class="text-left" align-self="center"><h1>Artconomy.com</h1></v-col>
                   <v-col cols="3" class="text-right" align-self="center"><h2 class="text-uppercase">Invoice</h2></v-col>
                 </v-row>
@@ -17,15 +19,17 @@
                       <template v-slot:default>
                         <tr>
                           <td><strong>ID:</strong></td>
-                          <td>{{invoice.x.id}}</td>
+                          <td>{{ invoice.x.id }}</td>
                         </tr>
                         <tr>
                           <td><strong>Created On:</strong></td>
-                          <td>{{formatDateTime(invoice.x.created_on)}}</td>
+                          <td>{{ formatDateTime(invoice.x.created_on) }}</td>
                         </tr>
                         <tr>
                           <td><strong>Status:</strong></td>
-                          <td><ac-invoice-status :invoice="invoice.x" /></td>
+                          <td>
+                            <ac-invoice-status :invoice="invoice.x"/>
+                          </td>
                         </tr>
                       </template>
                     </v-simple-table>
@@ -35,13 +39,15 @@
                       <template v-slot:default>
                         <tr>
                           <td><strong>Type:</strong></td>
-                          <td>{{INVOICE_TYPES[invoice.x.type]}}</td>
+                          <td>{{ INVOICE_TYPES[invoice.x.type] }}</td>
                         </tr>
                         <tr>
                           <td><strong>Targets:</strong></td>
                           <td>
                         <span v-for="ref, index in invoice.x.targets" :key="index">
-                          <ac-link :to="ref.link"><span v-if="ref.display_name">{{ref.display_name}}</span><span v-else>{{ref.model}} #{{ref.id}}</span></ac-link><span v-if="index !== (invoice.x.targets.length - 1)">,</span>
+                          <ac-link :to="ref.link"><span v-if="ref.display_name">{{ ref.display_name }}</span><span
+                              v-else>{{ ref.model }} #{{ ref.id }}</span></ac-link><span
+                            v-if="index !== (invoice.x.targets.length - 1)">,</span>
                         </span>
                           </td>
                         </tr>
@@ -49,7 +55,7 @@
                           <td><strong>Issued by:</strong></td>
                           <td>
                             <ac-link v-if="invoice.x.issued_by" :to="profileLink(invoice.x.issued_by)">
-                              {{invoice.x.issued_by.username}}
+                              {{ invoice.x.issued_by.username }}
                             </ac-link>
                             <span v-else>Artconomy</span>
                           </td>
@@ -62,7 +68,7 @@
                   <v-col>
                     <ac-load-section :controller="lineItems">
                       <template v-slot:default>
-                        <ac-line-item-listing :editable="editable" :line-items="lineItems" :edit-extras="editable" />
+                        <ac-line-item-listing :editable="editable" :line-items="lineItems" :edit-extras="editable"/>
                       </template>
                     </ac-load-section>
                   </v-col>
@@ -72,13 +78,13 @@
                     <ac-form-container v-bind="stateChange.bind">
                       <v-row>
                         <v-col class="text-center" v-if="isStaff && (invoice.x.status === DRAFT)">
-                          <v-btn  color="primary" @click="() => statusEndpoint('finalize')">Finalize</v-btn>
+                          <v-btn color="primary" variant="flat" @click="() => statusEndpoint('finalize')">Finalize</v-btn>
                         </v-col>
                         <v-col class="text-center" v-if="invoice.x.status === OPEN">
-                          <v-btn color="green" @click="() => showPayment = true">Pay</v-btn>
+                          <v-btn color="green" variant="flat" @click="() => showPayment = true">Pay</v-btn>
                         </v-col>
                         <v-col class="text-center" v-if="isStaff && ([DRAFT, OPEN].includes(invoice.x.status))">
-                          <v-btn color="danger" @click="() => statusEndpoint('void')">Void</v-btn>
+                          <v-btn color="danger" variant="flat" @click="() => statusEndpoint('void')">Void</v-btn>
                         </v-col>
                       </v-row>
                     </ac-form-container>
@@ -91,7 +97,8 @@
                 :large="true" v-bind="paymentForm.bind"
             >
               <v-row>
-                <v-col class="text-center" cols="12" >Total Charge: <strong>${{totalCharge.toFixed(2)}}</strong></v-col>
+                <v-col class="text-center" cols="12">Total Charge: <strong>${{ totalCharge.toFixed(2) }}</strong>
+                </v-col>
                 <v-col cols="12">
                   <ac-load-section :controller="invoice">
                     <template v-slot:default>
@@ -100,8 +107,8 @@
                         <v-tab>Terminal</v-tab>
                         <v-tab>Cash</v-tab>
                       </v-tabs>
-                      <v-tabs-items v-model="cardTabs">
-                        <v-tab-item>
+                      <v-window v-model="cardTabs">
+                        <v-window-item>
                           <v-card-text>
                             <v-row>
                               <v-col cols="12">
@@ -120,15 +127,19 @@
                                 />
                               </v-col>
                             </v-row>
-                            <v-col class="text-center" cols="12" >
+                            <v-col class="text-center" cols="12">
                               <p>Use of Artconomy is subject to the
-                                <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>.<br />
-                                Commission orders are subject to the <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link>.<br />
-                                Artconomy is based in the United States of America.</p>
+                                <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+                                .<br/>
+                                Commission orders are subject to the
+                                <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link>
+                                .<br/>
+                                Artconomy is based in the United States of America.
+                              </p>
                             </v-col>
                           </v-card-text>
-                        </v-tab-item>
-                        <v-tab-item>
+                        </v-window-item>
+                        <v-window-item>
                           <ac-paginated :list="readers">
                             <template v-slot:default>
                               <ac-form-container v-bind="readerForm.bind">
@@ -137,18 +148,18 @@
                                     <v-card elevation="10">
                                       <v-card-text>
                                         <v-row>
-                                          <v-col v-for="reader in readers.list" :key="reader.x.id" cols="12">
+                                          <v-col v-for="reader in readers.list" :key="reader.x!.id" cols="12">
                                             <v-radio-group v-model="readerForm.fields.reader.model">
                                               <ac-bound-field
                                                   field-type="v-radio"
                                                   :field="readerForm.fields.reader"
-                                                  :value="reader.x.id"
-                                                  :label="reader.x.name"
+                                                  :value="reader.x!.id"
+                                                  :label="reader.x!.name"
                                               />
                                             </v-radio-group>
                                           </v-col>
                                           <v-col cols="12" @click="paymentSubmit">
-                                            <v-btn color="green" block>Activate Reader</v-btn>
+                                            <v-btn color="green" variant="flat" block>Activate Reader</v-btn>
                                           </v-col>
                                         </v-row>
                                       </v-card-text>
@@ -158,17 +169,17 @@
                               </ac-form-container>
                             </template>
                           </ac-paginated>
-                        </v-tab-item>
-                        <v-tab-item>
+                        </v-window-item>
+                        <v-window-item>
                           <v-row>
                             <v-col cols="12" md="6" offset-md="3" class="pa-5">
-                              <v-btn color="primary" block @click="paymentSubmit">
+                              <v-btn color="primary" block variant="flat" @click="paymentSubmit">
                                 Mark Paid by Cash
                               </v-btn>
                             </v-col>
                           </v-row>
-                        </v-tab-item>
-                      </v-tabs-items>
+                        </v-window-item>
+                      </v-window>
                     </template>
                   </ac-load-section>
                 </v-col>
@@ -181,8 +192,8 @@
                 <v-row>
                   <v-col cols="12">
                     <v-list three-line>
-                      <template v-for="transaction, index in transactions.list">
-                        <ac-transaction :transaction="transaction.x" :username="username" :key="transaction.x.id" :current-account="300" />
+                      <template v-for="transaction, index in transactions.list" :key="transaction.x.id">
+                        <ac-transaction :transaction="transaction.x" :username="username" :current-account="300"/>
                         <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
                       </template>
                     </v-list>
@@ -198,10 +209,9 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import Viewer from '@/mixins/viewer'
-import {Prop, Watch} from 'vue-property-decorator'
 import {Decimal} from 'decimal.js'
 import {SingleController} from '@/store/singles/controller'
 import Invoice from '@/types/Invoice'
@@ -216,7 +226,7 @@ import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
 import {reckonLines} from '@/lib/lineItemFunctions'
-import {baseCardSchema, INVOICE_TYPES, profileLink} from '@/lib/lib'
+import {BASE_URL, baseCardSchema, INVOICE_TYPES, profileLink} from '@/lib/lib'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
@@ -241,7 +251,7 @@ import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue
     AcLoadSection,
   },
 })
-export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting, StripeHostMixin) {
+class InvoiceDetail extends mixins(Subjective, Viewer, Formatting, StripeHostMixin) {
   @Prop({required: true})
   public invoiceId!: string
 
@@ -253,6 +263,7 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
   public cardTabs = 0
   public INVOICE_TYPES = INVOICE_TYPES
   public profileLink = profileLink
+  public logo = new URL('/static/images/logo.svg', BASE_URL).href
 
   DRAFT = InvoiceStatus.DRAFT
   OPEN = InvoiceStatus.OPEN
@@ -368,7 +379,10 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
     schema.reset = false
     this.paymentForm = this.$getForm(`${this.prefix}__payment`, schema)
     this.clientSecret = this.$getSingle(`${this.prefix}__clientSecret`, {endpoint: `${this.url}payment-intent/`})
-    this.stateChange = this.$getForm(`${this.prefix}__stateChange`, {endpoint: this.url, fields: {}})
+    this.stateChange = this.$getForm(`${this.prefix}__stateChange`, {
+      endpoint: this.url,
+      fields: {},
+    })
     this.invoice = this.$getSingle(`${this.prefix}`, {
       endpoint: this.url,
       socketSettings: {
@@ -402,4 +416,6 @@ export default class InvoiceDetail extends mixins(Subjective, Viewer, Formatting
     this.transactions.get().catch(this.statusOk(403))
   }
 }
+
+export default toNative(InvoiceDetail)
 </script>

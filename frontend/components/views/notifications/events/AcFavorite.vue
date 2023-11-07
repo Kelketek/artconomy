@@ -1,9 +1,9 @@
 <template>
   <v-list-item>
     <router-link :to="{name: 'Submission', params: {'submissionId': event.target.id}}">
-      <v-list-item-avatar>
+      <template v-slot:prepend>
         <img :src="$img(event.target, 'notification', true)" alt=""/>
-      </v-list-item-avatar>
+      </template>
     </router-link>
     <v-list-item-title>
       Your piece has been favorited by

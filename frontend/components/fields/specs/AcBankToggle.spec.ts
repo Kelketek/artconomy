@@ -1,38 +1,39 @@
-import Vue from 'vue'
-import {createVuetify, vueSetup, mount, cleanUp, setViewer} from '@/specs/helpers'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify/lib'
+import {VueWrapper} from '@vue/test-utils'
 import AcBankToggleStripe from '@/components/fields/AcBankToggle.vue'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
 import {genUser} from '@/specs/helpers/fixtures'
 import StripeAccount from '@/types/StripeAccount'
 import {genId} from '@/lib/lib'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
 const genStripeAccount = (): StripeAccount => {
-  return {active: true, country: 'US', id: genId()}
+  return {
+    active: true,
+    country: 'US',
+    id: genId(),
+  }
 }
 
 describe('AcBankToggle.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Verifies if a Stripe account is needed', async() => {
+  test('Verifies if a Stripe account is needed', async() => {
     setViewer(store, genUser({username: 'Fox'}))
     wrapper = mount(AcBankToggleStripe, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox', value: BANK_STATUSES.NO_SUPPORTED_COUNTRY},
+      ...vueSetup({store}),
+      props: {
+        username: 'Fox',
+        modelValue: BANK_STATUSES.NO_SUPPORTED_COUNTRY,
+      },
     })
     const vm = wrapper.vm as any
     vm.stripeAccounts.makeReady([])

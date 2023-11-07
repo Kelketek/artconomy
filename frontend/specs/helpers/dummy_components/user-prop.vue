@@ -3,14 +3,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative} from 'vue-facing-decorator'
 import {userHandle} from '@/store/profiles/handles'
 import {User} from '@/store/profiles/types/User'
 import {ProfileController} from '@/store/profiles/controller'
+import {ArtVue} from '@/lib/lib'
 
-  @Component
-export default class UserProp extends Vue {
+@Component
+class UserProp extends ArtVue {
     public userHandler: ProfileController = null as unknown as ProfileController
 
     @userHandle('userHandler')
@@ -27,6 +27,7 @@ export default class UserProp extends Vue {
       this.userHandler.user.get().then()
     }
 }
+export default toNative(UserProp)
 </script>
 
 <style scoped>

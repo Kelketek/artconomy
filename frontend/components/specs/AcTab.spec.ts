@@ -1,76 +1,85 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import Router from 'vue-router'
-import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import AcTab from '@/components/AcTab.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
 
 describe('AcTab.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: [{
         name: 'Place',
         component: Empty,
         path: '/place/',
+      }, {
+        name: 'Home',
+        component: Empty,
+        path: '/',
       }],
     })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Renders list tab information', async() => {
-    const list = mount(Empty, {localVue, store}).vm.$getList('stuff', {endpoint: '/'})
+  test('Renders list tab information', async() => {
+    const list = mount(Empty, vueSetup({store})).vm.$getList('stuff', {endpoint: '/'})
     list.fetching = false
     list.ready = true
     wrapper = mount(AcTab, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {trackPages: true, to: {name: 'Place'}, list},
-
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        trackPages: true,
+        to: {name: 'Place'},
+        list,
+      },
     })
     const vm = wrapper.vm as any
     expect(vm.destination).toEqual({name: 'Place'})
     list.currentPage = 3
-    list.response = {count: 24, size: 5}
+    list.response = {
+      count: 24,
+      size: 5,
+    }
     list.fetching = true
     list.ready = true
     await wrapper.vm.$nextTick()
-    expect(vm.destination).toEqual({name: 'Place', query: {page: '3'}})
+    expect(vm.destination).toEqual({
+      name: 'Place',
+      query: {page: '3'},
+    })
   })
-  it('Links to a destination', async() => {
+  test('Links to a destination', async() => {
     wrapper = mount(AcTab, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {trackPages: false, to: {name: 'Place'}},
-
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        trackPages: false,
+        to: {name: 'Place'},
+      },
     })
     const vm = wrapper.vm as any
     expect(vm.destination).toEqual({name: 'Place'})
   })
-  it('Links to nowhere', async() => {
+  test('Links to nowhere', async() => {
     wrapper = mount(AcTab, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {},
-
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {},
     })
     const vm = wrapper.vm as any
     expect(vm.destination).toBe(undefined)

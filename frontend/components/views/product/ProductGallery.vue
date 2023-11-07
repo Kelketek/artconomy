@@ -1,14 +1,18 @@
 <template>
   <ac-load-section :controller="product">
     <template v-slot:default>
-      <v-container>
-        <v-btn color="primary" :to="{name: 'Product', params: {username, productId}}"><v-icon>arrow_back</v-icon>Back to {{product.x.name}}</v-btn>
+      <v-container v-if="product.x">
+        <v-btn color="primary" :to="{name: 'Product', params: {username, productId}}" variant="flat">
+          <v-icon icon="mdi-arrow-back"/>
+          Back to {{product.x.name}}
+        </v-btn>
         <ac-paginated :list="gallery" :track-pages="true">
           <template v-slot:default>
             <v-row class="py-3">
-              <v-col cols="4" sm="3" lg="2" v-for="linkedSubmission in gallery.list" :key="linkedSubmission.x.submission.id">
+              <v-col cols="4" sm="3" lg="2" v-for="linkedSubmission in gallery.list"
+                     :key="linkedSubmission.x!.submission.id">
                 <ac-gallery-preview class="pa-1"
-                                    :submission="linkedSubmission.x.submission"
+                                    :submission="linkedSubmission.x!.submission"
                                     :show-footer="false"
                 >
                 </ac-gallery-preview>
@@ -16,7 +20,10 @@
             </v-row>
           </template>
         </ac-paginated>
-        <v-btn color="primary" :to="{name: 'Product', params: {username, productId}}"><v-icon>arrow_back</v-icon>Back to {{product.x.name}}</v-btn>
+        <v-btn color="primary" :to="{name: 'Product', params: {username, productId}}" variant="flat">
+          <v-icon icon="mdi-arrow-back"/>
+          Back to {{product.x.name}}
+        </v-btn>
       </v-container>
     </template>
   </ac-load-section>
@@ -27,7 +34,7 @@
 </style>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric'
 import {ListController} from '@/store/lists/controller'
 import LinkedSubmission from '@/types/LinkedSubmission'
@@ -42,11 +49,14 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
     AcPaginated,
   },
 })
-export default class ProductGallery extends mixins(ProductCentric) {
+class ProductGallery extends mixins(ProductCentric) {
   public gallery!: ListController<LinkedSubmission>
+
   public created() {
     this.gallery = this.$getList(`product__${this.productId}__gallery`, {endpoint: `${this.url}samples/`})
     this.gallery.firstRun()
   }
 }
+
+export default toNative(ProductGallery)
 </script>

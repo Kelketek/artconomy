@@ -1,38 +1,32 @@
-import Vue from 'vue'
-import {shallowMount, Wrapper} from '@vue/test-utils'
+import {shallowMount, VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, docTarget, genAnon, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, genAnon, setViewer, vueSetup} from '@/specs/helpers'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
-import Vuetify from 'vuetify/lib'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
 describe('AcGalleryPreview.vue', () => {
   beforeEach(() => {
-    vuetify = createVuetify()
     store = createStore()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Displays a preview of a submission', async() => {
+  test('Displays a preview of a submission', async() => {
     setViewer(store, genAnon())
     const submission = genSubmission()
     submission.id = 534
     wrapper = shallowMount(AcGalleryPreview, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {submission},
-
-      attachTo: docTarget(),
-      stubs: ['router-link'],
+      ...vueSetup({stubs: ['router-link']}),
+      props: {submission},
     })
     const vm = wrapper.vm as any
-    expect(vm.submissionLink).toEqual({name: 'Submission', params: {submissionId: 534}})
+    expect(vm.submissionLink).toEqual({
+      name: 'Submission',
+      params: {submissionId: 534},
+    })
   })
 })

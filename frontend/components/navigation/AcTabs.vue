@@ -1,14 +1,14 @@
 <template>
   <v-container fluid class="pa-0">
     <v-tabs grow centered show-arrows class="hidden-sm-and-down" v-model="tab">
-      <ac-tab v-for="item in items" :key="item.text" :count="item.count" :icon="item.icon" :value="item">
-        {{item.text}}
+      <ac-tab v-for="item in items" :key="item.title" :count="item.count" :icon="item.icon" :value="item.value">
+        {{item.title}}
       </ac-tab>
     </v-tabs>
     <v-select :items="items"
               v-model="tab"
               :label="label"
-              :prepend-inner-icon="(tab && tab.icon) || ''"
+              :prepend-inner-icon="(tabSpec && tabSpec.icon) || ''"
               class="hidden-md-and-up"
               :item-text="renderText"
     />
@@ -16,40 +16,44 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
-import {TabNavSpec} from '@/types/TabNavSpec'
-import {RawLocation, Route} from 'vue-router'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import AcTab from '@/components/AcTab.vue'
 import {TabSpec} from '@/types/TabSpec'
+
 @Component({
   components: {AcTab},
+  emits: ['update:modelValue'],
 })
-export default class AcTabs extends Vue {
+class AcTabs extends Vue {
   @Prop({required: true})
   public label!: string
 
   @Prop({required: true})
-  public value!: number
+  public modelValue!: number
 
   @Prop({required: true})
   public items!: TabSpec[]
 
   public renderText(item: TabSpec) {
     if (item.count) {
-      return `${item.text} (${item.count})`
+      return `${item.title} (${item.count})`
     }
-    return item.text
+    return item.title
+  }
+
+  public get tabSpec() {
+    return this.items[this.tab]
   }
 
   public get tab() {
     // Match the name or any parent route name. Ignores params.
-    return this.value
+    return this.modelValue
   }
 
   public set tab(val: number) {
-    this.$emit('input', val)
+    this.$emit('update:modelValue', val)
   }
 }
+
+export default toNative(AcTabs)
 </script>

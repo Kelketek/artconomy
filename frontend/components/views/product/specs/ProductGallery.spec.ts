@@ -1,22 +1,17 @@
 import {ArtStore, createStore} from '@/store'
-import {createVuetify, mount, setViewer, vueSetup} from '@/specs/helpers'
-import {VueConstructor} from 'vue'
-import Router, {RouterOptions} from 'vue-router'
-import Vuetify from 'vuetify/lib'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {mount, setViewer, vueSetup} from '@/specs/helpers'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import ProductGallery from '@/components/views/product/ProductGallery.vue'
 import {genProduct, genUser} from '@/specs/helpers/fixtures'
-import mockAxios from '@/specs/helpers/mock-axios'
+import {beforeEach, describe, test} from 'vitest'
 
-let localVue: VueConstructor
 let store: ArtStore
 let router: Router
-let vuetify: Vuetify
 
-const routes: RouterOptions = {
-  mode: 'history',
-  routes: [{
-    path: '/store/{username}/product/{productId}',
+const routes = [
+  {
+    path: '/store/:username/product/:productId',
     name: 'Product',
     component: Empty,
     props: true,
@@ -26,26 +21,34 @@ const routes: RouterOptions = {
       component: Empty,
       props: true,
     }],
-  }],
-}
+  },
+  {
+    path: '/',
+    name: 'Home',
+    component: Empty,
+  },
+]
 
 describe('ProductGallery', () => {
   beforeEach(() => {
-    localVue = vueSetup()
-    localVue.use(Router)
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router(routes)
+    router = createRouter({
+      history: createWebHistory(),
+      routes,
+    })
   })
-  it('Mounts', async() => {
+  test('Mounts', async() => {
     setViewer(store, genUser())
     const wrapper = mount(
       ProductGallery, {
-        store,
-        vuetify,
-        localVue,
-        router,
-        propsData: {username: 'Fox', productId: '5'},
+        ...vueSetup({
+          store,
+          extraPlugins: [router],
+        }),
+        props: {
+          username: 'Fox',
+          productId: '5',
+        },
       })
     const vm = wrapper.vm as any
     vm.product.makeReady(genProduct())

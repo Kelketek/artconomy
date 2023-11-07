@@ -1,38 +1,44 @@
-import {Wrapper} from '@vue/test-utils'
-import Vue from 'vue'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, qMount, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers'
 import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {parseISO} from 'date-fns'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 
 describe('AcBirthdayField.vue', () => {
   beforeEach(() => {
     store = createStore()
-    jest.useFakeTimers()
+    vi.useFakeTimers()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Creates a datepicker in year mode by default.', async() => {
-    wrapper = qMount(AcBirthdayField, {localVue, store, propsData: {value: null}})
-    const vm = wrapper.vm as any
+  test('Creates a datepicker in year mode by default.', async() => {
+    wrapper = mount(VuetifyWrapped(AcBirthdayField), {
+      ...vueSetup({store}),
+      props: {modelValue: null},
+    })
+    const vm = wrapper.vm.$refs.vm as any
     await vm.$nextTick()
     vm.menu = true
     await vm.$nextTick()
-    jest.runAllTimers()
+    vi.runAllTimers()
     await vm.$nextTick()
-    expect(vm.$refs.picker.activePicker).toBe('YEAR')
+    expect(vm.$refs.picker.viewMode).toBe('year')
   })
-  it('Sends an updated value.', async() => {
-    wrapper = qMount(AcBirthdayField, {localVue, store, propsData: {value: null}})
+  test('Sends an updated value.', async() => {
+    wrapper = mount(AcBirthdayField, {
+      ...vueSetup({store}),
+      props: {modelValue: null},
+    })
     const vm = wrapper.vm as any
-    const mockEmit = jest.spyOn(vm, '$emit')
     await vm.$nextTick()
-    vm.scratch = '1988-08-01'
+    vm.converted = parseISO('1988-08-01')
     await vm.$nextTick()
-    expect(mockEmit).toHaveBeenCalledWith('input', '1988-08-01')
+    expect(wrapper.emitted('update:modelValue')).toHaveLength(1)
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual(['1988-08-01'])
   })
 })

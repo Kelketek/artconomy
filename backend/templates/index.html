@@ -1,24 +1,11 @@
 <!DOCTYPE html>
-{% load render_bundle from webpack_loader %}
-{% load get_files from webpack_loader %}
+{% load django_vite %}
+{% load render_vite_bundle %}
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <meta name="description" content="{{description}}">
-  <meta name="fragment" content="!">
-  <script src="https://use.fontawesome.com/b04fe3f35a.js" async></script>
-  <link href='https://fonts.googleapis.com/css?family=Roboto:300,400,500,700|Material+Icons&display=swap' rel="preload" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <link rel="icon" type="image/png" href="/static/images/logo.png">
-  {% get_files 'app' 'css' as app_css_files %}
-  {% for css_file in app_css_files %}
-    <link rel="preload" href="{{css_file.url}}" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="{{css_file.url}}"></noscript>
-  {% endfor %}
-  <!-- preload polyfill. -->
-  <script>
-    !function(t){"use strict";t.loadCSS||(t.loadCSS=function(){});var e=loadCSS.relpreload={};if(e.support=function(){var e;try{e=t.document.createElement("link").relList.supports("preload")}catch(t){e=!1}return function(){return e}}(),e.bindMediaToggle=function(t){var e=t.media||"all";function a(){t.media=e}t.addEventListener?t.addEventListener("load",a):t.attachEvent&&t.attachEvent("onload",a),setTimeout(function(){t.rel="stylesheet",t.media="only x"}),setTimeout(a,3e3)},e.poly=function(){if(!e.support())for(var a=t.document.getElementsByTagName("link"),n=0;n<a.length;n++){var o=a[n];"preload"!==o.rel||"style"!==o.getAttribute("as")||o.getAttribute("data-loadcss")||(o.setAttribute("data-loadcss",!0),e.bindMediaToggle(o))}},!e.support()){e.poly();var a=t.setInterval(e.poly,500);t.addEventListener?t.addEventListener("load",function(){e.poly(),t.clearInterval(a)}):t.attachEvent&&t.attachEvent("onload",function(){e.poly(),t.clearInterval(a)})}"undefined"!=typeof exports?exports.loadCSS=loadCSS:t.loadCSS=loadCSS}("undefined"!=typeof global?global:this);
-  </script>
   {% for link in image_links %}
     <meta name="og:image" content="{{link}}" />
     <meta name="twitter:image" content="{{link}}" />
@@ -30,6 +17,20 @@
   <meta name="twitter:site" content="@ArtconomyArt" />
   <meta name="og:title" content="{{title}}" />
   <meta name="og:description" content="{{description}}" />
+  {% if settings.DEBUG %}
+  <script type="module">
+    import { inject } from "/vite/@vite-plugin-checker-runtime";
+    inject({
+      overlayConfig: {},
+      base: "/public/",
+    });
+  </script>
+  {% vite_hmr_client %}
+  {% vite_asset "main.ts" %}
+  {% else %}
+  {% render_vite_bundle %}
+  {% endif %}
+
   <title>{{title}}</title>
 </head>
 <body>
@@ -45,20 +46,7 @@
 </script>
 <div id="app"></div>
 {% include env_file %}
-{% if not debug %}
-  {% get_files 'app' 'js' as app_js_files %}
-  {% for file in app_js_files %}
-    <script type=module src="{{file.url}}"></script>
-  {% endfor %}
-  {%  if render_legacy %}
-    {% get_files 'app' 'js' config='LEGACY' as app_legacy_js_files %}
-  {% endif %}
-  {% for file in app_legacy_js_files %}
-    <script src="{{file.url}}" nomodule></script>
-  {% endfor %}
-{% else %}
-  {% render_bundle 'app' 'js' %}
-{% endif %}
+
 <script type="text/javascript">
   window._drip = function () {}
 </script>

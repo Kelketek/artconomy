@@ -3,74 +3,79 @@
     <ac-form-dialog v-model="showDialog" @submit="setCurrent" title="Cookie Settings">
       <template v-slot:default>
         <v-card-text>
-          Cookies are special pieces of data that help websites keep track of information about a visitor. They can help with authentication,
+          Cookies are special pieces of data that help websites keep track of information about a visitor. They can help
+          with authentication,
           site improvement, and other functions. Artconomy uses the following kinds of cookies:
         </v-card-text>
         <v-row>
           <v-col cols="6">
-            <v-checkbox checked disabled v-model="required" label="Required Cookies" />
+            <v-checkbox checked disabled v-model="required" label="Required Cookies"/>
           </v-col>
           <v-col cols="6">
-            Artconomy has a handful of cookies that are required for basic function, including those that handle authentication and your content settings.
+            Artconomy has a handful of cookies that are required for basic function, including those that handle
+            authentication and your content settings.
           </v-col>
           <v-col cols="6">
-            <v-checkbox v-model="firstParty" label="First Party Analytics" class="first-party-analytics" />
+            <v-checkbox v-model="firstParty" label="First Party Analytics" class="first-party-analytics"/>
           </v-col>
           <v-col cols="6">
             Artconomy uses <a href="https://matomo.org/" rel="noopener nofollow" target="_blank">Matomo Analytics</a>,
-            an open source privacy-centric analytics service which does not share its data with third party entities. We use this to tell which
+            an open source privacy-centric analytics service which does not share its data with third party entities. We
+            use this to tell which
             parts of our site people use the most and where we might make improvements.
           </v-col>
           <v-col cols="6">
-            <v-checkbox v-model="thirdParty" label="Third Party Analytics" class="third-party-analytics" />
+            <v-checkbox v-model="thirdParty" label="Third Party Analytics" class="third-party-analytics"/>
           </v-col>
           <v-col cols="6">
-            Artconomy may partner with third party networks in order to verify if integrations with those partners is working correctly, or to gain more
-            insight into our customer base. For example, if we ran an ad on Pinterest, these cookies would help us know that these ads were
-            actually being seen and followed. This helps us build a website more tailored to customer needs, but is the least private cookie we use.
+            Artconomy may partner with third party networks in order to verify if integrations with those partners is
+            working correctly, or to gain more
+            insight into our customer base. For example, if we ran an ad on Pinterest, these cookies would help us know
+            that these ads were
+            actually being seen and followed. This helps us build a website more tailored to customer needs, but is the
+            least private cookie we use.
           </v-col>
         </v-row>
       </template>
       <template v-slot:bottom-buttons>
         <v-card-actions row wrap class="hidden-sm-and-down">
           <v-spacer></v-spacer>
-          <v-btn @click="onlyEssential" class="essential-cookies-button">Only Required Cookies</v-btn>
-          <v-btn color="primary" type="submit" class="dialog-submit">Save Settings
+          <v-btn @click="onlyEssential" class="essential-cookies-button" variant="flat">Only Required Cookies</v-btn>
+          <v-btn color="primary" type="submit" class="dialog-submit" variant="flat">Save Settings
           </v-btn>
         </v-card-actions>
       </template>
     </ac-form-dialog>
     <v-snackbar
-        :value="true"
+        :timeout="-1"
+        :model-value="true"
         v-if="cookiesUnset && !showDialog"
         :vertical="true"
-        :timeout="null"
+        :attach="$snackbarTarget"
     >
       Artconomy uses cookies to help improve our service.
-      <template v-slot:action="{ attrs }">
+      <template v-slot:actions>
         <v-row>
           <v-col class="text-center">
             <v-btn
-                text
-                v-bind="attrs"
+                variant="text"
                 @click="onlyEssential"
+                color="red"
                 class="essential-cookies-button"
             >
               Decline Non-essential
             </v-btn>
             <v-btn
-                text
-                v-bind="attrs"
+                variant="text"
                 @click="showDialog = true"
                 class="customize-cookies-button"
             >
               Customize
             </v-btn>
             <v-btn
-                color="green"
-                text
-                v-bind="attrs"
+                variant="text"
                 @click="acceptAll"
+                color="primary"
                 class="accept-cookies-button"
             >
               Accept All
@@ -83,14 +88,14 @@
 </template>
 
 <script lang="ts">
-import Component from 'vue-class-component'
-import Vue from 'vue'
+import {Component, toNative} from 'vue-facing-decorator'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
+import {ArtVue} from '@/lib/lib'
 
 @Component({
   components: {AcFormDialog},
 })
-export default class AcCookieConsent extends Vue {
+class AcCookieConsent extends ArtVue {
   required = true
   forceRecalculate = 0
 
@@ -176,4 +181,6 @@ export default class AcCookieConsent extends Vue {
     this.performActions()
   }
 }
+
+export default toNative(AcCookieConsent)
 </script>

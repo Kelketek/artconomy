@@ -1,27 +1,24 @@
 import {genDeliverable, genInvoice, genUser} from '@/specs/helpers/fixtures'
-import {createVuetify, docTarget, mount, rs, setPricing, setViewer, vueSetup} from '@/specs/helpers'
+import {mount, setPricing, setViewer, vueSetup} from '@/specs/helpers'
 import {dummyLineItems} from '@/lib/specs/helpers'
 import mockAxios from '@/__mocks__/axios'
 import {LineTypes} from '@/types/LineTypes'
-import Vue, {VueConstructor} from 'vue'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
-import Router from 'vue-router'
-import Vuetify from 'vuetify/lib'
+import {VueWrapper} from '@vue/test-utils'
+import {Router} from 'vue-router'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import MockDate from 'mockdate'
 import {parseISO} from '@/lib/lib'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {ConnectionStatus} from '@/types/ConnectionStatus'
 import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPrompt.vue'
 import {InvoiceStatus} from '@/types/InvoiceStatus'
+import {beforeEach, describe, expect, test, vi} from 'vitest'
 
-let localVue: VueConstructor
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
-let empty: Wrapper<Vue>
+let empty: VueWrapper<any>
 
 const tipLines = () => {
   return [
@@ -58,15 +55,12 @@ const tipLines = () => {
 
 describe('AcTippingPrompt', () => {
   beforeEach(() => {
-    localVue = vueSetup()
-    localVue.use(Router)
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     store = createStore()
-    vuetify = createVuetify()
     router = deliverableRouter()
     // This is a saturday.
     MockDate.set(parseISO('2020-08-01'))
-    empty = mount(Empty, {store, localVue})
+    empty = mount(Empty, vueSetup({store}))
     empty.vm.$getSingle('socketState', {
       endpoint: '#',
       persist: true,
@@ -76,13 +70,13 @@ describe('AcTippingPrompt', () => {
         serverVersion: '',
       },
     })
-    setPricing(store, localVue)
+    setPricing(store)
   })
-  it('Permits tipping', async() => {
+  test('Permits tipping', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/')
+    await router.push('/orders/Fox/order/1/deliverables/5/')
     const deliverableController = empty.vm.$getSingle('deliverable', {endpoint: '#'})
     const deliverable = genDeliverable()
     deliverableController.makeReady(deliverable)
@@ -90,11 +84,11 @@ describe('AcTippingPrompt', () => {
     sourceLinesController.makeReady(dummyLineItems())
     wrapper = mount(
       AcTippingPrompt, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {
+        ...vueSetup({
+          store,
+          stubs: ['ac-revision-manager', 'ac-comment-section'],
+        }),
+        props: {
           orderId: 1,
           deliverableId: 5,
           baseName: 'Order',
@@ -104,25 +98,26 @@ describe('AcTippingPrompt', () => {
           sourceLines: sourceLinesController,
           invoiceId: 'abcd',
         },
-        attachTo: docTarget(),
-        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
-    const invoice = genInvoice({status: InvoiceStatus.DRAFT, id: 'abcd'})
+    const invoice = genInvoice({
+      status: InvoiceStatus.DRAFT,
+      id: 'abcd',
+    })
     const lines = tipLines()
     vm.invoice.makeReady(invoice)
     vm.lineItems.makeReady(lines)
     mockAxios.reset()
     await vm.$nextTick()
-    wrapper.find('.preset10').trigger('click')
+    await wrapper.find('.preset10').trigger('click')
     await vm.$nextTick()
     expect(vm.tip.patchers.amount.model).toEqual(8)
   })
-  it('Updates an existing tip line item', async() => {
+  test('Updates an existing tip line item', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5')
+    await router.push('/orders/Fox/order/1/deliverables/5')
     const deliverableController = empty.vm.$getSingle('deliverable', {endpoint: '#'})
     const deliverable = genDeliverable()
     deliverableController.makeReady(deliverable)
@@ -130,11 +125,11 @@ describe('AcTippingPrompt', () => {
     sourceLinesController.makeReady(dummyLineItems())
     wrapper = mount(
       AcTippingPrompt, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {
+        ...vueSetup({
+          store,
+          stubs: ['ac-revision-manager', 'ac-comment-section'],
+        }),
+        props: {
           orderId: 1,
           deliverableId: 5,
           baseName: 'Order',
@@ -144,13 +139,14 @@ describe('AcTippingPrompt', () => {
           sourceLines: sourceLinesController,
           invoiceId: 'abcd',
         },
-        attachTo: docTarget(),
-        stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     const lines = tipLines()
-    const invoice = genInvoice({status: InvoiceStatus.DRAFT, id: 'abcd'})
+    const invoice = genInvoice({
+      status: InvoiceStatus.DRAFT,
+      id: 'abcd',
+    })
     vm.invoice.makeReady(invoice)
     vm.lineItems.makeReady(lines)
     mockAxios.reset()

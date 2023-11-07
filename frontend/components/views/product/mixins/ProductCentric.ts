@@ -1,8 +1,7 @@
 import Subjective from '@/mixins/subjective'
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop} from 'vue-facing-decorator'
 import {SingleController} from '@/store/singles/controller'
 import Product from '@/types/Product'
-import {Prop} from 'vue-property-decorator'
 import {addBusinessDays, formatISO} from 'date-fns'
 
 @Component

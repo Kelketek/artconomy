@@ -17,6 +17,7 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from base64 import decodebytes
 from decimal import Decimal
+from pathlib import Path
 from sys import argv
 from typing import Any
 
@@ -83,7 +84,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django_premailer",
     "djcelery_email",
-    "webpack_loader",
+    "django_vite",
     "rest_framework",
     "adrf",
     "rest_framework.authtoken",
@@ -104,7 +105,7 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_email",
     "apps.profiles.apps.ProfilesConfig",
     "apps.sales.apps.SalesConfig",
-    "apps.lib",
+    "apps.lib.apps.LibConfig",
     "apps.tg_bot.apps.TGBotConfig",
     "django_cleanup.apps.CleanupConfig",
     "apps.discord_bot.apps.DiscordBotConfig",
@@ -223,24 +224,6 @@ FILE_UPLOAD_DIRECTORY_PERMISSIONS = 0o750
 FILE_UPLOAD_PERMISSIONS = 0o644
 
 
-pack_file_name = "webpack-stats.json" if DEBUG else "webpack-stats-saved.json"
-
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "BUNDLE_DIR_NAME": "",
-        "STATS_FILE": os.path.join(BASE_DIR, pack_file_name),
-        "CACHE": not DEBUG,
-    },
-}
-
-if not (DEBUG or TESTING):
-    # Legacy bundle only produced in production/stage environments.
-    WEBPACK_LOADER["LEGACY"] = {
-        "BUNDLE_DIR_NAME": "",
-        "STATS_FILE": os.path.join(BASE_DIR, "webpack-stats-legacy.json"),
-    }
-
-
 THUMBNAIL_ALIASES = {
     "profiles.Submission.file": {
         "thumbnail": {"size": (300, 300), "crop": ",0"},
@@ -338,6 +321,27 @@ PREMAILER_OPTIONS = get_env(
     },
     unpack=True,
 )
+
+VITE_DEV_MODE = bool(int(get_env("VITE_DEV_MODE", str(int(DEBUG)))))
+
+DEFAULT_VITE_URL_PREFIX = "/vite" if VITE_DEV_MODE else "/static/dist/"
+
+VITE_URL_PREFIX = get_env("VITE_URL_PREFIX", DEFAULT_VITE_URL_PREFIX)
+
+DJANGO_VITE = {
+    "default": {
+        "dev_mode": VITE_DEV_MODE,
+        "dev_server_protocol": "https",
+        "dev_server_port": 443,
+        "dev_server_host": DEFAULT_DOMAIN,
+        "static_url_prefix": VITE_URL_PREFIX,
+    }
+}
+
+# Not used by django-vite, but by our template tag defined in lib/templatetags/render_vite_bundle.py
+
+VITE_APP_DIR = get_env("VITE_APP_DIR", STATIC_ROOT)
+
 
 EMAIL_BACKEND = get_env("EMAIL_BACKEND", "djcelery_email.backends.CeleryEmailBackend")
 

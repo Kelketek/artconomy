@@ -1,8 +1,11 @@
 /* istanbul ignore file */
-import {AxiosRequestConfig, AxiosResponse} from 'axios'
-import {csrfSafeMethod, genId, getCookie, immediate, saneNav} from '@/lib/lib'
-import {createLocalVue, mount as upstreamMount, ThisTypedMountOptions, VueClass, Wrapper} from '@vue/test-utils'
-import Vue, {VueConstructor} from 'vue'
+import type {AxiosRequestConfig, AxiosResponse} from 'axios'
+import {AxiosHeaders} from 'axios'
+import {expect, vi} from 'vitest'
+import VueMask from '@devindex/vue-mask'
+import {csrfSafeMethod, genId, getCookie, immediate} from '@/lib/lib'
+import {mount as upstreamMount, VueWrapper} from '@vue/test-utils'
+import {ComponentPublicInstance, defineComponent} from 'vue'
 import {FieldController} from '@/store/forms/field-controller'
 import {FieldBank} from '@/store/forms/form-controller'
 import flushPromisesUpstream from 'flush-promises'
@@ -10,7 +13,7 @@ import {TerseUser} from '@/store/profiles/types/TerseUser'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
 import {User} from '@/store/profiles/types/User'
 import {Ratings} from '@/store/profiles/types/Ratings'
-import Vuex, {Store} from 'vuex'
+import {Store} from 'vuex'
 import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
 import {
@@ -20,29 +23,32 @@ import {
   pathFor,
   userPathFor,
 } from '@/store/profiles/helpers'
-import Vuetify from 'vuetify'
 import {singleRegistry, Singles} from '@/store/singles/registry'
 import {listRegistry, Lists} from '@/store/lists/registry'
 import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import colors from 'vuetify/es5/util/colors'
 import {FormControllers, formRegistry} from '@/store/forms/registry'
 import {characterRegistry, Characters} from '@/store/characters/registry'
 import mockAxios from '@/__mocks__/axios'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {ArtStore, createStore} from '@/store'
-import Router from 'vue-router'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {Shortcuts} from '@/plugins/shortcuts'
-import {VueSocket} from '@/plugins/socket'
-import WS from 'jest-websocket-mock'
+import WS from 'vitest-websocket-mock'
 import {genPricing} from '@/lib/specs/helpers'
+import {createVuetify as upstreamCreateVuetify} from 'vuetify'
+import {createVueSocket} from '@/plugins/socket'
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import {createTargetsPlugin} from '@/plugins/targets'
 
 export interface ExtraData {
   status?: number,
   statusText?: string,
   headers?: { [key: string]: string },
-  config?: AxiosRequestConfig,
+  config?: {headers: AxiosHeaders},
 }
+
+export const createVuetify = upstreamCreateVuetify
 
 export function rs(data: any, extra?: ExtraData): AxiosResponse {
   const extraData = extra || {}
@@ -51,14 +57,14 @@ export function rs(data: any, extra?: ExtraData): AxiosResponse {
     status: 200,
     statusText: 'OK',
     headers: {'Content-Type': 'application/json; charset=utf-8'},
-    config: {},
+    config: {headers: new AxiosHeaders({})},
     ...extraData,
   }
 }
 
 export function rq(url: string, method: HttpVerbs, data?: any, config?: AxiosRequestConfig) {
   const starterHeaders: { [key: string]: string } = {'Content-Type': 'application/json; charset=utf-8'}
-  config = config || {cancelToken: expect.any(Object)}
+  config = config || {signal: expect.any(Object)}
   if (!config.headers) {
     config.headers = {}
   }
@@ -95,7 +101,7 @@ export function vuetifySetup() {
   document.body.appendChild(el)
 }
 
-export function fieldEl(wrapper: Wrapper<Vue>, field: FieldController) {
+export function fieldEl(wrapper: VueWrapper<any>, field: FieldController) {
   const el = wrapper.find('#' + field.id)
   if (!el.exists()) {
     throw Error(`Could not find ${'#' + field.id}`)
@@ -144,12 +150,21 @@ export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
   }
 }
 
-export async function confirmAction(wrapper: Wrapper<Vue>, selectors: string[]) {
+export async function confirmAction(wrapper: VueWrapper<any>, selectors: string[]) {
   for (const selector of selectors) {
-    wrapper.find(selector).trigger('click')
-    await wrapper.vm.$nextTick()
+    try {
+      await waitFor(() => wrapper.find(selector).trigger('click'))
+    } catch (e) {
+      console.log(`Could not find ${selector} in`, wrapper.html())
+      throw e
+    }
   }
-  wrapper.find('.v-dialog--active .confirmation-button').trigger('click')
+  try {
+    await waitFor(() => wrapper.find('.v-overlay--active .confirmation-button').trigger('click'))
+  } catch (e) {
+    console.log(wrapper.html())
+    throw e
+  }
 }
 
 export function makeSpace() {
@@ -160,63 +175,82 @@ export function makeSpace() {
   }
 }
 
-export function vueSetup() {
+export type VueMountOptions = {
+  global: {
+    plugins: any[],
+    stubs?: string[] | Record<string, ReturnType<typeof defineComponent>>,
+    mocks?: {[key: string]: any},
+    components?: Record<string, ReturnType<typeof defineComponent> | object>,
+  },
+  attachTo: string | HTMLElement,
+}
+
+export type MountOverrideOptions = {
+  store?: ArtStore,
+  vuetify?: ReturnType<typeof createVuetify>
+  socket?: ReturnType<typeof createVueSocket>
+  extraPlugins?: any[],
+  stubs?: string[] | Record<string, ReturnType<typeof defineComponent>>,
+  mocks?: {[key: string]: any},
+  attachTo?: string | HTMLElement,
+  components?: Record<string, ReturnType<typeof defineComponent> | object>,
+}
+
+export function vueSetup(overrides?: MountOverrideOptions): VueMountOptions {
+  overrides = overrides || {}
   // Create a localVue with the most common parameters needed for testing our components.
-  Vue.use(Vuex)
-  Vue.use(Vuetify)
-  const localVue = createLocalVue()
-  // Can't trust the websocket library to clean itself properly, so we make sure that the socket's at a new URL each
-  // time.
-  localVue.use(VueSocket, {endpoint: `ws://localhost/test/url/${genId()}`})
-  localVue.use(Singles)
-  localVue.use(Lists)
-  localVue.use(Profiles)
-  localVue.use(FormControllers)
-  localVue.use(Characters)
-  localVue.use(Shortcuts)
-  vuetifySetup()
+  return {
+    global: {
+      stubs: overrides.stubs,
+      components: overrides.components,
+      mocks: overrides.mocks,
+      plugins: [
+        Singles,
+        overrides.store || createStore(),
+        Lists,
+        Profiles,
+        FormControllers,
+        Characters,
+        VueMask,
+        Shortcuts,
+        createTargetsPlugin(true),
+        overrides.socket || createVueSocket({endpoint: `ws://localhost/test/url/${genId()}`}),
+        overrides.vuetify || createVuetify({
+          components,
+          directives,
+        }),
+        ...(overrides.extraPlugins || []),
+      ]},
+    attachTo: overrides.attachTo || docTarget(),
+  }
   // We won't use the Router in all tests, but we always have these modifications when we do.
   // @ts-ignore
-  if (!Router.prototype.push.PATCHED) {
-    // @ts-ignore
-    Router.prototype.push = saneNav(Router.prototype.push)
-    // @ts-ignore
-    Router.prototype.replace = saneNav(Router.prototype.replace)
-  }
-  return localVue
+  // if (!Router.prototype.push.PATCHED) {
+  //   // @ts-ignore
+  //   Router.prototype.push = saneNav(Router.prototype.push)
+  //   // @ts-ignore
+  //   Router.prototype.replace = saneNav(Router.prototype.replace)
+  // }
+  // return localVue
 }
 
-export function createVuetify() {
-  // @ts-ignore
-  return new Vuetify({
-    icons: {
-      iconfont: 'mdiSvg',
-    },
-    theme: {
-      dark: true,
-      themes: {
-        dark: {
-          primary: colors.blue.base,
-          secondary: colors.purple.base,
-          danger: colors.red.base,
-          darkBase: colors.grey.base,
-        },
-      },
-    },
-    options: {
-      customProperties: true,
-    },
-  })
+export function createDocumentTargets() {
+  let el = document.createElement('div')
+  el.id = 'modal-target'
+  document.body.appendChild(el)
+  el = document.createElement('div')
+  el.id = 'snackbar-target'
+  document.body.appendChild(el)
 }
 
-export function cleanUp(wrapper?: Wrapper<Vue>) {
+export function cleanUp(wrapper?: VueWrapper<any>) {
   mockAxios.reset()
-  jest.clearAllTimers()
+  vi.clearAllTimers()
   if (wrapper) {
     if (wrapper.vm.$sock) {
       wrapper.vm.$sock.reset()
     }
-    wrapper.destroy()
+    wrapper.unmount()
   }
   WS.clean()
   singleRegistry.reset()
@@ -227,12 +261,16 @@ export function cleanUp(wrapper?: Wrapper<Vue>) {
   localStorage.clear()
 }
 
-export function setPricing(store: ArtStore, localVue: VueConstructor<Vue>) {
-  const pricing = mount(Empty, {
-    localVue,
+// The TS-ignores are here because there's no sane way to populate this wrapper
+// with class-based Vue objects, as far as I know. Revisit once converted to
+// functional components.
+export function setPricing(store: ArtStore) {
+  const pricing: VueWrapper<any> = mount(Empty, vueSetup({
     store,
-  }).vm.$getSingle('pricing', {endpoint: '/pricing/'})
+  })).vm.$getSingle('pricing', {endpoint: '/pricing/'})
+  // @ts-ignore
   pricing.setX(genPricing())
+  // @ts-ignore
   pricing.ready = true
   return pricing
 }
@@ -241,9 +279,8 @@ export function timeout(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-export async function sleep(fn: Function, ms: number, ...args: any[]) {
+export async function sleep(ms: number, ...args: any[]) {
   await timeout(ms)
-  return fn(...args)
 }
 
 export function docTarget() {
@@ -253,38 +290,17 @@ export function docTarget() {
   return rootDiv
 }
 
-export function qMount<V extends Vue>(component: VueClass<V>, options?: ThisTypedMountOptions<V>): Wrapper<Vue> {
-  return mount(component, prepTest(options))
+export function qMount<V>(component: ComponentPublicInstance<V>, options?: any): VueWrapper<any> {
+  return mount(component, options)
 }
 
-export function prepTest<V extends Vue>(overrides?: Partial<ThisTypedMountOptions<V>>) {
-  overrides = {...overrides}
-  if (overrides.attachTo === undefined) {
-    // Should fail if empty string, which is what we'll use to indicate non-attachment.
-    overrides.attachTo = docTarget()
-  } else if (overrides?.attachTo === '') {
-    overrides.attachTo = undefined
-  }
-  return {
-    localVue: overrides?.localVue || vueSetup(),
-    store: overrides?.store || createStore(),
-    vuetify: overrides?.vuetify || createVuetify(),
-    ...overrides,
-  }
-}
+// At one point it looked like everything needed to be moved over to a wrapped version of the upstream mount
+// function. This turned out not to be the case, but it was not easy to roll back and I might need it eventually,
+// so it's reexported here.
+export const mount = (component: any, options: any): VueWrapper<any> => upstreamMount(component, options)
 
-export function mount<V extends Vue>(component: VueClass<V>, options?: ThisTypedMountOptions<V>): Wrapper<V> {
-  // I'm not sure I'm going to need this. But it looked like I did once, and it was a pain in the ass to convert
-  // everything over, so I'm keeping it.
-  options = options || {}
-  if (!options?.attachTo) {
-    options.attachTo = docTarget()
-  }
-  return upstreamMount(component, options)
-}
-
-export const mockCardMount = jest.fn()
-export const mockCardCreate = jest.fn()
+export const mockCardMount = vi.fn()
+export const mockCardCreate = vi.fn()
 export const mockStripe = () => {
   const stripeInstance = {
     elements: () => {
@@ -308,7 +324,36 @@ export const mockStripe = () => {
   }
   return stripeInstance
 }
-export const mockStripeInitializer = jest.fn()
+
+export function VuetifyWrapped(component: ReturnType<typeof defineComponent>) {
+  return defineComponent({
+    components: {wrapped: component},
+    template: '<v-app><wrapped v-bind="{...$attrs, ...additional}" ref="vm"/><div id="modal-target" /><div id="snackbar-target" /><div id="menu-target" /></v-app>',
+    props: ['id'],
+    computed: {
+      additional() {
+        return this.id ? {id: this.id} : {}
+      }
+    }
+  })
+}
+
+export async function waitFor(func: () => any, timeout = 1000) {
+  const startTime = Date.now()
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    try {
+      return await func()
+    } catch (e) {
+      if ((Date.now() - startTime) >= timeout) {
+        throw e
+      }
+    }
+    await sleep(50)
+  }
+}
+
+export const mockStripeInitializer = vi.fn()
 mockStripeInitializer.mockImplementation(mockStripe)
 mockCardCreate.mockImplementation(() => ({mount: mockCardMount}))
 window.Stripe = mockStripeInitializer

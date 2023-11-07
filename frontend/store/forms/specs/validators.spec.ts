@@ -1,52 +1,43 @@
 import {ArtStore, createStore} from '@/store'
-import Vue from 'vue'
-import {FormControllers, formRegistry} from '../registry'
+import {formRegistry} from '../registry'
 import mockAxios from '@/specs/helpers/mock-axios'
-import Vuex from 'vuex'
-import {createLocalVue, shallowMount} from '@vue/test-utils'
-import {cardType, registerValidators, required, simpleAsyncValidator, validateStatus} from '../validators'
-import {FieldController} from '../field-controller'
+import {VueWrapper} from '@vue/test-utils'
+import {registerValidators, required, simpleAsyncValidator, validateStatus} from '../validators'
 import flushPromises from 'flush-promises'
-import axios from 'axios'
 import MockDate from 'mockdate'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {mount, rq} from '@/specs/helpers'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {singleRegistry, Singles} from '@/store/singles/registry'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import {cleanUp, mount, rq, vueSetup} from '@/specs/helpers'
 import {RootFormState} from '@/store/forms/types/RootFormState'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 // These tests ought to be rewritten so we're not using these global changes somehow.
-Vue.use(Vuex)
-Vue.use(Profiles)
-Vue.use(Singles)
-Vue.use(FormControllers)
-const localVue = createLocalVue()
 
 describe('Field validators', () => {
   let store: ArtStore
   let state: RootFormState
+  let wrapper: VueWrapper<any>
   beforeEach(() => {
-    formRegistry.reset()
-    formRegistry.resetValidators()
-    profileRegistry.reset()
-    singleRegistry.reset()
-    mockAxios.reset()
     store = createStore()
     state = (store.state as any).forms as RootFormState
     registerValidators()
   })
   afterEach(() => {
     MockDate.reset()
+    formRegistry.resetValidators()
+    cleanUp(wrapper)
   })
-  it('Verifies a required field is present.', async() => {
-    store.commit('forms/initForm', {name: 'example', fields: {name: {value: 'Fox'}, age: {value: 30}}})
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'name'}})
+  test('Verifies a required field is present.', async() => {
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example',
+      {fields: {name: {value: 'Fox'}, age: {value: 30}}, endpoint: '#'},
+    ).fields.name
     expect(required(controller)).toEqual([])
     controller.update('')
     await flushPromises()
     expect(required(controller)).toEqual(['This field may not be blank.'])
   })
-  it.each`
+  test.each`
     email                  | result
     ${''}                  | ${[]}
     ${'test@example.com'}  | ${[]}
@@ -58,17 +49,17 @@ describe('Field validators', () => {
     ${'test@ example.com'} | ${['Emails cannot have a space in the section after the @.']}
     ${'test@example'}      | ${['Emails without a full domain are not supported. (Did you forget the .com?)']}
   `('should return $result when handed the email $email.', async({email, result}) => {
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {email: {value: email, validators: [{name: 'email'}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'email'}})
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example',
+      {fields: {email: {value: email, validators: [{name: 'email'}]}}, endpoint: '#'},
+    ).fields.email
     controller.validate()
     controller.validate.flush()
     await flushPromises()
     expect(controller.errors).toEqual(result)
   })
-  it.each`
+  test.each`
     value1       | value2     | error             | result
     ${'test'}    | ${'test'}  | ${undefined}      | ${[]}
     ${'test'}    | ${'tess'}  | ${undefined}      | ${['Values do not match.']}
@@ -76,7 +67,7 @@ describe('Field validators', () => {
   `('should return $result when matching $value1 and $value2 when message is set to $error.', async(
     {value1, value2, error, result},
   ) => {
-    const wrapper = shallowMount(Empty, {localVue, store})
+    wrapper = mount(Empty, vueSetup({store}))
     const controller = wrapper.vm.$getForm('example', {
       endpoint: '',
       fields: {
@@ -89,7 +80,7 @@ describe('Field validators', () => {
     await flushPromises()
     expect(controller.errors).toEqual(result)
   })
-  it.each`
+  test.each`
     status | result
     ${200} | ${true}
     ${204} | ${true}
@@ -102,141 +93,52 @@ describe('Field validators', () => {
   `('should designate the success status of $status as $result.', async({status, result}) => {
     expect(validateStatus(status)).toBe(result)
   })
-  it('Generates an async validator that checks for a common error pattern.', async() => {
+  test('Generates an async validator that checks for a common error pattern.', async() => {
     const validator = simpleAsyncValidator('/api/profiles/form-validators/email/')
-    store.commit('forms/initForm', {
-      name: 'example2',
-      fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example2', fieldName: 'email'}})
-    const source = axios.CancelToken.source()
-    validator(controller, source.token).then()
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example2',
+      {fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}}, endpoint: '#'},
+    ).fields.email
+    const source = new AbortController()
+    validator(controller, source.signal).then()
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/form-validators/email/',
       'post',
       {email: 'test@example.com'},
-      {cancelToken: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus},
+      {signal: expect.any(Object), headers: {'Content-Type': 'application/json; charset=utf-8'}, validateStatus},
     ))
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
   })
-  it('Returns errors from a generated async validator.', async() => {
+  test('Returns errors from a generated async validator.', async() => {
     const validator = simpleAsyncValidator('/api/profiles/form-validators/email/')
-    store.commit('forms/initForm', {
-      name: 'example2',
-      fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example2', fieldName: 'email'}})
-    const source = axios.CancelToken.source()
-    validator(controller, source.token).then((data) => {
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example2',
+      {fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}}, endpoint: '#'},
+    ).fields.email
+    const source = new AbortController()
+    validator(controller, source.signal).then((data) => {
       expect(data).toEqual(['Test error1', 'Test error2'])
     })
     mockAxios.mockResponse({status: 400, data: {email: ['Test error1', 'Test error2']}})
     await flushPromises()
   })
-  it('Returns an empty list from a generated async validator when field errors are not present.', async() => {
+  test('Returns an empty list from a generated async validator when field errors are not present.', async() => {
     const validator = simpleAsyncValidator('/api/profiles/form-validators/email/')
-    store.commit('forms/initForm', {
-      name: 'example2',
-      fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example2', fieldName: 'email'}})
-    const source = axios.CancelToken.source()
-    validator(controller, source.token).then((data) => {
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example2',
+      {fields: {email: {value: 'test@example.com', validators: [{name: 'email'}]}}, endpoint: '#'},
+    ).fields.email
+    const source = new AbortController()
+    validator(controller, source.signal).then((data) => {
       expect(data).toEqual([])
     })
     mockAxios.mockResponse({status: 400, data: {}})
     await flushPromises()
   })
-  it.each`
-    date                      | result
-    ${''}                     | ${[]}
-    ${'0820'}                 | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'0'}                    | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'12'}                   | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'14/23'}                | ${['That is not a valid month.']}
-    ${'@stuff'}               | ${['Please write the date in the format MM/YY, like 08/22.']}
-    ${'05/02'}                | ${['This card has expired.']}
-    ${'12/99'}                | ${[]}
-    ${'12/2000'}              | ${['This card has expired.']}
-    ${'12/2020'}              | ${[]}
-    ${'12/202'}               | ${['Please enter a two digit year.']}
-  `('should return $result when handed the expiration date $date.', async({date, result}) => {
-    MockDate.set('2019-6-19')
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {exp_date: {value: date, validators: [{name: 'cardExp'}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'exp_date'}})
-    controller.validate()
-    controller.validate.flush()
-    await flushPromises()
-    expect(controller.errors).toEqual(result)
-  })
-  it.each`
-    cardNumber               | result
-    ${'0'}                   | ${['That is not a valid card number. Please check the card.']}
-    ${'4111111111111111'}    | ${[]}
-    ${'4242424242424241'}    | ${['That is not a valid card number. Please check the card.']}
-    ${'4111 1111 1111 1111'} | ${[]}
-    ${'4111-1111-1111-1111'} | ${[]}
-    ${'4242 4242 4242 4999'} | ${['That is not a valid card number. Please check the card.']}
-  `('should return $result when handed the card number $cardNumber.', async({cardNumber, result}) => {
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {card_number: {value: cardNumber, validators: [{name: 'creditCard'}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'card_number'}})
-    controller.validate()
-    controller.validate.flush()
-    await flushPromises()
-    expect(controller.errors).toEqual(result)
-  })
-  it.each`
-    cardNumber               | result
-    ${'37000'}               | ${'amex'}
-    ${'370000000000002'}     | ${'amex'}
-    ${'5424'}                | ${'mastercard'}
-    ${'5424000000000015'}    | ${'mastercard'}
-    ${'42'}                  | ${'visa'}
-    ${'4242424242424241'}    | ${'visa'}
-    ${'6011'}                | ${'discover'}
-    ${'6011000000000012'}    | ${'discover'}
-    ${'3800000'}             | ${'diners'}
-    ${'38000000000006'}      | ${'diners'}
-    ${'853'}                 | ${'unknown'}
-  `('should identify $result when handed the card number $cardNumber.', async({cardNumber, result}) => {
-    expect(cardType(cardNumber)).toEqual(result)
-  })
-  it.each`
-    cardNumber               | cvv       | result
-    ${'37000'}               | ${'025'}  | ${['Must be 4 digits long']}
-    ${'370000000000002'}     | ${'1234'} | ${[]}
-    ${'5424'}                | ${'vsd'}  | ${['Digits only, please']}
-    ${'5424000000000015'}    | ${'001'}  | ${[]}
-    ${'42'}                  | ${'0125'} | ${['Must be 3 digits long']}
-  `('should return $result when handed the card number $cardNumber and the CVV $cvv.', async({cardNumber, cvv, result},
-  ) => {
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {card_number: {value: cardNumber}, cvv: {value: cvv, validators: [{name: 'cvv'}]}},
-    })
-    const wrapper = mount(Empty, {localVue, store})
-    const controller = wrapper.vm.$getForm('example', {
-      fields: {
-        card_number: {value: cardNumber},
-        cvv: {
-          value: cvv,
-          validators: [{name: 'cvv', args: ['card_number']}],
-        },
-      },
-      endpoint: '/',
-    }).fields.cvv
-    controller.validate()
-    controller.validate.flush()
-    await flushPromises()
-    expect(controller.errors).toEqual(result)
-  })
-  it.each`
+  test.each`
     input       | result
     ${'#000'}   | ${['The color must be in the form of an RGB reference, like #000000 #FFFFFF or #c4c4c4.']}
     ${'asdf'}   | ${['The color must be in the form of an RGB reference, like #000000 #FFFFFF or #c4c4c4.']}
@@ -244,47 +146,47 @@ describe('Field validators', () => {
     ${'    '}   | ${['The color must be in the form of an RGB reference, like #000000 #FFFFFF or #c4c4c4.']}
     ${'#5566ab'}| ${[]}
   `('Should validate a color reference', async({input, result}) => {
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {color: {value: input, validators: [{name: 'colorRef'}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'color'}})
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example',
+      {fields: {color: {value: input, validators: [{name: 'colorRef'}]}}, endpoint: '#'},
+    ).fields.color
     controller.validate()
     controller.validate.flush()
     await flushPromises()
     expect(controller.errors).toEqual(result)
   })
-  it.each`
+  test.each`
     input              | result
     ${'Hello there'}   | ${['Too long. Maximum length: 5.']}
     ${'Wat'}           | ${[]}
   `('Should validate a max length string', async({input, result}) => {
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {name: {value: input, validators: [{name: 'maxLength', args: [5]}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'name'}})
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example',
+      {fields: {name: {value: input, validators: [{name: 'maxLength', args: [5]}]}}, endpoint: '#'},
+    ).fields.name
     controller.validate()
     controller.validate.flush()
     await flushPromises()
     expect(controller.errors).toEqual(result)
   })
-  it.each`
+  test.each`
     input              | result
     ${'Hello there'}   | ${[]}
     ${'Wat'}           | ${['Too short. Minimum length: 5.']}
   `('Should validate a min length string', async({input, result}) => {
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {name: {value: input, validators: [{name: 'minLength', args: [5]}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'name'}})
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example',
+      {fields: {name: {value: input, validators: [{name: 'minLength', args: [5]}]}}, endpoint: '#'},
+    ).fields.name
     controller.validate()
     controller.validate.flush()
     await flushPromises()
     expect(controller.errors).toEqual(result)
   })
-  it.each`
+  test.each`
     input         | result
     ${'5'}        | ${[]}
     ${'123434'}   | ${[]}
@@ -292,11 +194,11 @@ describe('Field validators', () => {
     ${'1234.45'}  | ${[]}
     ${'-12.34'}   | ${[]}
   `('Validates a numeric entry', async({input, result}) => {
-    store.commit('forms/initForm', {
-      name: 'example',
-      fields: {items: {value: input, validators: [{name: 'numeric', args: [5]}]}},
-    })
-    const controller = new FieldController({store, propsData: {formName: 'example', fieldName: 'items'}})
+    wrapper = mount(Empty, vueSetup({store}))
+    const controller = wrapper.vm.$getForm(
+      'example',
+      {fields: {items: {value: input, validators: [{name: 'numeric', args: [5]}]}}, endpoint: '#'},
+    ).fields.items
     controller.validate()
     controller.validate.flush()
     await flushPromises()

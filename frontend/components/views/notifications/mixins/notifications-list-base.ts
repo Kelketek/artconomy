@@ -2,8 +2,7 @@
 // functionality is in modules now.
 import {artCall, NOTIFICATION_MAPPING} from '@/lib/lib'
 import Viewer from '@/mixins/viewer'
-import Component, {mixins} from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Component, mixins, Prop} from 'vue-facing-decorator'
 import {SingleController} from '@/store/singles/controller'
 import AcNotification from '@/types/AcNotification'
 import {ListController} from '@/store/lists/controller'
@@ -36,10 +35,13 @@ export default class NotificationsListBase extends mixins(Viewer) {
     }
     notification.updateX({read: true})
     artCall({
-      url: '/api/profiles/data/notifications/mark-read/',
-      method: 'patch',
-      data: [{id: (notification.x as AcNotification<any, any>).id, read: true}],
-    },
+        url: '/api/profiles/data/notifications/mark-read/',
+        method: 'patch',
+        data: [{
+          id: (notification.x as AcNotification<any, any>).id,
+          read: true,
+        }],
+      },
     ).then(this.sendUpdateEvent)
   }
 
@@ -59,7 +61,10 @@ export default class NotificationsListBase extends mixins(Viewer) {
       if (this.markedIDs.indexOf(notification.id) !== -1) {
         return
       }
-      self.toMark.push({id: notification.id, read: true})
+      self.toMark.push({
+        id: notification.id,
+        read: true,
+      })
     }
   }
 
@@ -88,7 +93,11 @@ export default class NotificationsListBase extends mixins(Viewer) {
     if (this.toMark.length && !this.marking.length) {
       this.marking = this.toMark
       artCall(
-        {url: this.readUrl, method: 'patch', data: this.marking},
+        {
+          url: this.readUrl,
+          method: 'patch',
+          data: this.marking,
+        },
       ).then(this.postMark).catch(this.clearMarking)
     }
   }
@@ -101,7 +110,7 @@ export default class NotificationsListBase extends mixins(Viewer) {
     return this.marked.map((x) => x.id)
   }
 
-  public destroyed() {
+  public unmounted() {
     this.readMonitor()
     window.clearInterval(this.loopId)
   }

@@ -1,37 +1,49 @@
 <template>
-  <v-card :color="color" :class="{alternate, comment: true, 'elevation-3': alternate, selected}" :id="'comment-' + comment.x.id" v-if="comment.x">
+  <v-card :color="color" :class="{alternate, comment: true, 'elevation-3': alternate, selected}"
+          :id="'comment-' + comment.x.id" v-if="comment.x">
     <v-toolbar dense color="black">
-      <ac-avatar :username="username" :show-name="false" v-if="username" />
-      <v-toolbar-title v-if="username" class="ml-1"><ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title><v-spacer />
+      <ac-avatar :username="username" :show-name="false" v-if="username"/>
+      <v-toolbar-title v-if="username" class="ml-1">
+        <ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link>
+      </v-toolbar-title>
+      <v-spacer/>
       <v-tooltip bottom>
-        <template v-slot:activator="{ on }">
-          <v-icon v-on="on">info</v-icon>
+        <template v-slot:activator="{ props }">
+          <v-icon v-bind="props" icon="mdi-information"/>
         </template>
         {{formatDateTime(comment.x.created_on)}}
         <span v-if="comment.x.edited"><br/>Edited: {{formatDateTime(comment.x.edited_on)}}</span>
       </v-tooltip>
-      <v-menu offset-x left v-if="!inHistory">
-        <template v-slot:activator="{on}">
-          <v-btn icon v-on="on" class="more-button"><v-icon>more_horiz</v-icon></v-btn>
+      <v-menu offset-x left v-if="!inHistory" :attach="$menuTarget">
+        <template v-slot:activator="{props}">
+          <v-btn icon v-bind="props" class="more-button">
+            <v-icon icon="mdi-dots-horizontal"/>
+          </v-btn>
         </template>
         <v-list dense>
           <v-list-item @click="historyDisplay = true" v-if="showHistory">
-            <v-list-item-action class="history-button"><v-icon>history</v-icon></v-list-item-action>
+            <template v-slot:prepend>
+              <v-icon class="history-button" icon="mdi-history"/>
+            </template>
             <v-list-item-title>Revision history</v-list-item-title>
           </v-list-item>
           <v-list-item @click="editing = true" v-if="!editing && controls">
-            <v-list-item-action class="edit-button"><v-icon>edit</v-icon></v-list-item-action>
+            <template v-slot:prepend>
+              <v-icon class="edit-button" icon="mdi-pencil"/>
+            </template>
             <v-list-item-title>Edit</v-list-item-title>
           </v-list-item>
           <v-list-item @click="editing = false" v-if="editing && controls">
-            <v-list-item-action class="lock-button"><v-icon>cancel</v-icon></v-list-item-action>
+            <template v-slot:prepend>
+              <v-icon class="lock-button" icon="mdi-cancel"/>
+            </template>
             <v-list-item-title>Cancel edit</v-list-item-title>
           </v-list-item>
           <v-list-item @click.stop="comment.patch({subscribed: !comment.x.subscribed})">
-            <v-list-item-action>
-              <v-icon v-if="comment.x.subscribed">volume_up</v-icon>
-              <v-icon v-else>volume_off</v-icon>
-            </v-list-item-action>
+            <template v-slot:prepend>
+              <v-icon v-if="comment.x.subscribed" icon="mdi-volume-up"/>
+              <v-icon v-else icon="mdi-volume-off"/>
+            </template>
             <v-list-item-title>
               Notifications
               <span v-if="comment.x.subscribed">on</span>
@@ -41,7 +53,9 @@
           <ac-confirmation :action="comment.delete" v-if="controls">
             <template v-slot:default="confirmContext">
               <v-list-item v-on="confirmContext.on">
-                <v-list-item-action class="delete-button"><v-icon>delete</v-icon></v-list-item-action>
+                <template v-slot:prepend>
+                  <v-icon class="delete-button" icon="mdi-delete"/>
+                </template>
                 <v-list-item-title>Delete</v-list-item-title>
               </v-list-item>
             </template>
@@ -50,9 +64,9 @@
       </v-menu>
     </v-toolbar>
     <v-card-text>
-      <v-row no-gutters  >
+      <v-row no-gutters>
         <v-col cols="12" sm="12">
-          <v-row no-gutters  >
+          <v-row no-gutters>
             <v-col cols="12">
               <ac-patch-field
                   v-show="editing"
@@ -62,45 +76,51 @@
                   :auto-save="false"
                   v-if="controls"
               >
-                <v-col class="shrink" slot="pre-actions">
-                  <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                      <v-btn v-on="on" @click="editing=false" fab small color="danger" class="cancel-button" :disabled="commentText.patching">
-                        <v-icon>cancel</v-icon>
-                      </v-btn>
-                    </template>
-                    <span>Cancel</span>
-                  </v-tooltip>
-                </v-col>
+                <template v-slot:pre-actions>
+                  <v-col class="shrink">
+                    <v-tooltip top>
+                      <template v-slot:activator="{ props }">
+                        <v-btn v-bind="props" @click="editing=false" icon small color="danger" class="cancel-button"
+                               :disabled="!!commentText.patching">
+                          <v-icon icon="mdi-cancel"/>
+                        </v-btn>
+                      </template>
+                      <span>Cancel</span>
+                    </v-tooltip>
+                  </v-col>
+                </template>
               </ac-patch-field>
-              <ac-rendered v-show="!editing" :value="comment.x.text" v-if="!comment.x.deleted" />
+              <ac-rendered v-show="!editing" :value="comment.x.text" v-if="!comment.x.deleted"/>
               <v-col v-else>[Deleted]</v-col>
             </v-col>
-            <v-col class="text-right" cols="12" v-if="canReply && !editing && !comment.x.deleted && !subCommentList.list.length && !replying">
+            <v-col class="text-right" cols="12"
+                   v-if="canReply && !editing && !comment.x.deleted && !subCommentList.list.length && !replying">
               <v-row no-gutters>
-                <v-spacer />
+                <v-spacer/>
                 <v-col class="shrink">
                   <v-tooltip top>
-                    <template v-slot:activator="{ on }">
-                      <v-btn v-on="on" color="primary" fab small @click="replying = true" class="reply-button">
-                        <v-icon>reply</v-icon>
+                    <template v-slot:activator="{ props }">
+                      <v-btn v-bind="props" color="primary" icon small @click="replying = true" class="reply-button">
+                        <v-icon icon="mdi-reply"/>
                       </v-btn>
                     </template>
                     <span>Reply</span>
                   </v-tooltip>
                 </v-col>
-                <v-col class="shrink" />
+                <v-col class="shrink"/>
               </v-row>
             </v-col>
           </v-row>
         </v-col>
       </v-row>
-      <v-row no-gutters   v-if="subCommentList.list.length || replying">
+      <v-row no-gutters v-if="subCommentList.list.length || replying">
         <v-col cols="11" offset="1">
           <v-row no-gutters class="mt-4">
             <v-col v-if="subCommentList.moreAvailable">
-              <v-btn block @click="subCommentList.next">
-                <v-icon left>expand_more</v-icon>Load More<v-icon right>expand_more</v-icon>
+              <v-btn block @click="subCommentList.next" variant="flat">
+                <v-icon left>expand_more</v-icon>
+                Load More
+                <v-icon right icon="mdi-expand-more"/>
               </v-btn>
             </v-col>
             <ac-load-section :controller="subCommentList">
@@ -108,18 +128,18 @@
                 <div class="flex subcomments">
                   <template v-for="(comment, index) in subCommentList.list">
                     <ac-comment
-                      :alternate="checkAlternate(index)"
-                      :comment="comment"
-                      :comment-list="subCommentList"
-                      :username="comment.x.user.username"
-                      :level="level + 1"
-                      :key="comment.x.id"
-                      :nesting="nesting"
-                      :show-history="showHistory"
-                      v-if="comment.x"
+                        :alternate="checkAlternate(index)"
+                        :comment="comment"
+                        :comment-list="subCommentList"
+                        :username="comment.x!.user?.username"
+                        :level="level + 1"
+                        :key="comment.x!.id"
+                        :nesting="nesting"
+                        :show-history="showHistory"
+                        v-if="comment.x"
                     />
                   </template>
-                </div >
+                </div>
               </template>
             </ac-load-section>
             <v-col cols="12" v-if="replying">
@@ -134,12 +154,12 @@
         </v-col>
         <v-col cols="12" v-if="subCommentList.list.length && canReply && !replying" class="pt-2">
           <v-row no-gutters>
-            <v-spacer />
-            <v-col class="shrink" >
+            <v-spacer/>
+            <v-col class="shrink">
               <v-tooltip top>
-                <template v-slot:activator="{ on }">
-                  <v-btn v-on="on" color="primary" small fab @click="replying = true" class="reply-button">
-                    <v-icon>reply</v-icon>
+                <template v-slot:activator="{ props }">
+                  <v-btn v-bind="props" color="primary" small icon @click="replying = true" class="reply-button">
+                    <v-icon icon="mdi-reply"/>
                   </v-btn>
                 </template>
                 <span>Reply</span>
@@ -150,27 +170,27 @@
       </v-row>
     </v-card-text>
     <ac-expanded-property v-model="historyDisplay">
-      <ac-comment-section :locked="true" :comment-list="historyList" v-if="renderHistory" :in-history="true" />
+      <ac-comment-section :locked="true" :comment-list="historyList" v-if="renderHistory" :in-history="true"/>
     </ac-expanded-property>
   </v-card>
 </template>
 
 <style lang="stylus" scoped>
-  .comment p:last-child {
-    margin-bottom: 0;
-  }
-  .comment.selected {
-    box-shadow: inset 0 0 10px 0 #fff !important;
-  }
+.comment p:last-child {
+  margin-bottom: 0;
+}
+
+.comment.selected {
+  box-shadow: inset 0 0 10px 0 #fff !important;
+}
 </style>
 
 <script lang="ts">
 
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import Subjective from '../../mixins/subjective'
 import {SingleController} from '@/store/singles/controller'
 import {ListController} from '@/store/lists/controller'
-import {Prop, Watch} from 'vue-property-decorator'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcRendered from '@/components/wrappers/AcRendered'
 import AcBoundField from '@/components/fields/AcBoundField'
@@ -201,151 +221,155 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
     AcAvatar,
   },
 })
-export default class AcComment extends mixins(Subjective, Formatting) {
-    @Prop({required: true})
-    public comment!: SingleController<Comment>
+class AcComment extends mixins(Subjective, Formatting) {
+  @Prop({required: true})
+  public comment!: SingleController<Comment>
 
-    @Prop({required: true})
-    public commentList!: ListController<Comment>
+  @Prop({required: true})
+  public commentList!: ListController<Comment>
 
-    // Used to make sure every other comment is a different style.
-    @Prop({default: false})
-    public alternate!: boolean
+  // Used to make sure every other comment is a different style.
+  @Prop({default: false})
+  public alternate!: boolean
 
-    // When true, allows replies.
-    @Prop({default: true})
-    public nesting!: boolean
+  // When true, allows replies.
+  @Prop({default: true})
+  public nesting!: boolean
 
-    // When greater than zero, we won't allow direct replies. They must be at the thread level.
-    @Prop({default: 0})
-    public level!: number
+  // When greater than zero, we won't allow direct replies. They must be at the thread level.
+  @Prop({default: 0})
+  public level!: number
 
-    @Prop({default: false})
-    public locked!: boolean
+  @Prop({default: false})
+  public locked!: boolean
 
-    @Prop({default: false})
-    public showHistory!: boolean
+  @Prop({default: false})
+  public showHistory!: boolean
 
-    @Prop({default: false})
-    public inHistory!: boolean
+  @Prop({default: false})
+  public inHistory!: boolean
 
-    public subCommentList: ListController<Comment> = null as unknown as ListController<Comment>
-    public historyList: ListController<Comment> = null as unknown as ListController<Comment>
-    public commentText: Patch = null as unknown as Patch
-    public editing = false
-    public replying = false
-    public missingOk = true
-    public scrolled = false
-    public historyDisplay = false
-    public renderHistory = false
+  public subCommentList: ListController<Comment> = null as unknown as ListController<Comment>
+  public historyList: ListController<Comment> = null as unknown as ListController<Comment>
+  public commentText: Patch = null as unknown as Patch
+  public editing = false
+  public replying = false
+  public missingOk = true
+  public scrolled = false
+  public historyDisplay = false
+  public renderHistory = false
 
-    public beforeCreate() {
-      // Avoid circular definition loop.
+  public get canHaveChildren() {
+    if (!this.nesting) {
+      return false
+    }
+    return this.level === 0
+  }
+
+  public get color() {
+    if (this.alternate) {
       // @ts-ignore
-      this.$options.components.AcCommentSection = require('@/components/comments/AcCommentSection.vue').default
-      // @ts-ignore
-      this.$options.components.AcComment = AcComment
+      return this.$vuetify.theme.current.colors['well-darken-4']
     }
+    return undefined
+  }
 
-    public get canHaveChildren() {
-      if (!this.nesting) {
-        return false
-      }
-      return this.level === 0
-    }
+  public get canReply() {
+    return this.canHaveChildren && this.isRegistered && !this.locked
+  }
 
-    public get color() {
-      if (this.alternate) {
-        // @ts-ignore
-        return this.$vuetify.theme.currentTheme.darkBase.darken4
+  public get selected() {
+    if (!this.comment.x) {
+      return false
+    }
+    if (this.$route.query && this.$route.query.commentId) {
+      if (this.$route.query.commentId === (this.comment.x as Comment).id + '') {
+        return true
       }
     }
+    return false
+  }
 
-    public get canReply() {
-      return this.canHaveChildren && this.isRegistered && !this.locked
+  public checkAlternate(index: number) {
+    if (this.alternate) {
+      index += 1
     }
+    return !(index % 2)
+  }
 
-    public get selected() {
-      if (!this.comment.x) {
-        return false
-      }
-      if (this.$route.query && this.$route.query.commentId) {
-        if (this.$route.query.commentId === (this.comment.x as Comment).id + '') {
-          return true
-        }
+  @Watch('subCommentList.list.length')
+  public syncDeletion(val: number) {
+    if (this.showHistory || this.inHistory) {
+      return
+    }
+    if (this.comment.x === null) {
+      return
+    }
+    if (val === 0) {
+      // All children are deleted. Are we?
+      if ((this.comment.x as Comment).deleted) {
+        // Be gone, if so. We won't be on the server anymore, either!
+        this.comment.setX(null)
       }
     }
+  }
 
-    public checkAlternate(index: number) {
-      if (this.alternate) {
-        index += 1
-      }
-      return !(index % 2)
+  @Watch('historyDisplay')
+  public historyRender(val: boolean) {
+    /* istanbul ignore else */
+    if (val) {
+      this.renderHistory = true
     }
+  }
 
-    @Watch('subCommentList.list.length')
-    public syncDeletion(val: number) {
-      if (this.showHistory || this.inHistory) {
-        return
+  public mounted() {
+    this.$nextTick(() => {
+      if (this.selected && !this.scrolled) {
+        this.$el.scrollIntoView()
+        this.scrolled = true
       }
-      if (this.comment.x === null) {
-        return
-      }
-      if (val === 0) {
-        // All children are deleted. Are we?
-        if ((this.comment.x as Comment).deleted) {
-          // Be gone, if so. We won't be on the server anymore, either!
-          this.comment.setX(null)
-        }
-      }
-    }
+    })
+  }
 
-    @Watch('historyDisplay')
-    public historyRender(val: boolean) {
-      /* istanbul ignore else */
-      if (val) {
-        this.renderHistory = true
-      }
+  public created() {
+    const comment = this.comment.x as Comment
+    if (this.controls) {
+      this.commentText = this.$makePatcher(
+          {
+            modelProp: 'comment',
+            attrName: 'text',
+            debounceRate: 300,
+            refresh: false,
+          },
+      )
     }
-
-    public mounted() {
-      this.$nextTick(() => {
-        if (this.selected && !this.scrolled) {
-          this.$goTo('#comment-' + (this.comment.x as Comment).id)
-          this.scrolled = true
-        }
-      })
+    this.subCommentList = this.$getList(this.comment.name + '_comments', {
+      endpoint: `/api/lib/comments/lib.Comment/${comment.id}/`,
+      params: {size: 5},
+      grow: true,
+      reverse: true,
+    })
+    this.historyList = this.$getList(this.comment.name + '_history', {
+      endpoint: `/api/lib/comments/lib.Comment/${comment.id}/history/`,
+      params: {size: 5},
+      grow: true,
+      reverse: true,
+    })
+    // Normally we might create a watcher for this param, but the parent list should be refetched if it changes,
+    // rebuilding the whole comment set.
+    if (this.showHistory) {
+      this.subCommentList.params = {history: '1'}
     }
-
-    public created() {
-      const comment = this.comment.x as Comment
-      if (this.controls) {
-        this.commentText = this.$makePatcher(
-          {modelProp: 'comment', attrName: 'text', debounceRate: 300, refresh: false},
-        )
-      }
-      this.subCommentList = this.$getList(this.comment.name + '_comments', {
-        endpoint: `/api/lib/comments/lib.Comment/${comment.id}/`,
-        params: {size: 5},
-        grow: true,
-        reverse: true,
-      })
-      this.historyList = this.$getList(this.comment.name + '_history', {
-        endpoint: `/api/lib/comments/lib.Comment/${comment.id}/history/`,
-        params: {size: 5},
-        grow: true,
-        reverse: true,
-      })
-      // Normally we might create a watcher for this param, but the parent list should be refetched if it changes,
-      // rebuilding the whole comment set.
-      if (this.showHistory) {
-        this.subCommentList.params = {history: '1'}
-      }
-      this.subCommentList.setList(comment.comments)
-      this.subCommentList.response = {size: 5, count: comment.comment_count}
-      this.subCommentList.ready = true
-      // @ts-ignore
-      window.comment = this
+    this.subCommentList.setList(comment.comments)
+    this.subCommentList.response = {
+      size: 5,
+      count: comment.comment_count,
     }
+    this.subCommentList.ready = true
+    // @ts-ignore
+    window.comment = this
+  }
 }
+
+export default toNative(AcComment)
 </script>

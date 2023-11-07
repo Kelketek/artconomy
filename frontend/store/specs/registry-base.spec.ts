@@ -1,7 +1,8 @@
 import {clearItem} from '@/store/registry-base'
+import {describe, expect, test} from 'vitest'
 
 describe('registry-base.ts', () => {
-  it('Clears a list cleanly', () => {
+  test('Clears a list cleanly', () => {
     const tracker = {thing: [1, 2, 3], stuff: [4, 5, 6]}
     clearItem(tracker, 'thing', 1)
     expect(tracker.thing).toEqual([2, 3])

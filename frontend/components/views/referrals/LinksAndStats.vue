@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-row no-gutters class="text-center"   >
+    <v-row no-gutters class="text-center">
       <v-col cols="12">
         <h1>Refer a Friend and get Rewarded!</h1>
         <p>
@@ -18,8 +18,8 @@
     </v-row>
     <v-card>
       <v-card-text>
-        <v-row no-gutters  >
-          <v-col class="text-center" >
+        <v-row no-gutters>
+          <v-col class="text-center">
             <h2>Use this link to refer other commissioners and artists:</h2>
             <p><a :href="`https://artconomy.com/?referred_by=${username}`"><code
                 v-html="`https://artconomy.com/?referred_by=${username}`"></code></a></p>
@@ -36,12 +36,12 @@
     </v-card>
     <ac-load-section :controller="stats">
       <template v-slot:default>
-        <v-row no-gutters  >
-          <v-col class="text-center" cols="12" >
+        <v-row no-gutters>
+          <v-col class="text-center" cols="12">
             <h2>Your Referral Stats</h2>
             <ul>
-              <li>Total People Referred: {{stats.x.total_referred}}</li>
-              <li>Landscape Eligible Referrals: {{stats.x.landscape_eligible}}</li>
+              <li>Total People Referred: {{stats.x!.total_referred}}</li>
+              <li>Landscape Eligible Referrals: {{stats.x!.landscape_eligible}}</li>
             </ul>
             <p>For a referral to be
               <router-link
@@ -68,23 +68,27 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {SingleController} from '@/store/singles/controller'
 import ReferralStats from '@/types/ReferralStats'
 import {flatten} from '@/lib/lib'
-  @Component({
-    components: {AcLoadSection},
-  })
-export default class Referrals extends mixins(Subjective) {
-    public stats: SingleController<ReferralStats> = null as unknown as SingleController<ReferralStats>
-    public privateView = true
-    public created() {
-      this.stats = this.$getSingle(
+
+@Component({
+  components: {AcLoadSection},
+})
+class Referrals extends mixins(Subjective) {
+  public stats: SingleController<ReferralStats> = null as unknown as SingleController<ReferralStats>
+  public privateView = true
+
+  public created() {
+    this.stats = this.$getSingle(
         `ReferralStats__${flatten(this.username)}`, {endpoint: `/api/profiles/account/${this.username}/referral_stats/`},
-      )
-      this.stats.get()
-    }
+    )
+    this.stats.get()
+  }
 }
+
+export default toNative(Referrals)
 </script>

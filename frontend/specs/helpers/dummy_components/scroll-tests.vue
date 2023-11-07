@@ -25,13 +25,12 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import {Prop} from 'vue-property-decorator'
-import Component from 'vue-class-component'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 
-  @Component
-export default class ErrorScrollTests extends Vue {
+@Component
+class ErrorScrollTests extends Vue {
     @Prop()
     public test!: string
 }
+export default toNative(ErrorScrollTests)
 </script>

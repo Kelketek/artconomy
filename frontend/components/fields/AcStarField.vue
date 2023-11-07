@@ -1,25 +1,31 @@
 <template>
-  <v-rating :value="value" @input="update"></v-rating>
+  <v-rating :model-value="modelValue" @update:model-value="update"></v-rating>
 </template>
 
 <style>
-  .v-rating .v-icon {
-    padding: 0;
-  }
+.v-rating .v-icon {
+  padding: 0;
+}
 </style>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 
-@Component
-export default class AcStarField extends Vue {
+@Component({emits: ['update:modelValue']})
+class AcStarField extends Vue {
   @Prop({required: true})
-  public value!: number
+  public modelValue!: number
 
-  public update(val: number) {
-    this.$emit('input', val)
+  public update(val: number|string) {
+    let result: number
+    if (typeof val === 'number') {
+      result = val
+    } else {
+      result = parseInt(val, 10)
+    }
+    this.$emit('update:modelValue', result)
   }
 }
+
+export default toNative(AcStarField)
 </script>

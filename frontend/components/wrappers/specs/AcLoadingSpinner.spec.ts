@@ -1,29 +1,17 @@
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import AcLoadingSpinner from '../AcLoadingSpinner.vue'
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {describe, expect, afterEach, test} from 'vitest'
 
-// Must use it directly, due to issues with package imports upstream.
-const localVue = vueSetup()
-let vuetify: Vuetify
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 
 describe('ac-form-container.vue', () => {
-  beforeEach(() => {
-    vuetify = createVuetify()
-  })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Shows a loading spinner', async() => {
+  test('Shows a loading spinner', async() => {
     // Needed for that last bit of code coverage.
-    wrapper = mount(AcLoadingSpinner, {
-      localVue,
-      vuetify,
-
-      attachTo: docTarget(),
-    })
+    wrapper = mount(AcLoadingSpinner, vueSetup())
     expect(wrapper.find('.v-progress-circular').exists()).toBe(true)
   })
 })

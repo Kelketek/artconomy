@@ -1,4 +1,4 @@
-import Vuex, {Store as VuexStore, StoreOptions} from 'vuex'
+import {createStore as createVuexStore, MutationPayload, Store as VuexStore, StoreOptions} from 'vuex'
 import {Alert, AlertCategory, State} from './state'
 import {profiles, userModules} from './profiles'
 import {errors} from './errors'
@@ -9,6 +9,7 @@ import {notifications} from './notifications'
 import {genId} from '@/lib/lib'
 import {singles} from './singles'
 import {characterModules} from '@/store/characters'
+import {ContentRating} from '@/types/ContentRating'
 
 export function storeDefaults(): StoreOptions<State> {
   return {
@@ -56,7 +57,7 @@ export function storeDefaults(): StoreOptions<State> {
       setAgeAsked(state, value: boolean) {
         state.ageAsked = value
       },
-      setContentRating(state, value: number) {
+      setContentRating(state, value: ContentRating) {
         state.contentRating = value
       },
       setShowAgeVerification(state, value: boolean) {
@@ -103,6 +104,16 @@ export function storeDefaults(): StoreOptions<State> {
 
 export type ArtStore = VuexStore<State>
 
+const myPlugin = (store: ArtStore) => {
+  // called when the store is initialized
+  store.subscribe((mutation: MutationPayload, state: ArtStore['state']) => {
+    // called after every mutation.
+    // The mutation comes in the format of `{ type, payload }`.
+    console.log(mutation.type, mutation.payload)
+  })
+}
+
+
 export const createStore = (options?: StoreOptions<State>): ArtStore => {
-  return new Vuex.Store<State>(cloneDeep(options || storeDefaults()))
+  return createVuexStore<State>({...cloneDeep(options || storeDefaults()), plugins: [/**myPlugin**/]})
 }

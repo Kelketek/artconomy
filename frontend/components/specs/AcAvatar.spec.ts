@@ -1,35 +1,31 @@
-import Vue from 'vue'
-import {RouterLinkStub, Wrapper} from '@vue/test-utils'
+import {RouterLinkStub, VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, flushPromises, rq, rs, setViewer, vueSetup, vuetifySetup, mount} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser, userResponse} from '@/specs/helpers/fixtures'
 import AcAvatar from '@/components/AcAvatar.vue'
 import mockAxios from '@/__mocks__/axios'
-import Vuetify from 'vuetify/lib'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
-const mockError = jest.spyOn(console, 'error')
+const mockError = vi.spyOn(console, 'error')
 
 describe('AcAvatar', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
     mockError.mockClear()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Populates via username', async() => {
+  test('Populates via username', async() => {
     const wrapper = mount(AcAvatar, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {username: 'Fox'},
     })
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/', 'get'))
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
@@ -38,18 +34,21 @@ describe('AcAvatar', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
-    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(vm.profileLink).toEqual({
+      name: 'AboutUser',
+      params: {username: 'Fox'},
+    })
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
-  it('Populates via ID remotely', async() => {
+  test('Populates via ID remotely', async() => {
     const wrapper = mount(AcAvatar, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {userId: 1},
-      stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {userId: 1},
     })
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/data/user/id/1/', 'get', undefined, {}))
@@ -57,56 +56,69 @@ describe('AcAvatar', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
-    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(vm.profileLink).toEqual({
+      name: 'AboutUser',
+      params: {username: 'Fox'},
+    })
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
-  it('Populates via ID locally', async() => {
+  test('Populates via ID locally', async() => {
     setViewer(store, genUser())
     const wrapper = mount(AcAvatar, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {userId: 1},
-      stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {userId: 1},
     })
     expect(mockAxios.request).not.toHaveBeenCalled()
     const vm = wrapper.vm as any
-    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(vm.profileLink).toEqual({
+      name: 'AboutUser',
+      params: {username: 'Fox'},
+    })
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
-  it('Throws an error if it has insufficient information', async() => {
+  test('Throws an error if it has insufficient information', async() => {
     mockError.mockImplementation(() => undefined)
     expect(() => {
       mount(AcAvatar, {
-        localVue,
-        store,
-        vuetify,
-        stubs: {RouterLink: RouterLinkStub},
+        ...vueSetup({
+          store,
+          stubs: {RouterLink: RouterLinkStub},
+        }),
       })
     }).toThrow(Error('No username, no ID. We cannot load an avatar.'))
   })
-  it('Ignores a username update if the value is false', async() => {
+  test('Ignores a username update if the value is false', async() => {
     setViewer(store, genUser())
     const wrapper = mount(AcAvatar, {
-      localVue, store, propsData: {username: 'Fox'}, stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {username: 'Fox'},
     })
     wrapper.setProps({username: ''})
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
-    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(vm.profileLink).toEqual({
+      name: 'AboutUser',
+      params: {username: 'Fox'},
+    })
   })
-  it('Repopulates if the username changes', async() => {
+  test('Repopulates if the username changes', async() => {
     setViewer(store, genUser())
     const wrapper = mount(AcAvatar, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {username: 'Fox'},
     })
     await wrapper.vm.$nextTick()
     expect(mockAxios.request).not.toHaveBeenCalled()
@@ -122,54 +134,63 @@ describe('AcAvatar', () => {
     await flushPromises()
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
-    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Vulpes'}})
+    expect(vm.profileLink).toEqual({
+      name: 'AboutUser',
+      params: {username: 'Vulpes'},
+    })
     expect((wrapper.find('img').attributes().src)).toBe(
       '/static/stuff.jpg/',
     )
   })
-  it('Bootstraps straight from a user', async() => {
+  test('Bootstraps straight from a user', async() => {
     setViewer(store, genUser())
     const wrapper = mount(AcAvatar, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {user: genUser()},
-      stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {user: genUser()},
     })
     await wrapper.vm.$nextTick()
     expect(mockAxios.request).not.toHaveBeenCalled()
     const vm = wrapper.vm as any
-    expect(vm.profileLink).toEqual({name: 'AboutUser', params: {username: 'Fox'}})
+    expect(vm.profileLink).toEqual({
+      name: 'AboutUser',
+      params: {username: 'Fox'},
+    })
     expect((wrapper.find('img').attributes().src)).toBe(
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
-  it('Handles a guest account', async() => {
+  test('Handles a guest account', async() => {
     const user = genUser()
     user.guest = true
     user.username = '__6'
     setViewer(store, genUser())
     const wrapper = mount(AcAvatar, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {user},
-      stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {user},
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.profileLink).toBeNull()
   })
-  it('Does not produce a link when told not to.', async() => {
+  test('Does not produce a link when told not to.', async() => {
     const user = genUser()
     user.artist_mode = false
     setViewer(store, user)
     const wrapper = mount(AcAvatar, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {user, noLink: true},
-      stubs: {RouterLink: RouterLinkStub},
+      ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+      props: {
+        user,
+        noLink: true,
+      },
     })
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any

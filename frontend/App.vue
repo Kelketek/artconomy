@@ -6,8 +6,8 @@
       <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-form-dialog
-          :value="$store.state.showSupport"
-          @input="setSupport"
+          :modelValue="$store.state.showSupport"
+          @update:modelValue="(val: boolean) => $store.commit('supportDialog', val)"
           @submit="supportForm.submitThen(showSuccess)"
           v-bind="supportForm.bind"
           title="Get Support or Give Feedback!"
@@ -21,14 +21,12 @@
                 label="Email"
                 placeholder="test@example.com"
                 v-bind="supportForm.fields.email.bind"
-                v-on="supportForm.fields.email.on"
             />
           </v-col>
           <v-col cols="12">
             <v-textarea
                 label="How can we help?"
                 v-bind="supportForm.fields.body.bind"
-                v-on="supportForm.fields.body.on"
             />
           </v-col>
         </v-row>
@@ -36,6 +34,7 @@
       <v-dialog
           v-model="showTicketSuccess"
           width="500"
+          :attach="$modalTarget"
       >
         <v-card id="supportSuccess">
           <v-card-text>
@@ -50,7 +49,7 @@
             <v-spacer />
             <v-btn
                 color="primary"
-                text
+                variant="plain"
                 @click="showTicketSuccess = false"
             >
               OK
@@ -59,9 +58,9 @@
         </v-card>
       </v-dialog>
       <ac-form-dialog
-        :value="$store.state.showAgeVerification"
-        @input="closeAgeVerification"
-        v-if="viewerHandler.user.x && !prerendering"
+        :modelValue="$store.state.showAgeVerification"
+        @update:modelValue="closeAgeVerification"
+        v-if="viewerHandler.user.x"
         @submit="closeAgeVerification"
         :large="true"
       >
@@ -73,7 +72,7 @@
             <ac-patch-field
                 field-type="ac-birthday-field"
                 label="Birthday"
-                :patcher="viewerHandler.user.patchers.birthday"
+                :patcher="birthdayUserHandler.patchers.birthday"
                 :persistent-hint="true"
                 :save-indicator="false"
                 hint="You must be at least 18 years old to view adult content."
@@ -85,19 +84,19 @@
                             hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
                             :save-indicator="false"
-                            persistent-hint></ac-patch-field>
+                            color="primary"
+                            persistent-hint />
           </v-col>
           <v-col cols="12">
             <v-card-text :class="{disabled: viewerHandler.user.patchers.sfw_mode.model}">
               <ac-patch-field
                   field-type="ac-rating-field"
                   label="Select the maximum content rating you'd like to see when browsing."
-                  :patcher="viewerHandler.user.patchers.rating"
+                  :patcher="userHandler.patchers.rating"
                   :disabled="!adultAllowed"
                   :persistent-hint="true"
                   hint="You must be at least 18 years old to view adult content."
-              >
-              </ac-patch-field>
+              />
             </v-card-text>
           </v-col>
           <v-col></v-col>
@@ -105,68 +104,72 @@
         <template v-slot:bottom-buttons>
           <v-card-actions row wrap class="hidden-sm-and-down">
             <v-spacer></v-spacer>
-            <v-btn color="primary" type="submit" class="dialog-submit">Done</v-btn>
+            <v-btn color="primary" variant="flat" type="submit" class="dialog-submit">Done</v-btn>
           </v-card-actions>
         </template>
       </ac-form-dialog>
-      <v-snackbar v-model="showAlert" v-if="latestAlert"
-                  :color="latestAlert.category"
-                  :timeout="latestAlert.timeout"
+      <v-snackbar v-model="showAlert" v-if="$store.getters.latestAlert"
+                  :color="$store.getters.latestAlert.category"
+                  :timeout="$store.getters.latestAlert.timeout"
                   id="alert-bar"
+                  :attach="$snackbarTarget"
                   top
       >
-        {{latestAlert.message}}
+        {{$store.getters.latestAlert.message}}
         <v-btn
             dark
-            text
+            variant="plain"
             @click="showAlert = false"
         >
           Close
         </v-btn>
       </v-snackbar>
       <ac-markdown-explanation v-model="showMarkdownHelp" />
-    </v-main>
-    <v-main>
       <v-snackbar
           :timeout="-1"
-          :value="socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion)"
+          v-if="socketState.x"
+          :model-value="!!(socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion))"
           color="green"
           shaped
           width="100vw"
           rounded="pill"
+          :attach="$statusTarget"
       >
         <div class="d-flex text-center">
           <div class="align-self-center">
             <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
           </div>
-          <v-btn color="primary" class="ml-2" fab small @click="location.reload()"><v-icon>update</v-icon></v-btn>
+          <v-btn color="primary" class="ml-2" icon small @click="location.reload()"><v-icon icon="mdi-update" /></v-btn>
         </div>
       </v-snackbar>
       <v-snackbar
           :timeout="-1"
-          :value="socketState.x.serverVersion && socketState.x.status === CLOSED"
+          :model-value="!!(socketState.x!.serverVersion && socketState.x!.status === CLOSED)"
           color="info"
           shaped
           rounded="pill"
+          :attach="$statusTarget"
       >
         <div class="text-center">
           <strong>Reconnecting...</strong>
         </div>
       </v-snackbar>
       <v-row no-gutters class="mb-4">
-        <v-col class="text-right px-2">
+        <v-col class="text-center">
           <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
-        </v-col>
-        <v-col class="d-flex shrink"><v-divider vertical /></v-col>
-        <v-col class="text-left px-2">
+          <span class="mx-3 d-inline-block">|</span>
           <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
         </v-col>
       </v-row>
       <ac-cookie-consent />
     </v-main>
     <div class="dev-mode-overlay text-center" v-if="devMode">
-      <v-icon size="50vw">construction</v-icon>
+      <v-icon size="50vw" icon="mdi-hammer-wrench" />
     </div>
+    <div id="modal-target" />
+    <div id="snackbar-target" />
+    <div id="status-target" />
+    <div id="menu-target" />
   </v-app>
 </template>
 
@@ -189,20 +192,15 @@
 </style>
 
 <script lang="ts">
-import {Getter, Mutation, State} from 'vuex-class'
+// Remove the need for these, so we can remove this dependency.
 import AcError from '@/components/navigation/AcError.vue'
 import NavBar from '@/components/navigation/NavBar.vue'
-import Component, {mixins} from 'vue-class-component'
-import {ErrorState} from '@/store/errors/types'
+import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import {FormController} from '@/store/forms/form-controller'
-import {Watch} from 'vue-property-decorator'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import Viewer from '@/mixins/viewer'
-import {UserStoreState} from '@/store/profiles/types/UserStoreState'
-import {Alert} from '@/store/state'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
 import {
-  deleteCookie,
   fallback,
   fallbackBoolean,
   genId,
@@ -220,7 +218,6 @@ import {SocketState} from '@/types/SocketState'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import PrerenderMixin from '@/mixins/PrerenderMixin'
 import AcCookieConsent from '@/components/AcCookieConsent.vue'
 import {ListController} from '@/store/lists/controller'
 import Product from '@/types/Product'
@@ -228,18 +225,12 @@ import Submission from '@/types/Submission'
 import {Character} from '@/store/characters/types/Character'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import RatingRefresh from '@/mixins/RatingRefresh'
+import Ratings from '@/mixins/ratings'
 
-@Component({components: {AcCookieConsent, AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar}})
-export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefresh) {
-  @State('profiles') public p!: UserStoreState
-  @Mutation('supportDialog') public setSupport: any
-  @Mutation('popAlert') public popAlert: any
-  @Mutation('setMarkdownHelp') public setMarkdownHelp: any
-  @State('markdownHelp') public markdownHelp!: boolean
-  @State('errors') public errors!: ErrorState
-  @Getter('logo', {namespace: 'errors'}) public errorLogo!: string
-  @Getter('latestAlert') public latestAlert!: Alert | null
-  @State('iFrame') public iFrame!: boolean
+@Component({
+  components: {AcCookieConsent, AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar},
+})
+class App extends mixins(Viewer, Nav, RatingRefresh, Ratings) {
   public OFFENSIVE = 3
   public showTicketSuccess = false
   public ratingsShort = RATINGS_SHORT
@@ -259,6 +250,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
   public location = location
   public CLOSED = ConnectionStatus.CLOSED
   public showNav = false
+  public Infinity = Infinity
 
   public refreshLists = ['submissionSearch', 'characterSearch', 'productSearch']
 
@@ -322,7 +314,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
         status: ConnectionStatus.CONNECTING,
         // @ts-ignore
         // eslint-disable-next-line no-undef
-        version: __COMMIT_HASH__,
+        version: process.env['__COMMIT_HASH__'],
         serverVersion: '',
       },
     })
@@ -355,6 +347,14 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     })
   }
 
+  public get birthdayUserHandler() {
+    return this.viewerHandler.user as SingleController<User|AnonUser>
+  }
+
+  public get userHandler() {
+    return this.viewerHandler.user as SingleController<User|AnonUser>
+  }
+
   public socketStart() {
     this.$sock.addListener('version', 'App', this.getVersion)
     this.$sock.addListener('viewer', 'App', this.setUser)
@@ -385,27 +385,27 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
   }
 
   public showSuccess() {
-    this.setSupport(false)
+    this.$store.commit('supportDialog', false)
     this.showTicketSuccess = true
   }
 
   public get displayRoute() {
-    return this.viewer !== null && !this.errors.code
+    return this.viewer !== null && !this.$store.state.errors!.code
   }
 
   public get showMarkdownHelp() {
-    return this.markdownHelp
+    return this.$store.state.markdownHelp
   }
 
   public set showMarkdownHelp(val: boolean) {
-    this.setMarkdownHelp(val)
+    this.$store.commit('setMarkdownHelp', val)
   }
 
   public get showAlert() {
     if (this.alertDismissed) {
       return false
     }
-    return Boolean(this.latestAlert)
+    return Boolean(this.$store.getters.latestAlert)
   }
 
   public set showAlert(val) {
@@ -413,7 +413,7 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     if (!val) {
       this.alertDismissed = true
       this.$nextTick(() => {
-        this.popAlert()
+        this.$store.commit('popAlert')
         this.alertDismissed = false
       })
     }
@@ -466,7 +466,6 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
 
   @Watch('$route.fullPath', {immediate: true})
   private trackPage(newPath: string, oldPath: string|undefined) {
-    // Let's do next tick since sometimes meta information is modified on route load.
     this.$nextTick(() => {
       window._paq.push(['setCustomUrl', window.location.origin + newPath])
       window._paq.push(['setDocumentTitle', document.title])
@@ -481,14 +480,17 @@ export default class App extends mixins(Viewer, Nav, PrerenderMixin, RatingRefre
     })
   }
 
-  @Watch('$route', {immediate: true, deep: true})
+  @Watch('$route.fullPath', {immediate: true, deep: true})
   private updateReferringUrl() {
+    // Let's do next tick since sometimes meta information is modified on route load.
     if (!this.supportForm) {
       return
     }
     this.supportForm.fields.referring_url.update(this.$route.fullPath)
   }
 }
+
+export default toNative(App)
 </script>
 
 <style scoped>

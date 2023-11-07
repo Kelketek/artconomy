@@ -1,6 +1,7 @@
 <template>
   <v-col>
-    <ac-related-manager ref="manager" :list-controller="demoList" :field-controller="userForm.fields.user_id" item-key="user">
+    <ac-related-manager ref="manager" :list-controller="demoList" :field-controller="userForm.fields.user_id"
+                        item-key="user">
       <template v-slot:preview="{item}">
         <v-col cols="4" sm="3" md="2" lg="1">
           <ac-avatar :user="item.x.user"
@@ -16,24 +17,38 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative} from 'vue-facing-decorator'
 import AcRelatedManager from '../AcRelatedManager.vue'
 import {FormController} from '@/store/forms/form-controller'
 import {ListController} from '@/store/lists/controller'
 import {User} from '@/store/profiles/types/User'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
-  @Component({
-    components: {AcBoundField, AcAvatar, AcRelatedManager},
-  })
-export default class DummyRelated extends Vue {
-    public demoList: ListController<User> = null as unknown as ListController<User>
-    public userForm: FormController = null as unknown as FormController
-    public created() {
-      this.demoList = this.$getList('demoList', {endpoint: '/endpoint/', paginated: false})
-      this.userForm = this.$getForm('userForm', {endpoint: '/endpoint/', fields: {user_id: {value: null}}})
-      this.demoList.get().then()
-    }
+import {ArtVue} from '@/lib/lib'
+
+@Component({
+  components: {
+    AcBoundField,
+    AcAvatar,
+    AcRelatedManager,
+  },
+})
+class DummyRelated extends ArtVue {
+  public demoList: ListController<User> = null as unknown as ListController<User>
+  public userForm: FormController = null as unknown as FormController
+
+  public created() {
+    this.demoList = this.$getList('demoList', {
+      endpoint: '/endpoint/',
+      paginated: false,
+    })
+    this.userForm = this.$getForm('userForm', {
+      endpoint: '/endpoint/',
+      fields: {user_id: {value: null}},
+    })
+    this.demoList.get().then()
+  }
 }
+
+export default toNative(DummyRelated)
 </script>

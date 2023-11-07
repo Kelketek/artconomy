@@ -15,6 +15,7 @@ import CommissionStats from '@/types/CommissionStats'
 import {PROCESSORS} from '@/types/PROCESSORS'
 import Invoice from '@/types/Invoice'
 import {InvoiceStatus} from '@/types/InvoiceStatus'
+import {InvoiceType} from '@/types/InvoiceType'
 
 export function genUser(overrides?: Partial<User>): User {
   return {
@@ -32,7 +33,7 @@ export function genUser(overrides?: Partial<User>): User {
     biography: '',
     taggable: true,
     watching: false,
-    blocked: false,
+    blocking: false,
     stars: null,
     rating_count: 0,
     guest: false,
@@ -130,6 +131,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     max_rating: 2,
     max_parallel: 0,
     task_weight: 3,
+    hits: 1,
     expected_turnaround: 3.00,
     track_inventory: false,
     table_product: false,
@@ -297,10 +299,12 @@ export function genInvoice(overrides?: Partial<Invoice>): Invoice {
   return {
     id: genShortcode(),
     status: InvoiceStatus.OPEN,
+    type: InvoiceType.SALE,
     created_on: '2019-07-26T15:04:41.078424-05:00',
     bill_to: genUser({username: 'Fox'}),
     issued_by: genUser({username: 'Vulpes'}),
     targets: [],
+    total: 10.00,
     ...overrides,
   }
 }

@@ -1,10 +1,10 @@
-import Component from 'vue-class-component'
-import Vue from 'vue'
+import {Component} from 'vue-facing-decorator'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
+import {ArtVue} from '@/lib/lib'
 
 @Component
-export default class PricingAware extends Vue {
+export default class PricingAware extends ArtVue {
   public pricing = null as unknown as SingleController<Pricing>
 
   public getPlan(planName: string) {

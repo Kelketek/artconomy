@@ -1,26 +1,21 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import Router from 'vue-router'
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {VueWrapper} from '@vue/test-utils'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import WatchList from '@/components/views/profile/WatchList.vue'
 import {genUser} from '@/specs/helpers/fixtures'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
 
 describe('WatchList.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: [{
         name: 'Profile',
         path: '/profiles/:username/',
@@ -42,17 +37,20 @@ describe('WatchList.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts and loads a watchlist', async() => {
+  test('Mounts and loads a watchlist', async() => {
     setViewer(store, genUser())
     // Need a route for the paginator to check page numbers on. Can be any.
     await router.push({name: 'Dummy'})
     wrapper = mount(WatchList, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {username: 'Fox', nameSpace: 'watching', endpoint: '/test/'},
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        username: 'Fox',
+        nameSpace: 'watching',
+        endpoint: '/test/',
+      },
     })
     const vm = wrapper.vm as any
     vm.watch.setList([genUser()])

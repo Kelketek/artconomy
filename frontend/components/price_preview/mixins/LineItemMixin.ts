@@ -1,13 +1,13 @@
-import Vue from 'vue'
 import LineItem from '@/types/LineItem'
 import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
 import {LineTypes} from '@/types/LineTypes'
-import {Component, Prop} from 'vue-property-decorator'
+import {Component, Prop} from 'vue-facing-decorator'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
+import {ArtVue} from '@/lib/lib'
 
 @Component
-export default class LineItemMixin extends Vue {
+export default class LineItemMixin extends ArtVue {
   @Prop({required: true})
   public lineItems!: ListController<LineItem>
 
@@ -130,7 +130,10 @@ export default class LineItemMixin extends Vue {
     this.addOnForm = this.$getForm(`${this.lineItems.name}_addOn`, {
       endpoint: this.lineItems.endpoint,
       fields: {
-        amount: {value: 0, validators: [{name: 'numeric'}]},
+        amount: {
+          value: 0,
+          validators: [{name: 'numeric'}],
+        },
         description: {value: ''},
         type: {value: LineTypes.ADD_ON},
         percentage: {value: 0},
@@ -139,7 +142,10 @@ export default class LineItemMixin extends Vue {
     this.extraForm = this.$getForm(`${this.lineItems.name}_extra`, {
       endpoint: this.lineItems.endpoint,
       fields: {
-        amount: {value: 0, validators: [{name: 'numeric'}]},
+        amount: {
+          value: 0,
+          validators: [{name: 'numeric'}],
+        },
         description: {value: ''},
         type: {value: LineTypes.EXTRA},
         percentage: {value: 0},

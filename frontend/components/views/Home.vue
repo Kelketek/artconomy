@@ -1,49 +1,58 @@
 <template>
   <v-container fluid class="pa-0">
     <div class="px-3" v-if="isRegistered">
-      <v-img :src="`/static/images/${randomBanner.src}`" aspect-ratio="7.2" />
+      <v-img :src="randomBanner.src.href" aspect-ratio="7.2"/>
       <div class="text-right pr-2 elevation-2 credit-overlay">
         <small>
-          <ac-link :to="{name: 'AboutUser', params: {username: randomBanner.artist}}">Art by {{randomBanner.artist}}</ac-link>
+          <ac-link :to="{name: 'AboutUser', params: {username: randomBanner.artist}}">Art by {{randomBanner.artist}}
+          </ac-link>
         </small>
       </div>
     </div>
     <v-container v-if="!isRegistered">
-      <v-row no-gutters  >
-        <v-col class="text-center px-2" cols="12" >
-          <h1>Your ideas. <br class="hidden-sm-and-up" /> Your characters. Realized.</h1>
+      <v-row no-gutters>
+        <v-col class="text-center px-2" cols="12">
+          <h1>Your ideas. <br class="hidden-sm-and-up"/> Your characters. Realized.</h1>
         </v-col>
         <v-col cols="8" offset="2" lg="4" offset-lg="4">
           <ac-bound-field
-            :field="searchForm.fields.q"
-            @keyup="searchFromField"
-            label="I'm looking for..."
-            class="home-search-field"
-            prepend-icon="search"
+              :field="searchForm.fields.q"
+              @keyup="searchFromField"
+              label="I'm looking for..."
+              class="home-search-field"
+              prepend-icon="mdi-search"
           />
         </v-col>
-        <v-col class="text-center" cols="12" lg="6" offset-lg="3" >
+        <v-col class="text-center" cols="12" lg="6" offset-lg="3">
           Try terms like:
-          <v-chip color="secondary" @click="search({q: term})" class="mx-1" v-for="term in searchTerms" :key="term">{{term}}</v-chip>
+          <v-chip color="secondary" variant="flat" @click="search({q: term})" class="mx-1" v-for="term in searchTerms"
+                  :key="term">{{term}}
+          </v-chip>
         </v-col>
         <v-col class="text-center text-lg-right pt-3 px-lg-2" cols="12" lg="6">
-          <v-btn color="primary" @click="search({})"><v-icon left>search</v-icon>Browse Everyone Open</v-btn>
+          <v-btn color="primary" @click="search({})" variant="flat">
+            <v-icon left icon="mdi-search"/>
+            Browse Everyone Open
+          </v-btn>
         </v-col>
         <v-col class="text-center text-lg-left pt-3 px-lg-2" cols="12" lg="6">
-          <v-btn color="secondary" :to="{name: 'LandingArtistTools'}"><v-icon left>palette</v-icon>Are you an artist?</v-btn>
+          <v-btn color="secondary" :to="{name: 'LandingArtistTools'}" variant="flat">
+            <v-icon left icon="mdi-palette"/>
+            Are you an artist?
+          </v-btn>
         </v-col>
       </v-row>
       <v-row no-gutters class="pt-2">
-        <v-col class="text-center d-flex" cols="12" md="4" >
-          <v-row no-gutters >
+        <v-col class="text-center d-flex" cols="12" md="4">
+          <v-row no-gutters>
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img src="/static/images/laptop.png" max-height="20vh" contain />
+                  <v-img :src="laptop" max-height="20vh" contain/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
-                  <v-row no-gutters class="justify-content fill-height"  align="center" >
-                    <v-col class="pa-1" >
+                  <v-row no-gutters class="justify-content fill-height" align="center">
+                    <v-col class="pa-1">
                       Find an artist you want to commission, and place an order describing what you want.
                     </v-col>
                   </v-row>
@@ -51,24 +60,26 @@
               </v-row>
             </v-col>
             <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical />
+              <v-divider vertical/>
             </v-col>
           </v-row>
         </v-col>
-        <v-col class="text-center d-flex" cols="12" md="4" >
-          <v-row no-gutters >
-            <v-col class="grow pa-1" >
-              <v-row no-gutters  >
+        <v-col class="text-center d-flex" cols="12" md="4">
+          <v-row no-gutters>
+            <v-col class="grow pa-1">
+              <v-row no-gutters>
                 <v-col cols="6" md="12">
-                  <v-img src="/static/images/fingerpainting.png" max-height="20vh" contain />
+                  <v-img :src="fingerPainting" max-height="20vh" contain/>
                 </v-col>
-                <v-col class="pa-1" cols="6" md="12" >
-                  <v-row no-gutters class="justify-content fill-height"  align="center" >
+                <v-col class="pa-1" cols="6" md="12">
+                  <v-row no-gutters class="justify-content fill-height" align="center">
                     <v-col>
-                      <p>We hold onto your payment until the work is done. In the event the artist fails to complete the assignment, you'll get your money back!*</p>
+                      <p>We hold onto your payment until the work is done. In the event the artist fails to complete the
+                        assignment, you'll get your money back!*</p>
                       <p><small>* Protection available only on
-                        <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
-                        <v-icon color="green" class="px-1">fa-shield</v-icon>
+                        <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield
+                        </router-link>
+                        <v-icon color="green" class="px-1" icon="mdi-shield-half-full"/>
                         enabled products.</small></p>
                     </v-col>
                   </v-row>
@@ -76,22 +87,25 @@
               </v-row>
             </v-col>
             <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical />
+              <v-divider vertical/>
             </v-col>
           </v-row>
         </v-col>
-        <v-col class="text-center d-flex" cols="12" md="4" >
-          <v-row no-gutters >
-            <v-col class="grow pa-1" >
+        <v-col class="text-center d-flex" cols="12" md="4">
+          <v-row no-gutters>
+            <v-col class="grow pa-1">
               <v-row dense>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img src="/static/images/fridge.png" max-height="20vh" contain />
+                  <v-img :src="fridge" max-height="20vh" contain/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
-                  <v-row class="justify-content fill-height"  align="center" >
+                  <v-row class="justify-content fill-height" align="center">
                     <v-col>
-                      <p>Once completed, you can catalog and show off your completed piece to the world! If you have a character, you can add it to your character's gallery, too!</p>
-                      <p><small>Vulpy images by <a target="_blank" href="https://artconomy.com/profile/Halcyon/products/">Halcyon</a></small></p>
+                      <p>Once completed, you can catalog and show off your completed piece to the world! If you have a
+                        character, you can add it to your character's gallery, too!</p>
+                      <p><small>Vulpy images by <a target="_blank"
+                                                   href="https://artconomy.com/profile/Halcyon/products/">Halcyon</a></small>
+                      </p>
                     </v-col>
                   </v-row>
                 </v-col>
@@ -103,56 +117,65 @@
     </v-container>
     <v-container fluid :class="{'pt-0': isRegistered}">
       <v-row no-gutters>
-        <v-col cols="12" :order="featuredOrder">
-          <ac-tabs :items="mainSectionItems" v-model="mainSection" label="Categories" />
-          <v-tabs-items :value="mainSection">
-            <v-tab-item>
+        <v-col cols="12" :order="featuredOrder" class="pt-1">
+          <v-card>
+            <ac-tabs :items="mainSectionItems" v-model="mainSection" label="Categories"/>
+          </v-card>
+          <v-window v-model="mainSection">
+            <v-window-item :value="0">
               <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>
-              <ac-product-slider :list="featured" />
-              <v-btn block color="primary" @click="search({featured: true})">See All Featured</v-btn>
-            </v-tab-item>
-            <v-tab-item>
+              <ac-product-slider :list="featured"/>
+              <v-btn block color="primary" @click="search({featured: true})" variant="flat">See All Featured</v-btn>
+            </v-window-item>
+            <v-window-item :value="1">
               <v-card-text>Products by artists given high ratings by previous commissioners</v-card-text>
-              <ac-product-slider :list="rated" />
-              <v-btn block color="primary" @click="search({rating: true})">See More</v-btn>
-            </v-tab-item>
-            <v-tab-item>
-              <v-card-text>Looking for something lower-budget? Check out these offerings from our artists, $30 or less!</v-card-text>
-              <ac-product-slider :list="lowPriced" />
-              <v-btn block color="primary" @click="search({max_price: '30.00'})" class="low-price-more">See More</v-btn>
-            </v-tab-item>
-            <v-tab-item>
+              <ac-product-slider :list="rated"/>
+              <v-btn block color="primary" @click="search({rating: true})" variant="flat">See More</v-btn>
+            </v-window-item>
+            <v-window-item :value="2">
+              <v-card-text>Looking for something lower-budget? Check out these offerings from our artists, $30 or
+                less!
+              </v-card-text>
+              <ac-product-slider :list="lowPriced"/>
+              <v-btn block color="primary" @click="search({max_price: '30.00'})" class="low-price-more" variant="flat">See More</v-btn>
+            </v-window-item>
+            <v-window-item :value="3">
               <v-card-text>Feeling lucky? Here are some offers from our artists at random!</v-card-text>
-              <ac-product-slider :list="randomProducts" />
-              <v-btn color="primary" @click="search({})" block>Browse Everyone Open</v-btn>
-            </v-tab-item>
-          </v-tabs-items>
+              <ac-product-slider :list="randomProducts"/>
+              <v-btn color="primary" @click="search({})" block variant="flat">Browse Everyone Open</v-btn>
+            </v-window-item>
+          </v-window>
         </v-col>
-        <v-col cols="12" md="12" :lg="isRegistered ? 12 : 6" :class="{'py-2': !isRegistered, 'px-1': true}" :order="isRegistered ? 1 : 5" :order-lg="isRegistered ? 1 : 2">
-          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
+        <v-col cols="12" md="12" :lg="isRegistered ? 12 : 6" :class="{'py-2': !isRegistered}"
+               :order="isRegistered ? 1 : 5" :order-lg="isRegistered ? 1 : 2">
+          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
-              <v-spacer />
+              <v-spacer/>
               <v-toolbar-items>
-                <v-btn color="primary" @click="searchSubmissions({commissions: true})" class="search-commissions">See More</v-btn>
+                <v-btn color="primary" @click="searchSubmissions({commissions: true})" class="search-commissions" variant="flat">See
+                  More
+                </v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Commissions recently completed by our artists</v-card-text>
             <ac-load-section :controller="commissions">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="submission in commissionsList" :key="submission.id">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="submission in commissionsList"
+                         :key="submission.x!.id">
                     <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
                   </v-col>
                 </v-row>
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()" :key="i">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()"
+                         :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
-                        max-height="100%"
-                        type="image"
+                          max-height="100%"
+                          type="image"
                       ></v-skeleton-loader>
                     </v-responsive>
                   </v-col>
@@ -162,31 +185,28 @@
           </v-card>
         </v-col>
         <v-col cols="12" md="12" :lg="6" class="px-1 py-2 fill-height" order="2" order-lg="3">
-          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
+          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Community Resources</v-toolbar-title>
             </v-toolbar>
             <v-row no-gutters>
-              <v-col cols="6" md="3" lg="6" class="text-center" v-if="!prerendering" align-self="center">
-                <v-img src="/static/images/Discord.png" :aspect-ratio="3/2" contain v-if="!prerendering" />
-                <v-img src="/static/images/Discord.png" :aspect-ratio="3/2" contain v-else />
+              <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
+                <v-img :src="discord" :aspect-ratio="3/2" contain/>
               </v-col>
               <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
                 <v-responsive :aspect-ratio="3/2" class="pa-1">
                   <v-row no-gutters justify="center" class="fill-height">
                     <v-col align-self="center">
-                      <p><strong>Want your voice to be heard, to network with artists, and meet new friends?</strong></p>
+                      <p><strong>Want your voice to be heard, to network with artists, and meet new friends?</strong>
+                      </p>
                       <p>Check out our Discord!</p>
                       <v-btn
-                        href="https://discord.gg/4nWK9mf"
-                        target="_blank"
-                        rel="nofollow,noopener"
-                        color="primary"
-                        v-if="!prerendering"
+                          href="https://discord.gg/4nWK9mf"
+                          target="_blank"
+                          rel="nofollow,noopener"
+                          color="primary"
+                          variant="flat"
                       >
-                        Join now!
-                      </v-btn>
-                      <v-btn v-else color="primary">
                         Join now!
                       </v-btn>
                     </v-col>
@@ -195,7 +215,9 @@
               </v-col>
               <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
-                  <a :href="articles[0].link" target="_blank"><v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain /></a>
+                  <a :href="articles[0].link" target="_blank">
+                    <v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain/>
+                  </a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
@@ -205,7 +227,9 @@
               </v-col>
               <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
-                  <a :href="articles[1].link" target="_blank"><v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain /></a>
+                  <a :href="articles[1].link" target="_blank">
+                    <v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain/>
+                  </a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
@@ -224,21 +248,24 @@
           </v-card>
         </v-col>
         <v-col cols="12" order="4" order-lg="5">
-          <ac-tabs :items="communityItems" v-model="communitySection" label="Communities" />
-          <v-tabs-items :value="communitySection">
-            <v-tab-item>
+          <v-card>
+            <ac-tabs :items="communityItems" v-model="communitySection" label="Communities"/>
+          </v-card>
+          <v-window :value="communitySection">
+            <v-window-item>
               <ac-product-slider :list="artistsOfColor"></ac-product-slider>
-              <v-btn block color="primary" @click="search({artists_of_color: true})">See More</v-btn>
-            </v-tab-item>
-            <v-tab-item>
+              <v-btn block color="primary" @click="search({artists_of_color: true})" variant="flat">See More</v-btn>
+            </v-window-item>
+            <v-window-item>
               <ac-product-slider :list="lgbt"></ac-product-slider>
-              <v-btn block color="primary" @click="search({lgbt: true})">See More</v-btn>
-            </v-tab-item>
-            <v-tab-item>
+              <v-btn block color="primary" @click="search({lgbt: true})" variant="flat">See More</v-btn>
+            </v-window-item>
+            <v-window-item>
               <ac-load-section :controller="communitySubmissions">
                 <template v-slot:default>
                   <v-row dense>
-                    <v-col cols="6" sm="4" md="3" lg="2" v-for="submission in communitySubmissionsList" :key="submission.id">
+                    <v-col cols="6" sm="4" md="3" lg="2" v-for="submission in communitySubmissionsList"
+                           :key="submission.x!.id">
                       <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
                     </v-col>
                   </v-row>
@@ -256,34 +283,36 @@
                   </v-row>
                 </template>
               </ac-load-section>
-            </v-tab-item>
-          </v-tabs-items>
+            </v-window-item>
+          </v-window>
         </v-col>
         <v-col cols="12" md="12" :lg="isRegistered? 6 : 12" class="px-1 py-2" :order="isRegistered ? 4 : 6">
-          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
+          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Submissions</v-toolbar-title>
-              <v-spacer />
+              <v-spacer/>
               <v-toolbar-items>
-                <v-btn color="primary" @click="searchSubmissions({})" class="search-submissions">See More</v-btn>
+                <v-btn color="primary" @click="searchSubmissions({})" class="search-submissions" variant="flat">See More</v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Art uploaded by our users</v-card-text>
             <ac-load-section :controller="submissions">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 4 : 2" v-for="submission in submissionsList" :key="submission.id">
-                    <ac-gallery-preview :submission="submission.x" :show-footer="false" />
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 4 : 2" v-for="submission in submissionsList"
+                         :key="submission.x!.id">
+                    <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
                   </v-col>
                 </v-row>
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer($vuetify.breakpoint.mdOnly)).keys()" :key="i">
+                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer($vuetify.display.md)).keys()"
+                         :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
-                        max-height="100%"
-                        type="image"
+                          max-height="100%"
+                          type="image"
                       ></v-skeleton-loader>
                     </v-responsive>
                   </v-col>
@@ -293,30 +322,32 @@
           </v-card>
         </v-col>
         <v-col cols="12" class="px-1 py-2" order="7">
-          <v-card :color="$vuetify.theme.currentTheme.darkBase.darken4">
+          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>New Characters</v-toolbar-title>
-              <v-spacer />
+              <v-spacer/>
               <v-toolbar-items>
-                <v-btn color="primary" @click.stop="searchCharacters()" class="search-characters">See More</v-btn>
+                <v-btn color="primary" @click.stop="searchCharacters()" class="search-characters" variant="flat">See More</v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Characters cataloged by our users</v-card-text>
             <ac-load-section :controller="characters">
               <template v-slot:default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="character in charactersList" :key="character.id">
-                    <ac-character-preview :character="character.x" :show-footer="false" />
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="character in charactersList"
+                         :key="character.x!.id">
+                    <ac-character-preview :character="character.x" :show-footer="false"/>
                   </v-col>
                 </v-row>
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()" :key="i">
+                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()"
+                         :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
-                        max-height="100%"
-                        type="image"
+                          max-height="100%"
+                          type="image"
                       ></v-skeleton-loader>
                     </v-responsive>
                   </v-col>
@@ -331,17 +362,17 @@
 </template>
 
 <style scoped>
-  .credit-overlay {
-    margin-top: -1.5rem;
-    position: relative;
-    z-index: 1;
-    text-shadow: -1px -2px 3px black;
-  }
+.credit-overlay {
+  margin-top: -1.5rem;
+  position: relative;
+  z-index: 1;
+  text-shadow: -1px -2px 3px black;
+}
 </style>
 
 <script lang="ts">
 
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import {ListController} from '@/store/lists/controller'
@@ -354,13 +385,12 @@ import Submission from '@/types/Submission'
 import {RawData} from '@/store/forms/types/RawData'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {Character} from '@/store/characters/types/Character'
-import {makeQueryParams, shuffle} from '@/lib/lib'
+import {makeQueryParams, shuffle, BASE_URL} from '@/lib/lib'
 import AcTabs from '@/components/navigation/AcTabs.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import Formatting from '@/mixins/formatting'
 import AcAvatar from '@/components/AcAvatar.vue'
-import PrerenderMixin from '@/mixins/PrerenderMixin'
 import AcProductSlider from '@/components/AcProductSlider.vue'
 
 // Cannot compile when importing Ratings in tests, for some reason, but these constants are in
@@ -381,293 +411,372 @@ const ADULT = 2
     AcProductPreview,
   },
 })
-export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
-    public searchForm: FormController = null as unknown as FormController
-    public featured: ListController<Product> = null as unknown as ListController<Product>
-    public rated: ListController<Product> = null as unknown as ListController<Product>
-    public newArtistProducts: ListController<Product> = null as unknown as ListController<Product>
-    public randomProducts: ListController<Product> = null as unknown as ListController<Product>
-    public lowPriced: ListController<Product> = null as unknown as ListController<Product>
-    public commissions: ListController<Submission> = null as unknown as ListController<Submission>
-    public submissions: ListController<Submission> = null as unknown as ListController<Submission>
-    public communitySubmissions: ListController<Submission> = null as unknown as ListController<Submission>
-    public characters: ListController<Character> = null as unknown as ListController<Character>
-    public lgbt: ListController<Product> = null as unknown as ListController<Product>
-    public artistsOfColor: ListController<Product> = null as unknown as ListController<Product>
-    public mainSection = 0
-    public communitySection = shuffle([0, 1, 2])[0]
-    public blogEntries = [
+class Home extends mixins(Viewer, Formatting) {
+  public searchForm: FormController = null as unknown as FormController
+  public featured: ListController<Product> = null as unknown as ListController<Product>
+  public rated: ListController<Product> = null as unknown as ListController<Product>
+  public newArtistProducts: ListController<Product> = null as unknown as ListController<Product>
+  public randomProducts: ListController<Product> = null as unknown as ListController<Product>
+  public lowPriced: ListController<Product> = null as unknown as ListController<Product>
+  public commissions: ListController<Submission> = null as unknown as ListController<Submission>
+  public submissions: ListController<Submission> = null as unknown as ListController<Submission>
+  public communitySubmissions: ListController<Submission> = null as unknown as ListController<Submission>
+  public characters: ListController<Character> = null as unknown as ListController<Character>
+  public lgbt: ListController<Product> = null as unknown as ListController<Product>
+  public artistsOfColor: ListController<Product> = null as unknown as ListController<Product>
+  public laptop = new URL('/static/images/laptop.png', BASE_URL).href
+  public fridge = new URL('/static/images/fridge.png', BASE_URL).href
+  public fingerPainting = new URL('/static/images/fingerpainting.png', BASE_URL).href
+  public discord = new URL('/static/images/Discord.png', BASE_URL).href
+  public mainSection = 0
+  public communitySection = shuffle([0, 1, 2])[0]
+  public blogEntries = [
+    {
+      link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',
+      title: '7 Tips on Pricing your Artwork',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2020/04/alvaro-reyes-MEldcHumbu8-unsplash.jpg',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2020/01/13/5-tips-for-growing-your-audience-as-an-artist/',
+      title: '5 Tips for Growing your Audience as an Artist',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2020/01/dragon.jpg',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2019/07/31/5-tips-for-character-design/',
+      title: '5 Tips for Character Design',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2019/07/pirate.jpg',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2019/05/17/staying-safe-how-to-prevent-getting-scammed-when-selling-commissions/',
+      title: '5 Ways to Protect Yourself When Selling Art Commissions',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2019/05/piggybank.jpg',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2019/05/01/the-transition-process-making-art-your-side-hustle/',
+      title: '7 Tips on Making Art your Side Hustle',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2018/01/cover-web.jpeg',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2018/11/15/how-to-describe-what-you-need-to-an-artist/',
+      title: 'How to Describe What you Need to an Artist',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2019/06/wrong-question.png',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/',
+      title: 'Escrow For Art Commissions: 5 Reasons we use it',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2022/11/defending-1885x2048.png',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2020/11/18/5-things-to-know-about-art-commissions/',
+      title: '5 Things to Know about Art Commissions',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2020/11/kelly-sikkema-o2TRWThve_I-unsplash.jpg',
+    },
+  ]
+
+  public nsfwBlogEntries = [
+    {
+      link: 'https://artconomy.com/blog/posts/2020/08/04/nsfw-commissions-5-tips-for-buyers/',
+      title: 'NSFW Commissions: 5 Tips for Buyers',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2020/08/halcy0n-phoex-JasAra02-1536x1075.png',
+    },
+    {
+      link: 'https://artconomy.com/blog/posts/2022/08/16/nsfw-furry-artists-4-tips-to-find/',
+      title: 'NSFW Furry Artists: 4 Tips to Find the Right One for You!',
+      image: 'https://artconomy.com/blog/wp-content/uploads/2022/08/blog1transparent-3.png',
+    },
+  ]
+
+  public banners = [
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-A1-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-A2-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-A3-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-A4-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-B1-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-B2-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-B3-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-B4-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-C1-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-C2-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-C3-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-C4-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-D1-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-D2-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-D3-1440x200.png', BASE_URL),
+    },
+    {
+      artist: 'Halcyon',
+      src: new URL('/static/images/halcy0n-artconomy-banner-D4-1440x200.png', BASE_URL),
+    },
+  ]
+
+  public get articles() {
+    const sourceArticles = [...this.blogEntries]
+    if (this.rating >= ADULT) {
+      // Remove some clean articles at random to make the NSFW articles more probable, since there
+      // are far less of them.
+      for (let i = 0; i < (this.nsfwBlogEntries.length * 2); i++) {
+        sourceArticles.splice(Math.floor(Math.random() * sourceArticles.length), 1)
+      }
+      sourceArticles.push(...this.nsfwBlogEntries)
+    }
+    const articles = shuffle(sourceArticles)
+    return articles.slice(0, 2)
+  }
+
+  public get searchTerms() {
+    return shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
+  }
+
+  public get mainSectionItems() {
+    return [
       {
-        link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',
-        title: '7 Tips on Pricing your Artwork',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2020/04/alvaro-reyes-MEldcHumbu8-unsplash.jpg',
+        value: 0,
+        title: 'Featured',
+        icon: 'mdi-star',
       },
       {
-        link: 'https://artconomy.com/blog/posts/2020/01/13/5-tips-for-growing-your-audience-as-an-artist/',
-        title: '5 Tips for Growing your Audience as an Artist',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2020/01/dragon.jpg',
+        value: 1,
+        title: 'Highly Rated',
+        icon: 'mdi-emoticon-outline',
       },
       {
-        link: 'https://artconomy.com/blog/posts/2019/07/31/5-tips-for-character-design/',
-        title: '5 Tips for Character Design',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2019/07/pirate.jpg',
+        value: 2,
+        title: 'Special Deals',
+        icon: 'mdi-tag',
       },
       {
-        link: 'https://artconomy.com/blog/posts/2019/05/17/staying-safe-how-to-prevent-getting-scammed-when-selling-commissions/',
-        title: '5 Ways to Protect Yourself When Selling Art Commissions',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2019/05/piggybank.jpg',
-      },
-      {
-        link: 'https://artconomy.com/blog/posts/2019/05/01/the-transition-process-making-art-your-side-hustle/',
-        title: '7 Tips on Making Art your Side Hustle',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2018/01/cover-web.jpeg',
-      },
-      {
-        link: 'https://artconomy.com/blog/posts/2018/11/15/how-to-describe-what-you-need-to-an-artist/',
-        title: 'How to Describe What you Need to an Artist',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2019/06/wrong-question.png',
-      },
-      {
-        link: 'https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/',
-        title: 'Escrow For Art Commissions: 5 Reasons we use it',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2022/11/defending-1885x2048.png',
-      },
-      {
-        link: 'https://artconomy.com/blog/posts/2020/11/18/5-things-to-know-about-art-commissions/',
-        title: '5 Things to Know about Art Commissions',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2020/11/kelly-sikkema-o2TRWThve_I-unsplash.jpg',
+        value: 3,
+        title: 'Random',
+        icon: 'mdi-dice-5',
       },
     ]
+  }
 
-    public nsfwBlogEntries = [
+  public get communityItems() {
+    return [
       {
-        link: 'https://artconomy.com/blog/posts/2020/08/04/nsfw-commissions-5-tips-for-buyers/',
-        title: 'NSFW Commissions: 5 Tips for Buyers',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2020/08/halcy0n-phoex-JasAra02-1536x1075.png',
+        value: 0,
+        title: 'Artists of Color',
+        icon: '',
       },
       {
-        link: 'https://artconomy.com/blog/posts/2022/08/16/nsfw-furry-artists-4-tips-to-find/',
-        title: 'NSFW Furry Artists: 4 Tips to Find the Right One for You!',
-        image: 'https://artconomy.com/blog/wp-content/uploads/2022/08/blog1transparent-3.png',
-      },
-    ]
-
-    public banners = [
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-A1-1440x200.png',
+        value: 1,
+        title: 'LGBTQ+',
+        icon: '',
       },
       {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-A2-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-A3-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-A4-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-B1-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-B2-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-B3-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-B4-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-C1-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-C2-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-C3-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-C4-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-D1-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-D2-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-D3-1440x200.png',
-      },
-      {
-        artist: 'Halcyon',
-        src: 'halcy0n-artconomy-banner-D4-1440x200.png',
+        value: 2,
+        title: 'Artconomy',
+        icon: '',
       },
     ]
+  }
 
-    public get articles() {
-      const sourceArticles = [...this.blogEntries]
-      if (this.rating >= ADULT) {
-        // Remove some clean articles at random to make the NSFW articles more probable, since there
-        // are far less of them.
-        for (let i = 0; i < (this.nsfwBlogEntries.length * 2); i++) {
-          sourceArticles.splice(Math.floor(Math.random() * sourceArticles.length), 1)
-        }
-        sourceArticles.push(...this.nsfwBlogEntries)
-      }
-      const articles = shuffle(sourceArticles)
-      return articles.slice(0, 2)
+  public searchReplace(data: RawData) {
+    this.searchForm.reset()
+    for (const key of Object.keys(data)) {
+      this.searchForm.fields[key].update(data[key])
     }
+  }
 
-    public get searchTerms() {
-      return shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
-    }
+  public search(data: RawData) {
+    this.searchReplace(data)
+    this.$router.push({
+      name: 'SearchProducts',
+      query: makeQueryParams(this.searchForm.rawData),
+    })
+  }
 
-    public get mainSectionItems() {
-      return [
-        {value: 0, text: 'Featured', icon: 'star'},
-        {value: 1, text: 'Highly Rated', icon: 'mood'},
-        {value: 2, text: 'Special Deals', icon: 'local_offer'},
-        {value: 3, text: 'Random', icon: 'casino'},
-      ]
-    }
+  public searchFromField() {
+    this.$router.push({
+      name: 'SearchProducts',
+      query: makeQueryParams(this.searchForm.rawData),
+    })
+  }
 
-    public get communityItems() {
-      return [
-        {value: 0, text: 'Artists of Color', icon: ''},
-        {value: 1, text: 'LGBTQ+', icon: ''},
-        {value: 2, text: 'Artconomy', icon: ''},
-      ]
-    }
+  public searchCharacters() {
+    this.searchReplace({})
+    this.$router.push({
+      name: 'SearchCharacters',
+      query: makeQueryParams(this.searchForm.rawData),
+    })
+  }
 
-    public searchReplace(data: RawData) {
-      this.searchForm.reset()
-      for (const key of Object.keys(data)) {
-        this.searchForm.fields[key].update(data[key])
-      }
-    }
+  public searchSubmissions(data: RawData) {
+    this.searchReplace(data)
+    this.$router.push({
+      name: 'SearchSubmissions',
+      query: makeQueryParams(this.searchForm.rawData),
+    })
+  }
 
-    public search(data: RawData) {
-      this.searchReplace(data)
-      this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
+  public listSizer(long?: boolean) {
+    /* istanbul ignore if */
+    if (this.$vuetify.display.xs) {
+      return 2
     }
+    /* istanbul ignore if */
+    if (this.$vuetify.display.md && long) {
+      return 4
+    }
+    /* istanbul ignore if */
+    if (this.$vuetify.display.lgAndUp) {
+      return 6
+    }
+    /* istanbul ignore if */
+    return 3
+  }
 
-    public searchFromField() {
-      this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
-    }
+  public listPreview(list: ListController<any>, long?: boolean) {
+    // Gives a few items from the list depending on screen size. Useful for things like the home page where we have many
+    // sections to display at once, but don't want to crowd the screen too much.
+    /* istanbul ignore if */
+    return list.list.slice(0, this.listSizer(long))
+  }
 
-    public searchCharacters() {
-      this.searchReplace({})
-      this.$router.push({name: 'SearchCharacters', query: makeQueryParams(this.searchForm.rawData)})
-    }
+  public get commissionsList() {
+    return this.listPreview(this.commissions, true)
+  }
 
-    public searchSubmissions(data: RawData) {
-      this.searchReplace(data)
-      this.$router.push({name: 'SearchSubmissions', query: makeQueryParams(this.searchForm.rawData)})
-    }
+  public get submissionsList() {
+    return this.listPreview(this.submissions, this.$vuetify.display.md)
+  }
 
-    public listSizer(long?: boolean) {
-      /* istanbul ignore if */
-      if (this.$vuetify.breakpoint.xsOnly) {
-        return 2
-      }
-      /* istanbul ignore if */
-      if (this.$vuetify.breakpoint.mdOnly && long) {
-        return 4
-      }
-      /* istanbul ignore if */
-      if (this.$vuetify.breakpoint.lgAndUp) {
-        return 6
-      }
-      /* istanbul ignore if */
-      return 3
-    }
+  public get communitySubmissionsList() {
+    return this.listPreview(this.communitySubmissions)
+  }
 
-    public listPreview(list: ListController<any>, long?: boolean) {
-      // Gives a few items from the list depending on screen size. Useful for things like the home page where we have many
-      // sections to display at once, but don't want to crowd the screen too much.
-      /* istanbul ignore if */
-      return list.list.slice(0, this.listSizer(long))
-    }
+  public get charactersList() {
+    return this.listPreview(this.characters, true)
+  }
 
-    public get commissionsList() {
-      return this.listPreview(this.commissions, true)
-    }
+  public get featuredOrder() {
+    return (this.isRegistered ? 2 : 1)
+  }
 
-    public get submissionsList() {
-      return this.listPreview(this.submissions, this.$vuetify.breakpoint.mdOnly)
-    }
+  public get randomBanner() {
+    // Remember: Computed properties are cached, so even if we access this
+    // multiple times in one render, it will be the same value.
+    return this.banners[Math.floor(Math.random() * this.banners.length)]
+  }
 
-    public get communitySubmissionsList() {
-      return this.listPreview(this.communitySubmissions)
-    }
-
-    public get charactersList() {
-      return this.listPreview(this.characters, true)
-    }
-
-    public get featuredOrder() {
-      return (this.isRegistered ? 2 : 1)
-    }
-
-    public get randomBanner() {
-      // Remember: Computed properties are cached, so even if we access this
-      // multiple times in one render, it will be the same value.
-      return this.banners[Math.floor(Math.random() * this.banners.length)]
-    }
-
-    public created() {
-      this.searchForm = this.$getForm('search')
-      this.featured = this.$getList('featured', {endpoint: '/api/sales/featured-products/', params: {size: 6}})
-      this.featured.firstRun()
-      this.rated = this.$getList('rated', {endpoint: '/api/sales/highly-rated/', params: {size: 6}})
-      this.rated.firstRun()
-      this.lowPriced = this.$getList('lowPriced', {endpoint: '/api/sales/low-price/', params: {size: 6}})
-      this.lowPriced.firstRun()
-      this.newArtistProducts = this.$getList(
-        'newArtistProducts', {endpoint: '/api/sales/new-artist-products/', params: {size: 6}},
-      )
-      this.lgbt = this.$getList(
-        'lgbt', {endpoint: '/api/sales/lgbt/', params: {size: 6}},
-      )
-      this.artistsOfColor = this.$getList(
-        'artistsOfColor', {endpoint: '/api/sales/artists-of-color/', params: {size: 6}},
-      )
-      this.randomProducts = this.$getList(
-        'randomProducts', {endpoint: '/api/sales/random/', params: {size: 6}},
-      )
-      this.randomProducts.firstRun()
-      this.newArtistProducts.firstRun()
-      this.artistsOfColor.firstRun()
-      this.lgbt.firstRun()
-      this.commissions = this.$getList(
-        'commissions', {endpoint: '/api/profiles/recent-commissions/', params: {size: 6}},
-      )
-      this.commissions.firstRun()
-      this.submissions = this.$getList(
-        'submissions', {endpoint: '/api/profiles/recent-submissions/', params: {size: 6}},
-      )
-      this.submissions.firstRun()
-      this.communitySubmissions = this.$getList(
-        'communitySubmissions', {endpoint: '/api/profiles/community-submissions/', params: {size: 6}},
-      )
-      this.communitySubmissions.firstRun()
-      this.characters = this.$getList('newCharacters', {endpoint: '/api/profiles/new-characters/', params: {size: 6}})
-      this.characters.firstRun()
-    }
+  public created() {
+    this.searchForm = this.$getForm('search')
+    this.featured = this.$getList('featured', {
+      endpoint: '/api/sales/featured-products/',
+      params: {size: 6},
+    })
+    this.featured.firstRun()
+    this.rated = this.$getList('rated', {
+      endpoint: '/api/sales/highly-rated/',
+      params: {size: 6},
+    })
+    this.rated.firstRun()
+    this.lowPriced = this.$getList('lowPriced', {
+      endpoint: '/api/sales/low-price/',
+      params: {size: 6},
+    })
+    this.lowPriced.firstRun()
+    this.newArtistProducts = this.$getList(
+        'newArtistProducts', {
+          endpoint: '/api/sales/new-artist-products/',
+          params: {size: 6},
+        },
+    )
+    this.lgbt = this.$getList(
+        'lgbt', {
+          endpoint: '/api/sales/lgbt/',
+          params: {size: 6},
+        },
+    )
+    this.artistsOfColor = this.$getList(
+        'artistsOfColor', {
+          endpoint: '/api/sales/artists-of-color/',
+          params: {size: 6},
+        },
+    )
+    this.randomProducts = this.$getList(
+        'randomProducts', {
+          endpoint: '/api/sales/random/',
+          params: {size: 6},
+        },
+    )
+    this.randomProducts.firstRun()
+    this.newArtistProducts.firstRun()
+    this.artistsOfColor.firstRun()
+    this.lgbt.firstRun()
+    this.commissions = this.$getList(
+        'commissions', {
+          endpoint: '/api/profiles/recent-commissions/',
+          params: {size: 6},
+        },
+    )
+    this.commissions.firstRun()
+    this.submissions = this.$getList(
+        'submissions', {
+          endpoint: '/api/profiles/recent-submissions/',
+          params: {size: 6},
+        },
+    )
+    this.submissions.firstRun()
+    this.communitySubmissions = this.$getList(
+        'communitySubmissions', {
+          endpoint: '/api/profiles/community-submissions/',
+          params: {size: 6},
+        },
+    )
+    this.communitySubmissions.firstRun()
+    this.characters = this.$getList('newCharacters', {
+      endpoint: '/api/profiles/new-characters/',
+      params: {size: 6},
+    })
+    this.characters.firstRun()
+  }
 }
+
+export default toNative(Home)
 </script>

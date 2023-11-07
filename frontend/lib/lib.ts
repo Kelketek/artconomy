@@ -1,24 +1,31 @@
-import axios, {AxiosRequestConfig, AxiosResponse, CancelToken} from 'axios'
+import {computed, markRaw} from 'vue'
+import type {AxiosRequestConfig, AxiosResponse} from 'axios'
+import axios from 'axios'
 import MarkDownIt from 'markdown-it'
-import Vue from 'vue'
 import Token from 'markdown-it/lib/token'
 import {Options} from 'markdown-it/lib'
 import Renderer from 'markdown-it/lib/renderer'
-import Router, {RawLocation, Route} from 'vue-router'
-import StateCore from 'markdown-it/lib/rules_core/state_core'
+import {LocationQueryRaw, LocationQueryValue, RouteLocation, RouteLocationRaw, RouteParamsRaw} from 'vue-router'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import {SingleController} from '@/store/singles/controller'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
 import {User} from '@/store/profiles/types/User'
 import FileSpec from '@/types/FileSpec'
 import {SimpleQueryParams} from '@/store/helpers/SimpleQueryParams'
-import {Dictionary} from 'vue-router/types/router'
 import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {ListController} from '@/store/lists/controller'
 import cloneDeep from 'lodash/cloneDeep'
 import {LogLevels} from '@/types/LogLevels'
 import {format, parseISO as upstreamParseISO} from 'date-fns'
+import {Vue} from 'vue-facing-decorator'
+import {ArtVueInterface} from '@/types/ArtVueInterface'
+import StateInline from 'markdown-it/lib/rules_inline/state_inline'
+import {ArtVueClassInterface} from '@/types/ArtVueClassInterface'
+import {VueCons} from 'vue-facing-decorator/src'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser'
+import {ContentRating} from '@/types/ContentRating'
+import {InvoiceType} from '@/types/InvoiceType'
 
 // Needed for Matomo.
 declare global {
@@ -35,17 +42,7 @@ if (window.__LOG_LEVEL__ === undefined) {
   window.__LOG_LEVEL__ = LogLevels.INFO
 }
 
-// Useful for attaching dummy observers to objects that Vue needs to ignore.
-export const Observer = (new Vue()).$data.__ob__.constructor
-
-export function neutralize(obj: any) {
-  // Makes an object non-reactive
-  obj.__ob__ = new Observer({})
-  return obj
-}
-
-export const md = MarkDownIt({linkify: true, breaks: true})
-neutralize(md)
+export const md = markRaw(new MarkDownIt({linkify: true, breaks: true}))
 
 type TokenRenderer = (
   tokens: Token[], idx: number, options: Options, env: any, self: Renderer,
@@ -78,7 +75,7 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   tokens[idx].attrPush(['target', '_blank']) // add new attribute
   const hrefIndex = tokens[idx].attrIndex('href')
   // Should always have href for a link.
-  let href = tokens[idx].attrs[hrefIndex][1]
+  let href = tokens[idx].attrs![hrefIndex][1]
   if (isForeign(href)) {
     tokens[idx].attrPush(['rel', 'nofollow noopener'])
     return defaultRender(tokens, idx, options, env, self)
@@ -102,7 +99,7 @@ md.renderer.rules.link_close = (tokens, idx, options, env, self) => {
   return defaultRender(tokens, idx, options, env, self)
 }
 
-export function mention(state: StateCore, silent?: boolean) {
+export function mention(state: StateInline, silent: boolean) {
   let token: Token
   let pos = state.pos
   const ch = state.src.charCodeAt(pos)
@@ -110,7 +107,7 @@ export function mention(state: StateCore, silent?: boolean) {
   // Bug out if this @ is in the middle of a word instead of the beginning.
   const prCh = state.src[pos - 1]
   if (prCh !== undefined) {
-    if (!/^\s+$/.test(prCh)) { return }
+    if (!/^\s+$/.test(prCh)) { return false }
   }
   if (ch !== 0x40/* @ */) { return false }
   const start = pos
@@ -120,7 +117,7 @@ export function mention(state: StateCore, silent?: boolean) {
   while (pos < max && /[-a-zA-Z_0-9]/.test(state.src[pos])) { pos++ }
   if (pos - start === 1) {
     // Hanging @.
-    return
+    return false
   }
 
   const marker = state.src.slice(start, pos)
@@ -132,6 +129,7 @@ export function mention(state: StateCore, silent?: boolean) {
     state.pos = pos
     return true
   }
+  return false
 }
 
 md.renderer.rules.mention = (tokens, idx) => {
@@ -142,7 +140,7 @@ md.renderer.rules.mention = (tokens, idx) => {
   return `<a href="${url}" onclick="artconomy.$router.push('${url}');return false">@${username}</a>`
 }
 
-md.inline.ruler.push('mention', mention, ['mention'])
+md.inline.ruler.push('mention', mention, {alt: ['mention']})
 
 export function getCookie(name: string): string | null {
   let cookieValue = null
@@ -214,7 +212,7 @@ export function crossDomain(url: string) {
   urlAnchor.href = url
   const originAnchor = document.createElement('a')
   originAnchor.href = location.href
-  return originAnchor.protocol + '//' + originAnchor.host !== urlAnchor.protocol + '//' + urlAnchor.host
+  return (originAnchor.protocol + '//' + originAnchor.host) !== (urlAnchor.protocol + '//' + urlAnchor.host)
 }
 
 interface Headers {
@@ -245,7 +243,7 @@ declare interface ArtCallBaseOptions {
   method: HttpVerbs,
   data?: any,
   preSuccess?: (response: AxiosResponse) => void,
-  cancelToken?: CancelToken
+  signal?: AbortSignal,
 }
 
 export type ArtCallOptions = AxiosRequestConfig & ArtCallBaseOptions
@@ -265,14 +263,14 @@ export function artCall(options: ArtCallOptions): Promise<any> {
   return axios.request(config).then(preSuccess)
 }
 
-export const RATINGS = {
+export const RATINGS: Record<ContentRating, string> = {
   0: 'Clean/Safe for work',
   1: 'Risque/mature, not adult content but not safe for work',
   2: 'Adult content, not safe for work',
   3: 'Offensive/Disturbing to most viewers, not safe for work',
 }
 
-export const RATINGS_SHORT = {
+export const RATINGS_SHORT: Record<ContentRating, string> = {
   0: 'Clean/Safe',
   1: 'Risque',
   2: 'Adult content',
@@ -293,6 +291,7 @@ export function ratings() {
 
 export function ratingsNonExtreme() {
   const nonExtreme = {...RATINGS}
+  // @ts-ignore
   delete nonExtreme[3]
   return genOptions(nonExtreme)
 }
@@ -355,15 +354,7 @@ export const ACCOUNT_TYPES: TypeToValue = {
   1: 'Savings',
 }
 
-export const ISSUERS = {
-  1: {name: 'Visa', icon: 'fa-cc-visa'},
-  2: {name: 'Mastercard', icon: 'fa-cc-mastercard'},
-  3: {name: 'American Express', icon: 'fa-cc-amex'},
-  4: {name: 'Discover', icon: 'fa-cc-discover'},
-  5: {name: 'Diner\'s Club', icon: 'fa-cc-diners-club'},
-}
-
-export const INVOICE_TYPES = {
+export const INVOICE_TYPES: Record<InvoiceType, string> = {
   0: 'Sale',
   1: 'Subscription',
   2: 'Term',
@@ -399,74 +390,11 @@ export function setMetaContent(tagname: string, value: string, attributes?: {[ke
   document.head.appendChild(desctag)
 }
 
-export function singleQ(value: string | Array<string | null>): string {
+export function singleQ(value: LocationQueryValue | LocationQueryValue[]): string {
   if (Array.isArray(value)) {
     return value[0] || ''
   }
   return value || ''
-}
-
-declare type paramDecorator = (cls: Vue, propName: string) => void
-
-export function paramHandleMap(
-  handleName: string, clearList?: string[], permittedNames?: string[], defaultTab?: string,
-): paramDecorator {
-  return (cls, propName) => {
-    Object.defineProperty(cls, propName, {
-      get(): string {
-        const tab = 'tab-' + (this as Vue).$route.params[handleName]
-        if (tab === 'tab-undefined') {
-          return defaultTab || ''
-        }
-        if (permittedNames !== undefined) {
-          if (permittedNames.indexOf(tab) === -1) {
-            return defaultTab || ''
-          }
-        }
-        return tab
-      },
-      set(value: string) {
-        const params: { [key: string]: string } = {}
-        params[handleName] = value.replace(/^tab-/, '')
-        const newParams = Object.assign({}, (this as Vue).$route.params, params)
-        for (const param of clearList || []) {
-          delete newParams[param]
-        }
-        const newQuery = Object.assign({}, (this as Vue).$route.query)
-        delete newQuery.page
-        const newPath = {name: (this as Vue).$route.name, params: newParams, query: newQuery};
-        (this as Vue).$router.replace(newPath as RawLocation)
-      },
-    })
-  }
-}
-
-export function paramHandleArray(handleName: string, nameArray: string[]): paramDecorator {
-  function updatePath(component: Vue, value: number) {
-    const params: {[key: string]: any} = {}
-    params[handleName] = nameArray[value]
-    const newParams = Object.assign({}, component.$route.params, params)
-    const newQuery = Object.assign({}, component.$route.query)
-    delete newQuery.page
-    /* istanbul ignore next */
-    const name = component.$route.name || undefined
-    const newPath = {name, params: newParams, query: newQuery}
-    component.$router.replace(newPath)
-  }
-  return (cls, propName) => {
-    Object.defineProperty(cls, propName, {
-      get() {
-        if (this.$route.params[handleName] === undefined) {
-          updatePath(this, 0)
-          return 0
-        }
-        return nameArray.indexOf(this.$route.params[handleName])
-      },
-      set(value: number) {
-        updatePath(this, value)
-      },
-    })
-  }
 }
 
 export function formatSize(size: number): string {
@@ -558,7 +486,7 @@ export function genId() {
   return text
 }
 
-export const RATING_LONG_DESC = {
+export const RATING_LONG_DESC: Record<ContentRating, string> = {
   0: `Content which can be safely viewed in most workplaces. Pieces with nudity
                     or especially suggestive clothing do not belong in this category. Pieces with violence or
                     offensive messages do not belong in this category, either.`,
@@ -571,7 +499,7 @@ export const RATING_LONG_DESC = {
                     that most viewers would find 'squicky' or disturbing or portrayals of extreme violence.`,
 }
 
-export const RATING_COLOR = {
+export const RATING_COLOR: Record<ContentRating, string> = {
   0: 'green',
   1: 'blue',
   2: 'red',
@@ -663,7 +591,7 @@ export function searchSchema() {
       commissions: {value: false, omitIf: false},
       artists_of_color: {value: false, omitIf: false},
       content_ratings: {value: '', omitIf: ''},
-      minimum_content_rating: {value: 0, omitIf: 0},
+      minimum_content_rating: {value: 0 as ContentRating, omitIf: 0},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
       max_turnaround: {value: '', omitIf: ''},
@@ -691,7 +619,7 @@ export function makeQueryParams(obj: object) {
   return result
 }
 
-export function fallback(query: Dictionary<string | Array<string | null>>, field: string, defaultValue: any) {
+export function fallback(query: LocationQueryRaw, field: string, defaultValue: any) {
   if (field in query) {
     return query[field]
   } else {
@@ -699,7 +627,7 @@ export function fallback(query: Dictionary<string | Array<string | null>>, field
   }
 }
 
-export function fallbackBoolean(query: Dictionary<string | Array<string | null>>, field: string, defaultValue: any) {
+export function fallbackBoolean(query: LocationQueryRaw, field: string, defaultValue: any) {
   const prelim = fallback(query, field, defaultValue)
   if (prelim === null) {
     return null
@@ -712,13 +640,6 @@ export function baseCardSchema(endpoint: string): NamelessFormSchema {
     method: 'post',
     endpoint,
     fields: {
-      first_name: {value: '', validators: [{name: 'required'}]},
-      last_name: {value: '', validators: [{name: 'required'}]},
-      zip: {value: '', validators: [{name: 'required'}]},
-      number: {value: '', validators: [{name: 'creditCard'}, {name: 'required'}]},
-      exp_date: {value: '', validators: [{name: 'cardExp'}, {name: 'required'}]},
-      cvv: {value: '', validators: [{name: 'cvv', args: ['number']}, {name: 'required'}]},
-      country: {value: 'US'},
       make_primary: {value: true},
       save_card: {value: true},
       card_id: {value: null},
@@ -783,7 +704,7 @@ export const cardHelperMap: { [key: string]: Helper } = {
   default: {mask: '#### #### #### ####', cvv: '3 digit number on back of card'},
 }
 
-export function saneNav(originalFunction: (location: RawLocation) => Promise<Route>) {
+export function saneNav(originalFunction: (location: RouteLocationRaw) => Promise<RouteLocation>) {
   // @ts-ignore
   function wrapped(this: Router, location) {
     originalFunction.call(this, location).catch((err: Error) => {
@@ -802,7 +723,7 @@ export function saneNav(originalFunction: (location: RawLocation) => Promise<Rou
   return wrapped
 }
 
-export function paramsKey(sourceParams: {[key: string]: string}) {
+export function paramsKey(sourceParams: RouteParamsRaw) {
   let key = ''
   const params = Object.keys(sourceParams)
   params.sort()
@@ -819,7 +740,7 @@ export function updateTitle(title: string) {
   window._paq.push(['setDocumentTitle', document.title])
 }
 
-export function profileLink(user: User|TerseUser|null) {
+export function profileLink(user: User|TerseUser|RelatedUser|null) {
   if (!user) {
     return null
   }
@@ -919,7 +840,12 @@ export const log = {
 export const initDrawerValue = () => {
   const startValue = localStorage.getItem('drawerOpen')
   if (startValue !== null) {
-    return JSON.parse(startValue) as boolean
+    try {
+      return JSON.parse(startValue) as boolean
+    } catch (err) {
+      console.log(err)
+      console.log('Returning null as initial drawer state.')
+    }
   }
   return null
 }
@@ -944,3 +870,45 @@ export const paypalTokenToUrl = (invoiceToken: string, sender: boolean): string 
   }
   return `${baseUrl}${extension}`
 }
+
+export const ArtVue = Vue as ArtVueClassInterface
+
+
+/**
+ * Class decorator which makes all getters/setters computed properties for use by Vue 3's reactivity system.
+ * The target class must have a Map defined on it named __getterMap.
+ *
+ * Note that this has some subtle implications for the getter functions, which can't be arrow functions.
+ * If you need to access any refs within the getter functions, you will need to use `toRaw` to normalize them
+ * as reference objects. Otherwise, Vue's internal proxying will sometimes give you raw values and other times
+ * give you the reference objects depending on how the function is called.
+*/
+export function ComputedGetters<T extends Function> (
+  Wrapped: T,
+): T {
+  // prototype props.
+  const proto = Wrapped.prototype
+  Object.getOwnPropertyNames(proto).forEach(function (key) {
+    if (key === 'constructor') {
+      return
+    }
+    const descriptor = Object.getOwnPropertyDescriptor(proto, key)!
+    if (descriptor.get || descriptor.set) {
+      Object.defineProperty(proto, key, {
+        get() {
+          if (!this.__getterMap.get(key)) {
+            this.__getterMap.set(key, computed(descriptor.get!.bind(this)))
+          }
+          return this.__getterMap.get(key).value
+        },
+        set(value) {
+          descriptor.set!.apply(this, [value])
+        }
+      })
+    }
+  })
+  return Wrapped
+}
+
+
+export const BASE_URL = window.location.origin

@@ -1,33 +1,42 @@
 <template>
   <v-checkbox v-model="scratch" v-bind="$attrs">
-    <slot v-for="(_, name) in $slots" :name="name" :slot="name"/>
+    <!-- @ts-nocheck -->
+    <template #[name] v-for="name in slotNames">
+      <slot :name="name"/>
+    </template>
   </v-checkbox>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import {Prop, Watch} from 'vue-property-decorator'
-import Component from 'vue-class-component'
+import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
+import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
 
-@Component
-export default class AcCheckbox extends Vue {
+@Component({emits: ['update:modelValue']})
+class AcCheckbox extends Vue {
   @Prop({required: true})
-  public value!: boolean
+  public modelValue!: boolean
 
   public scratch = false
 
-  @Watch('value')
+  public get slotNames(): Array<keyof VCheckbox['$slots']> {
+    // @ts-expect-error
+    return [...Object.keys(this.$slots)]
+  }
+
+  @Watch('modelValue')
   public updateScratch(val: boolean) {
     this.scratch = val
   }
 
   @Watch('scratch')
-  public fixFalse(val: boolean|null) {
-    this.$emit('input', !!val)
+  public fixFalse(val: boolean | null) {
+    this.$emit('update:modelValue', !!val)
   }
 
   created() {
-    this.scratch = this.value
+    this.scratch = this.modelValue
   }
 }
+
+export default toNative(AcCheckbox)
 </script>

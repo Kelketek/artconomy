@@ -1,46 +1,44 @@
 import {genDeliverable, genRevision, genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
-import {Wrapper} from '@vue/test-utils'
-import Router from 'vue-router'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store'
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import DeliverableRevisions from '@/components/views/order/deliverable/DeliverableRevisions.vue'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
 import mockAxios from '@/__mocks__/axios'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
 
 describe('DeliverableRevisions.vue', () => {
   beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     store = createStore()
-    vuetify = createVuetify()
     router = deliverableRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Determines the final', async() => {
+  test('Determines the final', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/revisions')
+    await router.push('/orders/Fox/order/1/deliverables/5/revisions')
     wrapper = mount(
       DeliverableRevisions, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
+        ...vueSetup({
+          store,
+          extraPlugins: [router],
+        }),
+        props: {
+          orderId: 1,
+          deliverableId: 5,
+          baseName: 'Order',
+          username: 'Fox',
+        },
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
@@ -53,20 +51,23 @@ describe('DeliverableRevisions.vue', () => {
     vm.deliverable.updateX({final_uploaded: true})
     expect(vm.final).toBeTruthy()
   })
-  it('Refreshes the deliverable when the list changes', async() => {
+  test('Refreshes the deliverable when the list changes', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/revisions')
+    await router.push('/orders/Fox/order/1/deliverables/5/revisions')
     wrapper = mount(
       DeliverableRevisions, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
+        ...vueSetup({
+          store,
+          extraPlugins: [router],
+        }),
+        props: {
+          orderId: 1,
+          deliverableId: 5,
+          baseName: 'Order',
+          username: 'Fox',
+        },
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
@@ -75,59 +76,29 @@ describe('DeliverableRevisions.vue', () => {
     vm.revisions.setList([])
     vm.revisions.ready = true
     vm.revisions.fetching = false
-    const spyRefresh = jest.spyOn(vm.deliverable, 'refresh')
+    const spyRefresh = vi.spyOn(vm.deliverable, 'refresh')
     await vm.$nextTick()
     expect(spyRefresh).not.toHaveBeenCalled()
     vm.revisions.uniquePush(genRevision())
     await vm.$nextTick()
     expect(spyRefresh).toHaveBeenCalled()
   })
-  it('Autosubmits when a new file is added', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/revisions')
-    wrapper = mount(
-      DeliverableRevisions, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
-      })
-    const vm = wrapper.vm as any
-    const spySubmit = jest.spyOn(vm.newRevision, 'submitThen')
-    const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
-    vm.deliverable.makeReady(deliverable)
-    vm.revisions.setList([])
-    vm.revisions.ready = true
-    vm.revisions.fetching = false
-    mockAxios.reset()
-    await vm.$nextTick()
-    vm.newRevision.fields.file.update('Stuff')
-    await vm.$nextTick()
-    expect(spySubmit).toHaveBeenCalledWith(expect.any(Function))
-    const req = mockAxios.lastReqGet()
-    mockAxios.mockResponse(rs(genRevision()), req)
-    await flushPromises()
-    await vm.$nextTick()
-    expect(vm.revisions.list.length).toBe(1)
-  })
-  it('Fetches revisions if they are newly permitted to be seen', async() => {
+  test('Fetches revisions if they are newly permitted to be seen', async() => {
     setViewer(store, genUser())
-    router.push('/orders/Fox/order/1/deliverables/5/revisions')
+    await router.push('/orders/Fox/order/1/deliverables/5/revisions')
     wrapper = mount(
       DeliverableRevisions, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
+        ...vueSetup({
+          store,
+          extraPlugins: [router],
+          stubs: ['ac-revision-manager'],
+        }),
+        props: {
+          orderId: 1,
+          deliverableId: 5,
+          baseName: 'Order',
+          username: 'Fox',
+        },
         stubs: ['ac-revision-manager'],
       })
     const vm = wrapper.vm as any
@@ -138,7 +109,7 @@ describe('DeliverableRevisions.vue', () => {
     vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
-    const mockGet = jest.spyOn(vm.revisions, 'get')
+    const mockGet = vi.spyOn(vm.revisions, 'get')
     vm.deliverable.updateX({revisions_hidden: false})
     await vm.$nextTick()
     expect(mockGet).toHaveBeenCalled()

@@ -72,7 +72,7 @@ def create_account_link(
 
 class CountrySpec(TypedDict):
     value: str
-    text: str
+    title: str
 
 
 class CountryCache(TypedDict):
@@ -91,10 +91,10 @@ def get_country_list(*, api: stripe_api) -> List[CountrySpec]:
         countries.append(
             {
                 "value": country_code,
-                "text": pycountry.countries.get(alpha_2=country_code).name,
+                "title": pycountry.countries.get(alpha_2=country_code).name,
             }
         )
-    countries.sort(key=lambda country: country["text"])
+    countries.sort(key=lambda country: country["title"])
     COUNTRY_CACHE["cache"] = countries
     return COUNTRY_CACHE["cache"]
 

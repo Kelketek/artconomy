@@ -1,12 +1,12 @@
 <template>
   <v-container>
-    <ac-tab-nav label="View" :items="tabSpecs" class="table-dashboard-nav" />
-    <router-view />
+    <ac-tab-nav label="View" :items="tabSpecs" class="table-dashboard-nav"/>
+    <router-view/>
   </v-container>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
@@ -16,13 +16,31 @@ import {TabNavSpec} from '@/types/TabNavSpec'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 
 @Component({
-  components: {AcTabNav, AcProductPreview, AcLink, AcAvatar, AcLoadSection},
+  components: {
+    AcTabNav,
+    AcProductPreview,
+    AcLink,
+    AcAvatar,
+    AcLoadSection,
+  },
 })
-export default class TableDashboard extends mixins(Viewer) {
+class TableDashboard extends mixins(Viewer) {
   public tabSpecs: TabNavSpec[] = [
-    {value: {name: 'TableProducts'}, text: 'Products', icon: 'storefront'},
-    {value: {name: 'TableOrders'}, text: 'Orders', icon: 'shopping_bag'},
-    {value: {name: 'TableInvoices'}, text: 'Invoices', icon: 'receipt'},
+    {
+      value: {name: 'TableProducts'},
+      title: 'Products',
+      icon: 'storefront',
+    },
+    {
+      value: {name: 'TableOrders'},
+      title: 'Orders',
+      icon: 'shopping_bag',
+    },
+    {
+      value: {name: 'TableInvoices'},
+      title: 'Invoices',
+      icon: 'receipt',
+    },
   ]
 
   created() {
@@ -34,4 +52,6 @@ export default class TableDashboard extends mixins(Viewer) {
     }
   }
 }
+
+export default toNative(TableDashboard)
 </script>

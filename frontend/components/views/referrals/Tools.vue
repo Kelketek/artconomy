@@ -1,10 +1,10 @@
 <template>
   <v-container>
-    <v-row no-gutters  >
-      <v-col class="text-center" cols="12" >
+    <v-row no-gutters>
+      <v-col class="text-center" cols="12">
         <h1>Referral Tools</h1>
       </v-col>
-      <v-col class="text-center" cols="12" lg="6" >
+      <v-col class="text-center" cols="12" lg="6">
         <v-card>
           <v-card-text>
             <p>You can embed a copy of your store into your website by using the following code snippet:</p>
@@ -15,7 +15,7 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col class="text-center" cols="12" lg="6" >
+      <v-col class="text-center" cols="12" lg="6">
         <v-card>
           <v-card-text>
             <p>
@@ -37,11 +37,11 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 
-  @Component
-export default class Tools extends mixins(Subjective) {
+@Component
+class Tools extends mixins(Subjective) {
   public get host() {
     return window.location.hostname
   }
@@ -50,4 +50,6 @@ export default class Tools extends mixins(Subjective) {
     return window.location.protocol
   }
 }
+
+export default toNative(Tools)
 </script>

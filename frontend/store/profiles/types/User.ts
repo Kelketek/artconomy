@@ -5,7 +5,7 @@ export interface User {
   landscape_paid_through: string | null,
   telegram_link: string,
   watching: boolean,
-  blocked: boolean,
+  blocking: boolean,
   rating: Ratings,
   sfw_mode: boolean,
   username: string,

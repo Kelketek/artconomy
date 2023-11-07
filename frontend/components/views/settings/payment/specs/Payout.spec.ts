@@ -1,26 +1,28 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import Payout from '@/components/views/settings/payment/Payout.vue'
 import {genUser} from '@/specs/helpers/fixtures'
+import {describe, beforeEach, afterEach, test} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
 describe('Payout.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts', async() => {
+  test('Mounts', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Payout, {localVue, store, propsData: {username: 'Fox'}, attachTo: docTarget()})
+    wrapper = mount(Payout, {
+      ...vueSetup({
+        store,
+        stubs: ['router-link'],
+      }),
+      props: {username: 'Fox'},
+    })
   })
 })

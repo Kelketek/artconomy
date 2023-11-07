@@ -2,23 +2,24 @@
   <v-container>
     <ac-load-section v-if="isSales" :controller="stats">
       <template v-slot:default>
-        <v-row no-gutters class="text-center"   >
+        <v-row no-gutters class="text-center" v-if="stats.x">
           <v-col cols="12" md="6">
             <h1>
               <router-link style="text-decoration: underline;"
                            :to="{name: 'BuyAndSell', params: {question: 'workload-management'}}">
-                Workload Management</router-link>
+                Workload Management
+              </router-link>
               Panel
             </h1>
             <v-row no-gutters>
               <v-col cols="6">Total Slots:</v-col>
-              <v-col cols="6">{{stats.x.max_load}}</v-col>
+              <v-col cols="6">{{ stats.x.max_load }}</v-col>
               <v-col cols="6">Slots filled:</v-col>
-              <v-col cols="6">{{stats.x.load}}</v-col>
+              <v-col cols="6">{{ stats.x.load }}</v-col>
               <v-col cols="6">Active Orders:</v-col>
-              <v-col cols="6">{{stats.x.active_orders}}</v-col>
+              <v-col cols="6">{{ stats.x.active_orders }}</v-col>
               <v-col cols="6">New Orders:</v-col>
-              <v-col cols="6">{{stats.x.new_orders}}</v-col>
+              <v-col cols="6">{{ stats.x.new_orders }}</v-col>
               <v-row class="pb-1" v-if="stats.x.escrow_enabled">
                 <v-col cols="12">
                   <v-card>
@@ -37,30 +38,40 @@
               <strong>You are currently unable to take new commissions because:</strong>
               <ul>
                 <li v-if="stats.x.delinquent">You have an unpaid invoice. Please find it in your
-                  <router-link :to="{name: 'Invoices', param: {username}}">invoice list and pay it.</router-link></li>
+                  <router-link :to="{name: 'Invoices', params: {username}}">invoice list and pay it.</router-link>
+                </li>
                 <li v-if="stats.x.commissions_closed">You have set your 'commissions closed' setting.</li>
                 <li v-if="stats.x.load >= stats.x.max_load">You have filled all of your slots. You can increase your
                   maximum slots to take on more commissions at one time in your artist settings.
                 </li>
-                <li v-else-if="stats.x.products_available === 0">You have no products available for customers to purchase. This
-                  may mean there are none, they are hidden, they have reached their 'Max at Once' level, or you do not have
+                <li v-else-if="stats.x.products_available === 0">You have no products available for customers to
+                  purchase. This
+                  may mean there are none, they are hidden, they have reached their 'Max at Once' level, or you do not
+                  have
                   enough slots to take any of your existing products on.
                 </li>
               </ul>
             </div>
             <div v-else>
               <p>You are currently able to take commissions.
-                <router-link :to="{name: 'Store', params: {username}}">Manage your store here.</router-link></p>
+                <router-link :to="{name: 'Store', params: {username}}">Manage your store here.</router-link>
+              </p>
               <div class="py-5 d-none d-md-flex"></div>
             </div>
             <div class="grow"></div>
             <div class="align-self-center justify-end pb-2">
               <v-row>
-                <v-col class="text-center d-none d-md-flex">
-                  <v-btn color="green" @click="showNewInvoice = true"><v-icon left>receipt</v-icon>New Invoice</v-btn>
+                <v-col class="text-center d-flex">
+                  <v-btn color="green" @click="showNewInvoice = true" variant="elevated" class="new-invoice-button">
+                    <v-icon left icon="mdi-receipt"/>
+                    New Invoice
+                  </v-btn>
                 </v-col>
                 <v-col class="text-center">
-                  <v-btn color="primary" @click="showBroadcast = true"><v-icon left>campaign</v-icon>Broadcast to buyers</v-btn>
+                  <v-btn color="primary" @click="showBroadcast = true" variant="elevated">
+                    <v-icon left icon="mdi-campaign"/>
+                    Broadcast to buyers
+                  </v-btn>
                 </v-col>
               </v-row>
             </div>
@@ -74,14 +85,16 @@
       <v-tab :to="{name: 'Archived' + baseName, params: {username}}">Archived</v-tab>
       <v-tab v-if="!isCases" :to="{name: 'Cancelled' + baseName, params: {username}}">Cancelled</v-tab>
     </v-tabs>
-    <v-tabs-items>
+    <v-window>
       <router-view :key="$route.path"></router-view>
-    </v-tabs-items>
-    <ac-add-button v-if="isSales" v-model="showNewInvoice">Create Invoice</ac-add-button>
-    <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice" :large="true" title="Issue new Invoice">
-      <ac-invoice-form :escrow-enabled="invoiceEscrowEnabled" :line-items="invoiceLineItems" :new-invoice="newInvoice" :username="username" />
+    </v-window>
+    <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice"
+                    :large="true" title="Issue new Invoice">
+      <ac-invoice-form :escrow-enabled="invoiceEscrowEnabled" :line-items="invoiceLineItems" :new-invoice="newInvoice"
+                       :username="username"/>
     </ac-form-dialog>
-    <ac-form-dialog v-if="isSales" v-bind="broadcastForm.bind" v-model="showBroadcast" @submit.prevent="broadcastForm.submitThen(() => {confirmBroadcast = true})">
+    <ac-form-dialog v-if="isSales" v-bind="broadcastForm.bind" v-model="showBroadcast"
+                    @submit.prevent="broadcastForm.submitThen(() => {confirmBroadcast = true})">
       <v-row v-if="!confirmBroadcast">
         <v-col cols="12" class="text-center">
           <h1>Add a comment to all of your orders at once.</h1>
@@ -109,7 +122,7 @@
           <span class="title">Broadcast sent!</span>
         </v-col>
         <v-col cols="12" class="text-center">
-          <v-icon x-large color="green">check_circle</v-icon>
+          <v-icon x-large color="green" icon="mdi-check-circle"/>
         </v-col>
       </v-row>
       <template v-slot:bottom-buttons v-if="confirmBroadcast">
@@ -126,14 +139,12 @@
 
 <script lang="ts">
 import AcLoadSection from '../../wrappers/AcLoadSection.vue'
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Subjective from '../../../mixins/subjective'
 import AcPaginated from '../../wrappers/AcPaginated.vue'
-import {Prop} from 'vue-property-decorator'
 import {SingleController} from '@/store/singles/controller'
 import CommissionStats from '@/types/CommissionStats'
 import {FormController} from '@/store/forms/form-controller'
-import AcAddButton from '@/components/AcAddButton.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Product from '@/types/Product'
@@ -141,10 +152,18 @@ import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {baseInvoiceSchema, flatten} from '@/lib/lib'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
 import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
+
 @Component({
-  components: {AcInvoiceForm, AcPricePreview, AcBoundField, AcFormDialog, AcAddButton, AcPaginated, AcLoadSection},
+  components: {
+    AcInvoiceForm,
+    AcPricePreview,
+    AcBoundField,
+    AcFormDialog,
+    AcPaginated,
+    AcLoadSection,
+  },
 })
-export default class Orders extends mixins(Subjective, InvoicingMixin) {
+class Orders extends mixins(Subjective, InvoicingMixin) {
   public stats: SingleController<CommissionStats> = null as unknown as SingleController<CommissionStats>
   @Prop({required: true})
   public baseName!: string
@@ -168,10 +187,12 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     return this.$route.name === this.baseName
   }
 
+  // @ts-ignore
   public get sellerName() {
     return this.username
   }
 
+  // @ts-ignore
   public get international() {
     return this.subject?.international || false
   }
@@ -184,11 +205,12 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
   public get closed() {
     const stats = this.stats.x as CommissionStats
     if (!stats) {
-      return
+      return null
     }
     return stats.commissions_closed || stats.commissions_disabled || stats.load >= stats.max_load
   }
 
+  // @ts-ignore
   public get invoiceEscrowEnabled() {
     if (!this.subjectHandler.artistProfile.x) {
       return false
@@ -208,7 +230,10 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     this.$listenForList(`orders__${flatten(this.username)}__${type}__current`)
     this.$listenForList(`orders__${flatten(this.username)}__${type}__waiting`)
     if (this.isCurrentRoute) {
-      this.$router.replace({name: 'Current' + this.baseName, params: {username: this.username}})
+      this.$router.replace({
+        name: 'Current' + this.baseName,
+        params: {username: this.username},
+      })
     }
     if (this.isSales) {
       this.stats.get()
@@ -228,4 +253,6 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     })
   }
 }
+
+export default toNative(Orders)
 </script>

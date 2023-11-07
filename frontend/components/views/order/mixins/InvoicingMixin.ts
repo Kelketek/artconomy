@@ -1,25 +1,25 @@
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Watch} from 'vue-property-decorator'
+import {Component, Watch} from 'vue-facing-decorator'
 import Product from '@/types/Product'
 import Deliverable from '@/types/Deliverable'
 import {invoiceLines} from '@/lib/lineItemFunctions'
 import {FormController} from '@/store/forms/form-controller'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
+import {ArtVue} from '@/lib/lib'
 
 @Component
-export default class InvoicingMixin extends Vue {
+export default class InvoicingMixin extends ArtVue {
   public newInvoice!: FormController
-  public sellerName!: string
-  public invoiceEscrowEnabled!: boolean
-  public international!: boolean
+  /** Defined in child **/
+  declare public sellerName: string
+  declare public invoiceEscrowEnabled: boolean
+  declare public international: boolean
 
   public invoiceProduct: SingleController<Product> = null as unknown as SingleController<Product>
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
 
   @Watch('newInvoice.fields.product.value')
-  public updateProduct(val: undefined|null|number) {
+  public updateProduct(val: undefined | null | number) {
     /* istanbul ignore if */
     if (val === undefined) {
       return
@@ -35,7 +35,7 @@ export default class InvoicingMixin extends Vue {
   }
 
   @Watch('invoiceProduct.x', {deep: true})
-  public updatePrice(val: Product|null) {
+  public updatePrice(val: Product | null) {
     /* istanbul ignore if */
     if (!val) {
       return
@@ -50,18 +50,25 @@ export default class InvoicingMixin extends Vue {
   public goToOrder(deliverable: Deliverable) {
     this.$router.push({
       name: 'SaleDeliverableOverview',
-      params: {username: this.sellerName, orderId: deliverable.order.id + '', deliverableId: deliverable.id + ''},
+      params: {
+        username: this.sellerName,
+        orderId: deliverable.order.id + '',
+        deliverableId: deliverable.id + '',
+      },
     })
   }
 
   /* istanbul ignore next */
-  public get planName(): string|null {
+  public get planName(): string | null {
     // Must be implemented by child. Get the plan name whose prices apply here.
     return null
   }
 
   public get invoiceLineItems() {
-    const linesController = this.$getList('newInvoiceLines', {endpoint: '#', paginated: false})
+    const linesController = this.$getList('newInvoiceLines', {
+      endpoint: '#',
+      paginated: false,
+    })
     linesController.ready = true
     linesController.setList(invoiceLines({
       planName: this.planName,

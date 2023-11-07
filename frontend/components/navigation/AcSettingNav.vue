@@ -1,72 +1,73 @@
 <!--suppress XmlUnboundNsPrefix -->
 <template>
-  <v-list v-if="subject" no-action>
+  <v-list v-if="subject" no-action v-model:opened="open" nav density="compact">
     <v-list-item :to="{name: 'Options', params: {username}}" exact>
       <v-list-item-title>Options</v-list-item-title>
-      <v-list-item-icon>
-        <v-icon>build</v-icon>
-      </v-list-item-icon>
+      <template v-slot:append>
+        <v-icon icon="mdi-wrench"/>
+      </template>
     </v-list-item>
     <v-list-item class="artist-panel-link" :to="{name: 'Artist', params: {username}}" exact v-if="subject.artist_mode">
       <v-list-item-title>Artist</v-list-item-title>
-      <v-list-item-icon>
-        <v-icon>palette</v-icon>
-      </v-list-item-icon>
+      <template v-slot:append>
+        <v-icon icon="mdi-palette"/>
+      </template>
     </v-list-item>
     <v-list-item :to="{name: 'Email', params: {username}}" exact>
       <v-list-item-title>Email Notifications</v-list-item-title>
-      <v-list-item-icon>
-        <v-icon>send</v-icon>
-      </v-list-item-icon>
+      <template v-slot:append>
+        <v-icon icon="mdi-send"/>
+      </template>
     </v-list-item>
     <v-list-item :to="{name: 'Login Details', params: {username}}">
       <v-list-item-title>Login Details</v-list-item-title>
-      <v-list-item-icon>
-        <v-icon>lock</v-icon>
-      </v-list-item-icon>
+      <template v-slot:append>
+        <v-icon icon="mdi-lock"/>
+      </template>
     </v-list-item>
     <v-list-item :to="{name: 'Avatar', params: {username}}">
       <v-list-item-title>Avatar</v-list-item-title>
-      <v-list-item-icon>
-        <v-icon>person</v-icon>
-      </v-list-item-icon>
+      <template v-slot:append>
+        <v-icon icon="mdi-account"/>
+      </template>
     </v-list-item>
     <v-list-item :to="{name: 'Premium', params: {username}}">
       <v-list-item-title>Premium</v-list-item-title>
-      <v-list-item-icon>
-        <v-icon>star</v-icon>
-      </v-list-item-icon>
+      <template v-slot:append>
+        <v-icon icon="mdi-star"/>
+      </template>
     </v-list-item>
     <v-list-group
-        no-action :value="true"
-        sub-group
-        append-icon="attach_money"
+        value="Payment"
+        density="compact"
     >
-      <template v-slot:activator>
-        <v-list-item-title>Payment</v-list-item-title>
+      <template v-slot:activator="{props}">
+        <v-list-item v-bind="props">
+          <v-list-item-title>Payment</v-list-item-title>
+        </v-list-item>
       </template>
       <v-list-item :to="{name: 'Purchase', params: {username}}">
-        <v-list-item-action>
-          <v-icon>credit_card</v-icon>
-        </v-list-item-action>
+        <template v-slot:append>
+          <v-icon icon="mdi-credit-card"/>
+        </template>
         <v-list-item-title>Payment Methods</v-list-item-title>
       </v-list-item>
       <v-list-item :to="{name: 'Payout', params: {username}}" class="payout-link" v-if="showPayout">
-        <v-list-item-action>
-          <v-icon>account_balance_wallet</v-icon>
-        </v-list-item-action>
+        <template v-slot:append>
+          <v-icon icon="mdi-wallet"/>
+        </template>
         <v-list-item-title>Payout Methods</v-list-item-title>
       </v-list-item>
       <v-list-item :to="{name: 'Invoices', params: {username}}">
-        <v-list-item-action>
-          <v-icon>receipt</v-icon>
-        </v-list-item-action>
+        <template v-slot:append>
+          <v-icon icon="mdi-receipt-text"/>
+        </template>
         <v-list-item-title>Invoices</v-list-item-title>
       </v-list-item>
       <v-list-item :to="{name: 'TransactionHistory', params: {username}}">
-        <v-list-item-action>
-          <v-icon>list</v-icon>
-        </v-list-item-action>
+        <template v-slot:append>
+          <v-icon icon="mdi-list-box"/>
+        </template>
         <v-list-item-title>Raw Transaction History</v-list-item-title>
       </v-list-item>
     </v-list-group>
@@ -74,22 +75,24 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Viewer from '../../mixins/viewer'
 import Subjective from '../../mixins/subjective'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
 import {User} from '@/store/profiles/types/User'
-import {Prop} from 'vue-property-decorator'
-import * as VListComponents from 'vuetify/es5/components/VList'
+// import {VList, VListItem, VListItemAction, VListItemTitle, VListGroup, VListImg} from 'vuetify/lib/components/VList/index.mjs'
+import * as VListComponents from 'vuetify/lib/components/VList/index.mjs'
 
 @Component({
   components: {
     ...VListComponents,
   },
 })
-export default class AcSettingNav extends mixins(Viewer, Subjective) {
+class AcSettingNav extends mixins(Viewer, Subjective) {
   @Prop({default: false})
   public nested!: boolean
+
+  public open = ['Payment']
 
   public HAS_US_ACCOUNT = 1 as BANK_STATUSES
 
@@ -107,4 +110,6 @@ export default class AcSettingNav extends mixins(Viewer, Subjective) {
     this.subjectHandler.artistProfile.get().then()
   }
 }
+
+export default toNative(AcSettingNav)
 </script>

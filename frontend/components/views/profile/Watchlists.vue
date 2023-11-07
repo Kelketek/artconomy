@@ -9,18 +9,23 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, toNative, mixins} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import {flatten} from '@/lib/lib'
 
-  @Component
-export default class Watchlists extends mixins(Subjective) {
+@Component
+class Watchlists extends mixins(Subjective) {
   public created() {
     this.$listenForList(`${flatten(this.username)}__watching`)
     this.$listenForList(`${flatten(this.username)}__watchers`)
     if (this.$route.name === 'Watchlists') {
-      this.$router.push({name: 'Watching', params: {username: this.username}})
+      this.$router.push({
+        name: 'Watching',
+        params: {username: this.username},
+      })
     }
   }
 }
+
+export default toNative(Watchlists)
 </script>

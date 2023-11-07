@@ -6,13 +6,13 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Editable from '@/mixins/editable'
-import {Prop} from 'vue-property-decorator'
 
-  @Component
-export default class EditableComponent extends mixins(Editable) {
+@Component({})
+class EditableComponent extends mixins(Editable) {
     @Prop()
     public controls!: boolean
 }
+export default toNative(EditableComponent)
 </script>

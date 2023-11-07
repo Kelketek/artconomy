@@ -1,38 +1,35 @@
-import Vue, {VueConstructor} from 'vue'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
-  confirmAction, createVuetify, docTarget,
+  confirmAction,
   flushPromises,
+  genAnon,
+  mount,
   rs,
   setViewer,
-  vueSetup,
-  mount, genAnon,
+  vueSetup, VuetifyWrapped,
 } from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
-import Router from 'vue-router'
+import {createRouter, createWebHistory, Router} from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 import {User} from '@/store/profiles/types/User'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import Submission from '@/types/Submission'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import SubmissionDetail from '@/components/views/submission/SubmissionDetail.vue'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser'
 import {searchSchema} from '@/lib/lib'
-import Vuetify from 'vuetify/lib'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-let localVue: VueConstructor
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
 let vulpes: User
-let vuetify: Vuetify
+
+const WrappedSubmissionDetail = VuetifyWrapped(SubmissionDetail)
 
 describe('SubmissionDetail.vue', () => {
   beforeEach(() => {
-    localVue = vueSetup()
-    localVue.use(Router)
     store = createStore()
     vulpes = genUser()
     vulpes.username = 'Vulpes'
@@ -40,9 +37,8 @@ describe('SubmissionDetail.vue', () => {
     vulpes.is_superuser = false
     vulpes.id = 2
     vulpes.artist_mode = false
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: [
         {
           name: 'Order',
@@ -78,42 +74,60 @@ describe('SubmissionDetail.vue', () => {
           component: Empty,
           props: true,
         },
+        {
+          path: '/',
+          name: 'Home',
+          component: Empty,
+          props: true,
+        },
       ],
     })
-    mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
+    mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Deletes the submission', async() => {
+  test('Deletes the submission', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
+    await router.push(`/submissions/${submission.id}`)
     submission.owner = vulpes as RelatedUser
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
     })
-    const vm = wrapper.vm as any
-    vm.submission.setX(submission)
-    vm.submission.fetching = false
-    vm.submission.ready = true
-    await vm.$nextTick()
+    const vm = wrapper.vm.$refs.vm as any
+    vm.submission.makeReady(submission)
     mockAxios.reset()
     await vm.$nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
-    mockAxios.mockResponse(rs(null, {status: 204}))
+    const deleteRequest = mockAxios.lastReqGet()
+    expect(deleteRequest.method === 'delete')
+    mockAxios.mockResponse(rs(null, {status: 204}), deleteRequest)
     await flushPromises()
     await vm.$nextTick()
-    expect(vm.$route.name).toBe('Profile')
+    await flushPromises()
+    await router.isReady()
+    expect(router.currentRoute.value.name).toBe('Profile')
   })
-  it('Sets the meta info with artists', async() => {
+  test('Sets the meta info with artists', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.title = 'Test submission'
     submission.owner = vulpes as RelatedUser
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
     })
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm.$refs.vm as any
     vm.submission.setX(submission)
     vm.submission.fetching = false
     vm.submission.ready = true
@@ -124,15 +138,20 @@ describe('SubmissionDetail.vue', () => {
     await vm.$nextTick()
     expect(document.title).toEqual('Test submission -- by Fox - (Artconomy.com)')
   })
-  it('Sets the meta info with artists and no title', async() => {
+  test('Sets the meta info with artists and no title', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.title = ''
     submission.owner = vulpes as RelatedUser
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
     })
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm.$refs.vm as any
     vm.submission.setX(submission)
     vm.submission.fetching = false
     vm.submission.ready = true
@@ -143,82 +162,115 @@ describe('SubmissionDetail.vue', () => {
     await vm.$nextTick()
     expect(document.title).toEqual('By Fox - (Artconomy.com)')
   })
-  it('Shows a rating edit dialog', async() => {
+  test('Shows a rating edit dialog', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.title = ''
     submission.owner = vulpes as RelatedUser
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    await router.push({
+      name: 'Submission',
+      params: {submissionId: submission.id},
     })
-    const vm = wrapper.vm as any
-    vm.submission.setX(submission)
-    vm.submission.fetching = false
-    vm.submission.ready = true
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
+    })
+    const vm = wrapper.vm.$refs.vm as any
+    vm.submission.makeReady(submission)
     vm.editing = true
+    await flushPromises()
     mockAxios.reset()
     await vm.$nextTick()
     wrapper.find('.rating-button').trigger('click')
     await vm.$nextTick()
     expect(vm.ratingDialog).toBe(true)
   })
-  it('Nudges the viewer to adjust their settings', async() => {
+  test('Nudges the viewer to adjust their settings', async() => {
     setViewer(store, genAnon())
-    const submission = genSubmission({rating: 2, id: 123})
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    const submission = genSubmission({
+      rating: 2,
+      id: 123,
     })
-    const vm = wrapper.vm as any
-    const mockAgeCheck = jest.spyOn(vm, 'ageCheck')
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
+    })
+    const vm = wrapper.vm.$refs.vm as any
+    const mockAgeCheck = vi.spyOn(vm, 'ageCheck')
     vm.submission.makeReady(submission)
     await vm.$nextTick()
     expect(mockAgeCheck).toHaveBeenCalledWith({value: 2})
   })
-  it('Does not show a rating edit dialog if not in editing mode', async() => {
+  test('Does not show a rating edit dialog if not in editing mode', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.title = ''
     submission.owner = vulpes as RelatedUser
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    await router.push({
+      name: 'Submission',
+      params: {submissionId: submission.id},
+      query: {editing: 'true'},
     })
-    const vm = wrapper.vm as any
-    vm.submission.setX(submission)
-    vm.submission.fetching = false
-    vm.submission.ready = true
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
+    })
+    const vm = wrapper.vm.$refs.vm as any
+    vm.submission.makeReady(submission)
     vm.editing = false
+    await flushPromises()
     mockAxios.reset()
     await vm.$nextTick()
-    wrapper.find('.rating-button').trigger('click')
+    expect(vm.editing).toBe(false)
+    await wrapper.find('.rating-button').trigger('click')
     await vm.$nextTick()
     expect(vm.ratingDialog).toBe(false)
   })
-  it('Reports that the viewer tag-controls the piece if the owner is taggable', async() => {
+  test('Reports that the viewer tag-controls the piece if the owner is taggable', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.title = ''
     submission.owner.taggable = true
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
     })
-    const vm = wrapper.vm as any
-    vm.submission.setX(submission)
-    vm.submission.fetching = false
-    vm.submission.ready = true
-    vm.editing = true
+    const vm = wrapper.vm.$refs.vm as any
+    vm.submission.makeReady(submission)
     mockAxios.reset()
     await vm.$nextTick()
     expect(vm.tagControls).toBe(true)
   })
-  it('Reports that the viewer does not tag-control the piece if the owner is not taggable', async() => {
+  test('Reports that the viewer does not tag-control the piece if the owner is not taggable', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.title = ''
     submission.owner.taggable = false
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
     })
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm.$refs.vm as any
     vm.submission.setX(submission)
     vm.submission.fetching = false
     vm.submission.ready = true
@@ -227,27 +279,37 @@ describe('SubmissionDetail.vue', () => {
     await vm.$nextTick()
     expect(vm.tagControls).toBe(false)
   })
-  it('Shows a context menu when the user controls the submission', async() => {
+  test('Shows a context menu when the user controls the submission', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
     submission.owner = vulpes
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
     })
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm.$refs.vm as any
     vm.submission.setX(submission)
     vm.submission.fetching = false
     vm.submission.ready = true
     await vm.$nextTick()
     expect(wrapper.find('.more-button').exists()).toBe(true)
   })
-  it('Does not show a context menu when the user does not control', async() => {
+  test('Does not show a context menu when the user does not control', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
-    wrapper = mount(SubmissionDetail, {
-      localVue, store, router, vuetify, propsData: {submissionId: '123'}, attachTo: docTarget(),
+    wrapper = mount(WrappedSubmissionDetail, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment'],
+      }),
+      props: {submissionId: '123'},
     })
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm.$refs.vm as any
     vm.submission.setX(submission)
     vm.submission.fetching = false
     vm.submission.ready = true

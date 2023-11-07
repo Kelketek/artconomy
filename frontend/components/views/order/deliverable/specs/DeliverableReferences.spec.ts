@@ -1,50 +1,47 @@
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
-import Router from 'vue-router'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
+import {VueWrapper} from '@vue/test-utils'
 import {deliverableRouter} from '@/components/views/order/specs/helpers'
 import {genDeliverable, genReference, genUser} from '@/specs/helpers/fixtures'
 import mockAxios from '@/__mocks__/axios'
-import {genCharacter} from '@/store/characters/specs/fixtures'
 import DeliverableReferences from '@/components/views/order/deliverable/DeliverableReferences.vue'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
 
 describe('DeliverableReferences.vue', () => {
   beforeEach(() => {
-    jest.useFakeTimers()
+    vi.useFakeTimers()
     store = createStore()
-    vuetify = createVuetify()
     router = deliverableRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Autosubmits a reference when a new file is added', async() => {
+  test('Autosubmits a reference when a new file is added', async() => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
     router.push('/orders/Fox/order/1/deliverables/5/references')
     wrapper = mount(
       DeliverableReferences, {
-        localVue,
-        store,
-        router,
-        vuetify,
-        propsData: {orderId: 1, deliverableId: 5, baseName: 'Order', username: 'Fox'},
-
-        attachTo: docTarget(),
+        ...vueSetup({
+          store,
+          extraPlugins: [router],
+        }),
+        props: {
+          orderId: 1,
+          deliverableId: 5,
+          baseName: 'Order',
+          username: 'Fox',
+        },
       })
     const vm = wrapper.vm as any
-    const spySubmit = jest.spyOn(vm.newReference, 'submitThen')
-    const spyPost = jest.spyOn(vm.references, 'post')
+    const spySubmit = vi.spyOn(vm.newReference, 'submitThen')
+    const spyPost = vi.spyOn(vm.references, 'post')
     const deliverable = genDeliverable()
     expect(vm.references.list.length).toBe(0)
     vm.order.makeReady(deliverable.order)

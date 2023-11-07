@@ -1,18 +1,19 @@
-import Component from 'vue-class-component'
 import {SingleModuleOpts} from './types/SingleModuleOpts'
 import {SingleState} from './types/SingleState'
 import {SingleModule} from './index'
-import {BaseController} from '@/store/controller-base'
+import {BaseController, ControllerArgs} from '@/store/controller-base'
 import {RawData} from '@/store/forms/types/RawData'
 import {SinglePatchers} from '@/store/singles/types/SinglePatchers'
 import {Patch} from '@/store/singles/patcher'
-import {Watch} from 'vue-property-decorator'
+import {Watch} from 'vue-facing-decorator'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
+import {ref} from 'vue'
+import {ComputedGetters} from '@/lib/lib'
 
-@Component
-export class SingleController<T extends {}> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
+@ComputedGetters
+export class SingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
   public baseClass = SingleModule
-  public forceRecomputeCounter = 0
+  public forceRecomputeCounter = ref(0)
 
   public baseModuleName = 'singles'
 
@@ -21,84 +22,86 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
   // eslint-disable-next-line camelcase
   public single_controller__ = true
 
-  public created() {
+  constructor(args: ControllerArgs<SingleModuleOpts<T>>) {
+    super(args)
     this.register()
   }
 
-  public get() {
+  public get = () => {
     return this.dispatch('get')
   }
 
-  public patch(data: Partial<T>) {
+  public patch = (data: Partial<T>) => {
     return this.dispatch('patch', data)
   }
 
-  public post(data?: any) {
+  public post = (data?: any) => {
     return this.dispatch('post', data)
   }
 
-  public delete() {
+  public delete = () => {
     return this.dispatch('delete')
   }
 
-  public markDeleted() {
+  public markDeleted = () => {
     this.socketUnmount()
     this.deleted = true
     this.ready = false
     this.x = null
   }
 
-  public put(data?: any) {
+  public put = (data?: any) => {
     return this.dispatch('put', data)
   }
 
   @Watch('ready', {immediate: true})
-  public startWatcher(currentValue: boolean) {
+  public startWatcher = (currentValue: boolean) => {
     if (currentValue) {
       this.socketOpened()
     }
   }
 
-  public setX(x: T | null) {
+  public setX = (x: T | null) => {
     // Also available as a setter.
     if (this.x && !x) {
-      this.forceRecomputeCounter += 1
+      this.forceRecomputeCounter.value = this.forceRecomputeCounter.value ? 0 : 1
     }
     this.commit('setX', x)
   }
 
-  public getModel() {
+  public getModel = () => {
     const self = this
     const patchers = self.patchers
     type KeyType = keyof T
-    return new Proxy({}, {
-      get(target, propName: KeyType) {
-        return patchers[propName].model
+    return new Proxy<T>({} as T, {
+      get(target, propName) {
+        return patchers[propName as KeyType].model
       },
-      set(target, propName: KeyType, value: T[KeyType]): any {
-        patchers[propName].model = value
+      set(target, propName, value: T[KeyType]): any {
+        patchers[propName as KeyType].model = value
         return true
       },
     })
   }
 
-  public getPatcher() {
+  public getPatcher = () => {
     const self = this
-    return new Proxy({cached: {} as SinglePatchers<T>}, {
-      get(target, propName: keyof T): Patch {
-        if (target.cached[propName] === undefined) {
-          target.cached[propName] = self.$makePatcher({modelProp: '', attrName: propName as string, silent: true})
+    return new Proxy<SinglePatchers<T>>({cached: {} as SinglePatchers<T>} as SinglePatchers<T>, {
+      get(target, propName): Patch {
+        const intermediary = target as {cached: SinglePatchers<T>}
+        if (intermediary.cached[propName as keyof T] === undefined) {
+          intermediary.cached[propName as keyof T] = self.$root.$makePatcher({target: self, modelProp: '', attrName: propName as string, silent: true})
         }
-        return target.cached[propName]
+        return intermediary.cached[propName as keyof T]
       },
     })
   }
 
-  public updateX(x: Partial<T>) {
+  public updateX = (x: Partial<T>) => {
     this.commit('updateX', x)
   }
 
-  public retryGet() {
+  public retryGet = () => {
     return this.dispatch('retryGet')
   }
 
@@ -159,7 +162,7 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return this.get()
   }
 
-  public makeReady(val: T) {
+  public makeReady = (val: T) => {
     // For tests or preloading. Sets X and clears status flags.
     this.setX(val)
     this.ready = true
@@ -168,13 +171,13 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
 
   public get model(): T {
     // eslint-disable-next-line no-unused-expressions
-    this.forceRecomputeCounter
+    this.forceRecomputeCounter.value
     return this.getModel() as unknown as T
   }
 
   public get patchers(): SinglePatchers<T> {
     // eslint-disable-next-line no-unused-expressions
-    this.forceRecomputeCounter
+    this.forceRecomputeCounter.value
     return this.getPatcher() as unknown as SinglePatchers<T>
   }
 
@@ -188,7 +191,7 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
 
   public get socketUpdateParams() {
     const socketSettings = this.attr('socketSettings')
-    if (!this.attr('socketSettings') || !this.x) {
+    if (!socketSettings || !this.x) {
       return null
     }
     const pk = this.x[(socketSettings.keyField || 'id') as keyof T]
@@ -219,39 +222,39 @@ export class SingleController<T extends {}> extends BaseController<SingleModuleO
     return `${data.app_label}.${data.model_name}.delete.${data.pk}`
   }
 
-  public socketOpened() {
+  public socketOpened = () => {
     const data = this.socketUpdateParams
-    if (!this.$sock?.socket || !data) {
+    if (!this.$root.$sock?.socket || !data) {
       return
     }
-    this.$sock.addListener(
+    this.$root.$sock.addListener(
       this.updateLabel,
       `${this.socketLabelBase}.update`,
       // Use update to update in place so that we don't have to recompute everything.
       // Also because some weirdness happens with reference changes.
       this.updateX,
     )
-    this.$sock.addListener(
+    this.$root.$sock.addListener(
       this.deleteLabel,
       `${this.socketLabelBase}.delete`,
-      // Use update to update in place so we don't have to recompute everything. Also because some weirdness happens
-      // with reference changes.
+      // Use update to update in place so that we don't have to recompute everything.
+      // Also because some weirdness happens with reference changes.
       this.markDeleted,
     )
-    this.$sock.send('watch', data)
+    this.$root.$sock.send('watch', data)
   }
 
-  public socketUnmount() {
+  public socketUnmount = () => {
     const updateLabel = this.updateLabel
-    if (!this.$sock?.socket) {
+    if (!this.$root.$sock?.socket) {
       return
     }
     if (this.updateLabel) {
-      this.$sock.send('clear_watch', this.socketUpdateParams)
-      this.$sock.removeListener(updateLabel, `${this.socketLabelBase}.update`)
+      this.$root.$sock.send('clear_watch', this.socketUpdateParams)
+      this.$root.$sock.removeListener(updateLabel, `${this.socketLabelBase}.update`)
     }
     if (this.deleteLabel) {
-      this.$sock.removeListener(this.deleteLabel, `${this.socketLabelBase}.delete`)
+      this.$root.$sock.removeListener(this.deleteLabel, `${this.socketLabelBase}.delete`)
     }
   }
 }

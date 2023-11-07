@@ -68,8 +68,8 @@ django-reversion
 django-sendgrid-v5
 # Allows us to disable Django's signal feature-- useful sometimes during tests.
 django-signal-disabler
-# Allows us to read and parse a webpack manifest in order to render the correct script/link tags in the index HTML
-django-webpack-loader
+# Allows us to read and parse a rollup manifest in order to render the correct script/link tags in the index HTML
+django-vite
 # Library for calling Dwolla services. Deprecated since we no longer use Dwolla.
 dwollav2
 # Used to generate thumbnails for submissions.

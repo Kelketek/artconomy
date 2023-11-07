@@ -12,13 +12,14 @@
         <v-row dense>
           <v-col cols="12">
             <ac-link :to="deliverableLink">
-              {{deliverable.name}}</ac-link>
+              {{deliverable.name}}
+            </ac-link>
           </v-col>
           <v-col cols="12" class="text-center">
-            <ac-deliverable-status :deliverable="deliverable" />
+            <ac-deliverable-status :deliverable="deliverable"/>
           </v-col>
           <v-col cols="12">
-            Created on <span v-text="formatDateTime(deliverable.created_on)" />
+            Created on <span v-text="formatDateTime(deliverable.created_on)"/>
           </v-col>
         </v-row>
       </v-card-text>
@@ -27,18 +28,23 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Deliverable from '@/types/Deliverable'
 import Order from '@/types/Order'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import Formatting from '@/mixins/formatting'
+
 @Component({
-  components: {AcDeliverableStatus, AcOrderStatus: AcDeliverableStatus, AcAsset, AcLink},
+  components: {
+    AcDeliverableStatus,
+    AcOrderStatus: AcDeliverableStatus,
+    AcAsset,
+    AcLink,
+  },
 })
-export default class AcDeliverablePreview extends mixins(Formatting) {
+class AcDeliverablePreview extends mixins(Formatting) {
   @Prop({required: true})
   public deliverable!: Deliverable
 
@@ -49,7 +55,15 @@ export default class AcDeliverablePreview extends mixins(Formatting) {
   public scope!: string
 
   public get deliverableLink() {
-    return {name: `${this.scope}Deliverable`, params: {orderId: this.order.id, deliverableId: this.deliverable.id}}
+    return {
+      name: `${this.scope}Deliverable`,
+      params: {
+        orderId: this.order.id,
+        deliverableId: this.deliverable.id,
+      },
+    }
   }
 }
+
+export default toNative(AcDeliverablePreview)
 </script>

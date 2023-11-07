@@ -4,142 +4,165 @@
     <v-navigation-drawer
         fixed
         clipped
-        v-model="navSettings.patchers.drawer.model"
+        v-model="drawer"
         app
         width="300"
-        v-if="viewer && !iFrame && fullInterface && !prerendering"
+        v-if="viewer && !$store.state.iFrame && fullInterface"
     >
       <v-container fluid class="pa-0 fill-height">
         <v-row no-gutters>
           <v-col cols="12">
-            <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered" :is-superuser="isSuperuser" :is-staff="isStaff" v-model="navSettings.patchers.drawer.model" />
+            <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered"
+                          :is-superuser="isSuperuser" :is-staff="isStaff" v-model="drawer"/>
+          </v-col>
+          <v-col cols="12">
+            <v-divider />
+          </v-col>
+          <v-col cols="12" class="pt-3">
+            <v-sheet>
+              <v-row>
+                <v-col class="bottom-button">
+                  <a
+                      href="https://twitter.com/ArtconomyArt/"
+                      rel="nofollow noopener"
+                      target="_blank"
+                  >
+                    <v-row no-gutters>
+                      <v-col cols="12" class="text-center">
+                        <ac-icon size="default" :icon="siTwitter"/>
+                      </v-col>
+                      <v-col cols="12" class="text-center">
+                        <small>Twitter</small>
+                      </v-col>
+                    </v-row>
+                  </a>
+                </v-col>
+                <v-col class="bottom-button">
+                  <a
+                      href="https://artconomy.com/blog/"
+                      rel="nofollow noopener"
+                      target="_blank"
+                  >
+                    <v-row no-gutters class="px-2">
+                      <v-col cols="12" class="text-center">
+                        <v-icon medium icon="mdi-pencil"/>
+                      </v-col>
+                      <v-col cols="12" class="text-center pt-1">
+                        <small>Blog</small>
+                      </v-col>
+                    </v-row>
+                  </a>
+                </v-col>
+                <v-col class="bottom-button">
+                  <a
+                      href="https://discord.gg/4nWK9mf"
+                      rel="nofollow noopener"
+                      target="_blank"
+                  >
+                    <v-row no-gutters>
+                      <v-col cols="12" class="text-center">
+                        <ac-icon size="default" :icon="siDiscord"/>
+                      </v-col>
+                      <v-col cols="12" class="text-center">
+                        <small>Discord</small>
+                      </v-col>
+                    </v-row>
+                  </a>
+                </v-col>
+                <v-col class="bottom-button" @click.capture.prevent="showSupport">
+                  <v-row no-gutters>
+                    <v-col cols="12" class="text-center support-button">
+                      <v-icon medium icon="mdi-chat-question"/>
+                    </v-col>
+                    <v-col cols="12" class="text-center pt-1">
+                      <small>Support</small>
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
+            </v-sheet>
           </v-col>
         </v-row>
-        <v-spacer />
-        <v-bottom-navigation
-          style="height: auto"
-        >
-          <v-btn
-            text
-            href="https://twitter.com/ArtconomyArt/"
-            rel="nofollow noopener"
-            target="_blank"
-            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
-            class="pt-2"
-          >
-            <span>Twitter</span>
-            <v-icon medium>fa-twitter</v-icon>
-          </v-btn>
-          <v-btn
-            text
-            href="https://artconomy.com/blog/"
-            target="_blank"
-            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
-            class="pt-2"
-          >
-            <span>Blog</span>
-            <v-icon medium>edit</v-icon>
-          </v-btn>
-          <v-btn
-            text
-            href="https://discord.gg/4nWK9mf"
-            target="_blank"
-            rel="nofollow noopener"
-            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
-            class="pt-2"
-          >
-            <span>Discord</span>
-            <v-icon medium>{{discordPath}}</v-icon>
-          </v-btn>
-          <v-btn
-            text
-            @click.capture.prevent="showSupport"
-            to="#"
-            class="support-button pt-2"
-            :class="{'phone-padding': $vuetify.breakpoint.smAndDown, 'pb-2': $vuetify.breakpoint.mdAndUp}"
-          >
-            <span>Feedback</span>
-            <v-icon medium>contact_support</v-icon>
-          </v-btn>
-        </v-bottom-navigation>
       </v-container>
     </v-navigation-drawer>
     <v-app-bar
         color="secondary"
-        dense
+        density="compact"
         fixed
         clipped-left
         app
         dark
-        :scroll-off-screen="$vuetify.breakpoint.mdAndDown"
+        :scroll-off-screen="$vuetify.display.mdAndDown"
         :scroll-threshold="150"
-        v-if="!iFrame"
+        v-if="!$store.state.iFrame"
     >
-      <v-app-bar-nav-icon v-if="viewer && fullInterface && !prerendering" @click.stop="navSettings.patchers.drawer.model = !navSettings.patchers.drawer.model" name="Main Menu"/>
-      <v-row no-gutters class="hidden-xs-only" >
-        <v-toolbar-title class="mr-5 align-center hide-sm hide-xs">
-          <v-btn text to="/">
-            <img src="/static/images/logo.svg" class="header-logo" alt="A"/>
-            <div class="title">rtconomy</div>
-          </v-btn>
-        </v-toolbar-title>
-      </v-row>
-      <v-row no-gutters class="hidden-sm-and-up"  v-if="isLoggedIn">
-        <v-toolbar-title class="align-center">
-          <v-btn text to="/" icon>
-            <img src="/static/images/logo.svg" class="header-logo" alt="Artconomy"/>
-          </v-btn>
-        </v-toolbar-title>
-      </v-row>
-      <v-spacer />
-      <div class="d-flex pr-2" v-if="fullInterface">
-        <v-btn text class="pa-0 mr-1" :to="{name: 'SearchProducts'}" aria-label="Search">
-          <v-icon large>search</v-icon>
+      <template v-slot:prepend>
+        <v-app-bar-nav-icon v-if="viewer && fullInterface"
+                            @click.stop="drawer = !drawer"
+                            name="Main Menu"/>
+      </template>
+      <v-toolbar-title class="mr-5 align-center hidden-xs">
+        <v-btn variant="text" to="/">
+          <img :src="logo" class="header-logo" alt="A"/>
+          <div class="title">rtconomy</div>
         </v-btn>
-        <div class="hidden-sm-and-down">
-          <ac-bound-field
-              :field="searchForm.fields.q"
-              placeholder="Search..."
-              single-line
-              @keyup="runSearch"
-              @click:append="runSearch"
-              color="white"
-              hide-details
-              field-id="nav-bar-search"
-          />
-        </div>
-      </div>
+      </v-toolbar-title>
+      <v-toolbar-title class="align-center hidden-sm-and-up" v-if="isLoggedIn">
+        <v-btn variant="text" to="/" icon>
+          <img :src="logo" class="header-logo" alt="Artconomy"/>
+        </v-btn>
+      </v-toolbar-title>
+      <v-btn icon class="hidden-md-and-up" :to="{name: 'SearchProducts'}" aria-label="Search">
+        <v-icon x-large icon="mdi-magnify"></v-icon>
+      </v-btn>
+      <ac-bound-field
+          :field="searchForm.fields.q"
+          placeholder="Search..."
+          single-line
+          @keyup="runSearch"
+          @click:append="runSearch"
+          color="white"
+          hide-details
+          class="hidden-sm-and-down"
+          field-id="nav-bar-search"
+          aria-label="Search field"
+      >
+        <template v-slot:prepend>
+          <v-btn icon variant="plain" :to="{name: 'SearchProducts'}" aria-label="Search" class="search-button-offset">
+            <v-icon x-large icon="mdi-magnify"></v-icon>
+          </v-btn>
+        </template>
+      </ac-bound-field>
       <v-card class="px-2 py-1 hidden-xs-only"
               :color="sfwMode.model? 'blue darken-3' : 'black'"
               v-if="viewer && viewer.rating > 0 && fullInterface"
       >
         <v-switch
-          v-model="sfwMode.model"
-          @click="sfwMode.model = !sfwMode.model"
-          label="SFW"
-          color="blue lighten-1"
-          :hide-details="true"
+            v-model="sfwMode.model"
+            @click="sfwMode.model = !sfwMode.model"
+            label="SFW"
+            :hide-details="true"
         >
         </v-switch>
       </v-card>
       <v-toolbar-items v-if="fullInterface">
-        <v-btn icon v-if="isRegistered" @click="notificationLoad" class="notifications-button">
-          <v-badge overlap right color="red" :value="counts.count">
+        <v-btn variant="plain" v-if="isRegistered" @click="notificationLoad" class="notifications-button">
+          <v-badge overlap right color="red" :model-value="!!counts.count">
             <template v-slot:badge>
-              <span slot="badge" v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
-              <span slot="badge" v-else>*</span>
+              <span v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
+              <span v-else>*</span>
             </template>
-            <v-icon large>notifications</v-icon>
+            <v-icon size="x-large" icon="mdi-bell"/>
           </v-badge>
         </v-btn>
-        <v-btn class="nav-login-item" text v-if="isRegistered"
+        <v-btn class="nav-login-item" variant="text" v-if="isRegistered"
                :to="profileRoute">
           <v-avatar size="32px">
-            <img :src="viewer.avatar_url" :alt="viewer.username">
+            <img :src="registeredUser.avatar_url" :alt="registeredUser.username">
           </v-avatar>
-          <div style="padding-left: 1rem;" v-if="isLoggedIn" class="hidden-sm-and-down">{{ viewer.username }}</div>
+          <div style="padding-left: 1rem;" v-if="isLoggedIn" class="hidden-sm-and-down">{{ viewer!.username }}</div>
         </v-btn>
-        <v-btn v-else-if="viewer" class="nav-login-item" text :to="loginLink">Login</v-btn>
+        <v-btn v-else-if="viewer" class="nav-login-item" variant="text" :to="loginLink">Login</v-btn>
         <v-btn v-else class="nav-login-item" aria-label="Login button loading."/>
       </v-toolbar-items>
     </v-app-bar>
@@ -147,90 +170,110 @@
 </template>
 
 <style>
-  .header-logo {
-    height: 1.75rem;
-    vertical-align: middle;
-  }
+.header-logo {
+  height: 1.75rem;
+  vertical-align: middle;
+}
 
-  .title {
-    display: inline-block;
-    vertical-align: middle;
-  }
+.title {
+  display: inline-block;
+  vertical-align: middle;
+}
 
-  .phone-padding {
-    padding-bottom: 80px !important;
-  }
+.phone-padding {
+  padding-bottom: 80px !important;
+}
+.search-button-offset {
+  right: -1rem;
+}
+
+.bottom-button {
+  opacity: .7;
+}
+
+.bottom-button:hover {
+  opacity: 1
+}
+
+#app .bottom-button a {
+  text-decoration: none;
+  font-weight: normal;
+}
 
 </style>
 
 <script lang="ts">
-import {makeQueryParams, initDrawerValue} from '@/lib/lib'
+import {initDrawerValue, makeQueryParams, BASE_URL} from '@/lib/lib'
 import Viewer from '../../mixins/viewer'
-import Component, {mixins} from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcSettingNav from './AcSettingNav.vue'
 import {User} from '@/store/profiles/types/User'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import {FormController} from '@/store/forms/form-controller'
 import Nav from '@/mixins/nav'
-import {State} from 'vuex-class'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
-import {mdiDiscord} from '@mdi/js'
-import PrerenderMixin from '@/mixins/PrerenderMixin'
+import {siDiscord, siTwitter} from 'simple-icons'
 import {SingleController} from '@/store/singles/controller'
 import {NavSettings} from '@/types/NavSettings'
+import AcIcon from '@/components/AcIcon.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
 @Component({
-  components: {AcNavLinks, AcBoundField, AcPatchField, AcSettingNav},
+  components: {
+    AcNavLinks,
+    AcBoundField,
+    AcPatchField,
+    AcSettingNav,
+    AcIcon,
+    AcLink,
+  },
 })
-export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
-  @State('iFrame') public iFrame!: boolean
+class NavBar extends mixins(Viewer, Nav) {
   public searchForm: FormController = null as unknown as FormController
   public navSettings = null as unknown as SingleController<NavSettings>
+  public drawer = false
 
-  @Prop({default: initDrawerValue})
-  public initialState!: null|boolean
-
-  public discordPath = mdiDiscord
+  public siDiscord = siDiscord
+  public siTwitter = siTwitter
+  public logo = new URL('/static/images/logo.png', BASE_URL).href
 
   public get loginLink() {
     if (this.$route.name === 'Login') {
-      return {name: 'Login', params: {tabName: 'login'}}
+      return {
+        name: 'Login',
+      }
     }
-    return {name: 'Login', params: {tabName: 'login'}, query: {next: this.$route.path}}
+    return {
+      name: 'Login',
+      query: {next: this.$route.path},
+    }
   }
 
   public runSearch() {
-    if (this.$route.name && (this.$route.name.indexOf('Search') !== -1)) {
+    if (this.$route.name && (String(this.$route.name).indexOf('Search') !== -1)) {
       return
     }
-    this.$router.push({name: 'SearchProducts', query: makeQueryParams(this.searchForm.rawData)})
+    this.$router.push({
+      name: 'SearchProducts',
+      query: makeQueryParams(this.searchForm.rawData),
+    })
+  }
+
+  public get registeredUser() {
+    return this.viewer as User
   }
 
   public created() {
     this.searchForm = this.$getForm('search')
-    let drawer: boolean
-    if (this.$vuetify.breakpoint.mdAndDown) {
-      // Never begin with the drawer open on a small screen.
-      drawer = false
-    } else {
-      if (this.initialState === null) {
-        drawer = this.$vuetify.breakpoint.lgAndUp
-      } else {
-        drawer = this.initialState
-      }
-    }
-    this.navSettings = this.$getSingle('navSettings', {
-      endpoint: '#',
-      x: {drawer},
-    })
-    this.updateStorage(drawer)
   }
 
   public notificationLoad() {
-    if (['CommunityNotifications', 'SalesNotifications'].indexOf(this.$route.name + '') !== -1) {
-      this.$router.replace({name: 'Reload', params: {path: this.$route.path}})
+    if (['CommunityNotifications', 'SalesNotifications'].indexOf(String(this.$route.name) + '') !== -1) {
+      this.$router.replace({
+        name: 'Reload',
+        params: {path: this.$route.path},
+      })
     } else {
       this.$router.push({name: 'CommunityNotifications'})
     }
@@ -240,7 +283,7 @@ export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
     this.$store.commit('supportDialog', true)
   }
 
-  @Watch('isRegistered')
+  @Watch('isRegistered', {immediate: true})
   public viewerUpdate(val: boolean) {
     if (val) {
       this.$store.dispatch('notifications/startLoop').then()
@@ -249,18 +292,12 @@ export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
     }
   }
 
-  @Watch('navSettings.patchers.drawer.model')
-  public updateStorage(val: boolean | null) {
-    if (val === null) {
-      val = this.$vuetify.breakpoint.lgAndUp
-      this.navSettings.patchers.drawer.model = val
-    }
-    localStorage.setItem('drawerOpen', val + '')
-  }
-
   public get profileRoute() {
     const viewer = this.viewer as User
-    return {name: 'AboutUser', params: {username: viewer.username}}
+    return {
+      name: 'AboutUser',
+      params: {username: viewer.username},
+    }
   }
 
   public get sfwMode() {
@@ -268,11 +305,13 @@ export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
   }
 
   public get counts() {
-    return this.$store.state.notifications.stats
+    return this.$store.state.notifications!.stats
   }
 
-  public destroyed() {
+  public unmounted() {
     this.$store.dispatch('notifications/stopLoop').then()
   }
 }
+
+export default toNative(NavBar)
 </script>

@@ -1,23 +1,23 @@
-import Vuetify from 'vuetify/lib'
 import Artist from '@/components/views/settings/Artist.vue'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
+import {describe, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let vuetify: Vuetify
 
 describe('Artist.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp()
   })
-  it('Mounts', () => {
+  test('Mounts', () => {
     setViewer(store, genUser())
-    mount(Artist, {localVue, store, propsData: {username: 'Fox'}})
+    mount(Artist, {
+      ...vueSetup({store}),
+      props: {username: 'Fox'},
+    })
   })
 })

@@ -5,9 +5,10 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
 
-export default class Routed extends Vue {
+import {ArtVue} from '@/lib/lib'
+
+export default class Routed extends ArtVue {
   // Container for routing tests.
 }
 </script>

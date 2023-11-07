@@ -10,14 +10,19 @@
 
 <script lang="ts">
 import Subjective from '@/mixins/subjective'
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 
-  @Component
-export default class ReferralsAndTools extends mixins(Subjective) {
+@Component
+class ReferralsAndTools extends mixins(Subjective) {
   public created() {
     if (this.$route.name === 'ReferralsAndTools') {
-      this.$router.replace({name: 'LinksAndStats', params: {username: this.username}})
+      this.$router.replace({
+        name: 'LinksAndStats',
+        params: {username: this.username},
+      })
     }
   }
 }
+
+export default toNative(ReferralsAndTools)
 </script>

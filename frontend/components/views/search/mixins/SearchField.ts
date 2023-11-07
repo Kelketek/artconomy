@@ -4,10 +4,8 @@ import {makeQueryParams} from '@/lib/lib'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
 import debounce from 'lodash/debounce'
-import {Watch} from 'vue-property-decorator'
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Watch} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
-import RatingRefresh from '@/mixins/RatingRefresh'
 
 @Component
 export default class SearchField extends mixins(Viewer) {
@@ -18,7 +16,7 @@ export default class SearchField extends mixins(Viewer) {
   public updateRouter = true
 
   @Watch('list.params.page')
-  public updatePage(newValue: number|undefined) {
+  public updatePage(newValue: number | undefined) {
     /* istanbul ignore next */
     if (newValue === undefined || this.searchForm === null) {
       return
@@ -27,7 +25,7 @@ export default class SearchField extends mixins(Viewer) {
   }
 
   @Watch('list.params.size')
-  public updateSize(newValue: number|undefined) {
+  public updateSize(newValue: number | undefined) {
     /* istanbul ignore next */
     if (newValue === undefined || this.searchForm === null) {
       return

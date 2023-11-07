@@ -1,32 +1,25 @@
-import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import {genUser} from '@/specs/helpers/fixtures'
 import TransactionHistory from '@/components/views/settings/payment/TransactionHistory.vue'
-import Vuetify from 'vuetify/lib'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
 describe('AcTransaction.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Identifies the current list type', async() => {
+  test('Identifies the current list type', async() => {
     setViewer(store, genUser())
     wrapper = mount(TransactionHistory, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {username: 'Fox'},
-      attachTo: docTarget(),
+      ...vueSetup({store}),
+      props: {username: 'Fox'},
     })
     const vm = wrapper.vm as any
     expect(vm.transactionFilter.fields.account.value).toBe(300)

@@ -3,11 +3,13 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 
-  @Component
-export default class Collection extends mixins(Subjective) {
+@Component
+class Collection extends mixins(Subjective) {
 
 }
+
+export default toNative(Collection)
 </script>

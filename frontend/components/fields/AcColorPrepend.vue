@@ -1,43 +1,45 @@
 <template>
   <div class="flex">
-    <v-btn icon small color="primary" class="picker-button" @click="launchPicker"><v-icon>colorize</v-icon></v-btn>
+    <v-btn icon small color="primary" class="picker-button" @click="launchPicker">
+      <v-icon icon="mdi-colorize"/>
+    </v-btn>
     <input v-model="scratch"
            type="color"
            class="picker"
-           slot="prepend-inner"/>
+    />
   </div>
 </template>
 
 <style>
-  .picker {
-    display: none;
-  }
+.picker {
+  display: none;
+}
 </style>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
 
-  @Component
-export default class AcColorPrepend extends Vue {
-    @Prop()
-    public value!: string
+@Component({emits: ['update:modelValue']})
+class AcColorPrepend extends Vue {
+  @Prop()
+  public modelValue!: string
 
-    public scratch = ''
+  public scratch = ''
 
-    @Watch('scratch')
-    public updateInput(val: string) {
-      this.$emit('input', val)
-    }
+  @Watch('scratch')
+  public updateInput(val: string) {
+    this.$emit('update:modelValue', val)
+  }
 
-    public launchPicker() {
-      const input = this.$el.querySelector('.picker') as HTMLInputElement
-      input.click()
-    }
+  public launchPicker() {
+    const input = this.$el.querySelector('.picker') as HTMLInputElement
+    input.click()
+  }
 
-    public created() {
-      this.scratch = this.value
-    }
+  public created() {
+    this.scratch = this.modelValue
+  }
 }
+
+export default toNative(AcColorPrepend)
 </script>

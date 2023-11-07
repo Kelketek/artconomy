@@ -1,20 +1,21 @@
 <template>
   <v-app>
     <v-main>
-      <ac-new-submission ref="submissionForm" title="Sharable thing!" :username="username" v-model="showUpload" :allow-multiple="allowMultiple" />
+      <ac-new-submission ref="submissionForm" title="Sharable thing!" :username="username" v-model="showUpload"
+                         :allow-multiple="allowMultiple"/>
     </v-main>
   </v-app>
 </template>
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcNewSubmission from '../AcNewSubmission.vue'
 import Subjective from '@/mixins/subjective'
 import Upload from '@/mixins/upload'
-import {Prop} from 'vue-property-decorator'
-  @Component({
-    components: {AcNewSubmission},
-  })
-export default class DummySubmit extends mixins(Subjective, Upload) {
+
+@Component({
+  components: {AcNewSubmission},
+})
+class DummySubmit extends mixins(Subjective, Upload) {
   @Prop({default: false})
   public allowMultiple!: boolean
 
@@ -22,4 +23,6 @@ export default class DummySubmit extends mixins(Subjective, Upload) {
     this.showUpload = true
   }
 }
+
+export default toNative(DummySubmit)
 </script>

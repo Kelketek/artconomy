@@ -1,6 +1,5 @@
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Watch} from 'vue-facing-decorator'
 import {CreditCardToken} from '@/types/CreditCardToken'
-import {Watch} from 'vue-property-decorator'
 import {FormController} from '@/store/forms/form-controller'
 import {SingleController} from '@/store/singles/controller'
 import ClientSecret from '@/types/ClientSecret'
@@ -27,8 +26,11 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
   public rawUpdateIntent() {
     this.clientSecret.post(this.paymentForm.rawData).then(
       this.clientSecret.setX).then(
-      () => { this.clientSecret.ready = true },
-    ).catch(() => {}).finally(() => {
+      () => {
+        this.clientSecret.ready = true
+      },
+    ).catch(() => {
+    }).finally(() => {
       this.paymentForm.sending = false
     })
   }
@@ -46,7 +48,7 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
   }
 
   @Watch('paymentForm.fields.card_id.value')
-  public stripeCardUpdated(value: CreditCardToken|null) {
+  public stripeCardUpdated(value: CreditCardToken | null) {
     if (value) {
       this.clientSecret.params = {card_id: value.id}
     } else {
@@ -72,7 +74,10 @@ export default class StripeHostMixin extends mixins(ErrorHandling) {
 
   public created() {
     this.readers = this.$getList(
-      'stripeReaders', {endpoint: '/api/sales/stripe-readers/', persistent: true},
+      'stripeReaders', {
+        endpoint: '/api/sales/stripe-readers/',
+        persistent: true,
+      },
     )
     if (!(this.readers.ready || this.readers.fetching || this.readers.failed)) {
       this.readers.get().catch(this.statusOk(403))

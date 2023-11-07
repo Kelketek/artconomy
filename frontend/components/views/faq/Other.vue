@@ -1,17 +1,17 @@
 <template>
   <v-expansion-panels v-model="tab">
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What are the content ratings and what do they mean?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
               Artconomy caters to varying tastes and strives to give its customers the best viewing
               experience it can. In order to do so, we have instated a handful of 'rating levels'.
               <router-link
-                  :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
+                  :to="{name: 'Options', params: {username: viewer!.username}}"
                   v-if="isRegistered"
               >
                 Your rating level can be configured in your settings.
@@ -59,19 +59,19 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What is your content policy?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <p>
           In general, the policy is 'nothing illegal in the state of Texas, USA.' We don't believe in telling you what
           you can and can't draw. The requirement we have is that content must be properly tagged, especially NSFW
           content. If users cannot
           <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">block your content by tag</router-link>
-           (and by
+          (and by
           <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">rating</router-link>
           as applicable) your account may be subject to disciplinary action.
         </p>
@@ -83,11 +83,12 @@
           <li>Photographs of humans uploaded without consent</li>
           <li>Photomanipulations of humans which are explicit</li>
           <li>
-              Computer generated explicit content of humans which is indistinguishable (or only distinguishable with
-              difficulty) from photographs.
+            Computer generated explicit content of humans which is indistinguishable (or only distinguishable with
+            difficulty) from photographs.
           </li>
           <li>Non-art content-- such as datasets or programs that aren't reasonably understood by our staff to have
-            artistic purpose or merit.</li>
+            artistic purpose or merit.
+          </li>
         </ul>
 
         Artconomy is hosted in the state of Texas and is subject to the laws of it and the United States of America.
@@ -96,21 +97,23 @@
         <ul>
           <li>Criminal Threats</li>
           <li>Content which violates Intellectual Property laws-- such as content you did not create and don't have
-            permission to upload</li>
+            permission to upload
+          </li>
           <li>Incitement to imminent lawless action</li>
         </ul>
 
         This is not an exhaustive list. If you are unsure if your content is illegal, please consult with your
-        attorney. You may also check our <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+        attorney. You may also check our
+        <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
         for more information. Artconomy staff is not a legal team, but will remove violating content on our best
         judgement.
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What is your tagging policy?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <p>Artconomy has
           <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">very few restrictions</router-link>
           on what content may be posted, but with this freedom comes a responsibility to tag content effectively.
@@ -118,9 +121,13 @@
         </p>
         <ul>
           <li>It makes products, submissions, and characters easy for visitors to find via search. Customers interested
-            in your content may not be able to find it if it is not properly tagged.</li>
-          <li>It makes such content easy to <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">block</router-link> for
-            those who do not wish to see it.</li>
+            in your content may not be able to find it if it is not properly tagged.
+          </li>
+          <li>It makes such content easy to
+            <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">block</router-link>
+            for
+            those who do not wish to see it.
+          </li>
         </ul>
         <p>
           In sum, tagging allows viewers of the site to have control over their experience, and tagging allows artists
@@ -178,22 +185,24 @@
           which is not tagged properly, you are encouraged to tag it. If users are tagging your work inappropriately,
           you may disable public tagging in your
           <router-link
-              :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
+              :to="{name: 'Options', params: {username: viewer!.username}}"
               v-if="isRegistered"
           >
-            settings</router-link><span v-else>settings</span>.
+            settings
+          </router-link>
+          <span v-else>settings</span>.
         </p>
         <p>
           Users who repeatedly fail to observe tagging guidelines, especially those who do not tag content that is
           considered extreme or offensive by most viewers, will have their account subject to disciplinary action.
         </p>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How do I block tags I don't want to see?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -205,7 +214,7 @@
               When you encounter content that is against your tastes, check the tags on the work.
               Once you locate a tag related to the content you find objectionable, you can go to
               <router-link
-                  :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
+                  :to="{name: 'Options', params: {username: viewer!.username}}"
                   v-if="isRegistered"
               >
                 your settings page
@@ -234,13 +243,13 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How does watching work?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -257,13 +266,13 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How does Blocking work?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -275,19 +284,19 @@
             <p>
               If you find a bug in the blocking that allows users to continue harassing you, or you have continued
               to be harassed on the platform after asking someone to stop,
-              <a href="#" @click.prevent="setSupport(true)">please contact support</a> with
+              <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact support</a> with
               the details. Harassment can be subject to disciplinary action, including account closure, depending on
               severity.
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What file formats are supported? What are the limitations?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -314,23 +323,22 @@
             </ul>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
-import {paramHandleArray} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 
-const other = [
-  'content-ratings', 'content-policy', 'tagging', 'tag-blocking', 'watching', 'blocking', 'file-formats',
-]
-  @Component
-export default class Other extends mixins(Viewer, QuestionSet) {
-    @paramHandleArray('question', other)
-    public tab!: number
+@Component({})
+class Other extends mixins(Viewer, QuestionSet) {
+  public questions = [
+    'content-ratings', 'content-policy', 'tagging', 'tag-blocking', 'watching', 'blocking', 'file-formats',
+  ]
 }
+
+export default toNative(Other)
 </script>

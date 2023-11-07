@@ -1,15 +1,11 @@
-import Component, {mixins} from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Component, mixins, Prop, Watch} from 'vue-facing-decorator'
 import {userHandle} from '@/store/profiles/handles'
 // Used to augment Vue type.
 // noinspection ES6UnusedImports
-import {Route} from 'vue-router'
 import {User} from '@/store/profiles/types/User'
 import Viewer from './viewer'
 import {ProfileController} from '@/store/profiles/controller'
 import {profileRegistry} from '@/store/profiles/registry'
-import {SingleController} from '@/store/singles/controller'
-import Pricing from '@/types/Pricing'
 import PricingAware from '@/mixins/PricingAware'
 
 @Component
@@ -21,6 +17,7 @@ export default class Subjective extends mixins(Viewer, PricingAware) {
   public privateView: boolean = false
   public missingOk: boolean = false
 
+  // @ts-ignore
   @userHandle('subjectHandler')
   public subject!: User | null
 

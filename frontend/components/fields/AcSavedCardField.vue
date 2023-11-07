@@ -2,8 +2,9 @@
   <ac-load-section :controller="cards">
     <template v-slot:default>
       <div class="flex card-group-container">
-        <v-radio-group :hide-details="true" :value="value" @change="sendInput">
-          <ac-card v-for="card in cards.list" :card="card" :key="card.id" :card-list="cards" :value="value" :field-mode="true" :processor="processor" />
+        <v-radio-group :hide-details="true" :model-value="modelValue" @update:model-value="sendInput">
+          <ac-card v-for="card in cards.list" :card="card" :key="card.x!.id" :card-list="cards" :value="modelValue"
+                   :field-mode="true" :processor="processor"/>
         </v-radio-group>
       </div>
     </template>
@@ -11,35 +12,39 @@
 </template>
 
 <style>
-  .card-group-container .v-input--radio-group .v-input__control {
-    width: 100%;
-  }
+.card-group-container .v-input--radio-group .v-input__control {
+  width: 100%;
+}
 </style>
 
 <script lang="ts">
-import Component from 'vue-class-component'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
-import {Prop} from 'vue-property-decorator'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
-import Vue from 'vue'
 
-  @Component({
-    components: {AcCard, AcLoadSection},
-  })
-export default class AcSavedCards extends Vue {
-    @Prop({required: true})
-    public cards!: ListController<CreditCardToken>
+@Component({
+  components: {
+    AcCard,
+    AcLoadSection,
+  },
+  emits: ['update:modelValue'],
+})
+class AcSavedCards extends Vue {
+  @Prop({required: true})
+  public cards!: ListController<CreditCardToken>
 
-    @Prop({default: null})
-    public value!: number
+  @Prop({default: null})
+  public modelValue!: number
 
-    @Prop({default: ''})
-    public processor!: string
+  @Prop({default: ''})
+  public processor!: string
 
-    public sendInput(value: number) {
-      this.$emit('input', value)
-    }
+  public sendInput(value: number|null) {
+    this.$emit('update:modelValue', value)
+  }
 }
+
+export default toNative(AcSavedCards)
 </script>

@@ -1,5 +1,6 @@
 import {InvoiceStatus} from '@/types/InvoiceStatus'
 import {User} from '@/store/profiles/types/User'
+import {InvoiceType} from '@/types/InvoiceType'
 
 export default interface Invoice {
   id: string,
@@ -8,4 +9,6 @@ export default interface Invoice {
   issued_by: User,
   targets: any[],
   status: InvoiceStatus,
+  total: number,
+  type: InvoiceType,
 }

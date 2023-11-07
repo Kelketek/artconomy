@@ -6,14 +6,18 @@
 
 <script lang="ts">
 import Subjective from '../../../mixins/subjective'
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcProductList from '@/components/views/store/AcProductList.vue'
-import {ListController} from '@/store/lists/controller'
-import Product from '@/types/Product'
 import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
-  @Component({
-    components: {AcSubjectiveProductList, AcProductList},
-  })
-export default class Products extends mixins(Subjective) {
+
+@Component({
+  components: {
+    AcSubjectiveProductList,
+    AcProductList,
+  },
+})
+class Products extends mixins(Subjective) {
 }
+
+export default toNative(Products)
 </script>

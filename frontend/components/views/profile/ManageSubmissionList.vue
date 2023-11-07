@@ -26,25 +26,27 @@
 .disabled {
   opacity: .5;
 }
+
 .page-setter .sortable-ghost {
   display: none;
 }
+
 .page-setter .sortable-ghost + .v-card {
   filter: brightness(200%);
 }
+
 .page-setter .sortable-ghost + .v-card.disabled {
   filter: brightness(100%);
 }
 </style>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import draggable from 'vuedraggable'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
-import {Prop, Watch} from 'vue-property-decorator'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {flatten} from '@/lib/lib'
@@ -63,28 +65,31 @@ import AcDraggableList from '@/components/AcDraggableList.vue'
     draggable,
   },
 })
-export default class ManageSubmissionList extends mixins(Subjective, Editable) {
-    @Prop()
-    public listName!: string
+class ManageSubmissionList extends mixins(Subjective, Editable) {
+  @Prop()
+  public listName!: string
 
-    @Prop()
-    public endpoint!: string
+  @Prop()
+  public endpoint!: string
 
-    @Watch('rawRating')
-    public refreshListing(newValue: Ratings, oldValue: Ratings|undefined) {
-      if (oldValue === undefined) {
-        return
-      }
-      this.list.get()
+  @Watch('rawRating')
+  public refreshListing(newValue: Ratings, oldValue: Ratings | undefined) {
+    if (oldValue === undefined) {
+      return
     }
+    this.list.get()
+  }
 
-    public list: ListController<Submission> = null as unknown as ListController<Submission>
-    public created() {
-      let listName = this.listName
-      if (this.username) {
-        listName = `${flatten(this.username)}-${listName}-management`
-      }
-      this.list = this.$getList(listName, {endpoint: this.endpoint})
+  public list: ListController<Submission> = null as unknown as ListController<Submission>
+
+  public created() {
+    let listName = this.listName
+    if (this.username) {
+      listName = `${flatten(this.username)}-${listName}-management`
     }
+    this.list = this.$getList(listName, {endpoint: this.endpoint})
+  }
 }
+
+export default toNative(ManageSubmissionList)
 </script>

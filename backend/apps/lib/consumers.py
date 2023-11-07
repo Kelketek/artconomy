@@ -245,7 +245,9 @@ async def can_watch(
     if serializer_name is not None and not BROADCAST_SERIALIZERS.get(
         instance.__class__, {}
     ).get(serializer_name):
-        raise ValueError("Serializer does not exist.")
+        raise ValueError(
+            f"Serializer '{serializer_name}' does not exist. Choices are {BROADCAST_SERIALIZERS}"
+        )
     request = FakeRequest(user=user)
     permission_check = getattr(instance, "watch_permissions", None)
     if permission_check is None:

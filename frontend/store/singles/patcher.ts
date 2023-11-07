@@ -1,26 +1,13 @@
 // Patcher that allows more flexibility in defining how data will be sent. In most cases, you want patcher in the
 // singles module instead.
-import Vue from 'vue'
-import {artCall, dotTraverse} from '@/lib/lib'
+import {artCall, ComputedGetters, dotTraverse} from '@/lib/lib'
 import cloneDeep from 'lodash/cloneDeep'
 import debounce from 'lodash/debounce'
-import axios, {AxiosError, CancelTokenSource} from 'axios'
+import axios, {AxiosError} from 'axios'
 import {deriveErrors} from '@/store/forms/helpers'
-import Component from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
 import {SingleController} from '@/store/singles/controller'
-
-declare type patcherDecorator = (cls: Vue, propName: string) => void
-
-declare interface PatchConfig {
-  dirty: boolean,
-  cancelSource: CancelTokenSource,
-  cached: any,
-  errors: string[],
-  debouncedSet: (val: any) => void,
-  silent?: boolean,
-  patching: boolean,
-}
+import {ComputedGetter, ref, Ref, toValue} from 'vue'
+import {v4 as uuidv4} from 'uuid'
 
 export function errorSend(config: Patch): (error: AxiosError) => void {
   return (error: AxiosError) => {
@@ -32,41 +19,51 @@ export function errorSend(config: Patch): (error: AxiosError) => void {
     }
     const errors = deriveErrors(error, [attrName])
     const message = (errors.fields[attrName] && errors.fields[attrName][0]) || errors.errors[0]
-    config.errors = [message]
-    config.patching = false
+    config.errors.value = [message]
+    config.patching.value = false
   }
 }
 
-@Component
-export class Patch extends Vue {
-  @Prop({required: true})
+export interface PatcherArgs {
+  target: any,
+  modelProp: string,
+  attrName: string,
+  debounceRate?: number,
+  silent?: boolean,
+  refresh?: boolean
+}
+
+const uncached = Symbol('Uncached')
+
+@ComputedGetters
+export class Patch<T = any> {
+  public __getterMap: Map<keyof Patch, ComputedGetter<any>>
   public target!: any
+  public modelProp: string
+  public attrName: string
+  public debounceRate: number
+  public _uid: string
+  // Used for automatically generated patchers which may throw errors during initialization/dereference
+  public silent: boolean
+  public refresh: boolean
 
-  @Prop({required: true})
-  public modelProp!: string
+  constructor(args: PatcherArgs) {
+    this.__getterMap = new Map()
+    this.target  = args.target
+    this.modelProp = args.modelProp
+    this.attrName = args.attrName
+    this.debounceRate = args.debounceRate || 250
+    this.silent = args.silent || false
+    this.refresh = args.refresh === undefined ? true : args.refresh
+    this._uid = uuidv4()
+  }
 
-  @Prop({required: true})
-  public attrName!: string
+  public cancelSource = new AbortController()
+  public errors = ref([] as string[])
+  public cached: Ref<Symbol|T> = ref(uncached)
+  public patching = ref(false)
 
-  @Prop({default: 250})
-  public debounceRate!: number
-
-  // Used for automaticly generated patchers which may throw errors during initialization/dereference
-  @Prop({default: false})
-  public silent!: boolean
-
-  @Prop({default: true})
-  public refresh!: boolean
-
-  public cancelSource = axios.CancelToken.source()
-  public forceRecompute = 0
-  public errors: string[] = []
-  public dirty = false
-  public cached = null
-  public patching = false
-  public loaded = false
-
-  public rawSet(val: any) {
+  public rawSet = (val: T) => {
     let handler: SingleController<any>
     if (!this.modelProp) {
       handler = this.target
@@ -81,40 +78,37 @@ export class Patch extends Vue {
     }
     const data: { [key: string]: any } = {}
     data[this.attrName] = val
-    this.cancelSource.cancel()
-    this.cancelSource = axios.CancelToken.source()
-    this.errors = []
-    this.patching = true
+    this.cancelSource.abort()
+    this.cancelSource = new AbortController()
+    this.errors.value = []
     if (handler.endpoint === '#') {
       // This is a special case where we're just using the single as scaffolding for Vuex storage.
       handler.updateX(data)
       return
     }
+    this.patching.value = true
     artCall({
       url: handler.endpoint,
       method: 'patch',
       data,
-      cancelToken: this.cancelSource.token,
+      signal: this.cancelSource.signal,
     },
     ).then(
       (response) => {
         handler.updateX(response)
-        if (!this.refresh) {
-          this.dirty = false
+        this.patching.value = false
+        if (this.cached.value === this.rawValue) {
+          this.cached.value = uncached
         }
-        this.patching = false
       },
-    ).catch(errorSend(this))
+    ).catch((err) => {
+      errorSend(this)(err)
+    })
   }
 
-  public setValue(val: any) {
+  public setValue = (val: T) => {
     // Broken out into its own function so that we can force retry as needed.
-    this.cached = val
-    if (this.cached === this.rawValue) {
-      this.dirty = false
-      return
-    }
-    this.dirty = true
+    this.cached.value = val
     // eslint-disable-next-line no-useless-call
     this.debouncedSet.apply(this, [val])
   }
@@ -131,7 +125,7 @@ export class Patch extends Vue {
     return handler
   }
 
-  public get rawValue(): any {
+  public get loaded(): boolean {
     const handler = this.handler
     const model = handler.x
     // Believe it or not, typeof null is 'object'.
@@ -142,34 +136,48 @@ export class Patch extends Vue {
           `Expected object in property named '${this.modelProp}', got `, model, ' instead.',
         )
       }
-      this.loaded = false
-      return undefined
+      return false
     }
     if (model[this.attrName] === undefined) {
       /* istanbul ignore else */
       if (!this.silent) {
         console.error(`"${this.attrName}" is undefined on model "${this.modelProp}"`)
       }
-      this.loaded = false
+      return false
+    }
+    return true
+  }
+
+  public get rawValue(): any {
+    const handler = this.handler
+    const model = handler.x
+    if (!this.loaded) {
       return undefined
     }
     const value = model[this.attrName]
     if (typeof value === 'object') {
-      this.loaded = true
       return cloneDeep(value)
     }
-    this.loaded = true
     return model[this.attrName]
   }
 
-  public get model() {
+  public get dirty() {
+    // @ts-ignore
+    const cached = toValue(this.cached)
+    if (cached === uncached) {
+      return false
+    }
+    return cached !== this.rawValue
+  }
+
+  public get model(): T {
     if (this.dirty) {
-      return this.cached
+      return toValue(this.cached) as T
     }
     return this.rawValue
   }
 
-  public set model(val) {
+  public set model(val: T) {
     this.setValue(val)
   }
 
@@ -179,6 +187,7 @@ export class Patch extends Vue {
 }
 
 export interface PatcherConfig {
+  target?: any,
   modelProp: string
   attrName: string
   debounceRate?: number,

@@ -1,11 +1,9 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import Settings from '../Settings.vue'
 import {ArtStore, createStore} from '@/store'
-import Router from 'vue-router'
+import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {setViewer, vueSetup, cleanUp, createVuetify, docTarget, mount} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers'
 import Credentials from '../Credentials.vue'
 import Avatar from '../Avatar.vue'
 import Payment from '../payment/Payment.vue'
@@ -17,8 +15,9 @@ import TransactionHistory from '@/components/views/settings/payment/TransactionH
 import Premium from '@/components/views/settings/Premium.vue'
 import Invoices from '../payment/Invoices.vue'
 import Email from '@/components/views/settings/Email.vue'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const settingRoutes = [{
   path: '/profile/:username/settings/',
@@ -98,71 +97,80 @@ const settingRoutes = [{
   ],
 }]
 
+const WrappedSettings = VuetifyWrapped(Settings)
+
 describe('Settings.vue', () => {
   let store: ArtStore
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   let router: Router
-  let vuetify: Vuetify
-  const localVue = vueSetup()
-  localVue.use(Router)
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: settingRoutes,
     })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Opens up a drawer when you click the settings button', async() => {
+  test('Opens up a drawer when you click the settings button', async() => {
     setViewer(store, genUser())
-    await router.push({name: 'Settings', params: {username: 'Fox'}})
-    wrapper = mount(Settings, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {username: 'Fox'},
-      attachTo: docTarget(),
-
+    await router.push({
+      name: 'Settings',
+      params: {username: 'Fox'},
     })
-    expect((wrapper.vm as any).drawer).toBe(false)
-    expect(wrapper.find('.v-navigation-drawer--open').exists()).toBe(false)
-    wrapper.find('#more-settings-button').trigger('click')
+    wrapper = mount(WrappedSettings, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {username: 'Fox'},
+    })
+    expect((wrapper.vm.$refs.vm as any).drawer).toBe(false)
+    // Upstream Type is missing an annotation here.
+    // @ts-ignore
+    expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(-110%)')
+    await wrapper.find('#more-settings-button').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-navigation-drawer--open').exists()).toBe(true)
+    // @ts-ignore
+    expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(0%)')
   })
-  it('Adds Options to the route if missing', async() => {
+  test('Adds Options to the route if missing', async() => {
     setViewer(store, genUser())
-    await router.push({name: 'Settings', params: {username: 'Fox'}})
-    wrapper = mount(Settings, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {username: 'Fox'},
-      attachTo: docTarget(),
-
+    await router.push({
+      name: 'Settings',
+      params: {username: 'Fox'},
+    })
+    wrapper = mount(WrappedSettings, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {username: 'Fox'},
     })
     await wrapper.vm.$nextTick()
-    expect(router.currentRoute.name).toBe('Options')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('Options')
   })
-  it('Loads the subordinate route', async() => {
+  test('Loads the subordinate route', async() => {
     setViewer(store, genUser())
-    await router.push({name: 'Settings', params: {username: 'Fox'}})
-    wrapper = mount(Settings, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {username: 'Fox'},
-      attachTo: docTarget(),
+    await router.push({
+      name: 'Settings',
+      params: {username: 'Fox'},
+    })
+    wrapper = mount(WrappedSettings, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {username: 'Fox'},
     })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#avatar-settings').exists()).toBe(false)
-    await router.push({name: 'Avatar', params: {username: 'Fox'}})
+    await router.push({
+      name: 'Avatar',
+      params: {username: 'Fox'},
+    })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#avatar-settings').exists()).toBe(true)
   })

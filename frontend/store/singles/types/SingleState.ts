@@ -10,5 +10,5 @@ export interface SingleState<T> {
   failed: boolean,
   deleted: boolean,
   params: QueryParams|null,
-  socketSettings?: SingleSocketSettings|null,
+  socketSettings: SingleSocketSettings|null,
 }

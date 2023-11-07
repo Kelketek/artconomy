@@ -4,18 +4,20 @@
       <v-container>
         <v-card>
           <v-card-text>
-            <v-row no-gutters  >
+            <v-row no-gutters>
               <v-col cols="12" md="6" lg="4" order="2" order-md="1">
                 <ac-patch-field
-                  field-type="ac-birthday-field"
-                  label="Birthday"
-                  :patcher="patchers.birthday"
-                  :persistent-hint="true"
-                  hint="You must be at least 18 years old to view adult content."
+                    field-type="ac-birthday-field"
+                    label="Birthday"
+                    :patcher="patchers.birthday"
+                    :persistent-hint="true"
+                    hint="You must be at least 18 years old to view adult content."
                 />
               </v-col>
               <v-col cols="12" md="6" lg="8" class="text-center mt-5" order="1" order-md="2">
-                <v-btn @click="updateCookieSettings" color="secondary" class="cookie-settings-button">Update Cookie Settings</v-btn>
+                <v-btn @click="updateCookieSettings" color="secondary" class="cookie-settings-button" variant="elevated">Update Cookie
+                  Settings
+                </v-btn>
               </v-col>
               <v-col cols="12" order="3">
                 <v-card-text :class="{disabled: patchers.sfw_mode.model}">
@@ -25,13 +27,15 @@
                       :patcher="patchers.rating"
                       :disabled="!adultAllowed"
                       :persistent-hint="true"
+                      :show-warning="true"
                       hint="You must be at least 18 years old to view adult content."
                   />
                 </v-card-text>
               </v-col>
               <v-col cols="12" order="4">
                 <v-alert type="warning" class="my-2" v-if="patchers.rating.model === EXTREME">
-                  What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this content.
+                  What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this
+                  content.
                 </v-alert>
               </v-col>
               <v-col cols="12" order="5">
@@ -43,21 +47,22 @@
                                 hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
                                 :save-indicator="false"
-                                persistent-hint />
+                                color="primary"
+                                persistent-hint/>
               </v-col>
               <v-col class="pa-2 text-center" cols="12" sm="6" order="7">
                 <p class="title">Register, and get access to more cool features like:</p>
               </v-col>
               <v-col class="d-flex" cols="12" sm="6" order="8">
-                <v-row no-gutters class="justify-content d-flex"  align="center" >
+                <v-row no-gutters class="justify-content d-flex" align="center">
                   <v-col>
-                    <v-img src="/static/images/laptop.png" max-height="30vh" :contain="true"></v-img>
+                    <v-img :src="laptop" max-height="30vh" :contain="true"></v-img>
                   </v-col>
                 </v-row>
               </v-col>
               <v-col class="d-flex" cols="12" sm="6" order="9">
-                <v-row no-gutters class="justify-content"  align="center">
-                  <v-spacer />
+                <v-row no-gutters class="justify-content" align="center">
+                  <v-spacer/>
                   <v-col>
                     <ul>
                       <li>
@@ -77,11 +82,11 @@
                       </li>
                     </ul>
                   </v-col>
-                  <v-spacer />
+                  <v-spacer/>
                 </v-row>
               </v-col>
               <v-col class="text-center pt-2" cols="12" order="10">
-                <v-btn color="primary" :to="{name: 'Login', params: {tabName: 'register'}}">Sign up for FREE!</v-btn>
+                <v-btn color="primary" :to="{name: 'Register'}" variant="flat">Sign up for FREE!</v-btn>
               </v-col>
             </v-row>
           </v-card-text>
@@ -92,21 +97,27 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {differenceInYears} from 'date-fns'
-import {parseISO, RATINGS} from '@/lib/lib'
+import {BASE_URL, parseISO} from '@/lib/lib'
+import {AnonUser} from '@/store/profiles/types/AnonUser'
+import {SingleController} from '@/store/singles/controller'
 
 @Component({
-  components: {AcLoadSection, AcPatchField},
+  components: {
+    AcLoadSection,
+    AcPatchField,
+  },
 })
-export default class SessionSettings extends mixins(Viewer) {
+class SessionSettings extends mixins(Viewer) {
+  public laptop = new URL('/static/images/laptop.png', BASE_URL).href
   public EXTREME = 3
 
   public get patchers() {
-    return this.viewerHandler.user.patchers
+    return (this.viewerHandler.user as SingleController<AnonUser>).patchers
   }
 
   public get adultAllowed() {
@@ -127,8 +138,13 @@ export default class SessionSettings extends mixins(Viewer) {
 
   public created() {
     if (this.isRegistered) {
-      this.$router.replace({name: 'Settings', params: {username: this.rawViewerName}})
+      this.$router.replace({
+        name: 'Settings',
+        params: {username: this.rawViewerName},
+      })
     }
   }
 }
+
+export default toNative(SessionSettings)
 </script>

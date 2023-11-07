@@ -1,24 +1,21 @@
-import {createLocalVue, Wrapper} from '@vue/test-utils'
-import {socketNameSpace, VueSocket} from '@/plugins/socket'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import {VueConstructor} from 'vue'
-import WS from 'jest-websocket-mock'
+import {VueWrapper} from '@vue/test-utils'
+import {createVueSocket, socketNameSpace} from '@/plugins/socket'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import WS from 'vitest-websocket-mock'
 import {genId} from '@/lib/lib'
-import {mount} from '@/specs/helpers'
-import Mock = jest.Mock
+import {mount, vueSetup} from '@/specs/helpers'
+import {afterEach, beforeEach, describe, expect, MockedFunction, test, vi} from 'vitest'
 
-let localVue: VueConstructor
 let server: WS
-let empty: Wrapper<Vue>
-jest.useRealTimers()
+let empty: VueWrapper<any>
+vi.useRealTimers()
 
 socketNameSpace.socketClass = WebSocket
 
 const initialize = () => {
-  localVue = createLocalVue()
   server = new WS('ws://test:1234', {jsonProtocol: true})
-  localVue.use(VueSocket, {endpoint: 'ws://test:1234'})
-  empty = mount(Empty, {localVue: localVue})
+  const socket = createVueSocket({endpoint: 'ws://test:1234'})
+  empty = mount(Empty, vueSetup({socket}))
 }
 
 describe('socket.ts message handlers', () => {
@@ -28,12 +25,12 @@ describe('socket.ts message handlers', () => {
   afterEach(() => {
     WS.clean()
   })
-  it('Uses a registered handler', async() => {
-    const used = jest.fn()
-    const used2 = jest.fn()
-    const fails = jest.fn()
-    const unused = jest.fn()
-    const mockError = jest.spyOn(console, 'error')
+  test('Uses a registered handler', async() => {
+    const used = vi.fn()
+    const used2 = vi.fn()
+    const fails = vi.fn()
+    const unused = vi.fn()
+    const mockError = vi.spyOn(console, 'error')
     mockError.mockImplementationOnce(() => undefined)
     fails.mockImplementation(() => {
       throw Error('I broke!')
@@ -53,10 +50,10 @@ describe('socket.ts message handlers', () => {
     server.close()
     await server.closed
   })
-  it('Clears handlers', async() => {
-    const used = jest.fn()
-    const used2 = jest.fn()
-    const unused = jest.fn()
+  test('Clears handlers', async() => {
+    const used = vi.fn()
+    const used2 = vi.fn()
+    const unused = vi.fn()
     empty.vm.$sock.addListener('used', 'Used2', used2)
     empty.vm.$sock.addListener('used', 'AppFailed', used)
     empty.vm.$sock.addListener('unused', 'AppUnused', unused)
@@ -71,9 +68,9 @@ describe('socket.ts message handlers', () => {
     expect(used).toHaveBeenCalledWith({test: 'stuff'})
     expect(used2).not.toHaveBeenCalled()
   })
-  it('Skips us if we are excluded', async() => {
+  test('Skips us if we are excluded', async() => {
     window.windowId = genId()
-    const used = jest.fn()
+    const used = vi.fn()
     empty.vm.$sock.addListener('used', 'App', used)
     empty.vm.$sock.open()
     await server.connected
@@ -87,7 +84,7 @@ describe('socket.ts message handlers', () => {
     await empty.vm.$nextTick()
     expect(used).toHaveBeenCalledTimes(2)
   })
-  it('Handles an undefined command', async() => {
+  test('Handles an undefined command', async() => {
     // The command name key is 'name', not 'command'.
     empty.vm.$sock.open()
     await server.connected
@@ -96,13 +93,13 @@ describe('socket.ts message handlers', () => {
       Error(`Received undefined command! Message data was: ${JSON.stringify(message)}`),
     )
   })
-  it('Handles a valid command without a listener', async() => {
+  test('Handles a valid command without a listener', async() => {
     // The command name key is 'command', not 'name'.
     empty.vm.$sock.open()
     await server.connected
     server.send({command: 'test', payload: {wat: 'do'}})
   })
-  it('Sends a message to the server', async() => {
+  test('Sends a message to the server', async() => {
     empty.vm.$sock.open()
     await server.connected
     empty.vm.$sock.send('example', {test: 'data'})
@@ -111,12 +108,12 @@ describe('socket.ts message handlers', () => {
 })
 
 describe('socket.ts connection handlers', () => {
-  let connected: Mock
-  let disconnected: Mock
+  let connected: MockedFunction<any>
+  let disconnected: MockedFunction<any>
   beforeEach(() => {
     initialize()
-    connected = jest.fn()
-    disconnected = jest.fn()
+    connected = vi.fn()
+    disconnected = vi.fn()
     empty.vm.$sock.connectListeners.connected = connected
     empty.vm.$sock.disconnectListeners.disconnected = disconnected
     empty.vm.$sock.open()
@@ -124,17 +121,17 @@ describe('socket.ts connection handlers', () => {
   afterEach(() => {
     WS.clean()
   })
-  it('Handles a connection', async() => {
+  test('Handles a connection', async() => {
     await server.connected
     expect(connected).toHaveBeenCalled()
     expect(disconnected).not.toHaveBeenCalled()
   })
-  it('Handles disconnection', async() => {
+  test('Handles disconnection', async() => {
     await server.connected
     server.close()
     expect(disconnected).toHaveBeenCalled()
   })
-  it('Handles forced disconnection', async() => {
+  test('Handles forced disconnection', async() => {
     await server.connected
     server.error()
     expect(disconnected).toHaveBeenCalled()

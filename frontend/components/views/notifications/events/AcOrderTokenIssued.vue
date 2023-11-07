@@ -1,7 +1,13 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">{{event.data.token.product.user.username}} has issued you an order token for {{event.data.token.product.name}}</router-link></span>
-    <span slot="subtitle"><router-link :to="assetLink">Click here to use it!</router-link></span>
+    <template v-slot:title>
+      <router-link :to="assetLink">{{event.data.token.product.user.username}} has issued you an order token for
+        {{event.data.token.product.name}}
+      </router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="assetLink">Click here to use it!</router-link>
+    </template>
   </ac-base-notification>
 </template>
 

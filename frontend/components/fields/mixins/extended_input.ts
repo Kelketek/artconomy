@@ -1,30 +1,31 @@
-import Vue from 'vue'
-import {Prop} from 'vue-property-decorator'
-import Component from 'vue-class-component'
+import {Component, Prop} from 'vue-facing-decorator'
+import {ArtVue} from '@/lib/lib'
 
 @Component
-export default class ExtendedInput extends Vue {
+export default class ExtendedInput extends ArtVue {
   @Prop()
   public label!: string
 
   @Prop({default: () => []})
   public errorMessages!: string[]
 
-  private get passedProps() {
+  public get passedProps() {
     const props = {...this.$props}
+    // @ts-ignore
     delete props.label
+    // @ts-ignore
     delete props.success
     return props
   }
 
-  private get errorColor() {
+  public get errorColor() {
     if (this.errorFocused) {
       return 'red'
     }
     return 'primary'
   }
 
-  private get errorFocused() {
+  public get errorFocused() {
     return !!this.errorMessages.length
   }
 }

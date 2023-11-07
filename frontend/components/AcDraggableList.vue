@@ -1,6 +1,6 @@
 <template>
   <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses" :show-pagination="showPagination">
-    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position" />
+    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position"/>
     <v-col cols="12">
       <draggable
           tag="v-row"
@@ -9,22 +9,24 @@
           :group="{name: 'main', put: false, pull: 'clone'}"
           :force-fallback="true"
       >
-        <slot :sortableList="sortableList" />
+        <slot :sortableList="sortableList"/>
       </draggable>
     </v-col>
     <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position" class="pt-5"/>
-    <v-col class="text-center" slot="failure" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
-    <v-col class="text-center" slot="empty" v-if="emptyMessage"><p>{{emptyMessage}}</p></v-col>
+    <template v-slot:failure>
+      <v-col class="text-center" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
+    </template>
+    <template v-slot:empty>
+      <v-col class="text-center" v-if="emptyMessage"><p>{{emptyMessage}}</p></v-col>
+    </template>
   </ac-paginated>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import draggable from 'vuedraggable'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {Prop} from 'vue-property-decorator'
 import {ListController} from '@/store/lists/controller'
 import diff, {DiffPatch} from 'list-diff.js'
 import Submission from '@/types/Submission'
@@ -37,7 +39,7 @@ import {artCall} from '@/lib/lib'
     draggable,
   },
 })
-export default class AcDraggableList extends Vue {
+class AcDraggableList extends Vue {
   @Prop({default: false})
   public trackPages!: false
 
@@ -102,20 +104,30 @@ export default class AcDraggableList extends Vue {
       // TODO: Replace this with an 'up' call, server-side.
       const first = this.sortableList[index]
       target.updateX({display_position: first.patchers.display_position.model + 0.1})
-      artCall({url: `${target.endpoint}up/`, method: 'post', data: {relative_to: first.x!.id}}).then(setPosition)
+      artCall({
+        url: `${target.endpoint}up/`,
+        method: 'post',
+        data: {relative_to: first.x!.id},
+      }).then(setPosition)
       return
     }
     if (index === (newVersion.length - 1)) {
       const last = this.sortableList[index]
       target.updateX({display_position: last.patchers.display_position.model - 0.1})
-      artCall({url: `${target.endpoint}down/`, method: 'post', data: {relative_to: last.x!.id}}).then(setPosition)
+      artCall({
+        url: `${target.endpoint}down/`,
+        method: 'post',
+        data: {relative_to: last.x!.id},
+      }).then(setPosition)
       return
     }
     // Averaging what's in front and behind will set this item's position between.
     target.patchers.display_position.model = (
-      newVersion[index - 1].patchers.display_position.model +
-      newVersion[index + 1].patchers.display_position.model
+        newVersion[index - 1].patchers.display_position.model +
+        newVersion[index + 1].patchers.display_position.model
     ) / 2
   }
 }
+
+export default toNative(AcDraggableList)
 </script>

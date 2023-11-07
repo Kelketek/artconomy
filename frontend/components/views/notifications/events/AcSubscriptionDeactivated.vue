@@ -1,7 +1,11 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="upgradeLink">
-    <span slot="title"><router-link :to="upgradeLink">Your subscription has been deactivated.</router-link></span>
-    <span slot="subtitle"><router-link :to="upgradeLink">Click to upgrade your account again.</router-link></span>
+    <template v-slot:title>
+      <router-link :to="upgradeLink">Your subscription has been deactivated.</router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="upgradeLink">Click to upgrade your account again.</router-link>
+    </template>
   </ac-base-notification>
 </template>
 

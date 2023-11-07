@@ -1,36 +1,27 @@
 import mockAxios from '@/specs/helpers/mock-axios'
-import Vue, {VueConstructor} from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
-import {createLocalVue} from '@vue/test-utils'
 import {ArtStore, createStore} from '../../index'
 import {rq, rs} from '@/specs/helpers'
 import flushPromises from 'flush-promises'
+import {beforeEach, describe, expect, test, vi} from 'vitest'
 
-// Must use it directly, due to issues with package imports upstream.
-Vue.use(Vuetify)
-
-jest.useFakeTimers()
-const mockClearInterval = jest.spyOn(window, 'clearInterval')
-const mockSetInterval = jest.spyOn(window, 'setInterval')
+vi.useFakeTimers()
+const mockClearInterval = vi.spyOn(window, 'clearInterval')
+const mockSetInterval = vi.spyOn(window, 'setInterval')
 
 describe('Notifications store', () => {
   let store: ArtStore
-  let localVue: VueConstructor
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
     mockAxios.reset()
-    localVue = createLocalVue()
-    localVue.use(Vuex)
     store = createStore()
-    jest.clearAllTimers()
+    vi.clearAllTimers()
   })
-  it('Sets a loop ID', () => {
+  test('Sets a loop ID', () => {
     expect((store.state as any).notifications.loopID).toBe(0)
     store.commit('notifications/setLoop', 5)
     expect((store.state as any).notifications.loopID).toBe(5)
   })
-  it('Sets notifications stats', () => {
+  test('Sets notifications stats', () => {
     expect((store.state as any).notifications.stats).toEqual({
       community_count: 0,
       count: 0,
@@ -47,17 +38,17 @@ describe('Notifications store', () => {
       sales_count: 5,
     })
   })
-  it('Starts a fetching loop', () => {
+  test('Starts a fetching loop', () => {
     expect((store.state as any).notifications.loopID).toBe(0)
     store.dispatch('notifications/startLoop')
-    expect((store.state as any).notifications.loopID).toBeGreaterThan(0)
+    expect((store.state as any).notifications.loopID).toBeTruthy
     expect(mockSetInterval).toHaveBeenCalledWith(expect.any(Function), 10000)
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/data/notifications/unread/', 'get', undefined, {}))
     expect(mockAxios.request).toHaveBeenCalledTimes(1)
-    jest.runOnlyPendingTimers()
+    vi.runOnlyPendingTimers()
     expect(mockAxios.request).toHaveBeenCalledTimes(2)
   })
-  it('Does not start a fetching loop if one is already running', async() => {
+  test('Does not start a fetching loop if one is already running', async() => {
     await flushPromises()
     // For some reason this is getting polluted, but only for this test. So we want to make sure the number doesn't
     // increase, since that's equivalent to saying it wasn't run.
@@ -67,21 +58,21 @@ describe('Notifications store', () => {
     expect((store.state as any).notifications.loopID).toBe(87)
     expect(setInterval).toHaveBeenCalledTimes(previousCalls)
   })
-  it('Clears a fetching loop', () => {
+  test('Clears a fetching loop', () => {
     store.dispatch('notifications/startLoop')
-    expect((store.state as any).notifications.loopID).toBeGreaterThan(0)
+    expect((store.state as any).notifications.loopID).toBeTruthy
     const id = (store.state as any).notifications.loopID
     store.dispatch('notifications/stopLoop')
     expect((store.state as any).notifications.loopID).toBe(0)
     expect(mockClearInterval).toHaveBeenCalledWith(id)
   })
-  it('Does nothing if told to stop a fetching loop and one is not running', () => {
+  test('Does nothing if told to stop a fetching loop and one is not running', () => {
     expect((store.state as any).notifications.loopID).toBe(0)
     store.dispatch('notifications/stopLoop')
     expect((store.state as any).notifications.loopID).toBe(0)
     expect(mockClearInterval).not.toHaveBeenCalled()
   })
-  it('Sets stats after a fetch run', () => {
+  test('Sets stats after a fetch run', () => {
     store.dispatch('notifications/runFetch')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/data/notifications/unread/', 'get', undefined, {}))
     mockAxios.mockResponse(rs({

@@ -1,8 +1,8 @@
 <template>
   <v-expansion-panels v-model="tab">
     <v-expansion-panel>
-      <v-expansion-panel-header><strong>What is Artconomy?</strong></v-expansion-panel-header>
-      <v-expansion-panel-content>
+      <v-expansion-panel-title><strong>What is Artconomy?</strong></v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -46,12 +46,11 @@
             </ul>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header><strong>Does Artconomy cost money to use?</strong></v-expansion-panel-header>
-      <v-expansion-panel-content>
-        <div slot="header"></div>
+      <v-expansion-panel-title><strong>Does Artconomy cost money to use?</strong></v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>Signup for Artconomy is <strong>FREE</strong>. Your character gallery is <strong>FREE</strong>, running a
@@ -62,21 +61,24 @@
               >
                 Artconomy Shield.
               </router-link>
-            </p>Tracking orders without Artconomy shield also incur a fee (if you're not using the
-            <router-link :to="{name: 'BuyAndSell', params: {question: 'compare-and-contrast-plans'}}">Free plan.</router-link>)
+            </p>
+            Tracking orders without Artconomy shield also incur a fee (if you're not using the
+            <router-link :to="{name: 'BuyAndSell', params: {question: 'compare-and-contrast-plans'}}">Free plan.
+            </router-link>
+            )
             <p>Our money is made in helping commissioners and artists connect. This gives us an incentive to
               help both groups achieve their goals.</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header><strong>Who runs Artconomy?</strong></v-expansion-panel-header>
-      <v-expansion-panel-content>
+      <v-expansion-panel-title><strong>Who runs Artconomy?</strong></v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>Our team consists of people who are passionate about art.</p>
-            <v-img src="/static/images/Amber-And-Fox.jpg" :contain="true" max-height="40vh"></v-img>
+            <v-img :src="amberAndFox" :contain="true" max-height="40vh"></v-img>
             <h3>CEO and Lead Developer: Fox Danger Piacenti</h3>
             <p>Fox is a long term online role player who has had a passion to see characters
               come alive online. He has worked as a lead developer, administrator, and director in the recreational
@@ -106,11 +108,11 @@
               handsome fox that burrowed his way into her life...</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header><strong>Where's the source code?</strong></v-expansion-panel-header>
-      <v-expansion-panel-content>
+      <v-expansion-panel-title><strong>Where's the source code?</strong></v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -120,21 +122,22 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
-import {paramHandleArray} from '@/lib/lib'
+import {BASE_URL} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 
-const about = ['what-is-artconomy', 'cost', 'team', 'source-code']
-  @Component
-export default class About extends mixins(Viewer, QuestionSet) {
-    @paramHandleArray('question', about)
-    public tab!: number
+@Component({})
+class About extends mixins(Viewer, QuestionSet) {
+  public questions = ['what-is-artconomy', 'cost', 'team', 'source-code']
+  public amberAndFox = new URL('/static/images/Amber-And-Fox.jpg', BASE_URL).href
 }
+
+export default toNative(About)
 </script>

@@ -1,16 +1,13 @@
-import Vue, {VueConstructor} from 'vue'
-import Vuetify from 'vuetify/lib'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import Router from 'vue-router'
+import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, createVuetify, docTarget, flushPromises, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, setViewer, vueSetup} from '@/specs/helpers'
 import Payment from '../Payment.vue'
-import Purchase from '../Purchase.vue'
-import Payout from '../Payout.vue'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-jest.useFakeTimers()
+vi.useFakeTimers()
 
 const paymentRoutes = [
   {
@@ -42,53 +39,55 @@ const paymentRoutes = [
 
 describe('DeliverablePayment.vue', () => {
   let store: ArtStore
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   let router: Router
-  let vuetify: Vuetify
-  const localVue = vueSetup()
-  localVue.use(Router)
   beforeEach(() => {
     store = createStore()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: paymentRoutes,
     })
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Adds Purchase to the route if missing', async() => {
+  test('Adds Purchase to the route if missing', async() => {
     setViewer(store, genUser())
-    router.replace({name: 'Payment', params: {username: 'Fox'}})
+    await router.replace({
+      name: 'Payment',
+      params: {username: 'Fox'},
+    })
     await flushPromises()
     wrapper = mount(Payment, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {username: 'Fox'},
-      attachTo: docTarget(),
-
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {username: 'Fox'},
     })
     await wrapper.vm.$nextTick()
-    expect(router.currentRoute.name).toBe('Purchase')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('Purchase')
   })
-  it('Loads the subordinate route', async() => {
+  test('Loads the subordinate route', async() => {
     setViewer(store, genUser())
-    router.push({name: 'Payment', params: {username: 'Fox'}})
+    await router.push({
+      name: 'Payment',
+      params: {username: 'Fox'},
+    })
     wrapper = mount(Payment, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {username: 'Fox'},
-      attachTo: docTarget(),
-
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {username: 'Fox'},
     })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#payout-component').exists()).toBe(false)
-    router.push({name: 'Payout', params: {username: 'Fox'}})
+    await router.push({
+      name: 'Payout',
+      params: {username: 'Fox'},
+    })
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#payout-component').exists()).toBe(true)
   })

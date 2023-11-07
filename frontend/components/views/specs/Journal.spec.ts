@@ -1,50 +1,49 @@
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
-import Vuetify from 'vuetify/lib'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import {
   cleanUp,
   confirmAction,
-  createVuetify,
-  docTarget,
   flushPromises,
+  mount,
   rq,
   rs,
   setViewer,
   vueSetup,
-  mount,
+  VuetifyWrapped,
 } from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import Router from 'vue-router'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import {createRouter, createWebHistory, Router} from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
-import Journal from '@/components/views/Journal.vue'
+import Journal from '@/components/views/JournalDetail.vue'
 import {genJournal} from '@/components/views/specs/fixtures'
-import mock = jest.mock
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
+
+const WrappedJournal = VuetifyWrapped(Journal)
 
 describe('Journal.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: [{
         path: '/',
         name: 'Home',
         component: Empty,
       }, {
-        path: '/:username/',
+        path: '/:username',
         name: 'Profile',
         component: Empty,
         children: [
-          {path: 'about', name: 'AboutUser', component: Empty},
+          {
+            path: 'about',
+            name: 'AboutUser',
+            component: Empty,
+          },
         ],
       }, {
         path: '/login/',
@@ -57,25 +56,45 @@ describe('Journal.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts a journal', async() => {
-    wrapper = mount(Journal, {localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, attachTo: docTarget()},
+  test('Mounts a journal', async() => {
+    wrapper = mount(Journal, {
+        ...vueSetup({
+          store,
+          extraPlugins: [router],
+          stubs: ['ac-comment-section'],
+        }),
+        props: {
+          journalId: 1,
+          username: 'Fox',
+        },
+      },
     )
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/account/Fox/journals/1/', 'get'))
     expect(wrapper.find('.edit-toggle').exists()).toBe(false)
     expect(wrapper.find('.delete-button').exists()).toBe(false)
   })
-  it('Deletes a journal', async() => {
-    router.push('/')
+  test('Deletes a journal', async() => {
+    await router.push('/')
     setViewer(store, genUser({is_staff: true}))
-    wrapper = mount(Journal, {localVue, store, router, vuetify, propsData: {journalId: 1, username: 'Fox'}, attachTo: docTarget()},
-    )
-    const vm = wrapper.vm as any
+    wrapper = mount(WrappedJournal, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+        stubs: ['ac-comment-section'],
+      }),
+      props: {
+        journalId: 1,
+        username: 'Fox',
+      },
+    })
+    const vm = wrapper.vm.$refs.vm as any
     vm.journal.makeReady(genJournal())
     mockAxios.reset()
     await wrapper.vm.$nextTick()
+    await wrapper.find('.more-button').trigger('click')
     const toggle = wrapper.find('.edit-toggle')
     expect(toggle.exists()).toBe(true)
-    toggle.trigger('click')
+    await toggle.trigger('click')
     await wrapper.vm.$nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     const mockDelete = mockAxios.getReqByUrl('/api/profiles/account/Fox/journals/1/')
@@ -83,6 +102,6 @@ describe('Journal.vue', () => {
     mockAxios.mockResponse(rs(null), mockDelete)
     await flushPromises()
     await wrapper.vm.$nextTick()
-    expect(router.currentRoute.path).toBe('/Fox')
+    expect(router.currentRoute.value.path).toBe('/Fox')
   })
 })

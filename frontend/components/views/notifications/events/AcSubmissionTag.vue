@@ -1,35 +1,33 @@
 <template>
   <v-list-item>
     <router-link :to="{name: 'Submission', params: {assetID: event.target.id}}">
-      <v-badge left overlap :value="!notification.read">
-        <span slot="badge" v-if="!notification.read">*</span>
-        <v-list-item-avatar>
+      <v-badge left overlap :model-value="!notification.read" color="primary">
+        <template v-slot:badge v-if="!notification.read">*</template>
+        <template v-slot:prepend>
           <img :src="$img(event.target, 'notification', true)" alt="">
-        </v-list-item-avatar>
+        </template>
       </v-badge>
     </router-link>
-    <v-list-item-content>
-      <v-list-item-title>
-        Tags have been added
-      </v-list-item-title>
-      <v-list-item-subtitle>
-        to your submission<span v-if="event.target.title"> titled
-          <router-link :to="{name: 'Submission', params: {'assetID': event.target.id}}">
-            '{{event.target.title}}'
-          </router-link>:
+    <v-list-item-title>
+      Tags have been added
+    </v-list-item-title>
+    <v-list-item-subtitle>
+      to your submission<span v-if="event.target.title"> titled
+        <router-link :to="{name: 'Submission', params: {'assetID': event.target.id}}">
+          '{{event.target.title}}'
+        </router-link>:
+    </span>
+    </v-list-item-subtitle>
+    <v-list-item-subtitle>
+      <span v-if="tags.length">
+        <span
+            v-for="tag in event.data.tags" :key="tag"
+        >{{tag}}</span>
       </span>
-      </v-list-item-subtitle>
-      <v-list-item-subtitle>
-        <span v-if="tags.length">
-          <span
-              v-for="tag in event.data.tags" :key="tag"
-          >{{tag}}</span>
-        </span>
-        <span v-else>
-          The tags appear to have since been removed.
-        </span>
-      </v-list-item-subtitle>
-    </v-list-item-content>
+      <span v-else>
+        The tags appear to have since been removed.
+      </span>
+    </v-list-item-subtitle>
   </v-list-item>
 </template>
 

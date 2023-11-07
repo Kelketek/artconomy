@@ -1,28 +1,25 @@
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, rq, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers'
 import {genUser} from '@/specs/helpers/fixtures'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {commentSet} from './fixtures'
-import Router from 'vue-router'
+import {Router, createRouter, createWebHistory} from 'vue-router'
 import mockAxios from '@/__mocks__/axios'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
-import Vuetify from 'vuetify/lib'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
+
+const WrappedNewComment = VuetifyWrapped(AcNewComment)
 
 describe('AcNewComment.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: [{
         path: '/',
         name: 'Home',
@@ -32,7 +29,11 @@ describe('AcNewComment.vue', () => {
         name: 'Profile',
         component: Empty,
         children: [
-          {path: 'products', name: 'AboutUser', component: Empty},
+          {
+            path: 'products',
+            name: 'AboutUser',
+            component: Empty,
+          },
         ],
       }, {
         path: '/login/',
@@ -45,30 +46,31 @@ describe('AcNewComment.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Posts a new comment', async() => {
+  test('Posts a new comment', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router})
+    const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
     expect(commentList.list.length).toEqual(3)
-    wrapper = mount(AcNewComment, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {
+    wrapper = mount(WrappedNewComment, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
         commentList,
         extraData: {test: 1},
       },
-
-      attachTo: docTarget(),
     })
-    wrapper.find('textarea').setValue('New comment!')
+    await wrapper.find('textarea').setValue('New comment!')
     await wrapper.vm.$nextTick()
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 1}}, {}),
+      rq('/api/comments/', 'post', {
+        text: 'New comment!',
+        extra_data: {test: 1},
+      }, {}),
     )
     mockAxios.mockResponse(rs({
       id: 17,
@@ -96,33 +98,34 @@ describe('AcNewComment.vue', () => {
     await wrapper.vm.$nextTick()
     expect(commentList.list.length).toEqual(4)
   })
-  it('Updates the extra data', async() => {
+  test('Updates the extra data', async() => {
     setViewer(store, genUser())
-    const empty = mount(Empty, {localVue, store, router})
+    const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
     commentList.setList(commentSet.results)
     expect(commentList.list.length).toEqual(3)
-    wrapper = mount(AcNewComment, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {
+    wrapper = mount(WrappedNewComment, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
         commentList,
         extraData: {test: 1},
       },
-
-      attachTo: docTarget(),
     })
-    wrapper.setProps({
+    await wrapper.setProps({
       extraData: {test: 3},
     })
-    wrapper.find('textarea').setValue('New comment!')
+    await wrapper.find('textarea').setValue('New comment!')
     await wrapper.vm.$nextTick()
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/comments/', 'post', {text: 'New comment!', extra_data: {test: 3}}, {}),
+      rq('/api/comments/', 'post', {
+        text: 'New comment!',
+        extra_data: {test: 3},
+      }, {}),
     )
   })
 })

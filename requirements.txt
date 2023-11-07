@@ -132,6 +132,7 @@ django==4.2.3
     #   django-reversion
     #   django-sendgrid-v5
     #   django-signal-disabler
+    #   django-vite
     #   djangorestframework
     #   djangorestframework-bulk
     #   easy-thumbnails
@@ -169,7 +170,7 @@ django-sendgrid-v5==1.2.3
     # via -r requirements.in
 django-signal-disabler==0.1.1
     # via -r requirements.in
-django-webpack-loader==2.0.1
+django-vite==3.0.0
     # via -r requirements.in
 djangorestframework==3.14.0
     # via

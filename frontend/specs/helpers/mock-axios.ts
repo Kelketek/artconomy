@@ -1,3 +1,3 @@
-import MockAxios from 'jest-mock-axios'
+import MockAxios from 'vitest-mock-axios'
 
 export default MockAxios

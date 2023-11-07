@@ -1,4 +1,3 @@
-import Vue from 'vue'
 import {State as RootState} from '../state'
 import {ActionTree, GetterTree, MutationTree, Store} from 'vuex'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
@@ -10,6 +9,7 @@ import {QueryParams} from '@/store/helpers/QueryParams'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
+import cloneDeep from 'lodash/cloneDeep'
 
 function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   if ((state as any).items === undefined) {
@@ -42,19 +42,25 @@ function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   return entries
 }
 
-export const pageFromParams = (params: null|QueryParams) => {
+export const pageFromParams = (params: QueryParams) => {
   /* istanbul ignore next */
-  const rawData = params || {page: 1}
-  return parseInt(`${rawData.page}`, 10)
+  return parseInt(`${(params && params.page) || 1}`, 10)
 }
 
-export const pageSizeFromParams = (params: null|QueryParams) => {
-  /* istanbul ignore next */
-  const rawData = params || {size: 24}
-  return parseInt(`${rawData.size}`, 10)
+export const totalPages = (response: PaginatedResponse | undefined | null) => {
+  if (!response) {
+    return 1
+  }
+  return Math.ceil(response.count / response.size)
 }
 
-const defaultParams = (state: ListState<any>, params: null|QueryParams) => {
+export const pageSizeFromParams = (params: QueryParams) => {
+  /* istanbul ignore next */
+  const rawData = {size: 24, ...params}
+  return parseInt(`${(params && params.size) || 24}`, 10)
+}
+
+const defaultParams = (state: ListState<any>, params: QueryParams) => {
   let newParams = params
   if (state.paginated) {
     newParams = newParams || {}
@@ -72,7 +78,6 @@ export class ListModule<T extends {}> {
   public state: ListState<T>
   public mutations: MutationTree<ListState<T>>
   public actions: ActionTree<ListState<T>, RootState>
-  public getters: GetterTree<ListState<T>, RootState>
   public namespaced: boolean
 
   public constructor(options: {
@@ -92,11 +97,11 @@ export class ListModule<T extends {}> {
       reverse: false,
       failed: false,
       paginated: true,
-      params: null,
+      params: {},
       socketSettings: null,
       stale: false,
     }
-    const cancel = {source: axios.CancelToken.source()}
+    const cancel = {source: new AbortController()}
     this.state = {...defaults, ...options}
     this.state.params = defaultParams(this.state, this.state.params)
     this.mutations = {
@@ -105,8 +110,8 @@ export class ListModule<T extends {}> {
       },
       kill(state: ListState<T>) {
         // Triggers the cancellation token.
-        cancel.source.cancel('Killed.')
-        cancel.source = axios.CancelToken.source()
+        cancel.source.abort('Killed.')
+        cancel.source = new AbortController()
       },
       setResponse(state: ListState<T>, response: PaginatedResponse) {
         if (response === null) {
@@ -160,13 +165,12 @@ export class ListModule<T extends {}> {
         (state as any).items[(item as any)[state.keyProp]].x = item
       },
       setList(state: ListState<T>, items: string[]) {
-        const entries = registerItems(this as unknown as Store<any>, state, items)
-        Vue.set(state, 'refs', entries)
+        state.refs = registerItems(this as unknown as Store<any>, state, items)
       },
       setSocketSettings(state: ListState<T>, socketSettings: ListSocketSettings) {
-        Vue.set(state, 'socketSettings', socketSettings)
+        state.socketSettings = socketSettings
       },
-      setParams(state: ListState<T>, params: QueryParams|null) {
+      setParams(state: ListState<T>, params: QueryParams) {
         state.params = defaultParams(state, params)
       },
       setFetching(state, val: boolean) {
@@ -190,7 +194,7 @@ export class ListModule<T extends {}> {
           // @ts-ignore
           this.unregisterModule([...state.name.split('/'), 'items', x])
         })
-        Vue.set(state, 'refs', entries)
+        state.refs = entries
       },
       setCurrentPage(state, val: number) {
         /* istanbul ignore next */
@@ -203,14 +207,14 @@ export class ListModule<T extends {}> {
       async get({state, commit, dispatch}) {
         /* istanbul ignore next */
         if (state.fetching) {
-          cancel.source.cancel()
-          cancel.source = axios.CancelToken.source()
+          cancel.source.abort()
+          cancel.source = new AbortController()
         }
         commit('setFetching', true)
         const callOptions: ArtCallOptions = {
           url: state.endpoint,
           method: 'get' as HttpVerbs,
-          cancelToken: cancel.source.token,
+          signal: cancel.source.signal,
         }
         const params = state.params || {}
         if (Object.keys(params).length) {
@@ -261,7 +265,7 @@ export class ListModule<T extends {}> {
           url: state.endpoint,
           method: 'post',
           data: item,
-          cancelToken: cancel.source.token,
+          signal: cancel.source.signal,
         })
       },
       async reset({commit, dispatch}) {
@@ -273,36 +277,24 @@ export class ListModule<T extends {}> {
         commit('setCurrentPage', 1)
         return dispatch('firstRun')
       },
-      next({state, commit, dispatch, getters}) {
-        if (state.params && pageFromParams(state.params) >= getters.totalPages) {
+      async next({state, commit, dispatch, getters}) {
+        if (state.params && pageFromParams(state.params) >= totalPages(state.response)) {
           return
         }
-        dispatch('getPage', pageFromParams(state.params) + 1)
+        return dispatch('getPage', pageFromParams(state.params) + 1)
       },
       async retryGet({state, commit, dispatch, getters}) {
         commit('setFailed', false)
         commit('setReady', false)
         return dispatch('get')
       },
-      getPage({state, commit, dispatch}, pageNum: number) {
+      async getPage({state, commit, dispatch}, pageNum: number) {
         if (pageFromParams(state.params) === pageNum) {
           return
         }
         commit('setFailed', false)
         commit('setCurrentPage', pageNum)
-        dispatch('get')
-      },
-    }
-    this.getters = {
-      totalPages(state) {
-        if (!state.response) {
-          return 1
-        }
-        return Math.ceil(state.response.count / state.response.size)
-      },
-      moreAvailable(state, localGetters) {
-        const currentPage = pageFromParams(state.params)
-        return (!state.fetching) && (localGetters.totalPages > currentPage)
+        return dispatch('get')
       },
     }
     this.namespaced = true

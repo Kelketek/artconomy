@@ -1,16 +1,28 @@
-import Router, {Location} from 'vue-router'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {createRouter, createWebHistory, RouteLocation} from 'vue-router'
+import Empty from '@/specs/helpers/dummy_components/empty'
 
 export function deliverableRouter() {
-  const props = (route: Location) => {
-    return {...route.params, baseName: 'Order'}
+  const props = (route: RouteLocation) => {
+    return {
+      ...route.params,
+      baseName: 'Order',
+    }
   }
-  return new Router({
-    mode: 'history',
+  return createRouter({
+    history: createWebHistory(),
     routes: [{
+      name: 'Home',
+      component: Empty,
+      path: '/',
+    }, {
       name: 'Login',
       component: Empty,
-      path: '/login/:tabName/',
+      path: '/login/',
+      props: true,
+    }, {
+      name: 'Register',
+      component: Empty,
+      path: '/login/register/',
       props: true,
     }, {
       name: 'Order',
@@ -35,7 +47,7 @@ export function deliverableRouter() {
         }, {
           name: 'OrderDeliverableReferences',
           component: Empty,
-          path: 'reference',
+          path: 'references',
           props,
           children: [{
             name: 'OrderDeliverableReference',

@@ -1,5 +1,4 @@
 module.exports = {
-  preset: "@vue/cli-plugin-unit-jest/presets/typescript-and-babel",
   moduleFileExtensions: [
     'js',
     'jsx',
@@ -9,8 +8,9 @@ module.exports = {
     'tsx',
   ],
   transform: {
-    '^.+\\.vue$': '@vue/vue2-jest',
+    '^.+\\.vue$': '@vue/vue3-jest',
     '.+\\.(css|styl|less|sass|scss|svg|png|jpg|ttf|woff|woff2)$': 'jest-transform-stub',
+    '^.+\\.mjs$': 'ts-jest',
     '^.+\\.tsx?$': 'ts-jest',
   },
   transformIgnorePatterns: [
@@ -31,7 +31,11 @@ module.exports = {
   testMatch: [
     '**/specs/**/*.spec.(js|jsx|ts|tsx)|**/__tests__/*.(js|jsx|ts|tsx)',
   ],
-  testURL: 'http://localhost/',
+  testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    url: 'http://localhost/',
+    customExportConditions: ["node", "node-addons"],
+  },
   watchPlugins: [
     'jest-watch-typeahead/filename',
     'jest-watch-typeahead/testname',
@@ -43,9 +47,11 @@ module.exports = {
     '/node_modules/',
     '/specs/',
   ],
-  globals: {
-    'ts-jest': {
-      babelConfig: true,
-    },
-  },
+  // globals: {
+  //   'vue-jest': {
+  //     compilerOptions: {
+  //       refTransform: false
+  //     }
+  //   }
+  // }
 }

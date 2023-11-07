@@ -56,10 +56,11 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative, Vue} from 'vue-facing-decorator'
 
-  @Component
-export default class Policies extends Vue {
+@Component
+class Policies extends Vue {
 }
+
+export default toNative(Policies)
 </script>

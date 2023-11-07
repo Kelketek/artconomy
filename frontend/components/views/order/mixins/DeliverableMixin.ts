@@ -1,7 +1,5 @@
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, Watch} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
-import {Mutation} from 'vuex-class'
-import {Prop, Watch} from 'vue-property-decorator'
 import {ProfileController} from '@/store/profiles/controller'
 import {SingleController} from '@/store/singles/controller'
 import Order from '@/types/Order'
@@ -10,7 +8,6 @@ import {ListController} from '@/store/lists/controller'
 import Submission from '@/types/Submission'
 import {FormController} from '@/store/forms/form-controller'
 import {baseCardSchema, baseInvoiceSchema, parseISO, paypalTokenToUrl} from '@/lib/lib'
-import {LineTypes} from '@/types/LineTypes'
 import DeliverableViewSettings from '@/types/DeliverableViewSettings'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
 import {User} from '@/store/profiles/types/User'
@@ -20,6 +17,8 @@ import LineItem from '@/types/LineItem'
 import LinkedReference from '@/types/LinkedReference'
 import Pricing from '@/types/Pricing'
 import {addBusinessDays, isAfter} from 'date-fns'
+import {LocationQueryValue} from 'vue-router'
+
 /*
 
 This mixin is used by all deliverable routes. Some crucial operations only occur in DeliverableDetail as it is the host
@@ -27,8 +26,7 @@ component and so can avoid running commands repeatedly, such as setting the buye
 
  */
 @Component
-export default class DeliverableMixin extends mixins(Viewer) {
-  @Mutation('supportDialog') public setSupport: any
+export default class BaseDeliverableMixin extends mixins(Viewer) {
   @Prop({required: true})
   public orderId!: string
 
@@ -38,9 +36,9 @@ export default class DeliverableMixin extends mixins(Viewer) {
   @Prop({required: true})
   public baseName!: string
 
-  public buyerHandler: ProfileController|null = null
+  public buyerHandler: ProfileController | null = null
   public sellerHandler: ProfileController = null as unknown as ProfileController
-  public arbitratorHandler: ProfileController|null = null
+  public arbitratorHandler: ProfileController | null = null
   public order: SingleController<Order> = null as unknown as SingleController<Order>
   public viewSettings = null as unknown as SingleController<DeliverableViewSettings>
   public deliverable: SingleController<Deliverable> = null as unknown as SingleController<Deliverable>
@@ -88,7 +86,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     return this.deliverable.x.status === status
   }
 
-  public getOutput(user: User|null) {
+  public getOutput(user: User | null) {
     if (!user) {
       return null
     }
@@ -99,7 +97,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     if (!outputs.length) {
       return null
     }
-    return outputs[0]
+    return outputs[0].x as Submission
   }
 
   public get buyerSubmission() {
@@ -133,7 +131,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   }
 
   @Watch('deliverable.x.id')
-  public setHandlers(newId: number|null) {
+  public setHandlers(newId: number | null) {
     /* istanbul ignore if */
     if (!newId) {
       return
@@ -240,7 +238,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
   public statusEndpoint(append: string) {
     return () => {
       this.stateChange.endpoint = `${this.url}${append}/`
-      this.stateChange.submitThen(this.deliverable.setX)
+      return this.stateChange.submitThen(this.deliverable.setX)
     }
   }
 
@@ -339,7 +337,7 @@ export default class DeliverableMixin extends mixins(Viewer) {
     return this.product.name
   }
 
-  public getInitialViewSetting(setting: undefined | string | (string | null)[]) {
+  public getInitialViewSetting(setting: LocationQueryValue | LocationQueryValue[]) {
     if (!this.isStaff) {
       return false
     }
@@ -391,17 +389,32 @@ export default class DeliverableMixin extends mixins(Viewer) {
         params: {size: 5},
       })
     this.characters = this.$getList(
-      `${this.prefix}__characters`, {endpoint: `${this.url}characters/`, paginated: false},
+      `${this.prefix}__characters`, {
+        endpoint: `${this.url}characters/`,
+        paginated: false,
+      },
     )
     this.revisions = this.$getList(
-      `${this.prefix}__revisions`, {endpoint: `${this.url}revisions/`, paginated: false},
+      `${this.prefix}__revisions`, {
+        endpoint: `${this.url}revisions/`,
+        paginated: false,
+      },
     )
     this.references = this.$getList(
-      `${this.prefix}__references`, {endpoint: `${this.url}references/`, paginated: false},
+      `${this.prefix}__references`, {
+        endpoint: `${this.url}references/`,
+        paginated: false,
+      },
     )
     // Used as wrapper for state change events.
-    this.stateChange = this.$getForm(`${this.prefix}__stateChange`, {endpoint: this.url, fields: {}})
-    this.orderEmail = this.$getForm(`order${this.orderId}__email`, {endpoint: `${this.url}invite/`, fields: {}})
+    this.stateChange = this.$getForm(`${this.prefix}__stateChange`, {
+      endpoint: this.url,
+      fields: {},
+    })
+    this.orderEmail = this.$getForm(`order${this.orderId}__email`, {
+      endpoint: `${this.url}invite/`,
+      fields: {},
+    })
     // Temporary endpoint URL-- we replace this in the setHandlers function upon loading the deliverable.
     const schema = baseCardSchema(`${this.url}pay/`)
     schema.fields = {

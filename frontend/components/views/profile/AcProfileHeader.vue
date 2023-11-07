@@ -1,109 +1,123 @@
 <template>
-  <v-toolbar :dense="dense" color="black">
-    <ac-avatar :username="username" :show-name="false" />
-    <v-toolbar-title class="ml-1"><ac-link :to="subject && profileLink(subject)">{{subjectHandler.displayName}}</ac-link></v-toolbar-title>
-    <v-spacer />
-    <v-toolbar-items v-if="subject && isRegistered && $vuetify.breakpoint.smAndUp">
-      <v-btn color="secondary" @click="editing = !editing" v-if="showEdit && controls">
-        <v-icon v-if="editing">lock</v-icon>
-        <v-icon v-else>edit</v-icon>
+  <v-toolbar :density="dense ? 'compact' : 'default'" color="black">
+    <ac-avatar :username="username" :show-name="false" class="ml-3"/>
+    <v-toolbar-title class="ml-1">
+      <ac-link :to="subject && profileLink(subject)">{{subjectHandler.displayName}}</ac-link>
+    </v-toolbar-title>
+    <v-spacer/>
+    <v-toolbar-items v-if="subject && isRegistered && $vuetify.display.smAndUp">
+      <v-btn color="secondary" variant="flat" @click="editing = !editing" v-if="showEdit && controls">
+        <v-icon v-if="editing" icon="mdi-lock"/>
+        <v-icon v-else icon="mdi-pencil"/>
         <span v-if="editing">Lock</span>
         <span v-else>Edit</span>
       </v-btn>
-      <v-btn color="secondary" @click="showMenu=true" v-if="isStaff && !isCurrent">
-        <v-icon left>menu</v-icon> Menu
+      <v-btn color="secondary" @click="showMenu=true" v-if="isStaff && !isCurrent" variant="flat">
+        <v-icon left icon="mdi-menu"/>
+        Menu
       </v-btn>
-      <v-btn color="primary" class="message-button" @click="showNew = true" v-if="!isCurrent">
-        <v-icon left>message</v-icon> Message
+      <v-btn color="primary" class="message-button" @click="showNew = true" v-if="!isCurrent" variant="flat">
+        <v-icon left icon="mdi-message"/>
+        Message
       </v-btn>
-      <v-btn color="grey darken-2" @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent">
-        <v-icon left v-if="subject.watching">visibility_off</v-icon>
-        <v-icon left v-else>visibility</v-icon>
+      <v-btn color="grey-darken-2" @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent" variant="flat">
+        <v-icon left v-if="subject.watching" icon="mdi-eye-off"/>
+        <v-icon left v-else icon="mdi-eye"/>
         <span v-if="subject.watching">Unwatch</span>
         <span v-else>Watch</span>
       </v-btn>
       <!--suppress JSCheckFunctionSignatures -->
-      <ac-confirmation :action="() => {subjectHandler.user.patch({blocking: !subject.blocking})}" v-if="!isCurrent">
-        <v-col slot="confirmation-text">
-          <v-col v-if="subject.blocking">
-            <p>
-              Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you, comment, and
-              perform other interactive actions with your account.
-            </p>
+      <ac-confirmation :action="() => subjectHandler.user.patch({blocking: !subject!.blocking})" v-if="!isCurrent">
+        <template v-slot:confirmation-text>
+          <v-col>
+            <v-col v-if="subject!.blocking">
+              <p>
+                Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you,
+                comment, and
+                perform other interactive actions with your account.
+              </p>
+            </v-col>
+            <v-col v-else>
+              <p>
+                Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you,
+                comment on your
+                items, or perform other interactive actions with your account.
+              </p>
+              <p v-if="subject.watching">This will also remove them from your watchlist.</p>
+            </v-col>
           </v-col>
-          <v-col v-else>
-            <p>
-              Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you, comment on your
-              items, or perform other interactive actions with your account.
-            </p>
-            <p v-if="subject.watching">This will also remove them from your watchlist.</p>
-          </v-col>
-        </v-col>
+        </template>
         <template v-slot:default="{on}">
-          <v-btn color="red" v-on="on">
-            <v-icon left>block</v-icon>
-            <span v-if="subject.blocking">Unblock</span>
+          <v-btn color="red" v-on="on" variant="flat">
+            <v-icon left icon="mdi-cancel"/>
+            <span v-if="subject!.blocking">Unblock</span>
             <span v-else>Block</span>
           </v-btn>
         </template>
       </ac-confirmation>
     </v-toolbar-items>
     <v-menu offset-y v-else-if="subject && isRegistered">
-      <template v-slot:activator="{on}">
-        <v-btn v-on="on" icon>
-          <v-icon>more_horiz</v-icon>
+      <template v-slot:activator="{props}">
+        <v-btn v-bind="props" icon>
+          <v-icon icon="mdi-dots-horizontal"/>
         </v-btn>
       </template>
       <v-list dense>
         <v-list-item v-if="isStaff && !isCurrent" @click="showMenu=true">
-          <v-list-item-action>
-            <v-icon>menu</v-icon>
-          </v-list-item-action>
+          <template v-slot:prepend>
+            <v-icon icon="mdi-menu"/>
+          </template>
           <v-list-item-title>Menu</v-list-item-title>
         </v-list-item>
         <v-list-item class="message-button" @click="showNew = true" v-if="!isCurrent">
-          <v-list-item-action><v-icon>message</v-icon></v-list-item-action>
+          <template v-slot:prepend>
+            <v-icon icon="mdi-message"/>
+          </template>
           <v-list-item-title>Message</v-list-item-title>
         </v-list-item>
         <v-list-item @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent">
-          <v-list-item-action>
-            <v-icon v-if="subject.watching">visibility_off</v-icon>
-            <v-icon v-else>visibility</v-icon>
-          </v-list-item-action>
+          <template v-slot:prepend>
+            <v-icon v-if="subject.watching" icon="mdi-eye-off"/>
+            <v-icon v-else icon="mdi-eye"/>
+          </template>
           <v-list-item-title>
             <span v-if="subject.watching">Unwatch</span>
             <span v-else>Watch</span>
           </v-list-item-title>
         </v-list-item>
         <v-list-item @click.stop="editing = !editing" v-if="controls && showEdit">
-          <v-list-item-action>
-            <v-icon v-if="editing">lock</v-icon>
-            <v-icon v-else>edit</v-icon>
-          </v-list-item-action>
+          <template v-slot:prepend>
+            <v-icon v-if="editing" icon="mdi-lock"/>
+            <v-icon v-else icon="mdi-pencil"/>
+          </template>
           <v-list-item-title v-if="editing">Lock</v-list-item-title>
           <v-list-item-title v-else>Edit</v-list-item-title>
         </v-list-item>
-        <ac-confirmation :action="() => {subjectHandler.user.patch({blocking: !subject.blocking})}" v-if="!isCurrent">
-          <v-col slot="confirmation-text">
-            <v-col v-if="subject.blocking">
-              <p>
-                Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you, comment, and
-                perform other interactive actions with your account.
-              </p>
+        <ac-confirmation :action="() => blockToggle" v-if="!isCurrent">
+          <template v-slot:confirmation-text>
+            <v-col>
+              <v-col v-if="subject!.blocking">
+                <p>
+                  Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you,
+                  comment, and
+                  perform other interactive actions with your account.
+                </p>
+              </v-col>
+              <v-col v-else>
+                <p>
+                  Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you,
+                  comment on your
+                  items, or perform other interactive actions with your account.
+                </p>
+                <p v-if="subject.watching">This will also remove them from your watchlist.</p>
+              </v-col>
             </v-col>
-            <v-col v-else>
-              <p>
-                Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you, comment on your
-                items, or perform other interactive actions with your account.
-              </p>
-              <p v-if="subject.watching">This will also remove them from your watchlist.</p>
-            </v-col>
-          </v-col>
+          </template>
           <template v-slot:default="{on}">
             <v-list-item v-on="on">
-              <v-list-item-action>
-                <v-icon>block</v-icon>
-              </v-list-item-action>
+              <template v-slot:prepend>
+                <v-icon icon="mdi-cancel"/>
+              </template>
               <v-list-item-title>
                 <span v-if="subject.blocking">Unblock</span>
                 <span v-if="!subject.blocking">Block</span>
@@ -113,7 +127,7 @@
         </ac-confirmation>
       </v-list>
     </v-menu>
-    <v-dialog v-model="showMenu">
+    <v-dialog v-model="showMenu" :attach="$modalTarget">
       <v-navigation-drawer v-model="showMenu" v-if="isStaff && subject" fixed clipped :disable-resize-watcher="true">
         <ac-nav-links
             :subject-handler="subjectHandler"
@@ -149,13 +163,12 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcConfirmation from '../../wrappers/AcConfirmation.vue'
 import AcAvatar from '../../AcAvatar.vue'
 import Subjective from '@/mixins/subjective'
 import {Conversation} from '@/types/Conversation'
 import {User} from '@/store/profiles/types/User'
-import {Prop, Watch} from 'vue-property-decorator'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
@@ -164,49 +177,65 @@ import Editable from '@/mixins/editable'
 import {FormController} from '@/store/forms/form-controller'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
+import {SingleController} from '@/store/singles/controller'
 
-  @Component({
-    components: {
-      AcBoundField,
-      AcFormDialog,
-      AcLink,
-      AcExpandedProperty,
-      AcNavLinks,
-      AcAvatar,
-      AcConfirmation,
-    },
-  })
-export default class AcProfileHeader extends mixins(Subjective, Formatting, Editable) {
-    @Prop({default: false})
-    public dense!: boolean
+@Component({
+  components: {
+    AcBoundField,
+    AcFormDialog,
+    AcLink,
+    AcExpandedProperty,
+    AcNavLinks,
+    AcAvatar,
+    AcConfirmation,
+  },
+})
+class AcProfileHeader extends mixins(Subjective, Formatting, Editable) {
+  @Prop({default: false})
+  public dense!: boolean
 
-    @Prop({default: false})
-    public showEdit!: boolean
+  @Prop({default: false})
+  public showEdit!: boolean
 
-    public showNew = false
+  public showNew = false
 
-    public newConversation = null as unknown as FormController
+  public newConversation = null as unknown as FormController
 
-    public showMenu = false
+  public showMenu = false
 
-    public visitConversation(response: Conversation) {
-      this.$router.push({name: 'Conversation', params: {username: this.rawViewerName, conversationId: response.id + ''}})
+  public blockToggle() {
+    (this.subjectHandler.user as SingleController<User>).patch({blocking: this.subject!.blocking})
+  }
+
+  public visitConversation(response: Conversation) {
+    this.$router.push({
+      name: 'Conversation',
+      params: {
+        username: this.rawViewerName,
+        conversationId: response.id + '',
+      },
+    })
+  }
+
+  @Watch('subject')
+  public populateRecipient(value: User) {
+    /* istanbul ignore if */
+    if (!value) {
+      return
     }
+    this.newConversation.fields.participants.model = [value.id]
+  }
 
-    @Watch('subject')
-    public populateRecipient(value: User) {
-      /* istanbul ignore if */
-      if (!value) {
-        return
-      }
-      this.newConversation.fields.participants.model = [value.id]
-    }
-
-    public created() {
-      this.newConversation = this.$getForm('new-conversation', {
-        fields: {participants: {value: []}, captcha: {value: ''}},
-        endpoint: `/api/profiles/account/${this.rawViewerName}/conversations/`,
-      })
-    }
+  public created() {
+    this.newConversation = this.$getForm('new-conversation', {
+      fields: {
+        participants: {value: []},
+        captcha: {value: ''},
+      },
+      endpoint: `/api/profiles/account/${this.rawViewerName}/conversations/`,
+    })
+  }
 }
+
+export default toNative(AcProfileHeader)
 </script>

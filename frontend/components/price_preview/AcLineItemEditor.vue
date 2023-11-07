@@ -1,45 +1,49 @@
 <template>
   <v-row no-gutters>
-    <v-col cols="2" align-self="center" class="text-center">
-      <v-btn x-small fab color="red" @click.prevent="line.delete" v-if="deletable" :disabled="disabled">
-        <v-icon>delete</v-icon>
-      </v-btn>
-    </v-col>
-    <v-col class="text-right pr-1" cols="4">
+    <v-col class="text-right" cols="12">
       <ac-patch-field
           :patcher="line.patchers.description"
-          :id="`lineItem-${line.x.id}-description`"
+          :id="`lineItem-${line.x!.id}-description`"
           :disabled="disabled"
+          density="compact"
           :placeholder="placeholder"
       />
     </v-col>
-    <v-col class="text-left pl-1" cols="4">
+    <v-col class="text-left" cols="6">
       <ac-patch-field
           :patcher="line.patchers.amount"
-          :id="`lineItem-${line.x.id}-amount`"
+          :id="`lineItem-${line.x!.id}-amount`"
           field-type="ac-price-field"
           :disabled="disabled"
-          @keydown.enter.native="newLineFunc"
+          density="compact"
+          @keydown.enter="newLineFunc"
       />
     </v-col>
-    <v-col class="text-left pl-1" cols="2"><v-text-field :disabled="true" :value="'$' + price.toFixed(2)" /></v-col>
+    <v-col class="text-left" cols="4" md="5">
+      <v-text-field :disabled="true" :value="'$' + price.toFixed(2)" density="compact"/>
+    </v-col>
+    <v-col cols="2" sm="1" class="text-center d-flex justify-center pl-1">
+      <v-btn size="x-small" icon color="red" @click.prevent="line.delete" v-if="deletable" :disabled="disabled" class="align-self-start mt-1">
+        <v-icon icon="mdi-delete"/>
+      </v-btn>
+    </v-col>
   </v-row>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import {Prop} from 'vue-property-decorator'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import LineItem from '@/types/LineItem'
-import Component from 'vue-class-component'
 import LineAccumulator from '@/types/LineAccumulator'
 import {SingleController} from '@/store/singles/controller'
 import {Decimal} from 'decimal.js'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {LineTypes} from '@/types/LineTypes'
+
 @Component({
   components: {AcPatchField},
+  emits: ['new-line'],
 })
-export default class AcLineItemEditor extends Vue {
+class AcLineItemEditor extends Vue {
   @Prop({required: true})
   public line!: SingleController<LineItem>
 
@@ -77,7 +81,7 @@ export default class AcLineItemEditor extends Vue {
         return 'Additional requirements'
       }
     }
-    const BASIC_TYPES: {[key: number]: string} = {
+    const BASIC_TYPES: { [key: number]: string } = {
       0: 'Base price',
       2: 'Shield protection',
       3: 'Landscape bonus',
@@ -89,4 +93,6 @@ export default class AcLineItemEditor extends Vue {
     return BASIC_TYPES[(this.line.x as LineItem).type] || 'Other'
   }
 }
+
+export default toNative(AcLineItemEditor)
 </script>

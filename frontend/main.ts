@@ -1,41 +1,41 @@
-import 'intersection-observer'
 import './artconomy.css'
-import Vuetify from 'vuetify/lib'
 // @ts-ignore
-import * as Sentry from '@sentry/browser'
+import * as Sentry from '@sentry/vue'
 // @ts-ignore
 import * as Integrations from '@sentry/integrations'
-import Vue from 'vue'
-import VueRouter from 'vue-router'
-import Vuex from 'vuex'
+import {createApp, h} from 'vue'
 import {createStore} from './store'
 import App from './App.vue'
+import VueMask from '@devindex/vue-mask'
 import {configureHooks, router} from './router'
 import {FormControllers} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
-import Bowser from 'bowser'
+import supportedBrowsers from './supportedBrowsers'
 import {Decimal} from 'decimal.js'
-import {formatSize, genId} from './lib/lib'
+import {genId} from './lib/lib'
 import {Lists} from '@/store/lists/registry'
 import {Singles} from '@/store/singles/registry'
-import colors from 'vuetify/es5/util/colors'
 import {Profiles} from '@/store/profiles/registry'
 import {Characters} from '@/store/characters/registry'
 import VueObserveVisibility from 'vue-observe-visibility'
-import {VueSocket} from '@/plugins/socket'
+import {createVueSocket} from '@/plugins/socket'
+import {createVuetify} from '@/plugins/vuetify'
 import {User} from '@/store/profiles/types/User'
-// eslint-disable-next-line import/no-duplicates
 import '@stripe/stripe-js'
-// eslint-disable-next-line import/no-duplicates
-import {StripeConstructor, Stripe} from '@stripe/stripe-js'
+import {Stripe, StripeConstructor} from '@stripe/stripe-js'
 import {PROCESSORS} from '@/types/PROCESSORS'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {VCol, VRow} from 'vuetify/lib/components'
+import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
+import AcComment from '@/components/comments/AcComment.vue'
+import AcCommentSection from '@/components/comments/AcCommentSection.vue'
+import 'vite/modulepreload-polyfill';
+import {createTargetsPlugin} from '@/plugins/targets'
 
 declare global {
   interface Window {
-    artconomy: Vue,
+    // We shouldn't be referencing this directly anywhere.
+    // We use it during debugging.
+    artconomy: any,
     PRERENDERING: number,
     windowId: string,
     USER_PRELOAD: User|AnonUser,
@@ -50,22 +50,32 @@ declare global {
   }
 }
 
-Vue.use(VueRouter)
-Vue.use(Vuex)
-Vue.use(VueSocket, {endpoint: `wss://${window.location.host}/ws/events/`})
-Vue.use(Shortcuts)
-Vue.use(Vuetify)
-Vue.use(FormControllers)
-Vue.use(Lists)
-Vue.use(Singles)
-Vue.use(Characters)
-Vue.use(Profiles)
-Vue.use(VueObserveVisibility)
-Vue.component('VCol', VCol)
-Vue.component('VRow', VRow)
-Vue.config.productionTip = false
+const productionMode = process.env.NODE_ENV === 'production'
 
-Vue.filter('formatSize', formatSize)
+const app = createApp({
+  render: () => h(App),
+  components: {App, VCol, VRow},
+})
+const store = createStore()
+
+app.use(router)
+app.use(store)
+app.use(VueMask)
+app.use(createVueSocket({endpoint: `wss://${window.location.host}/ws/events/`}))
+app.use(Shortcuts)
+app.use(createVuetify())
+app.use(Lists)
+app.use(FormControllers)
+app.use(Singles)
+app.use(Characters)
+app.use(Profiles)
+app.use(createTargetsPlugin(false))
+app.use(VueObserveVisibility)
+app.component('AcComment', AcComment)
+app.component('AcCommentSection', AcCommentSection)
+
+
+window.artconomy = app
 
 // @ts-ignore
 window.Decimal = Decimal
@@ -73,80 +83,9 @@ window.Decimal = Decimal
 // some websocket activities where one tab is the originator of a change and others need to pick it up.
 window.windowId = genId()
 
-const browser = Bowser.getParser(window.navigator.userAgent)
-const isValidBrowser = browser.satisfies({
-  chrome: '>=100',
-  firefox: '>=100',
-  opera: '>=90',
-  safari: '>=15',
-  edge: '>=100',
-})
-
-const productionMode = process.env.NODE_ENV === 'production'
-
-if (productionMode && isValidBrowser) {
-  // noinspection TypeScriptValidateJSTypes
-  Sentry.init({
-    dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
-    // @ts-ignore
-    release: __COMMIT_HASH__,
-    ignoreErrors: [
-      'ResizeObserver loop limit exceeded', 'ResizeObserver loop completed with undelivered notifications.',
-    ],
-    integrations: [new (Integrations as any).Vue({
-      Vue,
-      attachProps: true,
-    })],
-  })
-} else if (process.env.NODE_ENV === 'production') {
-  console.log('Unsupported browser. Automatic error reports will not be sent.')
-} else {
-  // Ignore image loading errors.
-  const ogError = console.error
-  console.error = (message: any) => {
-    const converted = message + ''
-    if (converted.startsWith('[Vuetify] Image load failed')) {
-      return
-    }
-    ogError(message)
-  }
-}
 
 if (productionMode) {
   const splash = `
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%      %%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%           %%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%             %%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%               %%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%                %%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         %       %%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         %%        %%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         %%%        %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%         %%%%%       %%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        %%%%%%        %%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        %%%%%%%%       %%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%        %%%%%%%%%        %%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%        %%%%%%%%%%       %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%    #                            %%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%                                  %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%               /%%%%%       %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%       ,%%%%%%%%%%%%%%%      *%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%.      %%%%%%%%%%%%%%%%%      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%      %%%%%%%%%%%%%%%%%%      %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%     %%%%%%%%%%%%%%%%%%%%     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%  %%%%%%%%%%%%%%%%%%%%%%%%   %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-
 !!!WARNING!!! This is for advanced users. DO NOT paste anything you don't understand into this console. If you do,
 your account security could be at risk!
 
@@ -156,37 +95,30 @@ https://discord.gg/4nWK9mf
   console.log(splash)
 }
 
-const vuetifySettings = {
-  icons: {
-    iconfont: 'mdiSvg',
-  },
-  theme: {
-    dark: true,
-    themes: {
-      dark: {
-        primary: colors.blue.darken2,
-        secondary: colors.purple,
-        danger: colors.red,
-        darkBase: colors.grey,
-      },
-    },
-  },
-  options: {
-    customProperties: true,
-  },
-}
-
-const store = createStore()
 configureHooks(router, store)
 
-window.artconomy = new Vue({
-  el: '#app',
-  router,
-  store,
-  render: (h) => h(App),
-  // @ts-ignore
-  vuetify: new Vuetify(vuetifySettings),
-  components: {App},
-})
+const isValidBrowser = supportedBrowsers.test(navigator.userAgent)
 
-window.artconomy.$mount('#app')
+if (productionMode && isValidBrowser) {
+  // noinspection TypeScriptValidateJSTypes
+  Sentry.init({
+    app,
+    dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
+    // @ts-ignore
+    release: process.env.__COMMIT_HASH__,
+    ignoreErrors: [
+      'ResizeObserver loop limit exceeded', 'ResizeObserver loop completed with undelivered notifications.',
+    ],
+    integrations: [
+      new Sentry.BrowserTracing({
+        routingInstrumentation: Sentry.vueRouterInstrumentation(router),
+      }),
+      new Sentry.Replay(),
+    ],
+    tracesSampleRate: .05,
+  })
+} else if (process.env.NODE_ENV === 'production') {
+  console.log('Unsupported browser. Automatic error reports will not be sent.')
+}
+
+window.artconomy = app.mount('#app')

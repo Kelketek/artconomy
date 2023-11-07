@@ -1,39 +1,31 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import {shallowMount, Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import PrivacyPolicy from '../PrivacyPolicy.vue'
 import RefundPolicy from '../RefundPolicy.vue'
 import CommissionAgreement from '../CommissionAgreement.vue'
 import TermsOfService from '../TermsOfService.vue'
-import VueRouter from 'vue-router'
-import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {afterEach, describe, expect, test} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(VueRouter)
-let vuetify: Vuetify
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 
 describe('Legal Pages', () => {
-  beforeEach(() => {
-    vuetify = createVuetify()
-  })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Renders the privacy policy', async() => {
-    wrapper = shallowMount(PrivacyPolicy, {localVue, vuetify})
+  test('Renders the privacy policy', async() => {
+    wrapper = mount(PrivacyPolicy, vueSetup({stubs: ['router-link']}))
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
-  it('Renders the refund policy', async() => {
-    wrapper = shallowMount(RefundPolicy, {localVue, vuetify})
+  test('Renders the refund policy', async() => {
+    wrapper = mount(RefundPolicy, vueSetup({stubs: ['router-link']}))
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
-  it('Renders the commission agreement', async() => {
-    wrapper = shallowMount(CommissionAgreement, {localVue, vuetify})
+  test('Renders the commission agreement', async() => {
+    wrapper = mount(CommissionAgreement, vueSetup({stubs: ['router-link']}))
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
-  it('Renders the terms of service', async() => {
-    wrapper = shallowMount(TermsOfService, {localVue, vuetify})
+  test('Renders the terms of service', async() => {
+    wrapper = mount(TermsOfService, vueSetup({stubs: ['router-link']}))
     expect(wrapper.find('.legal-logo').exists()).toBe(true)
   })
 })

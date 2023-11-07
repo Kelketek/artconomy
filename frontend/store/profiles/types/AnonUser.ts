@@ -7,4 +7,8 @@ export interface AnonUser {
   sfw_mode: boolean,
   username: '_',
   birthday: null|string,
+  artist_mode?: undefined,
+  avatar_url?: undefined
+  is_staff?: undefined,
+  is_superuser?: undefined,
 }

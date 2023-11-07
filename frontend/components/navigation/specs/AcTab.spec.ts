@@ -1,60 +1,70 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
-import {Wrapper} from '@vue/test-utils'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
 import AcTabs from '@/components/navigation/AcTabs.vue'
+import {describe, expect, afterEach, test} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
 describe('AcTabNav.vue', () => {
-  beforeEach(() => {
-    vuetify = createVuetify()
-  })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Renders tabs', async() => {
+  test('Renders tabs', async() => {
     wrapper = mount(AcTabs, {
-      localVue,
-      vuetify,
-      propsData: {
+      ...vueSetup(),
+      props: {
         items: [{
-          value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
+          value: {
+            name: 'Characters',
+            params: {username: 'Fox'},
+          },
+          icon: 'mdi-people',
+          title: 'Characters',
+          count: 2,
         }, {
-          value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
+          value: {
+            name: 'Gallery',
+            params: {username: 'Fox'},
+          },
+          icon: 'mdi-image',
+          title: 'Gallery',
         }],
-        value: 0,
+        modelValue: 0,
         label: 'Stuff',
       },
-
-      attachTo: docTarget(),
     })
-    expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toBe(
-      'people Characters (2)',
+    expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toEqual(
+      'Characters (2)',
     )
   })
-  it('Navigates via dropdown', async() => {
+  test('Navigates via dropdown', async() => {
     wrapper = mount(AcTabs, {
-      localVue,
-      vuetify,
-      propsData: {
+      ...vueSetup(),
+      props: {
         items: [{
-          value: {name: 'Characters', params: {username: 'Fox'}}, icon: 'people', text: 'Characters', count: 2,
+          value: {
+            name: 'Characters',
+            params: {username: 'Fox'},
+          },
+          icon: 'mdi-people',
+          title: 'Characters',
+          count: 2,
         }, {
-          value: {name: 'Gallery', params: {username: 'Fox'}}, icon: 'image', text: 'Gallery',
+          value: {
+            name: 'Gallery',
+            params: {username: 'Fox'},
+          },
+          icon: 'mdi-image',
+          title: 'Gallery',
         }],
-        value: 0,
+        modelValue: 0,
         label: 'Stuff',
       },
-
-      attachTo: docTarget(),
     })
     expect(wrapper.find('.v-select__selections').exists())
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toBe(
-      'people Characters (2)',
+    expect(wrapper.find('.v-tab').text().replace(/\s\s+/g, ' ')).toEqual(
+      'Characters (2)',
     )
   })
 })

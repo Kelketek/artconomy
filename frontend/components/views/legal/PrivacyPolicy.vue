@@ -4,7 +4,7 @@
     <v-row>
       <v-col cols="12">
         <div class="col-12 text-center">
-          <img class="legal-logo" src="/static/images/logo.svg" alt="Artconomy.com"/>
+          <img class="legal-logo" :src="logo" alt="Artconomy.com"/>
         </div>
         <div class="col-12 text-center home-title">
           <h1>Privacy Policy</h1>
@@ -158,16 +158,19 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative, Vue} from 'vue-facing-decorator'
+import {BASE_URL} from '@/lib/lib'
 
-  @Component
-export default class PrivacyPolicy extends Vue {
+@Component
+class PrivacyPolicy extends Vue {
+  public logo = new URL('/static/images/logo.svg', BASE_URL).href
 }
+
+export default toNative(PrivacyPolicy)
 </script>
 
 <style scoped>
-  .legal-logo {
-    width: 20%;
-  }
+.legal-logo {
+  width: 20%;
+}
 </style>

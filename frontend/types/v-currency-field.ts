@@ -1,5 +1,5 @@
 declare module 'v-currency-field' {
-  import {PluginObject} from 'vue'
-  const Currency: PluginObject<any>
+  import {Plugin} from 'vue'
+  const Currency: Plugin<any>
   export = Currency
 }

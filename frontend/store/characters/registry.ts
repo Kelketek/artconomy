@@ -1,25 +1,16 @@
-import _Vue from 'vue'
-import {genRegistryBase, genRegistryPluginBase, Registry} from '../registry-base'
+import {createApp} from 'vue'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
 import {CharacterController} from './controller'
 import CharacterState from '@/store/characters/types/CharacterState'
 import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts'
 
-declare interface CharacterRegistry extends Registry<CharacterState, CharacterController> {
+export class CharacterRegistry extends BaseRegistry<CharacterState, CharacterController> {
 }
 
-export const characterRegistry = new _Vue(genRegistryBase()) as CharacterRegistry
+export const characterRegistry = new CharacterRegistry()
 
-export function Characters(Vue: typeof _Vue): void {
-  Vue.mixin(genRegistryPluginBase('Character', characterRegistry, CharacterController))
-}
-
-declare module 'vue/types/vue' {
-  // Global properties can be declared
-  // on the `VueConstructor` interface
-
-  interface Vue {
-    $getCharacter: (name: string, schema?: CharacterModuleOpts) => CharacterController,
-  }
+export function Characters(Vue: ReturnType<typeof createApp>): void {
+  Vue.mixin(genRegistryPluginBase<CharacterState, CharacterModuleOpts, CharacterController>('Character', characterRegistry, CharacterController))
 }
 
 (window as any).characterRegistry = characterRegistry

@@ -1,9 +1,13 @@
 <template>
   <ac-base-notification :asset-link="url" :notification="notification">
-    <router-link :to="url" slot="title">
-      Sale #{{event.data.deliverable.order.id}} [{{event.data.deliverable.name}}]
-    </router-link>
-    <router-link :to="url" slot="subtitle">Your revision/WIP has been approved!</router-link>
+    <template v-slot:title>
+      <router-link :to="url">
+        Sale #{{event.data.deliverable.order.id}} [{{event.data.deliverable.name}}]
+      </router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="url">Your revision/WIP has been approved!</router-link>
+    </template>
   </ac-base-notification>
 </template>
 

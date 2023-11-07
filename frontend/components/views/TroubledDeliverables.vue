@@ -6,35 +6,41 @@
         <v-simple-table>
           <template v-slot:default>
             <thead>
-              <tr>
-                <th>Deliverable ID</th>
-                <th>Order ID</th>
-                <th>Status</th>
-                <th>Created On</th>
-                <th>Paid On</th>
-                <th>Buyer</th>
-                <th>Seller</th>
-                <th>Actions</th>
-              </tr>
+            <tr>
+              <th>Deliverable ID</th>
+              <th>Order ID</th>
+              <th>Status</th>
+              <th>Created On</th>
+              <th>Paid On</th>
+              <th>Buyer</th>
+              <th>Seller</th>
+              <th>Actions</th>
+            </tr>
             </thead>
             <tbody>
-              <tr v-for="deliverable in troubledDeliverables.list" :key="deliverable.x.id">
-                <td>{{deliverable.x.id}}</td>
-                <td>{{deliverable.x.order.id}}</td>
-                <td>
-                  <ac-deliverable-status :deliverable="deliverable.x" />
-                </td>
-                <td>{{formatDateTime(deliverable.x.created_on)}}</td>
-                <td>{{deliverable.x.paid_on && formatDateTime(deliverable.x.paid_on)}}</td>
-                <td><ac-avatar :user="deliverable.x.order.buyer"  v-if="deliverable.x.order.buyer"/><span v-else>{{deliverable.x.order.customer_email}}</span></td>
-                <td><ac-avatar :user="deliverable.x.order.seller" /></td>
-                <td>
-                  <ac-link :to="{name: 'CaseDeliverableOverview', params: {orderId: `${deliverable.x.order.id}`, deliverableId: `${deliverable.x.id}`, username: viewer.username}}" v-if="deliverable.x.arbitrator && deliverable.x.arbitrator.username === viewer.username">
-                    View
-                  </ac-link>
-                  <v-btn @click="claimDeliverable(deliverable)" v-else small>Claim</v-btn>
-                </td>
-              </tr>
+            <tr v-for="deliverable in troubledDeliverables.list" :key="deliverable.x!.id">
+              <td>{{deliverable.x!.id}}</td>
+              <td>{{deliverable.x!.order.id}}</td>
+              <td>
+                <ac-deliverable-status :deliverable="deliverable.x"/>
+              </td>
+              <td>{{formatDateTime(deliverable.x!.created_on)}}</td>
+              <td>{{deliverable.x!.paid_on && formatDateTime(deliverable.x!.paid_on)}}</td>
+              <td>
+                <ac-avatar :user="deliverable.x!.order.buyer" v-if="deliverable.x!.order.buyer"/>
+                <span v-else>{{deliverable.x!.order.customer_email}}</span></td>
+              <td>
+                <ac-avatar :user="deliverable.x!.order.seller"/>
+              </td>
+              <td>
+                <ac-link
+                    :to="{name: 'CaseDeliverableOverview', params: {orderId: `${deliverable.x!.order.id}`, deliverableId: `${deliverable.x!.id}`, username: viewer!.username}}"
+                    v-if="deliverable.x!.arbitrator && deliverable.x!.arbitrator.username === viewer!.username">
+                  View
+                </ac-link>
+                <v-btn @click="claimDeliverable(deliverable)" v-else small variant="flat">Claim</v-btn>
+              </td>
+            </tr>
             </tbody>
           </template>
         </v-simple-table>
@@ -44,7 +50,7 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
 import {ListController} from '@/store/lists/controller'
 import Deliverable from '@/types/Deliverable'
@@ -66,15 +72,20 @@ import AcAvatar from '@/components/AcAvatar.vue'
     AcPaginated,
   },
 })
-export default class TroubledDeliverables extends mixins(Viewer, Formatting) {
+class TroubledDeliverables extends mixins(Viewer, Formatting) {
   public troubledDeliverables = null as unknown as ListController<Deliverable>
 
   public claimDeliverable(deliverable: SingleController<Deliverable>) {
-    return artCall({url: `/api/sales/order/${deliverable.x!.order.id}/deliverables/${deliverable.x!.id}/claim/`, method: 'post'}).then(deliverable.updateX)
+    return artCall({
+      url: `/api/sales/order/${deliverable.x!.order.id}/deliverables/${deliverable.x!.id}/claim/`,
+      method: 'post',
+    }).then(deliverable.updateX)
   }
 
   public created() {
     this.troubledDeliverables = this.$getList('troubledDeliverables', {endpoint: '/api/sales/reports/troubled-deliverables/'})
   }
 }
+
+export default toNative(TroubledDeliverables)
 </script>

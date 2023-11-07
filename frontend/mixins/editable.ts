@@ -1,10 +1,13 @@
-import Component from 'vue-class-component'
-import Vue from 'vue'
+import {Component} from 'vue-facing-decorator'
+import {ArtVue} from '@/lib/lib'
 
 @Component
-export default class Editable extends Vue {
-  // Controls must be defined elsewhere.
-  public controls!: boolean;
+export default class Editable extends ArtVue {
+  // Controls must be defined on the child class.
+  // Unfortunately the decorator class somehow manages to turn this into undefined
+  // Even if just annotating like below.
+  // public controls!: boolean;
+
   public unlock() {
     this.$router.replace({query: Object.assign({}, this.$route.query, {editing: true})})
   }
@@ -16,8 +19,8 @@ export default class Editable extends Vue {
   }
 
   public get editing() {
-    const value = Boolean(this.controls && this.$route.query.editing)
-    return value
+    // @ts-ignore
+    return Boolean(this.controls && this.$route.query.editing)
   }
 
   public set editing(value) {

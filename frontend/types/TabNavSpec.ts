@@ -1,8 +1,8 @@
-import {Location} from 'vue-router'
+import {RouteLocationNamedRaw} from 'vue-router'
 
 export interface TabNavSpec {
-  value: Location,
-  text: string,
+  value: RouteLocationNamedRaw
+  title: string,
   icon: string,
   count?: number,
 }

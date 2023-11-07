@@ -1,9 +1,18 @@
-import Router, {Route, RouteConfig} from 'vue-router'
-import {clearMetaTag, paramsKey, saneNav, setCookie, setMetaContent} from '@/lib/lib'
+import {
+  createRouter,
+  createWebHistory,
+  RouteLocation,
+  RouteLocationNormalized,
+  Router,
+  RouteRecordRaw,
+} from 'vue-router'
+import {clearMetaTag, paramsKey, setCookie, setMetaContent} from '@/lib/lib'
 import {ArtStore} from '@/store'
-import {VueRouter} from 'vue-router/types/router'
 import Reload from '@/components/views/Reload.vue'
-import Login from '@/components/views/Login.vue'
+import Login from '@/components/views/auth/Login.vue'
+import Register from '@/components/views/auth/Register.vue'
+import Forgot from '@/components/views/auth/Forgot.vue'
+import AuthViews from '@/components/views/auth/AuthViews.vue'
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
 import FAQ from '@/components/views/faq/FAQ.vue'
 import Submission from '@/components/views/submission/SubmissionDetail.vue'
@@ -79,7 +88,7 @@ const Contact = () => import('@/components/views/Contact.vue')
 const Store = () => import('@/components/views/store/Store.vue')
 const ManageProducts = () => import('@/components/views/store/ManageProducts.vue')
 const Reports = () => import('@/components/views/reports/Reports.vue')
-const Journal = () => import('@/components/views/Journal.vue')
+const Journal = () => import('@/components/views/JournalDetail.vue')
 const CharacterGallery = () => import('@/components/views/character/CharacterGallery.vue')
 const NotFound = () => import('@/components/views/NotFound.vue')
 const ConversationDetail = () => import('@/components/views/ConversationDetail.vue')
@@ -97,9 +106,9 @@ const TroubledDeliverables = () => import('@/components/views/TroubledDeliverabl
 const ProductGallery = () => import('@/components/views/product/ProductGallery.vue')
 
 function orderViews() {
-  const orderRoutes: RouteConfig[] = []
+  const orderRoutes: RouteRecordRaw[] = []
   for (const baseName of ['Order', 'Sale', 'Case']) {
-    const props = (route: Route) => {
+    const props = (route: RouteLocation) => {
       return {...route.params, baseName}
     }
     const category = baseName.toLowerCase()
@@ -153,9 +162,9 @@ function orderViews() {
 }
 
 function orderLists() {
-  const orderRoutes: RouteConfig[] = []
+  const orderRoutes: RouteRecordRaw[] = []
   for (const baseName of ['Orders', 'Sales', 'Cases']) {
-    const children: RouteConfig[] = []
+    const children: RouteRecordRaw[] = []
     let categories = ['current', 'archived', 'waiting', 'cancelled']
     if (baseName === 'Cases') {
       categories = ['current', 'archived']
@@ -167,7 +176,7 @@ function orderLists() {
         name: routeName,
         path: category,
         component: OrderList,
-        props(route: Route) {
+        props(route: RouteLocationNormalized) {
           return {
             username: route.params.username,
             category,
@@ -181,7 +190,7 @@ function orderLists() {
       name: baseName,
       component: Orders,
       children,
-      props(route: Route) {
+      props(route: RouteLocationNormalized) {
         return {
           username: route.params.username,
           baseName,
@@ -192,7 +201,7 @@ function orderLists() {
   return orderRoutes
 }
 
-export const routes = [
+export const routes: RouteRecordRaw[] = [
   {
     path: '/',
     name: 'Home',
@@ -205,9 +214,25 @@ export const routes = [
     component: Reload,
   },
   {
-    path: '/auth/:tabName?/',
-    name: 'Login',
-    component: Login,
+    path: '/auth/',
+    component: AuthViews,
+    children: [{
+      path: '',
+      name: 'AuthViews',
+      redirect: {name: 'Login'},
+    }, {
+      path: 'login/',
+      name: 'Login',
+      component: Login,
+    }, {
+      path: 'register/',
+      name: 'Register',
+      component: Register,
+    }, {
+      path: 'forgot/',
+      name: 'Forgot',
+      component: Forgot,
+    }]
   },
   {
     path: '/set-password/:username/:resetToken/',
@@ -254,7 +279,7 @@ export const routes = [
         name: 'CommunityNotifications',
         path: 'community',
         component: NotificationsList,
-        props(route: VueRouter) {
+        props(route: RouteLocation) {
           return {subset: 'community', autoRead: true}
         },
       },
@@ -262,7 +287,7 @@ export const routes = [
         name: 'SalesNotifications',
         path: 'sales',
         component: NotificationsList,
-        props(route: VueRouter) {
+        props(route: RouteLocation) {
           return {subset: 'sales', autoRead: false}
         },
       },
@@ -272,7 +297,7 @@ export const routes = [
     path: '/store/:username/',
     name: 'Store',
     component: Store,
-    props(route: Route) {
+    props(route: RouteLocation) {
       return {
         username: route.params.username,
       }
@@ -288,7 +313,7 @@ export const routes = [
             name: 'NewOrder',
             path: 'order/:invoiceMode(invoice)?',
             component: NewOrder,
-            props(route: Route) {
+            props(route: RouteLocation) {
               return {...route.params, invoiceMode: !!route.params.invoiceMode}
             },
           },
@@ -306,7 +331,7 @@ export const routes = [
     path: '/store/:username/iframe/',
     name: 'StoreiFrame',
     component: Store,
-    props(route: Route) {
+    props(route: RouteLocation) {
       return {
         username: route.params.username,
         endpoint: `/api/sales/account/${route.params.username}/products/`,
@@ -527,7 +552,7 @@ export const routes = [
           path: 'art',
           name: 'Art',
           component: SubmissionList,
-          props(route: Route) {
+          props(route: RouteLocation) {
             return {
               ...route.params,
               listName: 'art',
@@ -539,7 +564,7 @@ export const routes = [
           path: 'art/manage',
           name: 'ManageArt',
           component: ManageArtList,
-          props(route: Route) {
+          props(route: RouteLocation) {
             return {
               ...route.params,
               listName: 'art',
@@ -551,7 +576,7 @@ export const routes = [
           path: 'collection',
           name: 'Collection',
           component: SubmissionList,
-          props(route: Route) {
+          props(route: RouteLocation) {
             return {
               ...route.params,
               listName: 'collection',
@@ -563,7 +588,7 @@ export const routes = [
           path: 'collection/manage',
           name: 'ManageCollection',
           component: ManageSubmissionList,
-          props(route: Route) {
+          props(route: RouteLocation) {
             return {
               ...route.params,
               listName: 'collection',
@@ -577,7 +602,7 @@ export const routes = [
         path: 'favorites',
         name: 'Favorites',
         component: SubmissionList,
-        props(route: Route) {
+        props(route: RouteLocation) {
           return {
             ...route.params,
             listName: 'favorites',
@@ -596,7 +621,7 @@ export const routes = [
           name: 'Watching',
           path: 'watching',
           component: WatchList,
-          props(route: Route) {
+          props(route: RouteLocation) {
             return {
               ...route.params,
               nameSpace: 'watching',
@@ -607,7 +632,7 @@ export const routes = [
           name: 'Watchers',
           path: 'watchers',
           component: WatchList,
-          props(route: Route) {
+          props(route: RouteLocation) {
             return {
               ...route.params,
               nameSpace: 'watchers',
@@ -646,7 +671,7 @@ export const routes = [
         extra: ProductExtra,
       },
       props: true,
-    } as RouteConfig, {
+    }, {
       path: 'submissions',
       name: 'SearchSubmissions',
       components: {
@@ -655,7 +680,7 @@ export const routes = [
         extra: SubmissionExtra,
       },
       props: true,
-    } as RouteConfig, {
+    }, {
       path: 'characters',
       name: 'SearchCharacters',
       components: {
@@ -663,7 +688,7 @@ export const routes = [
         hints: CharacterHints,
       },
       props: true,
-    } as RouteConfig, {
+    }, {
       path: 'profiles',
       name: 'SearchProfiles',
       components: {
@@ -671,7 +696,7 @@ export const routes = [
         hints: ProfileHints,
       },
       props: true,
-    } as RouteConfig],
+    }],
   },
   {
     path: '/session/settings/',
@@ -758,31 +783,26 @@ export const routes = [
     props: {route: '/search/submissions/'},
   },
   {
-    path: '*',
+    path: '/:pathMatch(.*)',
     name: 'NotFound',
     component: NotFound,
   },
 ]
 
-// @ts-ignore
-Router.prototype.push = saneNav(Router.prototype.push)
-// @ts-ignore
-Router.prototype.replace = saneNav(Router.prototype.replace)
-
-export const router = new Router({
-  mode: 'history',
+export const router = createRouter({
+  history: createWebHistory(),
   routes,
-  scrollBehavior(to: Route, from: Route): void|{x: number, y: number} {
+  scrollBehavior: async (to: RouteLocationNormalized, from: RouteLocationNormalized): Promise<void|{left: number, top: number}> => {
     if (!from || !to) {
       return
     }
-    if ((from.name === to.name) || (from.matched[0].name === to.matched[0].name)) {
+    if ((from.name === to.name) || (from.matched[0] && (from.matched[0].name === to.matched[0].name))) {
       // Need to find cases of different IDs or usernames and blep them out.
       if (paramsKey(from.params) === paramsKey(to.params)) {
         return
       }
     }
-    return {x: 0, y: 0}
+    return {left: 0, top: 0}
   },
 })
 
@@ -795,15 +815,12 @@ declare global {
 window._paq = window._paq || []
 
 export function configureHooks(vueRouter: Router, store: ArtStore): void {
-  vueRouter.beforeEach((to, from, next) => {
+  vueRouter.beforeEach((to, from) => {
     clearMetaTag('prerender-status-code')
     store.commit('errors/setError', {response: {status: 0}})
-    if ((to.name + '').indexOf('iFrame') !== -1) {
+    if ((String(to.name)).indexOf('iFrame') !== -1) {
       store.commit('setiFrame', true)
     }
-    next()
-  })
-  vueRouter.beforeEach((to, from, next) => {
     if (from.name !== to.name) {
       document.title = 'Artconomy-- The easy and safe way to commission art!'
       setMetaContent(
@@ -815,6 +832,5 @@ export function configureHooks(vueRouter: Router, store: ArtStore): void {
     if (to.query.referred_by) {
       setCookie('referredBy', to.query.referred_by)
     }
-    next()
   })
 }

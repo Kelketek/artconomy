@@ -3,7 +3,6 @@ import {ActionTree, GetterTree, MutationTree} from 'vuex'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
 import {SingleState} from './types/SingleState'
 import {QueryParams} from '@/store/helpers/QueryParams'
-import axios from 'axios'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
 
 export class SingleModule<T> {
@@ -31,11 +30,11 @@ export class SingleModule<T> {
       socketSettings: null,
     }
     this.state = {...defaults, ...options}
-    const cancel = {source: axios.CancelToken.source()}
+    const cancel = {source: new AbortController()}
     this.mutations = {
       kill() {
-        cancel.source.cancel('Killed.')
-        cancel.source = axios.CancelToken.source()
+        cancel.source.abort()
+        cancel.source = new AbortController()
       },
       setEndpoint(state: SingleState<T>, endpoint: string) {
         state.endpoint = endpoint
@@ -77,7 +76,7 @@ export class SingleModule<T> {
         }
         commit('kill')
         commit('setFetching', true)
-        const getOptions: ArtCallOptions = {url: state.endpoint, method: 'get', cancelToken: cancel.source.token}
+        const getOptions: ArtCallOptions = {url: state.endpoint, method: 'get', signal: cancel.source.signal}
         if (state.params) {
           getOptions.params = {...state.params}
         }
@@ -108,7 +107,7 @@ export class SingleModule<T> {
         return artCall({
           url: state.endpoint,
           method: 'delete',
-          cancelToken: cancel.source.token,
+          signal: cancel.source.signal,
         }).then((response) => {
           commit('setDeleted', true)
           commit('setReady', false)
@@ -120,7 +119,7 @@ export class SingleModule<T> {
         return artCall({
           url: state.endpoint,
           method: 'put',
-          cancelToken: cancel.source.token,
+          signal: cancel.source.signal,
         }).then((response) => {
           commit('setX', response)
         })
@@ -131,7 +130,7 @@ export class SingleModule<T> {
           url: state.endpoint,
           method: 'patch',
           data: updates,
-          cancelToken: cancel.source.token,
+          signal: cancel.source.signal,
         }).then((response) => {
           commit('setX', response)
         })
@@ -142,7 +141,7 @@ export class SingleModule<T> {
           url: state.endpoint,
           method: 'post',
           data,
-          cancelToken: cancel.source.token,
+          signal: cancel.source.signal,
         })
       },
     }

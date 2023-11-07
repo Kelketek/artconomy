@@ -1,70 +1,68 @@
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
-import Vuetify from 'vuetify/lib'
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import AcRendered from '../AcRendered'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
 describe('AcRendered.ts', () => {
-  const localVue = vueSetup()
-  let wrapper: Wrapper<Vue>
-  let anchored: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
+  let anchored: VueWrapper<any>
   let store: ArtStore
-  let vuetify: Vuetify
   beforeEach(() => {
-    vuetify = createVuetify()
     store = createStore()
-    // @ts-ignore
-    window.renderAnchors = {}
   })
   afterEach(() => {
     cleanUp(wrapper)
     if (anchored) {
-      anchored.destroy()
+      anchored.unmount()
     }
   })
-  it('Truncates text at a specific length', () => {
+  test('Truncates text at a specific length', () => {
     wrapper = mount(AcRendered, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {
-        value: 'This is a section of text.', truncate: 10,
+      ...vueSetup({
+        store,
+      }),
+      props: {
+        value: 'This is a section of text.',
+        truncate: 10,
       },
     })
-    expect(wrapper.text()).toBe('This is a...\nRead More')
+    expect(wrapper.text()).toBe('This is a...Read More')
   })
-  it('Allows the user to read more', async() => {
+  test('Allows the user to read more', async() => {
     wrapper = mount(AcRendered, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {
-        value: 'This is a section of text.', truncate: 10,
+      ...vueSetup({
+        store,
+      }),
+      props: {
+        value: 'This is a section of text.',
+        truncate: 10,
       },
     })
-    wrapper.find('.read-more-bar').trigger('click')
+    await wrapper.find('.read-more-bar').trigger('click')
     await wrapper.vm.$nextTick()
     expect(wrapper.text()).toBe('This is a section of text.')
   })
-  it('Sets a default truncation level', async() => {
+  test('Sets a default truncation level', async() => {
     wrapper = mount(AcRendered, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {
-        value: ''.padStart(1500, 'A'), truncate: true,
+      ...vueSetup({
+        store,
+      }),
+      props: {
+        value: ''.padStart(1500, 'A'),
+        truncate: true,
       },
     })
-    expect(wrapper.text()).toBe(''.padStart(1000, 'A') + '...\nRead More')
+    expect(wrapper.text()).toBe(''.padStart(1000, 'A') + '...Read More')
   })
-  it('Shows default data', async() => {
+  test('Shows default data', async() => {
     wrapper = mount(AcRendered, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {
-        value: null, truncate: true,
+      ...vueSetup({
+        store,
+      }),
+      props: {
+        value: null,
+        truncate: true,
       },
       slots: {
         empty: '<p>Nobody here but us chickens!</p>',

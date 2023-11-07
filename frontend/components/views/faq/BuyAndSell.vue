@@ -1,18 +1,18 @@
 <template>
   <v-expansion-panels v-model="tab">
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How do I buy commissions on Artconomy?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
               To buy a commission on Artconomy, find any artist who is open.
               <span @click.capture.stop.prevent="searchOpen" class="who-is-open-link">
                 <router-link
-                :to="{name: 'SearchProducts'}"
-              >
+                    :to="{name: 'SearchProducts'}"
+                >
               You can see a list of open artists here!
               </router-link></span>
             </p>
@@ -32,7 +32,8 @@
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >
-                Artconomy Shield</router-link>
+                Artconomy Shield
+              </router-link>
               we will hold onto
               the money until the artist completes the work. Otherwise, the artist will arrange with you how to pay
               them.
@@ -47,8 +48,12 @@
                 <router-link
                     :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
                 >
-                  Artconomy Shield</router-link>,
-                you may approve the final piece or dispute it. If you do neither, it will be auto-approved in a few days.</li>
+                  Artconomy Shield
+                </router-link>
+                ,
+                you may approve the final piece or dispute it. If you do neither, it will be auto-approved in a few
+                days.
+              </li>
               <li>Otherwise, the order will then be finalized.</li>
             </ul>
             <p>
@@ -56,29 +61,32 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How do I sell commissions on Artconomy?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
               To sell commissions on Artconomy, you must first
               <router-link
-                  :to="{name: 'Options', params: {username: viewer.username}}"
+                  :to="{name: 'Options', params: {username: viewer!.username}}"
                   v-if="isRegistered"
               >
-                enable artist mode in your settings</router-link>
+                enable artist mode in your settings
+              </router-link>
               <span v-else>enable artist mode in your settings</span> so that you can list products.
             </p>
             <p>
               Once artist mode is enabled, you can
-              <router-link :to="{name: 'Store', params: {username: viewer.username}}"
+              <router-link :to="{name: 'Store', params: {username: viewer!.username}}"
                            v-if="isRegistered"
-              >go to your store</router-link><span v-else>go to your store</span>,
+              >go to your store
+              </router-link>
+              <span v-else>go to your store</span>,
               where you can configure (or opt out of) the optional
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
@@ -107,7 +115,9 @@
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
               >
-                Artconomy Shield</router-link>, you will need to arrange payment with the customer manually.
+                Artconomy Shield
+              </router-link>
+              , you will need to arrange payment with the customer manually.
               You should then begin the work as soon as you are able, uploading any revisions along the way. When
               you are finished, submit your final piece.
             </p>
@@ -116,13 +126,13 @@
               that has been held for you. You will then be able to rate your customer and provide comments.</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What is Artconomy Shield?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -168,17 +178,17 @@
             </p>
             <p>Look for the shield icon on products to see if they're shielded!</p>
             <p>
-              <v-icon class="green--text">fa-shield</v-icon>
+              <v-icon class="green--text" icon="mdi-shield-half-full"/>
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How are disputes handled?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -235,13 +245,13 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What are the different service plans? Which one is right for me?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>Artconomy has three plans to choose from, depending on where you are in your professional journey.</p>
@@ -252,13 +262,16 @@
               commissioner, and provides a place for you to upload revisions/WIPs for comment on that order.
             </p>
             <p>
-              The free plan is a great way to test if Artconomy is truly <strong>right for you and your workflow.</strong>
+              The free plan is a great way to test if Artconomy is truly <strong>right for you and your
+              workflow.</strong>
             </p>
             <p>For extra protection on an order, you can enable
               <router-link
-                :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-              >Artconomy Shield,</router-link>
-              our escrow service, or you can use your payment processor of choice to handle the payment.</p>
+                  :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
+              >Artconomy Shield,
+              </router-link>
+              our escrow service, or you can use your payment processor of choice to handle the payment.
+            </p>
             <h3>The Basic Plan</h3>
             <p>The basic plan is best for artists who don't have a high volume of orders, but are expecting to handle
               more than one commission a month.</p>
@@ -275,23 +288,27 @@
             <p>To learn more about
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'landscape'}}"
-              >Landscape,</router-link>
-              check its main FAQ entry.</p>
+              >Landscape,
+              </router-link>
+              check its main FAQ entry.
+            </p>
             <p v-if="isRegistered">
-              <router-link :to="{name: 'Upgrade', params: {username: viewerName}}">You can upgrade (or downgrade) to your preferred plan here.</router-link>
+              <router-link :to="{name: 'Upgrade', params: {username: viewerName}}">You can upgrade (or downgrade) to
+                your preferred plan here.
+              </router-link>
             </p>
             <p v-else>
               Once you're logged in, you can use the "Upgrade" link in the sidebar to change your plan.
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What is Artconomy Landscape?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -307,26 +324,29 @@
               <li>PayPal invoicing for non-shield orders</li>
               <li>Access to the Landscape channel on our Discord</li>
               <li>First consideration for
-                <router-link :to="{name: 'BuyAndSell', params: {question: 'virtual-table'}}">Virtual Table Events.</router-link>
+                <router-link :to="{name: 'BuyAndSell', params: {question: 'virtual-table'}}">Virtual Table Events.
+                </router-link>
               </li>
             </ul>
-            <router-link v-if="isRegistered" :to="{name: 'Upgrade', params: {username: viewerName}}">Click this link to change plans!
+            <router-link v-if="isRegistered" :to="{name: 'Upgrade', params: {username: viewerName}}">Click this link to
+              change plans!
             </router-link>
             <p v-else>Click the Upgrade link in the sidebar after you're logged in to upgrade your account!</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How are fees calculated? What determines your pricing?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <h3>Calculating Fees</h3>
             <p>Fees differ depending on your
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'compare-and-contrast-plans'}}">plan</router-link>
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'compare-and-contrast-plans'}}">plan
+              </router-link>
               and whether or not you're using
               <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Shield</router-link>
               to protect your order.
@@ -343,7 +363,8 @@
             <h3>A word on our pricing</h3>
             <p>Artconomy Shield is an escrow service. Escrow services are uncommon online, and Stripe, our payment
               processor, is capable of handling it, but isn't optimized for it.
-              <a href="https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/" target="_blank" rel="noopener">We are firm believers in escrow</a>,
+              <a href="https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/" target="_blank"
+                 rel="noopener">We are firm believers in escrow</a>,
               which is why we offer it. However, it does result in Stripe's fees being higher for us-- including a $2
               fee for every connected account we pay out to <strong>each month</strong> on top of the credit card
               fees.</p>
@@ -364,17 +385,18 @@
               making process, we encourage you to <a href="https://discord.gg/4nWK9mf">join our Discord server</a>,
               where you can learn more in the <code>#business-tips</code> channel.
               You can also read our
-              <a href="https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/" rel="noopener" target="_blank">tips on pricing your artwork.</a>
+              <a href="https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/" rel="noopener"
+                 target="_blank">tips on pricing your artwork.</a>
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What is the Artconomy Virtual Table?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -383,7 +405,7 @@
               (often, con badges), which are printed on a printer and handed over during the convention. This way, you
               get the benefit of taking orders at a convention without having to leave home!
             </p>
-            <v-img src="/static/images/con-badge.jpg" :contain="true" max-height="40vh"></v-img>
+            <v-img :src="conBadge" :contain="true" max-height="40vh"></v-img>
             <p>The Virtual Table is also an opportunity to sell your merch for events that you cannot physically attend.
               If you can get the merchandise to us ahead of the event and we have room, we'll sell it for you.</p>
             <p>The virtual table event is also quite social-- you'll be in a private Discord channel with other selected
@@ -391,7 +413,8 @@
               (or the convention allows adult content) we'll stream the live drawing on a TV set right at our table!</p>
             <p><strong>Virtual Table positions are limited--</strong> both based on how many events we have a booth at
               per year, and how many artists we can accommodate at a time during the event. Priority always goes to
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'landscape'}}">Landscape subscribers.</router-link>
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'landscape'}}">Landscape subscribers.
+              </router-link>
               Service fee pricing depends on the event.
             </p>
             <p>If you're interested in joining a virtual table event,
@@ -400,13 +423,13 @@
               for announcements.</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What banks can be linked to Artconomy Shield? What are the supported countries?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -423,7 +446,7 @@
             <p>The following countries are currently supported for shield protection:</p>
             <ac-load-section :controller="stripeCountries">
               <ul>
-                <li v-for="country in stripeCountries.x.countries" :key="country.value">{{country.text}}</li>
+                <li v-for="country in stripeCountries.x!.countries" :key="country.value">{{ country.text }}</li>
               </ul>
             </ac-load-section>
             <p>
@@ -435,13 +458,13 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How does Artconomy help me manage my workload?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -480,14 +503,16 @@
               <span v-else>
                       Slots, configurable in your settings.
                     </span>
-              Your slots are the number of open spaces you have for commissions. Most commissions should take up one slot,
+              Your slots are the number of open spaces you have for commissions. Most commissions should take up one
+              slot,
               but if you offer a product that takes more time, you can change the number of slots it takes up.
               For instance, if you have 10 slots, and sell inked pieces that take up 2 slots each, Artconomy will close
               commissions once you have five of them.
             </p>
             <p>
               AWOO is able to track multiple products' slots. If you set your slots to 10, and sell full color pieces
-              that take up five slots, you could have one full color commission and two inked pieces (totalling 9 points)
+              that take up five slots, you could have one full color commission and two inked pieces (totalling 9
+              points)
               leaving you with one point remaining. If you don't have any products that take up only one point,
               AWOO will close commissions for you.
             </p>
@@ -499,7 +524,7 @@
             </p>
             <p>
               AWOO manages when you are considered 'open' for commissions, sending real-time alerts to watchers when
-              you are available. Note that you may still be closed for commissions even  if you have some workload to
+              you are available. Note that you may still be closed for commissions even if you have some workload to
               spare. See
               <router-link
                   :to="{name: 'BuyAndSell', params: {question: 'why-commissions-disabled'}}"
@@ -511,7 +536,7 @@
             <p>You can effectively disable AWOO's slot management by setting your Slot count to a number
               so high you'll never reach it. You can then open and close yourself with the
               <router-link
-                  :to="{name: 'Settings', params: {username: viewer.username, tabName: 'options'}}"
+                  :to="{name: 'Settings', params: {username: viewer!.username, tabName: 'options'}}"
                   v-if="isRegistered"
               >Commissions Closed setting.
               </router-link>
@@ -526,13 +551,13 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How can I invoice customers, or track orders not made on the site?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -544,38 +569,45 @@
                 AWOO
               </router-link>
               can help you keep track of these orders. You can create a new invoice from your
-              <router-link :to="{name: 'Sales', params: {username: viewer.username}}"
-                           v-if="isRegistered && viewer.artist_mode"
-              >sales page</router-link><span v-else>sales page</span>. Just click the green button in the lower right to
+              <router-link :to="{name: 'Sales', params: {username: viewer!.username}}"
+                           v-if="isRegistered && viewer!.artist_mode"
+              >sales page
+              </router-link>
+              <span v-else>sales page</span>. Just click the green button in the lower right to
               get started!
             </p>
             <p>Invoices can do several neat things. For instance:</p>
             <ul>
-              <li>You can specify an email or Artconomy user name to send the invoice to in order to collect payment.</li>
+              <li>You can specify an email or Artconomy user name to send the invoice to in order to collect payment.
+              </li>
               <li>You can use your existing product listings as a template for pricing and workload management.</li>
               <li>You can prevent AWOO from tracking any impact on your workload if the piece is already finished, and
-                you just need to collect payment or send the finished piece.</li>
+                you just need to collect payment or send the finished piece.
+              </li>
               <li>You can handle tasks that have already been paid, but which impact your workload, so
-                AWOO can keep track of them.</li>
+                AWOO can keep track of them.
+              </li>
               <li>You can issue a completely custom order not related to any product you currently have listed.</li>
               <li>You can create an order that doesn't have the customer's information-- useful if you want to track the
-                impact of an outside project or commission but don't need to send updates to anyone.</li>
+                impact of an outside project or commission but don't need to send updates to anyone.
+              </li>
             </ul>
             <p>
               Invoices can always be issued, regardless of whether or not your commissions are closed, or a product is
-              normally unavailable. <strong>Please be cautious when taking orders this way if you already have a full workload--</strong>
+              normally unavailable. <strong>Please be cautious when taking orders this way if you already have a full
+              workload--</strong>
               failing to deliver pieces in a timely manner can affect your reputation, and it is better to keep promises
               you have already made than to make new ones.
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>How does waitlisting work?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -585,8 +617,10 @@
             <ul>
               <li>You want to gauge interest in a commission type by letting people pre-order it.</li>
               <li>You're fully booked, but you want to keep track of interest for clients who are waiting.</li>
-              <li>You have a <a href="https://www.findlaw.com/legalblogs/small-business/top-5-tips-to-keep-raffles-contests-legal/#section-1-2-no-purchase-necessary">
-                no-entry-cost raffle</a> where customers enter commission information.</li>
+              <li>You have a <a
+                  href="https://www.findlaw.com/legalblogs/small-business/top-5-tips-to-keep-raffles-contests-legal/#section-1-2-no-purchase-necessary">
+                no-entry-cost raffle</a> where customers enter commission information.
+              </li>
             </ul>
             <p>Wailists are currently only available to Landscape subscribers. Waitlisted orders have no commitment on
               the part of the artist-- they don't have to be taken in any particular order and they don't have to be
@@ -595,13 +629,13 @@
               If a new order arrives and you wish to waitlist it, click the waitlist button at the top of the order.</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>Why are my commissions disabled?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -625,22 +659,26 @@
             </ul>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>Can I use PayPal?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
-            <p><strong>You can!</strong> You can track an order and handle its payment off-site with PayPal. If you have a
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'Landscape'}}">Landscape subscription,</router-link>
+            <p><strong>You can!</strong> You can track an order and handle its payment off-site with PayPal. If you have
+              a
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'Landscape'}}">Landscape subscription,
+              </router-link>
               Artconomy can generate
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'Landscape'}}">invoices on PayPal for you,</router-link>
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'Landscape'}}">invoices on PayPal for you,
+              </router-link>
               and add orders to your queue once those invoices are paid.
               However, you might want to consider using
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link> instead.
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
+              instead.
             </p>
             <p>
               PayPal has several key limitations:
@@ -663,16 +701,17 @@
             <p>However, if you need to use PayPal, such as if Shield is not supported in your country or you need
               invoicing features Artconomy does not yet support, you can integrate Artconomy and PayPal together.
               Setup for PayPal integration is in your
-              <router-link :to="{name: 'MyView', params: {viewName: 'Premium'}}">Premium Settings.</router-link></p>
+              <router-link :to="{name: 'MyView', params: {viewName: 'Premium'}}">Premium Settings.</router-link>
+            </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-content>
-        <v-expansion-panel-header>
+      <v-expansion-panel-text>
+        <v-expansion-panel-title>
           <strong>How does Artconomy compare to Patreon?</strong>
-        </v-expansion-panel-header>
+        </v-expansion-panel-title>
         <v-card>
           <v-card-text>
             <p>
@@ -681,7 +720,8 @@
               donors.
             </p>
             <p>
-              We believe that services like Patreon and Artconomy are best used together to help artists achieve their goals of
+              We believe that services like Patreon and Artconomy are best used together to help artists achieve their
+              goals of
               self-sufficiency from their artistic work.
             </p>
             <p>
@@ -702,17 +742,18 @@
               Artconomy does not have this problem, as each commission is tied to a specific seller who pays
               individually for their pieces. Thankfully one does not need to exclusively use Patreon or Artconomy.
             </p>
-            <p>Artconomy may add functionality like Patreon has in the future, but for now remains focused on building the
+            <p>Artconomy may add functionality like Patreon has in the future, but for now remains focused on building
+              the
               best freelance art business toolkit.</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>What are Featured Products?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -730,17 +771,17 @@
             <p>
               Featured products may change and are rotated on the front page at random. If you believe there is a
               product that should be considered for featured status,
-              <a href="#" @click.prevent="setSupport(true)">please contact support</a>.
+              <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact support</a>.
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>Is Artconomy Secure?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -773,7 +814,7 @@
               mind when developing our products. You are always advised to use
               <router-link
                   v-if="isRegistered"
-                  :to="{name: 'Settings', params: {username: viewer.username, tabName: 'credentials', subTabName: 'two-factor'}}">
+                  :to="{name: 'Settings', params: {username: viewer!.username, tabName: 'credentials', subTabName: 'two-factor'}}">
                 Two-factor authentication, configurable in your settings,
               </router-link>
               <span v-else>
@@ -785,13 +826,13 @@
               ask for your password.</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-content>
-        <v-expansion-panel-header>
+      <v-expansion-panel-text>
+        <v-expansion-panel-title>
           <strong>How do I get paid?</strong>
-        </v-expansion-panel-header>
+        </v-expansion-panel-title>
         <v-card>
           <v-card-text>
             <p>
@@ -800,7 +841,7 @@
               auto withdraw, in which case
               <router-link
                   v-if="isRegistered"
-                  :to="{name: 'Settings', params: {username: viewer.username, tabName: 'payment', subTabName: 'disbursement'}}"
+                  :to="{name: 'Settings', params: {username: viewer!.username, tabName: 'payment', subTabName: 'disbursement'}}"
               >
                 you may submit a withdrawal request.
               </router-link>
@@ -808,17 +849,18 @@
                       you may submit a withdrawal request.
                     </span>
               Payouts take up to 5 business days to complete, but usually complete in 2-3. If you're having an issue
-              with your payout, <a href="#" @click.prevent="setSupport(true)">please contact support!</a>
+              with your payout, <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact
+              support!</a>
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>Does Artconomy Support Cryptocurrency Payments?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -827,13 +869,13 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header>
+      <v-expansion-panel-title>
         <strong>Does Artconomy Support Auctions?</strong>
-      </v-expansion-panel-header>
-      <v-expansion-panel-content>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -841,11 +883,12 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header><strong>Does Artconomy Support the Sale of Physical Goods?</strong></v-expansion-panel-header>
-      <v-expansion-panel-content>
+      <v-expansion-panel-title><strong>Does Artconomy Support the Sale of Physical Goods?</strong>
+      </v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -859,11 +902,11 @@
               precalculate these shipping costs.</p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
     <v-expansion-panel>
-      <v-expansion-panel-header><strong>Does Artconomy handle digital download sales?</strong></v-expansion-panel-header>
-      <v-expansion-panel-content>
+      <v-expansion-panel-title><strong>Does Artconomy handle digital download sales?</strong></v-expansion-panel-title>
+      <v-expansion-panel-text>
         <v-card>
           <v-card-text>
             <p>
@@ -873,49 +916,50 @@
             </p>
           </v-card-text>
         </v-card>
-      </v-expansion-panel-content>
+      </v-expansion-panel-text>
     </v-expansion-panel>
   </v-expansion-panels>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
-import {paramHandleArray} from '@/lib/lib'
+import {BASE_URL} from '@/lib/lib'
 import QuestionSet from '@/components/views/faq/mixins/question-set'
 import {FormController} from '@/store/forms/form-controller'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {SingleController} from '@/store/singles/controller'
 import StripeCountryList from '@/types/StripeCountryList'
 
-const buySell = [
-  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'compare-and-contrast-plans', 'landscape',
-  'fee-calculation',
-  'virtual-table', 'bank-accounts',
-  'workload-management', 'outside-orders', 'waitlists',
-  'why-commissions-disabled',
-  'paypal', 'patreon-comparison', 'featured-products', 'security',
-  'payouts', 'crypto-currencies',
-  'auctions', 'physical-goods', 'digital-downloads',
-]
 @Component({
   components: {AcLoadSection},
 })
-export default class BuyAndSell extends mixins(Viewer, QuestionSet) {
-    public searchForm: FormController = null as unknown as FormController
-    public stripeCountries: SingleController<StripeCountryList> = null as unknown as SingleController<StripeCountryList>
-    @paramHandleArray('question', buySell)
-    public tab!: number
+class BuyAndSell extends mixins(Viewer, QuestionSet) {
+  public searchForm: FormController = null as unknown as FormController
+  public stripeCountries: SingleController<StripeCountryList> = null as unknown as SingleController<StripeCountryList>
+  public conBadge = new URL('/static/images/con-badge.jpg', BASE_URL).href
+  public questions = [
+    'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'compare-and-contrast-plans', 'landscape',
+    'fee-calculation',
+    'virtual-table', 'bank-accounts',
+    'workload-management', 'outside-orders', 'waitlists',
+    'why-commissions-disabled',
+    'paypal', 'patreon-comparison', 'featured-products', 'security',
+    'payouts', 'crypto-currencies',
+    'auctions', 'physical-goods', 'digital-downloads',
+  ]
 
-    public searchOpen() {
-      this.searchForm.reset()
-      this.$router.push({name: 'SearchProducts'})
-    }
+  public searchOpen() {
+    this.searchForm.reset()
+    this.$router.push({name: 'SearchProducts'})
+  }
 
-    public created() {
-      this.searchForm = this.$getForm('search')
-      this.stripeCountries = this.$getSingle('stripeCountries')
-      this.stripeCountries.get()
-    }
+  public created() {
+    this.searchForm = this.$getForm('search')
+    this.stripeCountries = this.$getSingle('stripeCountries')
+    this.stripeCountries.get()
+  }
 }
+
+export default toNative(BuyAndSell)
 </script>

@@ -3,19 +3,20 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 
-  @Component
-export default class SubjectiveComponent extends mixins(Subjective) {
+@Component
+class SubjectiveComponent extends mixins(Subjective) {
   public get id() {
     if (this.$route) {
-      return (this.$route.name + '-component').toLowerCase()
+      return (String(this.$route.name) + '-component').toLowerCase()
     } else {
       return 'subjective-component'
     }
   }
 }
+export default toNative(SubjectiveComponent)
 </script>
 
 <style scoped>

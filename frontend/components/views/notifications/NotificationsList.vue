@@ -1,26 +1,28 @@
 <template>
-  <v-row no-gutters >
+  <v-row no-gutters>
     <ac-paginated :show-pagination="false" :list="notifications">
       <template v-slot:default>
         <v-col cols="12" md="10" offset-md="1">
-          <v-list three-line>
+          <v-list lines="three">
             <template v-for="(notification, index) in notifications.list">
               <div
-                v-if="dynamicComponent(notification.x.event.type)"
-                @click.left.capture="clickRead(notification)"
-                @click.middle.capture="clickRead(notification)"
-                :key="'container-' + index"
+                  v-if="dynamicComponent(notification.x!.event.type)"
+                  @click.left.capture="clickRead(notification)"
+                  @click.middle.capture="clickRead(notification)"
+                  :key="'container-' + index"
               >
-                <component :is="dynamicComponent(notification.x.event.type)"
-                           :key="notification.x.id" v-observe-visibility="markRead(notification)"
+                <component :is="dynamicComponent(notification.x!.event.type)"
+                           :key="notification.x!.id" v-observe-visibility="markRead(notification)"
                            class="notification" :notification="notification.x"
                 />
               </div>
               <v-list-item v-else :key="index">
-                <v-list-item-content>
-                  {{error(notification.x)}}
-                  {{notification.x}}
-                </v-list-item-content>
+                <v-row>
+                  <v-col>
+                    {{error(notification.x)}}
+                    {{notification.x}}
+                  </v-col>
+                </v-row>
               </v-list-item>
               <v-divider v-if="index + 1 < notifications.list.length" :key="`divider-${index}`"/>
             </template>
@@ -58,7 +60,7 @@ import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
 import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcReferenceUploaded from '@/components/views/notifications/events/AcReferenceUploaded.vue'
 import AcSubmissionShared from '@/components/views/notifications/events/AcSubmissionShared.vue'
 import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlistUpdated.vue'
@@ -101,9 +103,11 @@ import AcRevisionApproved from '@/components/views/notifications/events/AcRevisi
     AcRevisionApproved,
   },
 })
-export default class NotificationsList extends mixins(NotificationsListBase) {
+class NotificationsList extends mixins(NotificationsListBase) {
   error(x: any) {
     console.error(x)
   }
 }
+
+export default toNative(NotificationsList)
 </script>

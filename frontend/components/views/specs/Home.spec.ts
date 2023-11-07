@@ -1,36 +1,40 @@
-import {cleanUp, createVuetify, docTarget, setViewer, vueSetup, mount, genAnon} from '@/specs/helpers'
-import {Wrapper} from '@vue/test-utils'
-import {Vue} from 'vue/types/vue'
+import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import Home from '@/components/views/Home.vue'
 import {genUser} from '@/specs/helpers/fixtures'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import Vuetify from 'vuetify/lib'
+import Empty from '@/specs/helpers/dummy_components/empty'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let store: ArtStore
 let searchForm: FormController
-let vuetify: Vuetify
 
 describe('Home.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
+    searchForm = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts', async() => {
+  test('Mounts', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {}}, stubs: ['router-link']})
+    wrapper = mount(Home, vueSetup({
+      store,
+      mocks: {$router: {}},
+      stubs: ['router-link'],
+    }))
   })
-  it('Handles several lists', async() => {
+  test('Handles several lists', async() => {
     setViewer(store, genUser())
-    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {}}, stubs: ['router-link']})
+    wrapper = mount(Home, vueSetup({
+      store,
+      mocks: {$router: {}},
+      stubs: ['router-link'],
+    }))
     const vm = wrapper.vm as any
     vm.featured.setList([])
     vm.featured.ready = true
@@ -58,58 +62,89 @@ describe('Home.vue', () => {
     vm.characters.fetching = false
     await vm.$nextTick()
   })
-  it('Performs a premade search for products', async() => {
+  test('Performs a premade search for products', async() => {
     setViewer(store, genUser())
-    const push = jest.fn()
-    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link'], attachTo: docTarget()})
+    const push = vi.fn()
+    wrapper = mount(Home, vueSetup({
+      store,
+      mocks: {$router: {push}},
+      stubs: ['router-link'],
+    }))
     await wrapper.vm.$nextTick()
-    wrapper.findAll('.v-tab').at(2).trigger('click')
+    await wrapper.findAll('.v-tab').at(2)!.trigger('click')
     await wrapper.vm.$nextTick()
     await wrapper.vm.$nextTick()
-    wrapper.find('.low-price-more').trigger('click')
+    await wrapper.find('.low-price-more').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchProducts', query: {max_price: '30.00', page: '1', size: '24'}})
-  })
-  it('Performs a search for characters', async() => {
-    setViewer(store, genUser())
-    const push = jest.fn()
-    wrapper = mount(Home, {
-      localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link'], attachTo: docTarget(),
+    expect(push).toHaveBeenCalledWith({
+      name: 'SearchProducts',
+      query: {
+        max_price: '30.00',
+        page: '1',
+        size: '24',
+      },
     })
-    searchForm.fields.q.update('test')
-    wrapper.find('.search-characters').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchCharacters', query: {page: '1', size: '24'}})
-    expect(searchForm.fields.q.value).toBe('')
   })
-  it('Performs a search for submissions', async() => {
+  test('Performs a search for characters', async() => {
     setViewer(store, genUser())
-    const push = jest.fn()
-    wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link']})
+    const push = vi.fn()
+    wrapper = mount(Home, vueSetup({
+      store,
+      mocks: {$router: {push}},
+      stubs: ['router-link'],
+    }))
     searchForm.fields.q.update('test')
+    await wrapper.find('.search-characters').trigger('click')
     await wrapper.vm.$nextTick()
-    wrapper.find('.search-submissions').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchSubmissions', query: {page: '1', size: '24'}})
+    expect(push).toHaveBeenCalledWith({
+      name: 'SearchCharacters',
+      query: {
+        page: '1',
+        size: '24',
+      },
+    })
     expect(searchForm.fields.q.value).toBe('')
   })
-  it('Performs a search for Products', async() => {
+  test('Performs a search for submissions', async() => {
+    setViewer(store, genUser())
+    const push = vi.fn()
+    wrapper = mount(Home, vueSetup({
+      store,
+      mocks: {$router: {push}},
+      stubs: ['router-link'],
+    }))
+    searchForm.fields.q.update('test')
+    await wrapper.vm.$nextTick()
+    await wrapper.find('.search-submissions').trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(push).toHaveBeenCalledWith({
+      name: 'SearchSubmissions',
+      query: {
+        page: '1',
+        size: '24',
+      },
+    })
+    expect(searchForm.fields.q.value).toBe('')
+  })
+  test('Performs a search for Products', async() => {
     setViewer(store, genAnon())
-    const push = jest.fn()
-    wrapper = mount(
-      Home,
-      {
-        localVue,
-        store,
-        vuetify,
-        mocks: {$router: {push}},
-        stubs: ['router-link'],
-        attachTo: docTarget(),
-      })
+    const push = vi.fn()
+    wrapper = mount(Home, vueSetup({
+      store,
+      mocks: {$router: {push}},
+      stubs: ['router-link'],
+    }))
     searchForm.fields.q.update('test')
     await wrapper.vm.$nextTick()
     wrapper.find('.home-search-field input').trigger('keyup')
     await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({name: 'SearchProducts', query: {page: '1', size: '24', q: 'test'}})
+    expect(push).toHaveBeenCalledWith({
+      name: 'SearchProducts',
+      query: {
+        page: '1',
+        size: '24',
+        q: 'test',
+      },
+    })
   })
 })

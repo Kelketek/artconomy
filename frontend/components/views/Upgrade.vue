@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-card color="grey darken-3">
+    <v-card color="grey-darken-3">
       <v-card-text>
         <v-row no-gutters>
           <v-col>
@@ -9,13 +9,14 @@
         </v-row>
       </v-card-text>
     </v-card>
-    <v-tabs-items v-model="tab">
-      <v-tab-item value="selection">
+    <v-window v-model="tab">
+      <v-window-item value="selection">
         <ac-load-section :controller="pricing">
           <template v-slot:default v-if="selection === null">
             <v-row>
               <v-col cols="12" md="4" class="mt-3" v-for="(plan, index) in plans" :key="plan.id">
-                <v-card style="height: 100%" :color="$vuetify.theme.currentTheme.darkBase.darken2" class="d-flex flex-column">
+                <v-card style="height: 100%" :color="$vuetify.theme.current.colors['well-darken-2']"
+                        class="d-flex flex-column">
                   <v-card-text>
                     <v-row>
                       <v-col class="text-center" cols="12">
@@ -31,15 +32,11 @@
                       <v-col cols="12">
                         <v-list two-line>
                           <v-list-item v-if="features[plan.id].length && plans.length > 1 && index !== 0">
-                            <v-list-item-content>
-                              <strong>...All that, plus:</strong>
-                            </v-list-item-content>
+                            <strong>...All that, plus:</strong>
                           </v-list-item>
-                          <template v-for="(feature, index) in features[plan.id]">
-                            <v-list-item :key="feature">
-                              <v-list-item-content>
-                                {{ feature }}
-                              </v-list-item-content>
+                          <template v-for="(feature, index) in features[plan.id]" :key="feature">
+                            <v-list-item>
+                              {{ feature }}
                             </v-list-item>
                             <v-divider :key="`divider-${feature}`" v-if="index !== (features[plan.id].length - 1)"/>
                           </template>
@@ -58,29 +55,40 @@
                                 <span class="text-h4">FREE</span>
                               </span>
                             </div>
-                            <div>Shield fee: {{plan.shield_percentage_price}}%<sup v-if="pricing.x.international_conversion_percentage">*</sup> <span v-if="plan.shield_static_price">+ ${{plan.shield_static_price.toFixed(2)}}</span></div>
-                            <div v-if="plan.per_deliverable_price">Non-shield order tracking fee: ${{plan.per_deliverable_price.toFixed(2)}}</div>
+                            <div>Shield fee: {{plan.shield_percentage_price}}%<sup
+                                v-if="pricing.x!.international_conversion_percentage">*</sup> <span
+                                v-if="plan.shield_static_price">+ ${{plan.shield_static_price.toFixed(2)}}</span></div>
+                            <div v-if="plan.per_deliverable_price">Non-shield order tracking fee:
+                              ${{plan.per_deliverable_price.toFixed(2)}}
+                            </div>
                             <div>
                               <div v-if="plan.max_simultaneous_orders">
-                                Up to {{plan.max_simultaneous_orders}} order<span v-if="!(plan.max_simultaneous_orders === 1)">s</span> at a time
+                                Up to {{plan.max_simultaneous_orders}} order<span
+                                  v-if="!(plan.max_simultaneous_orders === 1)">s</span> at a time
                               </div>
                               <div v-else-if="!plan.per_deliverable_price">
                                 Track Unlimited Orders
                               </div>
                             </div>
-                            <div v-if="pricing.x.international_conversion_percentage">
-                              <sup>* Transfers outside the US include an additional {{pricing.x.international_conversion_percentage}}% conversion fee.</sup>
+                            <div v-if="pricing.x!.international_conversion_percentage">
+                              <sup>* Transfers outside the US include an additional
+                                {{pricing.x!.international_conversion_percentage}}% conversion fee.</sup>
                             </div>
                           </v-card-text>
                         </v-card>
                       </v-col>
                       <v-col cols="12">
-                        <v-chip color="gray" light v-if="plan.name === viewer.next_service_plan && !plan.monthly_charge"><strong>Your Current Plan</strong></v-chip>
+                        <v-chip color="gray" variant="flat" light
+                                v-if="plan.name === loggedInViewer.next_service_plan && !plan.monthly_charge"><strong>Your
+                          Current Plan</strong></v-chip>
                         <template v-else>
-                          <v-btn color="primary" v-if="!(plan.name === viewer.next_service_plan)" @click="selection=plan.name">
+                          <v-btn color="primary" variant="flat" v-if="!(plan.name === loggedInViewer.next_service_plan)"
+                                 @click="selection=plan.name">
                             Switch to {{ plan.name }}!
                           </v-btn>
-                          <v-btn v-else :to="{name: 'Premium', params: {username: viewer.username}}">Manage {{  plan.name }}</v-btn>
+                          <v-btn v-else :to="{name: 'Premium', params: {username: viewer!.username}}" variant="flat">Manage {{
+                            plan.name }}
+                          </v-btn>
                         </template>
                       </v-col>
                     </v-row>
@@ -90,8 +98,8 @@
             </v-row>
           </template>
         </ac-load-section>
-      </v-tab-item>
-      <v-tab-item value="payment">
+      </v-window-item>
+      <v-window-item value="payment">
         <v-card v-if="selectedPlan && nonFree">
           <ac-form @submit.prevent="paymentSubmit">
             <ac-form-container v-bind="paymentForm.bind">
@@ -100,7 +108,7 @@
                   <ac-card-manager
                       ref="cardManager"
                       :payment="true"
-                      :username="viewer.username"
+                      :username="viewer!.username"
                       :cc-form="paymentForm"
                       :field-mode="true"
                       v-model="paymentForm.fields.card_id.model"
@@ -112,15 +120,15 @@
                       :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
                   />
                 </v-col>
-                <v-col cols="12" class="pricing-container text-center" >
+                <v-col cols="12" class="pricing-container text-center">
                   <strong>Monthly charge: ${{selectedPlan.monthly_charge}}</strong> <br/>
                   <div v-if="selectedPlan.per_deliverable_price">
                     Any orders tracked which aren't covered by shield protection will be billed at
                     ${{selectedPlan.per_deliverable_price.toFixed(2)}} at the end of your billing cycle.
                   </div>
                   <div class="mt-2 text-center">
-                    <v-btn @click="selection=null" class="mx-1">Go back</v-btn>
-                    <v-btn type="submit" color="primary" class="mx-1">
+                    <v-btn @click="selection=null" class="mx-1" variant="flat">Go back</v-btn>
+                    <v-btn type="submit" color="primary" class="mx-1" variant="flat">
                       Start Service
                     </v-btn>
                     <p>Premium services, as with all use of Artconomy's offerings, are subject to the
@@ -133,41 +141,43 @@
             </ac-form-container>
           </ac-form>
         </v-card>
-      </v-tab-item>
-      <v-tab-item value="completed">
+      </v-window-item>
+      <v-window-item value="completed">
         <v-col cols="12" class="mt-4 text-center" v-if="selectedPlan">
-          <i class="fa fa-5x fa-check-circle" /><br/>
+          <v-icon icon="mdi-check-circle" size="x-large" />
           <div v-if="selectedPlan.monthly_charge">
             <p><strong>Your payment has been received!</strong></p>
             <p>We've received your payment and your account has been upgraded! Visit your
-              <router-link :to="{name: 'Premium', params: {username: viewer.username}}">premium settings page</router-link>
+              <router-link :to="{name: 'Premium', params: {username: viewer!.username}}">premium settings page
+              </router-link>
               to view and manage your upgraded account settings.
             </p>
           </div>
           <div v-else>
             <p><strong>You're all set!</strong></p>
             <p>Thank you for using Artconomy!</p>
-            <div v-if="nextUrl"><v-btn color="primary" :to="nextUrl">Onward!</v-btn></div>
-            <div v-else><v-btn :to="{name: 'Profile', params: {username: subject.username}}">Return to my Profile</v-btn></div>
+            <div v-if="nextUrl">
+              <v-btn color="primary" :to="nextUrl" variant="flat">Onward!</v-btn>
+            </div>
+            <div v-else>
+              <v-btn :to="{name: 'Profile', params: {username: subject!.username}}" variant="flat">Return to my Profile</v-btn>
+            </div>
           </div>
         </v-col>
-      </v-tab-item>
-    </v-tabs-items>
+      </v-window-item>
+    </v-window>
   </v-container>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import {FormController} from '@/store/forms/form-controller'
-import {baseCardSchema, artCall} from '@/lib/lib'
-import {Watch} from 'vue-property-decorator'
+import {artCall, baseCardSchema} from '@/lib/lib'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin'
-import {ListController} from '@/store/lists/controller'
-import {ServicePlan} from '@/types/ServicePlan'
 import Formatting from '@/mixins/formatting'
 import Subjective from '@/mixins/subjective'
 import {User} from '@/store/profiles/types/User'
@@ -175,13 +185,18 @@ import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 
 @Component({
-  components: {AcForm, AcFormContainer, AcCardManager, AcLoadSection},
+  components: {
+    AcForm,
+    AcFormContainer,
+    AcCardManager,
+    AcLoadSection,
+  },
 })
-export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatting) {
+class Upgrade extends mixins(Subjective, StripeHostMixin, Formatting) {
   public privateView = true
   public pricing = null as unknown as SingleController<Pricing>
   public paymentForm = null as unknown as FormController
-  public selection: null|string = null
+  public selection: null | string = null
   public paid = false
 
   public get tab() {
@@ -192,6 +207,10 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
     } else {
       return 'payment'
     }
+  }
+
+  public get loggedInViewer(): User {
+    return this.viewer as User
   }
 
   public get processor() {
@@ -219,8 +238,8 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
   }
 
   public get features() {
-    const featureMap: {[key: number]: string[]} = {}
-    const existingFeatures: {[key: string]: boolean} = {}
+    const featureMap: { [key: number]: string[] } = {}
+    const existingFeatures: { [key: string]: boolean } = {}
     for (const plan of this.plans) {
       const planFeatures = []
       for (const feature of plan.features) {
@@ -247,7 +266,7 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
   }
 
   @Watch('selectedPlan.monthly_charge')
-  public setEndpoint(value: undefined|number) {
+  public setEndpoint(value: undefined | number) {
     if (value === undefined) {
       return
     }
@@ -263,7 +282,7 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
     if (!(query && query.next && !Array.isArray(query.next))) {
       return false
     }
-    const resolved = this.$router.resolve(query.next).resolved
+    const resolved = this.$router.resolve(query.next)
     if (resolved.name === 'NotFound') {
       return false
     }
@@ -286,7 +305,10 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
       return
     }
     this.paymentForm.fields.service.update(value)
-    this.clientSecret.params = {...this.clientSecret.params, service: value}
+    this.clientSecret.params = {
+      ...this.clientSecret.params,
+      service: value,
+    }
     this.updateIntent()
     if (this.switchIsFree) {
       this.paymentForm.sending = true
@@ -311,7 +333,10 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
   public created() {
     // @ts-ignore
     window.payment = this
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/', persist: true})
+    this.pricing = this.$getSingle('pricing', {
+      endpoint: '/api/sales/pricing-info/',
+      persist: true,
+    })
     this.pricing.get()
     const schema = baseCardSchema('/api/sales/premium/')
     schema.fields = {
@@ -321,25 +346,28 @@ export default class Upgrade extends mixins(Subjective, StripeHostMixin, Formatt
     }
     this.paymentForm = this.$getForm('serviceUpgrade', schema)
     this.clientSecret = this.$getSingle(
-      'upgrade__clientSecret', {
-        endpoint: '/api/sales/premium/intent/',
-        params: {service: this.selection},
-      })
+        'upgrade__clientSecret', {
+          endpoint: '/api/sales/premium/intent/',
+          params: {service: this.selection},
+        })
   }
 }
+
+export default toNative(Upgrade)
 </script>
 
 <style scoped>
-  .card-bottom {
-    position: absolute;
-    bottom: 0;
-    height: 75px;
-  }
+.card-bottom {
+  position: absolute;
+  bottom: 0;
+  height: 75px;
+}
 
-  .service-container {
-    padding-bottom: 75px;
-  }
-  .item-flatten {
-    display: unset;
-  }
+.service-container {
+  padding-bottom: 75px;
+}
+
+.item-flatten {
+  display: unset;
+}
 </style>

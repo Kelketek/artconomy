@@ -1,7 +1,13 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="characterLink">
-    <span slot="title"><ac-link :to="characterLink">{{ character.name }}</ac-link> was tagged by <ac-link :to="userLink">{{user.username}}</ac-link></span>
-    <span slot="subtitle">in <ac-link :to="submissionLink">"{{submission.title}}"</ac-link></span>
+    <template v-slot:title>
+      <ac-link :to="characterLink">{{ character.name }}</ac-link>
+      was tagged by
+      <ac-link :to="userLink">{{user.username}}</ac-link>
+    </template>
+    <template v-slot:subtitle>in
+      <ac-link :to="submissionLink">"{{submission.title}}"</ac-link>
+    </template>
   </ac-base-notification>
 </template>
 
@@ -13,7 +19,10 @@ import {profileLink} from '@/lib/lib'
 
 export default {
   name: 'ac-char-tag',
-  components: {AcBaseNotification, AcLink},
+  components: {
+    AcBaseNotification,
+    AcLink,
+  },
   mixins: [Notification],
   computed: {
     user() {
@@ -23,7 +32,10 @@ export default {
       return profileLink(this.user)
     },
     submissionLink() {
-      return {name: 'Submission', params: {submissionId: this.submission.id}}
+      return {
+        name: 'Submission',
+        params: {submissionId: this.submission.id},
+      }
     },
     submission() {
       return this.notification.event.data.submission
@@ -32,7 +44,13 @@ export default {
       return this.notification.event.data.character
     },
     characterLink() {
-      return {name: 'Character', params: {username: this.character.user.username, characterName: this.character.name}}
+      return {
+        name: 'Character',
+        params: {
+          username: this.character.user.username,
+          characterName: this.character.name,
+        },
+      }
     },
   },
 }

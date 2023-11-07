@@ -1,141 +1,132 @@
 import {genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, setViewer, vueSetup, mount} from '@/specs/helpers'
-import {Wrapper} from '@vue/test-utils'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
-import Vue, {VueConstructor} from 'vue'
 import mockAxios from '@/specs/helpers/mock-axios'
-import {CharacterController} from '@/store/characters/controller'
 import {genCharacter} from '@/store/characters/specs/fixtures'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import Empty from '@/specs/helpers/dummy_components/empty'
 
 describe('Profile controller', () => {
   let store: ArtStore
-  let localVue: VueConstructor
-  let wrapper: Wrapper<Vue> | null
+  let wrapper: VueWrapper<any>
   beforeEach(() => {
     mockAxios.reset()
-    localVue = vueSetup()
     store = createStore()
-    wrapper = null
   })
   afterEach(() => {
-    cleanUp(wrapper || undefined)
+    cleanUp(wrapper)
   })
-  it('Updates the route if the character name changed', async() => {
+  test('Updates the route if the character name changed', async() => {
     const user = genUser()
     setViewer(store, user)
-    const replace = jest.fn()
-    wrapper = mount(CharacterController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox:Kai', schema: {username: 'Fox', characterName: 'Kai'}},
-      mocks: {
-        $route: {
-          name: 'Place', params: {username: 'Fox', characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Place', params: {username: 'Fox', characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+          },
+          $router: {replace},
         },
-        $router: {replace},
-      },
-
+      }),
     })
-    const vm = wrapper.vm as any
-    vm.profile.setX(genCharacter())
+    const controller = wrapper.vm.$getCharacter('Fox:Kai', {username: 'Fox', characterName: 'Kai'})
+    controller.profile.setX(genCharacter())
     await wrapper.vm.$nextTick();
-    (wrapper.vm as any).profile.updateX({name: 'Zorro'})
+    controller.profile.updateX({name: 'Zorro'})
     await wrapper.vm.$nextTick()
     expect(replace).toHaveBeenCalled()
     expect(replace).toHaveBeenCalledWith({
       name: 'Place', params: {username: 'Fox', characterName: 'Zorro'}, query: {stuff: 'things'}, hash: 'Wheee',
-    },
-    )
+    })
   })
-  it('Leaves the route alone if no username is in it.', async() => {
+  test('Leaves the route alone if no username is in it.', async() => {
     const user = genUser()
     setViewer(store, user)
-    const replace = jest.fn()
-    wrapper = mount(CharacterController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox:Kai', schema: {username: 'Fox', characterName: 'Kai'}},
-      mocks: {
-        $route: {
-          name: 'Place', params: {characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Place', params: {characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+          },
+          $router: {replace},
         },
-        $router: {replace},
-      },
-
+      }),
     })
-    const vm = wrapper.vm as any
-    vm.profile.setX(genCharacter())
+    const controller = wrapper.vm.$getCharacter('Fox:Kai', {username: 'Fox', characterName: 'Kai'})
+    controller.profile.setX(genCharacter())
     await wrapper.vm.$nextTick();
-    (wrapper.vm as any).profile.updateX({name: 'Zorro'})
+    controller.profile.updateX({name: 'Zorro'})
     await wrapper.vm.$nextTick()
     expect(replace).not.toHaveBeenCalled()
   })
-  it('Leaves the route alone if no character name in it.', async() => {
+  test('Leaves the route alone if no character name in it.', async() => {
     const user = genUser()
     setViewer(store, user)
-    const replace = jest.fn()
-    wrapper = mount(CharacterController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox:Kai', schema: {username: 'Fox', characterName: 'Kai'}},
-      mocks: {
-        $route: {
-          name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee',
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee',
+          },
+          $router: {replace},
         },
-        $router: {replace},
-      },
-
+      }),
     })
-    const vm = wrapper.vm as any
-    vm.profile.setX(genCharacter())
+    const controller = wrapper.vm.$getCharacter('Fox:Kai', {username: 'Fox', characterName: 'Kai'})
+    controller.profile.setX(genCharacter())
     await wrapper.vm.$nextTick();
-    (wrapper.vm as any).profile.updateX({name: 'Zorro'})
+    controller.profile.updateX({name: 'Zorro'})
     await wrapper.vm.$nextTick()
     expect(replace).not.toHaveBeenCalled()
   })
-  it('Leaves the route alone if a different character name is in it.', async() => {
+  test('Leaves the route alone if a different character name is in it.', async() => {
     const user = genUser()
     setViewer(store, user)
-    const replace = jest.fn()
-    wrapper = mount(CharacterController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox:Kai', schema: {username: 'Fox', characterName: 'Kai'}},
-      mocks: {
-        $route: {
-          name: 'Place', params: {username: 'Fox', characterName: 'Fern'}, query: {stuff: 'things'}, hash: 'Wheee',
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Place', params: {username: 'Fox', characterName: 'Fern'}, query: {stuff: 'things'}, hash: 'Wheee',
+          },
+          $router: {replace},
         },
-        $router: {replace},
-      },
-
+      }),
     })
-    const vm = wrapper.vm as any
-    vm.profile.setX(genCharacter())
+    const controller = wrapper.vm.$getCharacter('Fox:Kai', {username: 'Fox', characterName: 'Kai'})
+    controller.profile.setX(genCharacter())
     await wrapper.vm.$nextTick();
-    (wrapper.vm as any).profile.updateX({name: 'Zorro'})
+    controller.profile.updateX({name: 'Zorro'})
     await wrapper.vm.$nextTick()
     expect(replace).not.toHaveBeenCalled()
   })
-  it('Leaves the route alone if a different username is present', async() => {
+  test('Leaves the route alone if a different username is present', async() => {
     const user = genUser()
     setViewer(store, user)
-    const replace = jest.fn()
-    wrapper = mount(CharacterController, {
-      localVue,
-      store,
-      propsData: {initName: 'Fox:Kai', schema: {username: 'Fox', characterName: 'Kai'}},
-      mocks: {
-        $route: {
-          name: 'Place', params: {username: 'Bob', characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+    const replace = vi.fn()
+    wrapper = mount(Empty, {
+      ...vueSetup({
+        store,
+        mocks: {
+          $route: {
+            name: 'Place', params: {username: 'Bob', characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+          },
+          $router: {replace},
         },
-        $router: {replace},
-      },
-
+      }),
     })
-    const vm = wrapper.vm as any
-    vm.profile.setX(genCharacter())
+    const controller = wrapper.vm.$getCharacter('Fox:Kai', {username: 'Fox', characterName: 'Kai'})
+    controller.profile.setX(genCharacter())
     await wrapper.vm.$nextTick();
-    (wrapper.vm as any).profile.updateX({name: 'Zorro'})
+    controller.profile.updateX({name: 'Zorro'})
     await wrapper.vm.$nextTick()
     expect(replace).not.toHaveBeenCalled()
   })

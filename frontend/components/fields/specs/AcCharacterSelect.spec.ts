@@ -1,53 +1,61 @@
-import {Wrapper} from '@vue/test-utils'
-import Vue from 'vue'
-import {cleanUp, createVuetify, docTarget, flushPromises, rs, setViewer, vueSetup, vuetifySetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup} from '@/specs/helpers'
 import AcCharacterSelect from '@/components/fields/AcCharacterSelect.vue'
 import mockAxios from '@/__mocks__/axios'
-import Vuetify from 'vuetify/lib'
 import {ArtStore, createStore} from '@/store'
 import {genUser} from '@/specs/helpers/fixtures'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-jest.useFakeTimers()
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+vi.useFakeTimers()
+let wrapper: VueWrapper<any>
 let store: ArtStore
 
 describe('AcCharacterSelect.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
-    jest.clearAllTimers()
+    vi.clearAllTimers()
     cleanUp(wrapper)
   })
-  it('Accepts a response from the server on its query', async() => {
+  test('Accepts a response from the server on its query', async() => {
     setViewer(store, genUser())
     const tagList: number[] = []
     wrapper = mount(AcCharacterSelect, {
-      localVue,
-      vuetify,
-      store,
-
-      attachTo: docTarget(),
-      propsData: {value: tagList},
+      ...vueSetup({store}),
+      props: {modelValue: tagList},
     })
-    wrapper.find('input').setValue('Test')
+    wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    await jest.runAllTimers()
+    vi.runAllTimers()
     mockAxios.mockResponse(rs({
-      results: [
-        {name: 'Test', id: 1, user: {username: 'Fox'}},
-        {name: 'Test2', id: 2, user: {username: 'Dude'}},
-      ],
-    },
+        results: [
+          {
+            name: 'Test',
+            id: 1,
+            user: {username: 'Fox'},
+          },
+          {
+            name: 'Test2',
+            id: 2,
+            user: {username: 'Dude'},
+          },
+        ],
+      },
     ))
     await flushPromises()
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).items).toEqual([
-      {name: 'Test', id: 1, user: {username: 'Fox'}},
-      {name: 'Test2', id: 2, user: {username: 'Dude'}},
+      {
+        name: 'Test',
+        id: 1,
+        user: {username: 'Fox'},
+      },
+      {
+        name: 'Test2',
+        id: 2,
+        user: {username: 'Dude'},
+      },
     ])
   })
 })

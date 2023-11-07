@@ -1,7 +1,11 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title"><router-link :to="assetLink">{{event.target.username}} posted a Journal:</router-link></span>
-    <span slot="subtitle"><router-link :to="assetLink">{{event.data.journal.subject}}</router-link></span>
+    <template v-slot:title>
+      <router-link :to="assetLink">{{event.target.username}} posted a Journal:</router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="assetLink">{{event.data.journal.subject}}</router-link>
+    </template>
   </ac-base-notification>
 </template>
 

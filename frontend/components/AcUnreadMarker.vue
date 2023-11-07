@@ -1,27 +1,36 @@
 <template>
   <div class="unread-container">
-    <v-btn fab x-small color="primary" v-if="!read" top right absolute class="no-mouse"><v-icon>new_releases</v-icon></v-btn>
+    <v-btn icon size="x-small" color="primary" v-if="!read" top right absolute class="no-mouse badge-pin">
+      <v-icon icon="mdi-alert-decagram"/>
+    </v-btn>
     <slot></slot>
   </div>
 </template>
 
 <style>
-  .unread-container {
-    position: relative;
-  }
-  .no-mouse {
-    pointer-events: none;
-  }
+.unread-container {
+  position: relative;
+}
+
+.no-mouse {
+  pointer-events: none;
+}
+.badge-pin {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  z-index: 1;
+}
 </style>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 
 @Component
-export default class AcUnreadMarker extends Vue {
+class AcUnreadMarker extends Vue {
   @Prop({required: true})
   public read!: boolean
 }
+
+export default toNative(AcUnreadMarker)
 </script>

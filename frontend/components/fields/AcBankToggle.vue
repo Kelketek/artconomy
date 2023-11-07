@@ -1,10 +1,10 @@
 <template>
   <ac-load-section :controller="stripeAccounts">
     <template v-slot:default>
-      <v-container v-if="value === UNSET || value === IN_SUPPORTED_COUNTRY" class="pa-0">
+      <v-container v-if="modelValue === UNSET || modelValue === IN_SUPPORTED_COUNTRY" class="pa-0">
         <v-card v-if="(needStripe || restartStripe) && (!hasActiveStripe)">
           <v-card-text>
-            <ac-form-container v-bind="stripeSetupForm.bind">
+            <ac-form-container v-bind="stripeSetupForm.bind" v-if="stripeCountries.x">
               <v-row>
                 <v-col cols="12">
                   <ac-bound-field
@@ -12,14 +12,20 @@
                       label="Select your country"
                       :items="stripeCountries.x.countries"
                   ></ac-bound-field>
-                  <v-btn @click="stripeSetupForm.submit().then(redirect)" :disabled="!stripeSetupForm.fields.country.value" color="primary">Set up Account</v-btn>
+                  <v-btn @click="stripeSetupForm.submit().then(redirect)"
+                         variant="flat"
+                         :disabled="!stripeSetupForm.fields.country.value" color="primary">Set up Account
+                  </v-btn>
                 </v-col>
                 <v-col cols="12">
-                  <v-subheader>Can't find your country?</v-subheader>
+                  <v-list-subheader>Can't find your country?</v-list-subheader>
                 </v-col>
                 <v-col cols="12">
-                  <p>If your country isn't supported, or you wish to forgo shield protection altogether, click the button below. You'll still be able to list products, manage orders, and use other features of the site, but you'll have to handle payment on your own.</p>
-                  <v-btn @click="() => $emit('input', NO_SUPPORTED_COUNTRY)" color="danger">Disable Shield</v-btn>
+                  <p>If your country isn't supported, or you wish to forgo shield protection altogether, click the
+                    button below. You'll still be able to list products, manage orders, and use other features of the
+                    site, but you'll have to handle payment on your own.</p>
+                  <v-btn @click="() => $emit('update:modelValue', NO_SUPPORTED_COUNTRY)" color="danger" variant="flat">Disable Shield
+                  </v-btn>
                 </v-col>
               </v-row>
             </ac-form-container>
@@ -31,14 +37,18 @@
               <v-row>
                 <v-col cols="12">
                   <v-card-text>
-                    You've started your account setup but it's not yet finished. Hit the button below to complete setup. Be sure to upload your ID/documents in the section that talks about 'needing verification.'
+                    You've started your account setup but it's not yet finished. Hit the button below to complete setup.
+                    Be sure to upload your ID/documents in the section that talks about 'needing verification.'
                   </v-card-text>
                 </v-col>
                 <v-col cols="6" class="text-center">
-                  <v-btn @click="stripeSetupForm.submit().then(redirect)" :disabled="!stripeSetupForm.fields.country.value" color="primary">Finish Setup</v-btn>
+                  <v-btn @click="stripeSetupForm.submit().then(redirect)"
+                         variant="flat"
+                         :disabled="!stripeSetupForm.fields.country.value" color="primary">Finish Setup
+                  </v-btn>
                 </v-col>
                 <v-col cols="6" class="text-center">
-                  <v-btn @click="() => restartStripe = true" color="danger">Start Over</v-btn>
+                  <v-btn @click="() => restartStripe = true" color="danger" variant="flat">Start Over</v-btn>
                 </v-col>
               </v-row>
             </ac-form-container>
@@ -47,16 +57,18 @@
       </v-container>
       <v-row v-else-if="manageBanks">
         <h2>You may now list products!</h2>
-        <p>Your products will not be protected by Artconomy Shield, but you will still be able to list products, take orders, and use other features of the site.</p>
-        <v-btn color="primary" @click="() => $emit('input', UNSET)" class="have-us-account">Re-enable Shield</v-btn>
+        <p>Your products will not be protected by Artconomy Shield, but you will still be able to list products, take
+          orders, and use other features of the site.</p>
+        <v-btn color="primary" @click="() => $emit('update:modelValue', UNSET)" class="have-us-account" variant="flat">Re-enable
+          Shield
+        </v-btn>
       </v-row>
     </template>
   </ac-load-section>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
-import {Prop, Watch} from 'vue-property-decorator'
+import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
 import {ListController} from '@/store/lists/controller'
 import {FormController} from '@/store/forms/form-controller'
@@ -79,11 +91,18 @@ declare type RemoteFlag = {
 }
 
 @Component({
-  components: {AcFormContainer, AcLoadSection, AcConfirmation, AcBoundField, AcFormDialog},
+  components: {
+    AcFormContainer,
+    AcLoadSection,
+    AcConfirmation,
+    AcBoundField,
+    AcFormDialog,
+  },
+  emits: ['update:modelValue'],
 })
-export default class AcBankToggleStripe extends mixins(Subjective) {
+class AcBankToggleStripe extends mixins(Subjective) {
   @Prop({required: true})
-  public value!: BANK_STATUSES
+  public modelValue!: BANK_STATUSES
 
   @Prop({default: false})
   public manageBanks!: boolean
@@ -108,7 +127,7 @@ export default class AcBankToggleStripe extends mixins(Subjective) {
   }
 
   /* istanbul ignore next */
-  public redirect({link}: {link: string}) {
+  public redirect({link}: { link: string }) {
     window.location.href = link
   }
 
@@ -147,14 +166,23 @@ export default class AcBankToggleStripe extends mixins(Subjective) {
         {
           endpoint: `/api/sales/account/${this.username}/stripe-accounts/link/`,
           fields: {
-            country: {value: '', validators: [{name: 'required'}]},
+            country: {
+              value: '',
+              validators: [{name: 'required'}],
+            },
             url: {value: window.location + ''},
           },
         },
     )
-    this.stripeCountries = this.$getSingle('stripeCountries', {endpoint: '/api/sales/stripe-countries/', persist: true, x: {countries: []}})
+    this.stripeCountries = this.$getSingle('stripeCountries', {
+      endpoint: '/api/sales/stripe-countries/',
+      persist: true,
+      x: {countries: []},
+    })
     this.stripeCountries.get()
     this.stripeAccounts.firstRun()
   }
 }
+
+export default toNative(AcBankToggleStripe)
 </script>

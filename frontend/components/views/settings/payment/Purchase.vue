@@ -25,8 +25,8 @@
                           :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
                       >
                         <template v-slot:new-card-button>
-                          <v-col class="text-center" cols="12" >
-                            <v-btn color="primary" type="submit" class="add-card-button">Add Card</v-btn>
+                          <v-col class="text-center" cols="12">
+                            <v-btn color="primary" type="submit" class="add-card-button" variant="flat">Add Card</v-btn>
                           </v-col>
                         </template>
                       </ac-card-manager>
@@ -43,12 +43,11 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import AcCardManager from './AcCardManager.vue'
 import {FormController} from '@/store/forms/form-controller'
 import {baseCardSchema, flatten} from '@/lib/lib'
-import {Watch} from 'vue-property-decorator'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
@@ -59,8 +58,16 @@ import {SingleController} from '@/store/singles/controller'
 import ClientSecret from '@/types/ClientSecret'
 import {User} from '@/store/profiles/types/User'
 
-@Component({components: {AcForm, AcLoadSection, AcFormContainer, AcCardManager, AcCard}})
-export default class Purchase extends mixins(Subjective) {
+@Component({
+  components: {
+    AcForm,
+    AcLoadSection,
+    AcFormContainer,
+    AcCardManager,
+    AcCard,
+  },
+})
+class Purchase extends mixins(Subjective) {
   public cards: ListController<CreditCardToken> = null as unknown as ListController<CreditCardToken>
   public ccForm: FormController = null as unknown as FormController
   public clientSecret = null as unknown as SingleController<ClientSecret>
@@ -110,9 +117,9 @@ export default class Purchase extends mixins(Subjective) {
     const schema = baseCardSchema(this.url)
     delete schema.fields.save_card
     this.clientSecret = this.$getSingle(
-    `${flatten(this.username)}__new_card__clientSecret`, {
-      endpoint: `/api/sales/account/${this.username}/cards/setup-intent/`,
-    })
+        `${flatten(this.username)}__new_card__clientSecret`, {
+          endpoint: `/api/sales/account/${this.username}/cards/setup-intent/`,
+        })
     this.fetchSecret()
     this.ccForm = this.$getForm(flatten(`${flatten(this.username)}__cards__new`), baseCardSchema(this.url))
     const viewer = this.viewer as User
@@ -133,4 +140,6 @@ export default class Purchase extends mixins(Subjective) {
     })
   }
 }
+
+export default toNative(Purchase)
 </script>

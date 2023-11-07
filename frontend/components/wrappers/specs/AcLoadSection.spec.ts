@@ -1,56 +1,41 @@
-import Vuetify from 'vuetify/lib'
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {ListController} from '@/store/lists/controller'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 describe('AcLoadSection.vue', () => {
-  const localVue = vueSetup()
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   let store: ArtStore
-  let empty: Wrapper<Vue>
+  let empty: VueWrapper<any>
   let list: ListController<any>
-  let vuetify: Vuetify
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    empty = mount(Empty, {
-      localVue,
-      store,
-      vuetify,
-
-    })
+    empty = mount(Empty, vueSetup({store}))
     list = empty.vm.$getList('demo', {endpoint: '/endpoint/'})
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Shows a prompt if the controller fails', async() => {
+  test('Shows a prompt if the controller fails', async() => {
     store.commit('lists/demo/setFailed', true)
     wrapper = mount(AcLoadSection, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {controller: list},
-
-      attachTo: docTarget(),
+      ...vueSetup({store}),
+      props: {controller: list},
     })
     expect(wrapper.find('.default-loaded-data').exists()).toBe(false)
     expect(wrapper.find('.retry-button').exists()).toBe(true)
     expect(wrapper.find('.support-button').exists()).toBe(true)
   })
-  it('Opens the support menu when the support button is clicked', async() => {
+  test('Opens the support menu when the support button is clicked', async() => {
     store.commit('lists/demo/setFailed', true)
     wrapper = mount(AcLoadSection, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {controller: list},
-
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+      }),
+      props: {controller: list},
     })
     const button = wrapper.find('.support-button')
     expect(button.exists()).toBe(true)
@@ -59,17 +44,18 @@ describe('AcLoadSection.vue', () => {
     await wrapper.vm.$nextTick()
     expect(store.state.showSupport).toBe(true)
   })
-  it('Does not show the spinner if loadOnGrow is set and the list has a length.', async() => {
+  test('Does not show the spinner if loadOnGrow is set and the list has a length.', async() => {
     store.commit('lists/demo/setFailed', true)
     list.setList([{id: 1}, {id: 2}])
     list.fetching = true
     wrapper = mount(AcLoadSection, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {controller: list, loadOnGrow: false},
-
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+      }),
+      props: {
+        controller: list,
+        loadOnGrow: false,
+      },
     })
     await wrapper.vm.$nextTick()
     let button = wrapper.find('.loading-spinner-container')

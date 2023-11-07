@@ -17,6 +17,6 @@ export interface ListState<T> {
   failed: boolean,
   paginated: boolean,
   stale: boolean,
-  params: QueryParams|null,
+  params: QueryParams,
   socketSettings: ListSocketSettings|null,
 }

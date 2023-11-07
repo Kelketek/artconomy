@@ -1,32 +1,29 @@
-import Vuetify from 'vuetify/lib'
-import {createVuetify, vueSetup, mount} from '@/specs/helpers'
+import {mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {ListController} from '@/store/lists/controller'
 import {CreditCardToken} from '@/types/CreditCardToken'
 import AcStarField from '@/components/fields/AcStarField.vue'
+import {describe, expect, beforeEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
 let cards: ListController<CreditCardToken>
-let vuetify: Vuetify
 
 describe('AcSavedCardField.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
-  it('Sends the right information', async() => {
-    mount(Empty)
+  test('Sends the right information', async() => {
+    mount(Empty, vueSetup({store}))
     const wrapper = mount(AcStarField, {
-      localVue,
-      store,
-      vuetify,
-      propsData: {cards, value: null},
+      ...vueSetup({store}),
+      props: {
+        cards,
+        modelValue: null,
+      },
     })
-    const spyEmit = jest.spyOn(wrapper.vm, '$emit')
-    wrapper.findAll('.v-icon').at(2).trigger('click')
+    await wrapper.findAll('.v-icon').at(2)!.trigger('click')
     await wrapper.vm.$nextTick()
-    expect(spyEmit).toHaveBeenCalledWith('input', 3)
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([3])
   })
 })

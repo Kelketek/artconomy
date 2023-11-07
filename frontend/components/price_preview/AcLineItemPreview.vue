@@ -16,16 +16,14 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import {Prop} from 'vue-property-decorator'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import LineItem from '@/types/LineItem'
-import Component from 'vue-class-component'
 import LineAccumulator from '@/types/LineAccumulator'
 import {LineTypes} from '@/types/LineTypes'
 import {Decimal} from 'decimal.js'
 
 @Component
-export default class AcLineItemPreview extends Vue {
+class AcLineItemPreview extends Vue {
   @Prop({required: true})
   public line!: LineItem
 
@@ -84,7 +82,7 @@ export default class AcLineItemPreview extends Vue {
       }
       return label
     }
-    const BASIC_TYPES: {[key: number]: string} = {
+    const BASIC_TYPES: { [key: number]: string } = {
       0: 'Base price',
       2: 'Shield protection',
       3: 'Landscape bonus',
@@ -101,4 +99,6 @@ export default class AcLineItemPreview extends Vue {
     return BASIC_TYPES[this.line.type] || 'Unknown'
   }
 }
+
+export default toNative(AcLineItemPreview)
 </script>

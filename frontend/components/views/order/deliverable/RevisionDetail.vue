@@ -2,40 +2,56 @@
   <v-container fluid>
     <v-row no-gutters>
       <v-col cols="12" style="position: relative">
-        <v-btn fab absolute top left :to="backUrl" color="primary"><v-icon>arrow_back</v-icon></v-btn>
+        <v-btn icon absolute top left :to="backUrl" color="primary">
+          <v-icon icon="mdi-arrow-left"/>
+        </v-btn>
         <ac-load-section :controller="revision">
           <template v-slot:default>
-            <ac-asset thumb-name="gallery" :asset="revision.x" :contain="true" />
-            <ac-form-container v-bind="approveForm.bind">
+            <ac-asset thumb-name="gallery" :asset="revision.x" :contain="true"/>
+            <ac-form-container v-bind="approveForm.bind" v-if="revision.x">
               <v-row>
                 <v-col class="text-center" cols="12" :lg="isBuyer && !isFinal ? '6' : '12'" v-if="isBuyer || archived">
-                  <v-btn color="green" :href="revision.x.file.full" download><v-icon left>cloud_download</v-icon>Download</v-btn>
+                  <v-btn color="green" :href="revision.x.file.full" variant="flat" download>
+                    <v-icon left icon="mdi-cloud-download"/>
+                    Download
+                  </v-btn>
                 </v-col>
-                <v-col class="text-center" cols="12" :lg="6" v-if="isBuyer && !isFinal && (!archived || revision.x.approved_on)">
-                  <v-btn @click="approveForm.submitThen(revision.updateX)" color="primary" v-if="!revision.x.approved_on"><v-icon left>check_circle</v-icon>Approve</v-btn>
-                  <span v-else>Approved on {{formatDateTime(revision.x.approved_on)}}</span>
+                <v-col class="text-center" cols="12" :lg="6"
+                       v-if="isBuyer && !isFinal && (!archived || revision.x.approved_on)">
+                  <v-btn @click="approveForm.submitThen(revision.updateX)" color="primary" variant="flat"
+                         v-if="!revision.x.approved_on">
+                    <v-icon left icon="mdi-check-circle"/>
+                    Approve
+                  </v-btn>
+                  <span v-else-if="revision.x.approved_on">Approved on {{ formatDateTime(revision.x.approved_on) }}</span>
                 </v-col>
                 <v-col class="text-center" cols="6" lg="3" v-else-if="isSeller">
-                  <v-btn fab small color="green" :href="revision.x.file.full" download><v-icon>cloud_download</v-icon></v-btn>
+                  <v-btn icon small color="green" :href="revision.x.file.full" variant="flat" download aria-label="Download">
+                    <v-icon icon="mdi-cloud-download"/>
+                  </v-btn>
                 </v-col>
                 <v-col class="text-center" cols="6" lg="3" v-if="isSeller && isLast && !archived">
-                  <v-btn fab small color="danger" class="delete-revision" @click="handleDelete"><v-icon>delete</v-icon></v-btn>
+                  <v-btn icon small color="danger" class="delete-revision" @click="handleDelete"
+                         aria-label="Delete Revision">
+                    <v-icon icon="mdi-delete"/>
+                  </v-btn>
                 </v-col>
                 <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isLast &&! isFinal && !archived">
-                  <v-btn color="primary" @click="statusEndpoint('complete')()">Mark Final</v-btn>
+                  <v-btn color="primary" @click="statusEndpoint('complete')()" variant="flat">Mark Final</v-btn>
                 </v-col>
                 <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isFinal && !(archived && escrow)">
-                  <v-btn color="primary" @click="statusEndpoint('reopen')()">Unmark Final</v-btn>
+                  <v-btn color="primary" @click="statusEndpoint('reopen')()" variant="flat">Unmark Final</v-btn>
                 </v-col>
                 <v-col class="'text-center" cols="12" v-if="galleryLink">
-                  <v-btn color="green" block :to="galleryLink">
-                    <v-icon>upload</v-icon>
+                  <v-btn color="green" block :to="galleryLink" variant="flat">
+                    <v-icon icon="mdi-upload"/>
                     <span v-if="isSeller">View in Gallery</span><span v-else>View in Collection</span>
                   </v-btn>
                 </v-col>
-                <v-col class="text-center mb-2" cols="12" lg="12" v-else-if="isSeller || (is(COMPLETED) && isRegistered)">
-                  <v-btn color="green" block @click="prepSubmission" class="prep-submission-button">
-                    <v-icon>upload</v-icon>
+                <v-col class="text-center mb-2" cols="12" lg="12"
+                       v-else-if="isSeller || (is(COMPLETED) && isRegistered)">
+                  <v-btn color="green" block @click="prepSubmission" class="prep-submission-button" variant="elevated">
+                    <v-icon icon="mdi-upload"/>
                     <span v-if="isSeller">Add to Gallery</span><span v-else>Add to Collection</span>
                   </v-btn>
                 </v-col>
@@ -45,17 +61,17 @@
         </ac-load-section>
       </v-col>
     </v-row>
-    <ac-comment-section :commentList="revisionComments" :nesting="false" :locked="!isInvolved" :guest-ok="true" :show-history="isArbitrator" />
+    <ac-comment-section :commentList="revisionComments" :nesting="false" :locked="!isInvolved" :guest-ok="true"
+                        :show-history="isArbitrator"/>
   </v-container>
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcAsset from '@/components/AcAsset.vue'
 import {SingleController} from '@/store/singles/controller'
 import Revision from '@/types/Revision'
 import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
-import {Prop} from 'vue-property-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import {ListController} from '@/store/lists/controller'
@@ -74,7 +90,7 @@ import Formatting from '@/mixins/formatting'
     AcAsset,
   },
 })
-export default class RevisionDetail extends mixins(DeliverableMixin, Formatting) {
+class RevisionDetail extends mixins(DeliverableMixin, Formatting) {
   @Prop()
   public revisionId!: string
 
@@ -96,18 +112,23 @@ export default class RevisionDetail extends mixins(DeliverableMixin, Formatting)
   public get backUrl() {
     return {
       name: `${this.baseName}DeliverableRevisions`,
-      params: {deliverableId: this.deliverableId, orderId: this.orderId},
+      params: {
+        deliverableId: this.deliverableId,
+        orderId: this.orderId,
+      },
     }
   }
 
-  public get submissionMap(): {[key: number]: number} {
+  public get submissionMap(): { [key: number]: number } {
     /* istanbul ignore if */
     if (!this.revision.x) {
       return {}
     }
-    const map: {[key: number]: number} = {}
+    const map: { [key: number]: number } = {}
 
-    this.revision.x.submissions.map((entry) => { map[entry.owner_id] = entry.id }) // eslint-disable-line array-callback-return
+    this.revision.x.submissions.map((entry) => {
+      map[entry.owner_id] = entry.id
+    }) // eslint-disable-line array-callback-return
     return map
   }
 
@@ -128,7 +149,10 @@ export default class RevisionDetail extends mixins(DeliverableMixin, Formatting)
     if (!this.gallerySubmissionId) {
       return null
     }
-    return {name: 'Submission', params: {submissionId: this.gallerySubmissionId + ''}}
+    return {
+      name: 'Submission',
+      params: {submissionId: this.gallerySubmissionId + ''},
+    }
   }
 
   public get isFinal() {
@@ -154,8 +178,8 @@ export default class RevisionDetail extends mixins(DeliverableMixin, Formatting)
       endpoint: `${this.url}revisions/${this.revisionId}/`,
     })
     this.revision.get().then(
-      () => markRead(this.revision, 'sales.Revision')).then(
-      () => this.revisions.replace(this.revision.x as Revision),
+        () => markRead(this.revision, 'sales.Revision')).then(
+        () => this.revisions.replace(this.revision.x as Revision),
     )
     this.approveForm = this.$getForm(`${this.prefix}__approve${this.revisionId}`, {
       endpoint: `${this.url}revisions/${this.revisionId}/approve/`,
@@ -171,4 +195,6 @@ export default class RevisionDetail extends mixins(DeliverableMixin, Formatting)
     this.revisionComments.firstRun()
   }
 }
+
+export default toNative(RevisionDetail)
 </script>

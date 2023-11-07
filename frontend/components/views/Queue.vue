@@ -6,13 +6,19 @@
         <v-container fluid class="pt-2 px-0">
           <v-row>
             <v-col cols="12" class="text-right">
-              <v-btn color="green" :to="{name: 'Products', params: {username}}"><v-icon left>add</v-icon>Place an order!</v-btn>
-              <v-btn class="ml-2" @click="openListing"><v-icon>open_in_new</v-icon>Stream list display</v-btn>
+              <v-btn color="green" :to="{name: 'Products', params: {username}}" variant="flat">
+                <v-icon left icon="mdi-add"/>
+                Place an order!
+              </v-btn>
+              <v-btn class="ml-2" @click="openListing" variant="elevated" v-if="isCurrent">
+                <v-icon icon="mdi-open-in_new"/>
+                Stream list display
+              </v-btn>
             </v-col>
           </v-row>
           <v-row no-gutters>
-            <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x.id">
-              <ac-order-preview :order="order" type="sale" :username="username" />
+            <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x!.id">
+              <ac-order-preview :order="order" type="sale" :username="username"/>
             </v-col>
           </v-row>
         </v-container>
@@ -23,7 +29,10 @@
             This artist has no commissions in progress.
           </v-col>
           <v-col cols="12" class="text-center">
-            <v-btn color="green" :to="{name: 'Products', params: {username}}"><v-icon left>add</v-icon>Place an order!</v-btn>
+            <v-btn color="green" :to="{name: 'Products', params: {username}}" variant="flat">
+              <v-icon left icon="mdi-add"/>
+              Place an order!
+            </v-btn>
           </v-col>
         </v-row>
       </template>
@@ -32,7 +41,7 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
@@ -40,10 +49,16 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import {ListController} from '@/store/lists/controller'
 import Order from '@/types/Order'
+
 @Component({
-  components: {AcOrderPreview, AcPaginated, AcProfileHeader, AcLoadSection},
+  components: {
+    AcOrderPreview,
+    AcPaginated,
+    AcProfileHeader,
+    AcLoadSection,
+  },
 })
-export default class Queue extends mixins(Subjective) {
+class Queue extends mixins(Subjective) {
   public list: ListController<Order> = null as unknown as ListController<Order>
 
   public openListing() {
@@ -58,4 +73,6 @@ export default class Queue extends mixins(Subjective) {
     this.list.get().catch(this.setError)
   }
 }
+
+export default toNative(Queue)
 </script>

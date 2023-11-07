@@ -1,25 +1,21 @@
-import {cleanUp, createVuetify, mockCardMount, mount, vueSetup} from '@/specs/helpers'
-import {Wrapper} from '@vue/test-utils'
-import Vue from 'vue'
+import {cleanUp, mockCardMount, mount, vueSetup} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
 import {ArtStore, createStore} from '@/store'
-import Vuetify from 'vuetify/lib'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let store: ArtStore
-let vuetify: Vuetify
 
 describe('AcStripeCharge.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Mounts and preps', async() => {
-    wrapper = mount(AcStripeCharge, {localVue, store, vuetify})
+  test('Mounts and preps', async() => {
+    wrapper = mount(AcStripeCharge, vueSetup({store}))
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.card.mount).toBe(mockCardMount)

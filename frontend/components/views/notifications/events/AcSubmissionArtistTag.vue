@@ -1,9 +1,17 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink">
-    <span slot="title">An artist has been tagged on <router-link
-        :to="assetLink">{{event.target.title}}!</router-link></span>
-    <span slot="subtitle"><router-link :to="{name: 'Profile', params: {username: userName}}">{{userName}}</router-link> tagged <router-link
-        :to="{name: 'Profile', params: {username: artistName}}">{{artistName}}!</router-link></span>
+    <template v-slot:title>An artist has been tagged on
+      <router-link
+          :to="assetLink">{{event.target.title}}!
+      </router-link>
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="{name: 'Profile', params: {username: userName}}">{{userName}}</router-link>
+      tagged
+      <router-link
+          :to="{name: 'Profile', params: {username: artistName}}">{{artistName}}!
+      </router-link>
+    </template>
   </ac-base-notification>
 </template>
 
@@ -20,7 +28,10 @@ export default {
       if (!this.event.target) {
         return
       }
-      return {name: 'Submission', params: {assetID: this.event.target.id}}
+      return {
+        name: 'Submission',
+        params: {assetID: this.event.target.id},
+      }
     },
     userName() {
       return this.event.data.user.username

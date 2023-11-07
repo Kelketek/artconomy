@@ -1,11 +1,10 @@
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Component, Prop} from 'vue-facing-decorator'
+import {ArtVue} from '@/lib/lib'
 
-@Component
-export default class Dialog extends Vue {
+@Component({emits: ['update:modelValue']})
+export default class Dialog extends ArtVue {
   @Prop({default: false})
-  public value!: boolean
+  public modelValue!: boolean
 
   @Prop({default: false})
   public large!: boolean
@@ -15,7 +14,7 @@ export default class Dialog extends Vue {
 
   /* istanbul ignore next */
   public get width() {
-    switch (this.$vuetify.breakpoint.name) {
+    switch (this.$vuetify.display.name) {
       // These top two should be ignored due to the fullscreen directive, but...
       case 'xs': return '100vw'
       case 'sm': return '100vw'
@@ -27,7 +26,7 @@ export default class Dialog extends Vue {
 
   /* istanbul ignore next */
   public get transition() {
-    if (this.$vuetify.breakpoint.smAndDown) {
+    if (this.$vuetify.display.smAndDown) {
       return 'dialog-bottom-transition'
     } else {
       return 'fade-transition'
@@ -35,14 +34,14 @@ export default class Dialog extends Vue {
   }
 
   public get fullscreen() {
-    return this.$vuetify.breakpoint.smAndDown
+    return this.$vuetify.display.smAndDown
   }
 
   public get toggle() {
-    return this.value
+    return this.modelValue
   }
 
   public set toggle(value) {
-    this.$emit('input', value)
+    this.$emit('update:modelValue', value)
   }
 }

@@ -41,6 +41,7 @@ export function genSubmission(overrides?: Partial<Submission>): Submission {
     hits: 5,
     favorites: false,
     commission_link: null,
+    order: null,
     ...overrides,
   }
 }

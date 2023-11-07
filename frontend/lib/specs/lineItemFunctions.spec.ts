@@ -2,11 +2,12 @@ import {genLineItem, genPricing} from '@/lib/specs/helpers'
 import {getTotals, invoiceLines, linesByPriority, reckonLines} from '@/lib/lineItemFunctions'
 import {Decimal} from 'decimal.js'
 import {genProduct} from '@/specs/helpers/fixtures'
+import {describe, expect, test} from 'vitest'
 
 describe('lineItemFunctions.ts', () => {
   // NOTE: Comment under each test label the name of its
   // matching backend test so that we can easily keep them in sync.
-  it('Sorts by priority', () => {
+  test('Sorts by priority', () => {
     // test_line_sort
     const lines = [
       genLineItem({amount: 5, priority: 0}),
@@ -31,7 +32,7 @@ describe('lineItemFunctions.ts', () => {
     ]
     expect(prioritySet).toEqual(expectedResult)
   })
-  it('Gets the total for a single line', () => {
+  test('Gets the total for a single line', () => {
     // test_get_totals_single_line
     const source = [genLineItem({amount: 10, priority: 0})]
     const result = getTotals(source)
@@ -44,7 +45,7 @@ describe('lineItemFunctions.ts', () => {
         ]),
       })
   })
-  it('Gets the totals for a percentage modifier', () => {
+  test('Gets the totals for a percentage modifier', () => {
     // test_get_totals_percentage_line
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -62,7 +63,7 @@ describe('lineItemFunctions.ts', () => {
       },
     )
   })
-  it('Gets the total with a cascading percentage modifier', () => {
+  test('Gets the total with a cascading percentage modifier', () => {
     // test_get_totals_percentage_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -78,7 +79,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Gets the total with a backed in, cascading percentage modifier', () => {
+  test('Gets the total with a backed in, cascading percentage modifier', () => {
     // test_get_totals_percentage_backed_in_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -98,7 +99,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Gets totals with a line item that has both percentage and static modifiers', () => {
+  test('Gets totals with a line item that has both percentage and static modifiers', () => {
     // test_get_totals_percentage_with_static
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -114,7 +115,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles a cascading static+percentage modifier', () => {
+  test('Handles a cascading static+percentage modifier', () => {
     // test_get_totals_percentage_with_static_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -132,7 +133,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles cascading percentage along a stacked static amount', () => {
+  test('Handles cascading percentage along a stacked static amount', () => {
     // test_get_totals_percentage_no_cascade_amount
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -150,7 +151,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles lines with concurrent priorities', () => {
+  test('Handles lines with concurrent priorities', () => {
     // test_get_totals_concurrent_priorities
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -168,7 +169,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles cascading concurrent priorities', () => {
+  test('Handles cascading concurrent priorities', () => {
     // test_get_totals_concurrent_priorities_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -186,7 +187,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles multi-priority cascading', () => {
+  test('Handles multi-priority cascading', () => {
     // test_get_totals_multi_priority_cascade
     const source = [
       genLineItem({amount: 10, priority: 0}),
@@ -204,7 +205,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles multi-cascading on concurrent lower priority items', () => {
+  test('Handles multi-cascading on concurrent lower priority items', () => {
     // test_get_totals_multi_priority_cascade_on_concurrent_priority
     const source = [
       genLineItem({amount: 8, priority: 0}),
@@ -224,7 +225,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Reckons lines', () => {
+  test('Reckons lines', () => {
     // test_reckon_lines
     const source = [
       genLineItem({amount: 1, priority: 0}),
@@ -233,7 +234,7 @@ describe('lineItemFunctions.ts', () => {
     ]
     expect(reckonLines(source)).toEqual(new Decimal('10'))
   })
-  it('Handles fixed-point calculations sanely', () => {
+  test('Handles fixed-point calculations sanely', () => {
     // test_fixed_point_decisions
     const source = [
       genLineItem({amount: 100, priority: 0}),
@@ -253,7 +254,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles fixed-point calculation scenario 2 sanely', () => {
+  test('Handles fixed-point calculation scenario 2 sanely', () => {
     // test_fixed_point_calculations_2
     const source = [
       genLineItem({amount: 20, priority: 0, id: 1}),
@@ -273,7 +274,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles fixed-point calculation scenario 3 sanely', () => {
+  test('Handles fixed-point calculation scenario 3 sanely', () => {
     // test_fixed_point_calculations_3
     const source = [
       genLineItem({amount: 20, priority: 0}),
@@ -293,7 +294,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles a complex discount scenario', () => {
+  test('Handles a complex discount scenario', () => {
     // test_complex_discount
     const source = [
       genLineItem({amount: 0.01, priority: 0, id: 1}),
@@ -325,7 +326,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles a zero total', () => {
+  test('Handles a zero total', () => {
     // test_zero_total
     const source = [
       genLineItem({amount: 0, priority: 0}),
@@ -341,7 +342,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles negative distribution', () => {
+  test('Handles negative distribution', () => {
     // test_negative_distribution
     const source = [
       genLineItem({amount: 1, priority: 0, id: 1}),
@@ -361,7 +362,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles non-cascaded percentages', () => {
+  test('Handles non-cascaded percentages', () => {
     // test_non_cascading_percentage
     const source = [
       genLineItem({amount: 5, priority: 0, id: 1}),
@@ -381,7 +382,7 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
-  it('Handles many transactions divvied up for fees', () => {
+  test('Handles many transactions divvied up for fees', () => {
     // test_handles_many_transactions_divvied_up_for_fees
     const source = [
       genLineItem({amount: 25.00, priority: 0, cascade_amount: false, id: 1}),
@@ -585,7 +586,7 @@ describe('lineItemFunctions.ts', () => {
       discount: new Decimal('0.00'),
     })
   })
-  it('Generates preview line items for a null product', async() => {
+  test('Generates preview line items for a null product', async() => {
     expect(invoiceLines({
       escrowEnabled: true,
       pricing: genPricing(),
@@ -621,7 +622,7 @@ describe('lineItemFunctions.ts', () => {
       },
     ])
   })
-  it('Generates preview line items for a product', async() => {
+  test('Generates preview line items for a product', async() => {
     expect(invoiceLines({
       escrowEnabled: true,
       pricing: genPricing(),
@@ -669,7 +670,7 @@ describe('lineItemFunctions.ts', () => {
       },
     ])
   })
-  it('Generates preview line items for an international product', async() => {
+  test('Generates preview line items for an international product', async() => {
     expect(invoiceLines({
       escrowEnabled: true,
       pricing: genPricing(),
@@ -717,7 +718,7 @@ describe('lineItemFunctions.ts', () => {
       },
     ])
   })
-  it('Generates preview for a table product', async() => {
+  test('Generates preview for a table product', async() => {
     expect(invoiceLines({
       escrowEnabled: true,
       pricing: genPricing(),
@@ -777,7 +778,7 @@ describe('lineItemFunctions.ts', () => {
       },
     ])
   })
-  it('Generates preview line items for a null product with no escrow', async() => {
+  test('Generates preview line items for a null product with no escrow', async() => {
     expect(invoiceLines({
       escrowEnabled: false,
       pricing: genPricing(),
@@ -813,7 +814,7 @@ describe('lineItemFunctions.ts', () => {
       },
     ])
   })
-  it('Generates preview line items for a product with no escrow', async() => {
+  test('Generates preview line items for a product with no escrow', async() => {
     expect(invoiceLines({
       escrowEnabled: false,
       pricing: genPricing(),
@@ -861,7 +862,7 @@ describe('lineItemFunctions.ts', () => {
       },
     ])
   })
-  it('Handles line items for a product with no escrow and a nonsense value', async() => {
+  test('Handles line items for a product with no escrow and a nonsense value', async() => {
     expect(invoiceLines({
       escrowEnabled: false,
       pricing: genPricing(),
@@ -897,7 +898,7 @@ describe('lineItemFunctions.ts', () => {
       },
     ])
   })
-  it('Handles line item for no product, no escrow and a nonsense value', async() => {
+  test('Handles line item for no product, no escrow and a nonsense value', async() => {
     expect(invoiceLines({
       escrowEnabled: false,
       pricing: genPricing(),
@@ -908,7 +909,7 @@ describe('lineItemFunctions.ts', () => {
       planName: 'Basic',
     })).toEqual([])
   })
-  it('Bails if the pricing is not available', async() => {
+  test('Bails if the pricing is not available', async() => {
     expect(invoiceLines({
       escrowEnabled: false,
       pricing: null,
@@ -919,7 +920,7 @@ describe('lineItemFunctions.ts', () => {
       planName: 'Basic',
     })).toEqual([])
   })
-  it('Bails if the plan is unknown', async() => {
+  test('Bails if the plan is unknown', async() => {
     expect(invoiceLines({
       escrowEnabled: false,
       pricing: genPricing(),

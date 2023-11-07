@@ -1,6 +1,6 @@
 export interface TabSpec {
   value: number,
-  text: string,
+  title: string,
   icon: string,
   count?: number,
 }

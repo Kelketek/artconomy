@@ -1,69 +1,130 @@
-import {cleanUp, createVuetify, docTarget, flushPromises, genAnon, rs, setViewer, vueSetup, mount} from '@/specs/helpers'
-import Router from 'vue-router'
+import {cleanUp, flushPromises, genAnon, mount, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {createRouter, createWebHistory, Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
+import {VueWrapper} from '@vue/test-utils'
 import {genArtistProfile, genOrder, genProduct, genUser} from '@/specs/helpers/fixtures'
 import NewOrder from '@/components/views/product/NewOrder.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import mockAxios from '@/__mocks__/axios'
 import {genCharacter} from '@/store/characters/specs/fixtures'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let router: Router
-let vuetify: Vuetify
 
 describe('NewOrder.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    router = new Router({
-      mode: 'history',
+    router = createRouter({
+      history: createWebHistory(),
       routes: [
-        {path: '/test/', name: 'Test', component: Empty},
-        {path: '/commission-agreement/', name: 'CommissionAgreement', component: Empty},
-        {path: '/user/:username/about/', name: 'AboutUser', component: Empty},
-        {path: '/orders/:username/order/:orderId', name: 'Order', component: Empty},
-        {path: '/auth/login', name: 'Login', component: Empty},
-        {path: '/faq/buy-and-sell/', name: 'BuyAndSell', component: Empty},
-        {path: '/orders/:username/order/:orderId/:deliverableId', name: 'Deliverable', component: Empty},
-        {path: '/orders/:username/order/:orderId/:deliverableId/payment', name: 'SaleDeliverablePayment', component: Empty},
-        {path: '/store/:username/products/:productId/order/:stepId?/', name: 'NewOrder', component: Empty},
+        {
+          path: '/',
+          name: 'Home',
+          component: Empty,
+        },
+        {
+          path: '/test/',
+          name: 'Test',
+          component: Empty,
+        },
+        {
+          path: '/commission-agreement/',
+          name: 'CommissionAgreement',
+          component: Empty,
+        },
+        {
+          path: '/user/:username/about/',
+          name: 'AboutUser',
+          component: Empty,
+        },
+        {
+          path: '/orders/:username/order/:orderId',
+          name: 'Order',
+          component: Empty,
+        },
+        {
+          path: '/auth/login/',
+          name: 'Login',
+          component: Empty,
+        },
+        {
+          path: '/faq/buy-and-sell/:question',
+          name: 'BuyAndSell',
+          component: Empty,
+        },
+        {
+          path: '/orders/:username/order/:orderId/:deliverableId',
+          name: 'Deliverable',
+          component: Empty,
+        },
+        {
+          path: '/orders/:username/order/:orderId/:deliverableId/payment',
+          name: 'SaleDeliverablePayment',
+          component: Empty,
+        },
+        {
+          path: '/store/:username/products/:productId/order/:stepId?/',
+          name: 'NewOrder',
+          component: Empty,
+        },
       ],
     })
-    router.push({name: 'NewOrder', params: {productId: '1', username: 'Fox', stepId: '1'}})
-    window.scrollTo = jest.fn()
+    router.push({
+      name: 'NewOrder',
+      params: {
+        productId: '1',
+        username: 'Fox',
+        stepId: '1',
+      },
+    })
+    const mockScrollTo = vi.spyOn(window, 'scrollTo')
+    mockScrollTo.mockImplementationOnce(() => undefined)
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Resets scroll', async() => {
+  test('Resets scroll', async() => {
     const user = genUser()
     setViewer(store, user)
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     await wrapper.vm.$nextTick()
     expect(window.scrollTo).toHaveBeenCalledWith(0, 0)
   })
-  it('Submits a form with a registered user', async() => {
+  test('Submits a form with a registered user', async() => {
     const user = genUser({username: 'OtherPerson'})
     setViewer(store, user)
     wrapper = mount(NewOrder, {
-      localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
     })
     const vm = wrapper.vm as any
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct({id: 1}))
+    vm.orderForm.step = 2
     await vm.$nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = jest.spyOn(vm.$router, 'push')
+    const mockPush = vi.spyOn(vm.$router, 'push')
     vm.orderForm.step = 3
     await vm.$nextTick()
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder()), submitted)
@@ -80,25 +141,42 @@ describe('NewOrder.vue', () => {
       },
     })
   })
-  it('Creates an invoice for an artist', async() => {
+  test('Creates an invoice for an artist', async() => {
     const user = genUser()
     setViewer(store, user)
     wrapper = mount(NewOrder, {
-      localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
     })
     const vm = wrapper.vm as any
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct({id: 1}))
+    vm.orderForm.step = 2
     await vm.$nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = jest.spyOn(vm.$router, 'push')
+    const mockPush = vi.spyOn(vm.$router, 'push')
     vm.orderForm.step = 3
     await vm.$nextTick()
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
-    mockAxios.mockResponse(rs(genOrder({default_path: {name: 'SaleDeliverableOverview', params: {orderId: '1', deliverableId: '5', username: 'Fox'}}})), submitted)
+    mockAxios.mockResponse(rs(genOrder({
+      default_path: {
+        name: 'SaleDeliverableOverview',
+        params: {
+          orderId: '1',
+          deliverableId: '5',
+          username: 'Fox',
+        },
+      },
+    })), submitted)
     await flushPromises()
     await vm.$nextTick()
     expect(mockPush).toHaveBeenCalledWith({
@@ -113,22 +191,33 @@ describe('NewOrder.vue', () => {
       },
     })
   })
-  it('Submits a table order', async() => {
+  test('Submits a table order', async() => {
     const user = genUser()
     setViewer(store, user)
     wrapper = mount(NewOrder, {
-      localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
     })
     const vm = wrapper.vm as any
     vm.subjectHandler.user.makeReady(genUser({is_staff: true}))
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
-    vm.product.makeReady(genProduct({id: 1, table_product: true}))
+    vm.product.makeReady(genProduct({
+      id: 1,
+      table_product: true,
+    }))
+    vm.orderForm.step = 2
     await vm.$nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = jest.spyOn(vm.$router, 'push')
+    const mockPush = vi.spyOn(vm.$router, 'push')
     vm.orderForm.step = 3
     await vm.$nextTick()
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder({
@@ -155,25 +244,33 @@ describe('NewOrder.vue', () => {
       },
     })
   })
-  it('Submits a form with an unregistered user', async() => {
+  test('Submits a form with an unregistered user', async() => {
     setViewer(store, genAnon())
     // Need to be on a route for the 'viewer reset' controller code to be able to run.
     wrapper = mount(NewOrder, {
-      localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}, attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
     })
     const vm = wrapper.vm as any
     await vm.$router.replace({name: 'Test'})
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct({id: 1}))
+    vm.orderForm.step = 2
     await vm.$nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = jest.spyOn(vm.$router, 'push')
-    const mockReplace = jest.spyOn(vm.$router, 'replace')
+    const mockPush = vi.spyOn(vm.$router, 'push')
+    const mockReplace = vi.spyOn(vm.$router, 'replace')
     vm.orderForm.step = 3
     await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
-    wrapper.find('.submit-button').trigger('click')
+    await wrapper.find('.submit-button').trigger('click')
     await vm.$nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder()), submitted)
@@ -194,37 +291,70 @@ describe('NewOrder.vue', () => {
       },
     })
   })
-  it('Fetches character info', async() => {
+  test('Fetches character info', async() => {
     const user = genUser()
     setViewer(store, user)
-    const form = mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+    const form = mount(Empty, vueSetup({store})).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
       step: 1,
       fields: {
         productId: {value: 0},
-        email: {value: '', step: 1, validators: [{name: 'email'}]},
-        private: {value: false, step: 1},
-        characters: {value: [23, 50], step: 2},
-        rating: {value: 0, step: 2},
-        details: {value: '', step: 2},
-        references: {value: [], step: 2},
-        invoicing: {value: false, step: 3},
+        email: {
+          value: '',
+          step: 1,
+          validators: [{name: 'email'}],
+        },
+        private: {
+          value: false,
+          step: 1,
+        },
+        characters: {
+          value: [23, 50],
+          step: 2,
+        },
+        rating: {
+          value: 0,
+          step: 2,
+        },
+        details: {
+          value: '',
+          step: 2,
+        },
+        references: {
+          value: [],
+          step: 2,
+        },
+        invoicing: {
+          value: false,
+          step: 3,
+        },
         // Let there be a 'step 3' even if there's not an actual field there.
-        dummy: {value: '', step: 3},
-        named_price: {value: null, step: 1},
-        escrow_upgrade: {value: false, step: 3},
+        dummy: {
+          value: '',
+          step: 3,
+        },
+        named_price: {
+          value: null,
+          step: 1,
+        },
+        escrow_upgrade: {
+          value: false,
+          step: 3,
+        },
       },
     })
     wrapper = mount(
       NewOrder,
       {
-        localVue,
-        store,
-        vuetify,
-        router,
-        propsData: {productId: '1', username: 'Fox'},
-        attachTo: docTarget(),
+        ...vueSetup({
+          store,
+          extraPlugins: [router],
+        }),
+        props: {
+          productId: '1',
+          username: 'Fox',
+        },
       })
     const vm = wrapper.vm as any
     vm.subjectHandler.user.makeReady(genUser())
@@ -242,10 +372,10 @@ describe('NewOrder.vue', () => {
     expect(vm.initCharacters).toEqual([character])
     expect(vm.showCharacters).toBeTruthy()
   })
-  it('Updates the form when the user is silently registered', async() => {
+  test('Updates the form when the user is silently registered', async() => {
     const user = genAnon()
     setViewer(store, user)
-    const form = mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+    const form = mount(Empty, vueSetup({store})).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
       fields: {
@@ -255,13 +385,34 @@ describe('NewOrder.vue', () => {
         characters: {value: [23, 50]},
         rating: {value: 0},
         details: {value: ''},
-        invoicing: {value: false, step: 3},
-        references: {value: [], step: 2},
-        named_price: {value: null, step: 1},
-        escrow_upgrade: {value: false, step: 3},
+        invoicing: {
+          value: false,
+          step: 3,
+        },
+        references: {
+          value: [],
+          step: 2,
+        },
+        named_price: {
+          value: null,
+          step: 1,
+        },
+        escrow_upgrade: {
+          value: false,
+          step: 3,
+        },
       },
     })
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(form.fields.email.value).toEqual('')
@@ -269,17 +420,26 @@ describe('NewOrder.vue', () => {
     await vm.$nextTick()
     expect(form.fields.email.value).toEqual('boop@snoot.com')
   })
-  it('Sets the details template when starting from nothing.', async() => {
+  test('Sets the details template when starting from nothing.', async() => {
     const user = genAnon()
     setViewer(store, user)
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
     vm.product.makeReady(genProduct({details_template: 'Beep boop'}))
     await vm.$nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('Beep boop')
   })
-  it('Does not set the details template when revisiting.', async() => {
-    const form = mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+  test('Does not set the details template when revisiting.', async() => {
+    mount(Empty, vueSetup({store})).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
       fields: {
@@ -289,22 +449,46 @@ describe('NewOrder.vue', () => {
         characters: {value: [23, 50]},
         rating: {value: 0},
         details: {value: 'This is a test.'},
-        invoicing: {value: false, step: 3},
-        references: {value: [], step: 2},
-        named_price: {value: null, step: 1},
-        escrow_upgrade: {value: false, step: 3},
+        invoicing: {
+          value: false,
+          step: 3,
+        },
+        references: {
+          value: [],
+          step: 2,
+        },
+        named_price: {
+          value: null,
+          step: 1,
+        },
+        escrow_upgrade: {
+          value: false,
+          step: 3,
+        },
       },
     })
     const user = genAnon()
     setViewer(store, user)
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
-    vm.product.makeReady(genProduct({id: 5, details_template: 'Beep boop'}))
+    vm.product.makeReady(genProduct({
+      id: 5,
+      details_template: 'Beep boop',
+    }))
     await vm.$nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('This is a test.')
   })
-  it('Does not set the details template when it is blank.', async() => {
-    mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+  test('Does not set the details template when it is blank.', async() => {
+    mount(Empty, vueSetup({store})).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
       fields: {
@@ -314,22 +498,46 @@ describe('NewOrder.vue', () => {
         characters: {value: [23, 50]},
         rating: {value: 0},
         details: {value: 'This is a test.'},
-        invoicing: {value: false, step: 3},
-        references: {value: [], step: 2},
-        named_price: {value: null, step: 1},
-        escrow_upgrade: {value: false, step: 3},
+        invoicing: {
+          value: false,
+          step: 3,
+        },
+        references: {
+          value: [],
+          step: 2,
+        },
+        named_price: {
+          value: null,
+          step: 1,
+        },
+        escrow_upgrade: {
+          value: false,
+          step: 3,
+        },
       },
     })
     const user = genAnon()
     setViewer(store, user)
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
-    vm.product.makeReady(genProduct({id: 5, details_template: ''}))
+    vm.product.makeReady(genProduct({
+      id: 5,
+      details_template: '',
+    }))
     await vm.$nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('This is a test.')
   })
-  it('Sets the details template when the order ID changes.', async() => {
-    mount(Empty, {localVue, store, vuetify, router}).vm.$getForm('newOrder', {
+  test('Sets the details template when the order ID changes.', async() => {
+    mount(Empty, vueSetup({store})).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
       fields: {
@@ -339,61 +547,148 @@ describe('NewOrder.vue', () => {
         characters: {value: [23, 50]},
         rating: {value: 0},
         details: {value: 'This is a test.'},
-        invoicing: {value: false, step: 3},
-        references: {value: [], step: 2},
-        named_price: {value: null, step: 1},
-        escrow_upgrade: {value: false, step: 3},
+        invoicing: {
+          value: false,
+          step: 3,
+        },
+        references: {
+          value: [],
+          step: 2,
+        },
+        named_price: {
+          value: null,
+          step: 1,
+        },
+        escrow_upgrade: {
+          value: false,
+          step: 3,
+        },
       },
     })
     const user = genAnon()
     setViewer(store, user)
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
-    vm.product.makeReady(genProduct({id: 5, details_template: 'Beep Boop'}))
+    vm.product.makeReady(genProduct({
+      id: 5,
+      details_template: 'Beep Boop',
+    }))
     await vm.$nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('Beep Boop')
   })
-  it('Redirects to step one if using the old order URL', async() => {
+  test('Redirects to step one if using the old order URL', async() => {
     const user = genAnon()
     setViewer(store, user)
-    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}})
-    const mockReplace = jest.spyOn(router, 'replace')
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    await router.replace({
+      name: 'NewOrder',
+      params: {
+        username: 'Fox',
+        productId: '1',
+      },
+    })
+    const mockReplace = vi.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '1'}})
   })
-  it('Redirects to step one if the starting URL marks a lower number', async() => {
+  test('Redirects to step one if the starting URL marks a lower number', async() => {
     const user = genAnon()
     setViewer(store, user)
-    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}, query: {stepId: '-1'}})
-    const mockReplace = jest.spyOn(router, 'replace')
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    await router.replace({
+      name: 'NewOrder',
+      params: {
+        username: 'Fox',
+        productId: '1',
+      },
+      query: {stepId: '-1'},
+    })
+    const mockReplace = vi.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '1'}})
   })
-  it('Redirects to step three if the starting URL marks a higher number', async() => {
+  test('Redirects to step three if the starting URL marks a higher number', async() => {
     const user = genAnon()
     setViewer(store, user)
-    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}, query: {stepId: '4'}})
-    const mockReplace = jest.spyOn(router, 'replace')
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    await router.replace({
+      name: 'NewOrder',
+      params: {
+        username: 'Fox',
+        productId: '1',
+      },
+      query: {stepId: '4'},
+    })
+    const mockReplace = vi.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
   })
-  it('Does not submit if the last step is not selected.', async() => {
+  test('Does not submit if the last step is not selected.', async() => {
     const user = genAnon()
     setViewer(store, user)
-    router.replace({name: 'NewOrder', params: {username: 'Fox', productId: '1'}, query: {stepId: '2'}})
-    const mockReplace = jest.spyOn(router, 'replace')
-    wrapper = mount(NewOrder, {localVue, store, vuetify, router, propsData: {productId: '1', username: 'Fox'}})
+    await router.replace({
+      name: 'NewOrder',
+      params: {
+        username: 'Fox',
+        productId: '1',
+      },
+      query: {stepId: '2'},
+    })
+    const mockReplace = vi.spyOn(router, 'replace')
+    wrapper = mount(NewOrder, {
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {
+        productId: '1',
+        username: 'Fox',
+      },
+    })
     const vm = wrapper.vm as any
     vm.product.makeReady(genProduct())
     await vm.$nextTick()
     mockReplace.mockReset()
-    const mockSubmitThen = jest.spyOn(vm.orderForm, 'submitThen')
+    const mockSubmitThen = vi.spyOn(vm.orderForm, 'submitThen')
     wrapper.find('input').trigger('submit')
     await vm.$nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})

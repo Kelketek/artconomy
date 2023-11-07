@@ -1,13 +1,14 @@
 <template>
-  <v-form v-bind="$attrs" v-on="$listeners"><slot /></v-form>
+  <v-form v-bind="$attrs">
+    <slot/>
+  </v-form>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
+import {Component, toNative, Vue} from 'vue-facing-decorator'
 
 @Component({inheritAttrs: false})
-export default class AcForm extends Vue {
+class AcForm extends Vue {
   public mounted() {
     this.$nextTick(() => {
       // @ts-ignore
@@ -15,4 +16,6 @@ export default class AcForm extends Vue {
     })
   }
 }
+
+export default toNative(AcForm)
 </script>

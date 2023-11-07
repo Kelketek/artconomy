@@ -1,41 +1,43 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import Router from 'vue-router'
+import {createRouter, Router} from 'vue-router'
 import {faqRoutes} from './helpers'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store'
 import About from '@/components/views/faq/About.vue'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
-
-const localVue = vueSetup()
-localVue.use(Router)
+import {cleanUp, flushPromises, mount, vueSetup} from '@/specs/helpers'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 describe('About.vue', () => {
   let router: Router
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   let store: ArtStore
-  let vuetify: Vuetify
   beforeEach(() => {
-    router = new Router(faqRoutes)
+    router = createRouter(faqRoutes())
     store = createStore()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('mounts', async() => {
+  test('mounts', async() => {
     await router.push('/faq/about/')
-    wrapper = mount(About, {localVue, router, store, vuetify, attachTo: docTarget()})
+    wrapper = mount(About, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
     await wrapper.vm.$nextTick()
-    expect(router.currentRoute.params).toEqual({question: 'what-is-artconomy'})
+    await flushPromises()
+    expect(router.currentRoute.value.params).toEqual({question: 'what-is-artconomy'})
   })
-  it('sets a question', async() => {
+  test('sets a question', async() => {
     await router.push('/faq/about/what-is-artconomy/')
-    wrapper = mount(About, {localVue, router, store, vuetify, attachTo: docTarget()})
+    wrapper = mount(About, vueSetup({
+      store,
+      extraPlugins: [router],
+    }))
     await wrapper.vm.$nextTick()
-    const header = wrapper.findAll('.v-expansion-panel-header').at(1)
-    header.trigger('click')
+    const header = wrapper.findAll('.v-expansion-panel-title').at(1)!
+    await header.trigger('click')
     await wrapper.vm.$nextTick()
-    expect(router.currentRoute.params).toEqual({question: 'cost'})
+    await flushPromises()
+    expect(router.currentRoute.value.params).toEqual({question: 'cost'})
   })
 })

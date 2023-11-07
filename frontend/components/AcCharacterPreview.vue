@@ -1,10 +1,10 @@
 <template>
-  <v-responsive v-if="$vuetify.breakpoint.smAndDown || mini" aspect-ratio="1" class="character" :class="{unavailable}">
+  <v-responsive v-if="$vuetify.display.smAndDown || mini" aspect-ratio="1" class="character" :class="{unavailable}">
     <v-card>
       <v-card-text class="pa-2">
         <v-row no-gutters>
           <v-col>
-            <v-row no-gutters  >
+            <v-row no-gutters>
               <v-col cols="8" offset="2">
                 <ac-link :to="characterLink">
                   <ac-asset
@@ -31,13 +31,13 @@
   <v-card class="character-card" v-else :class="{unavailable}">
     <router-link
         :to="characterLink">
-        <ac-asset
-            :asset="character.primary_submission"
-            thumb-name="thumbnail"
-            :terse="true"
-            :aspect-ratio="1"
-            :allow-preview="false"
-        />
+      <ac-asset
+          :asset="character.primary_submission"
+          thumb-name="thumbnail"
+          :terse="true"
+          :aspect-ratio="1"
+          :allow-preview="false"
+      />
     </router-link>
     <v-card-title v-if="showFooter">
       <router-link
@@ -49,9 +49,9 @@
 </template>
 
 <style>
-  .character a {
-    text-decoration: none !important;
-  }
+.character a {
+  text-decoration: none !important;
+}
 </style>
 
 <script>
@@ -68,7 +68,12 @@ export default {
   mixins: [Viewer],
   computed: {
     characterLink() {
-      return {name: 'Character', params: {username: this.character.user.username, characterName: this.character.name}}
+      return {name: 'Character',
+        params: {
+          username: this.character.user.username,
+          characterName: this.character.name,
+        },
+      }
     },
     unavailable() {
       return this.character.hidden

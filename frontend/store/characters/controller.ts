@@ -1,8 +1,6 @@
-import {BaseController} from '@/store/controller-base'
-import Component from 'vue-class-component'
+import {BaseController, ControllerArgs} from '@/store/controller-base'
 import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts'
 import CharacterState from '@/store/characters/types/CharacterState'
-import Vue from 'vue'
 import {characterEndpoint} from '@/store/characters/helpers'
 import {SingleController} from '@/store/singles/controller'
 import {Character} from '@/store/characters/types/Character'
@@ -12,10 +10,12 @@ import Color from '@/store/characters/types/Color'
 import Submission from '@/types/Submission'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import {CharacterModule} from '@/store/characters/index'
-import {Watch} from 'vue-property-decorator'
+import {ComputedGetters} from '@/lib/lib'
+import {watch} from 'vue'
 
-@Component
+@ComputedGetters
 export class CharacterController extends BaseController<CharacterModuleOpts, CharacterState> {
+  public __getterMap = new Map()
   public profile: SingleController<Character> = null as unknown as SingleController<Character>
   public attributes: ListController<Attribute> = null as unknown as ListController<Attribute>
   public colors: ListController<Color> = null as unknown as ListController<Color>
@@ -27,7 +27,32 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
   public baseModuleName = 'characterModules'
   public typeName = 'Character'
 
-  public setEndpoints() {
+  public constructor(args: ControllerArgs<CharacterModuleOpts>) {
+    super(args)
+    this.register()
+    this.profile = this.$root.$getSingle(
+      this.path.concat(['profile']).join('/'), {endpoint: ''}, this._uid,
+    )
+    this.attributes = this.$root.$getList(
+      this.path.concat(['attributes']).join('/'), {endpoint: '', paginated: false}, this._uid,
+    )
+    this.colors = this.$root.$getList(
+      this.path.concat(['colors']).join('/'), {endpoint: '', paginated: false}, this._uid,
+    )
+    this.submissions = this.$root.$getList(
+      this.path.concat(['submissions']).join('/'), {endpoint: ''}, this._uid,
+    )
+    this.sharedWith = this.$root.$getList(
+      this.path.concat(['sharedWith']).join('/'), {endpoint: '', paginated: false}, this._uid,
+    )
+    this.recommended = this.$root.$getList(
+      this.path.concat(['recommended']).join('/'), {endpoint: '', params: {size: 6}}, this._uid,
+    )
+    this.setEndpoints()
+    watch(() => this.profile.x?.name || '', this.updateName)
+  }
+
+  public setEndpoints = () => {
     const baseEndpoint = characterEndpoint(this.attr('username'), this.attr('characterName'))
     this.profile.endpoint = baseEndpoint
     this.attributes.endpoint = `${baseEndpoint}attributes/`
@@ -37,16 +62,16 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     this.recommended.endpoint = `${baseEndpoint}recommended/`
   }
 
-  public kill() {
+  public kill = () => {
     // No-op for compatibility
   }
 
-  public updateRoute(newName: string, oldName: string|undefined) {
-    const username = this.$route.params.username
+  public updateRoute = (newName: string, oldName: string|undefined) => {
+    const username = this.$root.$route.params.username
     if (username === undefined) {
       return
     }
-    const characterName = this.$route.params.characterName
+    const characterName = this.$root.$route.params.characterName
     if (characterName === undefined) {
       return
     }
@@ -57,19 +82,19 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
       return
     }
     /* istanbul ignore next */
-    const name = this.$route.name || undefined
+    const name = this.$root.$route.name || undefined
     const route = {
       name,
-      params: {...this.$route.params},
-      query: {...this.$route.query},
-      hash: this.$route.hash,
+      params: {...this.$root.$route.params},
+      query: {...this.$root.$route.query},
+      hash: this.$root.$route.hash,
     }
     route.params.characterName = newName
-    this.$router.replace(route)
+    this.$root.$router.replace(route)
   }
 
-  @Watch('profile.x.name')
-  public updateName(newName: string, oldName: string|undefined) {
+  // Watcher for profile.x.name
+  public updateName = (newName: string, oldName: string|undefined) => {
     if (this.attr('characterName') === newName) {
       // Initial load. Ignore.
       return
@@ -84,29 +109,5 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     this.migrate(newPath.join('/'))
     this.setEndpoints()
     this.updateRoute(newName, oldName)
-  }
-
-  public created() {
-    this.register()
-    const baseEndpoint = characterEndpoint(this.attr('username'), this.attr('characterName'))
-    Vue.set(this, 'profile', this.$getSingle(
-      this.path.concat(['profile']).join('/'), {endpoint: ''},
-    ))
-    Vue.set(this, 'attributes', this.$getList(
-      this.path.concat(['attributes']).join('/'), {endpoint: '', paginated: false},
-    ))
-    Vue.set(this, 'colors', this.$getList(
-      this.path.concat(['colors']).join('/'), {endpoint: '', paginated: false},
-    ))
-    Vue.set(this, 'submissions', this.$getList(
-      this.path.concat(['submissions']).join('/'), {endpoint: ''},
-    ))
-    Vue.set(this, 'sharedWith', this.$getList(
-      this.path.concat(['sharedWith']).join('/'), {endpoint: '', paginated: false},
-    ))
-    Vue.set(this, 'recommended', this.$getList(
-      this.path.concat(['recommended']).join('/'), {endpoint: '', params: {size: 6}},
-    ))
-    this.setEndpoints()
   }
 }

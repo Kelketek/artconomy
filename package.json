@@ -1,169 +1,81 @@
 {
   "name": "artconomy",
   "version": "2.0.0",
+  "type": "module",
   "private": true,
   "description": "Where artists and commissioners meet!",
   "author": "Fox Piacenti <fox@vulpinity.com>",
   "scripts": {
-    "serve": "vue-cli-service serve --port 8001",
-    "build": "vue-cli-service build --modern",
+    "serve": "vite --host",
+    "build": "vue-tsc --noEmit && vite build",
+    "supportedBrowsers": "echo \"export default $(browserslist-useragent-regexp --allowHigherVersions);\" > frontend/supportedBrowsers.js",
     "test:unit": "TZ=\"America/Chicago\" vue-cli-service test:unit",
-    "lint": "vue-cli-service lint frontend",
-    "lint:fix": "vue-cli-service lint frontend --fix",
-    "clear-jest": "vue-cli-service test:unit --clearCache",
-    "inspect": "vue-cli-service inspect",
-    "test:unit:watch": "TZ=\"America/Chicago\" vue-cli-service test:unit --watchAll --collectCoverage"
+    "lint": "eslint . --ignore-path .gitignore",
+    "lint:fix": "eslint . --fix --ignore-path .gitignore",
+    "test:unit:watch": "TZ=\"America/Chicago\" vitest"
   },
   "dependencies": {
-    "@hcaptcha/vue-hcaptcha": "^0.3.0",
-    "@sentry/browser": "^6.17.9",
-    "@sentry/integrations": "^6.17.9",
-    "@sentry/webpack-plugin": "^1.18.7",
-    "@stripe/stripe-js": "^1.13.2",
-    "@types/lodash": "^4.14.165",
-    "@types/markdown-it": "0.0.7",
-    "@types/qrcode": "^1.3.5",
-    "@types/uuid": "^9.0.1",
-    "@uppy/core": "^2.3.1",
-    "@uppy/dashboard": "^2.3.0",
-    "@uppy/xhr-upload": "^2.1.2",
-    "autosize": "^4.0.2",
-    "axios": "^0.26.0",
-    "bowser": "^2.11.0",
-    "core-js": "^3.21.1",
-    "css.escape": "^1.5.1",
-    "date-fns": "^2.27.0",
+    "@date-io/date-fns": "^3.0.0",
+    "@devindex/vue-mask": "^2.0.3",
+    "@hcaptcha/vue3-hcaptcha": "^1.3.0",
+    "@mdi/font": "7.3.67",
+    "@mdi/js": "^7.3.67",
+    "@sentry/vue": "^7.92.0",
+    "@stripe/stripe-js": "^2.1.11",
+    "@uppy/core": "^3.8.0",
+    "@uppy/dashboard": "^3.7.1",
+    "@uppy/url": "^3.5.0",
+    "@uppy/xhr-upload": "^3.6.0",
+    "axios": "^1.6.0",
+    "browserslist": "*",
+    "date-fns": "^3.3.1",
     "decimal.js": "^10.4.3",
-    "deep-equal": "^1.1.1",
-    "flush-promises": "^1.0.2",
-    "intersection-observer": "^0.5.1",
-    "jest-mock-axios": "^4.5.0",
     "list-diff.js": "^0.1.0",
-    "lodash": "^4.17.21",
+    "lodash.clonedeep": "^4.5.0",
     "lodash.debounce": "^4.0.8",
-    "markdown-it": "^12.3.2",
-    "qrcode": "^1.5.0",
+    "markdown-it": "^13.0.2",
+    "qrcode": "^1.5.3",
     "reconnecting-websocket": "^4.4.0",
-    "register-service-worker": "^1.7.2",
+    "roboto-fontface": "*",
     "short-stuff": "^1.1.0",
-    "vue": "^2.6.14",
-    "vue-class-component": "^7.2.6",
-    "vue-focus": "^2.1.0",
-    "vue-frag": "^1.4.0",
-    "vue-observe-visibility": "^0.4.6",
-    "vue-property-decorator": "^8.5.1",
-    "vue-recaptcha": "^1.3.0",
-    "vue-router": "3.5.3",
-    "vue-upload-component": "^2.8.20",
+    "simple-icons": "^9.19.1",
+    "uuid": "^9.0.1",
+    "vitest-mock-axios": "^0.1.0",
+    "vue": "^3.4.15",
+    "vue-facing-decorator": "^3.0.4",
+    "vue-observe-visibility": "^1.0.0",
+    "vue-router": "^4.2.5",
     "vuedraggable": "^2.24.3",
-    "vuetify": "^2.6.10",
-    "vuex": "^3.6.2",
-    "vuex-class": "^0.3.2",
-    "vuex-typescript": "^3.0.2"
+    "vuetify": "^3.5.1",
+    "vuex": "^4.1.0"
   },
   "devDependencies": {
-    "@mdi/js": "^6.5.95",
-    "@types/big.js": "^4.0.5",
-    "@types/jest": "^27.4.1",
-    "@types/vue-the-mask": "^0.11.1",
-    "@typescript-eslint/eslint-plugin": "^3.10.1",
-    "@typescript-eslint/parser": "^3.10.1",
-    "@vue/cli-plugin-babel": "^5.0.8",
-    "@vue/cli-plugin-eslint": "^5.0.8",
-    "@vue/cli-plugin-router": "^5.0.8",
-    "@vue/cli-plugin-typescript": "^5.0.8",
-    "@vue/cli-plugin-unit-jest": "^5.0.8",
-    "@vue/cli-plugin-vuex": "^5.0.8",
-    "@vue/cli-service": "^5.0.8",
-    "@vue/eslint-config-standard": "^6.1.0",
-    "@vue/eslint-config-typescript": "^6.0.0",
-    "@vue/test-utils": "^1.3.0",
-    "@vue/vue2-jest": "^27.0.0-alpha.4",
-    "babel-core": "7.0.0-bridge.0",
-    "css-loader": "^6.6.0",
-    "eslint": "^7.12.1",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.1.0",
-    "eslint-plugin-vuetify": "^1.0.0-beta.6",
-    "jest-websocket-mock": "^2.4.0",
-    "mock-socket": "^9.0.3",
-    "mockdate": "^2.0.5",
-    "node-sass": "^7.0.3",
-    "sass": "^1.30.0",
-    "sass-loader": "^12.6.0",
-    "style-loader": "^0.23.1",
-    "stylus": "^0.54.8",
-    "stylus-loader": "^3.0.2",
-    "ts-jest": "^27.1.3",
-    "tslint-eslint-rules": "^5.4.0",
-    "typescript": "3.9.7",
-    "vue-template-compiler": "^2.6.14",
-    "vue-the-mask": "^0.11.1",
-    "vuetify-loader": "^1.6.0",
-    "webpack-bundle-tracker": "^1.1.0"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "node": true
-    },
-    "extends": [
-      "plugin:vue/essential",
-      "@vue/standard",
-      "@vue/typescript"
-    ],
-    "plugins": [
-      "vuetify"
-    ],
-    "rules": {
-      "comma-dangle": [
-        "warn",
-        "always-multiline"
-      ],
-      "vuetify/grid-unknown-attributes": "error",
-      "vuetify/no-legacy-grid": "error",
-      "no-unused-vars": "off",
-      "space-before-function-paren": [
-        "warn",
-        "never"
-      ],
-      "object-curly-spacing": [
-        "warn",
-        "never"
-      ]
-    },
-    "parserOptions": {
-      "parser": "@typescript-eslint/parser"
-    },
-    "overrides": [
-      {
-        "files": [
-          "**/__tests__/*.{j,t}s?(x)",
-          "**/tests/unit/**/*.spec.{j,t}s?(x)"
-        ],
-        "env": {
-          "jest": true
-        }
-      },
-      {
-        "files": [
-          "**/types/**"
-        ],
-        "rules": {
-          "camelcase": "off"
-        }
-      }
-    ]
-  },
-  "postcss": {
-    "plugins": {
-      "autoprefixer": {}
-    }
-  },
-  "browserslist": [
-    "> 1%",
-    "last 4 versions"
-  ]
+    "@babel/types": "^7.21.4",
+    "@types/lodash": "^4.14.201",
+    "@types/markdown-it": "^13.0.6",
+    "@types/node": "^18.15.0",
+    "@types/qrcode": "^1.5.5",
+    "@types/uuid": "^9.0.7",
+    "@vitejs/plugin-vue": "^4.5.2",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/test-utils": "^2.4.3",
+    "browserslist-useragent-regexp": "^4.1.0",
+    "css.escape": "^1.5.1",
+    "eslint": "^8.56.0",
+    "eslint-plugin-vue": "^9.19.2",
+    "flush-promises": "^1.0.2",
+    "jsdom": "^23.0.1",
+    "mockdate": "^3.0.5",
+    "resize-observer-polyfill": "^1.5.1",
+    "sass": "^1.69.5",
+    "stylus": "^0.61.0",
+    "typescript": "^5.0.0",
+    "unplugin-fonts": "^1.0.3",
+    "vite": "^5.0.12",
+    "vite-plugin-checker": "^0.6.2",
+    "vite-plugin-vuetify": "^2.0.1",
+    "vitest": "^1.2.1",
+    "vitest-websocket-mock": "^0.3.0",
+    "vue-tsc": "^1.8.25"
+  }
 }

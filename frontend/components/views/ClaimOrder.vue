@@ -1,23 +1,24 @@
 <template>
   <v-container>
     <ac-form-container :sending="claimForm.sending" :errors="claimForm.errors">
-      <v-row no-gutters  >
-        <v-col class="text-center" cols="12" >
+      <v-row no-gutters>
+        <v-col class="text-center" cols="12">
           <h1>Your Order is waiting!</h1>
         </v-col>
-        <v-col class="text-center" cols="12" >
-          <v-img src="/static/images/cheering.png" max-height="30vh" :contain="true"></v-img>
+        <v-col class="text-center" cols="12">
+          <v-img :src="cheering" max-height="30vh" :contain="true"></v-img>
         </v-col>
-        <v-col class="text-center" cols="12" v-if="isRegistered" >
-          <p>You are currently logged in as <strong>{{viewerName}}</strong>. Would you like to claim this order as {{viewerName}} or continue as a guest?</p>
+        <v-col class="text-center" cols="12" v-if="isRegistered">
+          <p>You are currently logged in as <strong>{{viewerName}}</strong>. Would you like to claim this order as
+            {{viewerName}} or continue as a guest?</p>
         </v-col>
-        <v-col class="text-center text-sm-right" cols="12" sm="6" v-if="isRegistered" >
-          <v-btn color="green" @click="claimAsUser">Claim as {{viewerName}}!</v-btn>
+        <v-col class="text-center text-sm-right" cols="12" sm="6" v-if="isRegistered">
+          <v-btn color="green" @click="claimAsUser" variant="flat">Claim as {{viewerName}}!</v-btn>
         </v-col>
-        <v-col class="text-center text-sm-left" cols="12" sm="6" v-if="isRegistered" >
-          <v-btn @click="becomeGuest">Continue as guest</v-btn>
+        <v-col class="text-center text-sm-left" cols="12" sm="6" v-if="isRegistered">
+          <v-btn @click="becomeGuest" variant="flat">Continue as guest</v-btn>
         </v-col>
-        <v-col cols="12" v-for="field of claimForm.fields" :key="field.name">
+        <v-col cols="12" v-for="field of claimForm.fields" :key="field.fieldName">
           <v-alert v-for="(error, index) of field.errors" :key="index" :value="true">
             {{error}}
           </v-alert>
@@ -28,19 +29,22 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import {Prop} from 'vue-property-decorator'
-import {Location} from 'vue-router'
+import {RouteLocationRaw} from 'vue-router'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {FormController} from '@/store/forms/form-controller'
 import {User} from '@/store/profiles/types/User'
+import {BASE_URL} from '@/lib/lib'
 
 @Component({
-  components: {AcFormContainer, AcLoadingSpinner},
+  components: {
+    AcFormContainer,
+    AcLoadingSpinner,
+  },
 })
-export default class ClaimOrder extends mixins(Viewer) {
+class ClaimOrder extends mixins(Viewer) {
   @Prop()
   public username!: string
 
@@ -59,18 +63,33 @@ export default class ClaimOrder extends mixins(Viewer) {
   public claimForm: FormController = null as unknown as FormController
   public failed = false
 
+  public cheering = new URL('static/images/cheering.png', BASE_URL).href
+
   public visitOrder(user: User) {
     this.$sock.socket?.reconnect()
-    const route: Location = {}
+    const route: RouteLocationRaw = {}
     if (this.next) {
-      Object.assign(route, JSON.parse(this.next) as Location)
+      Object.assign(route, JSON.parse(this.next) as RouteLocationRaw)
       if (route.query === undefined) {
         route.query = {}
       }
     } else {
-      Object.assign(route, {name: 'Order', params: {orderId: this.orderId, username: this.rawViewerName}})
+      Object.assign(route, {
+        name: 'Order',
+        params: {
+          orderId: this.orderId,
+          username: this.rawViewerName,
+        },
+      })
       if (this.deliverableId) {
-        Object.assign(route, {name: 'OrderDeliverableOverview', params: {orderId: this.orderId, deliverableId: this.deliverableId, username: this.rawViewerName}})
+        Object.assign(route, {
+          name: 'OrderDeliverableOverview',
+          params: {
+            orderId: this.orderId,
+            deliverableId: this.deliverableId,
+            username: this.rawViewerName,
+          },
+        })
       }
     }
     const commentId = this.$route.query.commentId
@@ -84,7 +103,6 @@ export default class ClaimOrder extends mixins(Viewer) {
       this.viewerHandler.artistProfile.ready = false
       this.viewerHandler.artistProfile.fetching = false
     }
-    // Weird limitation here, since Location is a valid type for Rawlocation...
     this.$router.replace(route)
   }
 
@@ -117,4 +135,6 @@ export default class ClaimOrder extends mixins(Viewer) {
     this.$sock.connectListeners.ClaimOrder = this.sendForm
   }
 }
+
+export default toNative(ClaimOrder)
 </script>

@@ -1,6 +1,6 @@
 <template>
   <v-input v-bind="$props" class="mt-4">
-    <v-col class="text-center" >
+    <v-col class="text-center">
       <div style="display: inline-block">
         <vue-hcaptcha
             :sitekey="siteKey"
@@ -15,14 +15,16 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import VueHcaptcha from '@hcaptcha/vue-hcaptcha'
-import Component from 'vue-class-component'
+import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
+import {Component, toNative, Vue} from 'vue-facing-decorator'
 
-@Component({components: {VueHcaptcha}})
-export default class AcCaptchaField extends Vue {
+@Component({
+  components: {VueHcaptcha},
+  emits: ['update:modelValue'],
+})
+class AcCaptchaField extends Vue {
   public change(val: string) {
-    this.$emit('input', val)
+    this.$emit('update:modelValue', val)
   }
 
   public reset() {
@@ -30,8 +32,10 @@ export default class AcCaptchaField extends Vue {
   }
 
   // noinspection JSUnusedLocalSymbols,JSMethodCanBeStatic
-  private get siteKey() {
+  public get siteKey() {
     return window.RECAPTCHA_SITE_KEY || 'undefined'
   }
 }
+
+export default toNative(AcCaptchaField)
 </script>

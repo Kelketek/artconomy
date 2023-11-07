@@ -3,18 +3,18 @@
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import Component from 'vue-class-component'
-import {Mutation} from 'vuex-class'
+import {Component, toNative} from 'vue-facing-decorator'
+import {ArtVue} from '@/lib/lib'
 
-  @Component
-export default class App extends Vue {
-    @Mutation('setError', {namespace: 'errors'}) public setError: any
+@Component
+class NotFound extends ArtVue {
 
-    public mounted() {
-      this.setError({response: {status: 404}})
-    }
+  public mounted() {
+    this.$store.commit('errors/setError', {response: {status: 404}})
+  }
 }
+
+export default toNative(NotFound)
 </script>
 
 <style scoped>

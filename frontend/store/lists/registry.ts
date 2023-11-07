@@ -1,26 +1,16 @@
-import _Vue from 'vue'
+import {createApp} from 'vue'
 import {ListController} from './controller'
-import {genRegistryBase, genRegistryPluginBase, Registry} from '../registry-base'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
 import {ListState} from './types/ListState'
 import {ListModuleOpts} from './types/ListModuleOpts'
 
-declare interface ListRegistry extends Registry<ListState<any>, ListController<any>> {
+class ListRegistry extends BaseRegistry<ListState<any>, ListController<any>> {}
+
+export const listRegistry = new ListRegistry()
+
+export function Lists(app: ReturnType<typeof createApp>): void {
+  app.mixin(genRegistryPluginBase<ListState<any>, ListModuleOpts, ListController<any>>('List', listRegistry, ListController))
 }
 
-export const listRegistry = new _Vue(genRegistryBase()) as ListRegistry
-
-export function Lists(Vue: typeof _Vue): void {
-  Vue.mixin(genRegistryPluginBase('List', listRegistry, ListController))
-}
-
-declare module 'vue/types/vue' {
-  // Global properties can be declared
-  // on the `VueConstructor` interface
-
-  interface Vue {
-    $getList: (name: string, schema?: ListModuleOpts) => ListController<any>,
-    $listenForList: (name: string) => void,
-  }
-}
 
 (window as any).listRegistry = listRegistry

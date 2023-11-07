@@ -1,7 +1,7 @@
 <template>
   <v-container>
-    <v-row no-gutters  >
-      <v-col class="py-5 text-center" cols="12" md="6" offset-md="3" >
+    <v-row no-gutters>
+      <v-col class="py-5 text-center" cols="12" md="6" offset-md="3">
         <h1>Artconomy</h1>
         <address>
           1200 N Dairy Ashford Rd<br/>

@@ -1,37 +1,29 @@
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, docTarget, flushPromises, rq, rs, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
 import mockAxios from '@/__mocks__/axios'
-import Vuetify from 'vuetify/lib'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
-const mockError = jest.spyOn(console, 'error')
+const mockError = vi.spyOn(console, 'error')
 
 describe('AcMarkdownViewer.vue', () => {
   beforeEach(() => {
-    vuetify = createVuetify()
     mockError.mockClear()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Loads and renders a markdown document', async() => {
+  test('Loads and renders a markdown document', async() => {
     const submission = genSubmission()
     submission.file = {full: 'https://example.com/test.txt'}
     // @ts-ignore
     wrapper = mount(AcMarkdownViewer, {
-      localVue,
-      vuetify,
-      propsData: {asset: submission},
-
-      attachTo: docTarget(),
+      ...vueSetup(),
+      props: {asset: submission},
     })
-    const vm = wrapper.vm as any
     expect(mockAxios.request).toHaveBeenCalledWith(rq('https://example.com/test.txt', 'get', undefined, {}))
     mockAxios.mockResponse(rs('# Hello!'))
     await flushPromises()

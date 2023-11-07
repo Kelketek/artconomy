@@ -1,36 +1,35 @@
-import Vue from 'vue'
-import Vuetify from 'vuetify/lib'
-import Router from 'vue-router'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import {cleanUp, flushPromises, mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {VueWrapper} from '@vue/test-utils'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import searchSchema from '@/components/views/search/specs/fixtures'
 import {FormController} from '@/store/forms/form-controller'
 import ShieldCommissioner from '@/components/views/landing/ShieldCommissioner.vue'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 let searchForm: FormController
 let router: Router
-let vuetify: Vuetify
 
 describe('Shield.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
-    searchForm = mount(Empty, {localVue, store}).vm.$getForm('search', searchSchema())
-    router = new Router({
-      mode: 'history',
+    searchForm = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
+    router = createRouter({
+      history: createWebHistory(),
       routes: [{
         name: 'SearchProducts',
         path: '/search/products/',
         component: Empty,
       }, {
         name: 'BuyAndSell',
-        path: '/faq/buy-and-sell/',
+        path: '/faq/buy-and-sell/:question',
+        component: Empty,
+      }, {
+        name: 'Home',
+        path: '/',
         component: Empty,
       }],
     })
@@ -38,17 +37,19 @@ describe('Shield.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Calls Search', async() => {
-    const wrapper = mount(ShieldCommissioner, {
-      localVue,
+  test('Calls Search', async() => {
+    const wrapper = mount(ShieldCommissioner, vueSetup({
       store,
-      router,
-      vuetify,
-      attachTo: docTarget(),
-    })
-    wrapper.find('.commission-cta').trigger('click')
+      extraPlugins: [router],
+    }))
+    await wrapper.find('.commission-cta').trigger('click')
     await wrapper.vm.$nextTick()
-    expect(router.currentRoute.name).toBe('SearchProducts')
-    expect(router.currentRoute.query).toEqual({shield_only: true, page: 1, size: 24})
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('SearchProducts')
+    expect(router.currentRoute.value.query).toEqual({
+      shield_only: 'true',
+      page: '1',
+      size: '24',
+    })
   })
 })

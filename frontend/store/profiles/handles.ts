@@ -1,18 +1,19 @@
-import Vue from 'vue'
 import {User} from './types/User'
+import {ArtVueInterface} from '@/types/ArtVueInterface'
+import {ArtVue} from '@/lib/lib'
 
-declare type handleDecorator = (cls: Vue, propName: string) => void
+declare type handleDecorator = (cls: InstanceType<typeof ArtVue>, propName: string) => void
 
 export function userHandle(
   source: string, setError?: boolean,
 ): handleDecorator {
-  return (cls, propName) => {
+  return (cls: InstanceType<typeof ArtVue>, propName) => {
     if (setError === undefined) {
       setError = true
     }
     Object.defineProperty(cls, propName, {
       get(): User | null {
-        const self = (this as Vue)
+        const self = (this as ArtVueInterface)
         const propSource = (self as any)[source]
         if (propSource === null) {
           // Handler may not have yet been initialized. Can happen with some watchers.

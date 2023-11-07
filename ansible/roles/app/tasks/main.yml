@@ -42,7 +42,7 @@
 
 - name: Set NPM Registry to authoritative version
   npm:
-    registry: http://registry.npmjs.org/
+    registry: https://registry.npmjs.org/
     global: yes
     name: n
 
@@ -107,7 +107,7 @@
 - name: Install NPM packages
   become: yes
   become_user: "{{ env_prefix }}"
-  npm: registry=http://registry.npmjs.org/ path="{{ home }}/artconomy"
+  npm: registry=https://registry.npmjs.org/ path="{{ home }}/artconomy"
   notify:
     - collect static assets
 

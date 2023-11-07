@@ -1,32 +1,30 @@
-import Vue from 'vue'
-import {cleanUp, qMount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
 import DummyInvoice from '@/specs/helpers/dummy_components/DummyInvoice.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {ListController} from '@/store/lists/controller'
 import LineItem from '@/types/LineItem'
 import {genDeliverable, genOrder, genProduct} from '@/specs/helpers/fixtures'
-import {Wrapper} from '@vue/test-utils'
+import {VueWrapper} from '@vue/test-utils'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
-const localVue = vueSetup()
 let store: ArtStore
 let invoiceLineItems: ListController<LineItem>
-let wrapper: Wrapper<Vue>
+let wrapper: VueWrapper<any>
 
 describe('InvoicingMixin.ts', () => {
   beforeEach(() => {
     store = createStore()
-    const empty = qMount(Empty, {localVue, store, attachTo: ''}).vm
+    const empty = mount(Empty, vueSetup({store})).vm
     invoiceLineItems = empty.$getList('lineItems', {endpoint: '/test/'})
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Updates the task weight', async() => {
-    wrapper = qMount(DummyInvoice, {
-      localVue,
-      store,
-      propsData: {
+  test('Updates the task weight', async() => {
+    wrapper = mount(DummyInvoice, {
+      ...vueSetup({store}),
+      props: {
         invoiceEscrowEnabled: true,
         invoiceLineItems,
         username: 'Fox',
@@ -40,11 +38,10 @@ describe('InvoicingMixin.ts', () => {
     await vm.$nextTick()
     expect(vm.newInvoice.fields.task_weight.value).toBe(3)
   })
-  it('Refetches the product when a new value is set', async() => {
-    wrapper = qMount(DummyInvoice, {
-      localVue,
-      store,
-      propsData: {
+  test('Refetches the product when a new value is set', async() => {
+    wrapper = mount(DummyInvoice, {
+      ...vueSetup({store}),
+      props: {
         invoiceEscrowEnabled: true,
         invoiceLineItems,
         username: 'Fox',
@@ -55,21 +52,22 @@ describe('InvoicingMixin.ts', () => {
     await vm.$nextTick()
     vm.invoiceProduct.setX(genProduct({id: 1}))
     await vm.$nextTick()
-    const mockKill = jest.spyOn(vm.invoiceProduct, 'kill')
-    const mockGet = jest.spyOn(vm.invoiceProduct, 'get')
+    const mockKill = vi.spyOn(vm.invoiceProduct, 'kill')
+    const mockGet = vi.spyOn(vm.invoiceProduct, 'get')
     vm.newInvoice.fields.product.update(255)
     await vm.$nextTick()
     expect(mockKill).toHaveBeenCalled()
     expect(mockGet).toHaveBeenCalled()
     expect(vm.invoiceProduct.endpoint).toBe('/api/sales/account/Fox/products/255/')
   })
-  it('Goes to the new deliverable', async() => {
-    const push = jest.fn()
-    wrapper = qMount(DummyInvoice, {
-      localVue,
-      store,
-      mocks: {$router: {push}},
-      propsData: {
+  test('Goes to the new deliverable', async() => {
+    const push = vi.fn()
+    wrapper = mount(DummyInvoice, {
+      ...vueSetup({
+        store,
+        mocks: {$router: {push}},
+      }),
+      props: {
         invoiceEscrowEnabled: true,
         invoiceLineItems,
         username: 'Fox',
@@ -78,8 +76,18 @@ describe('InvoicingMixin.ts', () => {
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
-    vm.goToOrder(genDeliverable({id: 120, order: genOrder({id: 100})}))
+    vm.goToOrder(genDeliverable({
+      id: 120,
+      order: genOrder({id: 100}),
+    }))
     expect(push).toHaveBeenCalledWith(
-      {name: 'SaleDeliverableOverview', params: {deliverableId: '120', orderId: '100', username: 'Fox'}})
+      {
+        name: 'SaleDeliverableOverview',
+        params: {
+          deliverableId: '120',
+          orderId: '100',
+          username: 'Fox',
+        },
+      })
   })
 })

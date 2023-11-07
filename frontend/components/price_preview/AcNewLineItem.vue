@@ -1,24 +1,24 @@
 <template>
   <v-row no-gutters>
     <v-col class="text-left pa-1" cols="12">
-      <v-btn type="submit" small>
-        <v-icon left color="yellow">add</v-icon>{{ placeholder }}
+      <v-btn type="submit" small variant="flat" color="black">
+        <v-icon left color="yellow" icon="mdi-plus"/>
+        {{ placeholder }}
       </v-btn>
     </v-col>
   </v-row>
 </template>
 
 <script lang="ts">
-import Vue from 'vue'
-import {Prop} from 'vue-property-decorator'
-import Component from 'vue-class-component'
+import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import {FormController} from '@/store/forms/form-controller'
 import AcBoundField from '@/components/fields/AcBoundField'
 import {LineTypes} from '@/types/LineTypes'
+
 @Component({
   components: {AcBoundField},
 })
-export default class AcNewLineItem extends Vue {
+class AcNewLineItem extends Vue {
   @Prop({required: true})
   public form!: FormController
 
@@ -35,4 +35,6 @@ export default class AcNewLineItem extends Vue {
     return 'Other'
   }
 }
+
+export default toNative(AcNewLineItem)
 </script>

@@ -1,27 +1,26 @@
-import Vue from 'vue'
-import {Wrapper} from '@vue/test-utils'
-import {cleanUp, createVuetify, vueSetup, mount} from '@/specs/helpers'
+import {VueWrapper} from '@vue/test-utils'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers'
 import {genSubmission} from '@/store/submissions/specs/fixtures'
 import AcVideoPlayer from '@/components/AcVideoPlayer.vue'
-import Vuetify from 'vuetify/lib'
+import {afterEach, beforeEach, describe, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-let wrapper: Wrapper<Vue>
-let vuetify: Vuetify
+let wrapper: VueWrapper<any>
 
-const mockError = jest.spyOn(console, 'error')
+const mockError = vi.spyOn(console, 'error')
 
 describe('AcVideoPlayer.vue', () => {
   beforeEach(() => {
     mockError.mockClear()
-    vuetify = createVuetify()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Loads and types an audio file', async() => {
+  test('Loads up for a video file', async() => {
     const submission = genSubmission()
     submission.file = {full: 'https://example.com/thing.mp3'}
-    wrapper = mount(AcVideoPlayer, {localVue, vuetify, propsData: {asset: submission}})
+    wrapper = mount(AcVideoPlayer, {
+      ...vueSetup(),
+      props: {asset: submission},
+    })
   })
 })

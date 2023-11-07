@@ -11,6 +11,7 @@ export default interface Product {
   hidden: boolean,
   max_parallel: number,
   max_rating: Ratings,
+  hits: number,
   task_weight: number
   expected_turnaround: number,
   escrow_enabled: boolean,

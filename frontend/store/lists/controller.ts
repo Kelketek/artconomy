@@ -1,85 +1,87 @@
-import Component from 'vue-class-component'
+import {Watch} from 'vue-facing-decorator'
 import {ListModuleOpts} from './types/ListModuleOpts'
 import {SingleController} from '../singles/controller'
-import {BaseController} from '@/store/controller-base'
+import {BaseController, ControllerArgs} from '@/store/controller-base'
 import {ListState} from '@/store/lists/types/ListState'
-import {ListModule, pageFromParams, pageSizeFromParams} from '@/store/lists/index'
+import {ListModule, pageFromParams, totalPages, pageSizeFromParams} from '@/store/lists/index'
 import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
 import {QueryParams} from '@/store/helpers/QueryParams'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
-import {Watch} from 'vue-property-decorator'
+import {ComputedGetters} from '@/lib/lib'
 
-@Component
-export class ListController<T> extends BaseController<ListModuleOpts, ListState<T>> {
+@ComputedGetters
+export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
+  public __getterMap = new Map()
   public baseClass = ListModule
 
   public baseModuleName = 'lists'
 
   public typeName = 'List'
 
-  public created() {
+  constructor(args: ControllerArgs<ListModuleOpts>) {
+    super(args)
     this.register()
   }
 
-  public get() {
+  public get = () => {
     return this.dispatch('get')
   }
 
-  public remove(item: T) {
+  public remove = (item: T) => {
     this.commit('remove', item)
   }
 
-  public replace(item: T) {
+  public replace = (item: T) => {
     this.commit('replace', item)
   }
 
-  public unshift(...args: T[]) {
+  public unshift = (...args: T[]) => {
     this.commit('unshift', args)
   }
 
-  public push(...args: T[]) {
+  public push = (...args: T[]) => {
     this.commit('push', args)
   }
 
-  public uniquePush(...args: T[]) {
+  public uniquePush = (...args: T[]) => {
     this.commit('uniquePush', args)
   }
 
-  public post(item: Partial<T>) {
+  public post = (item: Partial<T>) => {
     return this.dispatch('post', item)
   }
 
-  public postPush(item: Partial<T>) {
+  public postPush = (item: Partial<T>) => {
     this.post(item).then(this.push)
   }
 
-  public setList(array: T[]) {
+  public setList = (array: T[]) => {
     this.commit('setList', array)
   }
 
-  public next() {
+  public next = () => {
     return this.dispatch('next')
   }
 
-  public firstRun() {
+  public firstRun = () => {
     return this.dispatch('firstRun')
   }
 
-  public retryGet() {
+  public retryGet = () => {
     return this.dispatch('retryGet')
   }
 
-  public makeReady(array: T[]) {
+  public makeReady = (array: T[]) => {
     this.setList(array)
     this.fetching = false
     this.ready = true
   }
 
-  public reset() {
+  public reset = () => {
     return this.dispatch('reset')
   }
 
-  public grower(val: boolean) {
+  public grower = (val: boolean) => {
     // Used for visibility observer. If true, we fetch the next page.
     if (val && !this.fetching) {
       this.next().then()
@@ -94,9 +96,10 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     if (!this.attr('refs')) {
       return []
     }
-    let controllers = this.attr('refs').map((ref: string) => this.$getSingle(
-      // Vestigil endpoint-- the controller may not be cached but the list should have defined it in the store.
+    let controllers = this.attr('refs').map((ref: string) => this.$root.$getSingle(
+      // Vestigial endpoint-- the controller may not be cached but the list should have defined it in the store.
       `${this.prefix}items/${ref}`, {endpoint: ''},
+      this._uid,
     ))
     controllers = controllers.filter((controller: SingleController<T>) => !(controller.deleted) && !(controller.x === null))
     return controllers
@@ -111,11 +114,11 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   }
 
   public get totalPages(): number {
-    return this.getter('totalPages')
+    return totalPages(this.state && this.state.response)
   }
 
   public get moreAvailable(): boolean {
-    return this.getter('moreAvailable')
+    return (!this.fetching) && (this.totalPages > this.currentPage)
   }
 
   public get currentPage(): number {
@@ -131,6 +134,7 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   }
 
   public get purged() {
+    // @ts-ignore
     return !this.$store.state.lists[this.name]
   }
 
@@ -141,6 +145,10 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   public set grow(val: boolean) {
     // Should only be used during testing, since state can't be guaranteed sane if set at runtime.
     this.commit('setGrow', val)
+  }
+
+  public get reverse() {
+    return this.attr('reverse')
   }
 
   public get params(): QueryParams|null {
@@ -222,10 +230,10 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
   public get socketNewItemParams() {
     const socketSettings = this.attr('socketSettings')
 
-    if (!this.socketSettings) {
+    if (!socketSettings) {
       return null
     }
-    let pk = this.socketSettings.list.pk
+    let pk = socketSettings.list.pk
     if (pk) {
       pk = `${pk}`
     }
@@ -250,21 +258,21 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
     return `${pathName}.${data.list_name}.${data.serializer}.new`
   }
 
-  public socketUnmount() {
+  public socketUnmount = () => {
     const newItemLabel = this.newItemLabel
-    if (!this.$sock?.socket) {
+    if (!this.$root.$sock?.socket) {
       return
     }
     /* istanbul ignore else */
     if (newItemLabel) {
-      this.$sock.send('clear_watch_new', this.socketNewItemParams)
-      this.$sock.removeListener(newItemLabel, `${this.socketLabelBase}.new`)
+      this.$root.$sock.send('clear_watch_new', this.socketNewItemParams)
+      this.$root.$sock.removeListener(newItemLabel, `${this.socketLabelBase}.new`)
     }
   }
 
-  public socketOpened() {
+  public socketOpened = () => {
     const data = this.socketNewItemParams
-    if (!this.$sock?.socket || !data || !this.ready) {
+    if (!this.$root.$sock?.socket || !data || !this.ready) {
       return
     }
     if (this.stale) {
@@ -273,15 +281,15 @@ export class ListController<T> extends BaseController<ListModuleOpts, ListState<
       this.stale = false
       return
     }
-    this.$sock.addListener(
+    this.$root.$sock.addListener(
       this.newItemLabel,
       `${this.socketLabelBase}.new`,
       this.uniquePush,
     )
-    this.$sock.send('watch_new', data)
+    this.$root.$sock.send('watch_new', data)
   }
 
-  public socketClosed() {
+  public socketClosed = () => {
     this.stale = true
   }
 }

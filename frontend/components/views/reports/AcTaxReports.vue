@@ -27,7 +27,9 @@
       <v-col cols="12">
         <v-row no-gutters>
           <v-col class="text-center">
-            <v-btn color="primary" :href="`/api/sales/account/${username}/reports/payout/${rangeString}`" download>Download Payout Report CSV</v-btn>
+            <v-btn color="primary" :href="`/api/sales/account/${username}/reports/payout/${rangeString}`" variant="flat" download>
+              Download Payout Report CSV
+            </v-btn>
           </v-col>
         </v-row>
       </v-col>
@@ -36,13 +38,15 @@
 </template>
 
 <script lang="ts">
-import Component, {mixins} from 'vue-class-component'
+import {Component, mixins, toNative} from 'vue-facing-decorator'
 import RangeReport from '@/components/views/reports/mixins/RangeReport'
 import Subjective from '@/mixins/subjective'
 
 @Component
-export default class AcTaxReports extends mixins(Subjective, RangeReport) {
+class AcTaxReports extends mixins(Subjective, RangeReport) {
   public startDate = ''
   public endDate = ''
 }
+
+export default toNative(AcTaxReports)
 </script>

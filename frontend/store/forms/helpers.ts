@@ -16,7 +16,7 @@ const TRANSLATED: {[key: string]: string} = {
   ECONNABORTED: 'Timed out or aborted. Please try again or contact support!',
 }
 
-export function deriveErrors(error: AxiosError, knownFields: string[]): FormErrorSet {
+export function deriveErrors(error: AxiosError<{detail: string} | Record<string, string[]>>, knownFields: string[]): FormErrorSet {
   const errorSet: FormErrorSet = {
     fields: {},
     errors: [],
@@ -37,12 +37,14 @@ export function deriveErrors(error: AxiosError, knownFields: string[]): FormErro
   }
   for (const key of Object.keys(error.response.data)) {
     if (knownFields.indexOf(key) !== -1) {
+      // @ts-ignore
       errorSet.fields[key] = error.response.data[key]
     } else if (key !== 'detail') {
+      // @ts-ignore
       unresolved[key] = error.response.data[key]
     }
   }
-  if (error.response.data.detail) {
+  if (error.response.data.detail && !Array.isArray(error.response.data.detail)) {
     errorSet.errors.push(error.response.data.detail)
   }
   if (Object.keys(unresolved).length) {

@@ -1,5 +1,4 @@
-import Component, {mixins} from 'vue-class-component'
-import {Prop} from 'vue-property-decorator'
+import {Component, mixins, Prop} from 'vue-facing-decorator'
 import {Asset} from '@/types/Asset'
 import {extPreview, RATINGS, thumbFromSpec} from '@/lib/lib'
 import Viewer from './viewer'
@@ -9,9 +8,9 @@ import {AnonUser} from '@/store/profiles/types/AnonUser'
 @Component
 export default class AssetBase extends mixins(Viewer) {
   // Define in child.
-  public asset!: Asset|null
+  declare asset: Asset|null
   // Define in child.
-  public thumbName!: string
+  declare thumbName: string
   @Prop({default: false})
   public compact!: boolean
 

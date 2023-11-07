@@ -16,7 +16,8 @@ import {
   getCookie,
   getExt,
   getHeaders,
-  guestName, initDrawerValue,
+  guestName,
+  initDrawerValue,
   isImage,
   log,
   makeQueryParams,
@@ -35,23 +36,16 @@ import {
   truncateText,
   updateLinked,
 } from '@/lib/lib'
-import VueRouter from 'vue-router'
-import {createLocalVue, shallowMount, Wrapper} from '@vue/test-utils'
-import ParamTabbed from '@/specs/helpers/dummy_components/param-tabbed.vue'
-import Routed from '@/specs/helpers/dummy_components/routed.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
-import Vue from 'vue'
-import Vuex from 'vuex'
-import Vuetify from 'vuetify'
+import {shallowMount, VueWrapper} from '@vue/test-utils'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import {Singles} from '@/store/singles/registry'
 import {Lists} from '@/store/lists/registry'
 import {Profiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, mount, qMount, rq, rs} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
 import {LogLevels} from '@/types/LogLevels'
-
-Vue.use(Vuetify)
-Vue.use(Vuex)
+import {SingleController} from '@/store/singles/controller'
+import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 describe('artCall', () => {
   beforeEach(() => {
@@ -59,9 +53,9 @@ describe('artCall', () => {
     // Let's make sure we clear out any existing meta tags to isolate the tests better.
     document.querySelectorAll('meta').forEach((element) => element.remove())
   })
-  it('Performs a GET request', () => {
-    const catchFn = jest.fn()
-    const thenFn = jest.fn()
+  test('Performs a GET request', () => {
+    const catchFn = vi.fn()
+    const thenFn = vi.fn()
     artCall({url: '/test/location/', method: 'get', data: {test: 'data'}}).then(thenFn).catch(catchFn)
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/test/location/',
@@ -73,9 +67,9 @@ describe('artCall', () => {
     expect(thenFn).toHaveBeenCalledWith({successful: 'call'})
     expect(catchFn).not.toHaveBeenCalled()
   })
-  it('Performs a POST request', () => {
-    const catchFn = jest.fn()
-    const thenFn = jest.fn()
+  test('Performs a POST request', () => {
+    const catchFn = vi.fn()
+    const thenFn = vi.fn()
     artCall({url: '/test/location2/', method: 'post', data: {test: 'data2'}}).then(thenFn).catch(catchFn)
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/test/location2/',
@@ -87,8 +81,8 @@ describe('artCall', () => {
     expect(thenFn).toHaveBeenCalledWith({successful: 'call2'})
     expect(catchFn).not.toHaveBeenCalled()
   })
-  it('Calls a presuccess hook', () => {
-    const preSuccess = jest.fn()
+  test('Calls a presuccess hook', () => {
+    const preSuccess = vi.fn()
     artCall({url: '/test/location2/', method: 'post', data: {test: 'data2'}, preSuccess}).then()
     mockAxios.mockResponse({status: 205, data: {test: 'thing'}})
     expect(preSuccess).toHaveBeenCalledWith(
@@ -97,7 +91,7 @@ describe('artCall', () => {
   })
 })
 describe('Filenname modifiers', () => {
-  it.each`
+  test.each`
     filename               | extension
     ${'test.exe'}          | ${'EXE'}
     ${'test@example.com'}  | ${'COM'}
@@ -106,7 +100,7 @@ describe('Filenname modifiers', () => {
   `('should derive the extension $extension from $filename.', ({filename, extension}) => {
     expect(getExt(filename)).toBe(extension)
   })
-  it.each`
+  test.each`
     filename               | result
     ${'test.exe'}          | ${false}
     ${'test@example.com'}  | ${false}
@@ -121,7 +115,7 @@ describe('Filenname modifiers', () => {
     ({filename, result}) => {
       expect(isImage(filename)).toBe(result)
     })
-  it.each`
+  test.each`
     filename               | result
     ${'test'}              | ${'/static/icons/UN.KNOWN.png'}
     ${'test@example.com'}  | ${'/static/icons/UN.KNOWN.png'}
@@ -133,7 +127,7 @@ describe('Filenname modifiers', () => {
     ({filename, result}) => {
       expect(extPreview(filename)).toBe(result)
     })
-  it.each`
+  test.each`
     markdown               | text
     ${'test'}              | ${'test'}
     ${'**test**'}          | ${'test'}
@@ -146,7 +140,7 @@ describe('Filenname modifiers', () => {
     })
 })
 describe('Meta tag managers', () => {
-  it('Sets arbitrary meta tags', () => {
+  test('Sets arbitrary meta tags', () => {
     // I don't know if this is properly isolated
     expect(document.head.querySelector('meta[name=test]')).toBeFalsy()
     setMetaContent('test', 'example')
@@ -154,7 +148,7 @@ describe('Meta tag managers', () => {
     expect(meta as Element).toBeTruthy()
     expect((meta as Element).textContent).toBe('example')
   })
-  it('Replaces existing tags', () => {
+  test('Replaces existing tags', () => {
     setMetaContent('test', 'example')
     setMetaContent('test', 'example2')
     const elements = document.querySelectorAll('meta')
@@ -162,13 +156,13 @@ describe('Meta tag managers', () => {
     const meta = elements[0]
     expect(meta.textContent).toBe('example2')
   })
-  it('Sets tags with arbitrary properties', () => {
+  test('Sets tags with arbitrary properties', () => {
     setMetaContent('test', 'example', {content: 'Stuff'})
     const element = document.querySelector('meta')
     expect(element).toBeTruthy()
     expect((element as Element).getAttribute('content')).toBe('Stuff')
   })
-  it('Clears arbitrary meta tags', () => {
+  test('Clears arbitrary meta tags', () => {
     const desctag = document.createElement('meta')
     desctag.setAttribute('name', 'test2')
     document.head.appendChild(desctag)
@@ -176,29 +170,25 @@ describe('Meta tag managers', () => {
     clearMetaTag('test2')
     expect(document.head.querySelector('meta[name=test2]')).toBeFalsy()
   })
-  it('Does not break if trying to clear a meta tag which does not exist', () => {
+  test('Does not break if trying to clear a meta tag which does not exist', () => {
     document.createElement('meta')
     clearMetaTag('test2')
   })
 })
 describe('Enumerators', () => {
-  const localVue = createLocalVue()
-  let wrapper: Wrapper<Vue>
+  let wrapper: VueWrapper<any>
   let store: ArtStore
-  localVue.use(Vuex)
-  localVue.use(Singles)
-  localVue.use(Lists)
-  localVue.use(Profiles)
   beforeEach(() => {
     store = createStore()
   })
   afterEach(() => {
     if (wrapper) {
-      wrapper.destroy()
+      wrapper.unmount()
     }
+    // @ts-ignore
     delete window.PRERENDERING
   })
-  it('Generates shortened options for ratings', () => {
+  test('Generates shortened options for ratings', () => {
     expect(ratingsShort()).toEqual(
       [
         {text: 'Clean/Safe', value: '0'}, {text: 'Risque', value: '1'},
@@ -207,7 +197,7 @@ describe('Enumerators', () => {
       ],
     )
   })
-  it('Generates a set of rating options', () => {
+  test('Generates a set of rating options', () => {
     expect(ratings()).toEqual([
       {text: 'Clean/Safe for work', value: '0'},
       {text: 'Risque/mature, not adult content but not safe for work', value: '1'},
@@ -215,15 +205,15 @@ describe('Enumerators', () => {
       {text: 'Offensive/Disturbing to most viewers, not safe for work', value: '3'},
     ])
   })
-  it('Generates a redacted set of rating options', () => {
+  test('Generates a redacted set of rating options', () => {
     expect(ratingsNonExtreme()).toEqual([
       {text: 'Clean/Safe for work', value: '0'},
       {text: 'Risque/mature, not adult content but not safe for work', value: '1'},
       {text: 'Adult content, not safe for work', value: '2'},
     ])
   })
-  it('Generates a standard schema for submission upload', () => {
-    wrapper = shallowMount(Empty, {localVue, store})
+  test('Generates a standard schema for submission upload', () => {
+    wrapper = shallowMount(Empty, {global: {plugins:[store, Singles, Lists, Profiles]}})
     const handler = wrapper.vm.$getProfile('person', {})
     expect(newUploadSchema(handler.user)).toEqual({
       endpoint: '/api/profiles/account/person/submissions/',
@@ -244,7 +234,7 @@ describe('Enumerators', () => {
   })
 })
 describe('HTTP Helpers', () => {
-  it('Constructs the appropriate headers for a POST request', () => {
+  test('Constructs the appropriate headers for a POST request', () => {
     setCookie('csrftoken', 'Stuff')
     setCookie('referredBy', 'Jimmy')
     window.windowId = 'Blabla'
@@ -257,29 +247,29 @@ describe('HTTP Helpers', () => {
       },
     )
   })
-  it('Constructs the appropriate headers for an outside POST request', () => {
+  test('Constructs the appropriate headers for an outside POST request', () => {
     setCookie('csrftoken', 'Stuff')
     expect(getHeaders('post', 'https://example.com/')).toEqual(
       {'Content-Type': 'application/json; charset=utf-8'},
     )
   })
-  it('Constructs the appropriate headers for a GET request', () => {
+  test('Constructs the appropriate headers for a GET request', () => {
     setCookie('csrftoken', 'Stuff')
     expect(getHeaders('get', '/test/')).toEqual(
       {'Content-Type': 'application/json; charset=utf-8'},
     )
   })
-  it.each`
+  test.each`
     url                      | result
     ${'https://example.com/'}| ${true}
     ${'//test.com/thing'}    | ${true}
-    ${window.location}       | ${false}
+    ${String(window.location)}       | ${false}
     ${'/'}                   | ${false}
   `('should determine the cross-domain status of $url to be $result.',
     ({url, result}) => {
-      expect(crossDomain(url)).toBe(result)
+      expect(crossDomain(url)).toEqual(result)
     })
-  it.each`
+  test.each`
     method       | result
     ${'get'}     | ${true}
     ${'GET'}     | ${true}
@@ -293,54 +283,54 @@ describe('HTTP Helpers', () => {
   `('Should determine the CSRF safety of method $method to be $result', ({method, result}) => {
     expect(csrfSafeMethod(method)).toBe(result)
   })
-  it('Sets a cookie', () => {
+  test('Sets a cookie', () => {
     setCookie('test', 'value')
     expect(getCookie('test')).toBe('value')
   })
-  it('Sets a cookie with an expiration date', () => {
+  test('Sets a cookie with an expiration date', () => {
     setCookie('test', 'value', 1)
     // We can't actually check if the date was set correctly, just that coverage said the appropriate code ran.
     expect(getCookie('test')).toBe('value')
   })
 })
 describe('Formatters', () => {
-  it('Formats a datetime string', () => {
+  test('Formats a datetime string', () => {
     expect(formatDateTime('2019-05-03T15:41:36.902Z')).toBe('May 3rd 2019, 10:41:36 am')
   })
-  it('Formats a date string', () => {
+  test('Formats a date string', () => {
     expect(formatDate('2019-05-03')).toBe('May 3rd 2019')
   })
-  it('Formats a date string, tersely', () => {
+  test('Formats a date string, tersely', () => {
     expect(formatDateTerse(new Date().getFullYear() + '-05-03')).toBe('May 3rd')
   })
-  it('Falls back to full year display if asked to be terse but the year is different', () => {
+  test('Falls back to full year display if asked to be terse but the year is different', () => {
     expect(formatDateTerse('2019-05-03')).toBe('May 3rd 19')
   })
-  it('Formats a datetime string as a date', () => {
+  test('Formats a datetime string as a date', () => {
     expect(formatDate('2019-05-03T15:41:36.902Z')).toBe('May 3rd 2019')
   })
-  it('Does not truncate text that is under the limit', () => {
+  test('Does not truncate text that is under the limit', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 50)).toBe(
       'This is a test string. It is 49 characters long.',
     )
   })
-  it('Truncates text that is over the limit', () => {
+  test('Truncates text that is over the limit', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 4)).toBe('This...')
   })
-  it('Truncates before the space when over the limit', () => {
+  test('Truncates before the space when over the limit', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 5)).toBe('This...')
   })
-  it('Does not truncate text mid-word if it can be avoided', () => {
+  test('Does not truncate text mid-word if it can be avoided', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 12)).toBe(
       'This is a...',
     )
   })
-  it('Truncates mid-word if it has no other choice', () => {
+  test('Truncates mid-word if it has no other choice', () => {
     expect(truncateText('This is a test string. It is 49 characters long.', 2)).toBe(
       'Th...',
     )
   })
-  it.each`
+  test.each`
     size             | result
     ${1000}          | ${'1000 B'}
     ${10000}         | ${'9.77 KB'}
@@ -350,7 +340,7 @@ describe('Formatters', () => {
   `('Makes the byte size $size human readable as $result', ({size, result}) => {
     expect(formatSize(size)).toBe(result)
   })
-  it('Renders markdown with links', () => {
+  test('Renders markdown with links', () => {
     expect(md.render(`# Hello there.
 
 *This is a test of the markdown renderer.* **There is no need to be alarmed.**
@@ -371,7 +361,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
 <p>Here's an email: <a href="mailto:support@artconomy.com" target="_blank">support@artconomy.com</a></p>
 `)
   })
-  it('Does not render links if prerender is set to true', () => {
+  test('Does not render links if prerender is set to true', () => {
     window.PRERENDERING = 1
     expect(md.render(`# Hello there.
 
@@ -393,7 +383,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
 <p>Here's an email: support@artconomy.com</p>
 `)
   })
-  it('Renders markdown with Mentions', () => {
+  test('Renders markdown with Mentions', () => {
     expect(md.render(
       'Hello, @Foxie. Is this @Vulpine creature as \\@sweet and cu@te @ as I\'d hope? Maybe @Fox\'s tricks ' +
       'will tell us.')).toBe(
@@ -403,7 +393,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
       `tricks will tell us.</p>
 `)
   })
-  it.each`
+  test.each`
     input                           | result
     ${'lists'}                      | ${'lists'}
     ${'lists/thing'}                | ${'lists_thing'}
@@ -413,7 +403,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   `('Should flatten $input into $result', ({input, result}) => {
     expect(flatten(input)).toBe(result)
   })
-  it.each`
+  test.each`
   userList                       | additional    | result
   ${['user1', 'user2', 'user3']} | ${0}          | ${'user1, user2, and user3'}
   ${['user1', 'user2', 'user3']} | ${3}          | ${'user1, user2, user3 and 3 others'}
@@ -423,7 +413,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   `('Should format a posse', ({userList, additional, result}) => {
     expect(posse(userList, additional)).toEqual(result)
   })
-  it.each`
+  test.each`
   userName         | result
   ${'_'}           | ${''}
   ${'__4'}         | ${'Guest #4'}
@@ -433,7 +423,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
   `('Should format a display name based on a username', ({userName, result}) => {
     expect(deriveDisplayName(userName)).toBe(result)
   })
-  it.each`
+  test.each`
   userName       | result
   ${'Guest #5'}  | ${true}
   ${'__5'}       | ${true}
@@ -444,7 +434,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
 })
 
 describe('Path helpers', () => {
-  it.each`
+  test.each`
     paramSet             | result
     ${'test'}            | ${'test'}
     ${['test', 'test2']} | ${'test'}
@@ -453,57 +443,6 @@ describe('Path helpers', () => {
     ${null}              | ${''}
   `('Should derive $result from query param set $paramSet', ({paramSet, result}) => {
     expect(singleQ(paramSet)).toBe(result)
-  })
-})
-
-describe('Tab manager', () => {
-  const localVue = createLocalVue()
-  localVue.use(VueRouter)
-  let router: VueRouter
-  beforeEach(() => {
-    router = new VueRouter({
-      mode: 'history',
-      routes: [{
-        path: '/place/:tabName/:subTabName?',
-        name: 'Settings',
-        component: ParamTabbed,
-        props: true,
-      }],
-    })
-  })
-  it('Syncs tab parameter with router', () => {
-    router.push('/place/somewhere/')
-    const wrapper = mount(Routed, {localVue, router})
-    const current = (wrapper.vm as any).$refs.current
-    expect(current.tab).toBe('tab-somewhere')
-    current.tab = 'nowhere'
-    expect(current.$route.params.tabName).toBe('nowhere')
-  })
-  it('Handles default option', () => {
-    router.push('/place/somewhere/')
-    const wrapper = mount(Routed, {localVue, router})
-    const current = (wrapper.vm as any).$refs.current
-    expect(current.subTab).toBe('tab-two')
-  })
-  it('Replaces invalid option with default', () => {
-    router.push('/place/somewhere/wat')
-    const wrapper = mount(Routed, {localVue, router})
-    const current = (wrapper.vm as any).$refs.current
-    expect(current.subTab).toBe('tab-two')
-  })
-  it('Blanks on invalid option when no default is set', () => {
-    router.push('/place/somewhere/wat')
-    const wrapper = mount(Routed, {localVue, router})
-    const current = (wrapper.vm as any).$refs.current
-    expect(current.subTab2).toBe('')
-  })
-  it('Resets other tabs when changed', () => {
-    router.push('/place/somewhere/one')
-    const wrapper = mount(Routed, {localVue, router})
-    const current = (wrapper.vm as any).$refs.current
-    expect(current.subTab).toBe('tab-one')
-    current.altTab = 'dude'
-    expect(current.$route.params).toEqual({tabName: 'dude'})
   })
 })
 
@@ -516,35 +455,35 @@ describe('dotTraverse', () => {
       erp: 'Nope',
     },
   }
-  it('Traverses a tree to find a particular result and an end branch', () => {
+  test('Traverses a tree to find a particular result and an end branch', () => {
     expect(dotTraverse(item, 'thing.stuff.wat')).toBe('Yay')
   })
-  it('Traverses a tree to find a result mid-branch', () => {
+  test('Traverses a tree to find a result mid-branch', () => {
     expect(dotTraverse(item, 'thing.stuff')).toEqual({wat: 'Yay'})
   })
-  it('Raises an exception if the path does not exist', () => {
+  test('Raises an exception if the path does not exist', () => {
     expect(() => dotTraverse(item, 'thing.stuff.org.wat')).toThrow(
       Error('Property thing.stuff.org is not defined.'),
     )
   })
-  it('Returns undefined if silenced and the path does not exist', () => {
+  test('Returns undefined if silenced and the path does not exist', () => {
     expect(dotTraverse(item, 'thing.stuff.org.wat', true)).toBe(undefined)
   })
 })
 
 describe('thumbFromSpec', () => {
-  it('Returns the full image by default if the thumbnail is not present', () => {
+  test('Returns the full image by default if the thumbnail is not present', () => {
     const file = {full: '/thing/wat.jpg', type: 'data:image'}
     expect(thumbFromSpec('thumbnail', file)).toBe('/thing/wat.jpg')
   })
-  it('Returns the correct thumbnail', () => {
+  test('Returns the correct thumbnail', () => {
     const file = {full: '/thing/wat.jpg', thumbnail: '/stuff/things.jpg', type: 'data:image'}
     expect(thumbFromSpec('thumbnail', file)).toBe('/stuff/things.jpg')
   })
 })
 
 describe('makeQueryParams', () => {
-  it('Wat', () => {
+  test('Wat', () => {
     const testData = {stuff: false, things: true, wat: 2}
     expect(makeQueryParams(testData)).toEqual({stuff: 'false', things: 'true', wat: '2'})
   })
@@ -557,8 +496,8 @@ describe('Mark Read handler', () => {
   afterEach(() => {
     cleanUp()
   })
-  it('Marks an item as read', async() => {
-    const target = qMount(Empty, {attachTo: ''}).vm.$getSingle(
+  test('Marks an item as read', async() => {
+    const target = mount(Empty, vueSetup()).vm.$getSingle(
       'boop', {endpoint: '/test/', x: {id: 1, read: false}},
     )
     markRead(target, 'stuff.Things')
@@ -569,15 +508,15 @@ describe('Mark Read handler', () => {
     await flushPromises()
     expect(target.x.read).toBe(true)
   })
-  it('Bails early if the object is null', () => {
-    const target = qMount(Empty, {attachTo: ''}).vm.$getSingle(
+  test('Bails early if the object is null', () => {
+    const target = mount(Empty, vueSetup()).vm.$getSingle(
       'boop', {endpoint: '/test/', x: null},
     )
     markRead(target, 'stuff.Things')
     expect(mockAxios.lastReqGet()).toBe(undefined)
   })
-  it('Bails early if the object has already been read', () => {
-    const target = qMount(Empty, {attachTo: ''}).vm.$getSingle(
+  test('Bails early if the object has already been read', () => {
+    const target = mount(Empty, vueSetup()).vm.$getSingle(
       'boop', {endpoint: '/test/', x: {id: 1, read: true}},
     )
     markRead(target, 'stuff.Things')
@@ -585,9 +524,11 @@ describe('Mark Read handler', () => {
   })
 })
 
+declare type TestType = {id: number, thing: {id: number, read: boolean}}
+
 describe('Linked update handler', () => {
-  it('Updates a list with linked references', () => {
-    const targetList = qMount(Empty, {attachTo: ''}).vm.$getList(
+  test('Updates a list with linked references', () => {
+    const targetList = mount(Empty, vueSetup()).vm.$getList(
       'boop', {endpoint: '/test/'},
     )
     targetList.setList([
@@ -596,14 +537,14 @@ describe('Linked update handler', () => {
       {id: 3, thing: {id: 1, read: false}},
     ])
     updateLinked({list: targetList, newValue: {id: 2, read: true}, key: 'thing'})
-    expect(targetList.list.map(x => x.x)).toEqual([
+    expect(targetList.list.map((x: SingleController<TestType>) => x.x)).toEqual([
       {id: 1, thing: {id: 2, read: true}},
       {id: 2, thing: {id: 4, read: false}},
       {id: 3, thing: {id: 1, read: false}},
     ])
   })
-  it('Handles a subKey', () => {
-    const targetList = qMount(Empty, {attachTo: ''}).vm.$getList(
+  test('Handles a subKey', () => {
+    const targetList = mount(Empty, vueSetup()).vm.$getList(
       'boop', {endpoint: '/test/'},
     )
     targetList.setList([
@@ -612,14 +553,14 @@ describe('Linked update handler', () => {
       {id: 3, thing: {stuff: 1, read: false}},
     ])
     updateLinked({list: targetList, newValue: {stuff: 2, read: true}, key: 'thing', subKey: 'stuff'})
-    expect(targetList.list.map(x => x.x)).toEqual([
+    expect(targetList.list.map((x: SingleController<TestType>) => x.x)).toEqual([
       {id: 1, thing: {stuff: 2, read: true}},
       {id: 2, thing: {stuff: 4, read: false}},
       {id: 3, thing: {stuff: 1, read: false}},
     ])
   })
-  it('Bails early if the value is null', () => {
-    const targetList = qMount(Empty, {attachTo: ''}).vm.$getList(
+  test('Bails early if the value is null', () => {
+    const targetList = mount(Empty, vueSetup()).vm.$getList(
       'boop', {endpoint: '/test/'},
     )
     targetList.setList([
@@ -628,7 +569,7 @@ describe('Linked update handler', () => {
       {id: 3, thing: {id: 1, read: false}},
     ])
     updateLinked({list: targetList, newValue: null, key: 'thing'})
-    expect(targetList.list.map(x => x.x)).toEqual([
+    expect(targetList.list.map((x: SingleController<TestType>) => x.x)).toEqual([
       {id: 1, thing: {id: 2, read: false}},
       {id: 2, thing: {id: 4, read: false}},
       {id: 3, thing: {id: 1, read: false}},
@@ -637,13 +578,13 @@ describe('Linked update handler', () => {
 })
 
 describe('Logger', () => {
-  const debug = jest.spyOn(console, 'debug')
+  const debug = vi.spyOn(console, 'debug')
   debug.mockImplementation(() => undefined)
-  const info = jest.spyOn(console, 'info')
+  const info = vi.spyOn(console, 'info')
   info.mockImplementation(() => undefined)
-  const warn = jest.spyOn(console, 'warn')
+  const warn = vi.spyOn(console, 'warn')
   warn.mockImplementation(() => undefined)
-  const error = jest.spyOn(console, 'error')
+  const error = vi.spyOn(console, 'error')
   error.mockImplementation(() => undefined)
   beforeEach(() => {
     debug.mockReset()
@@ -657,7 +598,7 @@ describe('Logger', () => {
     log.warn('TestWarn')
     log.error('TestError')
   }
-  it('Sends only errors', () => {
+  test('Sends only errors', () => {
     window.__LOG_LEVEL__ = LogLevels.ERROR
     sendMessages()
     expect(debug).not.toHaveBeenCalled()
@@ -666,7 +607,7 @@ describe('Logger', () => {
     expect(error).toHaveBeenCalledWith('TestError')
     expect(error).toHaveBeenCalledTimes(1)
   })
-  it('Sends warnings and up', () => {
+  test('Sends warnings and up', () => {
     window.__LOG_LEVEL__ = LogLevels.WARN
     sendMessages()
     expect(debug).not.toHaveBeenCalled()
@@ -676,7 +617,7 @@ describe('Logger', () => {
     expect(error).toHaveBeenCalledWith('TestError')
     expect(error).toHaveBeenCalledTimes(1)
   })
-  it('Sends info and up', () => {
+  test('Sends info and up', () => {
     window.__LOG_LEVEL__ = LogLevels.INFO
     sendMessages()
     expect(debug).not.toHaveBeenCalled()
@@ -687,7 +628,7 @@ describe('Logger', () => {
     expect(error).toHaveBeenCalledWith('TestError')
     expect(error).toHaveBeenCalledTimes(1)
   })
-  it('Sends all logging levels', () => {
+  test('Sends all logging levels', () => {
     window.__LOG_LEVEL__ = LogLevels.DEBUG
     sendMessages()
     expect(debug).toHaveBeenCalledWith('TestDebug')
@@ -699,7 +640,7 @@ describe('Logger', () => {
     expect(error).toHaveBeenCalledWith('TestError')
     expect(error).toHaveBeenCalledTimes(1)
   })
-  it('Sends all logging levels if the log level is super high', () => {
+  test('Sends all logging levels if the log level is super high', () => {
     window.__LOG_LEVEL__ = LogLevels.ERROR + 1
     sendMessages()
     expect(debug).not.toHaveBeenCalled()
@@ -710,10 +651,10 @@ describe('Logger', () => {
 })
 
 describe('initDrawerValue', () => {
-  it('Handles a blank initial value', () => {
+  test('Handles a blank initial value', () => {
     expect(initDrawerValue()).toBe(null)
   })
-  it('Handles a set initial value', () => {
+  test('Handles a set initial value', () => {
     localStorage.setItem('drawerOpen', 'true')
     expect(initDrawerValue()).toBe(true)
   })

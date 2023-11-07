@@ -1006,11 +1006,17 @@ class RevisionSerializer(serializers.ModelSerializer):
     file = RelatedAssetField(thumbnail_namespace="sales.Revision.file")
     final = serializers.BooleanField(default=False, required=False, write_only=True)
     submissions = serializers.SerializerMethodField()
+    # Used to create a comment. Same name as comment serializer's field so we can send the error to the frontend
+    # field.
+    text = serializers.CharField(
+        max_length=8000, required=False, allow_blank=True, write_only=True
+    )
     read = serializers.SerializerMethodField()
 
     def create(self, validated_data):
         data = {**validated_data}
         data.pop("final", None)
+        data.pop("text", None)
         return super().create(data)
 
     def get_read(self, obj):
@@ -1032,6 +1038,7 @@ class RevisionSerializer(serializers.ModelSerializer):
             "final",
             "read",
             "submissions",
+            "text",
         )
         read_only_fields = ("id", "deliverable", "owner", "read", "approved_on")
 

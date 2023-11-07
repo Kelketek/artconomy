@@ -1,7 +1,13 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="productLink">
-    <span slot="title"><ac-link :to="productLink">New Product: {{event.data.product.name}}</ac-link></span>
-    <span slot="subtitle"><ac-link :to="productLink">By {{event.data.product.user.username}} starting at ${{event.data.product.starting_price}}</ac-link></span>
+    <template v-slot:title>
+      <ac-link :to="productLink">New Product: {{event.data.product.name}}</ac-link>
+    </template>
+    <template v-slot:subtitle>
+      <ac-link :to="productLink">By {{event.data.product.user.username}} starting at
+        ${{event.data.product.starting_price}}
+      </ac-link>
+    </template>
   </ac-base-notification>
 </template>
 
@@ -12,7 +18,10 @@ import AcLink from '@/components/wrappers/AcLink'
 
 export default {
   name: 'ac-new-character',
-  components: {AcLink, AcBaseNotification},
+  components: {
+    AcLink,
+    AcBaseNotification,
+  },
   mixins: [Notifiction],
   computed: {
     productLink() {

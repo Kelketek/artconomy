@@ -1,62 +1,60 @@
-import Vue from 'vue'
-import Router, {RouteConfig} from 'vue-router'
-import {cleanUp, createVuetify, docTarget, vueSetup, mount} from '@/specs/helpers'
+import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router'
+import {cleanUp, createVuetify, docTarget, mount, vueSetup} from '@/specs/helpers'
 import {ArtStore, createStore} from '@/store'
-import {Wrapper} from '@vue/test-utils'
-import Empty from '@/specs/helpers/dummy_components/empty.vue'
+import {VueWrapper} from '@vue/test-utils'
+import Empty from '@/specs/helpers/dummy_components/empty'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Vuetify from 'vuetify/lib'
+import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
-const localVue = vueSetup()
-localVue.use(Router)
 let store: ArtStore
-let wrapper: Wrapper<Vue>
-let routes: RouteConfig[]
+let wrapper: VueWrapper<any>
+let routes: RouteRecordRaw[]
 let router: Router
-let vuetify: Vuetify
 
 describe('AcLink.vue', () => {
   beforeEach(() => {
     store = createStore()
-    vuetify = createVuetify()
     routes = [{
       name: 'Test',
       path: '/test',
       component: Empty,
+    }, {
+      name: 'Home',
+      path: '/',
+      component: Empty,
     }]
-    router = new Router({mode: 'history', routes})
+    router = createRouter({
+      history: createWebHistory(),
+      routes,
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  it('Navigates', async() => {
+  test('Navigates', async() => {
     wrapper = mount(AcLink, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {to: {name: 'Test'}},
-
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {to: {name: 'Test'}},
     })
-    const mockPush = jest.spyOn(wrapper.vm.$router, 'push')
-    wrapper.find('a').trigger('click')
+    const mockPush = vi.spyOn(wrapper.vm.$router, 'push')
+    await wrapper.find('a').trigger('click')
     expect(mockPush).toHaveBeenCalledWith({name: 'Test'})
   })
-  it('Makes links do new windows', async() => {
-    const mockOpen = jest.spyOn(window, 'open')
+  test('Makes links do new windows', async() => {
+    const mockOpen = vi.spyOn(window, 'open')
     mockOpen.mockImplementationOnce(() => null)
     store.commit('setiFrame', true)
     wrapper = mount(AcLink, {
-      localVue,
-      store,
-      router,
-      vuetify,
-      propsData: {to: {name: 'Test'}},
-
-      attachTo: docTarget(),
+      ...vueSetup({
+        store,
+        extraPlugins: [router],
+      }),
+      props: {to: {name: 'Test'}},
     })
-    wrapper.find('a').trigger('click')
+    await wrapper.find('a').trigger('click')
     expect(mockOpen).toHaveBeenCalledWith('/test', '_blank')
   })
 })
