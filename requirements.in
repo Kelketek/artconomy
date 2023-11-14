@@ -124,6 +124,8 @@ ruff
 short-stuff
 # Library for interacting with Stripe's API
 stripe
+# Used by easy_thumbnails to generate SVG thumbnails.
+svglib
 # Library for working with tracebacks. Used for testing.
 tblib
 # ASGI webserver for Python. Used for the production ASGI server, which handles websocket requests.

@@ -104,6 +104,8 @@ cryptography==41.0.5
     #   service-identity
 cssselect==1.2.0
     # via premailer
+cssselect2==0.7.0
+    # via svglib
 cssutils==2.9.0
     # via premailer
 daphne==4.0.0
@@ -242,7 +244,9 @@ lazy==1.6
 luhn==0.2.0
     # via -r requirements.in
 lxml==4.9.3
-    # via premailer
+    # via
+    #   premailer
+    #   svglib
 mailchimp3==3.0.21
     # via -r requirements.in
 markdown==3.5.1
@@ -340,7 +344,9 @@ redis==5.0.1
     #   channels-redis
     #   django-redis
 reportlab==4.0.7
-    # via -r requirements.in
+    # via
+    #   -r requirements.in
+    #   svglib
 requests==2.31.0
     # via
     #   -r requirements.in
@@ -375,8 +381,14 @@ starkbank-ecdsa==2.2.0
     # via sendgrid
 stripe==7.4.0
     # via -r requirements.in
+svglib==1.5.1
+    # via -r requirements.in
 tblib==3.0.0
     # via -r requirements.in
+tinycss2==1.2.1
+    # via
+    #   cssselect2
+    #   svglib
 tomli==2.0.1
     # via discord-py-interactions
 traitlets==5.13.0
@@ -416,6 +428,10 @@ watchfiles==0.21.0
     # via uvicorn
 wcwidth==0.2.10
     # via prompt-toolkit
+webencodings==0.5.1
+    # via
+    #   cssselect2
+    #   tinycss2
 websockets==12.0
     # via uvicorn
 yarl==1.9.2

@@ -17,7 +17,10 @@ class Command(BaseCommand):
     def handle(self, *args: List, **options: Dict):
         for item in Asset.objects.all():
             # Some thumbnails are generated directly...
-            item.save()
+            try:
+                item.save()
+            except Exception as err:
+                print(item, err)
         for model in [Product, Revision, Reference, Submission]:
             # ...while others are per-spec for models.
             for item in model.objects.all():
