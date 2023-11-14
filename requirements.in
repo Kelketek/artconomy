@@ -112,6 +112,8 @@ python-telegram-bot>=20.0.0,<21.0.0
 pytz
 # Used to generate QR codes
 qrcode
+# easy_thumbnails uses this to do some thumbnailing work.
+reportlab
 # The requests library is the most useful HTTP library in the Python ecosystem. It should probably be in the standard
 # library, and I think they were considering this at one point.
 requests

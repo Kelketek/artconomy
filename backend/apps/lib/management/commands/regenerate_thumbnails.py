@@ -21,4 +21,7 @@ class Command(BaseCommand):
         for model in [Product, Revision, Reference, Submission]:
             # ...while others are per-spec for models.
             for item in model.objects.all():
-                thumbnail_hook(model, item, force=True)
+                try:
+                    thumbnail_hook(model, item, force=True)
+                except Exception as err:
+                    print(model, item, str(err))

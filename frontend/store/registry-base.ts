@@ -203,8 +203,8 @@ export function genRegistryPluginBase<K extends AttrKeys, O, T extends Registera
     const self = this as any
     registry.listen(self._uid, name)
   }
-  (base.methods as DefaultMethods<_Vue>)[`$get${typeName}`] = getter;
-  (base.methods as DefaultMethods<_Vue>)[`$listenFor${typeName}`] = listener;
-  (base.methods as DefaultMethods<_Vue>)[`$registryFor${typeName}`] = () => registry
+  (base.methods as ComponentOptions['methods'])[`$get${typeName}`] = getter;
+  (base.methods as ComponentOptions['methods'])[`$listenFor${typeName}`] = listener;
+  (base.methods as ComponentOptions['methods'])[`$registryFor${typeName}`] = () => registry
   return base
 }
