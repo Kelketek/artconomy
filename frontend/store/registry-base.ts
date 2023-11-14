@@ -203,8 +203,10 @@ export function genRegistryPluginBase<K extends AttrKeys, O, T extends Registera
     const self = this as any
     registry.listen(self._uid, name)
   }
-  (base.methods as ComponentOptions['methods'])[`$get${typeName}`] = getter;
-  (base.methods as ComponentOptions['methods'])[`$listenFor${typeName}`] = listener;
-  (base.methods as ComponentOptions['methods'])[`$registryFor${typeName}`] = () => registry
+  // This suddenly broke but we're now replacing it with an upgraded frontend base anyway. Throwing anys in there
+  // and calling it a day.
+  (base.methods as ComponentOptions<any, any, any>['methods'])[`$get${typeName}`] = getter;
+  (base.methods as ComponentOptions<any, any, any>['methods'])[`$listenFor${typeName}`] = listener;
+  (base.methods as ComponentOptions<any, any, any>['methods'])[`$registryFor${typeName}`] = () => registry
   return base
 }

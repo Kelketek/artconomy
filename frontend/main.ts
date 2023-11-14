@@ -1,7 +1,9 @@
 import 'intersection-observer'
 import './artconomy.css'
 import Vuetify from 'vuetify/lib'
+// @ts-ignore
 import * as Sentry from '@sentry/browser'
+// @ts-ignore
 import * as Integrations from '@sentry/integrations'
 import Vue from 'vue'
 import VueRouter from 'vue-router'

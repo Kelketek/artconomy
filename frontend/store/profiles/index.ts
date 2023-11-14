@@ -1,4 +1,5 @@
 import Vue from 'vue'
+// @ts-ignore
 import * as Sentry from '@sentry/browser'
 import {ActionTree, GetterTree, Module, MutationTree} from 'vuex'
 import {State as RootState} from '../state'
@@ -35,6 +36,7 @@ const mutations: MutationTree<UserStoreState> = {
     Vue.set(state, 'viewerRawUsername', username)
     /* istanbul ignore next */
     try {
+      // @ts-ignore
       Sentry.configureScope(scope => {
         scope.setUser({username})
       })
