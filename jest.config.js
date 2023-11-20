@@ -25,6 +25,7 @@ module.exports = {
   snapshotSerializers: [
     'jest-serializer-vue',
   ],
+  setupFiles: ['jest-canvas-mock'],
   setupFilesAfterEnv: [
     '<rootDir>/frontend/specs/setupTestEnv.ts',
   ],

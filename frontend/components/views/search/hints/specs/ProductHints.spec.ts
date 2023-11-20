@@ -28,6 +28,6 @@ describe('ProductHints.vue', () => {
     wrapper.find('.v-chip__content').trigger('click')
     const vm = wrapper.vm as any
     await vm.$nextTick()
-    expect(vm.searchForm.fields.q.value).toBe('refsheet')
+    expect(vm.searchForm.fields.q.value).toBe('winter_holiday')
   })
 })

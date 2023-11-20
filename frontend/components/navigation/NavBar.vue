@@ -63,6 +63,18 @@
           </v-btn>
         </v-bottom-navigation>
       </v-container>
+      <snow-fall
+          :amount="25"
+          :size="5"
+          :speed=".5"
+          :wind="0"
+          :opacity="0.8"
+          :swing="1"
+          :image="null"
+          :zIndex="0"
+          :resize="true"
+          color="#fff"
+      />
     </v-navigation-drawer>
     <v-app-bar
         color="secondary"
@@ -142,6 +154,18 @@
         <v-btn v-else-if="viewer" class="nav-login-item" text :to="loginLink">Login</v-btn>
         <v-btn v-else class="nav-login-item" aria-label="Login button loading."/>
       </v-toolbar-items>
+      <snow-fall
+          :amount="25"
+          :size="5"
+          :speed=".5"
+          :wind="0"
+          :opacity="0.8"
+          :swing="1"
+          :image="null"
+          :zIndex="null"
+          :resize="true"
+          color="#fff"
+      />
     </v-app-bar>
   </div>
 </template>
@@ -180,9 +204,10 @@ import {mdiDiscord} from '@mdi/js'
 import PrerenderMixin from '@/mixins/PrerenderMixin'
 import {SingleController} from '@/store/singles/controller'
 import {NavSettings} from '@/types/NavSettings'
+import SnowFall from 'vue-snowf'
 
 @Component({
-  components: {AcNavLinks, AcBoundField, AcPatchField, AcSettingNav},
+  components: {SnowFall, AcNavLinks, AcBoundField, AcPatchField, AcSettingNav},
 })
 export default class NavBar extends mixins(Viewer, Nav, PrerenderMixin) {
   @State('iFrame') public iFrame!: boolean

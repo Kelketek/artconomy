@@ -8,9 +8,9 @@
         </small>
       </div>
     </div>
-    <v-container v-if="!isRegistered">
+    <v-container>
       <v-row no-gutters  >
-        <v-col class="text-center px-2" cols="12" >
+        <v-col class="text-center px-2" cols="12" v-if="!isRegistered">
           <h1>Your ideas. <br class="hidden-sm-and-up" /> Your characters. Realized.</h1>
         </v-col>
         <v-col cols="8" offset="2" lg="4" offset-lg="4">
@@ -26,14 +26,14 @@
           Try terms like:
           <v-chip color="secondary" @click="search({q: term})" class="mx-1" v-for="term in searchTerms" :key="term">{{term}}</v-chip>
         </v-col>
-        <v-col class="text-center text-lg-right pt-3 px-lg-2" cols="12" lg="6">
+        <v-col class="text-center text-lg-right pt-3 px-lg-2" cols="12" lg="6" v-if="!isRegistered">
           <v-btn color="primary" @click="search({})"><v-icon left>search</v-icon>Browse Everyone Open</v-btn>
         </v-col>
-        <v-col class="text-center text-lg-left pt-3 px-lg-2" cols="12" lg="6">
+        <v-col class="text-center text-lg-left pt-3 px-lg-2" cols="12" lg="6" v-if="!isRegistered">
           <v-btn color="secondary" :to="{name: 'LandingArtistTools'}"><v-icon left>palette</v-icon>Are you an artist?</v-btn>
         </v-col>
       </v-row>
-      <v-row no-gutters class="pt-2">
+      <v-row no-gutters class="pt-2" v-if="!isRegistered">
         <v-col class="text-center d-flex" cols="12" md="4" >
           <v-row no-gutters >
             <v-col class="grow pa-1">
@@ -534,7 +534,7 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     }
 
     public get searchTerms() {
-      return shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
+      return ['winter_holiday', 'ych', 'stickers']
     }
 
     public get mainSectionItems() {
