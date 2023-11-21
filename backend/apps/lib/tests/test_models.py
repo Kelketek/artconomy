@@ -37,6 +37,7 @@ class TestComments(APITestCase):
             {
                 "text": "This is a new comment",
             },
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         new_comment = response.data
@@ -69,6 +70,7 @@ class TestComments(APITestCase):
             {
                 "text": "This is a final comment.",
             },
+            format="json",
         )
         last_comment = response.data
         # Verify first comment notification is updated.

@@ -3089,22 +3089,40 @@ class TestBroadcast(APITestCase):
         user = UserFactory.create()
         self.login(user)
         response = self.client.post(
-            f"/api/sales/account/{user.username}/broadcast/", {"text": "Boop"}
+            f"/api/sales/account/{user.username}/broadcast/",
+            {"text": "Boop", "include_waitlist": True, "include_active": True},
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(
-            response.data["detail"], "You have no open orders to broadcast to."
+            response.data["detail"], "You have no matching orders to broadcast to."
         )
 
-    def test_broadcast(self):
+    def test_no_category(self):
+        user = UserFactory.create()
+        self.login(user)
+        response = self.client.post(
+            f"/api/sales/account/{user.username}/broadcast/",
+            {"text": "Boop", "include_active": False, "include_waitlist": False},
+            format="json",
+        )
+        self.assertEqual(
+            response.data["detail"],
+            "You must select at least one category of orders to broadcast to.",
+        )
+
+    def test_broadcast_to_active(self):
         deliverable = DeliverableFactory.create()
         self.login(deliverable.order.seller)
         deliverable2 = DeliverableFactory.create(order=deliverable.order)
         deliverable3 = DeliverableFactory.create(order__seller=deliverable.order.seller)
         deliverable4 = DeliverableFactory.create()
+        deliverable5 = DeliverableFactory(
+            order__seller=deliverable.order.seller, status=WAITING
+        )
         response = self.client.post(
             f"/api/sales/account/{deliverable.order.seller.username}/broadcast/",
-            {"text": "Boop"},
+            {"text": "Boop", "include_active": True, "include_waitlist": False},
+            format="json",
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(
@@ -3115,6 +3133,26 @@ class TestBroadcast(APITestCase):
         self.assertEqual(comment.text, "Boop")
         self.assertEqual(comment.user, deliverable3.order.seller)
         self.assertEqual(deliverable4.comments.all().count(), 0)
+        self.assertEqual(deliverable5.comments.all().count(), 0)
+
+    def test_broadcast_to_waiting(self):
+        deliverable = DeliverableFactory.create()
+        self.login(deliverable.order.seller)
+        DeliverableFactory.create(order=deliverable.order)
+        DeliverableFactory.create(order__seller=deliverable.order.seller)
+        DeliverableFactory.create()
+        deliverable5 = DeliverableFactory(
+            order__seller=deliverable.order.seller, status=WAITING
+        )
+        DeliverableFactory.create(status=WAITING)
+        response = self.client.post(
+            f"/api/sales/account/{deliverable.order.seller.username}/broadcast/",
+            {"text": "Boop", "include_active": False, "include_waitlist": True},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(Comment.objects.count(), 1)
+        self.assertEqual(deliverable5.comments.all().count(), 1)
 
 
 class TestClearWaitlist(APITestCase):

@@ -86,6 +86,20 @@
         <v-col cols="12" class="text-center">
           <h1>Add a comment to all of your orders at once.</h1>
         </v-col>
+        <v-col cols="12" sm="6">
+          <ac-bound-field field-type="ac-checkbox"
+                          label="Include Active Orders"
+                          :field="broadcastForm.fields.include_active"
+                          help-text="Send this message to all open orders."/>
+        </v-col>
+        <v-col cols="12" sm="6">
+          <ac-bound-field
+              field-type="ac-checkbox"
+              label="Include Waitlist"
+              help-text="Send this message to all orders that are in your waitlist."
+              :field="broadcastForm.fields.include_waitlist"
+          />
+        </v-col>
         <v-col cols="12">
           <ac-bound-field field-type="ac-editor" :field="broadcastForm.fields.text" :save-indicator="false"/>
         </v-col>
@@ -205,7 +219,12 @@ export default class Orders extends mixins(Subjective, InvoicingMixin) {
     this.newInvoice = this.$getForm('newInvoice', invoiceSchema)
     this.broadcastForm = this.$getForm('broadcast', {
       endpoint: `/api/sales/account/${this.username}/broadcast/`,
-      fields: {text: {value: ''}, extra_data: {value: {}}},
+      fields: {
+        text: {value: ''},
+        extra_data: {value: {}},
+        include_active: {value: true},
+        include_waitlist: {value: false},
+      },
     })
   }
 }

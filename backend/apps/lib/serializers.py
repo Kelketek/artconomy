@@ -41,7 +41,7 @@ from django.db.models import Q
 from django.db.transaction import atomic
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
-from rest_framework.fields import SerializerMethodField, empty
+from rest_framework.fields import SerializerMethodField, empty, BooleanField
 from rest_framework_bulk import BulkListSerializer, BulkSerializerMixin
 from shortcuts import make_url
 
@@ -328,6 +328,20 @@ class CommentSerializer(RelatedAtomicMixin, CommentMixin, serializers.ModelSeria
     comments = SerializerMethodField()
     comment_count = SerializerMethodField()
     subscribed = SubscribedField(required=False)
+    # Used in the broadcast to commissioners view, otherwise removed.
+    include_active = BooleanField(required=True)
+    include_waitlist = BooleanField(required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if not self.context.get("broadcast_mode"):
+            del self.fields["include_active"]
+            del self.fields["include_waitlist"]
+
+    def create(self, validated_data):
+        validated_data.pop("include_active", None)
+        validated_data.pop("include_waitlist", None)
+        return super().create(validated_data)
 
     class Meta:
         model = Comment
@@ -344,6 +358,8 @@ class CommentSerializer(RelatedAtomicMixin, CommentMixin, serializers.ModelSeria
             "subscribed",
             "system",
             "extra_data",
+            "include_active",
+            "include_waitlist",
         )
         read_only_fields = (
             "id",

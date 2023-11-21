@@ -2951,6 +2951,11 @@ class Broadcast(CreateAPIView):
     def get_object(self):
         return self.request.subject
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context["broadcast_mode"] = True
+        return context
+
     def create(self, request, *args, **kwargs):
         try:
             serializer = self.get_serializer(data=request.data)
@@ -2959,13 +2964,23 @@ class Broadcast(CreateAPIView):
         except Http404:
             return Response(
                 status=status.HTTP_404_NOT_FOUND,
-                data={"detail": "You have no open orders to broadcast to."},
+                data={"detail": "You have no matching orders to broadcast to."},
             )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def perform_create(self, serializer):
         self.check_object_permissions(self.request, self.get_object())
-        checks = WEIGHTED_STATUSES + (REVIEW, DISPUTED, NEW)
+        checks = []
+        if serializer.validated_data["include_active"]:
+            checks.extend(list(WEIGHTED_STATUSES) + list((REVIEW, DISPUTED, NEW)))
+        if serializer.validated_data["include_waitlist"]:
+            checks.append(WAITING)
+        if not checks:
+            raise ValidationError(
+                {
+                    "detail": "You must select at least one category of orders to broadcast to."
+                }
+            )
         deliverables = (
             Deliverable.objects.filter(
                 status__in=checks,

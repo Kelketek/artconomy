@@ -61,6 +61,7 @@ class TestSupportRequest(APITestCase):
                 "body": "beep boop.",
                 "referring_url": "https://example.com/",
             },
+            format="json",
         )
 
 
