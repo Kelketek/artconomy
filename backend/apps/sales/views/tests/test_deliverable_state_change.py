@@ -822,3 +822,11 @@ class TestDeliverableAdjustments(APITestCase):
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_deliverable_visible_to_buyer(self):
+        deliverable = DeliverableFactory.create(status=LIMBO)
+        self.login(deliverable.order.buyer)
+        response = self.client.get(
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/{deliverable.id}/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)

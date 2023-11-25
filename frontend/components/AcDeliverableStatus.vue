@@ -24,7 +24,7 @@ export default class AcDeliverableStatus extends Vue {
     7: {text: 'Disputed', icon: 'gavel', color: 'danger', dark: true},
     8: {text: 'Completed', icon: 'check_circle', color: 'green', dark: true},
     9: {text: 'Refunded', icon: 'assignment_return', color: 'black', dark: true},
-    10: {text: 'Limbo', icon: 'question', color: 'white', dark: false},
+    10: {text: 'Limbo', icon: 'question_mark', color: 'white', dark: false},
     11: {text: 'Missed', icon: 'cancel', color: 'black', dark: true},
   }
 

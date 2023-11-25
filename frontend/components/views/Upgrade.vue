@@ -62,7 +62,7 @@
                             <div v-if="plan.per_deliverable_price">Non-shield order tracking fee: ${{plan.per_deliverable_price.toFixed(2)}}</div>
                             <div>
                               <div v-if="plan.max_simultaneous_orders">
-                                Up to {{plan.max_simultaneous_orders}} order<span v-if="!(plan.max_simultaneous_orders === 1)">s</span> per month
+                                Up to {{plan.max_simultaneous_orders}} order<span v-if="!(plan.max_simultaneous_orders === 1)">s</span> at a time
                               </div>
                               <div v-else-if="!plan.per_deliverable_price">
                                 Track Unlimited Orders

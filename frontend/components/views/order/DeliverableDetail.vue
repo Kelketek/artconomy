@@ -10,6 +10,9 @@
                 <ac-form-container @submit.prevent="stateChange.submitThen(updateDeliverable)" :errors="stateChange.errors" :sending="stateChange.sending">
                   <v-card-text>
                     <v-row dense>
+                      <v-col v-if="is(LIMBO) && isBuyer" cols="12">
+                        <p>The artist has been informed about your order and should respond soon.</p>
+                      </v-col>
                       <v-col v-if="is(WAITING) && isBuyer" cols="12">
                         <p>Your order has been placed in the artist's waitlist. Waitlisted orders are not guaranteed by
                           Artconomy to be accepted in any order and every artist's policy is different in how they are handled.

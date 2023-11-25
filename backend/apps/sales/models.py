@@ -87,6 +87,7 @@ from apps.sales.permissions import (
     DeliverableStatusPermission,
     OrderViewPermission,
     ReferenceViewPermission,
+    LimboCheck,
 )
 from apps.sales.stripe import delete_payment_method, stripe
 from apps.sales.utils import (
@@ -405,17 +406,11 @@ class Deliverable(Model):
     post_pay_hook = "apps.sales.models.deliverable_post_pay"
     comment_permissions = [
         OrderViewPermission,
-        DeliverableStatusPermission(
-            *(
-                status
-                for (status, _) in DELIVERABLE_STATUSES
-                if status not in (LIMBO, MISSED)
-            )
-        ),
+        LimboCheck,
     ]
     watch_permissions = {
-        "DeliverableSerializer": [OrderViewPermission],
-        None: [OrderViewPermission],
+        "DeliverableSerializer": [OrderViewPermission, LimboCheck],
+        None: [OrderViewPermission, LimboCheck],
     }
     processor = models.CharField(
         choices=PROCESSOR_CHOICES,
