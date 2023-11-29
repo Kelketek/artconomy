@@ -107,6 +107,11 @@
           <ac-tabs :items="mainSectionItems" v-model="mainSection" label="Categories" />
           <v-tabs-items :value="mainSection">
             <v-tab-item>
+              <v-card-text>Winter Holiday Fun!</v-card-text>
+              <ac-product-slider :list="holiday" />
+              <v-btn block color="primary" @click="search({q: 'winter_holiday'})">See Holiday Items</v-btn>
+            </v-tab-item>
+            <v-tab-item>
               <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>
               <ac-product-slider :list="featured" />
               <v-btn block color="primary" @click="search({featured: true})">See All Featured</v-btn>
@@ -383,6 +388,7 @@ const ADULT = 2
 })
 export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
     public searchForm: FormController = null as unknown as FormController
+    public holiday: ListController<Product> = null as unknown as ListController<Product>
     public featured: ListController<Product> = null as unknown as ListController<Product>
     public rated: ListController<Product> = null as unknown as ListController<Product>
     public newArtistProducts: ListController<Product> = null as unknown as ListController<Product>
@@ -539,10 +545,11 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
 
     public get mainSectionItems() {
       return [
-        {value: 0, text: 'Featured', icon: 'star'},
-        {value: 1, text: 'Highly Rated', icon: 'mood'},
-        {value: 2, text: 'Special Deals', icon: 'local_offer'},
-        {value: 3, text: 'Random', icon: 'casino'},
+        {value: 0, text: 'Holiday Fun!', icon: 'ac_unit'},
+        {value: 1, text: 'Featured', icon: 'star'},
+        {value: 2, text: 'Highly Rated', icon: 'mood'},
+        {value: 3, text: 'Special Deals', icon: 'local_offer'},
+        {value: 4, text: 'Random', icon: 'casino'},
       ]
     }
 
@@ -632,6 +639,8 @@ export default class Home extends mixins(Viewer, Formatting, PrerenderMixin) {
 
     public created() {
       this.searchForm = this.$getForm('search')
+      this.holiday = this.$getList('holiday', {endpoint: '/api/sales/search/product/', params: {size: 6, q: 'winter_holiday'}})
+      this.holiday.firstRun()
       this.featured = this.$getList('featured', {endpoint: '/api/sales/featured-products/', params: {size: 6}})
       this.featured.firstRun()
       this.rated = this.$getList('rated', {endpoint: '/api/sales/highly-rated/', params: {size: 6}})
