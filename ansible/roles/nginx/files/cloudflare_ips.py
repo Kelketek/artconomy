@@ -1,6 +1,4 @@
 #! /usr/bin/env python3
-from __future__ import print_function
-
 import hashlib
 import os
 from itertools import chain
@@ -23,17 +21,20 @@ except Exception as err:
     exit(2)
 
 result = ""
-for line in chain(response_ip4.content.split("\n"), response_ip6.content.split("\n")):
+for line in chain(
+    response_ip4.content.decode("utf-8").split("\n"),
+    response_ip6.content.decode("utf-8").split("\n"),
+):
     line = line.strip()
     if not line:
         continue
     result += "set_real_ip_from {};\n".format(line)
 result += "real_ip_header CF-Connecting-IP;\n"
 new_hasher = hashlib.md5()
-new_hasher.update(result)
+new_hasher.update(result.encode("utf-8"))
 old_hasher = hashlib.md5()
 with open("/etc/nginx/includes/real_ip.conf", "r") as f:
-    old_hasher.update(f.read())
+    old_hasher.update(f.read().encode("utf-8"))
 if new_hasher.hexdigest() == old_hasher.hexdigest():
     exit(0)
 with open("/etc/nginx/includes/real_ip.conf", "w") as f:
