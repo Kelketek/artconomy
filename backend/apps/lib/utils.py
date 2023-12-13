@@ -707,9 +707,6 @@ def preview_rating(request, target_rating, real_link, sub_link=""):
             return sub_link
         else:
             return real_link
-    if target_rating >= 3:
-        # extreme content, always avoid preview.
-        return sub_link
     return real_link
 
 
