@@ -384,12 +384,12 @@ COUNTRIES_ARTCONOMY_OUTPUT = {
         {"text": "Thailand", "value": "TH"},
         {"text": "Trinidad and Tobago", "value": "TT"},
         {"text": "Tunisia", "value": "TN"},
-        {"text": "Turkey", "value": "TR"},
+        {"text": "Türkiye", "value": "TR"},
         {"text": "United Arab Emirates", "value": "AE"},
         {"text": "United Kingdom", "value": "GB"},
         {"text": "United States", "value": "US"},
         {"text": "Uruguay", "value": "UY"},
-    ]
+    ],
 }
 
 
