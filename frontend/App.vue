@@ -69,18 +69,6 @@
           <v-col cols="12" class="text-center">
             <span class="title">Warning: {{ratingsShort[$store.state.contentRating]}}. Please verify your age and content preferences.</span>
           </v-col>
-          <v-col v-if="$store.state.contentRating === OFFENSIVE && !isRegistered" cols="12">
-            <v-alert type="error">Some or all of the content on this page is marked as offensive or disturbing.
-              Offensive content is only available to registered users.
-              You may adjust your settings below, but to view all the content on this page, you will need to
-              <router-link :to="{name: 'Login', params: {tabName: 'register'}}">
-                <span @click="closeAgeVerification">register</span>
-              </router-link> or
-              <router-link :to="{name: 'Login'}" @click="closeAgeVerification">
-                <span @click="closeAgeVerification">log in.</span>
-              </router-link>
-            </v-alert>
-          </v-col>
           <v-col cols="12" md="6">
             <ac-patch-field
                 field-type="ac-birthday-field"
