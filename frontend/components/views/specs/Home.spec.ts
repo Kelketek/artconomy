@@ -34,7 +34,6 @@ describe('Home.vue', () => {
     const vm = wrapper.vm as any
     vm.featured.setList([])
     vm.featured.ready = true
-    vm.holiday.makeReady([])
     vm.featured.fetching = false
     vm.rated.setList([])
     vm.rated.ready = true
@@ -64,7 +63,7 @@ describe('Home.vue', () => {
     const push = jest.fn()
     wrapper = mount(Home, {localVue, store, vuetify, mocks: {$router: {push}}, stubs: ['router-link'], attachTo: docTarget()})
     await wrapper.vm.$nextTick()
-    wrapper.findAll('.v-tab').at(3).trigger('click')
+    wrapper.findAll('.v-tab').at(2).trigger('click')
     await wrapper.vm.$nextTick()
     await wrapper.vm.$nextTick()
     wrapper.find('.low-price-more').trigger('click')
