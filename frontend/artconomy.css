@@ -76,6 +76,3 @@ blockquote {
 .v-toolbar__title a {
     text-decoration: none;
 }
-.snowf-canvas {
-    pointer-events: none;
-}
