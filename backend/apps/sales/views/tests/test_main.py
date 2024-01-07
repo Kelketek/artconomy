@@ -4137,30 +4137,35 @@ class TestPaypalSettings(APITestCase):
         )
 
 
+mock_template_data = {
+    "templates": [
+        {
+            "id": "Beep",
+            "name": "Beeper",
+            "template_info": {"detail": {"currency_code": "USD"}},
+        },
+        {
+            "id": "Boop",
+            "name": "Booper",
+            "template_info": {"detail": {"currency_code": "CAD"}},
+        },
+        {
+            "id": "Herp",
+            "name": "Beeper",
+            "template_info": {"detail": {"currency_code": "USD"}},
+        },
+    ]
+}
+
+
+@ddt
 class TestPaypalTemplates(APITestCase):
     @patch("apps.sales.views.main.paypal_api")
-    def test_get_templates(self, mock_paypal):
-        config = PaypalConfigFactory.create()
+    @data(True, False)
+    def test_get_templates(self, active, mock_paypal):
+        config = PaypalConfigFactory.create(active=active)
         mock_get = mock_paypal.return_value.__enter__.return_value.get
-        mock_get.return_value.json.return_value = {
-            "templates": [
-                {
-                    "id": "Beep",
-                    "name": "Beeper",
-                    "template_info": {"detail": {"currency_code": "USD"}},
-                },
-                {
-                    "id": "Boop",
-                    "name": "Booper",
-                    "template_info": {"detail": {"currency_code": "CAD"}},
-                },
-                {
-                    "id": "Herp",
-                    "name": "Beeper",
-                    "template_info": {"detail": {"currency_code": "USD"}},
-                },
-            ]
-        }
+        mock_get.return_value.json.return_value = mock_template_data
         self.login(config.user)
         resp = self.client.get(
             f"/api/sales/account/{config.user.username}/paypal/templates/"
@@ -4169,14 +4174,4 @@ class TestPaypalTemplates(APITestCase):
         self.assertEqual(
             resp.data,
             [{"id": "Beep", "name": "Beeper"}, {"id": "Herp", "name": "Beeper"}],
-        )
-
-    def test_get_templates_not_active(self):
-        config = PaypalConfigFactory.create(template_id="", active=False)
-        user = config.user
-        self.login(user)
-        resp = self.client.get(f"/api/sales/account/{user.username}/paypal/templates/")
-        self.assertEqual(resp.status_code, status.HTTP_403_FORBIDDEN)
-        self.assertEqual(
-            resp.data, {"detail": "No active PayPal configuration for this account."}
         )

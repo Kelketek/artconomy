@@ -3321,7 +3321,7 @@ class PaypalSettings(RetrieveUpdateDestroyAPIView):
             )
             config.webhook_id = resp.json()["id"]
             config.save()
-            # Force trigger of refresh of user serializer over websocker
+            # Force trigger of refresh of user serializer over websocket
             config.user.save(update_fields=[])
         return Response(
             status=status.HTTP_201_CREATED,
@@ -3333,7 +3333,7 @@ class PaypalSettings(RetrieveUpdateDestroyAPIView):
 
 
 class PaypalTemplates(GenericAPIView):
-    permission_classes = [ObjectControls, ValidPaypal]
+    permission_classes = [ObjectControls]
 
     def get_object(self):
         config = get_object_or_404(

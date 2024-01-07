@@ -1905,7 +1905,7 @@ class PaypalConfig(models.Model):
     We use this to make the proper API calls and endpoints for invoicing.
     """
 
-    id = ShortCodeField(primary_key=True)
+    id = ShortCodeField(primary_key=True, default=gen_shortcode)
     user = models.OneToOneField(User, on_delete=CASCADE, related_name="paypal_config")
     key = models.CharField(max_length=100, db_index=True)
     secret = models.CharField(max_length=100)
