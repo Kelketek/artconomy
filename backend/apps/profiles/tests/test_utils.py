@@ -10,6 +10,7 @@ from apps.profiles.tests.factories import (
     CharacterFactory,
     SubmissionFactory,
     UserFactory,
+    ConversationFactory,
 )
 from apps.profiles.utils import (
     UserClearException,
@@ -212,6 +213,7 @@ class TestClearUser(EnsurePlansMixin, TestCase):
         self.assertEqual(user.avatar_url, "https://example.com/test-reset.png")
 
     def test_delete_related(self):
+        other_user = UserFactory.create()
         user = UserFactory.create()
         to_destroy = [
             CommentFactory(user=user),
@@ -220,6 +222,11 @@ class TestClearUser(EnsurePlansMixin, TestCase):
             CharacterFactory(user=user),
             AvatarFactory.create(user=user),
         ]
+        convo = ConversationFactory()
+        convo.participants.add(user, other_user)
+        to_destroy.append(CommentFactory(top=convo, user=user))
+        to_destroy.append(CommentFactory(top=convo, user=other_user))
+        to_destroy.append(convo)
         # Product should prevent this from being deleted, since the product has a
         # deliverable.
         deliverable = DeliverableFactory.create(order__seller=user)
