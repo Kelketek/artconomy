@@ -23,7 +23,7 @@
         <v-col cols="12" sm="6" md="8">
           <v-toolbar dense color="black" v-if="order.x.buyer">
             <ac-avatar :user="order.x.buyer" :show-name="false" />
-            <v-toolbar-title class="ml-1"><ac-link :to="profileLink(order.x.buyer)">{{deriveDisplayName(order.x.buyer.username)}}</ac-link></v-toolbar-title>
+            <v-toolbar-title class="ml-1"><ac-link :to="profileLink(order.x.buyer)">{{deriveDisplayName(order.x.buyer.username)}}</ac-link><span v-if="order.x.guest_email && isSeller"> ({{order.x.guest_email}})</span></v-toolbar-title>
           </v-toolbar>
           <v-card :color="$vuetify.theme.currentTheme.darkBase.darken2">
             <v-card-text>

@@ -449,6 +449,19 @@ class OrderViewSerializer(
     buyer = RelatedUserSerializer(read_only=True)
     deliverable_count = serializers.SerializerMethodField()
     product_name = serializers.SerializerMethodField()
+    guest_email = serializers.SerializerMethodField()
+
+    def get_guest_email(self, order):
+        user = self.context["request"].user
+        if self.context.get("public"):
+            return ""
+        if not (user == order.seller or user.is_staff):
+            return ""
+        if order.buyer and order.buyer.guest:
+            return order.buyer.guest_email
+        elif not order.buyer:
+            return order.customer_email
+        return ""
 
     def get_deliverable_count(self, obj):
         return obj.deliverables.count()
@@ -495,6 +508,7 @@ class OrderViewSerializer(
             "claim_token",
             "deliverable_count",
             "product_name",
+            "guest_email",
         )
         read_only_fields = fields
 
