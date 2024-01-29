@@ -52,7 +52,7 @@
           <v-list-item-title>Artists on my Watchlist</v-list-item-title>
         </v-list-item>
       </v-list-group>
-      <v-list-item v-else :to="{name: 'SearchProducts'}" @click.capture.stop.prevent="searchOpen">
+      <v-list-item v-else :exact="true" :to="{name: 'SearchProducts'}" @click.capture.stop.prevent="searchOpen({})">
         <v-list-item-action class="who-is-open">
           <v-icon>store</v-icon>
         </v-list-item-action>
