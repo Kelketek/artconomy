@@ -23,11 +23,11 @@ import {
   pathFor,
   userPathFor,
 } from '@/store/profiles/helpers'
-import {singleRegistry, Singles} from '@/store/singles/registry'
-import {listRegistry, Lists} from '@/store/lists/registry'
-import {profileRegistry, Profiles} from '@/store/profiles/registry'
-import {FormControllers, formRegistry} from '@/store/forms/registry'
-import {characterRegistry, Characters} from '@/store/characters/registry'
+import {singleRegistry, createSingles} from '@/store/singles/registry'
+import {listRegistry, createLists} from '@/store/lists/registry'
+import {profileRegistry, createProfiles} from '@/store/profiles/registry'
+import {createForms, formRegistry} from '@/store/forms/registry'
+import {characterRegistry, createCharacters} from '@/store/characters/registry'
 import mockAxios from '@/__mocks__/axios'
 import Empty from '@/specs/helpers/dummy_components/empty'
 import {ArtStore, createStore} from '@/store'
@@ -40,6 +40,7 @@ import {createVueSocket} from '@/plugins/socket'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import {createTargetsPlugin} from '@/plugins/targets'
+import {createRegistries} from '@/plugins/createRegistries'
 
 export interface ExtraData {
   status?: number,
@@ -199,18 +200,20 @@ export type MountOverrideOptions = {
 export function vueSetup(overrides?: MountOverrideOptions): VueMountOptions {
   overrides = overrides || {}
   // Create a localVue with the most common parameters needed for testing our components.
+  const store = overrides.store || createStore()
   return {
     global: {
       stubs: overrides.stubs,
       components: overrides.components,
       mocks: overrides.mocks,
       plugins: [
-        Singles,
-        overrides.store || createStore(),
-        Lists,
-        Profiles,
-        FormControllers,
-        Characters,
+        store,
+        createSingles(store),
+        createLists(store),
+        createProfiles(store),
+        createForms(store),
+        createCharacters(store),
+        createRegistries(),
         VueMask,
         Shortcuts,
         createTargetsPlugin(true),
@@ -223,15 +226,6 @@ export function vueSetup(overrides?: MountOverrideOptions): VueMountOptions {
       ]},
     attachTo: overrides.attachTo || docTarget(),
   }
-  // We won't use the Router in all tests, but we always have these modifications when we do.
-  // @ts-ignore
-  // if (!Router.prototype.push.PATCHED) {
-  //   // @ts-ignore
-  //   Router.prototype.push = saneNav(Router.prototype.push)
-  //   // @ts-ignore
-  //   Router.prototype.replace = saneNav(Router.prototype.replace)
-  // }
-  // return localVue
 }
 
 export function createDocumentTargets() {

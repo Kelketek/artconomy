@@ -8,6 +8,11 @@ import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
 import {QueryParams} from '@/store/helpers/QueryParams'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
 import {ComputedGetters} from '@/lib/lib'
+import {getController, ModuleName} from '@/store/registry-base'
+import {useRegistry} from '@/store/hooks'
+import {SingleRegistry} from '@/store/singles/registry'
+import {SingleState} from '@/store/singles/types/SingleState'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
 
 @ComputedGetters
 export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
@@ -16,7 +21,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
 
   public baseModuleName = 'lists'
 
-  public typeName = 'List'
+  public typeName: 'List' = 'List'
 
   constructor(args: ControllerArgs<ListModuleOpts>) {
     super(args)
@@ -96,11 +101,21 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     if (!this.attr('refs')) {
       return []
     }
-    let controllers = this.attr('refs').map((ref: string) => this.$root.$getSingle(
-      // Vestigial endpoint-- the controller may not be cached but the list should have defined it in the store.
-      `${this.prefix}items/${ref}`, {endpoint: ''},
-      this._uid,
-    ))
+    let controllers = this.attr('refs').map((ref: string) => (
+      getController<SingleState<T>, SingleModuleOpts<T>, SingleController<T>>(
+        {
+          uid: this._uid,
+          name: `${this.prefix}items/${ref}`,
+// Vestigial endpoint-- the controller may not be cached but the list should have defined it in the store.
+          schema: {endpoint: ''},
+          typeName: 'Single',
+          socket: this.$sock,
+          router: this.$router,
+          store: this.$store,
+          registries: this.$registries,
+          ControllerClass: SingleController,
+        },
+      )))
     controllers = controllers.filter((controller: SingleController<T>) => !(controller.deleted) && !(controller.x === null))
     return controllers
   }
@@ -151,11 +166,11 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     return this.attr('reverse')
   }
 
-  public get params(): QueryParams|null {
+  public get params(): QueryParams | null {
     return this.attr('params')
   }
 
-  public set params(params: QueryParams|null) {
+  public set params(params: QueryParams | null) {
     this.commit('setParams', params)
   }
 
@@ -180,7 +195,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     return this.attr('response')
   }
 
-  public set response(value: PaginatedResponse|null) {
+  public set response(value: PaginatedResponse | null) {
     this.commit('setResponse', value)
   }
 
@@ -219,11 +234,11 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     }
   }
 
-  public get socketSettings(): ListSocketSettings|null {
+  public get socketSettings(): ListSocketSettings | null {
     return this.attr('socketSettings')
   }
 
-  public set socketSettings(val: ListSocketSettings|null) {
+  public set socketSettings(val: ListSocketSettings | null) {
     this.commit('setSocketSettings', val)
   }
 
@@ -260,19 +275,19 @@ export class ListController<T extends object> extends BaseController<ListModuleO
 
   public socketUnmount = () => {
     const newItemLabel = this.newItemLabel
-    if (!this.$root.$sock?.socket) {
+    if (!this.$sock?.socket) {
       return
     }
     /* istanbul ignore else */
     if (newItemLabel) {
-      this.$root.$sock.send('clear_watch_new', this.socketNewItemParams)
-      this.$root.$sock.removeListener(newItemLabel, `${this.socketLabelBase}.new`)
+      this.$sock.send('clear_watch_new', this.socketNewItemParams)
+      this.$sock.removeListener(newItemLabel, `${this.socketLabelBase}.new`)
     }
   }
 
   public socketOpened = () => {
     const data = this.socketNewItemParams
-    if (!this.$root.$sock?.socket || !data || !this.ready) {
+    if (!this.$sock?.socket || !data || !this.ready) {
       return
     }
     if (this.stale) {
@@ -281,12 +296,12 @@ export class ListController<T extends object> extends BaseController<ListModuleO
       this.stale = false
       return
     }
-    this.$root.$sock.addListener(
+    this.$sock.addListener(
       this.newItemLabel,
       `${this.socketLabelBase}.new`,
       this.uniquePush,
     )
-    this.$root.$sock.send('watch_new', data)
+    this.$sock.send('watch_new', data)
   }
 
   public socketClosed = () => {

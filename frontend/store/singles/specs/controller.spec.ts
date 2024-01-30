@@ -8,6 +8,7 @@ import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
 import WS from 'vitest-websocket-mock'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let state: any
@@ -188,14 +189,14 @@ describe('Single controller', () => {
   })
   test('Syncs with the server', async() => {
     const controller = makeController({socketSettings, x: {id: 5}})
-    const server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
-    controller.$root.$sock.open()
+    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    controller.$sock.open()
     await server.connected
     await expect(server).toReceiveMessage({
       command: 'watch', payload: {app_label: 'boop', model_name: 'snoot', pk: '5', serializer: 'BoopSerializer'},
     })
     server.send({command: 'boop.snoot.update.BoopSerializer.5', payload: {id: 5, name: 'stuff'}})
-    await controller.$root.$nextTick()
+    await nextTick()
     expect(controller.x!.name).toBe('stuff')
     controller.purge()
     await expect(server).toReceiveMessage({

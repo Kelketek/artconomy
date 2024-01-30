@@ -20,26 +20,37 @@ const base = productionMode ? '/static/dist/' : '/vite/'
 
 const input = productionMode ? undefined : 'frontend/main.ts'
 
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [vue({
+const plugins = [
+  vue({
     template: { transformAssetUrls }
-  }), // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
+  }),
+  // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
   vuetify({
     autoImport: true,
-  }), ViteFonts({
+  }),
+  ViteFonts({
     google: {
       families: [{
         name: 'Roboto',
         styles: 'wght@100;300;400;500;700;900',
       }],
     },
-  }), checker({
+  }),
+  checker({
     typescript: true,
-  }), sentryVitePlugin({
+  }),
+]
+
+if (productionMode) {
+  plugins.push(sentryVitePlugin({
     org: "artconomycom",
     project: "vue"
-  })],
+  }))
+}
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins,
   test: {
     globals: true,
     environment: 'jsdom',

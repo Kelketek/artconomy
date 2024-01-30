@@ -3,15 +3,19 @@ import {h, ref, toValue} from 'vue'
 import {v4 as uuidv4} from 'uuid'
 import {NullClass} from '@/store/helpers/NullClass'
 import deepEqual from 'fast-deep-equal'
-import {AttrKeys, Registry} from '@/store/registry-base'
+import {AttrKeys, ModuleName, Registry, RegistryRegistry} from '@/store/registry-base'
 import {ArtVueInterface} from '@/types/ArtVueInterface'
 import {ArtStore} from '@/store/index'
+import {SocketManager} from '@/plugins/socket'
+import {Router} from 'vue-router'
 
 export interface ControllerArgs<S> {
   initName: string,
   schema: S,
   $store: ArtStore,
-  $root: ArtVueInterface,
+  $sock: SocketManager,
+  $router: Router,
+  $registries: RegistryRegistry,
 }
 
 
@@ -22,8 +26,10 @@ export abstract class BaseController<S, D extends AttrKeys> {
   public initName!: string
   public _uid!: string
   public name: Ref<string>
+  public $sock: SocketManager
+  public $router: Router
+  public $registries: RegistryRegistry
   public schema: S
-  public $root: ArtVueInterface
   // Set this to false if the controller never fetches anything, and so should never be waited on to load.
   public isFetchableController = true
 
@@ -31,7 +37,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
   public baseModuleName = 'base'
 
   // Name of the type of objects, like 'List' or 'Single'.
-  public typeName = 'Base'
+  public typeName: ModuleName = 'Single'
 
   public baseClass: any = NullClass
 
@@ -39,14 +45,16 @@ export abstract class BaseController<S, D extends AttrKeys> {
   // For some reason, Array<keyof D> set as the type does not work as expected, and so we lose some type safety here.
   public submoduleKeys: string[] = []
 
-  constructor({initName, schema, $store, $root}: ControllerArgs<S>) {
+  constructor({initName, schema, $store, $sock, $router, $registries}: ControllerArgs<S>) {
     this.__getterMap = new Map()
     this.initName = initName
     this.name = ref(initName)
     this.schema = schema
     this.$store = $store
+    this.$router = $router
+    this.$registries = $registries
     this._uid = uuidv4()
-    this.$root = $root
+    this.$sock = $sock
   }
 
   public purge = (path?: string[]) => {
@@ -60,9 +68,9 @@ export abstract class BaseController<S, D extends AttrKeys> {
     }
     this.socketUnmount()
     this.kill()
-    if (this.$root.$sock) {
-      delete this.$root.$sock.connectListeners[`${(this as any)._uid}`]
-      delete this.$root.$sock.disconnectListeners[`${(this as any)._uid}`]
+    if (this.$sock) {
+      delete this.$sock.connectListeners[`${(this as any)._uid}`]
+      delete this.$sock.disconnectListeners[`${(this as any)._uid}`]
     }
     this.$store.unregisterModule(path)
   }
@@ -75,9 +83,9 @@ export abstract class BaseController<S, D extends AttrKeys> {
   public register = (path?: string[])=> {
     let data: Partial<D> = {}
     path = path || this.path
-    if (this.$root.$sock) {
-      this.$root.$sock.connectListeners[`${(this as any)._uid}`] = this.socketOpened
-      this.$root.$sock.disconnectListeners[`${(this as any)._uid}`] = this.socketClosed
+    if (this.$sock) {
+      this.$sock.connectListeners[`${(this as any)._uid}`] = this.socketOpened
+      this.$sock.disconnectListeners[`${(this as any)._uid}`] = this.socketClosed
     }
     if (this.state) {
       if (deepEqual(path, this.path) || this.stateFor(path)) {
@@ -105,8 +113,8 @@ export abstract class BaseController<S, D extends AttrKeys> {
   }
 
   public get registry(): Registry<D, BaseController<S, D>> {
-    // @ts-ignore
-    return this.$root[`$registryFor${this.typeName}`]()
+    // @ts-expect-error
+    return this.$registries[this.typeName]
   }
 
   public socketOpened = () => {
@@ -154,8 +162,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
   }
 
   public stateFor = (path: string[]) => {
-    const self = this as unknown as ArtVueInterface
-    let state = self.$store.state as unknown
+    let state = this.$store.state as unknown
     for (const namespace of path) {
       if (state === undefined) {
         return undefined

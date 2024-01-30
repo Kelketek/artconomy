@@ -10,7 +10,6 @@ import {
   rs,
   setPricing,
   setViewer,
-  VueMountOptions,
   vueSetup,
   VuetifyWrapped, waitFor,
 } from '@/specs/helpers'

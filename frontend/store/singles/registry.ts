@@ -2,25 +2,23 @@ import {createApp} from 'vue'
 import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
 import {SingleController} from './controller'
 import {SingleState} from './types/SingleState'
-import {Patch, PatcherConfig} from '@/store/singles/patcher'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
+import {ArtStore} from '@/store'
 
 export class SingleRegistry extends BaseRegistry<SingleState<any>, SingleController<any>> {}
 
-export const singleRegistry = new SingleRegistry()
+export const singleRegistry = new SingleRegistry('Single')
 
-export function Singles(app: ReturnType<typeof createApp>): void {
-  const base = genRegistryPluginBase<SingleState<any>, SingleModuleOpts<any>, SingleController<any>>('Single', singleRegistry, SingleController)
+export function createSingles(store: ArtStore) {
+  const base = genRegistryPluginBase<SingleState<any>, SingleModuleOpts<any>, SingleController<any>>('Single', singleRegistry, SingleController, store)
   base.data = () => {
     return {patchData: {}}
   }
-  function $makePatcher(this: ReturnType<typeof createApp>, config: PatcherConfig) {
-    const options: any = {target: this, ...config}
-    return new Patch(options)
+  return {
+    install(app: ReturnType<typeof createApp>) {
+      app.mixin(base)
+    }
   }
-  base.methods!.$makePatcher = $makePatcher
-  // @ts-ignore
-  app.mixin(base)
 }
 
 (window as any).singleRegistry = singleRegistry

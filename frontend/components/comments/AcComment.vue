@@ -72,7 +72,7 @@
                   v-show="editing"
                   field-type="ac-editor"
                   :auto-grow="editing"
-                  :patcher="commentText"
+                  :patcher="comment.patchers.text"
                   :auto-save="false"
                   v-if="controls"
               >
@@ -81,7 +81,7 @@
                     <v-tooltip top>
                       <template v-slot:activator="{ props }">
                         <v-btn v-bind="props" @click="editing=false" icon small color="danger" class="cancel-button"
-                               :disabled="!!commentText.patching">
+                               :disabled="!!comment.patchers.text.patching">
                           <v-icon icon="mdi-cancel"/>
                         </v-btn>
                       </template>
@@ -251,7 +251,6 @@ class AcComment extends mixins(Subjective, Formatting) {
 
   public subCommentList: ListController<Comment> = null as unknown as ListController<Comment>
   public historyList: ListController<Comment> = null as unknown as ListController<Comment>
-  public commentText: Patch = null as unknown as Patch
   public editing = false
   public replying = false
   public missingOk = true
@@ -333,16 +332,6 @@ class AcComment extends mixins(Subjective, Formatting) {
 
   public created() {
     const comment = this.comment.x as Comment
-    if (this.controls) {
-      this.commentText = this.$makePatcher(
-          {
-            modelProp: 'comment',
-            attrName: 'text',
-            debounceRate: 300,
-            refresh: false,
-          },
-      )
-    }
     this.subCommentList = this.$getList(this.comment.name + '_comments', {
       endpoint: `/api/lib/comments/lib.Comment/${comment.id}/`,
       params: {size: 5},

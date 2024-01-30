@@ -11,14 +11,14 @@
                 hint="When on, prevents others from seeing what pieces you've added to your favorites."
                 :persistent-hint="true"
                 color="primary"
-                :patcher="favoritesHidden"
+                :patcher="patchers.favorites_hidden"
             />
           </v-col>
           <v-col cols="12" sm="6" md="4">
             <ac-patch-field label="Taggable"
                             field-type="v-switch"
                             hint="When off, prevents others from tagging you or your characters in submissions."
-                            :patcher="taggable"
+                            :patcher="patchers.taggable"
                             :persistent-hint="true"
                             color="primary"
             />
@@ -27,7 +27,7 @@
             <ac-patch-field
                 field-type="v-switch" label="Artist Mode"
                 hint="When on, enables options and functionality for selling commissions."
-                :patcher="artistMode"
+                :patcher="patchers.artist_mode"
                 :persistent-hint="true"
                 color="primary"
             />
@@ -40,7 +40,7 @@
           <v-list-subheader>Content/Browsing</v-list-subheader>
           <v-card-text>
             <v-row>
-              <v-col cols="12" offset-md="3" md="6" :class="{disabled: sfwMode.model}">
+              <v-col cols="12" offset-md="3" md="6" :class="{disabled: patchers.sfw_mode.model}">
                 <ac-patch-field
                     field-type="ac-birthday-field"
                     label="Birthday"
@@ -54,18 +54,18 @@
                                 label="Blocked tags"
                                 hint="All submissions and characters that have these tags will be hidden from view, regardless of rating."
                                 persistent-hint
-                                :patcher="blacklist"
+                                :patcher="patchers.blacklist"
                 />
               </v-col>
-              <v-col cols="12" md="6" class="text-center" :class="{disabled: sfwMode.model}">
+              <v-col cols="12" md="6" class="text-center" :class="{disabled: patchers.sfw_mode.model}">
                 <ac-patch-field field-type="ac-tag-field"
                                 label="NSFW Blocked tags"
                                 hint="Submissions and characters that have these tags and have a rating higher than clean/safe will be hidden from view."
                                 persistent-hint
-                                :patcher="nsfwBlacklist"
+                                :patcher="patchers.nsfw_blacklist"
                 />
               </v-col>
-              <v-col cols="12" class="pt-5" :class="{disabled: sfwMode.model}"><strong>Select the maximum content rating
+              <v-col cols="12" class="pt-5" :class="{disabled: patchers.sfw_mode.model}"><strong>Select the maximum content rating
                 you'd like to see when browsing.</strong></v-col>
               <v-col cols="12">
                 <ac-patch-field
@@ -86,7 +86,7 @@
         <v-row justify="center" align="center">
           <v-col class="text-center" cols="12" sm="6">
             <ac-patch-field field-type="v-switch" label="SFW Mode"
-                            :patcher="sfwMode"
+                            :patcher="patchers.sfw_mode"
                             hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
                             :save-indicator="false"
@@ -130,25 +130,17 @@ import {User} from '@/store/profiles/types/User'
 })
 class Options extends mixins(Viewer, Subjective, Alerts) {
   public ratingOptions = RATINGS_SHORT
-  public maxRating = null as unknown as Patch<ContentRating>
-  public sfwMode = null as unknown as Patch<Boolean>
-  public artistMode = null as unknown as Patch<Boolean>
-  public favoritesHidden = null as unknown as Patch<Boolean>
-  public taggable = null as unknown as Patch<Boolean>
-  public blacklist = null as unknown as Patch<string[]>
-  public nsfwBlacklist = null as unknown as Patch<string[]>
-  public birthday = null as unknown as Patch<string>
 
   public EXTREME = 3
   public ratingLongDesc = RATING_LONG_DESC
   public ratingColor = RATING_COLOR
 
   public get adultAllowed() {
-    if (this.sfwMode.model) {
+    if (this.patchers.sfw_mode.model) {
       return false
     }
     // @ts-ignore
-    const birthday = this.subjectHandler.user.patchers.birthday.model
+    const birthday = this.patchers.birthday.model
     if (birthday === null) {
       return false
     }
@@ -161,41 +153,6 @@ class Options extends mixins(Viewer, Subjective, Alerts) {
 
   public updateCookieSettings() {
     this.$store.commit('setShowCookieDialog', true)
-  }
-
-  public created() {
-    this.maxRating = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'rating',
-    })
-    this.sfwMode = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'sfw_mode',
-    })
-    this.artistMode = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'artist_mode',
-    })
-    this.favoritesHidden = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'favorites_hidden',
-    })
-    this.taggable = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'taggable',
-    })
-    this.blacklist = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'blacklist',
-    })
-    this.nsfwBlacklist = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'nsfw_blacklist',
-    })
-    this.birthday = this.$makePatcher({
-      modelProp: 'subjectHandler.user',
-      attrName: 'birthday',
-    })
   }
 }
 

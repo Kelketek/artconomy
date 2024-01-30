@@ -10,6 +10,14 @@ import ErrorScrollTests from '@/specs/helpers/dummy_components/scroll-tests.vue'
 import {RootFormState} from '@/store/forms/types/RootFormState'
 import {cleanUp, docTarget, vueSetup} from '@/specs/helpers'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import {singleRegistry} from '@/store/singles/registry'
+import {listRegistry} from '@/store/lists/registry'
+import {characterRegistry} from '@/store/characters/registry'
+import {RegistryRegistry} from '@/store/registry-base'
+import {profileRegistry} from '@/store/profiles/registry'
+import {buildSocketManger, SocketManager} from '@/plugins/socket'
 
 const mockScrollIntoView = Element.prototype.scrollIntoView = vi.fn()
 
@@ -38,6 +46,15 @@ describe('Form and field controllers', () => {
   let state: RootFormState
   let wrapper: VueWrapper<any>
   let empty: VueWrapper<any>
+  let router: Router
+  let socket: SocketManager
+  const registries: RegistryRegistry = {
+    Form: formRegistry,
+    Single: singleRegistry,
+    List: listRegistry,
+    Character: characterRegistry,
+    Profile: profileRegistry,
+  }
   beforeEach(() => {
     if (wrapper) {
       wrapper.unmount()
@@ -46,9 +63,12 @@ describe('Form and field controllers', () => {
     state = (store.state as any).forms as RootFormState
     mockError.mockClear()
     mockTrace.mockClear()
+    router = createRouter({history: createWebHistory(), routes: [{name: 'Home', path: '/', component: Empty}]})
     mockScrollIntoView.mockClear()
     empty = mount(Empty, vueSetup({store}))
     formRegistry.resetValidators()
+    formRegistry.reset()
+    socket = buildSocketManger({endpoint: '/beep/'})
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -57,12 +77,20 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
         errors: ['Borked.'],
-        fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
+        fields: {
+          name: {
+            value: 'Fox',
+            errors: ['Too cool.'],
+          },
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
     })
     expect(controller.name.value).toBe('example')
     expect(controller.purged).toBe(false)
@@ -82,14 +110,23 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     controller.submitThen(success).then()
-    mockAxios.mockResponse({status: 200, data: {test: 'result'}})
+    mockAxios.mockResponse({
+      status: 200,
+      data: {test: 'result'},
+    })
     await flushPromises()
     expect(success).toBeCalled()
     expect(success).toBeCalledWith({test: 'result'})
@@ -98,11 +135,17 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     controller.sending = true
     expect(state.example.sending).toBe(true)
@@ -113,12 +156,21 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
         errors: ['Too amazing'],
-        fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
+        fields: {
+          name: {
+            value: 'Fox',
+            errors: ['Too cool.'],
+          },
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     expect(state.example.errors).toEqual(['Too amazing'])
     expect(state.example.fields.name.errors).toEqual(['Too cool.'])
@@ -129,17 +181,30 @@ describe('Form and field controllers', () => {
   test('Recognizes failed steps', async() => {
     const controller = new FormController({
       $store: store,
-        initName: 'example',
+      initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
         errors: ['Too amazing'],
         fields: {
-          name: {value: 'Fox', errors: ['Too cool.']},
-          age: {value: 30, errors: ['Wat'], step: 2},
-          things: {value: '', step: 3},
+          name: {
+            value: 'Fox',
+            errors: ['Too cool.'],
+          },
+          age: {
+            value: 30,
+            errors: ['Wat'],
+            step: 2,
+          },
+          things: {
+            value: '',
+            step: 3,
+          },
         },
       },
-      $root: empty.vm.$root,
+
     })
     expect(state.example.errors).toEqual(['Too amazing'])
     expect(state.example.fields.name.errors).toEqual(['Too cool.'])
@@ -150,11 +215,16 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 20}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 20},
+        },
       },
-      $root: empty.vm.$root,
     })
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -170,11 +240,24 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 20, step: 2}, stuff: {value: 2, step: 3}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {
+            value: 20,
+            step: 2,
+          },
+          stuff: {
+            value: 2,
+            step: 3,
+          },
+        },
       },
-      $root: empty.vm.$root,
+
     })
     controller.step = 3
     expect(controller.step).toBe(3)
@@ -190,11 +273,16 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 20}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 20},
+        },
       },
-      $root: empty.vm.$root,
     })
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -212,11 +300,16 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 20}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 20},
+        },
       },
-      $root: empty.vm.$root,
     })
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -232,11 +325,16 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 20}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 20},
+        },
       },
-      $root: empty.vm.$root,
     })
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -252,11 +350,16 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 20}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 20},
+        },
       },
-      $root: empty.vm.$root,
     })
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -274,11 +377,16 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 20}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 20},
+        },
       },
-      $root: empty.vm.$root,
     })
     controller.submitThen(success).then()
     store.dispatch('forms/submit', {name: 'example'}).then()
@@ -298,14 +406,25 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root
     })
     store.commit(
-      'forms/addField', {name: 'example', field: {name: 'sex', schema: {value: 'Male'}}},
+      'forms/addField', {
+        name: 'example',
+        field: {
+          name: 'sex',
+          schema: {value: 'Male'},
+        },
+      },
     )
     expect(controller.fields.sex).toBeTruthy()
     expect(controller.fields.sex.fieldName).toBe('sex')
@@ -315,26 +434,44 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
         errors: ['Borked.'],
       },
-      $root: empty.vm.$root,
+
     })
     // eslint-disable-next-line no-new
     new FormController({
       $store: store,
       initName: 'example2',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
         errors: ['Borked.'],
       },
-      $root: empty.vm.$root,
+
     })
     store.commit(
-      'forms/addField', {name: 'example2', field: {name: 'sex', schema: {value: 'Male'}}},
+      'forms/addField', {
+        name: 'example2',
+        field: {
+          name: 'sex',
+          schema: {value: 'Male'},
+        },
+      },
     )
     expect(controller.fields.sex).toBe(undefined)
   })
@@ -342,14 +479,23 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     store.commit(
-      'forms/delField', {name: 'example', field: 'age'},
+      'forms/delField', {
+        name: 'example',
+        field: 'age',
+      },
     )
     expect(controller.fields.age).toBe(undefined)
   })
@@ -357,24 +503,45 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
+        fields: {
+          name: {
+            value: 'Fox',
+            errors: ['Too cool.'],
+          },
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     // eslint-disable-next-line no-new
     new FormController({
       $store: store,
       initName: 'example2',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
+        fields: {
+          name: {
+            value: 'Fox',
+            errors: ['Too cool.'],
+          },
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     store.commit(
-      'forms/delField', {name: 'example2', field: 'age'},
+      'forms/delField', {
+        name: 'example2',
+        field: 'age',
+      },
     )
     expect(controller.fields.age).toBeTruthy()
   })
@@ -382,11 +549,17 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     store.commit(
       'forms/delForm', {name: 'example'},
@@ -399,11 +572,17 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     store.commit(
       'forms/delForm', {name: 'example2'},
@@ -415,11 +594,14 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
         fields: {},
       },
-      $root: empty.vm.$root,
+
     })
     expect(state.example.endpoint).toBe('/endpoint/')
     controller.endpoint = '/wat/'
@@ -429,11 +611,14 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
         fields: {},
       },
-      $root: empty.vm.$root,
+
     })
     expect(controller.attr('endpoint')).toBe('/endpoint/')
   })
@@ -441,23 +626,42 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {stuff: {value: 'things'}, wat: {value: 'do', omitIf: 'do'}, goober: {value: 100}},
+        fields: {
+          stuff: {value: 'things'},
+          wat: {
+            value: 'do',
+            omitIf: 'do',
+          },
+          goober: {value: 100},
+        },
       },
-      $root: empty.vm.$root,
+
     })
-    expect(controller.rawData).toEqual({stuff: 'things', goober: 100})
+    expect(controller.rawData).toEqual({
+      stuff: 'things',
+      goober: 100,
+    })
   })
   test('Allows deletion of the form through a FormController', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     expect(state.example).toBeTruthy()
     expect(formRegistry.controllers).toBeTruthy()
@@ -473,43 +677,73 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
-    wrapper = mount(ErrorScrollTests, {...vueSetup({store}), props: {test: 'scrollableText'}})
+    wrapper = mount(ErrorScrollTests, {
+      ...vueSetup({store}),
+      props: {test: 'scrollableText'},
+    })
     await wrapper.vm.$nextTick()
     const element = document.querySelector('#scrollable-text-error') as Element
     controller.scrollToError()
-    expect(element.scrollIntoView).toHaveBeenCalledWith({behavior: 'smooth', block: 'center'})
+    expect(element.scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'center',
+    })
   })
   test('Scrolls to errors in ID only', async() => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
-    wrapper = mount(ErrorScrollTests, {...vueSetup({store}), props: {test: 'idOnly'}})
+    wrapper = mount(ErrorScrollTests, {
+      ...vueSetup({store}),
+      props: {test: 'idOnly'},
+    })
     await wrapper.vm.$nextTick()
     const element = document.querySelector('#id-only-error') as Element
     controller.scrollToError()
-    expect(element.scrollIntoView).toHaveBeenCalledWith({behavior: 'smooth', block: 'center'})
+    expect(element.scrollIntoView).toHaveBeenCalledWith({
+      behavior: 'smooth',
+      block: 'center',
+    })
   })
   test('Does not break if there are no errors in the form ID when attempting to scroll', async() => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     wrapper = shallowMount(ErrorScrollTests, {
       test: 'noError',
@@ -523,11 +757,17 @@ describe('Form and field controllers', () => {
     const controller = new FormController({
       $store: store,
       initName: 'example',
+      $router: router,
+      $registries: registries,
+      $sock: socket,
       schema: {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
-      $root: empty.vm.$root,
+
     })
     wrapper = shallowMount(ErrorScrollTests, {
       test: 'noErrorNoId',
@@ -540,14 +780,22 @@ describe('Form and field controllers', () => {
   test('Initializes a field controller', () => {
     store.commit('forms/initForm', {
       name: 'example',
-      fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
+      fields: {
+        name: {
+          value: 'Fox',
+          errors: ['Too cool.'],
+        },
+        age: {value: 30},
+      },
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
       $store: store,
       formName: 'example',
       fieldName: 'name',
-      $root: empty.vm.$root,
+      $router: router,
+      $registries: registries,
+      $sock: socket,
     })
     expect(controller.fieldName).toBe('name')
     expect(controller.formName).toBe('example')
@@ -557,14 +805,22 @@ describe('Form and field controllers', () => {
   test('Updates a field', async() => {
     store.commit('forms/initForm', {
       name: 'example',
-      fields: {name: {value: 'Fox', errors: ['Too cool.']}, age: {value: 30}},
+      fields: {
+        name: {
+          value: 'Fox',
+          errors: ['Too cool.'],
+        },
+        age: {value: 30},
+      },
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'name',
-      $root: empty.vm.$root,
     })
     expect(controller.fieldName).toBe('name')
     expect(controller.formName).toBe('example')
@@ -581,16 +837,22 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', errors: ['Too cool.'], extra: {checked: true}},
+        name: {
+          value: 'Fox',
+          errors: ['Too cool.'],
+          extra: {checked: true},
+        },
         age: {value: 30},
       },
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'name',
-      $root: empty.vm.$root,
     })
     expect(controller.bind).toEqual(
       {
@@ -600,7 +862,7 @@ describe('Form and field controllers', () => {
         checked: true,
         id: 'field-example__name',
         onBlur: controller.forceValidate,
-        "onUpdate:modelValue": controller.update,
+        'onUpdate:modelValue': controller.update,
       },
     )
     expect(controller.rawBind).toEqual(
@@ -619,16 +881,22 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', errors: ['Too cool.'], disabled: true},
+        name: {
+          value: 'Fox',
+          errors: ['Too cool.'],
+          disabled: true,
+        },
         age: {value: 30},
       },
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'name',
-      $root: empty.vm.$root,
     })
     expect(controller.attr('disabled')).toBe(true)
   })
@@ -636,17 +904,23 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', errors: ['Too cool.'], disabled: true},
+        name: {
+          value: 'Fox',
+          errors: ['Too cool.'],
+          disabled: true,
+        },
         age: {value: 30},
       },
       debounce: 500,
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'name',
-      $root: empty.vm.$root,
     })
     expect(controller.debounceRate).toBe(500)
   })
@@ -654,17 +928,24 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', errors: ['Too cool.'], disabled: true, debounce: 200},
+        name: {
+          value: 'Fox',
+          errors: ['Too cool.'],
+          disabled: true,
+          debounce: 200,
+        },
         age: {value: 30},
       },
       debounce: 500,
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'name',
-      $root: empty.vm.$root,
     })
     expect(controller.debounceRate).toBe(200)
   })
@@ -673,12 +954,21 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', disabled: true},
+        name: {
+          value: 'Fox',
+          disabled: true,
+        },
         age: {
           value: 20,
           validators: [
-            {name: 'min', args: [30]},
-            {name: 'min', args: [25, 'You\'ve got to be at least 25.']},
+            {
+              name: 'min',
+              args: [30],
+            },
+            {
+              name: 'min',
+              args: [25, 'You\'ve got to be at least 25.'],
+            },
           ],
           errors: ['Old error'],
         },
@@ -686,10 +976,12 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'age',
-      $root: empty.vm.$root,
     })
     expect(controller.errors).toEqual(['Old error'])
     controller.forceValidate()
@@ -699,13 +991,22 @@ describe('Form and field controllers', () => {
   test('Returns validators', async() => {
     formRegistry.validators.min = min
     const validators = [
-      {name: 'min', args: [30]},
-      {name: 'min', args: [25, 'You\'ve got to be at least 25.']},
+      {
+        name: 'min',
+        args: [30],
+      },
+      {
+        name: 'min',
+        args: [25, 'You\'ve got to be at least 25.'],
+      },
     ]
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', disabled: true},
+        name: {
+          value: 'Fox',
+          disabled: true,
+        },
         age: {
           value: 20,
           validators,
@@ -715,10 +1016,12 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'age',
-      $root: empty.vm.$root,
     })
     expect(controller.validators).toEqual(validators)
   })
@@ -727,12 +1030,21 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', disabled: true},
+        name: {
+          value: 'Fox',
+          disabled: true,
+        },
         age: {
           value: 30,
           validators: [
-            {name: 'min', args: [30]},
-            {name: 'min', args: [25, 'You\'ve got to be at least 25.']},
+            {
+              name: 'min',
+              args: [30],
+            },
+            {
+              name: 'min',
+              args: [25, 'You\'ve got to be at least 25.'],
+            },
           ],
           errors: ['Old error'],
         },
@@ -740,10 +1052,12 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'age',
-      $root: empty.vm.$root,
     })
     expect(controller.errors).toEqual(['Old error'])
     controller.update(20, false)
@@ -751,18 +1065,22 @@ describe('Form and field controllers', () => {
   })
   test('Exposes a field as a model', async() => {
     store.commit('forms/initForm', {
-      name: 'example', fields: {name: {value: 'Fox'}}, endpoint: '/test/endpoint/',
+      name: 'example',
+      fields: {name: {value: 'Fox'}},
+      endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'name',
-      $root: empty.vm.$root,
     })
     expect(state.example.fields.name.value).toBe('Fox')
     expect(controller.model).toBe('Fox')
     controller.model = 'Amber'
-    await controller.$root.$nextTick()
+    await nextTick()
     expect(state.example.fields.name.value).toBe('Amber')
     expect(controller.model).toBe('Amber')
   })
@@ -772,13 +1090,26 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', disabled: true},
+        name: {
+          value: 'Fox',
+          disabled: true,
+        },
         age: {
           value: 20,
           validators: [
-            {name: 'min', args: [30]},
-            {name: 'min', args: [25, 'You\'ve got to be at least 25.']},
-            {name: 'alwaysFail', args: ['test'], async: true},
+            {
+              name: 'min',
+              args: [30],
+            },
+            {
+              name: 'min',
+              args: [25, 'You\'ve got to be at least 25.'],
+            },
+            {
+              name: 'alwaysFail',
+              args: ['test'],
+              async: true,
+            },
           ],
           errors: ['Old error'],
         },
@@ -786,10 +1117,12 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'age',
-      $root: empty.vm.$root,
     })
     controller.forceValidate()
     await flushPromises()
@@ -809,10 +1142,12 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'age',
-      $root: empty.vm.$root,
     })
     expect(controller.initialData).toBe(20)
     controller.initialData = 15
@@ -822,17 +1157,28 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', disabled: true},
-        age: {value: 30, validators: [{name: 'min', args: [30]}]},
+        name: {
+          value: 'Fox',
+          disabled: true,
+        },
+        age: {
+          value: 30,
+          validators: [{
+            name: 'min',
+            args: [30],
+          }],
+        },
       },
       endpoint: '/test/endpoint/',
     })
     formRegistry.validators.max = min
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'age',
-      $root: empty.vm.$root,
     })
     mockError.mockImplementationOnce(() => undefined)
     controller.forceValidate()
@@ -845,17 +1191,31 @@ describe('Form and field controllers', () => {
     store.commit('forms/initForm', {
       name: 'example',
       fields: {
-        name: {value: 'Fox', disabled: true},
-        age: {value: 30, validators: [{name: 'min', async: true}, {name: 'alwaysSucceed', async: true}]},
+        name: {
+          value: 'Fox',
+          disabled: true,
+        },
+        age: {
+          value: 30,
+          validators: [{
+            name: 'min',
+            async: true,
+          }, {
+            name: 'alwaysSucceed',
+            async: true,
+          }],
+        },
       },
       endpoint: '/test/endpoint/',
     })
     formRegistry.asyncValidators.alwaysSucceed = alwaysSucceed
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: 'age',
-      $root: empty.vm.$root,
     })
     mockError.mockImplementationOnce(() => undefined)
     controller.forceValidate()
@@ -910,10 +1270,14 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     expect(JSON.parse(JSON.stringify(controller))).toEqual({
-      type: 'FormController', state: {age: 30}, name: 'example',
+      type: 'FormController',
+      state: {age: 30},
+      name: 'example',
     })
     expect(JSON.parse(JSON.stringify(controller.fields.age))).toEqual({
-      type: 'FieldController', state: 30, name: 'age',
+      type: 'FieldController',
+      state: 30,
+      name: 'age',
     })
   })
   test('Makes a sane, consistent CSS name', () => {
@@ -925,10 +1289,12 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     const controller = new FieldController({
+      $router: router,
+      $registries: registries,
       $store: store,
+      $sock: socket,
       formName: 'example',
       fieldName: '@beep',
-      $root: wrapper.vm,
     })
     expect(controller.id).toBe('field-example__\\@beep')
   })

@@ -38,14 +38,15 @@ import {
 } from '@/lib/lib'
 import {shallowMount, VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty'
-import {Singles} from '@/store/singles/registry'
-import {Lists} from '@/store/lists/registry'
-import {Profiles} from '@/store/profiles/registry'
+import {createSingles} from '@/store/singles/registry'
+import {createLists} from '@/store/lists/registry'
+import {createProfiles} from '@/store/profiles/registry'
 import {ArtStore, createStore} from '@/store'
 import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
 import {LogLevels} from '@/types/LogLevels'
 import {SingleController} from '@/store/singles/controller'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {createForms} from '@/store/forms/registry'
 
 describe('artCall', () => {
   beforeEach(() => {
@@ -213,7 +214,7 @@ describe('Enumerators', () => {
     ])
   })
   test('Generates a standard schema for submission upload', () => {
-    wrapper = shallowMount(Empty, {global: {plugins:[store, Singles, Lists, Profiles]}})
+    wrapper = shallowMount(Empty, vueSetup({store}))
     const handler = wrapper.vm.$getProfile('person', {})
     expect(newUploadSchema(handler.user)).toEqual({
       endpoint: '/api/profiles/account/person/submissions/',

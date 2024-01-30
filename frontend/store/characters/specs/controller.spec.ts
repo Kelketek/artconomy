@@ -25,10 +25,18 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {
-            name: 'Place', params: {username: 'Fox', characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+          $router: {
+            replace,
+            currentRoute: {
+              name: 'Place',
+              params: {
+                username: 'Fox',
+                characterName: 'Kai'
+              },
+              query: {stuff: 'things'},
+              hash: 'Wheee',
+            },
           },
-          $router: {replace},
         },
       }),
     })
@@ -50,10 +58,12 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {
-            name: 'Place', params: {characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+          $router: {
+            replace,
+            currentRoute: {
+              name: 'Place', params: {characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+            },
           },
-          $router: {replace},
         },
       }),
     })
@@ -72,10 +82,12 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {
-            name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee',
+          $router: {
+            replace,
+            currentRoute: {
+              name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee',
+            },
           },
-          $router: {replace},
         },
       }),
     })
@@ -97,7 +109,12 @@ describe('Profile controller', () => {
           $route: {
             name: 'Place', params: {username: 'Fox', characterName: 'Fern'}, query: {stuff: 'things'}, hash: 'Wheee',
           },
-          $router: {replace},
+          $router: {
+            replace,
+            currentRoute: {
+              name: 'Place', params: {username: 'Fox', characterName: 'Fern'}, query: {stuff: 'things'}, hash: 'Wheee',
+            },
+          },
         },
       }),
     })
@@ -116,10 +133,12 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {
-            name: 'Place', params: {username: 'Bob', characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+          $router: {
+            replace,
+            currentRoute: {
+              name: 'Place', params: {username: 'Bob', characterName: 'Kai'}, query: {stuff: 'things'}, hash: 'Wheee',
+            },
           },
-          $router: {replace},
         },
       }),
     })

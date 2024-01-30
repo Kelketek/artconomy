@@ -28,8 +28,10 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee'},
-          $router: {replace},
+          $router: {
+            replace,
+            currentRoute: {name: 'Place', params: {username: 'Fox'}, query: {stuff: 'things'}, hash: 'Wheee'}
+          },
         },
       }),
     })
@@ -53,8 +55,10 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {name: 'Place', params: {username: 'Fennec'}, query: {stuff: 'things'}, hash: 'Wheee'},
-          $router: {replace},
+          $router: {
+            replace,
+            currentRoute: {name: 'Place', params: {username: 'Fennec'}, query: {stuff: 'things'}, hash: 'Wheee'},
+          },
         },
       }),
     })
@@ -77,8 +81,10 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
-          $router: {replace},
+          $router: {
+            replace,
+            currentRoute: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'}
+          },
         },
       })
     });
@@ -96,8 +102,10 @@ describe('Profile controller', () => {
       ...vueSetup({
         store,
         mocks: {
-          $route: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'},
-          $router: {replace},
+          $router: {
+            replace,
+            currentRoute: {name: 'Place', params: {wat: 'Do'}, query: {stuff: 'things'}, hash: 'Wheee'}
+          },
         },
       }),
       props: {username: 'Fox'},

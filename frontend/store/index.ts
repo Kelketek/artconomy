@@ -104,14 +104,6 @@ export function storeDefaults(): StoreOptions<State> {
 
 export type ArtStore = VuexStore<State>
 
-const myPlugin = (store: ArtStore) => {
-  // called when the store is initialized
-  store.subscribe((mutation: MutationPayload, state: ArtStore['state']) => {
-    // called after every mutation.
-    // The mutation comes in the format of `{ type, payload }`.
-    console.log(mutation.type, mutation.payload)
-  })
-}
 
 
 export const createStore = (options?: StoreOptions<State>): ArtStore => {

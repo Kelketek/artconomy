@@ -30,7 +30,6 @@ declare interface FieldControllerArgs extends Omit<ControllerArgs<undefined>, "i
 @ComputedGetters
 export class FieldController {
   public __getterMap: Map<keyof FieldController, ComputedGetter<any>>
-  public $root: ArtVueInterface
   public fieldName: string
   public formName: string
   public $store: ArtStore
@@ -38,12 +37,11 @@ export class FieldController {
   public cancelSource = new AbortController()
   public localCache: any = ref(null)
 
-  constructor({fieldName, formName, $root, $store}: FieldControllerArgs) {
+  constructor({fieldName, formName, $store}: FieldControllerArgs) {
     // Used by the ComputedGetters decorator
     this.__getterMap = new Map()
     this.fieldName = fieldName
     this.formName = formName
-    this.$root = $root
     this.$store = $store
     this.validate = debounce(
       this.runValidation, this.debounceRate, {trailing: true},

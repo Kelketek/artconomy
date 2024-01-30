@@ -9,6 +9,7 @@ import {Watch} from 'vue-facing-decorator'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
 import {ref} from 'vue'
 import {ComputedGetters} from '@/lib/lib'
+import {ModuleName} from '@/store/registry-base'
 
 @ComputedGetters
 export class SingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
@@ -17,7 +18,7 @@ export class SingleController<T extends object> extends BaseController<SingleMod
 
   public baseModuleName = 'singles'
 
-  public typeName = 'Single'
+  public typeName: 'Single' = 'Single'
 
   // eslint-disable-next-line camelcase
   public single_controller__ = true
@@ -90,7 +91,7 @@ export class SingleController<T extends object> extends BaseController<SingleMod
       get(target, propName): Patch {
         const intermediary = target as {cached: SinglePatchers<T>}
         if (intermediary.cached[propName as keyof T] === undefined) {
-          intermediary.cached[propName as keyof T] = self.$root.$makePatcher({target: self, modelProp: '', attrName: propName as string, silent: true})
+          intermediary.cached[propName as keyof T] = new Patch({target: self, modelProp: '', attrName: propName as string, silent: true})
         }
         return intermediary.cached[propName as keyof T]
       },
@@ -224,37 +225,37 @@ export class SingleController<T extends object> extends BaseController<SingleMod
 
   public socketOpened = () => {
     const data = this.socketUpdateParams
-    if (!this.$root.$sock?.socket || !data) {
+    if (!this.$sock?.socket || !data) {
       return
     }
-    this.$root.$sock.addListener(
+    this.$sock.addListener(
       this.updateLabel,
       `${this.socketLabelBase}.update`,
       // Use update to update in place so that we don't have to recompute everything.
       // Also because some weirdness happens with reference changes.
       this.updateX,
     )
-    this.$root.$sock.addListener(
+    this.$sock.addListener(
       this.deleteLabel,
       `${this.socketLabelBase}.delete`,
       // Use update to update in place so that we don't have to recompute everything.
       // Also because some weirdness happens with reference changes.
       this.markDeleted,
     )
-    this.$root.$sock.send('watch', data)
+    this.$sock.send('watch', data)
   }
 
   public socketUnmount = () => {
     const updateLabel = this.updateLabel
-    if (!this.$root.$sock?.socket) {
+    if (!this.$sock?.socket) {
       return
     }
     if (this.updateLabel) {
-      this.$root.$sock.send('clear_watch', this.socketUpdateParams)
-      this.$root.$sock.removeListener(updateLabel, `${this.socketLabelBase}.update`)
+      this.$sock.send('clear_watch', this.socketUpdateParams)
+      this.$sock.removeListener(updateLabel, `${this.socketLabelBase}.update`)
     }
     if (this.deleteLabel) {
-      this.$root.$sock.removeListener(this.deleteLabel, `${this.socketLabelBase}.delete`)
+      this.$sock.removeListener(this.deleteLabel, `${this.socketLabelBase}.delete`)
     }
   }
 }

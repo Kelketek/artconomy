@@ -6,11 +6,15 @@ import Empty from '@/specs/helpers/dummy_components/empty'
 import {RootFormState} from '@/store/forms/types/RootFormState'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {buildRegistries} from '@/plugins/createRegistries'
+import {buildSocketManger} from '@/plugins/socket'
+import {createRouter, createWebHistory} from 'vue-router'
 
 describe('Form and field controllers', () => {
   let wrapper: VueWrapper<any>
   let store: ArtStore
   let state: RootFormState
+  const registries = buildRegistries()
   beforeEach(() => {
     formRegistry.resetValidators()
     store = createStore()
@@ -23,7 +27,10 @@ describe('Form and field controllers', () => {
     wrapper = mount(Empty, vueSetup({store}))
     const controller = wrapper.vm.$getForm('example', {
       endpoint: '/endpoint/',
-      fields: {name: {value: 'Fox'}, age: {value: 30}},
+      fields: {
+        name: {value: 'Fox'},
+        age: {value: 30},
+      },
     })
     expect(formRegistry.controllers.example).toBe(controller)
   })
@@ -31,13 +38,22 @@ describe('Form and field controllers', () => {
     wrapper = mount(Empty, vueSetup({store}))
     formRegistry.controllers.example = new FormController({
       $store: store,
-      $root: wrapper.vm.$root,
       initName: 'example',
+      $registries: registries,
+      $sock: buildSocketManger({endpoint: '/wat/'}),
+      $router: createRouter({
+        history: createWebHistory(),
+        routes: [{
+          name: 'Home',
+          component: Empty,
+          path: '/',
+        }],
+      }),
       schema: {
         endpoint: '/endpoint/',
         fields: {
           name: {value: 'Fox'},
-          age: {value: 30}
+          age: {value: 30},
         },
       },
     })
@@ -52,13 +68,19 @@ describe('Form and field controllers', () => {
     const oldController = wrapper.vm.$getForm('example',
       {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
     )
     const newController = wrapper.vm.$getForm('example',
       {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
     )
     expect(newController).toBe(oldController)
@@ -68,7 +90,10 @@ describe('Form and field controllers', () => {
     wrapper.vm.$getForm('example',
       {
         endpoint: '/endpoint/',
-        fields: {name: {value: 'Fox'}, age: {value: 30}},
+        fields: {
+          name: {value: 'Fox'},
+          age: {value: 30},
+        },
       },
     )
     const newController = wrapper.vm.$getForm('example2',
@@ -89,7 +114,10 @@ describe('Form and field controllers', () => {
     wrapper = mount(Empty, vueSetup({store}))
     const controller = wrapper.vm.$getForm('example', {
       endpoint: '/endpoint/',
-      fields: {name: {value: 'Fox'}, age: {value: 30}},
+      fields: {
+        name: {value: 'Fox'},
+        age: {value: 30},
+      },
     })
     const wrapper2 = mount(Empty, vueSetup({store}))
     const alsoController = wrapper2.vm.$getForm('example', {
@@ -118,7 +146,10 @@ describe('Form and field controllers', () => {
     wrapper = mount(Empty, vueSetup({store}))
     wrapper.vm.$getForm('example', {
       endpoint: '/endpoint/',
-      fields: {name: {value: 'Fox'}, age: {value: 30}},
+      fields: {
+        name: {value: 'Fox'},
+        age: {value: 30},
+      },
     })
     const wrapper2 = mount(Empty, vueSetup({store}))
     wrapper2.vm.$getForm('example', {

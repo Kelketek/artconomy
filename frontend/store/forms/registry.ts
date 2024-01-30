@@ -5,12 +5,13 @@ import {registerValidators} from './validators'
 import {NamelessFormSchema} from './types/NamelessFormSchema'
 import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
 import {FormState} from '@/store/forms/types/FormState'
+import {ArtStore} from '@/store'
 
-class FormRegistry extends BaseRegistry<FormState, FormController> {
+export class FormRegistry extends BaseRegistry<FormState, FormController> {
   public validators: { [key: string]: (fieldController: FieldController, ...args: any[]) => string[] }
   public asyncValidators: { [key: string]: (fieldController: FieldController, ...args: any[]) => Promise<string[]> }
   constructor() {
-    super()
+    super('Form')
     this.validators = {}
     this.asyncValidators = {}
   }
@@ -24,7 +25,11 @@ class FormRegistry extends BaseRegistry<FormState, FormController> {
 
 export const formRegistry = new FormRegistry()
 
-export function FormControllers(app: ReturnType<typeof createApp>): void {
-  app.mixin(genRegistryPluginBase<FormState, NamelessFormSchema, FormController>('Form', formRegistry, FormController))
-  registerValidators()
+export function createForms(store: ArtStore) {
+  return {
+    install(app: ReturnType<typeof createApp>) {
+      app.mixin(genRegistryPluginBase<FormState, NamelessFormSchema, FormController>('Form', formRegistry, FormController, store))
+      registerValidators()
+    }
+  }
 }

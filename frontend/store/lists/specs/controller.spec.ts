@@ -12,11 +12,17 @@ import WS from 'vitest-websocket-mock'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
 import {cloneDeep} from 'lodash'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {buildRegistries} from '@/plugins/createRegistries'
+import {buildSocketManger} from '@/plugins/socket'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let state: any
 let empty: VueWrapper<any>
 let socketSettings: ListSocketSettings
+let router: Router
+const registries = buildRegistries()
 
 const mockWarning = vi.spyOn(console, 'warn')
 
@@ -30,6 +36,10 @@ describe('List controller', () => {
     store = createStore()
     state = (store.state as any).lists
     empty = mount(Empty, vueSetup({store}))
+    router = createRouter({
+      history: createWebHistory(),
+      routes: [{name: 'Home', component: Empty, path: '/'}],
+    })
     socketSettings = {
       appLabel: 'sales',
       modelName: 'LineItem',
@@ -46,15 +56,19 @@ describe('List controller', () => {
     cleanUp()
   })
   test('Initializes a list', () => {
-    const controller = makeController()
+    makeController()
     expect(state.example).toBeTruthy()
     expect(state.example.endpoint).toBe('/endpoint/')
   })
   test('Picks up an existing list', () => {
     const controller = makeController()
     const newController = new ListController({
-      $store: store, initName: 'example', schema: {endpoint: '/test/'},
-      $root: controller.$root,
+      $store: store,
+      $registries: registries,
+      $sock: buildSocketManger({endpoint: '/wat/'}),
+      $router: router,
+      initName: 'example',
+      schema: {endpoint: '/test/'},
     })
     expect(controller.endpoint).toBe(newController.endpoint)
     expect(controller.endpoint).toBe('/endpoint/')
@@ -429,16 +443,16 @@ describe('List controller', () => {
   })
   test('Receives new items from the server.', async() => {
     const controller = makeController({socketSettings})
-    const server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
-    controller.$root.$sock.open()
+    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    controller.$sock.open()
     controller.makeReady([])
     await server.connected
-    await controller.$root.$nextTick()
+    await nextTick()
     server.send({command: 'sales.Deliverable.pk.100.line_items.LineItemSerializer.new', payload: {id: 5, name: 'stuff'}})
-    await controller.$root.$nextTick()
+    await nextTick()
     await flushPromises()
     expect(controller.list[0].x.name).toBe('stuff')
-    const mockSend = vi.spyOn(controller.$root.$sock, 'send')
+    const mockSend = vi.spyOn(controller.$sock, 'send')
     controller.purge()
     // The mock socket doesn't recognize this as being sent no matter what I do, so capturing it here.
     expect(mockSend).toHaveBeenCalledWith(
@@ -456,16 +470,16 @@ describe('List controller', () => {
     const settings = cloneDeep(socketSettings)
     delete settings.list.pk
     const controller = makeController({socketSettings: settings})
-    const server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
-    controller.$root.$sock.open()
+    const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    controller.$sock.open()
     controller.makeReady([])
     await server.connected
-    await controller.$root.$nextTick()
+    await nextTick()
     // await expect(server).toReceiveMessage()
     server.send({command: 'sales.Deliverable.line_items.LineItemSerializer.new', payload: {id: 5, name: 'stuff'}})
-    await controller.$root.$nextTick()
+    await nextTick()
     expect(controller.list[0].x.name).toBe('stuff')
-    const mockSend = vi.spyOn(controller.$root.$sock, 'send')
+    const mockSend = vi.spyOn(controller.$sock, 'send')
     controller.purge()
     // The mock socket doesn't recognize this as being sent no matter what I do, so capturing it here.
     expect(mockSend).toHaveBeenCalledWith(
@@ -481,10 +495,10 @@ describe('List controller', () => {
   test('Detects if the content is stale and refetches upon reconnection.', async() => {
     const controller = makeController({socketSettings})
     controller.makeReady([])
-    let server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
-    controller.$root.$sock.open()
+    let server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    controller.$sock.open()
     await server.connected
-    await controller.$root.$nextTick()
+    await nextTick()
     await expect(server).toReceiveMessage({
       command: 'watch_new',
       payload: {
@@ -495,19 +509,19 @@ describe('List controller', () => {
         serializer: 'LineItemSerializer',
       },
     })
-    controller.$root.$sock.socket!.close()
-    controller.$root.$sock.endpoint = 'ws://localhost/boop/snoot'
+    controller.$sock.socket!.close()
+    controller.$sock.endpoint = 'ws://localhost/boop/snoot'
     server.close()
-    await controller.$root.$nextTick()
+    await nextTick()
     expect(controller.stale).toBe(true)
     mockAxios.reset()
     WS.clean()
     await flushPromises()
-    server = new WS(controller.$root.$sock.endpoint, {jsonProtocol: true})
-    await controller.$root.$sock.open()
+    server = new WS(controller.$sock.endpoint, {jsonProtocol: true})
+    await controller.$sock.open()
     await server.connected
     await flushPromises()
-    await controller.$root.$nextTick()
+    await nextTick()
     const lastRequest = mockAxios.lastReqGet()
     expect(lastRequest.url).toBe('/endpoint/')
   })

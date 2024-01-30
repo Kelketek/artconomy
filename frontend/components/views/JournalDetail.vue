@@ -70,12 +70,12 @@
               <v-card-text>
                 <v-row>
                   <v-col cols="12">
-                    <ac-patch-field :patcher="journalSubject" v-show="editing" v-if="controls"/>
+                    <ac-patch-field :patcher="journal.patchers.subject" v-show="editing" v-if="controls"/>
                     <h1 class="text-h5" v-show="!editing"><ac-rendered :value="journal.x.subject"
                                                                        :inline="true"/></h1>
                   </v-col>
                   <v-col cols="12">
-                    <ac-patch-field field-type="ac-editor" v-show="editing" v-if="controls" :patcher="body"
+                    <ac-patch-field field-type="ac-editor" v-show="editing" v-if="controls" :patcher="journal.patchers.body"
                                     :auto-save="false">
                       <template v-slot:pre-actions>
                         <v-col class="shrink">
@@ -143,16 +143,9 @@ class JournalDetail extends mixins(Subjective, Editable, Formatting) {
   public journalId!: number
 
   public journal = null as unknown as SingleController<Journal>
-  public body = null as unknown as Patch
   public journalComments = null as unknown as ListController<Journal>
-  public journalSubject = null as unknown as Patch
-  public commentsDisabled = null as unknown as Patch
 
   public created() {
-    this.body = this.$makePatcher({
-      modelProp: 'journal',
-      attrName: 'body',
-    })
     this.journal = this.$getSingle(
         `journal-${this.journalId}`, {
           endpoint: `/api/profiles/account/${this.username}/journals/${this.journalId}/`,
@@ -166,18 +159,6 @@ class JournalDetail extends mixins(Subjective, Editable, Formatting) {
           params: {size: 5},
         })
     this.journalComments.firstRun()
-    this.journalSubject = this.$makePatcher(
-        {
-          modelProp: 'journal',
-          attrName: 'subject',
-          debounceRate: 300,
-          refresh: false,
-        })
-    this.commentsDisabled = this.$makePatcher(
-        {
-          modelProp: 'journal',
-          attrName: 'comments_disabled',
-        })
   }
 
   public async deleteJournal() {

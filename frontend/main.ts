@@ -8,15 +8,15 @@ import {createStore} from './store'
 import App from './App.vue'
 import VueMask from '@devindex/vue-mask'
 import {configureHooks, router} from './router'
-import {FormControllers} from '@/store/forms/registry'
+import {createForms} from '@/store/forms/registry'
 import {Shortcuts} from './plugins/shortcuts'
 import supportedBrowsers from './supportedBrowsers'
 import {Decimal} from 'decimal.js'
 import {genId} from './lib/lib'
-import {Lists} from '@/store/lists/registry'
-import {Singles} from '@/store/singles/registry'
-import {Profiles} from '@/store/profiles/registry'
-import {Characters} from '@/store/characters/registry'
+import {createLists} from '@/store/lists/registry'
+import {createSingles} from '@/store/singles/registry'
+import {createProfiles} from '@/store/profiles/registry'
+import {createCharacters} from '@/store/characters/registry'
 import VueObserveVisibility from 'vue-observe-visibility'
 import {createVueSocket} from '@/plugins/socket'
 import {createVuetify} from '@/plugins/vuetify'
@@ -30,6 +30,7 @@ import AcComment from '@/components/comments/AcComment.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import 'vite/modulepreload-polyfill';
 import {createTargetsPlugin} from '@/plugins/targets'
+import {createRegistries} from '@/plugins/createRegistries'
 
 declare global {
   interface Window {
@@ -65,11 +66,12 @@ app.use(VueMask)
 app.use(createVueSocket({endpoint: `wss://${window.location.host}/ws/events/`}))
 app.use(Shortcuts)
 app.use(createVuetify())
-app.use(Lists)
-app.use(FormControllers)
-app.use(Singles)
-app.use(Characters)
-app.use(Profiles)
+app.use(createLists(store))
+app.use(createForms(store))
+app.use(createSingles(store))
+app.use(createCharacters(store))
+app.use(createProfiles(store))
+app.use(createRegistries())
 app.use(createTargetsPlugin(false))
 app.use(VueObserveVisibility)
 app.component('AcComment', AcComment)

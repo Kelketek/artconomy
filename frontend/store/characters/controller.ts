@@ -11,7 +11,12 @@ import Submission from '@/types/Submission'
 import {TerseUser} from '@/store/profiles/types/TerseUser'
 import {CharacterModule} from '@/store/characters/index'
 import {ComputedGetters} from '@/lib/lib'
-import {watch} from 'vue'
+import {toValue, watch} from 'vue'
+import {getController} from '@/store/registry-base'
+import {SingleState} from '@/store/singles/types/SingleState'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
+import {ListState} from '@/store/lists/types/ListState'
+import {ListModuleOpts} from '@/store/lists/types/ListModuleOpts'
 
 @ComputedGetters
 export class CharacterController extends BaseController<CharacterModuleOpts, CharacterState> {
@@ -25,28 +30,100 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
   public submoduleKeys = ['profile', 'attributes', 'colors', 'submissions', 'sharedWith', 'recommended']
   public baseClass = CharacterModule
   public baseModuleName = 'characterModules'
-  public typeName = 'Character'
+  public typeName: 'Character' = 'Character'
 
   public constructor(args: ControllerArgs<CharacterModuleOpts>) {
     super(args)
     this.register()
-    this.profile = this.$root.$getSingle(
-      this.path.concat(['profile']).join('/'), {endpoint: ''}, this._uid,
+    this.profile = getController<SingleState<Character>, SingleModuleOpts<Character>, SingleController<Character>>(
+      {
+        uid: this._uid,
+        name: this.path.concat(['profile']).join('/'),
+        typeName: 'Single',
+        router: this.$router,
+        socket: this.$sock,
+        store: this.$store,
+        schema: {endpoint: ''},
+        registries: this.$registries,
+        ControllerClass: SingleController,
+      },
     )
-    this.attributes = this.$root.$getList(
-      this.path.concat(['attributes']).join('/'), {endpoint: '', paginated: false}, this._uid,
+    this.attributes = getController<ListState<Attribute>, ListModuleOpts, ListController<Attribute>>(
+      {
+        uid: this._uid,
+        name: this.path.concat(['attributes']).join('/'),
+        typeName: 'List',
+        router: this.$router,
+        socket: this.$sock,
+        store: this.$store,
+        schema: {
+          endpoint: '',
+          paginated: false,
+        },
+        registries: this.$registries,
+        ControllerClass: ListController,
+      },
     )
-    this.colors = this.$root.$getList(
-      this.path.concat(['colors']).join('/'), {endpoint: '', paginated: false}, this._uid,
+    this.colors = getController<ListState<Color>, ListModuleOpts, ListController<Color>>(
+      {
+        uid: this._uid,
+        name: this.path.concat(['colors']).join('/'),
+        typeName: 'List',
+        router: this.$router,
+        socket: this.$sock,
+        store: this.$store,
+        schema: {
+          endpoint: '',
+          paginated: false,
+        },
+        registries: this.$registries,
+        ControllerClass: ListController,
+      },
     )
-    this.submissions = this.$root.$getList(
-      this.path.concat(['submissions']).join('/'), {endpoint: ''}, this._uid,
+    this.submissions = getController<ListState<Submission>, ListModuleOpts, ListController<Submission>>(
+      {
+        uid: this._uid,
+        name: this.path.concat(['submissions']).join('/'),
+        typeName: 'List',
+        router: this.$router,
+        socket: this.$sock,
+        store: this.$store,
+        schema: {endpoint: ''},
+        registries: this.$registries,
+        ControllerClass: ListController,
+      },
     )
-    this.sharedWith = this.$root.$getList(
-      this.path.concat(['sharedWith']).join('/'), {endpoint: '', paginated: false}, this._uid,
+    this.sharedWith = getController<ListState<TerseUser>, ListModuleOpts, ListController<TerseUser>>(
+      {
+        uid: this._uid,
+        name: this.path.concat(['sharedWith']).join('/'),
+        typeName: 'List',
+        router: this.$router,
+        socket: this.$sock,
+        store: this.$store,
+        schema: {
+          endpoint: '',
+          paginated: false,
+        },
+        registries: this.$registries,
+        ControllerClass: ListController,
+      },
     )
-    this.recommended = this.$root.$getList(
-      this.path.concat(['recommended']).join('/'), {endpoint: '', params: {size: 6}}, this._uid,
+    this.recommended = getController<ListState<Character>, ListModuleOpts, ListController<Character>>(
+      {
+        uid: this._uid,
+        name: this.path.concat(['recommended']).join('/'),
+        typeName: 'List',
+        router: this.$router,
+        socket: this.$sock,
+        store: this.$store,
+        schema: {
+          endpoint: '',
+          params: {size: 6},
+        },
+        registries: this.$registries,
+        ControllerClass: ListController,
+      },
     )
     this.setEndpoints()
     watch(() => this.profile.x?.name || '', this.updateName)
@@ -66,12 +143,13 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     // No-op for compatibility
   }
 
-  public updateRoute = (newName: string, oldName: string|undefined) => {
-    const username = this.$root.$route.params.username
+  public updateRoute = (newName: string, oldName: string | undefined) => {
+    const currentRoute = toValue(this.$router.currentRoute)
+    const username = currentRoute.params.username
     if (username === undefined) {
       return
     }
-    const characterName = this.$root.$route.params.characterName
+    const characterName = currentRoute.params.characterName
     if (characterName === undefined) {
       return
     }
@@ -82,19 +160,19 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
       return
     }
     /* istanbul ignore next */
-    const name = this.$root.$route.name || undefined
+    const name = currentRoute.name || undefined
     const route = {
       name,
-      params: {...this.$root.$route.params},
-      query: {...this.$root.$route.query},
-      hash: this.$root.$route.hash,
+      params: {...currentRoute.params},
+      query: {...currentRoute.query},
+      hash: currentRoute.hash,
     }
     route.params.characterName = newName
-    this.$root.$router.replace(route)
+    return this.$router.replace(route)
   }
 
   // Watcher for profile.x.name
-  public updateName = (newName: string, oldName: string|undefined) => {
+  public updateName = (newName: string, oldName: string | undefined) => {
     if (this.attr('characterName') === newName) {
       // Initial load. Ignore.
       return

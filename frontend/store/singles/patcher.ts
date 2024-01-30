@@ -107,8 +107,9 @@ export class Patch<T = any> {
   }
 
   public setValue = (val: T) => {
+    val = toValue(val)
     // Broken out into its own function so that we can force retry as needed.
-    this.cached.value = val
+    this.cached.value = toValue(val)
     // eslint-disable-next-line no-useless-call
     this.debouncedSet.apply(this, [val])
   }
@@ -174,7 +175,7 @@ export class Patch<T = any> {
     if (this.dirty) {
       return toValue(this.cached) as T
     }
-    return this.rawValue
+    return toValue(this.rawValue)
   }
 
   public set model(val: T) {

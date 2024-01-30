@@ -2,6 +2,20 @@ import type {Ref} from 'vue'
 import {ComponentOptions, createApp, h, markRaw, toValue} from 'vue'
 import {BaseController, ControllerArgs} from '@/store/controller-base'
 import {ArtVueInterface} from '@/types/ArtVueInterface'
+import {useStore} from 'vuex'
+import {Router} from 'vue-router'
+import {SocketManager} from '@/plugins/socket'
+import {SingleState} from '@/store/singles/types/SingleState'
+import {SingleController} from '@/store/singles/controller'
+import {ListState} from '@/store/lists/types/ListState'
+import {ListController} from '@/store/lists/controller'
+import {FormState} from '@/store/forms/types/FormState'
+import {FormController} from '@/store/forms/form-controller'
+import {CharacterController} from '@/store/characters/controller'
+import CharacterState from '@/store/characters/types/CharacterState'
+import {ProfileController} from '@/store/profiles/controller'
+import {ProfileState} from '@/store/profiles/types/ProfileState'
+import {ArtStore} from '@/store/index'
 
 type _Vue = ReturnType<typeof createApp>
 
@@ -21,10 +35,11 @@ declare interface Registerable<K extends AttrKeys> {
 }
 
 export interface Registry<K extends AttrKeys, T extends Registerable<K>> {
+  typeName: string,
   controllers: { [key: string]: T },
   componentMap: { [key: string]: T[] },
   uidTracking: { [key: string]: string[] },
-  uidListenerTracking: {[key: string]: string[]}
+  uidListenerTracking: { [key: string]: string[] }
   listeners: { [key: string]: string[] },
   register: (uid: string, controller: T) => void,
   listen: (uid: string, name: string) => void,
@@ -65,9 +80,12 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
   public controllers: { [key: string]: T }
   public componentMap: { [key: string]: T[] }
   public uidTracking: { [key: string]: string[] }
-  public uidListenerTracking: {[key: string]: string[]}
+  public uidListenerTracking: { [key: string]: string[] }
   public listeners: { [key: string]: string[] }
-  constructor() {
+  public typeName: string
+
+  constructor(typeName: string) {
+    this.typeName = typeName
     this.controllers = markRaw({})
     this.componentMap = markRaw({})
     this.uidTracking = markRaw({})
@@ -75,6 +93,7 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
     this.uidListenerTracking = markRaw({})
     // this.socketListeners = markRaw([])
   }
+
   public register = (uid: string, controller: T) => {
     this.controllers[toValue(controller.name)] = controller
     const baseUIDs = []
@@ -148,54 +167,108 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
   }
 }
 
-export function genRegistryPluginBase<K extends AttrKeys, O, C extends BaseController<O, K>>(
-  typeName: string, registry: Registry<K, C>, ControllerClass: new (args: ControllerArgs<O>) => C) {
+export const performUnhook = <K extends AttrKeys, S, C extends BaseController<S, K>>(uid: string, registry: Registry<K, C>) => {
+  // Cleans up references to a component ID in the registry.
+  if (registry.uidListenerTracking[uid] !== undefined) {
+    for (const listenName of registry.uidListenerTracking[uid]) {
+      clearItem(registry.listeners, listenName, uid)
+    }
+    delete registry.uidListenerTracking[uid]
+  }
+  if (!(uid in registry.componentMap)) {
+    return
+  }
+  for (const controller of registry.componentMap[uid]) {
+    registry.unhook(uid, controller)
+  }
+  delete registry.componentMap[uid]
+}
+
+export type ModuleName = 'Single' | 'List' | 'Form' | 'Character' | 'Profile'
+
+export interface RegistryRegistry {
+  Single: Registry<SingleState<any>, SingleController<any>>,
+  List: Registry<ListState<any>, ListController<any>>,
+  Form: Registry<FormState, FormController>,
+  Character: Registry<CharacterState, CharacterController>,
+  Profile: Registry<ProfileState, ProfileController>,
+}
+
+
+declare interface ControllerInvocationArgs<S, K extends AttrKeys, C extends BaseController<S, K>> {
+  uid: string,
+  name: string,
+  schema: S | undefined,
+  registries: RegistryRegistry,
+  typeName: keyof RegistryRegistry,
+  router: Router,
+  socket: SocketManager,
+  store: ArtStore,
+  ControllerClass: new (args: ControllerArgs<S>) => C,
+}
+
+export const getController = <K extends AttrKeys, S, C extends BaseController<S, K>>(
+{ uid, name, schema, registries, typeName, ControllerClass, socket, router, store }: ControllerInvocationArgs<S, K, C>,
+): C => {
+  // Convenience function which registers a module if it does not yet exist, and gets it if it does.
+  // Why does TypeScript identify _uid as number? I can't find anywhere I've defined it as such, and it doesn't
+  // say where it gets the declaration. It should always be string.
+
+  let controller: C
+  const registry = registries[typeName] as unknown as Registry<K, C>
+  if (name in registry.controllers) {
+    controller = registry.controllers[name]
+    registry.register(uid, controller)
+    return registry.controllers[name]
+  }
+  if (schema === undefined) {
+    throw Error(`Attempt to pull a ${registry.typeName} which does not exist, '${name}', from cache.`)
+  }
+  controller = new ControllerClass({
+    initName: name,
+    schema,
+    $sock: socket,
+    $registries: registries,
+    $router: router,
+    $store: store,
+  })
+  registry.register(uid, controller)
+  return controller
+}
+
+export const listenForRegistryName = <K extends AttrKeys, S, C extends BaseController<S, K>>(uid: string, name: string, registry: Registry<K, C>) => {
+  registry.listen(uid, name)
+}
+
+export function genRegistryPluginBase<K extends AttrKeys, S, C extends BaseController<S, K>>(
+  typeName: ModuleName, registry: Registry<K, C>, ControllerClass: new (args: ControllerArgs<S>) => C, store: ArtStore) {
   const base: ComponentOptions = {
     render: () => h('div'),
     methods: {},
     unmounted(): void {
-      // Cleans up references to the current component in the registry.
-      const self = (this as any)
-      if (registry.uidListenerTracking[self._uid] !== undefined) {
-        for (const listenName of registry.uidListenerTracking[self._uid]) {
-          clearItem(registry.listeners, listenName, self._uid)
-        }
-        delete registry.uidListenerTracking[self._uid]
-      }
-      if (!(self._uid in registry.componentMap)) {
-        return
-      }
-      for (const controller of registry.componentMap[self._uid]) {
-        registry.unhook(self._uid, controller)
-      }
-      delete registry.componentMap[self._uid]
+      performUnhook<K, S, C>(this._uid, registry)
     },
   }
 
-  function getter(this: ArtVueInterface, name: string, schema?: O, uid?: string) {
-    // Convenience function which registers a module if it does not yet exist, and gets it if it does.
-    // Why does TypeScript identify _uid as number? I can't find anywhere I've defined it as such, and it doesn't
-    // say where it gets the declaration. It should always be string.
+  function getter(this: ArtVueInterface, name: string, schema?: S, uid?: string) {
     uid = uid || this._uid as unknown as string
-    let controller: C
-    if (name in registry.controllers) {
-      controller = registry.controllers[name]
-      registry.register(uid, controller)
-      return registry.controllers[name]
-    }
-    if (schema === undefined) {
-      throw Error(`Attempt to pull a ${typeName} which does not exist, '${name}', from cache.`)
-    }
-    controller = new ControllerClass({
-      initName: name, $root: this.$root, schema, $store: this.$store,
+    return getController<K, S, C>({
+      uid,
+      name,
+      typeName: typeName,
+      schema,
+      store,
+      router: this.$router,
+      socket: this.$sock,
+      registries: this.$registries,
+      ControllerClass,
     })
-    registry.register(uid, controller)
-    return controller
   }
 
   function listener(this: ArtVueInterface, name: string, uid?: string) {
-    registry.listen(uid || this._uid, name)
+    listenForRegistryName<K, S, C>(uid || this._uid, name, registry)
   }
+
   (base.methods as ComponentOptions<_Vue>)[`$get${typeName}`] = getter;
   (base.methods as ComponentOptions<_Vue>)[`$listenFor${typeName}`] = listener;
   (base.methods as ComponentOptions<_Vue>)[`$registryFor${typeName}`] = () => registry

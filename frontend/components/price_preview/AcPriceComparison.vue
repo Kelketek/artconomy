@@ -56,12 +56,13 @@ export default {
     lineItemSetMaps: {required: true},
   },
   data() {
-    return {
-      hourlyForm: this.$getForm('hourly', {
-        endpoint: '#',
-        fields: {hours: {value: null}},
-      }),
-    }
+    return {hourlyForm: null}
+  },
+  created() {
+    this.hourlyForm = this.$getForm('hourly', {
+      endpoint: '#',
+      fields: {hours: {value: null}},
+    })
   },
   computed: {
     mdSize() {
@@ -86,48 +87,4 @@ export default {
     },
   },
 }
-// This component, for some inexplicable reason, would not compile with the class-based invocation. It thus has the
-// honor of being our first 'upgraded' component, though it's restricted to JS and the options API.
-// @Component({
-//   mixins: [Subjective],
-//   components: {
-//     AcBoundField,
-//     AcPricePreview,
-//   },
-// })
-// export default class extends Vue {
-//   @Prop({required: true})
-//   public lineItemSetMaps!: LineItemSetMap[]
-//
-//   public hourlyForm = null as unknown as FormController
-//   public hours = null
-//
-//   public get mdSize() {
-//     if (this.lineItemSetMaps.length > 1) {
-//       return 6
-//     }
-//     return 12
-//   }
-//
-//   public get offerExists() {
-//     return !!this.lineItemSetMaps.filter((item) => item.offer).length
-//   }
-//
-//   public get lgSize() {
-//     if (this.lineItemSetMaps.length >= 3) {
-//       return 4
-//     } else if (this.lineItemSetMaps.length === 2) {
-//       return 6
-//     }
-//     return 12
-//   }
-//
-//   public get single() {
-//     return this.lineItemSetMaps.length === 1
-//   }
-//
-//   public created() {
-//     this.hourlyForm = this.$getForm('hourly', {endpoint: '#', fields: {hours: {value: null}}})
-//   }
-// }
 </script>

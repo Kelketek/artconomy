@@ -17,22 +17,27 @@ import {
 import {BaseController, ControllerArgs} from '@/store/controller-base'
 import {ListController} from '@/store/lists/controller'
 import Product from '@/types/Product'
-import {toValue, watch} from 'vue'
+import {nextTick, toValue, watch} from 'vue'
+import {getController} from '@/store/registry-base'
+import {SingleState} from '@/store/singles/types/SingleState'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
+
+type AnyUser = User | TerseUser | AnonUser
 
 @ComputedGetters
 export class ProfileController extends BaseController<ProfileModuleOpts, ProfileState> {
   public baseClass = ProfileModule
   public submoduleKeys = ['user', 'artistProfile']
   public baseModuleName = 'userModules'
-  public typeName = 'Profile'
+  public typeName: 'Profile' = 'Profile'
   // eslint-disable-next-line camelcase
   public profile_controller__ = true
   public isFetchableController = false
-  public user: SingleController<User|TerseUser|AnonUser> = null as unknown as SingleController<User|TerseUser|AnonUser>
+  public user: SingleController<AnyUser> = null as unknown as SingleController<AnyUser>
   public artistProfile: SingleController<ArtistProfile> = null as unknown as SingleController<ArtistProfile>
   public products: ListController<Product> = null as unknown as ListController<Product>
 
-  public updateRoute = (newUsername: string, oldUsername: string|undefined) => {
+  public updateRoute = (newUsername: string, oldUsername: string | undefined) => {
     if (newUsername === '_') {
       return
     }
@@ -41,7 +46,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     }
     // Most relevant routes will have the username right in them, so we need to change these.
     /* istanbul ignore next */
-    const currentRoute = toValue(this.$root.$route)
+    const currentRoute = toValue(this.$router.currentRoute)
     const name = currentRoute.name || undefined
     const route = {
       name,
@@ -51,7 +56,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     }
     if ('username' in route.params && (oldUsername === route.params.username)) {
       route.params.username = newUsername
-      this.$root.$router.replace(route)
+      this.$router.replace(route)
     }
   }
 
@@ -68,7 +73,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
       if (user.username === '_' || guestName(user.username)) {
         this.artistProfile.setX(null)
       } else {
-        return this.$root.$nextTick(() => {
+        return nextTick(() => {
           return this.artistProfile.refresh()
         })
       }
@@ -92,37 +97,54 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   constructor(args: ControllerArgs<ProfileModuleOpts>) {
     super(args)
     this.register()
-    this.user = this.$root.$getSingle(
-      userPathFor(this.name.value).join('/'),
+    this.user = getController<SingleState<AnyUser>, SingleModuleOpts<AnyUser>, SingleController<AnyUser>>(
       {
-        endpoint: endpointFor(this.name.value),
-        socketSettings: {
-          appLabel: 'profiles',
-          modelName: 'User',
-          keyField: 'id',
-          serializer: this.viewer ? 'UserSerializer' : 'UserInfoSerializer',
+        uid: this._uid,
+        name: userPathFor(this.name.value).join('/'),
+        typeName: 'Single',
+        socket: this.$sock,
+        router: this.$router,
+        store: this.$store,
+        schema: {
+          endpoint: endpointFor(this.name.value),
+          socketSettings: {
+            appLabel: 'profiles',
+            modelName: 'User',
+            keyField: 'id',
+            serializer: this.viewer ? 'UserSerializer' : 'UserInfoSerializer',
+          },
         },
+        registries: this.$registries,
+        ControllerClass: SingleController,
       },
-      this._uid,
     )
-    this.artistProfile = this.$root.$getSingle(
-      artistProfilePathFor(this.name.value).join('/'), {
-        endpoint: artistProfileEndpointFor(this.name.value),
-        params: {view: 'true'},
-        socketSettings: {
-          appLabel: 'profiles',
-          modelName: 'ArtistProfile',
-          keyField: 'id',
-          serializer: 'ArtistProfileSerializer',
+    this.artistProfile = getController<SingleState<ArtistProfile>, SingleModuleOpts<ArtistProfile>, SingleController<ArtistProfile>>(
+      {
+        uid: this._uid,
+        name: artistProfilePathFor(this.name.value).join('/'),
+        typeName: 'Single',
+        router: this.$router,
+        socket: this.$sock,
+        store: this.$store,
+        schema: {
+          endpoint: artistProfileEndpointFor(this.name.value),
+          params: {view: 'true'},
+          socketSettings: {
+            appLabel: 'profiles',
+            modelName: 'ArtistProfile',
+            keyField: 'id',
+            serializer: 'ArtistProfileSerializer',
+          },
         },
+        registries: this.$registries,
+        ControllerClass: SingleController,
       },
-      this._uid,
     )
     watch(() => this.user.x?.username || '', this.updateUsername)
   }
 
   // Watcher for user.x.username
-  public updateUsername = (newUsername: string, oldUsername: string|undefined) => {
+  public updateUsername = (newUsername: string, oldUsername: string | undefined) => {
     if (this.name.value === newUsername) {
       // Initial load. Ignore.
       return

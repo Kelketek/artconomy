@@ -11,8 +11,9 @@ import {FormState} from '@/store/forms/types/FormState'
 import {RawData} from '@/store/forms/types/RawData'
 import {ComputedGetters, flatten} from '@/lib/lib'
 import {ArtVueInterface} from '@/types/ArtVueInterface'
-import {toValue} from 'vue'
+import {nextTick, toValue} from 'vue'
 import {AcServerError} from '@/types/AcServerError'
+import {ModuleName} from '@/store/registry-base'
 
 export interface FieldBank {
   [key: string]: FieldController
@@ -29,7 +30,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
 
   public baseModuleName = 'forms'
 
-  public typeName = 'Form'
+  public typeName: 'Form' = 'Form'
   // tslint:disable-next-line:no-empty
   private unsubscribe: (() => void) = null as unknown as (() => void)
 
@@ -43,9 +44,11 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     this.$store.commit('forms/initForm', {...{name: this.name.value}, ...this.schema})
     for (const key of Object.keys(this.schema.fields)) {
       this.fields[key] = new FieldController({
+        $router: this.$router,
+        $registries: this.$registries,
+        $sock: this.$sock,
         formName: this.name.value,
         fieldName: key,
-        $root: this.$root,
         $store: this.$store
       })
     }
@@ -192,9 +195,11 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
       return
     }
     this.fields[mutation.payload.field.name] = new FieldController({
+      $router: this.$router,
+      $registries: this.$registries,
+      $sock: this.$sock,
       formName: this.name.value,
       fieldName: mutation.payload.field.name,
-      $root: this.$root,
       $store: this.$store,
     })
   }
@@ -243,7 +248,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     }
     this.$store.commit('forms/setErrors', {name: this.name.value, errors: errorSet})
     this.sending = false
-    this.$root.$nextTick(this.scrollToError)
+    nextTick(this.scrollToError)
     return error
   }
 

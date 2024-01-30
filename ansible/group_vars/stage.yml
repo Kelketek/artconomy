@@ -7,7 +7,7 @@ admin_email: fox@vulpinity.com
 domains:
  - stage.artconomy.com
 mail_domain: stage_outbound.artconomy.com
-app_version: master
+app_version: fox/upgrade-frontend
 host_color: green
 password_protect: false
 swap_kilo_size: 8388608

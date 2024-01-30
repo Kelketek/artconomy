@@ -14,6 +14,12 @@ import {ProfileController} from '@/store/profiles/controller'
 import {RouteLocation, Router} from 'vue-router'
 import {createVuetify} from 'vuetify'
 import {ArtVueInterface} from '@/types/ArtVueInterface'
+import {SingleRegistry} from '@/store/singles/registry'
+import {ListRegistry} from '@/store/lists/registry'
+import {CharacterRegistry} from '@/store/characters/registry'
+import {ProfileRegistry} from '@/store/profiles/registry'
+import {FormRegistry} from '@/store/forms/registry'
+import {RegistryRegistry} from '@/store/registry-base'
 
 export interface ArtVueGlobals {
   _uid: string,
@@ -28,18 +34,24 @@ export interface ArtVueGlobals {
   // Single module funcs
   $getSingle: (name: string, schema?: SingleModuleOpts<any>, uid?: string) => SingleController<any>,
   $listenForSingle: (name: string, uid?: string) => void,
-  $makePatcher: (config: PatcherConfig) => Patch,
+  $registryForSingle: () => SingleRegistry,
   // List module funcs
   $getList: (name: string, schema?: ListModuleOpts, uid?: string) => ListController<any>,
   $listenForList: (name: string, uid?: string) => void,
+  $registryForList: () => ListRegistry,
   // Form module funcs
   $getForm: (name: string, formSchema?: NamelessFormSchema, uid?: string) => FormController,
   $listenForForm: (name: string, uid?: string) => void,
+  $registryForForm: () => FormRegistry,
   // Character module funcs
   $getCharacter: (name: string, schema?: CharacterModuleOpts, uid?: string) => CharacterController,
+  $listenForCharacter: (name: string, uid?: string) => void,
+  $registryForCharacter: () => CharacterRegistry,
   // Profile module funcs
   $getProfile: (name: string, schema?: ProfileModuleOpts, uid?: string) => ProfileController,
   $listenForProfile: (name: string, uid?: string) => void,
+  $registryForProfile: () => ProfileRegistry,
+  $registries: RegistryRegistry,
   // Vue Router
   $router: Router,
   $route: RouteLocation,
