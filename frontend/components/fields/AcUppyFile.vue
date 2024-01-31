@@ -31,6 +31,14 @@
 .ac-uppy-file .uppy-Dashboard-AddFiles-title {
   color: #fff;
 }
+.ac-uppy-file .uppy-Url {
+  display: flex;
+  flex-direction: column;
+}
+
+.ac-uppy-file .uppy-Url-input {
+  margin-bottom: 1rem;
+}
 </style>
 
 <script lang="ts">
@@ -38,11 +46,11 @@ import Uppy, {UppyFile} from '@uppy/core'
 import {toRaw, markRaw} from 'vue'
 import Dashboard from '@uppy/dashboard'
 import XHRUpload from '@uppy/xhr-upload'
+import Url from '@uppy/url'
 
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import {genId, getCookie} from '@/lib/lib'
 import ExtendedInput from '@/components/fields/mixins/extended_input'
-import {RawData} from '@/store/forms/types/RawData'
 import {SingleController} from '@/store/singles/controller'
 import {GenericState, Listener} from '@uppy/store-default/src'
 
@@ -105,9 +113,6 @@ class AcUppyFile extends mixins(ExtendedInput) {
 
   @Prop({default: true})
   public inForm!: boolean
-
-  @Prop({default: null})
-  public success!: (data: RawData) => {} | null
 
   @Prop({default: true})
   public showReset!: boolean
@@ -182,7 +187,7 @@ class AcUppyFile extends mixins(ExtendedInput) {
       },
     })
     this.uppy.use(XHRUpload, {
-      endpoint: this.endpoint,
+      endpoint: `${window.location.origin}${this.endpoint}`,
       fieldName: 'files[]',
       headers: {
         'X-CSRFToken': getCookie('csrftoken') + '',
@@ -204,17 +209,24 @@ class AcUppyFile extends mixins(ExtendedInput) {
       // @ts-ignore
       doneButtonHandler: null,
     })
+    const companionUrl = `${window.location.origin}/companion`
+    if (window.chrome) {
+      // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
+      this.uppy.use(Url, {
+        target: Dashboard,
+        companionUrl,
+        companionCookiesRule: 'include',
+      })
+    }
     this.uppy.on('upload-success', (file: UppyFile | undefined, response: any) => {
       if (this.maxNumberOfFiles > 1) {
         this.$emit('update:modelValue', [...this.modelValue, response.body.id])
-      } else {
+        return
+      } else  {
         this.$emit('update:modelValue', response.body.id)
       }
-      if (this.success) {
-        this.success(response.body)
-      }
     })
-    // If this component is remounted, Uppy is regenerated and we have to restore state.
+    // If this component is remounted, Uppy is regenerated, and we have to restore state.
     /* istanbul ignore if */
     if (Object.keys(this.originalState).length) {
       this.uppy.setState(this.originalState)

@@ -12,7 +12,15 @@ build:
 	docker-compose build
 
 up:
-	docker-compose up
+	docker-compose up -d
+
+logs:
+	docker-compose logs -f
+
+stop:
+	docker-compose stop
+
+restart: stop up
 
 down:
 	docker-compose down
@@ -23,10 +31,10 @@ shell:
 test: test_frontend test_backend
 
 test_frontend:
-	${APP_COMMAND} "npm run test:unit"
+	${APP_COMMAND} "npm run test"
 
 test_backend:
-	${APP_COMMAND} "./manage.py test --parallel=${TEST_THREADS}"
+	${APP_COMMAND} "./manage.py test --keepdb --parallel=${TEST_THREADS}"
 
 format:
 	${APP_COMMAND} "npm run lint:fix"

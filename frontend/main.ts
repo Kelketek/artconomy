@@ -36,6 +36,7 @@ declare global {
     // We shouldn't be referencing this directly anywhere.
     // We use it during debugging.
     artconomy: any,
+    chrome?: boolean,
     PRERENDERING: number,
     windowId: string,
     USER_PRELOAD: User|AnonUser,

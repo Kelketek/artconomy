@@ -1,5 +1,7 @@
 from unittest.mock import patch
 
+from django.db import IntegrityError
+
 from apps.lib.models import Asset, Notification
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin
 from apps.lib.tests.factories import AssetFactory
@@ -107,6 +109,13 @@ class TestAsset(EnsurePlansMixin, TestCase):
         asset = AssetFactory.create(uploaded_by=UserFactory.create())
         submission = SubmissionFactory.create(file=asset)
         self.assertTrue(asset.can_reference(FakeRequest(submission.owner)))
+
+    def test_no_conflict(self):
+        user = UserFactory.create()
+        asset = AssetFactory.create(uploaded_by=user)
+        conflicting = Asset(id=asset.id, file=asset.file)
+        with self.assertRaises(IntegrityError):
+            conflicting.save()
 
     # If CELERY_ALWAYS_EAGER is enabled, the cleanup function is skipped, because it
     # would immediately delete any asset uploaded before you can use it. For this test

@@ -122,38 +122,6 @@ describe('ac-uppy-file.vue', () => {
     vm.uppy.emit('upload-success', file, {body: {id: 'do'}})
     expect(wrapper.emitted('update:modelValue')![0]).toEqual([['wat', 'do']])
   })
-  test('Calls a callback on a successfully uploaded file.', async() => {
-    const mockSuccess = vi.fn()
-    wrapper = makeUppy({
-      success: mockSuccess,
-      uppyId: 'uppyTest',
-    })
-    await wrapper.vm.$nextTick() // Created
-    // await wrapper.vm.$nextTick() // Mounted
-    const file = {
-      data: new Blob(),
-      extension: 'jpg',
-      isRemote: false,
-      id: '1',
-      meta: {name: 'test.jpg'},
-      size: 100,
-      name: 'test.jpg',
-      remote: {
-        host: 'example.com',
-        url: 'https://example.com/example.jpg',
-      },
-      progress: {
-        uploadStarted: 1,
-        uploadComplete: true,
-        bytesTotal: 100,
-        percentage: 100,
-        bytesUploaded: 100,
-      },
-    };
-    (wrapper.vm as any).uppy.setState({files: {1: file}});
-    (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
-    expect(mockSuccess).toHaveBeenCalledWith({id: 'wat'})
-  })
   test('Sets the proper label color when there are no errors.', async() => {
     const errorMessages: string[] = []
     wrapper = makeUppy({errorMessages})

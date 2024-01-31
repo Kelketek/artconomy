@@ -431,9 +431,10 @@ class Asset(Model):
     edited_on = DateTimeField(auto_now=True)
 
     def can_reference(self, request):
-        from apps.lib.utils import get_all_foreign_references
+        from apps.lib.utils import get_all_foreign_references, request_key
 
-        if cache.get(f"upload_grant_{request.session.session_key}-to-{self.id}"):
+        socket_key = request_key(request)
+        if cache.get(f"upload_grant_{socket_key}-to-{self.id}"):
             return True
         user = request.user
         if not user.is_authenticated:

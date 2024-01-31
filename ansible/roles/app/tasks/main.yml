@@ -198,6 +198,13 @@
   notify:
     - reload systemd
 
+- name: Create Companion Service
+  template:
+    src: "system/artconomy-companion.service"
+    dest: "/etc/systemd/system/artconomy-companion.service"
+  notify:
+    - reload systemd
+
 - name: Enable uwsgi service
   service: name=uwsgi enabled=true
 
@@ -210,3 +217,8 @@
 - name: Start daphne service
   service: name=artconomy-daphne state=started
 
+- name: Enable companion service
+  service: name=artconomy-companion enabled=true
+
+- name: Start companion service
+  service: name=artconomy-companion state=started

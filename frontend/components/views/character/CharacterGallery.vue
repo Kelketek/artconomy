@@ -2,7 +2,7 @@
   <v-container>
     <ac-load-section :controller="character.profile">
       <ac-character-toolbar :username="username" :character-name="characterName"
-                            :success="character.submissions.unshift" :visit="false"/>
+                            @success="character.submissions.unshift" :visit="false"/>
       <ac-paginated :list="character.submissions" :track-pages="true" class="pt-3">
         <v-col cols="4" sm="3" lg="2" v-for="submission in character.submissions.list" :key="submission.x!.id">
           <ac-gallery-preview class="pa-1" :submission="submission.x"/>

@@ -33,7 +33,6 @@ class AcTagField extends Vue {
   public items: string[] = []
 
   public created() {
-    console.log('Created!')
     this.tags = [...this.modelValue]
   }
 

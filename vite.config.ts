@@ -10,6 +10,7 @@ import ChildProcess from 'child_process'
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 import checker from 'vite-plugin-checker'
+import dns from 'dns'
 
 const commitHash = ChildProcess.execSync('git rev-parse --short HEAD').toString().trim()
 

@@ -14,7 +14,6 @@
       <ac-uppy-file
           uppy-id="uppy-avatar"
           :endpoint="url"
-          :success="subjectHandler.user.updateX"
           label="Upload a new Avatar"
       />
     </v-col>

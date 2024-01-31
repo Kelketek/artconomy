@@ -77,7 +77,7 @@ class TestAssetUpload(APITestCase):
         response = self.client.post(
             "/api/lib/v1/asset/", {"files[]": file}, format="multipart"
         )
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 201)
         mock_cache.set.assert_called_with(
             f'upload_grant_{self.client.session.session_key}-to-{response.data["id"]}',
             True,

@@ -1,0 +1,18 @@
+[Install]
+WantedBy=multi-user.target
+
+[Unit]
+Description=Artconomy Uppy Companion
+After=network.target
+
+[Service]
+Type=simple
+User={{ env_prefix }}
+WorkingDirectory=/home/{{ env_prefix }}/artconomy/
+{% for key, value in companion_settings.env.items() %}
+Environment={{key}}='{{value}}'
+{% endfor %}
+{% for key, value in companion_settings_complex.items() %}
+Environment={{key}}='{{value|to_json}}'
+{% endfor %}
+ExecStart=/home/{{ env_prefix }}/artconomy/node_modules/bin/companion

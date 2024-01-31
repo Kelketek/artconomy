@@ -71,10 +71,10 @@ DISCORD_BOT_KEY=token-goes-here
 DISCORD_GUILD_ID=id-goes-here
 ```
 
-Add the following entry to your `/etc/hosts` file (You can change this, but for the moment it's hard coded for the dev scripts and you may need to change that in a few places):
+Add the following entry to your `/etc/hosts` file (You can change this, but for the moment it's hard coded for the dev scripts, and you may need to change that in a few places):
 
 ```bash
-127.0.0.1	artconomy.vulpinity.com
+10.5.0.3	artconomy.vulpinity.com
 ```
 Once you have your environment file created:
 

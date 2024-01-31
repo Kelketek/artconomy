@@ -14,4 +14,6 @@ fi
 npm run serve &
 ./manage.py collectstatic -v0 --noinput
 ./manage.py tg_bot &
+# Turning off ssl validation since our local dev cert is not valid.
+NODE_TLS_REJECT_UNAUTHORIZED=0 npx companion &
 exec "$@"

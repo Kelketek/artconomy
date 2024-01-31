@@ -1,4 +1,8 @@
 from collections import OrderedDict
+from uuid import uuid4, UUID
+
+from django.db import IntegrityError
+from django.urls import reverse
 
 from apps.lib.middleware import OlderThanPagination
 from apps.lib.models import Asset, Comment
@@ -15,8 +19,13 @@ from apps.lib.permissions import (
     IsSafeMethod,
     IsStaff,
     SessionKeySet,
+    PermittedAsset,
 )
-from apps.lib.serializers import CommentSerializer, CommentSubscriptionSerializer
+from apps.lib.serializers import (
+    CommentSerializer,
+    CommentSubscriptionSerializer,
+    AssetSerializer,
+)
 from apps.lib.utils import (
     countries_tweaked,
     create_comment,
@@ -27,6 +36,7 @@ from apps.lib.utils import (
     mark_read,
     safe_add,
     shift_position,
+    request_key,
 )
 from apps.profiles.models import User
 from apps.profiles.permissions import IsRegistered, ObjectControls
@@ -47,12 +57,15 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
     get_object_or_404,
+    RetrieveAPIView,
 )
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from reversion.models import Version, VersionQuerySet
+
+from shortcuts import make_url
 from views import bad_request, base_template
 
 
@@ -399,7 +412,10 @@ class AssetUpload(APIView):
             user = request.user
         else:
             user = None
-        digest = digest_for_file(file_obj)
+        digest, length = digest_for_file(file_obj)
+        if length == 0:
+            raise ValidationError({"files[]": ["The uploaded file has no content."]})
+        file_obj.seek(0)
         if settings.DEDUPLICATE_ASSETS:
             asset = Asset.objects.filter(hash=digest).first()
         else:
@@ -409,12 +425,33 @@ class AssetUpload(APIView):
             asset = Asset(file=file_obj, uploaded_by=user, hash=digest)
             asset.clean()
             asset.save()
+        socket_key = request_key(request)
         cache.set(
-            f"upload_grant_{request.session.session_key}-to-{asset.id}",
+            f"upload_grant_{socket_key}-to-{asset.id}",
             True,
             timeout=3600,
         )
-        return Response(data={"id": str(asset.id)})
+        details_url = make_url(
+            reverse("lib:asset_detail", kwargs={"pk": str(asset.id)})
+        )
+        return Response(
+            data={
+                "id": str(asset.id),
+                "url": details_url,
+                "file": make_url(asset.file.url),
+            },
+            status=status.HTTP_201_CREATED,
+            headers={
+                **self.default_response_headers,
+                "Location": make_url(details_url),
+            },
+        )
+
+
+class AssetDetail(RetrieveAPIView):
+    queryset = Asset.objects.all()
+    permission_classes = [PermittedAsset]
+    serializer_class = AssetSerializer
 
 
 class NoOp(APIView):

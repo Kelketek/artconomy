@@ -242,4 +242,13 @@ class SessionKeySet(BasePermission):
     message = "You do not have a session key set. Get a cookie first."
 
     def has_permission(self, request: Request, view: View) -> bool:
-        return bool(request.session.session_key)
+        from apps.lib.utils import request_key
+
+        return bool(request_key(request))
+
+
+class PermittedAsset(BasePermission):
+    message = "You do not have access to that asset."
+
+    def has_object_permission(self, request, view, obj):
+        return obj.can_reference(request)

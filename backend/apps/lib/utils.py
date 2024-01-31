@@ -268,6 +268,9 @@ class FakeSession:
         self.data = data or {}
         self.session_key = str(uuid4())
 
+    def get(self, item, fallback=None):
+        return self.data.get(item, fallback)
+
     def __getitem__(self, item):
         return self.data[item]
 
@@ -276,9 +279,11 @@ class FakeSession:
 
 
 class FakeRequest:
-    def __init__(self, user, session=None):
+    def __init__(self, user, session=None, headers=None, cookies=None):
         self.user = user
         self.session = session or FakeSession()
+        self.headers = headers or {}
+        self.COOKIES = cookies or {}
 
     @staticmethod
     def build_absolute_uri(value):
@@ -957,12 +962,14 @@ def digest_for_file(file_obj):
     """
     hasher = sha256()
     segment = file_obj.read(1)
+    length = 0
     while segment:
         segment = file_obj.file.read(1024 * 1024)
+        length += len(segment)
         hasher.update(segment)
     # Return to the beginning of the file.
     file_obj.seek(0)
-    return hasher.digest()
+    return hasher.digest(), length
 
 
 def dedup_asset(asset):
@@ -1226,3 +1233,7 @@ utc = timezone.utc
 
 def utc_now():
     return datetime.now(tz=utc)
+
+
+def request_key(request):
+    return request.session.session_key

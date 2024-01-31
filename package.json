@@ -11,7 +11,7 @@
     "supportedBrowsers": "echo \"export default $(browserslist-useragent-regexp --allowHigherVersions);\" > frontend/supportedBrowsers.js",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --fix --ignore-path .gitignore",
-    "test:watch": "TZ=\"America/Chicago\" vitest"
+    "test": "TZ=\"America/Chicago\" vitest"
   },
   "dependencies": {
     "@date-io/date-fns": "^3.0.0",
@@ -55,6 +55,7 @@
     "@types/node": "^18.15.0",
     "@types/qrcode": "^1.5.5",
     "@types/uuid": "^9.0.7",
+    "@uppy/companion": "^4.12.0",
     "@vitejs/plugin-vue": "^4.5.2",
     "@vitest/coverage-istanbul": "^1.2.2",
     "@vue/eslint-config-typescript": "^12.0.0",

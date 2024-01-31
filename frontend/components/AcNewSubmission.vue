@@ -21,11 +21,14 @@
           <v-row no-gutters>
             <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.file" field-type="ac-uppy-file" label="Upload your submission"
+                              :show-reset="true"
                               uppy-id="new-submission-file"/>
             </v-col>
             <v-col cols="12" v-if="addThumbnail">
               <ac-bound-field :field="newUpload.fields.preview" field-type="ac-uppy-file"
-                              label="Upload a preview image (Optional)" uppy-id="new-submission-file-preview"/>
+                              label="Upload a preview image (Optional)"
+                              :show-reset="true"
+                              uppy-id="new-submission-file-preview"/>
             </v-col>
             <v-col cols="12" v-else>
               <v-row no-gutters>

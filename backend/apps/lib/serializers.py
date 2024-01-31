@@ -1079,3 +1079,12 @@ class EmailPreferenceField(serializers.BooleanField):
     def mod_instance(self, instance, value):
         self.instance.enabled = value
         self.instance.save()
+
+
+class AssetSerializer(serializers.ModelSerializer):
+    uploaded_by = RelatedUserSerializer()
+
+    class Meta:
+        model = Asset
+        fields = ("id", "hash", "created_on", "uploaded_by", "file")
+        read_only_fields = fields

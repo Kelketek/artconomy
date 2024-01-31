@@ -6,24 +6,34 @@ services:
       - POSTGRES_PASSWORD=postgres
     ports:
       - "5432:5432"
+    networks:
+      artconomy:
+        ipv4_address: 10.5.0.2
   nginx:
+    hostname: 'artconomy.vulpinity.com'
     build:
       dockerfile: docker/nginx_Dockerfile
       context: .
     container_name: ng01
     ports:
-      - "443:8000"
+      - "443:443"
     volumes:
       - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf
       - ./config/nginx/conf.d:/etc/nginx/conf.d
       - ./dev_keys:/etc/nginx/dev_keys
       - ./:/var/www
+    networks:
+      artconomy:
+        ipv4_address: 10.5.0.3
     depends_on:
       - web
   redis:
     image: redis
     ports:
       - "6379:6379"
+    networks:
+      artconomy:
+        ipv4_address: 10.5.0.4
   web:
     build:
       context: .
@@ -59,7 +69,16 @@ services:
       - WEBHOOKS_DOMAIN=${WEBHOOKS_DOMAIN}
       - STRIPE_KEY=${STRIPE_KEY}
       - DEFAULT_CARD_PROCESSOR=stripe
+      - COMPANION_SECRET=aseriuehw4giluwesrbilunsdfijke4twesdf
+      - COMPANION_DOMAIN=artconomy.vulpinity.com
+      - COMPANION_PROTOCOL=https
+      - COMPANION_DATADIR=/app/media/companion/
+      - COMPANION_PATH=/companion/
+      - COMPANION_PORT=3020
     command: /home/dev/.pyenv/versions/artconomy/bin/python manage.py runserver 0.0.0.0:8002
+    networks:
+      artconomy:
+        ipv4_address: 10.5.0.5
     ports:
       - "8001:8001"
       - "8002:8002"
@@ -69,3 +88,12 @@ services:
     volumes:
       - ./:/app
       - ./node_modules:/app/node_modules
+
+networks:
+  artconomy:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.5.0.0/16
+          gateway: 10.5.0.1

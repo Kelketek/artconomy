@@ -21,7 +21,7 @@ class Command(BaseCommand):
                 print(f"FILE IS FALSEY FOR {asset}!")
                 continue
             try:
-                asset.hash = digest_for_file(asset.file)
+                asset.hash, _length = digest_for_file(asset.file)
             except FileNotFoundError:
                 print(f"MISSING FILE FOR {asset}!")
             asset.save()
