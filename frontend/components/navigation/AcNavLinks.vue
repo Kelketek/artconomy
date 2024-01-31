@@ -1,7 +1,7 @@
 <template>
   <v-container fluid style="min-height: 75vh" v-if="subject">
     <v-list density="compact" nav v-model:opened="openFirst" open-strategy="multiple">
-      <v-list-item @click="$emit('update:modelValue', false)" :class="{'hidden-lg-and-up': !embedded}">
+      <v-list-item @click="$emit('update:modelValue', false)">
         <template v-slot:prepend>
           <v-icon icon="mdi-close"/>
         </template>

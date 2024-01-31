@@ -12,7 +12,7 @@
         <span v-if="editing">Lock</span>
         <span v-else>Edit</span>
       </v-btn>
-      <v-btn color="secondary" @click="showMenu=true" v-if="isStaff && !isCurrent" variant="flat">
+      <v-btn color="secondary" @click="showMenu=!showMenu" v-if="isStaff && !isCurrent" variant="flat">
         <v-icon left icon="mdi-menu"/>
         Menu
       </v-btn>
@@ -127,19 +127,17 @@
         </ac-confirmation>
       </v-list>
     </v-menu>
-    <v-dialog v-model="showMenu" :attach="$modalTarget">
-      <v-navigation-drawer v-model="showMenu" v-if="isStaff && subject" fixed clipped :disable-resize-watcher="true">
-        <ac-nav-links
-            :subject-handler="subjectHandler"
-            :is-staff="subject.is_staff"
-            :is-superuser="subject.is_superuser"
-            :is-logged-in="true"
-            :is-registered="true"
-            :embedded="true"
-            v-model="showMenu"
-        />
-      </v-navigation-drawer>
-    </v-dialog>
+    <v-navigation-drawer v-model="showMenu" v-if="isStaff && subject" fixed clipped :disable-resize-watcher="true" temporary>
+      <ac-nav-links
+          :subject-handler="subjectHandler"
+          :is-staff="subject.is_staff"
+          :is-superuser="subject.is_superuser"
+          :is-logged-in="true"
+          :is-registered="true"
+          :embedded="true"
+          v-model="showMenu"
+      />
+    </v-navigation-drawer>
     <ac-form-dialog
         v-model="showNew"
         v-bind="newConversation.bind"

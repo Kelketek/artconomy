@@ -3,9 +3,9 @@
   <div class="main-navigation">
     <v-navigation-drawer
         fixed
-        clipped
         v-model="drawer"
         app
+        temporary
         width="300"
         v-if="viewer && !$store.state.iFrame && fullInterface"
     >
