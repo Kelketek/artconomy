@@ -280,7 +280,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField'
 import Subjective from '@/mixins/subjective'
-import {Component, Prop, toNative} from 'vue-facing-decorator'
+import {Component, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {FormController} from '@/store/forms/form-controller'
 import Product from '@/types/Product'
@@ -291,6 +291,8 @@ import {Ratings} from '@/store/profiles/types/Ratings'
 import {deliverableLines} from '@/lib/lineItemFunctions'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
 import {LineItemSetMap} from '@/types/LineItemSetMap'
+import {RawLineItemSetMap} from '@/types/RawLineItemSetMap'
+import LineItem from '@/types/LineItem'
 
 @Component({
   components: {
@@ -318,20 +320,28 @@ class AcNewProduct extends Subjective {
     return this.newProduct.fields.max_parallel.value !== 0
   }
 
+  @Watch('rawLineItemSetMaps')
+  public updateListControllers(rawLineItemSetMaps: RawLineItemSetMap[]) {
+    for (const set of rawLineItemSetMaps) {
+      const controller = this.$getList(`newProduct${set.name}`, {endpoint: '#', paginated: false})
+      controller.makeReady(set.lineItems)
+    }
+  }
+
   public get lineItemSetMaps(): LineItemSetMap[] {
     const sets = []
-    const escrowLinesController = this.$getList('newProductLinesEscrow', {
-      endpoint: '#',
-      paginated: false,
-    })
-    const nonEscrowLinesController = this.$getList('newProductLinesNonEscrow', {
-      endpoint: '#',
-      paginated: false,
-    })
-    const preferredLinesController = this.$getList('newProductPreferredPlanItems', {
-      endpoint: '#',
-      paginated: false,
-    })
+    for (const set of this.rawLineItemSetMaps) {
+      const controller = this.$getList(`newProduct${set.name}`, {endpoint: '#', paginated: false})
+      sets.push({name: set.name, lineItems: controller, offer: set.offer})
+    }
+    return sets
+  }
+
+  public get rawLineItemSetMaps(): RawLineItemSetMap[] {
+    if (!(this.pricing && this.pricing.x)) {
+      return []
+    }
+    const sets = []
     const pricing = this.pricing.x
     const basePrice = parseFloat(this.newProduct.fields.base_price.value)
     // eslint-disable-next-line camelcase
@@ -339,6 +349,7 @@ class AcNewProduct extends Subjective {
     const international = !!this.subject?.international
     const cascade = this.newProduct.fields.cascade_fees.value
     const tableProduct = this.newProduct.fields.table_product.value
+    let preferredLines: LineItem[] = []
     let appendPreferred = false
     const options = {
       basePrice,
@@ -354,17 +365,16 @@ class AcNewProduct extends Subjective {
         ...options,
         planName,
       })
-      escrowLinesController.makeReady(escrowLines)
       sets.push({
         name: 'Shielded',
-        lineItems: escrowLinesController,
+        lineItems: escrowLines,
         offer: false,
       })
       if (pricing && (planName !== pricing.preferred_plan)) {
-        preferredLinesController.makeReady(deliverableLines({
+        preferredLines = deliverableLines({
           ...options,
           planName: pricing.preferred_plan,
-        }))
+        })
         appendPreferred = true
       }
     }
@@ -379,10 +389,9 @@ class AcNewProduct extends Subjective {
         tableProduct,
         extraLines: [],
       })
-      nonEscrowLinesController.makeReady(nonEscrowLines)
       sets.push({
         name: 'Unshielded',
-        lineItems: nonEscrowLinesController,
+        lineItems: nonEscrowLines,
         offer: false,
       })
     }
@@ -390,7 +399,7 @@ class AcNewProduct extends Subjective {
       // eslint-disable-next-line camelcase
       sets.push({
         name: pricing?.preferred_plan + '',
-        lineItems: preferredLinesController,
+        lineItems: preferredLines,
         offer: true,
       })
     }
