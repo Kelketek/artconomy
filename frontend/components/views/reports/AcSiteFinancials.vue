@@ -53,9 +53,6 @@
         <v-row no-gutters>
           <v-col><a :href="`/api/sales/reports/tip-report/csv/${rangeString}`" download>Download CSV</a></v-col>
         </v-row>
-        <v-toolbar density="compact">
-          <v-toolbar-title>Dwolla Report</v-toolbar-title>
-        </v-toolbar>
       </v-col>
     </v-row>
   </v-container>

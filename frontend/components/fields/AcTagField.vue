@@ -33,6 +33,7 @@ class AcTagField extends Vue {
   public items: string[] = []
 
   public created() {
+    console.log('Created!')
     this.tags = [...this.modelValue]
   }
 
@@ -60,12 +61,12 @@ class AcTagField extends Vue {
     )
   }
 
-  @Watch('modelValue')
+  @Watch('modelValue', {deep: true})
   public syncDownstream(newVal: string[]) {
     this.tags = [...newVal]
   }
 
-  @Watch('tags')
+  @Watch('tags', {deep: true})
   public syncUpstream(newVal: string[]) {
     if (deepEqual(newVal, this.modelValue)) {
       return

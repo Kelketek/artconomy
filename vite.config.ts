@@ -49,7 +49,12 @@ export default defineConfig({
       deps: {
         inline: ['vuetify']
       }
-    }
+    },
+    coverage: {
+      provider: 'istanbul',
+      reporter: ['text', 'html', 'clover'],
+      reportsDirectory: '../reports/coverage'
+    },
   },
   base: base,
   build: {

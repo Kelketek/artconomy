@@ -25,14 +25,16 @@
                 <ac-patch-field field-type="ac-editor" :patcher="userHandler.patchers.biography"
                                 v-show="editing"
                                 v-if="controls"/>
-                <ac-rendered v-show="!editing" :value="subject.biography" :truncate="true">
-                  <template v-slot:empty>
-                    <v-col v-if="isCurrent" class="text-center">
-                      You haven't added any profile information yet.
-                      <v-btn block color="green" @click="() => editing = true" variant="flat">Add some.</v-btn>
-                    </v-col>
-                  </template>
-                </ac-rendered>
+                <div v-show="!editing">
+                  <ac-rendered :value="subject.biography" :truncate="true">
+                    <template v-slot:empty>
+                      <v-col v-if="isCurrent" class="text-center">
+                        You haven't added any profile information yet.
+                        <v-btn block color="green" @click="() => editing = true" variant="flat">Add some.</v-btn>
+                      </v-col>
+                    </template>
+                  </ac-rendered>
+                </div>
                 <v-btn block
                        v-if="subjectHandler.artistProfile.x && subject.artist_mode && subjectHandler.artistProfile.x.public_queue"
                        color="secondary"
