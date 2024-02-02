@@ -31,7 +31,7 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
-import {parseISO} from 'date-fns'
+import {format, parseISO} from 'date-fns'
 import {VTextField} from 'vuetify/components/VTextField'
 
 @Component({emits: ['update:modelValue']})
@@ -56,7 +56,7 @@ class AcBirthdayField extends Vue {
   }
 
   public set converted(val: Date) {
-    this.$emit('update:modelValue', this.$vuetify.date.toISO(val))
+    this.$emit('update:modelValue', format(val, 'yyyy-MM-dd'))
     this.menu = false
   }
 
