@@ -12,7 +12,7 @@
                   :key="'container-' + index"
               >
                 <component :is="dynamicComponent(notification.x!.event.type)"
-                           :key="notification.x!.id" v-observe-visibility="markRead(notification)"
+                           :key="notification.x!.id" v-observe-visibility="(value: boolean) => markRead(value, notification)"
                            class="notification" :notification="notification.x"
                 />
               </div>

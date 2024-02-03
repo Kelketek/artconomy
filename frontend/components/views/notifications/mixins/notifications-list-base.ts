@@ -45,27 +45,28 @@ export default class NotificationsListBase extends mixins(Viewer) {
     ).then(this.sendUpdateEvent)
   }
 
-  public markRead(controller: SingleController<AcNotification<any, any>>) {
+  public markRead(value: boolean, controller: SingleController<AcNotification<any, any>>) {
     const notification = controller.x as AcNotification<any, any>
     if (!this.autoRead) {
-      return () => undefined
+      return
     }
-    return () => {
-      const self = this
-      if (notification.read) {
-        return
-      }
-      if (this.toMarkIDs.indexOf(notification.id) !== -1) {
-        return
-      }
-      if (this.markedIDs.indexOf(notification.id) !== -1) {
-        return
-      }
-      self.toMark.push({
-        id: notification.id,
-        read: true,
-      })
+    if (!value) {
+      return
     }
+    const self = this
+    if (notification.read) {
+      return
+    }
+    if (this.toMarkIDs.indexOf(notification.id) !== -1) {
+      return
+    }
+    if (this.markedIDs.indexOf(notification.id) !== -1) {
+      return
+    }
+    self.toMark.push({
+      id: notification.id,
+      read: true,
+    })
   }
 
   public clearMarking() {

@@ -1,26 +1,28 @@
 <template>
-  <v-list-item>
-    <router-link :to="{name: 'Submission', params: {'submissionId': event.target.id}}">
-      <template v-slot:prepend>
-        <img :src="$img(event.target, 'notification', true)" alt=""/>
-      </template>
-    </router-link>
-    <v-list-item-title>
-      Your piece has been favorited by
+  <ac-base-notification :notification="notification" :asset-link="assetLink">
+    <template v-slot:title>
+      Your piece <router-link :to="assetLink">{{event.target.title}}</router-link> has been favorited by
       <router-link :to="{name: 'Profile', params: {username: event.data.user.username}}">{{event.data.user.username}}!
       </router-link>
-    </v-list-item-title>
-  </v-list-item>
+    </template>
+  </ac-base-notification>
 </template>
 
 <script>
 import Notification from '../mixins/notification'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 
 export default {
   name: 'ac-favorite',
+  components: {AcBaseNotification},
   mixins: [Notification],
   data() {
     return {}
   },
+  computed: {
+    assetLink() {
+      return {name: 'Submission', params: {'submissionId': this.event.target.id}}
+    }
+  }
 }
 </script>

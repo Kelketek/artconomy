@@ -43,7 +43,7 @@
     "vitest-mock-axios": "^0.1.0",
     "vue": "^3.4.15",
     "vue-facing-decorator": "^3.0.4",
-    "vue-observe-visibility": "^1.0.0",
+    "vue-observe-visibility": "^2.0.0-alpha.1",
     "vue-router": "^4.2.5",
     "vuedraggable": "^2.24.3",
     "vuetify": "^3.5.1",

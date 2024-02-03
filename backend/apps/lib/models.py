@@ -178,6 +178,7 @@ EVENT_TYPES = (
     (SALE_UPDATE, "Sale Update"),
     (DISPUTE, "Dispute Filed"),
     (REFUND, "Refund Processed"),
+    (STREAMING, "Artist is streaming"),
     (NEW_CHAR_SUBMISSION, "New Submission of Character"),
     (FAVORITE, "New Favorite"),
     (SUBMISSION_TAG, "Submission Tagged"),

@@ -5,8 +5,8 @@
 export default {
   beforeCreate() {
     const path = this.$route.params.path
-    this.$router.history.replace('/')
-    this.$router.history.replace(path)
+    this.$router.replace('/')
+    this.$router.replace(path)
   },
 }
 </script>
