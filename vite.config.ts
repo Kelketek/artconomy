@@ -1,3 +1,4 @@
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 /// <reference types="vitest" />
 
 // Plugins
@@ -10,7 +11,6 @@ import ChildProcess from 'child_process'
 import { defineConfig } from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 import checker from 'vite-plugin-checker'
-import dns from 'dns'
 
 const commitHash = ChildProcess.execSync('git rev-parse --short HEAD').toString().trim()
 
@@ -22,26 +22,24 @@ const input = productionMode ? undefined : 'frontend/main.ts'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [
-    vue({
-      template: { transformAssetUrls }
-    }),
-    // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
-    vuetify({
-      autoImport: true,
-    }),
-    ViteFonts({
-      google: {
-        families: [{
-          name: 'Roboto',
-          styles: 'wght@100;300;400;500;700;900',
-        }],
-      },
-    }),
-    checker({
-      typescript: true,
-    }),
-  ],
+  plugins: [vue({
+    template: { transformAssetUrls }
+  }), // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
+  vuetify({
+    autoImport: true,
+  }), ViteFonts({
+    google: {
+      families: [{
+        name: 'Roboto',
+        styles: 'wght@100;300;400;500;700;900',
+      }],
+    },
+  }), checker({
+    typescript: true,
+  }), sentryVitePlugin({
+    org: "artconomycom",
+    project: "vue"
+  })],
   test: {
     globals: true,
     environment: 'jsdom',
@@ -64,7 +62,8 @@ export default defineConfig({
       external: [/static\/.*/],
       input,
     },
-    outDir: '../public/dist'
+    outDir: '../public/dist',
+    sourcemap: true
   },
   optimizeDeps: {
     exclude: ['@date-io/date-fns']

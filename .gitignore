@@ -296,3 +296,6 @@ jest-mock-promise/**
 .local/**
 
 robots.txt
+
+# Sentry Config File
+.env.sentry-build-plugin
