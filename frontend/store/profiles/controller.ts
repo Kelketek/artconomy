@@ -177,8 +177,4 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   public get prefix() {
     return this.path.join('/') + '/'
   }
-
-  public get purged() {
-    return !this.state
-  }
 }

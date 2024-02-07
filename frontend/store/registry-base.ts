@@ -135,19 +135,18 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
   public unhook = (uid: string, controller: Registerable<K>) => {
     // Reference tracking for removal of controller. Deletes the Vuex representation if it is not set persistent
     // and there are no references to the form in the registry.
-    const self = this as unknown as Registry<K, T>
-    const name = controller.name
-    if (this.uidTracking[toValue(name)] === undefined) {
+    const name = toValue(controller.name)
+    if (this.uidTracking[name] === undefined) {
       // No references left. Controller may have been deleted outside the destroy hook.
       return
     }
-    this.uidTracking[toValue(name)] = self.uidTracking[toValue(name)].filter((x) => x !== uid)
-    if (this.uidTracking[toValue(name)].length === 0) {
+    this.uidTracking[name] = this.uidTracking[name].filter((x) => x !== uid)
+    if (this.uidTracking[name].length === 0) {
       if (!controller.attr('persistent')) {
         if (!controller.purged) {
           controller.purge()
         }
-        this.delete(toValue(controller.name))
+        this.delete(name)
       }
     }
   }

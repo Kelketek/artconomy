@@ -148,11 +148,6 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     return pageSizeFromParams(this.attr('params'))
   }
 
-  public get purged() {
-    // @ts-ignore
-    return !this.$store.state.lists[this.name]
-  }
-
   public get grow() {
     return this.attr('grow')
   }
