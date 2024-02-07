@@ -28,8 +28,6 @@ asttokens==2.4.1
     # via stack-data
 async-property==0.2.2
     # via adrf
-async-timeout==4.0.3
-    # via redis
 attrs==23.2.0
     # via
     #   aiohttp
@@ -116,7 +114,7 @@ discord-py-interactions==5.11.0
     # via -r requirements.in
 discord-typings==0.7.0
     # via discord-py-interactions
-django==4.2.9
+django==4.2.10
     # via
     #   -r requirements.in
     #   adrf
