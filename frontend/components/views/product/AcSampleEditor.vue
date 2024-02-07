@@ -11,8 +11,8 @@
       <v-row no-gutters>
         <v-col cols="12">
           <v-tabs v-model="tab" centered>
-            <v-tab href="#tab-pick-sample" class="pick-sample-tab">Manage Samples</v-tab>
-            <v-tab href="#tab-add-new" class="add-new-tab">Add Sample</v-tab>
+            <v-tab value="tab-pick-sample" class="pick-sample-tab">Manage Samples</v-tab>
+            <v-tab value="tab-add-new" class="add-new-tab">Add Sample</v-tab>
           </v-tabs>
         </v-col>
         <v-col cols="12">

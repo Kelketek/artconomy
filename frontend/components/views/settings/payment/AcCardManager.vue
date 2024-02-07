@@ -4,7 +4,7 @@
       <v-row no-gutters>
         <v-col>
           <v-tabs v-if="cards.list.length" v-model="tab" fixed-tabs>
-            <v-tab href="#saved-cards" class="saved-card-tab">
+            <v-tab value="saved-cards" class="saved-card-tab">
               <v-icon icon="mdi-content-save"/>
               Saved Cards
             </v-tab>
