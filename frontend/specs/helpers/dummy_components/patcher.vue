@@ -7,7 +7,6 @@
 
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
-import {Patch} from '@/store/singles/patcher'
 import {ProfileController} from '@/store/profiles/controller'
 import {genArtistProfile} from '@/specs/helpers/fixtures'
 import {SingleController} from '@/store/singles/controller'

@@ -9,7 +9,6 @@ import {formRegistry} from '@/store/forms/registry'
 import {characterRegistry} from '@/store/characters/registry'
 import {profileRegistry} from '@/store/profiles/registry'
 
-
 export const buildRegistries = () => markRaw({
   Single: singleRegistry,
   List: listRegistry,

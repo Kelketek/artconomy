@@ -13,7 +13,7 @@ import {TerseUser} from '@/store/profiles/types/TerseUser'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
 import {User} from '@/store/profiles/types/User'
 import {Ratings} from '@/store/profiles/types/Ratings'
-import {Store} from 'vuex'
+import {Store} from 'vuex/types/index.d.ts'
 import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
 import {
@@ -23,9 +23,9 @@ import {
   pathFor,
   userPathFor,
 } from '@/store/profiles/helpers'
-import {singleRegistry, createSingles} from '@/store/singles/registry'
-import {listRegistry, createLists} from '@/store/lists/registry'
-import {profileRegistry, createProfiles} from '@/store/profiles/registry'
+import {createSingles, singleRegistry} from '@/store/singles/registry'
+import {createLists, listRegistry} from '@/store/lists/registry'
+import {createProfiles, profileRegistry} from '@/store/profiles/registry'
 import {createForms, formRegistry} from '@/store/forms/registry'
 import {characterRegistry, createCharacters} from '@/store/characters/registry'
 import mockAxios from '@/__mocks__/axios'

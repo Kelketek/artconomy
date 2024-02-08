@@ -4,7 +4,7 @@ import {getController, listenForRegistryName, performUnhook} from '@/store/regis
 import {SingleController} from '@/store/singles/controller'
 import {SingleState} from '@/store/singles/types/SingleState'
 import {useRouter} from 'vue-router'
-import {useSocket} from '@/plugins/socket'
+import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 
 export const useSingle = <T extends object>(name: string, schema?: SingleModuleOpts<T>) => {

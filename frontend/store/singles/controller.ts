@@ -9,7 +9,6 @@ import {Watch} from 'vue-facing-decorator'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
 import {ref} from 'vue'
 import {ComputedGetters} from '@/lib/lib'
-import {ModuleName} from '@/store/registry-base'
 
 @ComputedGetters
 export class SingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {

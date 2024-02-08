@@ -1,4 +1,3 @@
-import {ListController} from '@/store/lists/controller'
 import LineItem from '@/types/LineItem'
 
 export interface RawLineItemSetMap {

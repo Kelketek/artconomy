@@ -1,18 +1,22 @@
 <template>
   <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses" :show-pagination="showPagination">
-    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position"/>
+<!--    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position"/>-->
     <v-col cols="12">
-      <draggable
-          tag="v-row"
-          :component-data="{'no-gutters': true}"
-          v-model="sortableList"
-          :group="{name: 'main', put: false, pull: 'clone'}"
+      <Sortable
+          tag="div"
+          :options="{group: {name: 'main', put: false, pull: 'clone'}}"
+          class="v-row v-row--no-gutters"
+          :list="sortableList"
+          @update="moveItemInList"
+          :item-key="list.keyProp"
           :force-fallback="true"
       >
-        <slot :sortableList="sortableList"/>
-      </draggable>
+        <template #item="{element, index}">
+          <slot :element="element" :index="index"/>
+        </template>
+      </Sortable>
     </v-col>
-    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position" class="pt-5"/>
+<!--    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position" class="pt-5"/>-->
     <template v-slot:failure>
       <v-col class="text-center" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
     </template>
@@ -22,55 +26,50 @@
   </ac-paginated>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import draggable from 'vuedraggable'
+<script setup lang="ts">
+import { Sortable } from "sortablejs-vue3"
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {ListController} from '@/store/lists/controller'
 import diff, {DiffPatch} from 'list-diff.js'
 import Submission from '@/types/Submission'
 import {artCall} from '@/lib/lib'
+import {VCol} from 'vuetify/lib/components/VGrid/index.mjs'
+import {SortableEvent} from 'sortablejs'
+import {computed} from 'vue'
+import {SortableModel} from '@/types/SortableModel'
 
-@Component({
-  components: {
-    AcPaginated,
-    AcDraggableNavs,
-    draggable,
-  },
+declare interface AcDraggableListProps<T extends SortableModel = SortableModel> {
+  trackPages?: boolean,
+  okStatuses?: number[],
+  failureMessage?: string,
+  emptyMessage?: string,
+  showPagination?: boolean,
+  list: ListController<T>
+}
+
+const props = withDefaults(defineProps<AcDraggableListProps>(), {
+  trackPages: false,
+  okStatuses: () => [],
+  failureMessage: '',
+  emptyMessage: '',
+  showPagination: true,
 })
-class AcDraggableList extends Vue {
-  @Prop({default: false})
-  public trackPages!: false
 
-  @Prop({default: () => []})
-  public okStatuses!: number[]
-
-  @Prop({default: 'This content is disabled or unavailable.'})
-  public failureMessage!: string
-
-  @Prop({default: ''})
-  public emptyMessage!: string
-
-  @Prop({default: true})
-  public showPagination!: boolean
-
-  @Prop({required: true})
-  public list!: ListController<any>
-
-  public get sortableList() {
-    const list = [...this.list.list]
+const sortableList = computed({
+  get() {
+    const list = [...props.list.list]
     list.sort((a, b) => -(a.patchers.display_position.model - b.patchers.display_position.model))
     return list
-  }
-
-  public set sortableList(newVersion) {
-    // This function should only be used by vue-draggable. It is not a general purpose way to modify the list.
+  },
+  set(newVersion) {
+    // This function should only be used by Sortable. It is not a general purpose way to modify the list.
     // Doing anything else with it is liable to break things.
     //
     // Need to find the difference here.
-    const a = this.sortableList.map((controller) => controller.x!.id)
-    const b = newVersion.map((controller) => controller.x!.id)
+    const keyProp = props.list.keyProp
+    const a = sortableList.value.map((controller) => controller.x![keyProp])
+    const b = newVersion.map((controller) => controller.x![keyProp])
     const moves = diff(a, b)
     // Nothing has changed.
     if (moves.length === 0) {
@@ -78,9 +77,10 @@ class AcDraggableList extends Vue {
     }
     let index: number
     let move: DiffPatch<number>
+    const oldList = [...sortableList.value]
     if (moves.length === 1 && moves[0].type === 0) {
       move = moves[0]
-      this.sortableList[move.index].deleted = true
+      oldList[move.index].deleted = true
       return
     }
     // This is the insertion move. It tells us the target index where our resulting item was inserted.
@@ -100,24 +100,23 @@ class AcDraggableList extends Vue {
     if (index === 0) {
       // There must be one other entry or else the drag-and-drop would create no difference.
       //
-      // However we really need to know the on-server 'up' value on this one to do this right.
-      // TODO: Replace this with an 'up' call, server-side.
-      const first = this.sortableList[index]
+      // However, we really need to know the on-server 'up' value on this one to do this right.
+      const first = oldList[index]
       target.updateX({display_position: first.patchers.display_position.model + 0.1})
       artCall({
         url: `${target.endpoint}up/`,
         method: 'post',
-        data: {relative_to: first.x!.id},
+        data: {relative_to: first.x![keyProp]},
       }).then(setPosition)
       return
     }
     if (index === (newVersion.length - 1)) {
-      const last = this.sortableList[index]
+      const last = oldList[index]
       target.updateX({display_position: last.patchers.display_position.model - 0.1})
       artCall({
         url: `${target.endpoint}down/`,
         method: 'post',
-        data: {relative_to: last.x!.id},
+        data: {relative_to: last.x![keyProp]},
       }).then(setPosition)
       return
     }
@@ -126,8 +125,19 @@ class AcDraggableList extends Vue {
         newVersion[index - 1].patchers.display_position.model +
         newVersion[index + 1].patchers.display_position.model
     ) / 2
-  }
-}
+  },
+})
 
-export default toNative(AcDraggableList)
+const moveItemInList = (event: SortableEvent) => {
+  const array = [...sortableList.value]
+  const from = event.oldIndex
+  const to = event.newIndex
+  if (!(from && to)) {
+    // Bogus instructions. Ignore.
+    return
+  }
+  const item = array.splice(from, 1)[0]
+  array.splice(to, 0, item)
+  sortableList.value = array
+}
 </script>

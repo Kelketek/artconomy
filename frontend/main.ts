@@ -28,7 +28,7 @@ import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {AnonUser} from '@/store/profiles/types/AnonUser'
 import AcComment from '@/components/comments/AcComment.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import 'vite/modulepreload-polyfill';
+import 'vite/modulepreload-polyfill'
 import {createTargetsPlugin} from '@/plugins/targets'
 import {createRegistries} from '@/plugins/createRegistries'
 
@@ -74,6 +74,7 @@ app.use(createProfiles(store))
 app.use(createRegistries())
 app.use(createTargetsPlugin(false))
 app.use(VueObserveVisibility)
+// Needed because these tags are inter-referential
 app.component('AcComment', AcComment)
 app.component('AcCommentSection', AcCommentSection)
 

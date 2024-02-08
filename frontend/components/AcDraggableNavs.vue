@@ -1,55 +1,56 @@
 <template>
   <v-col cols="12">
     <v-row no-gutters>
-      <draggable
-          tag="v-col"
-          :component-data="{cols: 6}"
+      <Sortable
+          tag="div"
           :list="previousList"
           :group="{name: 'previous', put: () => true, pull: false}"
-          class="page-setter"
+          class="page-setter v-col v-col-6"
           @add="addPrevious"
-          :force-fallback="true"
+          :item-key="list.keyProp"
       >
+        <template #item><div v-show="false"></div></template>
         <template v-slot:header>
-          <v-card :class="{disabled: list.currentPage === 1}">
+          <v-card :class="{disabled: list.currentPage === 1}" v-show="list.totalPages !== 1">
             <v-card-text class="text-center">
               Previous
             </v-card-text>
           </v-card>
         </template>
-      </draggable>
-      <draggable
-          tag="v-col"
+      </Sortable>
+      <Sortable
+          tag="div"
           :component-data="{cols: 6}"
           :list="nextList"
           :group="{name: 'next', put: () => true, pull: false}"
-          class="page-setter"
+          class="page-setter v-col"
           @add="addNext"
-          :force-fallback="true"
+          :item-key="list.keyProp"
       >
+        <template #item><div v-show="false"></div></template>
         <template v-slot:header>
-          <v-card :class="{disabled: list.currentPage === list.totalPages}">
+          <v-card :class="{disabled: list.currentPage === list.totalPages}" v-show="list.totalPages !== 1">
             <v-card-text class="text-center">
               Next
             </v-card-text>
           </v-card>
         </template>
-      </draggable>
+      </Sortable>
     </v-row>
-    <v-col cols="12" class="py-2"></v-col>
+    <v-col cols="12" class="py-2"> </v-col>
   </v-col>
 </template>
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import draggable from 'vuedraggable'
-import {artCall} from '@/lib/lib'
+import { Sortable } from "sortablejs-vue3"
+import {artCall} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller'
 import {ListController} from '@/store/lists/controller'
 
 @Component({
   components: {
-    draggable,
+    Sortable,
   },
 })
 class AcDraggableNavs<T extends object> extends Vue {

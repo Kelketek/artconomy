@@ -1,4 +1,4 @@
-import {createStore as createVuexStore, MutationPayload, Store as VuexStore, StoreOptions} from 'vuex'
+import {createStore as createVuexStore, Store as VuexStore, StoreOptions} from 'vuex'
 import {Alert, AlertCategory, State} from './state'
 import {profiles, userModules} from './profiles'
 import {errors} from './errors'

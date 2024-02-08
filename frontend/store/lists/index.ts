@@ -1,5 +1,5 @@
 import {State as RootState} from '../state'
-import {ActionTree, GetterTree, MutationTree, Store} from 'vuex'
+import {ActionTree, MutationTree, Store} from 'vuex'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
 import axios from 'axios'
 import {ListState} from './types/ListState'
@@ -9,7 +9,6 @@ import {QueryParams} from '@/store/helpers/QueryParams'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
-import cloneDeep from 'lodash/cloneDeep'
 
 function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   if ((state as any).items === undefined) {

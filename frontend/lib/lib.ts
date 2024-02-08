@@ -661,7 +661,7 @@ export function baseInvoiceSchema(endpoint: string): NamelessFormSchema {
       details: {value: ''},
       paid: {value: false},
       hold: {value: false},
-      buyer: {value: ''},
+      buyer: {value: null},
       cascade_fees: {value: false},
       expected_turnaround: {value: 1},
     },

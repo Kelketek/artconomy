@@ -9,9 +9,12 @@
     </v-col>
     <v-col cols="12">
       <ac-draggable-list :list="list">
-        <template v-slot:default="{sortableList}">
-          <v-col cols="4" sm="3" lg="2" v-for="tag in sortableList" :key="tag.x.id">
-            <artist-tag-manager :tag="tag" :username="username"/>
+        <template v-slot:default="{element, index}">
+          <v-col cols="4" sm="3" lg="2" :key="index" class="draggable-item">
+            <artist-tag-manager :tag="element" :username="username" :key="index"/>
+            <div>
+              <span>ID is: {{element.x!.id}}</span>
+            </div>
           </v-col>
         </template>
       </ac-draggable-list>
@@ -44,7 +47,6 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
-import draggable from 'vuedraggable'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
@@ -64,7 +66,6 @@ import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
     AcPaginated,
     AcGalleryPreview,
     AcLoadSection,
-    draggable,
   },
 })
 class ManageSubmissionList extends mixins(Subjective, Editable) {

@@ -1,5 +1,5 @@
 import {State as RootState} from '../state'
-import {ActionTree, GetterTree, MutationTree} from 'vuex'
+import type {ActionTree, GetterTree, MutationTree} from 'vuex/types/index.d.ts'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
 import {SingleState} from './types/SingleState'
 import {QueryParams} from '@/store/helpers/QueryParams'

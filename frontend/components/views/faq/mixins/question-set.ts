@@ -2,7 +2,6 @@ import {Component} from 'vue-facing-decorator'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import {ArtVue} from '@/lib/lib'
-import {ArtVueInterface} from '@/types/ArtVueInterface'
 
 @Component
 export default class QuestionSet extends ArtVue {

@@ -44,7 +44,6 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective'
-import draggable from 'vuedraggable'
 import {ListController} from '@/store/lists/controller'
 import {flatten} from '@/lib/lib'
 import Editable from '@/mixins/editable'
@@ -60,7 +59,6 @@ import AcProductManager from '@/components/views/store/AcProductManager.vue'
     AcFormDialog,
     AcProductPreview,
     AcDraggableList,
-    draggable,
   },
 })
 class ManageProducts extends mixins(Subjective, Editable) {

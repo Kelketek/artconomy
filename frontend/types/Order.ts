@@ -1,6 +1,6 @@
 import {User} from '@/store/profiles/types/User'
 import FileSpec from '@/types/FileSpec'
-import {RouteLocationNamedRaw, RouteLocationRaw} from 'vue-router'
+import {RouteLocationNamedRaw} from 'vue-router'
 import {DeliverableStatus} from '@/types/DeliverableStatus'
 
 export default interface Order {
