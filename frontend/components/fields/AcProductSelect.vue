@@ -32,7 +32,7 @@ import Subjective from '@/mixins/subjective'
 class AcProductSelect extends mixins(Autocomplete, Subjective) {
   public url = '/api/sales/search/product/mine/'
 
-  public formatName(item: Product) {
+  public formatName(item: Product|number|unknown[]) {
     /* istanbul ignore if */
     if (Array.isArray(item)) {
       // Type mismatch thrown by parent library. Return an empty string for this.
@@ -42,7 +42,6 @@ class AcProductSelect extends mixins(Autocomplete, Subjective) {
       // Don't have the definition, just the ID.
       return `Product #${item}`
     }
-    console.log(item)
     return `${item.name} starting at $${item.starting_price.toFixed(2)}`
   }
 
