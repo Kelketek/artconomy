@@ -1,5 +1,5 @@
 import {createApp} from 'vue'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {SingleController} from './controller.ts'
 import {SingleState} from './types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'

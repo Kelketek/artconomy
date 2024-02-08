@@ -1,6 +1,6 @@
 import {shallowMount, VueWrapper} from '@vue/test-utils'
 import AcError from '../AcError.vue'
-import {ArtStore, createStore} from '../../../store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 

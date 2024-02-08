@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import Notification from '../mixins/notification'
+import Notification from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {profileLink} from '@/lib/lib.ts'

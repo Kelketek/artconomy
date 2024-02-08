@@ -1,6 +1,6 @@
 import {createApp} from 'vue'
 import {ListController} from './controller.ts'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {ListState} from './types/ListState.ts'
 import {ListModuleOpts} from './types/ListModuleOpts.ts'
 import {ArtStore} from '@/store/index.ts'

@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts">
-import Subjective from '../../../mixins/subjective'
+import Subjective from '../../../mixins/subjective.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcProductList from '@/components/views/store/AcProductList.vue'
 import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'

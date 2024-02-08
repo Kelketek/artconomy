@@ -52,7 +52,7 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '../mixins/formatting'
+import Formatting from '../mixins/formatting.ts'
 import AcAsset from './AcAsset.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import Order from '@/types/Order.ts'

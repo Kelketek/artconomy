@@ -13,7 +13,7 @@
 
 <script>
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification'
+import Notifiction from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {

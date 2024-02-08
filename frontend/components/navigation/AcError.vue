@@ -38,7 +38,7 @@
 
 <script lang="ts">
 import {Component, toNative, Vue, Watch} from 'vue-facing-decorator'
-import {ArtVue, setMetaContent} from '../../lib/lib'
+import {ArtVue, setMetaContent} from '@/lib/lib.ts'
 
 @Component
 class AcErrors extends ArtVue {

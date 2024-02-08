@@ -23,7 +23,7 @@
 </style>
 
 <script>
-import Notification from '../mixins/notification'
+import Notification from '../mixins/notification.ts'
 import {artCall} from '@/lib/lib.ts'
 
 export default {

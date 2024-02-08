@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import mockAxios from '../../specs/helpers/mock-axios'
+import mockAxios from '../../specs/helpers/mock-axios.ts'
 import {
   artCall,
   clearMetaTag,

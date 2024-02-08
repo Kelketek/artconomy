@@ -204,7 +204,7 @@
 
 <script lang="ts">
 import {initDrawerValue, makeQueryParams, BASE_URL} from '@/lib/lib.ts'
-import Viewer from '../../mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcSettingNav from './AcSettingNav.vue'
 import {User} from '@/store/profiles/types/User.ts'

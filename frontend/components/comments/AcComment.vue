@@ -188,7 +188,7 @@
 <script lang="ts">
 
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '../../mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
@@ -200,7 +200,6 @@ import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {Patch} from '@/store/singles/patcher.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting.ts'

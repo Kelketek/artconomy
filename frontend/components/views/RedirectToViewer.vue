@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '../../mixins/viewer'
+import Viewer from '../../mixins/viewer.ts'
 
 @Component({})
 class RedirectToViewer extends mixins(Viewer) {

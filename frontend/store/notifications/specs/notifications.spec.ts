@@ -1,5 +1,5 @@
 import mockAxios from '@/specs/helpers/mock-axios.ts'
-import {ArtStore, createStore} from '../../index'
+import {ArtStore, createStore} from '../../index.ts'
 import {rq, rs} from '@/specs/helpers/index.ts'
 import flushPromises from 'flush-promises'
 import {beforeEach, describe, expect, test, vi} from 'vitest'

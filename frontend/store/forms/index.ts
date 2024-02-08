@@ -1,4 +1,4 @@
-import {State as RootState} from '../state'
+import {State as RootState} from '../state.ts'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
 import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'

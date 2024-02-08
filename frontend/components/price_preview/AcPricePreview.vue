@@ -103,7 +103,7 @@
 </style>
 
 <script lang="ts">
-import Subjective from '../../mixins/subjective'
+import Subjective from '../../mixins/subjective.ts'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import {SingleController} from '@/store/singles/controller.ts'
 import Pricing from '@/types/Pricing.ts'

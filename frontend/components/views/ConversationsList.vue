@@ -78,7 +78,7 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '../../mixins/subjective'
+import Subjective from '../../mixins/subjective.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {Conversation} from '@/types/Conversation.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'

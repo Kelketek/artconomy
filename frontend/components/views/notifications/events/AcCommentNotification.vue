@@ -10,9 +10,9 @@
 </template>
 
 <script>
-import Notification from '../mixins/notification'
+import Notification from '../mixins/notification.ts'
 import AcBaseNotification from './AcBaseNotification.vue'
-import {posse} from '../../../../lib/lib'
+import {posse} from '@/lib/lib.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {

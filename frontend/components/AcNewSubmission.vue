@@ -122,7 +122,7 @@
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcFormDialog from './wrappers/AcFormDialog.vue'
 import AcBoundField from './fields/AcBoundField.ts'
-import Subjective from '../mixins/subjective'
+import Subjective from '../mixins/subjective.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import Submission from '@/types/Submission.ts'
 import {FormController} from '@/store/forms/form-controller.ts'

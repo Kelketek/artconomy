@@ -32,7 +32,7 @@
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcAvatar from '../AcAvatar.vue'
-import Subjective from '../../mixins/subjective'
+import Subjective from '../../mixins/subjective.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting.ts'
 

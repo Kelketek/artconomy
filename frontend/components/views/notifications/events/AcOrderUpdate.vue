@@ -19,8 +19,8 @@
 </style>
 
 <script>
-import Notification from '../mixins/notification'
-import Formatting from '../../../../mixins/formatting'
+import Notification from '../mixins/notification.ts'
+import Formatting from '@/mixins/formatting.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 
 const ORDER_STATUSES = {

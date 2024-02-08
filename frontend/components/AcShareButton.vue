@@ -93,9 +93,9 @@
 </style>
 
 <script lang="ts">
-import Viewer from '../mixins/viewer'
+import Viewer from '../mixins/viewer.ts'
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Dialog from '../mixins/dialog'
+import Dialog from '../mixins/dialog.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import QRCode from 'qrcode'
 import {siPinterest, siReddit, siX, siTumblr, siTelegram} from 'simple-icons'

@@ -69,7 +69,7 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '../../mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcEditor from '../fields/AcEditor.vue'
 import {ListController} from '@/store/lists/controller.ts'
 import AcAvatar from '@/components/AcAvatar.vue'

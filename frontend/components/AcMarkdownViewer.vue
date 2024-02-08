@@ -53,8 +53,8 @@
 <script>
 import {defineComponent} from 'vue'
 import {toNative} from 'vue-facing-decorator'
-import {artCall} from '../lib/lib'
-import Formatting from '../mixins/formatting'
+import {artCall} from '../lib/lib.ts'
+import Formatting from '../mixins/formatting.ts'
 
 export default defineComponent({
   props: ['asset', 'compact', 'popOut'],

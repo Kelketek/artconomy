@@ -1,5 +1,5 @@
 import {createApp} from 'vue'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {CharacterController} from './controller.ts'
 import CharacterState from '@/store/characters/types/CharacterState.ts'
 import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts.ts'

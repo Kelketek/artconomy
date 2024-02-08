@@ -140,7 +140,7 @@
 <script lang="ts">
 import AcLoadSection from '../../wrappers/AcLoadSection.vue'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '../../../mixins/subjective'
+import Subjective from '../../../mixins/subjective.ts'
 import AcPaginated from '../../wrappers/AcPaginated.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import CommissionStats from '@/types/CommissionStats.ts'

@@ -1,6 +1,6 @@
 import {Watch} from 'vue-facing-decorator'
 import {ListModuleOpts} from './types/ListModuleOpts.ts'
-import {SingleController} from '../singles/controller'
+import {SingleController} from '../singles/controller.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ListState} from '@/store/lists/types/ListState.ts'
 import {ListModule, pageFromParams, pageSizeFromParams, totalPages} from '@/store/lists/index.ts'

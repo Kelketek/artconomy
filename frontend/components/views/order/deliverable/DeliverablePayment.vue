@@ -291,7 +291,7 @@ import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
 import {SocketState} from '@/types/SocketState.ts'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin.ts'
-import StripeMixin from '../mixins/StripeMixin'
+import StripeMixin from '../mixins/StripeMixin.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 
 @Component({

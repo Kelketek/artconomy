@@ -3,7 +3,7 @@ import {FormController} from './form-controller.ts'
 import {FieldController} from './field-controller.ts'
 import {registerValidators} from './validators.ts'
 import {NamelessFormSchema} from './types/NamelessFormSchema.ts'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {FormState} from '@/store/forms/types/FormState.ts'
 import {ArtStore} from '@/store/index.ts'
 
