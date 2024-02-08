@@ -1,5 +1,5 @@
 /* tslint:disable:max-line-length */
-import mockAxios from '../../specs/helpers/mock-axios'
+import mockAxios from '../../specs/helpers/mock-axios.ts'
 import {
   artCall,
   clearMetaTag,
@@ -35,18 +35,14 @@ import {
   thumbFromSpec,
   truncateText,
   updateLinked,
-} from '@/lib/lib'
+} from '@/lib/lib.ts'
 import {shallowMount, VueWrapper} from '@vue/test-utils'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {createSingles} from '@/store/singles/registry'
-import {createLists} from '@/store/lists/registry'
-import {createProfiles} from '@/store/profiles/registry'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
-import {LogLevels} from '@/types/LogLevels'
-import {SingleController} from '@/store/singles/controller'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
+import {LogLevels} from '@/types/LogLevels.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
-import {createForms} from '@/store/forms/registry'
 
 describe('artCall', () => {
   beforeEach(() => {

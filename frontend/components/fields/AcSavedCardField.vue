@@ -21,8 +21,8 @@
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
-import {ListController} from '@/store/lists/controller'
-import {CreditCardToken} from '@/types/CreditCardToken'
+import {ListController} from '@/store/lists/controller.ts'
+import {CreditCardToken} from '@/types/CreditCardToken.ts'
 
 @Component({
   components: {

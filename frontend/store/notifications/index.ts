@@ -1,8 +1,8 @@
-import {State as RootState} from '../state'
+import {State as RootState} from '../state.ts'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
-import {artCall} from '@/lib/lib'
-import {NotificationsState} from '@/store/notifications/types/NotificationsState'
-import {NotificationStats} from '@/store/notifications/types/NotificationStats'
+import {artCall} from '@/lib/lib.ts'
+import {NotificationsState} from '@/store/notifications/types/NotificationsState.ts'
+import {NotificationStats} from '@/store/notifications/types/NotificationStats.ts'
 
 const getters: GetterTree<NotificationsState, RootState> = {}
 

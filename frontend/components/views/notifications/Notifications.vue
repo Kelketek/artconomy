@@ -18,9 +18,9 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {ListController} from '@/store/lists/controller'
-import AcNotification from '@/types/AcNotification'
+import Viewer from '@/mixins/viewer.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import AcNotification from '@/types/AcNotification.ts'
 
 @Component({})
 class NotificationsCenter extends mixins(Viewer) {

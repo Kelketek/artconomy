@@ -4,33 +4,33 @@ import * as Sentry from '@sentry/vue'
 // @ts-ignore
 import * as Integrations from '@sentry/integrations'
 import {createApp, h} from 'vue'
-import {createStore} from './store'
+import {createStore} from './store/index.ts'
 import App from './App.vue'
 import VueMask from '@devindex/vue-mask'
-import {configureHooks, router} from './router'
-import {createForms} from '@/store/forms/registry'
-import {Shortcuts} from './plugins/shortcuts'
-import supportedBrowsers from './supportedBrowsers'
+import {configureHooks, router} from './router/index.ts'
+import {createForms} from '@/store/forms/registry.ts'
+import {Shortcuts} from './plugins/shortcuts.ts'
+import supportedBrowsers from './supportedBrowsers.ts'
 import {Decimal} from 'decimal.js'
-import {genId} from './lib/lib'
-import {createLists} from '@/store/lists/registry'
-import {createSingles} from '@/store/singles/registry'
-import {createProfiles} from '@/store/profiles/registry'
-import {createCharacters} from '@/store/characters/registry'
+import {genId} from './lib/lib.ts'
+import {createLists} from '@/store/lists/registry.ts'
+import {createSingles} from '@/store/singles/registry.ts'
+import {createProfiles} from '@/store/profiles/registry.ts'
+import {createCharacters} from '@/store/characters/registry.ts'
 import VueObserveVisibility from 'vue-observe-visibility'
-import {createVueSocket} from '@/plugins/socket'
-import {createVuetify} from '@/plugins/vuetify'
-import {User} from '@/store/profiles/types/User'
+import {createVueSocket} from '@/plugins/socket.ts'
+import {createVuetify} from '@/plugins/vuetify.ts'
+import {User} from '@/store/profiles/types/User.ts'
 import '@stripe/stripe-js'
 import {Stripe, StripeConstructor} from '@stripe/stripe-js'
-import {PROCESSORS} from '@/types/PROCESSORS'
+import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
-import {AnonUser} from '@/store/profiles/types/AnonUser'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import AcComment from '@/components/comments/AcComment.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import 'vite/modulepreload-polyfill';
-import {createTargetsPlugin} from '@/plugins/targets'
-import {createRegistries} from '@/plugins/createRegistries'
+import 'vite/modulepreload-polyfill'
+import {createTargetsPlugin} from '@/plugins/targets.ts'
+import {createRegistries} from '@/plugins/createRegistries.ts'
 
 declare global {
   interface Window {
@@ -74,6 +74,7 @@ app.use(createProfiles(store))
 app.use(createRegistries())
 app.use(createTargetsPlugin(false))
 app.use(VueObserveVisibility)
+// Needed because these tags are inter-referential
 app.component('AcComment', AcComment)
 app.component('AcCommentSection', AcCommentSection)
 

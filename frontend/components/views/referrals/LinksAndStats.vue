@@ -69,11 +69,11 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller'
-import ReferralStats from '@/types/ReferralStats'
-import {flatten} from '@/lib/lib'
+import {SingleController} from '@/store/singles/controller.ts'
+import ReferralStats from '@/types/ReferralStats.ts'
+import {flatten} from '@/lib/lib.ts'
 
 @Component({
   components: {AcLoadSection},

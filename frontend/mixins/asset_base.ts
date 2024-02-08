@@ -1,9 +1,9 @@
 import {Component, mixins, Prop} from 'vue-facing-decorator'
-import {Asset} from '@/types/Asset'
-import {extPreview, RATINGS, thumbFromSpec} from '@/lib/lib'
-import Viewer from './viewer'
-import {User} from '@/store/profiles/types/User'
-import {AnonUser} from '@/store/profiles/types/AnonUser'
+import {Asset} from '@/types/Asset.ts'
+import {extPreview, RATINGS, thumbFromSpec} from '@/lib/lib.ts'
+import Viewer from './viewer.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 
 @Component
 export default class AssetBase extends mixins(Viewer) {

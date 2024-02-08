@@ -39,9 +39,9 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcProductPreview from '@/components/AcProductPreview.vue'
-import Product from '@/types/Product'
-import {SingleController} from '@/store/singles/controller'
-import Subjective from '@/mixins/subjective'
+import Product from '@/types/Product.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import Subjective from '@/mixins/subjective.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'

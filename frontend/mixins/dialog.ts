@@ -1,5 +1,5 @@
 import {Component, Prop} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({emits: ['update:modelValue']})
 export default class Dialog extends ArtVue {

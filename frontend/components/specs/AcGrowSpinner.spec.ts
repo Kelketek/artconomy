@@ -1,9 +1,9 @@
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
-import {ListController} from '@/store/lists/controller'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import {ListController} from '@/store/lists/controller.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let store: ArtStore

@@ -90,7 +90,7 @@
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({
   components: {AcFormDialog},

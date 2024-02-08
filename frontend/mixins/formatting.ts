@@ -11,9 +11,9 @@ import {
   profileLink,
   textualize,
   truncateText,
-} from '@/lib/lib'
-import {User} from '@/store/profiles/types/User'
-import {RelatedUser} from '@/store/profiles/types/RelatedUser'
+} from '@/lib/lib.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 
 @Component
 export default class Formatting extends ArtVue {

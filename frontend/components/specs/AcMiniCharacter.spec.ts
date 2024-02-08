@@ -1,9 +1,9 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
-import {genUser} from '@/specs/helpers/fixtures'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
-import {genCharacter} from '@/store/characters/specs/fixtures'
+import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, test, vi} from 'vitest'
 
 let wrapper: VueWrapper<any>

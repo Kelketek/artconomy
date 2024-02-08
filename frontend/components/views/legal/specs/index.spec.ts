@@ -3,7 +3,7 @@ import PrivacyPolicy from '../PrivacyPolicy.vue'
 import RefundPolicy from '../RefundPolicy.vue'
 import CommissionAgreement from '../CommissionAgreement.vue'
 import TermsOfService from '../TermsOfService.vue'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {afterEach, describe, expect, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

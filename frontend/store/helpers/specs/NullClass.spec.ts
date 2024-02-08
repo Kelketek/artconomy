@@ -1,4 +1,4 @@
-import {NullClass} from '@/store/helpers/NullClass'
+import {NullClass} from '@/store/helpers/NullClass.ts'
 import {describe, expect, test} from 'vitest'
 
 describe('NullClass', () => {

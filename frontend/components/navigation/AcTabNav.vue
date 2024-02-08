@@ -17,7 +17,7 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {TabNavSpec} from '@/types/TabNavSpec'
+import {TabNavSpec} from '@/types/TabNavSpec.ts'
 import {RouteLocationRaw} from 'vue-router'
 import AcTab from '@/components/AcTab.vue'
 

@@ -49,14 +49,14 @@
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
+import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {FormController} from '@/store/forms/form-controller'
-import Reference from '@/types/Reference'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import Reference from '@/types/Reference.ts'
 import AcAsset from '@/components/AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'

@@ -17,9 +17,9 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import LineItem from '@/types/LineItem'
-import LineAccumulator from '@/types/LineAccumulator'
-import {LineTypes} from '@/types/LineTypes'
+import LineItem from '@/types/LineItem.ts'
+import LineAccumulator from '@/types/LineAccumulator.ts'
+import {LineTypes} from '@/types/LineTypes.ts'
 import {Decimal} from 'decimal.js'
 
 @Component

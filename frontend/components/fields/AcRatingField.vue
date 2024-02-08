@@ -64,9 +64,9 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcAsset from '../AcAsset.vue'
-import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib'
-import ExtendedInput from '@/components/fields/mixins/extended_input'
-import {ContentRating} from '@/types/ContentRating'
+import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
+import ExtendedInput from '@/components/fields/mixins/extended_input.ts'
+import {ContentRating} from '@/types/ContentRating.ts'
 
 @Component({
   components: {AcAsset},

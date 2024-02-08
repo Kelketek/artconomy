@@ -1,4 +1,4 @@
-import ListSocketSpec from '@/store/lists/types/ListSocketSpec'
+import ListSocketSpec from '@/store/lists/types/ListSocketSpec.ts'
 
 export interface ListSocketSettings {
     appLabel: string,

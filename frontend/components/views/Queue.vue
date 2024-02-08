@@ -42,13 +42,13 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
-import {ListController} from '@/store/lists/controller'
-import Order from '@/types/Order'
+import {ListController} from '@/store/lists/controller.ts'
+import Order from '@/types/Order.ts'
 
 @Component({
   components: {

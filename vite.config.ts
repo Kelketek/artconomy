@@ -70,7 +70,10 @@ export default defineConfig({
   build: {
     manifest: "manifest.json",
     rollupOptions: {
-      external: [/static\/.*/],
+      external: [
+        /static\/.*/,
+        /.*[/]specs[/].*/,
+      ],
       input,
     },
     outDir: '../public/dist',

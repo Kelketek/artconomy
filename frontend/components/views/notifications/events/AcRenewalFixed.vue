@@ -9,8 +9,8 @@
 </template>
 
 <script>
-import AcBaseNotification from './AcBaseNotification'
-import Notifiction from '../mixins/notification'
+import AcBaseNotification from './AcBaseNotification.vue'
+import Notifiction from '../mixins/notification.ts'
 
 export default {
   name: 'ac-renewal-fixed',

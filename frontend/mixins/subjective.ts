@@ -1,12 +1,12 @@
 import {Component, mixins, Prop, Watch} from 'vue-facing-decorator'
-import {userHandle} from '@/store/profiles/handles'
+import {userHandle} from '@/store/profiles/handles.ts'
 // Used to augment Vue type.
 // noinspection ES6UnusedImports
-import {User} from '@/store/profiles/types/User'
-import Viewer from './viewer'
-import {ProfileController} from '@/store/profiles/controller'
-import {profileRegistry} from '@/store/profiles/registry'
-import PricingAware from '@/mixins/PricingAware'
+import {User} from '@/store/profiles/types/User.ts'
+import Viewer from './viewer.ts'
+import {ProfileController} from '@/store/profiles/controller.ts'
+import {profileRegistry} from '@/store/profiles/registry.ts'
+import PricingAware from '@/mixins/PricingAware.ts'
 
 @Component
 export default class Subjective extends mixins(Viewer, PricingAware) {

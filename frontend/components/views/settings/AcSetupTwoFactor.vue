@@ -60,19 +60,19 @@
 </style>
 
 <script lang="ts">
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcTotpDevice from './AcTotpDevice.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {TGDevice} from '@/store/profiles/types/TGDevice'
+import Subjective from '@/mixins/subjective.ts'
+import {TGDevice} from '@/store/profiles/types/TGDevice.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import Alerts from '@/mixins/alerts'
-import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
-import {ListController} from '@/store/lists/controller'
-import {SingleController} from '@/store/singles/controller'
+import Alerts from '@/mixins/alerts.ts'
+import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import AcTgDevice from './AcTgDevice.vue'
-import {BASE_URL} from '@/lib/lib'
+import {BASE_URL} from '@/lib/lib.ts'
 
 @Component({
   components: {

@@ -79,14 +79,14 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
-import Formatting from '@/mixins/formatting'
-import {SingleController} from '@/store/singles/controller'
-import {Conversation} from '@/types/Conversation'
+import Formatting from '@/mixins/formatting.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {Conversation} from '@/types/Conversation.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 
 @Component({

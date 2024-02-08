@@ -1,8 +1,8 @@
 import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router'
-import {cleanUp, createVuetify, docTarget, mount, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, createVuetify, docTarget, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 

@@ -77,13 +77,13 @@
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {Auth} from '@/components/views/auth/mixins/Auth'
-import AcBoundField from '@/components/fields/AcBoundField'
+import Viewer from '@/mixins/viewer.ts'
+import {Auth} from '@/components/views/auth/mixins/Auth.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 
 @Component({
   components: {

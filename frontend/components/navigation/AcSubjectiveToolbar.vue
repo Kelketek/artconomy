@@ -16,25 +16,22 @@
   </v-toolbar>
 </template>
 
-<style lang="sass">
-.subjective-mini-buttons
-  .v-toolbar__content
-    justify-content: center
-
-    .v-btn
-      padding: 0 4px
-      font-size: 80%
-
-      .v-icon--left
-        margin-right: 4px
+<style>
+.subjective-mini-buttons .v-toolbar__content {
+  justify-content: center; }
+.subjective-mini-buttons .v-toolbar__content .v-btn {
+  padding: 0 4px;
+  font-size: 80%; }
+.subjective-mini-buttons .v-toolbar__content .v-btn .v-icon--left {
+  margin-right: 4px; }
 </style>
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcAvatar from '../AcAvatar.vue'
-import Subjective from '../../mixins/subjective'
+import Subjective from '../../mixins/subjective.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 
 @Component({
   components: {

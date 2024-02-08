@@ -29,10 +29,10 @@
                         light>Artists of Color
                 </v-chip>
                 <v-chip v-if="searchForm.fields.lgbt.value" variant="flat" color="purple" class="mx-1">LGBT+</v-chip>
-                <v-chip v-if="searchForm.fields.minimum_content_rating.value" variant="flat" color="white" light
+                <v-chip v-if="ratingKey" variant="flat" color="white" light
                         class="mx-1">Content
                   <span class="px-1"/>
-                  <v-badge dot :color="ratingColor[searchForm.fields.minimum_content_rating.value as ContentRating]"/>
+                  <v-badge dot :color="ratingColor[ratingKey]"/>
                 </v-chip>
               </v-col>
             </v-row>
@@ -158,17 +158,21 @@
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import SearchHints from '../mixins/SearchHints'
-import AcBoundField from '@/components/fields/AcBoundField'
-import Viewer from '@/mixins/viewer'
-import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
-import {ContentRating} from '@/types/ContentRating'
+import SearchHints from '../mixins/SearchHints.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import Viewer from '@/mixins/viewer.ts'
+import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
+import type {ContentRating} from '@/types/ContentRating.ts'
 
 @Component({
   components: {AcBoundField},
 })
 class ProductExtra extends mixins(SearchHints, SearchContentRatingMixin, Viewer) {
   public panel: null | number = null
+
+  public get ratingKey() {
+    return this.searchForm.fields.minimum_content_rating.value as ContentRating
+  }
 
   @Watch('searchForm.fields.minimum_content_rating.value', {immediate: true})
   public triggerCheck(value: number) {

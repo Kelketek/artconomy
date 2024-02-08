@@ -10,10 +10,10 @@
 </template>
 
 <script>
-import Notification from '../mixins/notification'
-import AcBaseNotification from './AcBaseNotification'
-import {posse} from '../../../../lib/lib'
-import AcLink from '@/components/wrappers/AcLink'
+import Notification from '../mixins/notification.ts'
+import AcBaseNotification from './AcBaseNotification.vue'
+import {posse} from '@/lib/lib.ts'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {
   name: 'ac-comment-notification',

@@ -1,5 +1,5 @@
-import FileSpec from '@/types/FileSpec'
-import {Ratings} from '@/store/profiles/types/Ratings'
+import FileSpec from '@/types/FileSpec.ts'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
 
 export interface Asset {
   file: FileSpec,

@@ -83,10 +83,10 @@
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import SearchHints from '../mixins/SearchHints'
-import AcBoundField from '@/components/fields/AcBoundField'
-import Viewer from '@/mixins/viewer'
-import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
+import SearchHints from '../mixins/SearchHints.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import Viewer from '@/mixins/viewer.ts'
+import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
 
 @Component({
   components: {AcBoundField},

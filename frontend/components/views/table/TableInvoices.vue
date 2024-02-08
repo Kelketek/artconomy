@@ -70,18 +70,18 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {ListController} from '@/store/lists/controller'
-import Invoice from '@/types/Invoice'
+import Viewer from '@/mixins/viewer.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import Invoice from '@/types/Invoice.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting'
-import {SingleController} from '@/store/singles/controller'
-import {NavSettings} from '@/types/NavSettings'
-import {initDrawerValue} from '@/lib/lib'
+import Formatting from '@/mixins/formatting.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {NavSettings} from '@/types/NavSettings.ts'
+import {initDrawerValue} from '@/lib/lib.ts'
 
 @Component({
   components: {

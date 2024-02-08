@@ -1,9 +1,9 @@
 import {VueWrapper} from '@vue/test-utils'
-import {createVuetify, docTarget, mount, setViewer, vueSetup} from '@/specs/helpers'
-import mockAxios from '@/__mocks__/axios'
+import {createVuetify, docTarget, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import mockAxios from '@/__mocks__/axios.ts'
 import AcProductSelect from '@/components/fields/AcProductSelect.vue'
-import {genUser} from '@/specs/helpers/fixtures'
-import {ArtStore, createStore} from '@/store'
+import {genUser} from '@/specs/helpers/fixtures.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {describe, beforeEach, afterEach, test, vi} from 'vitest'
 
 vi.useFakeTimers()

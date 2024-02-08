@@ -164,12 +164,12 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import Subjective from '@/mixins/subjective'
-import {SingleController} from '@/store/singles/controller'
+import Viewer from '@/mixins/viewer.ts'
+import Subjective from '@/mixins/subjective.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {NotificationSettings} from '@/types/NotificationSettings'
+import {NotificationSettings} from '@/types/NotificationSettings.ts'
 
 @Component({
   components: {

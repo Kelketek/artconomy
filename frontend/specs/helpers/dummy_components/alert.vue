@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Alerts from '@/mixins/alerts'
+import Alerts from '@/mixins/alerts.ts'
 
 @Component({})
 class AlertsComponent extends mixins(Alerts) {

@@ -1,12 +1,12 @@
-import {cleanUp, flushPromises, genAnon, mount, rs, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, flushPromises, genAnon, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {genArtistProfile, genOrder, genProduct, genUser} from '@/specs/helpers/fixtures'
+import {genArtistProfile, genOrder, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import NewOrder from '@/components/views/product/NewOrder.vue'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import mockAxios from '@/__mocks__/axios'
-import {genCharacter} from '@/store/characters/specs/fixtures'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import mockAxios from '@/__mocks__/axios.ts'
+import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let store: ArtStore

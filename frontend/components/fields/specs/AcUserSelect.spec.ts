@@ -1,8 +1,8 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, docTarget, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
+import {cleanUp, docTarget, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
 import AcUserSelect from '@/components/fields/AcUserSelect.vue'
-import mockAxios from '@/__mocks__/axios'
-import {genUser} from '@/specs/helpers/fixtures'
+import mockAxios from '@/__mocks__/axios.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {describe, expect, afterEach, test, vi} from 'vitest'
 
 vi.useFakeTimers()

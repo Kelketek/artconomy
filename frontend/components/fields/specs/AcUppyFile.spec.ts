@@ -1,8 +1,8 @@
 import AcUppyFile from '../AcUppyFile.vue'
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import flushPromises from 'flush-promises'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {UppyFile} from '@uppy/core'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 

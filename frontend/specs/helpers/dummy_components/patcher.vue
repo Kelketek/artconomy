@@ -7,12 +7,11 @@
 
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
-import {Patch} from '@/store/singles/patcher'
-import {ProfileController} from '@/store/profiles/controller'
-import {genArtistProfile} from '@/specs/helpers/fixtures'
-import {SingleController} from '@/store/singles/controller'
-import DeliverableViewSettings from '@/types/DeliverableViewSettings'
-import {ArtVue} from '@/lib/lib'
+import {ProfileController} from '@/store/profiles/controller.ts'
+import {genArtistProfile} from '@/specs/helpers/fixtures.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import DeliverableViewSettings from '@/types/DeliverableViewSettings.ts'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({})
 class Patcher extends ArtVue {

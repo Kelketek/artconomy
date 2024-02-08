@@ -1,10 +1,10 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, mount, rq, rs, vueSetup, VuetifyWrapped} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {SingleController} from '@/store/singles/controller'
-import mockAxios from '@/__mocks__/axios'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 let store: ArtStore

@@ -1,5 +1,5 @@
 import {createRouter, createWebHistory, RouteLocation} from 'vue-router'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 
 export function deliverableRouter() {
   const props = (route: RouteLocation) => {

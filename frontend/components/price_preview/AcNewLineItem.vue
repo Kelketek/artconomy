@@ -11,9 +11,9 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {LineTypes} from '@/types/LineTypes'
+import {FormController} from '@/store/forms/form-controller.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {LineTypes} from '@/types/LineTypes.ts'
 
 @Component({
   components: {AcBoundField},

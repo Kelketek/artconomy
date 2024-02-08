@@ -76,11 +76,10 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '../../mixins/viewer'
-import Subjective from '../../mixins/subjective'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
-import {User} from '@/store/profiles/types/User'
-// import {VList, VListItem, VListItemAction, VListItemTitle, VListGroup, VListImg} from 'vuetify/lib/components/VList/index.mjs'
+import Viewer from '../../mixins/viewer.ts'
+import Subjective from '../../mixins/subjective.ts'
+import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {User} from '@/store/profiles/types/User.ts'
 import * as VListComponents from 'vuetify/lib/components/VList/index.mjs'
 
 @Component({

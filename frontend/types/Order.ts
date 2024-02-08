@@ -1,7 +1,7 @@
-import {User} from '@/store/profiles/types/User'
-import FileSpec from '@/types/FileSpec'
-import {RouteLocationNamedRaw, RouteLocationRaw} from 'vue-router'
-import {DeliverableStatus} from '@/types/DeliverableStatus'
+import {User} from '@/store/profiles/types/User.ts'
+import FileSpec from '@/types/FileSpec.ts'
+import {RouteLocationNamedRaw} from 'vue-router'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
 
 export default interface Order {
   id: number,

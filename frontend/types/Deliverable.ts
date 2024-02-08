@@ -1,11 +1,11 @@
-import {DeliverableStatus} from '@/types/DeliverableStatus'
-import Product from '@/types/Product'
-import {User} from '@/store/profiles/types/User'
-import Submission from '@/types/Submission'
-import {Ratings} from '@/store/profiles/types/Ratings'
-import FileSpec from '@/types/FileSpec'
-import Order from '@/types/Order'
-import {PROCESSORS} from '@/types/PROCESSORS'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import Product from '@/types/Product.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import Submission from '@/types/Submission.ts'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import FileSpec from '@/types/FileSpec.ts'
+import Order from '@/types/Order.ts'
+import {PROCESSORS} from '@/types/PROCESSORS.ts'
 
 export default interface Deliverable {
   id: number,

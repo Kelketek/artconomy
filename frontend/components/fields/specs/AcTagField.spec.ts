@@ -1,7 +1,7 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
 import AcTagField from '@/components/fields/AcTagField.vue'
-import mockAxios from '@/__mocks__/axios'
+import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, afterEach, test, vi, beforeEach} from 'vitest'
 
 let wrapper: VueWrapper<any>

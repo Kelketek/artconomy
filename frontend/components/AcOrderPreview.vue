@@ -52,11 +52,11 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '../mixins/formatting'
+import Formatting from '../mixins/formatting.ts'
 import AcAsset from './AcAsset.vue'
-import {SingleController} from '@/store/singles/controller'
-import Order from '@/types/Order'
-import Subjective from '@/mixins/subjective'
+import {SingleController} from '@/store/singles/controller.ts'
+import Order from '@/types/Order.ts'
+import Subjective from '@/mixins/subjective.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'

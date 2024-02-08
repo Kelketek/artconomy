@@ -1,8 +1,8 @@
 import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
-import {genUser} from '@/specs/helpers/fixtures'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 let store: ArtStore

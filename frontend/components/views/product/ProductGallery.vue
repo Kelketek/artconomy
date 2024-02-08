@@ -35,9 +35,9 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import ProductCentric from '@/components/views/product/mixins/ProductCentric'
-import {ListController} from '@/store/lists/controller'
-import LinkedSubmission from '@/types/LinkedSubmission'
+import ProductCentric from '@/components/views/product/mixins/ProductCentric.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'

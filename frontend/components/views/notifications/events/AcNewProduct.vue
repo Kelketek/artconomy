@@ -12,9 +12,9 @@
 </template>
 
 <script>
-import AcBaseNotification from './AcBaseNotification'
-import Notifiction from '../mixins/notification'
-import AcLink from '@/components/wrappers/AcLink'
+import AcBaseNotification from './AcBaseNotification.vue'
+import Notifiction from '../mixins/notification.ts'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {
   name: 'ac-new-character',

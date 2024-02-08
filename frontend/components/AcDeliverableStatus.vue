@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import Deliverable from '@/types/Deliverable'
+import Deliverable from '@/types/Deliverable.ts'
 
 @Component
 class AcDeliverableStatus extends Vue {

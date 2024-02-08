@@ -1,5 +1,5 @@
-import {QueryParams} from '@/store/helpers/QueryParams'
-import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
+import {QueryParams} from '@/store/helpers/QueryParams.ts'
+import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
 
 export interface SingleState<T> {
   x: null | T,

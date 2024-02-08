@@ -1,9 +1,9 @@
 import {createApp} from 'vue'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
-import {ProfileController} from './controller'
-import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts'
-import {ProfileState} from '@/store/profiles/types/ProfileState'
-import {ArtStore} from '@/store'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
+import {ProfileController} from './controller.ts'
+import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
+import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
+import {ArtStore} from '@/store/index.ts'
 
 export class ProfileRegistry extends BaseRegistry<ProfileState, ProfileController> {}
 

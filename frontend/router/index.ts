@@ -6,8 +6,8 @@ import {
   Router,
   RouteRecordRaw,
 } from 'vue-router'
-import {clearMetaTag, paramsKey, setCookie, setMetaContent} from '@/lib/lib'
-import {ArtStore} from '@/store'
+import {clearMetaTag, paramsKey, setCookie, setMetaContent} from '@/lib/lib.ts'
+import {ArtStore} from '@/store/index.ts'
 import Reload from '@/components/views/Reload.vue'
 import Login from '@/components/views/auth/Login.vue'
 import Register from '@/components/views/auth/Register.vue'

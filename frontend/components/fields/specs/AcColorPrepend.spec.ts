@@ -1,4 +1,4 @@
-import {mount, vueSetup} from '@/specs/helpers'
+import {mount, vueSetup} from '@/specs/helpers/index.ts'
 import AcColorPrepend from '@/components/fields/AcColorPrepend.vue'
 import {describe, expect, test, vi} from 'vitest'
 

@@ -1,4 +1,4 @@
-import Submission from '@/types/Submission'
+import Submission from '@/types/Submission.ts'
 
 export default interface LinkedSubmission {
   id: number,

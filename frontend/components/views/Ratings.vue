@@ -31,15 +31,15 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import {ListController} from '@/store/lists/controller'
-import Subjective from '@/mixins/subjective'
-import Rating from '@/types/Rating'
+import {ListController} from '@/store/lists/controller.ts'
+import Subjective from '@/mixins/subjective.ts'
+import Rating from '@/types/Rating.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
-import AcRendered from '@/components/wrappers/AcRendered'
+import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
-import {flatten} from '@/lib/lib'
+import {flatten} from '@/lib/lib.ts'
 
 @Component({
   components: {

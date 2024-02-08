@@ -1,12 +1,12 @@
 import {Component, mixins} from 'vue-facing-decorator'
 import {differenceInYears} from 'date-fns'
-import {User} from '@/store/profiles/types/User'
-import {AnonUser} from '@/store/profiles/types/AnonUser'
-import {ProfileController} from '@/store/profiles/controller'
-import {userHandle} from '@/store/profiles/handles'
-import {Ratings} from '@/store/profiles/types/Ratings'
-import ErrorHandling from '@/mixins/ErrorHandling'
-import {parseISO} from '@/lib/lib'
+import {User} from '@/store/profiles/types/User.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
+import {ProfileController} from '@/store/profiles/controller.ts'
+import {userHandle} from '@/store/profiles/handles.ts'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import ErrorHandling from '@/mixins/ErrorHandling.ts'
+import {parseISO} from '@/lib/lib.ts'
 
 @Component
 export default class Viewer extends mixins(ErrorHandling) {

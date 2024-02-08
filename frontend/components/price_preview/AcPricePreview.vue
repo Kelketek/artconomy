@@ -103,24 +103,24 @@
 </style>
 
 <script lang="ts">
-import Subjective from '../../mixins/subjective'
+import Subjective from '../../mixins/subjective.ts'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import Pricing from '@/types/Pricing'
+import {SingleController} from '@/store/singles/controller.ts'
+import Pricing from '@/types/Pricing.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
-import LineItem from '@/types/LineItem'
+import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
+import LineItem from '@/types/LineItem.ts'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
-import {LineTypes} from '@/types/LineTypes'
-import {ListController} from '@/store/lists/controller'
+import {LineTypes} from '@/types/LineTypes.ts'
+import {ListController} from '@/store/lists/controller.ts'
 import AcLineItemEditor from '@/components/price_preview/AcLineItemEditor.vue'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {Decimal} from 'decimal.js'
 import AcNewLineSkeleton from '@/components/price_preview/AcNewLineSkeleton.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 
 @Component({

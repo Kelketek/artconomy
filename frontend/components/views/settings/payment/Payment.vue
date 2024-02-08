@@ -8,8 +8,8 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {FormController} from '@/store/forms/form-controller'
+import Subjective from '@/mixins/subjective.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
 
 @Component
 class Payment extends mixins(Subjective) {

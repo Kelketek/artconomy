@@ -8,7 +8,7 @@
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
 import AcEditor from '@/components/fields/AcEditor.vue'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({
   components: {AcEditor},

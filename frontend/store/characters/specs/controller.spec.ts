@@ -1,11 +1,11 @@
-import {genUser} from '@/specs/helpers/fixtures'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {genUser} from '@/specs/helpers/fixtures.ts'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import mockAxios from '@/specs/helpers/mock-axios'
-import {genCharacter} from '@/store/characters/specs/fixtures'
+import {ArtStore, createStore} from '@/store/index.ts'
+import mockAxios from '@/specs/helpers/mock-axios.ts'
+import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 
 describe('Profile controller', () => {
   let store: ArtStore

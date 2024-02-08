@@ -140,18 +140,18 @@
 <script lang="ts">
 import AcLoadSection from '../../wrappers/AcLoadSection.vue'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '../../../mixins/subjective'
+import Subjective from '../../../mixins/subjective.ts'
 import AcPaginated from '../../wrappers/AcPaginated.vue'
-import {SingleController} from '@/store/singles/controller'
-import CommissionStats from '@/types/CommissionStats'
-import {FormController} from '@/store/forms/form-controller'
+import {SingleController} from '@/store/singles/controller.ts'
+import CommissionStats from '@/types/CommissionStats.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
-import Product from '@/types/Product'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import Product from '@/types/Product.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
-import {baseInvoiceSchema, flatten} from '@/lib/lib'
+import {baseInvoiceSchema, flatten} from '@/lib/lib.ts'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
-import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
+import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin.ts'
 
 @Component({
   components: {

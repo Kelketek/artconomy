@@ -1,10 +1,10 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
-import {genUser} from '@/specs/helpers/fixtures'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import DummySubmit from '@/components/specs/DummySubmit.vue'
-import mockAxios from '@/__mocks__/axios'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
+import mockAxios from '@/__mocks__/axios.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let wrapper: VueWrapper<any>

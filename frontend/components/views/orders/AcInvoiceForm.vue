@@ -141,11 +141,11 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller'
-import AcBoundField from '@/components/fields/AcBoundField'
-import Subjective from '@/mixins/subjective'
+import {FormController} from '@/store/forms/form-controller.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import Subjective from '@/mixins/subjective.ts'
 import AcPricePreview from '../../price_preview/AcPricePreview.vue'
-import LineItem from '@/types/LineItem'
+import LineItem from '@/types/LineItem.ts'
 
 @Component({
   components: {

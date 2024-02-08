@@ -1,7 +1,7 @@
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
-import {UserStoreState} from '@/store/profiles/types/UserStoreState'
-import CharacterState from '@/store/characters/types/CharacterState'
-import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts'
+import {UserStoreState} from '@/store/profiles/types/UserStoreState.ts'
+import CharacterState from '@/store/characters/types/CharacterState.ts'
+import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts.ts'
 
 export class CharacterModule {
   public state: CharacterState

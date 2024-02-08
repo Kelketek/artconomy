@@ -50,10 +50,10 @@ import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import LineItem from '@/types/LineItem'
-import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
-import {LineTypes} from '@/types/LineTypes'
-import LineItemMixin from './mixins/LineItemMixin'
+import LineItem from '@/types/LineItem.ts'
+import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
+import {LineTypes} from '@/types/LineTypes.ts'
+import LineItemMixin from './mixins/LineItemMixin.ts'
 
 @Component({
   components: {

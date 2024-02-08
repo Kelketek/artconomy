@@ -39,8 +39,8 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import RangeReport from '@/components/views/reports/mixins/RangeReport'
-import Subjective from '@/mixins/subjective'
+import RangeReport from '@/components/views/reports/mixins/RangeReport.ts'
+import Subjective from '@/mixins/subjective.ts'
 
 @Component
 class AcTaxReports extends mixins(Subjective, RangeReport) {

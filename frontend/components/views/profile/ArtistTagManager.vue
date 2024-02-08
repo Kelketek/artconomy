@@ -1,7 +1,7 @@
 <template>
-  <v-row no-gutters>
+  <v-row no-gutters :key="submissionId">
     <v-col cols="12">
-      <ac-gallery-preview class="pa-1" @click.capture.stop.prevent="() => false"
+      <ac-gallery-preview class="pa-1"
                           :linked="false"
                           :submission="submission.x" :show-footer="true"
                           :force-hidden="tag.x!.hidden"
@@ -27,6 +27,7 @@
                   field-type="v-checkbox"
                   label="Unlisted"
                   :persistent-hint="true"
+                  :false-value="false"
                   hint="If checked, does not show this piece in your gallery.
               However, people with the link will still be able to view it. To nake it
               unviewable, make sure the 'private' setting is checked."
@@ -84,53 +85,43 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import Subjective from '@/mixins/subjective'
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import {SingleController} from '@/store/singles/controller'
-import ArtistTag from '@/types/ArtistTag'
+import {SingleController} from '@/store/singles/controller.ts'
+import ArtistTag from '@/types/ArtistTag.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import Submission from '@/types/Submission'
+import Submission from '@/types/Submission.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {computed, ref} from 'vue'
 
-@Component({
-  components: {
-    AcConfirmation,
-    AcPatchField,
-    AcExpandedProperty,
-    AcGalleryPreview,
-  },
-})
-class ArtistTagManager extends mixins(Subjective) {
-  @Prop({required: true})
-  public tag!: SingleController<ArtistTag>
-
-  public submission = null as unknown as SingleController<Submission>
-
-  public showSettings = false
-
-  public get isOwner() {
-    return this.username === this.submission.x?.owner.username
-  }
-
-  public async deleteSubmission() {
-    return this.submission.delete().then(() => {
-      this.tag.deleted = true
-    })
-  }
-
-  public created() {
-    const submissionId = this.tag.x!.submission.id
-    this.submission = this.$getSingle(
-        `submission-${submissionId}`, {
-          endpoint: `/api/profiles/submission/${submissionId}/`,
-          x: this.tag.x!.submission,
-        },
-    )
-  }
+declare interface ArtistTagManagerProps {
+  tag: SingleController<ArtistTag>,
+  username: string,
 }
 
-export default toNative(ArtistTagManager)
+const props = defineProps<ArtistTagManagerProps>()
+
+const tag = props.tag
+
+const submissionId = computed(() => props.tag.x!.submission.id)
+
+const showSettings = ref(false)
+
+const submission = useSingle<Submission>(
+    `submission-${submissionId.value}`,
+    {
+      endpoint: `/api/profiles/submission/${submissionId.value}/`,
+      x: tag.x!.submission,
+    },
+)
+
+const isOwner = computed(() => props.username === submission.x?.owner.username)
+
+const deleteSubmission = async () => {
+  submission.delete().then(() => {
+    tag.deleted = true
+  })
+}
 </script>

@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import AcCaptchaField from '@/components/fields/AcCaptchaField.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 

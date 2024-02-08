@@ -1,5 +1,5 @@
-import {TerseUser} from '@/store/profiles/types/TerseUser'
-import Comment from '@/types/Comment'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import Comment from '@/types/Comment.ts'
 
 export interface Conversation {
   id: number,

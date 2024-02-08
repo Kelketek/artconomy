@@ -166,8 +166,8 @@
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import {siDiscord} from 'simple-icons'
-import Viewer from '@/mixins/viewer'
-import {BASE_URL} from '@/lib/lib'
+import Viewer from '@/mixins/viewer.ts'
+import {BASE_URL} from '@/lib/lib.ts'
 
 @Component({})
 class ArtistTools extends mixins(Viewer) {

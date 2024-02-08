@@ -55,9 +55,9 @@
 </style>
 
 <script>
-import AcAsset from './AcAsset'
-import Viewer from '../mixins/viewer'
-import AcLink from '@/components/wrappers/AcLink'
+import AcAsset from './AcAsset.vue'
+import Viewer from '../mixins/viewer.ts'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {
   name: 'ac-character-preview',

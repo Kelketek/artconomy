@@ -7,8 +7,8 @@
 </template>
 
 <script>
-import AcBaseNotification from './AcBaseNotification'
-import Notification from '../mixins/notification'
+import AcBaseNotification from './AcBaseNotification.vue'
+import Notification from '../mixins/notification.ts'
 
 export default {
   name: 'ac-refund',

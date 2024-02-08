@@ -208,27 +208,24 @@
   </v-dialog>
 </template>
 
-<style lang="sass">
-.markdown-help
-  .markdown-table-header
-    height: unset
-    padding: 0 !important
+<style>
+.markdown-help .markdown-table-header {
+  height: unset;
+  padding: 0 !important; }
 
-  kbd
-    &::before, &::after
-      content: unset
+.markdown-help kbd::before, .markdown-help kbd::after {
+  content: unset; }
 
-  table.v-datatable.v-table
-    tbody tr td
-      padding: 0 10px
+.markdown-help table.v-datatable.v-table tbody tr td {
+  padding: 0 10px; }
 
-    thead tr th
-      padding: 0 10px
+.markdown-help table.v-datatable.v-table thead tr th {
+  padding: 0 10px; }
 </style>
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 
 @Component({emits: ['update:modelValue']})
 class AcMarkdownExplination extends mixins(Formatting) {

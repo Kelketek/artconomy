@@ -23,8 +23,8 @@
 </style>
 
 <script>
-import Notification from '../mixins/notification'
-import {artCall} from '@/lib/lib'
+import Notification from '../mixins/notification.ts'
+import {artCall} from '@/lib/lib.ts'
 
 export default {
   name: 'ac-dispute',

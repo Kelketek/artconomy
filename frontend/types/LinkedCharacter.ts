@@ -1,4 +1,4 @@
-import {Character} from '@/store/characters/types/Character'
+import {Character} from '@/store/characters/types/Character.ts'
 
 export default interface LinkedCharacter {
   id: number,

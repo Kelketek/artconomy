@@ -108,18 +108,18 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import Subjective from '@/mixins/subjective'
-import {parseISO, RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib'
+import Viewer from '@/mixins/viewer.ts'
+import Subjective from '@/mixins/subjective.ts'
+import {parseISO, RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import Alerts from '@/mixins/alerts'
+import Alerts from '@/mixins/alerts.ts'
 import AcTagField from '@/components/fields/AcTagField.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {Patch} from '@/store/singles/patcher'
+import {Patch} from '@/store/singles/patcher.ts'
 import {differenceInYears} from 'date-fns'
-import {ContentRating} from '@/types/ContentRating'
-import {SingleController} from '@/store/singles/controller'
-import {User} from '@/store/profiles/types/User'
+import {ContentRating} from '@/types/ContentRating.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {User} from '@/store/profiles/types/User.ts'
 
 @Component({
   components: {

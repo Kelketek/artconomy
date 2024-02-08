@@ -7,7 +7,7 @@
 <script lang="ts">
 import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
 import AcLoadingSpinner from './wrappers/AcLoadingSpinner.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 
 @Component({
   components: {AcLoadingSpinner},

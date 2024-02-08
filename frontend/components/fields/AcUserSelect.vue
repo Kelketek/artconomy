@@ -23,7 +23,7 @@
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcAvatar from '@/components/AcAvatar.vue'
-import Autocomplete from '@/components/fields/mixins/autocomplete'
+import Autocomplete from '@/components/fields/mixins/autocomplete.ts'
 
 @Component({
   components: {AcAvatar},

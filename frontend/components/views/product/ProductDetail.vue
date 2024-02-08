@@ -568,74 +568,71 @@
   <router-view v-else/>
 </template>
 
-<style lang="sass" scoped>
-.submissionSelected
-  -webkit-box-shadow: 0px 0px 5px 3px rgba(255, 210, 149, 0.62)
-  box-shadow: 0px 0px 5px 3px rgba(255, 210, 149, 0.62)
+<style scoped>
+.submissionSelected {
+  -webkit-box-shadow: 0px 0px 5px 3px rgba(255, 210, 149, 0.62);
+  box-shadow: 0px 0px 5px 3px rgba(255, 210, 149, 0.62); }
 
-.edit-overlay
-  position: absolute
-  width: 100%
-  height: 100%
-  z-index: 1
+.edit-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1; }
+  .edit-overlay .edit-container, .edit-overlay .edit-layout {
+    height: 100%; }
+  .edit-overlay .edit-layout {
+    position: relative; }
+  .edit-overlay .backdrop {
+    background-color: #000000;
+    opacity: .40;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; }
+  .edit-overlay .edit-cta {
+    position: relative;
+    z-index: 1; }
 
-  .edit-container, .edit-layout
-    height: 100%
-
-  .edit-layout
-    position: relative
-
-  .backdrop
-    background-color: #000000
-    opacity: .40
-    width: 100%
-    height: 100%
-    position: absolute
-    top: 0
-
-  .edit-cta
-    position: relative
-    z-index: 1
 </style>
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller'
-import Product from '@/types/Product'
+import {SingleController} from '@/store/singles/controller.ts'
+import Product from '@/types/Product.ts'
 import AcAsset from '@/components/AcAsset.vue'
-import Formatting from '@/mixins/formatting'
-import Editable from '@/mixins/editable'
+import Formatting from '@/mixins/formatting.ts'
+import Editable from '@/mixins/editable.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcRendered from '@/components/wrappers/AcRendered'
+import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
-import {ListController} from '@/store/lists/controller'
-import Submission from '@/types/Submission'
+import {ListController} from '@/store/lists/controller.ts'
+import Submission from '@/types/Submission.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcSampleEditor from '@/components/views/product/AcSampleEditor.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import {RouteLocationRaw} from 'vue-router'
-import LinkedSubmission from '@/types/LinkedSubmission'
-import ProductCentric from '@/components/views/product/mixins/ProductCentric'
+import LinkedSubmission from '@/types/LinkedSubmission.ts'
+import ProductCentric from '@/components/views/product/mixins/ProductCentric.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib/lib'
+import {RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib/lib.ts'
 import AcShareButton from '@/components/AcShareButton.vue'
-import Pricing from '@/types/Pricing'
-import Inventory from '@/types/Inventory'
-import Sharable from '@/mixins/sharable'
-import {deliverableLines} from '@/lib/lineItemFunctions'
-import {LineItemSetMap} from '@/types/LineItemSetMap'
+import Pricing from '@/types/Pricing.ts'
+import Inventory from '@/types/Inventory.ts'
+import Sharable from '@/mixins/sharable.ts'
+import {deliverableLines} from '@/lib/lineItemFunctions.ts'
+import {LineItemSetMap} from '@/types/LineItemSetMap.ts'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {RawLineItemSetMap} from '@/types/RawLineItemSetMap'
-import LineItem from '@/types/LineItem'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {RawLineItemSetMap} from '@/types/RawLineItemSetMap.ts'
+import LineItem from '@/types/LineItem.ts'
 
 @Component({
   components: {

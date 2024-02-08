@@ -1,7 +1,7 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import AcRendered from '../AcRendered'
+import {ArtStore, createStore} from '@/store/index.ts'
+import AcRendered from '../AcRendered.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
 describe('AcRendered.ts', () => {

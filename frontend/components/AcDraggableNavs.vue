@@ -1,111 +1,105 @@
 <template>
   <v-col cols="12">
     <v-row no-gutters>
-      <draggable
-          tag="v-col"
-          :component-data="{cols: 6}"
+      <Sortable
+          tag="div"
           :list="previousList"
-          :group="{name: 'previous', put: () => true, pull: false}"
-          class="page-setter"
+          :options="{group: {name: 'previous', put: true, pull: false}, disabled: list.currentPage === 1, removeCloneOnHide: false}"
+          class="page-setter v-col v-col-6"
           @add="addPrevious"
-          :force-fallback="true"
+          item-key="id"
       >
-        <template v-slot:header>
+        <template #header>
           <v-card :class="{disabled: list.currentPage === 1}">
             <v-card-text class="text-center">
               Previous
             </v-card-text>
           </v-card>
         </template>
-      </draggable>
-      <draggable
-          tag="v-col"
-          :component-data="{cols: 6}"
+        <template #item="{index}"><span v-show="false" :key="index"/></template>
+      </Sortable>
+      <Sortable
+          tag="div"
           :list="nextList"
-          :group="{name: 'next', put: () => true, pull: false}"
-          class="page-setter"
+          :options="{group: {name: 'next', put: true, pull: false}, disabled: list.currentPage === list.totalPages}"
+          class="page-setter v-col"
           @add="addNext"
-          :force-fallback="true"
+          item-key="id"
       >
-        <template v-slot:header>
+        <template #item="{index}"><span v-show="false" :key="index"/></template>
+        <template #header>
           <v-card :class="{disabled: list.currentPage === list.totalPages}">
             <v-card-text class="text-center">
               Next
             </v-card-text>
           </v-card>
         </template>
-      </draggable>
+      </Sortable>
     </v-row>
-    <v-col cols="12" class="py-2"></v-col>
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import draggable from 'vuedraggable'
-import {artCall} from '@/lib/lib'
-import {SingleController} from '@/store/singles/controller'
-import {ListController} from '@/store/lists/controller'
+<style>
+/*
+No idea why, but there seems to be no way to hide the resulting drop aside from this.
+Make sure any draggable item has the .draggable-item class or it won't be properly hidden.
+*/
+.page-setter .draggable-item {
+  display: none;
+}
+</style>
 
-@Component({
-  components: {
-    draggable,
-  },
-})
-class AcDraggableNavs<T extends object> extends Vue {
-  @Prop({required: true})
-  public sortableList!: SingleController<T>[]
+<script setup lang="ts" generic="T extends SortableModel">
+import { Sortable } from "sortablejs-vue3"
+import {artCall} from '@/lib/lib.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {SortableModel} from '@/types/SortableModel.ts'
+import {ref} from 'vue'
+import {SortableItem} from '@/types/SortableItem.ts'
 
-  @Prop({required: true})
-  public list!: ListController<T>
-
-  @Prop({required: true})
-  public positionField!: string & keyof T
-
-  public get previousList() {
-    return []
-  }
-
-  public get nextList() {
-    return []
-  }
-
-  public addNext(addEvent: any) {
-    this.adder(addEvent, false)
-  }
-
-  public addPrevious(addEvent: any) {
-    if (this.list.currentPage === 1) {
-      return
-    }
-    this.adder(addEvent, true)
-  }
-
-  public adder(addEvent: any, previous: boolean) {
-    const controller = this.sortableList[addEvent.oldDraggableIndex]
-    let borderIndex: number
-    let suffix: string
-    if (previous) {
-      suffix = 'up'
-      borderIndex = 0
-    } else {
-      suffix = 'down'
-      borderIndex = this.sortableList.length - 1
-    }
-    const borderController = this.sortableList[borderIndex]
-    artCall({
-      url: `${controller.endpoint}${suffix}/`,
-      method: 'post',
-      data: {current_value: borderController.x![this.positionField]},
-    }).catch(() => {
-      if (controller.purged) {
-        return
-      }
-      controller.deleted = false
-    })
-    controller.deleted = true
-  }
+declare interface AcDraggableNavsProps {
+  sortableList: SortableItem<T>[],
+  list: ListController<T>,
 }
 
-export default toNative(AcDraggableNavs)
+const props = defineProps<AcDraggableNavsProps>()
+
+const previousList = ref([])
+const nextList = ref([])
+
+const adder = (addEvent: any, previous: boolean) => {
+  const controller = props.sortableList[addEvent.oldIndex].controller
+  let borderIndex: number
+  let suffix: string
+  if (previous) {
+    suffix = 'up'
+    borderIndex = 0
+  } else {
+    suffix = 'down'
+    borderIndex = props.sortableList.length - 1
+  }
+  const borderController = props.sortableList[borderIndex].controller
+  artCall({
+    url: `${controller.endpoint}${suffix}/`,
+    method: 'post',
+    data: {current_value: borderController.x!.display_position},
+  }).catch(() => {
+    if (controller.purged) {
+      return
+    }
+    controller.deleted = false
+  })
+  controller.deleted = true
+}
+
+const addNext = (addEvent: any) => {
+  adder(addEvent, false)
+}
+
+const addPrevious = (addEvent: any) => {
+  if (props.list.currentPage === 1) {
+    return
+  }
+  adder(addEvent, true)
+}
 </script>

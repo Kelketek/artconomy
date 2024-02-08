@@ -1,4 +1,4 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcTabs from '@/components/navigation/AcTabs.vue'
 import {describe, expect, afterEach, test} from 'vitest'

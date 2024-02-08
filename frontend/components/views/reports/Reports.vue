@@ -9,7 +9,7 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcSiteFinancials from '@/components/views/reports/AcSiteFinancials.vue'
 import AcTaxReports from '@/components/views/reports/AcTaxReports.vue'

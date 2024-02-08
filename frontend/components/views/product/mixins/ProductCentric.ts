@@ -1,7 +1,7 @@
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import {Component, mixins, Prop} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import Product from '@/types/Product'
+import {SingleController} from '@/store/singles/controller.ts'
+import Product from '@/types/Product.ts'
 import {addBusinessDays, formatISO} from 'date-fns'
 
 @Component

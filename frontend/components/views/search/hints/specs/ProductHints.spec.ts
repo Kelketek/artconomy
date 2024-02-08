@@ -1,10 +1,10 @@
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import ProductHints from '@/components/views/search/hints/ProductHints.vue'
-import searchSchema from '@/components/views/search/specs/fixtures'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {ArtStore, createStore} from '@/store'
-import {genUser} from '@/specs/helpers/fixtures'
+import searchSchema from '@/components/views/search/specs/fixtures.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

@@ -44,19 +44,19 @@
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcCardManager from './AcCardManager.vue'
-import {FormController} from '@/store/forms/form-controller'
-import {baseCardSchema, flatten} from '@/lib/lib'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {baseCardSchema, flatten} from '@/lib/lib.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {ListController} from '@/store/lists/controller'
-import {CreditCardToken} from '@/types/CreditCardToken'
+import {ListController} from '@/store/lists/controller.ts'
+import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import {SingleController} from '@/store/singles/controller'
-import ClientSecret from '@/types/ClientSecret'
-import {User} from '@/store/profiles/types/User'
+import {SingleController} from '@/store/singles/controller.ts'
+import ClientSecret from '@/types/ClientSecret.ts'
+import {User} from '@/store/profiles/types/User.ts'
 
 @Component({
   components: {

@@ -1,9 +1,9 @@
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
-import {genCharacter} from '@/store/characters/specs/fixtures'
-import {genUser} from '@/specs/helpers/fixtures'
+import {genCharacter} from '@/store/characters/specs/fixtures.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeEach, describe, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

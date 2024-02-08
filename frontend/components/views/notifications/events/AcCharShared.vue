@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import Notification from '../mixins/notification'
+import Notification from '../mixins/notification.ts'
 
 export default {
   name: 'ac-char-shared',

@@ -1,5 +1,5 @@
-import {RelatedUser} from '@/store/profiles/types/RelatedUser'
-import {Asset} from '@/types/Asset'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import {Asset} from '@/types/Asset.ts'
 import {RouteLocationRaw} from 'vue-router'
 
 export default interface Submission extends Asset {

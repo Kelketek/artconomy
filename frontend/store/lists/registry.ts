@@ -1,9 +1,9 @@
 import {createApp} from 'vue'
-import {ListController} from './controller'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
-import {ListState} from './types/ListState'
-import {ListModuleOpts} from './types/ListModuleOpts'
-import {ArtStore} from '@/store'
+import {ListController} from './controller.ts'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
+import {ListState} from './types/ListState.ts'
+import {ListModuleOpts} from './types/ListModuleOpts.ts'
+import {ArtStore} from '@/store/index.ts'
 
 export class ListRegistry extends BaseRegistry<ListState<any>, ListController<any>> {}
 

@@ -102,9 +102,9 @@
 <script lang="ts">
 import {Component, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
-import AcRendered from '@/components/wrappers/AcRendered'
+import AcRendered from '@/components/wrappers/AcRendered.ts'
 import {ComponentPublicInstance} from 'vue'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({
   components: {

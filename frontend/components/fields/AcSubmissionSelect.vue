@@ -38,21 +38,17 @@
   </v-input>
 </template>
 
-<style scoped lang="sass">
-
-</style>
-
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcAsset from '../AcAsset.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Submission from '@/types/Submission'
+import Submission from '@/types/Submission.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import ExtendedInput from '@/components/fields/mixins/extended_input'
-import {genId} from '@/lib/lib'
-import {SingleController} from '@/store/singles/controller'
+import ExtendedInput from '@/components/fields/mixins/extended_input.ts'
+import {genId} from '@/lib/lib.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 
 @Component({
   components: {

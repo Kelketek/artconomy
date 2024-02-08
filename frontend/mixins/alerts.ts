@@ -1,9 +1,8 @@
 import {Component} from 'vue-facing-decorator'
-import {Alert, AlertCategory} from '@/store/state'
-import {AxiosError} from 'axios'
-import {deriveErrors} from '@/store/forms/helpers'
-import {ArtVue} from '@/lib/lib'
-import {AcServerError} from '@/types/AcServerError'
+import {Alert, AlertCategory} from '@/store/state.ts'
+import {deriveErrors} from '@/store/forms/helpers.ts'
+import {ArtVue} from '@/lib/lib.ts'
+import {AcServerError} from '@/types/AcServerError.ts'
 
 @Component
 export default class BaseAlerts extends ArtVue {

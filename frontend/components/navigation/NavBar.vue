@@ -147,13 +147,15 @@
       </v-card>
       <v-toolbar-items v-if="fullInterface">
         <v-btn variant="plain" v-if="isRegistered" @click="notificationLoad" class="notifications-button">
-          <v-badge overlap right color="red" :model-value="!!counts.count">
-            <template v-slot:badge>
-              <span v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
-              <span v-else>*</span>
-            </template>
-            <v-icon size="x-large" icon="mdi-bell"/>
-          </v-badge>
+          <template #default>
+            <v-badge overlap right color="red" :model-value="!!counts.count">
+              <template v-slot:badge>
+                <span v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
+                <span v-else>*</span>
+              </template>
+              <v-icon size="x-large" icon="mdi-bell"/>
+            </v-badge>
+          </template>
         </v-btn>
         <v-btn class="nav-login-item" variant="text" v-if="isRegistered"
                :to="profileRoute">
@@ -203,19 +205,19 @@
 </style>
 
 <script lang="ts">
-import {initDrawerValue, makeQueryParams, BASE_URL} from '@/lib/lib'
-import Viewer from '../../mixins/viewer'
+import {initDrawerValue, makeQueryParams, BASE_URL} from '@/lib/lib.ts'
+import Viewer from '@/mixins/viewer.ts'
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcSettingNav from './AcSettingNav.vue'
-import {User} from '@/store/profiles/types/User'
+import {User} from '@/store/profiles/types/User.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {FormController} from '@/store/forms/form-controller'
-import Nav from '@/mixins/nav'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import Nav from '@/mixins/nav.ts'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import {siDiscord, siTwitter} from 'simple-icons'
-import {SingleController} from '@/store/singles/controller'
-import {NavSettings} from '@/types/NavSettings'
+import {SingleController} from '@/store/singles/controller.ts'
+import {NavSettings} from '@/types/NavSettings.ts'
 import AcIcon from '@/components/AcIcon.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 

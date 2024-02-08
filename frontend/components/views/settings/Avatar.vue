@@ -22,8 +22,8 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import Subjective from '@/mixins/subjective'
+import Viewer from '@/mixins/viewer.ts'
+import Subjective from '@/mixins/subjective.ts'
 import AcUppyFile from '@/components/fields/AcUppyFile.vue'
 
 @Component({

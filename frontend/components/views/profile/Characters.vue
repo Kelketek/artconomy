@@ -54,15 +54,15 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {ListController} from '@/store/lists/controller'
-import {Character} from '@/store/characters/types/Character'
+import Subjective from '@/mixins/subjective.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {Character} from '@/store/characters/types/Character.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {FormController} from '@/store/forms/form-controller'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {flatten} from '@/lib/lib'
+import {FormController} from '@/store/forms/form-controller.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {flatten} from '@/lib/lib.ts'
 
 @Component({
   components: {

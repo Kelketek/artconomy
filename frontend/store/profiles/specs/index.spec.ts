@@ -1,5 +1,5 @@
-import mockAxios from '@/specs/helpers/mock-axios'
-import {ArtStore, createStore} from '@/store/index'
+import mockAxios from '@/specs/helpers/mock-axios.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {beforeEach, describe, expect, test} from 'vitest'
 
 describe('Profiles store', () => {

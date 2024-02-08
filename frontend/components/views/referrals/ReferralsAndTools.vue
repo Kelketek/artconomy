@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts">
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 
 @Component

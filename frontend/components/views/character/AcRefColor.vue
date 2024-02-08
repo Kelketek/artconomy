@@ -46,10 +46,10 @@
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import Subjective from '@/mixins/subjective'
-import {SingleController} from '@/store/singles/controller'
-import Color from '@/store/characters/types/Color'
-import Editable from '@/mixins/editable'
+import Subjective from '@/mixins/subjective.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import Color from '@/store/characters/types/Color.ts'
+import Editable from '@/mixins/editable.ts'
 import AcColorPrepend from '@/components/fields/AcColorPrepend.vue'
 
 @Component({

@@ -51,16 +51,16 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {ListController} from '@/store/lists/controller'
-import Deliverable from '@/types/Deliverable'
+import Viewer from '@/mixins/viewer.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import Deliverable from '@/types/Deliverable.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcDeliverablePreview from '@/components/AcDeliverablePreview.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {artCall} from '@/lib/lib'
-import {SingleController} from '@/store/singles/controller'
+import {artCall} from '@/lib/lib.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 
 @Component({

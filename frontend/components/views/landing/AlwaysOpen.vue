@@ -94,9 +94,9 @@
 </style>
 
 <script lang="ts">
-import {Component, toNative, Vue} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller'
-import {ArtVue, BASE_URL} from '@/lib/lib'
+import {Component, toNative} from 'vue-facing-decorator'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {ArtVue, BASE_URL} from '@/lib/lib.ts'
 
 @Component
 class AlwaysOpen extends ArtVue {

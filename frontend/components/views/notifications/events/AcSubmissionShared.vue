@@ -13,8 +13,8 @@
 </template>
 
 <script>
-import Notification from '../mixins/notification'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
+import Notification from '../mixins/notification.ts'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 
 export default {
   name: 'ac-submission-shared',

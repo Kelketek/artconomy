@@ -1,5 +1,5 @@
 import FormDialogContainer from '../../../specs/helpers/dummy_components/form-dialog-container.vue'
-import {mount, vueSetup} from '@/specs/helpers'
+import {mount, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, test} from 'vitest'
 
 describe('AcFormDialog.vue', () => {

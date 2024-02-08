@@ -1,28 +1,24 @@
-import {getCurrentInstance, inject, markRaw, onUnmounted, provide} from 'vue'
-import {ArtVueInterface} from '@/types/ArtVueInterface'
-import {RegistryRegistry} from '@/store/registry-base'
+import {ComponentInternalInstance, getCurrentInstance, inject, onUnmounted, provide} from 'vue'
+import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
+import {RegistryRegistry} from '@/store/registry-base.ts'
+import {buildRegistries} from '@/plugins/createRegistries.ts'
 
-export const useRegistry = <T extends 'Single'|'List'|'Form'|'Character'|'Profile'>(typeName: T, instance?: ArtVueInterface) => {
-  const currentInstance = instance || (getCurrentInstance()?.appContext.app as null|ArtVueInterface)
+export type ArtVueInstance = ComponentInternalInstance & ArtVueInterface
+
+export const guardedApp = (instance?: ArtVueInterface) => {
+  const currentInstance = instance || getCurrentInstance()
   if (!currentInstance) {
-    throw Error('Not in a Vue rendering environment!')
+    throw Error('Not in a rendering context!')
   }
-  const registry = currentInstance[`$registryFor${typeName}`]()
-  if (!registry) {
-    throw Error(`Registry for ${typeName} not found. Is the plugin installed?`)
-  }
-  return registry as ReturnType<ArtVueInterface[`$registryFor${T}`]>
+  return currentInstance
+}
+
+export const useRegistry = <T extends 'Single'|'List'|'Form'|'Character'|'Profile'>(typeName: T) => {
+  return useRegistries()[typeName]
 }
 
 export const useRegistries = (): RegistryRegistry => {
-  const app = getCurrentInstance()?.appContext.app as ArtVueInterface
-  return markRaw({
-    Single: useRegistry('Single', app),
-    List: useRegistry('List', app),
-    Form: useRegistry('Form', app),
-    Character: useRegistry('Character', app),
-    Profile: useRegistry('Profile', app),
-  })
+  return inject('$registries', buildRegistries, true)
 }
 
 export const getUid = () => {

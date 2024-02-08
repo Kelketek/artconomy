@@ -1,10 +1,10 @@
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
-import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks'
-import {getController, listenForRegistryName, performUnhook} from '@/store/registry-base'
-import {SingleController} from '@/store/singles/controller'
-import {SingleState} from '@/store/singles/types/SingleState'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
+import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks.ts'
+import {getController, listenForRegistryName, performUnhook} from '@/store/registry-base.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {useRouter} from 'vue-router'
-import {useSocket} from '@/plugins/socket'
+import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 
 export const useSingle = <T extends object>(name: string, schema?: SingleModuleOpts<T>) => {

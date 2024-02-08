@@ -1,5 +1,5 @@
 <template>
-  <v-checkbox v-model="scratch" v-bind="$attrs">
+  <v-checkbox v-model="scratch">
     <!-- @ts-nocheck -->
     <template #[name] v-for="name in slotNames">
       <slot :name="name"/>

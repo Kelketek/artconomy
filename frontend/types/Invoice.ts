@@ -1,6 +1,6 @@
-import {InvoiceStatus} from '@/types/InvoiceStatus'
-import {User} from '@/store/profiles/types/User'
-import {InvoiceType} from '@/types/InvoiceType'
+import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {InvoiceType} from '@/types/InvoiceType.ts'
 
 export default interface Invoice {
   id: string,

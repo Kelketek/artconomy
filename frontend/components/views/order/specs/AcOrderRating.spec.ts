@@ -1,5 +1,5 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcDeliverableRating from '@/components/views/order/AcDeliverableRating.vue'
 import {afterEach, beforeEach, describe, test} from 'vitest'

@@ -34,12 +34,12 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 
 @Component({

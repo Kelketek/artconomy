@@ -923,13 +923,13 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {BASE_URL} from '@/lib/lib'
-import QuestionSet from '@/components/views/faq/mixins/question-set'
-import {FormController} from '@/store/forms/form-controller'
+import Viewer from '@/mixins/viewer.ts'
+import {BASE_URL} from '@/lib/lib.ts'
+import QuestionSet from '@/components/views/faq/mixins/question-set.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller'
-import StripeCountryList from '@/types/StripeCountryList'
+import {SingleController} from '@/store/singles/controller.ts'
+import StripeCountryList from '@/types/StripeCountryList.ts'
 
 @Component({
   components: {AcLoadSection},

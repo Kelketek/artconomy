@@ -18,10 +18,10 @@
 </template>
 <script lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import {Character} from '@/store/characters/types/Character'
-import SearchList from '@/components/views/search/mixins/SearchList'
+import {Character} from '@/store/characters/types/Character.ts'
+import SearchList from '@/components/views/search/mixins/SearchList.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 
 @Component({

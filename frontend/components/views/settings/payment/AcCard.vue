@@ -52,25 +52,24 @@
   </v-col>
 </template>
 
-<style lang="sass">
-.saved-card-container
-  .v-radio
-    margin: 0
+<style>
+.saved-card-container .v-radio {
+  margin: 0; }
+  .saved-card-container .v-radio .v-input--selection-controls__input {
+    margin: 0; }
 
-    .v-input--selection-controls__input
-      margin: 0
 </style>
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import {CreditCardToken} from '@/types/CreditCardToken'
-import {ListController} from '@/store/lists/controller'
+import {SingleController} from '@/store/singles/controller.ts'
+import {CreditCardToken} from '@/types/CreditCardToken.ts'
+import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {artCall} from '@/lib/lib'
+import {artCall} from '@/lib/lib.ts'
 import {siVisa, siMastercard, siAmericanexpress, siDiscover, siDinersclub, SimpleIcon} from 'simple-icons'
 import AcIcon from '@/components/AcIcon.vue'
-import {ISSUERS} from '@/components/views/settings/payment/issuers'
+import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
 
 @Component({
   components: {

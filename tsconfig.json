@@ -6,7 +6,8 @@
     "target": "ESNext",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "strict": true,
     "jsx": "preserve",
     "resolveJsonModule": true,
@@ -23,7 +24,7 @@
       "@/*": [
         "frontend/*"
       ]
-    }
+    },
   },
   "include": ["frontend/**/*.ts", "frontend/**/*.d.ts", "frontend/**/*.tsx", "frontend/**/*.vue"],
   "references": [{ "path": "./tsconfig.node.json" }],

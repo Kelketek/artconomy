@@ -1,7 +1,7 @@
-import {cleanUp, mockCardMount, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mockCardMount, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

@@ -9,12 +9,12 @@
     </v-col>
     <v-col cols="12">
       <ac-draggable-list :list="list">
-        <template v-slot:default="{sortableList}">
-          <v-col cols="4" sm="3" lg="2" v-for="submission in sortableList" :key="submission.x.id">
+        <template v-slot:default="{element, index}">
+          <v-col cols="4" sm="3" lg="2" :key="index">
             <ac-gallery-preview class="pa-1" @click.capture.stop.prevent="() => false"
                                 :linked="false"
-                                :submission="submission.x" :show-footer="true">
-            </ac-gallery-preview>
+                                :key="index"
+                                :submission="element.x" :show-footer="true" />
           </v-col>
         </template>
       </ac-draggable-list>
@@ -42,16 +42,15 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import draggable from 'vuedraggable'
+import Subjective from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller'
-import Submission from '@/types/Submission'
+import {ListController} from '@/store/lists/controller.ts'
+import Submission from '@/types/Submission.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {flatten} from '@/lib/lib'
-import {Ratings} from '@/store/profiles/types/Ratings'
-import Editable from '@/mixins/editable'
+import {flatten} from '@/lib/lib.ts'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import Editable from '@/mixins/editable.ts'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 
@@ -62,7 +61,6 @@ import AcDraggableList from '@/components/AcDraggableList.vue'
     AcPaginated,
     AcGalleryPreview,
     AcLoadSection,
-    draggable,
   },
 })
 class ManageSubmissionList extends mixins(Subjective, Editable) {

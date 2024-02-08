@@ -1,10 +1,10 @@
-import mockAxios from '@/specs/helpers/mock-axios'
-import {ArtStore, createStore} from '@/store'
-import {fieldFromSchema} from '../index'
-import {formRegistry} from '../registry'
-import {cleanUp, rq, rs} from '@/specs/helpers'
+import mockAxios from '@/specs/helpers/mock-axios.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {fieldFromSchema} from '../index.ts'
+import {formRegistry} from '../registry.ts'
+import {cleanUp, rq, rs} from '@/specs/helpers/index.ts'
 import flushPromises from 'flush-promises'
-import {RootFormState} from '@/store/forms/types/RootFormState'
+import {RootFormState} from '@/store/forms/types/RootFormState.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 describe('Forms store', () => {

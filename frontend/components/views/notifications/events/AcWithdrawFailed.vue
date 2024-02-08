@@ -10,13 +10,13 @@
 </template>
 
 <script>
-import AcBaseNotification from './AcBaseNotification'
-import Notifiction from '../mixins/notification'
+import AcBaseNotification from './AcBaseNotification.vue'
+import Notification from '../mixins/notification.ts'
 
 export default {
   name: 'ac-withdraw-failed',
   components: {AcBaseNotification},
-  mixins: [Notifiction],
+  mixins: [Notification],
   computed: {
     assetLink() {
       return {

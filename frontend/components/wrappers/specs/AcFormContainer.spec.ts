@@ -1,7 +1,7 @@
 import FormContainer from '@/specs/helpers/dummy_components/form-container.vue'
 import {AxiosError} from 'axios'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {VueWrapper} from '@vue/test-utils'
 

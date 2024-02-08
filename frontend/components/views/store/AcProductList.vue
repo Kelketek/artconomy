@@ -10,12 +10,12 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import {ListController} from '@/store/lists/controller'
-import Product from '@/types/Product'
+import {ListController} from '@/store/lists/controller.ts'
+import Product from '@/types/Product.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 
 @Component({
   components: {

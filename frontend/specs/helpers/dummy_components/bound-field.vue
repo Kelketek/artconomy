@@ -4,9 +4,9 @@
 
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {FormController} from '@/store/forms/form-controller'
-import {ArtVue} from '@/lib/lib'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({
     components: {AcBoundField},

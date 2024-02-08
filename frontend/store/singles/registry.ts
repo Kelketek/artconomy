@@ -1,9 +1,9 @@
 import {createApp} from 'vue'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base'
-import {SingleController} from './controller'
-import {SingleState} from './types/SingleState'
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
-import {ArtStore} from '@/store'
+import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
+import {SingleController} from './controller.ts'
+import {SingleState} from './types/SingleState.ts'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
+import {ArtStore} from '@/store/index.ts'
 
 export class SingleRegistry extends BaseRegistry<SingleState<any>, SingleController<any>> {}
 

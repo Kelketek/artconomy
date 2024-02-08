@@ -39,18 +39,18 @@
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {FormController} from '@/store/forms/form-controller'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {ListController} from '@/store/lists/controller'
-import Transaction from '@/types/Transaction'
+import Subjective from '@/mixins/subjective.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import Transaction from '@/types/Transaction.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller'
-import {Balance} from '@/types/Balance'
-import {RawData} from '@/store/forms/types/RawData'
-import {flatten} from '@/lib/lib'
+import {SingleController} from '@/store/singles/controller.ts'
+import {Balance} from '@/types/Balance.ts'
+import {RawData} from '@/store/forms/types/RawData.ts'
+import {flatten} from '@/lib/lib.ts'
 
 @Component({
   components: {

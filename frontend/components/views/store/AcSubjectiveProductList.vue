@@ -55,14 +55,14 @@
 </template>
 
 <script lang="ts">
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcProductList from '@/components/views/store/AcProductList.vue'
 import AcNewProduct from '@/components/views/store/AcNewProduct.vue'
-import {flatten} from '@/lib/lib'
-import {ListController} from '@/store/lists/controller'
-import Product from '@/types/Product'
+import {flatten} from '@/lib/lib.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import Product from '@/types/Product.ts'
 
 @Component({
   components: {

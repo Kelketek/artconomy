@@ -18,7 +18,7 @@
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import AcTab from '@/components/AcTab.vue'
-import {TabSpec} from '@/types/TabSpec'
+import {TabSpec} from '@/types/TabSpec.ts'
 
 @Component({
   components: {AcTab},

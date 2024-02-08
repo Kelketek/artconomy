@@ -1,5 +1,5 @@
-import {Ratings} from './Ratings'
-import {PROCESSORS} from '@/types/PROCESSORS'
+import {Ratings} from './Ratings.ts'
+import {PROCESSORS} from '@/types/PROCESSORS.ts'
 
 export interface User {
   landscape_paid_through: string | null,

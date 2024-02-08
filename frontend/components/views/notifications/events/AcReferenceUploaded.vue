@@ -12,9 +12,9 @@
 </template>
 
 <script>
-import Notification from '../mixins/notification'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
-import Viewer from '@/mixins/viewer'
+import Notification from '../mixins/notification.ts'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import Viewer from '@/mixins/viewer.ts'
 
 export default {
   name: 'ac-reference-uploaded',

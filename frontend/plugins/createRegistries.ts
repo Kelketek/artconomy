@@ -2,13 +2,12 @@
 // other modules.
 
 import {createApp, markRaw} from 'vue'
-import {RegistryRegistry} from '@/store/registry-base'
-import {singleRegistry} from '@/store/singles/registry'
-import {listRegistry} from '@/store/lists/registry'
-import {formRegistry} from '@/store/forms/registry'
-import {characterRegistry} from '@/store/characters/registry'
-import {profileRegistry} from '@/store/profiles/registry'
-
+import {RegistryRegistry} from '@/store/registry-base.ts'
+import {singleRegistry} from '@/store/singles/registry.ts'
+import {listRegistry} from '@/store/lists/registry.ts'
+import {formRegistry} from '@/store/forms/registry.ts'
+import {characterRegistry} from '@/store/characters/registry.ts'
+import {profileRegistry} from '@/store/profiles/registry.ts'
 
 export const buildRegistries = () => markRaw({
   Single: singleRegistry,

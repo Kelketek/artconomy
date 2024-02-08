@@ -1,4 +1,4 @@
-import {LineMoneyMap} from '@/types/LineMoneyMap'
+import {LineMoneyMap} from '@/types/LineMoneyMap.ts'
 import {Decimal} from 'decimal.js'
 
 export default interface LineAccumulator {

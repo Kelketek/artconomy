@@ -1,6 +1,6 @@
 import {Component, Watch} from 'vue-facing-decorator'
-import {Ratings} from '@/store/profiles/types/Ratings'
-import {ArtVue, dotTraverse} from '@/lib/lib'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {ArtVue, dotTraverse} from '@/lib/lib.ts'
 
 @Component
 export default class RatingRefresh extends ArtVue {

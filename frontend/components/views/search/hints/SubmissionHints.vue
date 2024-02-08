@@ -16,9 +16,9 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import SearchHints from '@/components/views/search/mixins/SearchHints'
-import AcBoundField from '@/components/fields/AcBoundField'
-import Viewer from '@/mixins/viewer'
+import SearchHints from '@/components/views/search/mixins/SearchHints.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import Viewer from '@/mixins/viewer.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 
 @Component({

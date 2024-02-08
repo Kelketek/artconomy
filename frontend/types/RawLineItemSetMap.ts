@@ -1,5 +1,4 @@
-import {ListController} from '@/store/lists/controller'
-import LineItem from '@/types/LineItem'
+import LineItem from '@/types/LineItem.ts'
 
 export interface RawLineItemSetMap {
   name: string,

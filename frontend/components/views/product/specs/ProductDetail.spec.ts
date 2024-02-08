@@ -1,5 +1,5 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   confirmAction,
@@ -12,22 +12,22 @@ import {
   setViewer,
   vueSetup,
   VuetifyWrapped, waitFor,
-} from '@/specs/helpers'
+} from '@/specs/helpers/index.ts'
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
-import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures'
-import mockAxios from '@/__mocks__/axios'
-import {searchSchema} from '@/lib/lib'
-import {FormController} from '@/store/forms/form-controller'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
+import mockAxios from '@/__mocks__/axios.ts'
+import {searchSchema} from '@/lib/lib.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 
-import {genSubmission} from '@/store/submissions/specs/fixtures'
-import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
-import {LineTypes} from '@/types/LineTypes'
-import {SingleController} from '@/store/singles/controller'
-import LineItem from '@/types/LineItem'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
+import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
+import {LineTypes} from '@/types/LineTypes.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import LineItem from '@/types/LineItem.ts'
 import {Decimal} from 'decimal.js'
-import {Ratings} from '@/store/profiles/types/Ratings'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let store: ArtStore

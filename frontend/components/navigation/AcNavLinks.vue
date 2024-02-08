@@ -213,12 +213,12 @@
 <script lang="ts">
 import {Component, Prop, toNative} from 'vue-facing-decorator'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
-import {FormController} from '@/store/forms/form-controller'
-import {ProfileController} from '@/store/profiles/controller'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {ProfileController} from '@/store/profiles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {artCall, ArtVue, makeQueryParams} from '@/lib/lib'
-import {RawData} from '@/store/forms/types/RawData'
-import {User} from '@/store/profiles/types/User'
+import {artCall, ArtVue, makeQueryParams} from '@/lib/lib.ts'
+import {RawData} from '@/store/forms/types/RawData.ts'
+import {User} from '@/store/profiles/types/User.ts'
 
 @Component({
   components: {

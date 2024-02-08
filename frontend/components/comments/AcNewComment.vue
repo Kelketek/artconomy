@@ -69,18 +69,18 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '../../mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcEditor from '../fields/AcEditor.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {FormController} from '@/store/forms/form-controller'
-import AcBoundField from '@/components/fields/AcBoundField'
+import {FormController} from '@/store/forms/form-controller.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting'
-import {RawData} from '@/store/forms/types/RawData'
-import {User} from '@/store/profiles/types/User'
+import Formatting from '@/mixins/formatting.ts'
+import {RawData} from '@/store/forms/types/RawData.ts'
+import {User} from '@/store/profiles/types/User.ts'
 
 @Component({
   components: {

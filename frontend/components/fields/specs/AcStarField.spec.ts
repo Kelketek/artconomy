@@ -1,8 +1,8 @@
-import {mount, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {ListController} from '@/store/lists/controller'
-import {CreditCardToken} from '@/types/CreditCardToken'
+import {mount, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import AcStarField from '@/components/fields/AcStarField.vue'
 import {describe, expect, beforeEach, test, vi} from 'vitest'
 

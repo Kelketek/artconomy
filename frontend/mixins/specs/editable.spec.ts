@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
 import Editable from '@/specs/helpers/dummy_components/editable.vue'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 const mockError = vi.spyOn(console, 'error')

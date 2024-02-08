@@ -1,7 +1,7 @@
 import {toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import {defineComponent, PropType} from 'vue'
-import AcNotification from '@/types/AcNotification'
+import AcNotification from '@/types/AcNotification.ts'
 
 
 export default defineComponent({

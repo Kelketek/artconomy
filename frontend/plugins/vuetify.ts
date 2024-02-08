@@ -9,7 +9,7 @@ import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 
 // Composables
-import DateFnsAdapter from "@date-io/date-fns";
+import DateFnsAdapter from '@date-io/date-fns'
 import {createVuetify as upstreamCreateVuetify} from 'vuetify'
 import {aliases, mdi} from 'vuetify/iconsets/mdi'
 import colors from 'vuetify/util/colors'

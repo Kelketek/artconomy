@@ -121,14 +121,14 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcFormDialog from './wrappers/AcFormDialog.vue'
-import AcBoundField from './fields/AcBoundField'
-import Subjective from '../mixins/subjective'
-import {Character} from '@/store/characters/types/Character'
-import Submission from '@/types/Submission'
-import {FormController} from '@/store/forms/form-controller'
-import {User} from '@/store/profiles/types/User'
-import Upload from '@/mixins/upload'
-import {newUploadSchema} from '@/lib/lib'
+import AcBoundField from './fields/AcBoundField.ts'
+import Subjective from '../mixins/subjective.ts'
+import {Character} from '@/store/characters/types/Character.ts'
+import Submission from '@/types/Submission.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import Upload from '@/mixins/upload.ts'
+import {newUploadSchema} from '@/lib/lib.ts'
 import submissionDetail from '@/components/views/submission/SubmissionDetail.vue'
 
 @Component({

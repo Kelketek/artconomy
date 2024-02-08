@@ -1,6 +1,6 @@
-import {ArtVue, thumbFromSpec} from '@/lib/lib'
-import {Ratings} from '@/store/profiles/types/Ratings'
-import FileSpec from '@/types/FileSpec'
+import {ArtVue, thumbFromSpec} from '@/lib/lib.ts'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import FileSpec from '@/types/FileSpec.ts'
 import {Component} from 'vue-facing-decorator'
 
 @Component

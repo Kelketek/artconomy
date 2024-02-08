@@ -1,18 +1,16 @@
 import {Watch} from 'vue-facing-decorator'
-import {ListModuleOpts} from './types/ListModuleOpts'
-import {SingleController} from '../singles/controller'
-import {BaseController, ControllerArgs} from '@/store/controller-base'
-import {ListState} from '@/store/lists/types/ListState'
-import {ListModule, pageFromParams, totalPages, pageSizeFromParams} from '@/store/lists/index'
-import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
-import {QueryParams} from '@/store/helpers/QueryParams'
-import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
-import {ComputedGetters} from '@/lib/lib'
-import {getController, ModuleName} from '@/store/registry-base'
-import {useRegistry} from '@/store/hooks'
-import {SingleRegistry} from '@/store/singles/registry'
-import {SingleState} from '@/store/singles/types/SingleState'
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
+import {ListModuleOpts} from './types/ListModuleOpts.ts'
+import {SingleController} from '../singles/controller.ts'
+import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
+import {ListState} from '@/store/lists/types/ListState.ts'
+import {ListModule, pageFromParams, pageSizeFromParams, totalPages} from '@/store/lists/index.ts'
+import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse.ts'
+import {QueryParams} from '@/store/helpers/QueryParams.ts'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
+import {ComputedGetters} from '@/lib/lib.ts'
+import {getController} from '@/store/registry-base.ts'
+import {SingleState} from '@/store/singles/types/SingleState.ts'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 
 @ComputedGetters
 export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
@@ -220,6 +218,10 @@ export class ListController<T extends object> extends BaseController<ListModuleO
 
   public set stale(val: boolean) {
     this.commit('setStale', val)
+  }
+
+  public get keyProp() {
+    return this.attr('keyProp')
   }
 
   @Watch('ready', {immediate: true})

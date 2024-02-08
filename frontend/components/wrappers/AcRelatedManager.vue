@@ -15,10 +15,10 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
-import {ListController} from '@/store/lists/controller'
-import {FieldController} from '@/store/forms/field-controller'
+import {ListController} from '@/store/lists/controller.ts'
+import {FieldController} from '@/store/forms/field-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {SingleController} from '@/store/singles/controller'
+import {SingleController} from '@/store/singles/controller.ts'
 
 @Component({
   components: {AcFormContainer},

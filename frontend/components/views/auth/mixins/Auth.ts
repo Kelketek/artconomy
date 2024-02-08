@@ -1,8 +1,8 @@
 import {Component, mixins} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller'
-import {User} from '@/store/profiles/types/User'
-import Viewer from '@/mixins/viewer'
-import {singleQ} from '@/lib/lib'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import Viewer from '@/mixins/viewer.ts'
+import {singleQ} from '@/lib/lib.ts'
 
 @Component
 export class Auth extends mixins(Viewer) {

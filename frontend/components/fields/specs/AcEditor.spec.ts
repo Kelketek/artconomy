@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import Editor from '@/specs/helpers/dummy_components/editor.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import AcEditor from '@/components/fields/AcEditor.vue'

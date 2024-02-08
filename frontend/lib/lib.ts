@@ -6,24 +6,24 @@ import Token from 'markdown-it/lib/token'
 import {Options} from 'markdown-it/lib'
 import Renderer from 'markdown-it/lib/renderer'
 import {LocationQueryRaw, LocationQueryValue, RouteLocation, RouteLocationRaw, RouteParamsRaw} from 'vue-router'
-import {TerseUser} from '@/store/profiles/types/TerseUser'
-import {SingleController} from '@/store/singles/controller'
-import {AnonUser} from '@/store/profiles/types/AnonUser'
-import {User} from '@/store/profiles/types/User'
-import FileSpec from '@/types/FileSpec'
-import {SimpleQueryParams} from '@/store/helpers/SimpleQueryParams'
-import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
-import {ListController} from '@/store/lists/controller'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import FileSpec from '@/types/FileSpec.ts'
+import {SimpleQueryParams} from '@/store/helpers/SimpleQueryParams.ts'
+import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema.ts'
+import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
+import {ListController} from '@/store/lists/controller.ts'
 import cloneDeep from 'lodash/cloneDeep'
-import {LogLevels} from '@/types/LogLevels'
+import {LogLevels} from '@/types/LogLevels.ts'
 import {format, parseISO as upstreamParseISO} from 'date-fns'
 import {Vue} from 'vue-facing-decorator'
 import StateInline from 'markdown-it/lib/rules_inline/state_inline'
-import {ArtVueClassInterface} from '@/types/ArtVueClassInterface'
-import {RelatedUser} from '@/store/profiles/types/RelatedUser'
-import {ContentRating} from '@/types/ContentRating'
-import {InvoiceType} from '@/types/InvoiceType'
+import {ArtVueClassInterface} from '@/types/ArtVueClassInterface.ts'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import {ContentRating} from '@/types/ContentRating.ts'
+import {InvoiceType} from '@/types/InvoiceType.ts'
 
 // Needed for Matomo.
 declare global {
@@ -661,7 +661,7 @@ export function baseInvoiceSchema(endpoint: string): NamelessFormSchema {
       details: {value: ''},
       paid: {value: false},
       hold: {value: false},
-      buyer: {value: ''},
+      buyer: {value: null},
       cascade_fees: {value: false},
       expected_turnaround: {value: 1},
     },

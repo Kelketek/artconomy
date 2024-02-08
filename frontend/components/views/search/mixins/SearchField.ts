@@ -1,11 +1,11 @@
-import {RawData} from '@/store/forms/types/RawData'
+import {RawData} from '@/store/forms/types/RawData.ts'
 import deepEqual from 'fast-deep-equal'
-import {makeQueryParams} from '@/lib/lib'
-import {ListController} from '@/store/lists/controller'
-import {FormController} from '@/store/forms/form-controller'
+import {makeQueryParams} from '@/lib/lib.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
 import debounce from 'lodash/debounce'
 import {Component, mixins, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 
 @Component
 export default class SearchField extends mixins(Viewer) {

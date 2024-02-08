@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
 import AcLoadingSpinner from '../AcLoadingSpinner.vue'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, afterEach, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

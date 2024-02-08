@@ -9,8 +9,8 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcNewSubmission from '../AcNewSubmission.vue'
-import Subjective from '@/mixins/subjective'
-import Upload from '@/mixins/upload'
+import Subjective from '@/mixins/subjective.ts'
+import Upload from '@/mixins/upload.ts'
 
 @Component({
   components: {AcNewSubmission},

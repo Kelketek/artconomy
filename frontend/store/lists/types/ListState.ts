@@ -1,6 +1,6 @@
-import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
-import {QueryParams} from '@/store/helpers/QueryParams'
-import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
+import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse.ts'
+import {QueryParams} from '@/store/helpers/QueryParams.ts'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
 
 export interface ListState<T> {
   response: PaginatedResponse | null,

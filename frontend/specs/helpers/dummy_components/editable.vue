@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Editable from '@/mixins/editable'
+import Editable from '@/mixins/editable.ts'
 
 @Component({})
 class EditableComponent extends mixins(Editable) {

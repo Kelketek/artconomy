@@ -1,13 +1,13 @@
 import {Component, Watch} from 'vue-facing-decorator'
-import Product from '@/types/Product'
-import Deliverable from '@/types/Deliverable'
-import {invoiceLines} from '@/lib/lineItemFunctions'
-import {FormController} from '@/store/forms/form-controller'
-import {SingleController} from '@/store/singles/controller'
-import Pricing from '@/types/Pricing'
-import {ArtVue} from '@/lib/lib'
-import LineItem from '@/types/LineItem'
-import {ListController} from '@/store/lists/controller'
+import Product from '@/types/Product.ts'
+import Deliverable from '@/types/Deliverable.ts'
+import {invoiceLines} from '@/lib/lineItemFunctions.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import Pricing from '@/types/Pricing.ts'
+import {ArtVue} from '@/lib/lib.ts'
+import LineItem from '@/types/LineItem.ts'
+import {ListController} from '@/store/lists/controller.ts'
 
 @Component
 export default class InvoicingMixin extends ArtVue {

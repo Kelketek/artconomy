@@ -164,31 +164,31 @@
 <script lang="ts">
 import AcAsset from '@/components/AcAsset.vue'
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {Character} from '@/store/characters/types/Character'
+import Subjective from '@/mixins/subjective.ts'
+import {Character} from '@/store/characters/types/Character.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {Patch} from '@/store/singles/patcher'
-import AcRendered from '@/components/wrappers/AcRendered'
-import Editable from '@/mixins/editable'
+import {Patch} from '@/store/singles/patcher.ts'
+import AcRendered from '@/components/wrappers/AcRendered.ts'
+import Editable from '@/mixins/editable.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import CharacterCentric from '@/components/views/character/mixins/CharacterCentric'
+import CharacterCentric from '@/components/views/character/mixins/CharacterCentric.ts'
 import AcAttributes from '@/components/views/character/AcAttributes.vue'
 import AcColors from '@/components/views/character/AcColors.vue'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
 import AcContextGallery from '@/components/views/character/AcContextGallery.vue'
-import Submission from '@/types/Submission'
+import Submission from '@/types/Submission.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcRelatedManager from '@/components/wrappers/AcRelatedManager.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import {setMetaContent, textualize, updateTitle} from '@/lib/lib'
+import {setMetaContent, textualize, updateTitle} from '@/lib/lib.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 
 @Component({
   components: {
@@ -239,6 +239,7 @@ class CharacterDetail extends mixins(Subjective, CharacterCentric, Editable) {
   public addSubmission(submission: Submission) {
     if (this.showChangePrimary) {
       if (this.submissionList.empty) {
+        // @ts-expect-error
         this.character.profile.patchers.primary_submission.model = submission.id
       }
       this.submissionList.unshift(submission)

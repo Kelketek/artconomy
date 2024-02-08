@@ -49,12 +49,12 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcLoadSection from '../wrappers/AcLoadSection.vue'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {User} from '@/store/profiles/types/User'
-import Viewer from '@/mixins/viewer'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {SingleController} from '@/store/singles/controller'
+import {User} from '@/store/profiles/types/User.ts'
+import Viewer from '@/mixins/viewer.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 
 @Component({

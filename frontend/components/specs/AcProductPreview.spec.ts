@@ -1,7 +1,7 @@
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {genProduct, genUser} from '@/specs/helpers/fixtures'
+import {genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import {afterEach, beforeEach, describe, test} from 'vitest'
 

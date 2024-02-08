@@ -40,9 +40,9 @@
 
 
 <script>
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {toNative} from 'vue-facing-decorator'
 
 export default {

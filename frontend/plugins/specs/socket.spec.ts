@@ -1,9 +1,9 @@
 import {VueWrapper} from '@vue/test-utils'
-import {createVueSocket, socketNameSpace} from '@/plugins/socket'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import {createVueSocket, socketNameSpace} from '@/plugins/socket.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import WS from 'vitest-websocket-mock'
-import {genId} from '@/lib/lib'
-import {mount, vueSetup} from '@/specs/helpers'
+import {genId} from '@/lib/lib.ts'
+import {mount, vueSetup} from '@/specs/helpers/index.ts'
 import {afterEach, beforeEach, describe, expect, MockedFunction, test, vi} from 'vitest'
 
 let server: WS

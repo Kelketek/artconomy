@@ -20,10 +20,10 @@
 </template>
 <script lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller'
-import Product from '@/types/Product'
+import {ListController} from '@/store/lists/controller.ts'
+import Product from '@/types/Product.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import SearchList from '@/components/views/search/mixins/SearchList'
+import SearchList from '@/components/views/search/mixins/SearchList.ts'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 
 @Component({

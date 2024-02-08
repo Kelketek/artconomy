@@ -1,8 +1,8 @@
 import {shallowMount, VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, genAnon, setViewer, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, genAnon, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 let store: ArtStore
