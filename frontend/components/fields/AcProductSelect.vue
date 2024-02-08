@@ -4,7 +4,7 @@
       :multiple="multiple"
       v-model="tags"
       autocomplete
-      v-model:search-input="query"
+      v-model:search="query"
       :items="items"
       hide-no-data
       auto-select-first
@@ -13,7 +13,7 @@
       cache-items
       :filter="itemFilter"
       item-value="id"
-      :item-text="formatName"
+      :item-title="formatName"
       ref="input"
       v-bind="fieldAttrs"
   />
@@ -38,6 +38,11 @@ class AcProductSelect extends mixins(Autocomplete, Subjective) {
       // Type mismatch thrown by parent library. Return an empty string for this.
       return ''
     }
+    if (typeof(item) === 'number') {
+      // Don't have the definition, just the ID.
+      return `Product #${item}`
+    }
+    console.log(item)
     return `${item.name} starting at $${item.starting_price.toFixed(2)}`
   }
 

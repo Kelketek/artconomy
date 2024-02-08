@@ -206,7 +206,7 @@ export default class Autocomplete extends Vue {
       val.push(addedVal)
       // Clear out our previous cached hacks here.
       // @ts-ignore
-      this.$refs.input.cachedItems = this.$refs.input.cachedItems.filter((item: IdModel) => item.id !== 0)
+      this.cachedItems = Object.values(this.cachedItems).filter((item: IdModel) => item.id !== 0)
     }
     const items: {[key: number]: IdModel} = {}
     val.forEach((item) => items[item.id] = item)

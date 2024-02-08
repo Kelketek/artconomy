@@ -702,6 +702,9 @@ class DeliverableDetail extends mixins(DeliverableMixin, Formatting, Ratings, In
 
   // @ts-ignore
   public get invoiceEscrowEnabled() {
+    if (!this.sellerHandler) {
+      return false
+    }
     if (!this.sellerHandler.artistProfile.x) {
       return false
     }

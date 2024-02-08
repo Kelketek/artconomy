@@ -6,6 +6,8 @@ import {FormController} from '@/store/forms/form-controller'
 import {SingleController} from '@/store/singles/controller'
 import Pricing from '@/types/Pricing'
 import {ArtVue} from '@/lib/lib'
+import LineItem from '@/types/LineItem'
+import {ListController} from '@/store/lists/controller'
 
 @Component
 export default class InvoicingMixin extends ArtVue {
@@ -17,6 +19,7 @@ export default class InvoicingMixin extends ArtVue {
 
   public invoiceProduct: SingleController<Product> = null as unknown as SingleController<Product>
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
+  public invoiceLineItems = null as unknown as ListController<LineItem>
 
   @Watch('newInvoice.fields.product.value')
   public updateProduct(val: undefined | null | number) {
@@ -64,13 +67,11 @@ export default class InvoicingMixin extends ArtVue {
     return null
   }
 
-  public get invoiceLineItems() {
-    const linesController = this.$getList('newInvoiceLines', {
-      endpoint: '#',
-      paginated: false,
-    })
-    linesController.ready = true
-    linesController.setList(invoiceLines({
+  public get rawInvoiceLineItems() {
+    if (!this.newInvoice) {
+      return []
+    }
+    return invoiceLines({
       planName: this.planName,
       cascade: this.newInvoice.fields.cascade_fees.value,
       pricing: (this.pricing.x || null),
@@ -78,11 +79,20 @@ export default class InvoicingMixin extends ArtVue {
       escrowEnabled: this.invoiceEscrowEnabled,
       product: (this.invoiceProduct.x || null),
       value: this.newInvoice.fields.price.value,
-    }))
-    return linesController
+    })
+  }
+
+  @Watch('rawInvoiceLineItems')
+  public updateLineItems(newValue: LineItem[]) {
+    this.invoiceLineItems.ready = true
+    this.invoiceLineItems.setList(newValue || [])
   }
 
   public created() {
+    this.invoiceLineItems = this.$getList('newInvoiceLines', {
+      endpoint: '#',
+      paginated: false,
+    })
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
     this.pricing.get()
     this.invoiceProduct = this.$getSingle('invoiceProduct', {endpoint: ''})

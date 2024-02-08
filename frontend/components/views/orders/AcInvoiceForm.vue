@@ -1,5 +1,23 @@
 <template>
   <v-row class="ac-invoice-form">
+    <v-col cols="12">
+      <v-alert
+          type="info"
+          title="There's an easier way to do this."
+      >
+        <template v-slot:title>
+          There's an easier way to do this.
+        </template>
+        <p>This form is the full, complicated way to issue an invoice. It is typically easier just to go to a
+          product's detail page and hit the 'create invoice' button. <strong>This method will eventually be removed or
+            significantly rewritten.</strong> However this page might be useful to you if you
+          need some specific functionality like:</p>
+        <ul>
+          <li>Invoicing a task for which none of your products applies.</li>
+          <li>You need to quickly import a task with its status already marked as 'Accepted' or 'Completed'</li>
+        </ul>
+      </v-alert>
+    </v-col>
     <v-col cols="12" sm="6">
       <ac-bound-field
           :field="newInvoice.fields.product"
@@ -10,7 +28,7 @@
           hint="Optional: Specify which of your product this invoice is for. This can help with organization.
                   If no product is specified, this will be considered a custom order."
           :persistent-hint="true"
-      ></ac-bound-field>
+      />
     </v-col>
     <slot name="second">
     </slot>
