@@ -63,14 +63,14 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import {CreditCardToken} from '@/types/CreditCardToken'
-import {ListController} from '@/store/lists/controller'
+import {SingleController} from '@/store/singles/controller.ts'
+import {CreditCardToken} from '@/types/CreditCardToken.ts'
+import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {artCall} from '@/lib/lib'
+import {artCall} from '@/lib/lib.ts'
 import {siVisa, siMastercard, siAmericanexpress, siDiscover, siDinersclub, SimpleIcon} from 'simple-icons'
 import AcIcon from '@/components/AcIcon.vue'
-import {ISSUERS} from '@/components/views/settings/payment/issuers'
+import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
 
 @Component({
   components: {

@@ -18,13 +18,13 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {ListController} from '@/store/lists/controller'
+import Viewer from '@/mixins/viewer.ts'
+import {ListController} from '@/store/lists/controller.ts'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Order from '@/types/Order'
+import Order from '@/types/Order.ts'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 
 @Component({

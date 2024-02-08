@@ -1,8 +1,8 @@
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import flushPromises from 'flush-promises'
 

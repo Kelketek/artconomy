@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 
 @Component
 class Collection extends mixins(Subjective) {

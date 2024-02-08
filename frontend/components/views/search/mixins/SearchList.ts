@@ -1,7 +1,7 @@
 import {Component, mixins} from 'vue-facing-decorator'
 import debounce from 'lodash/debounce'
-import {FormController} from '@/store/forms/form-controller'
-import SearchField from '@/components/views/search/mixins/SearchField'
+import {FormController} from '@/store/forms/form-controller.ts'
+import SearchField from '@/components/views/search/mixins/SearchField.ts'
 
 @Component
 export default class SearchList extends mixins(SearchField) {

@@ -45,8 +45,8 @@
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import { Sortable } from "sortablejs-vue3"
 import {artCall} from '@/lib/lib.ts'
-import {SingleController} from '@/store/singles/controller'
-import {ListController} from '@/store/lists/controller'
+import {SingleController} from '@/store/singles/controller.ts'
+import {ListController} from '@/store/lists/controller.ts'
 
 @Component({
   components: {

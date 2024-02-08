@@ -226,12 +226,12 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Product from '@/types/Product'
+import Product from '@/types/Product.ts'
 import AcAsset from '@/components/AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcRendered from '@/components/wrappers/AcRendered'
+import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
 import {RouteLocationRaw} from 'vue-router'
 

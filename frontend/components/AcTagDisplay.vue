@@ -57,12 +57,12 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcTagField from '@/components/fields/AcTagField.vue'
-import {Patch} from '@/store/singles/patcher'
-import Subjective from '@/mixins/subjective'
+import {Patch} from '@/store/singles/patcher.ts'
+import Subjective from '@/mixins/subjective.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 
 @Component({
   components: {

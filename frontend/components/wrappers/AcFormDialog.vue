@@ -68,7 +68,7 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcFormContainer from './AcFormContainer.vue'
-import Dialog from '@/mixins/dialog'
+import Dialog from '@/mixins/dialog.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 
 @Component({

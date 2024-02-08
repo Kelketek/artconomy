@@ -1,12 +1,12 @@
 import {Component, mixins, Watch} from 'vue-facing-decorator'
-import {CreditCardToken} from '@/types/CreditCardToken'
-import {FormController} from '@/store/forms/form-controller'
-import {SingleController} from '@/store/singles/controller'
-import ClientSecret from '@/types/ClientSecret'
+import {CreditCardToken} from '@/types/CreditCardToken.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import ClientSecret from '@/types/ClientSecret.ts'
 import debounce from 'lodash/debounce'
-import {ListController} from '@/store/lists/controller'
-import StripeReader from '@/types/StripeReader'
-import ErrorHandling from '@/mixins/ErrorHandling'
+import {ListController} from '@/store/lists/controller.ts'
+import StripeReader from '@/types/StripeReader.ts'
+import ErrorHandling from '@/mixins/ErrorHandling.ts'
 
 @Component
 export default class StripeHostMixin extends mixins(ErrorHandling) {

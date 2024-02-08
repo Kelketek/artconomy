@@ -1,9 +1,9 @@
 import {createRouter, Router} from 'vue-router'
-import {faqRoutes} from './helpers'
+import {faqRoutes} from './helpers.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import Other from '@/components/views/faq/Other.vue'
-import {cleanUp, flushPromises, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 describe('Other.vue', () => {

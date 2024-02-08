@@ -25,12 +25,12 @@
 import AcAvatar from './AcAvatar.vue'
 import AcRelatedManager from './wrappers/AcRelatedManager.vue'
 import AcLoadSection from './wrappers/AcLoadSection.vue'
-import AcBoundField from './fields/AcBoundField'
+import AcBoundField from './fields/AcBoundField.ts'
 import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {ArtVue, genId} from '@/lib/lib'
-import {FormController} from '@/store/forms/form-controller'
-import {ListController} from '@/store/lists/controller'
-import {TerseUser} from '@/store/profiles/types/TerseUser'
+import {ArtVue, genId} from '@/lib/lib.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
 @Component({
   components: {

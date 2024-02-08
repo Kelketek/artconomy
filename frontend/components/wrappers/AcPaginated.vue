@@ -50,8 +50,8 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller'
-import ErrorHandling from '@/mixins/ErrorHandling'
+import {ListController} from '@/store/lists/controller.ts'
+import ErrorHandling from '@/mixins/ErrorHandling.ts'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 
 @Component({

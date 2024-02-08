@@ -7,10 +7,10 @@
 </template>
 <script lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import {TerseUser} from '@/store/profiles/types/TerseUser'
-import SearchList from '@/components/views/search/mixins/SearchList'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import SearchList from '@/components/views/search/mixins/SearchList.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 
 @Component({

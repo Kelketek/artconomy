@@ -1,4 +1,4 @@
-import mockAxios from '@/specs/helpers/mock-axios'
+import mockAxios from '@/specs/helpers/mock-axios.ts'
 import {ArtStore, createStore} from '../../index'
 import {beforeEach, describe, expect, test} from 'vitest'
 

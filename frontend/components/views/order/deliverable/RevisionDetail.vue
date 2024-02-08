@@ -69,18 +69,18 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcAsset from '@/components/AcAsset.vue'
-import {SingleController} from '@/store/singles/controller'
-import Revision from '@/types/Revision'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
+import {SingleController} from '@/store/singles/controller.ts'
+import Revision from '@/types/Revision.ts'
+import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {ListController} from '@/store/lists/controller'
-import Deliverable from '@/types/Deliverable'
-import {markRead} from '@/lib/lib'
-import {User} from '@/store/profiles/types/User'
-import {FormController} from '@/store/forms/form-controller'
+import {ListController} from '@/store/lists/controller.ts'
+import Deliverable from '@/types/Deliverable.ts'
+import {markRead} from '@/lib/lib.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 
 @Component({
   components: {

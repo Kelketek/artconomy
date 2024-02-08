@@ -1,9 +1,9 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {RouteLocationRaw} from 'vue-router'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 

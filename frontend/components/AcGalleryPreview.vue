@@ -65,9 +65,9 @@
 </style>
 
 <script>
-import AcAsset from './AcAsset'
+import AcAsset from './AcAsset.vue'
 import Viewer from '../mixins/viewer'
-import AcLink from '@/components/wrappers/AcLink'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {
   components: {

@@ -14,7 +14,7 @@
 
 <script>
 import Notification from '../mixins/notification'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 
 export default {
   name: 'ac-submission-shared',

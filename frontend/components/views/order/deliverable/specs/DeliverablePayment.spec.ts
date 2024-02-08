@@ -1,4 +1,4 @@
-import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
+import {genDeliverable, genUser} from '@/specs/helpers/fixtures.ts'
 import {
   cleanUp,
   confirmAction,
@@ -9,22 +9,22 @@ import {
   setViewer,
   vueSetup,
   VuetifyWrapped,
-} from '@/specs/helpers'
+} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import DeliverablePayment from '@/components/views/order/deliverable/DeliverablePayment.vue'
-import {DeliverableStatus} from '@/types/DeliverableStatus'
-import {dummyLineItems} from '@/lib/specs/helpers'
-import mockAxios from '@/__mocks__/axios'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {dummyLineItems} from '@/lib/specs/helpers.ts'
+import mockAxios from '@/__mocks__/axios.ts'
 import MockDate from 'mockdate'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {Router} from 'vue-router'
-import {ArtStore, createStore} from '@/store'
-import {deliverableRouter} from '@/components/views/order/specs/helpers'
-import {ConnectionStatus} from '@/types/ConnectionStatus'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {PROCESSORS} from '@/types/PROCESSORS'
-import {parseISO} from '@/lib/lib'
-import Deliverable from '@/types/Deliverable'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
+import {ConnectionStatus} from '@/types/ConnectionStatus.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {PROCESSORS} from '@/types/PROCESSORS.ts'
+import {parseISO} from '@/lib/lib.ts'
+import Deliverable from '@/types/Deliverable.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let store: ArtStore

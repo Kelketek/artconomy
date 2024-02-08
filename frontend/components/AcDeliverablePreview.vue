@@ -29,12 +29,12 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Deliverable from '@/types/Deliverable'
-import Order from '@/types/Order'
+import Deliverable from '@/types/Deliverable.ts'
+import Order from '@/types/Order.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 
 @Component({
   components: {

@@ -1,7 +1,7 @@
 import {shallowMount, VueWrapper} from '@vue/test-utils'
 import NavBar from '../NavBar.vue'
-import {ArtStore, createStore} from '@/store'
-import {genUser} from '@/specs/helpers/fixtures'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {
   cleanUp,
   flushPromises,
@@ -11,10 +11,10 @@ import {
   rs,
   setViewer,
   vueSetup,
-} from '@/specs/helpers'
-import mockAxios from '@/specs/helpers/mock-axios'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {initDrawerValue} from '@/lib/lib'
+} from '@/specs/helpers/index.ts'
+import mockAxios from '@/specs/helpers/mock-axios.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {initDrawerValue} from '@/lib/lib.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import NavBarContainer from '@/components/navigation/specs/NavBarContainer.vue'
 import {reactive} from 'vue'

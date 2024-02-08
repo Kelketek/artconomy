@@ -1,9 +1,9 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
-import {ArtStore, createStore} from '@/store'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 let store: ArtStore

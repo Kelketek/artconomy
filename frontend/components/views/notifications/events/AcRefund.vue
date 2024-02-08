@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import AcBaseNotification from './AcBaseNotification'
+import AcBaseNotification from './AcBaseNotification.vue'
 import Notification from '../mixins/notification'
 
 export default {

@@ -1,8 +1,8 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import AcShareManager from '@/components/AcShareManager.vue'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

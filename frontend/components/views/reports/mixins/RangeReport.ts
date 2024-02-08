@@ -1,5 +1,5 @@
 import {Component, Vue} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component
 export default class RangeReport extends ArtVue {

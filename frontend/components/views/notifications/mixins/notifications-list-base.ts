@@ -1,11 +1,11 @@
 // Probably need to eliminate this once it's refactored, since it's only ever used one place and most of its
 // functionality is in modules now.
-import {artCall, NOTIFICATION_MAPPING} from '@/lib/lib'
-import Viewer from '@/mixins/viewer'
+import {artCall, NOTIFICATION_MAPPING} from '@/lib/lib.ts'
+import Viewer from '@/mixins/viewer.ts'
 import {Component, mixins, Prop} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import AcNotification from '@/types/AcNotification'
-import {ListController} from '@/store/lists/controller'
+import {SingleController} from '@/store/singles/controller.ts'
+import AcNotification from '@/types/AcNotification.ts'
+import {ListController} from '@/store/lists/controller.ts'
 
 @Component
 export default class NotificationsListBase extends mixins(Viewer) {

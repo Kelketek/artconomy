@@ -1,4 +1,4 @@
-import {ErrorState} from './types'
+import {ErrorState} from './types.ts'
 import {AxiosError} from 'axios'
 import {MutationTree} from 'vuex'
 

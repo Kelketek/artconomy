@@ -10,8 +10,8 @@
 
 <script lang="ts">
 import {Component, toNative, mixins} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {flatten} from '@/lib/lib'
+import Subjective from '@/mixins/subjective.ts'
+import {flatten} from '@/lib/lib.ts'
 
 @Component
 class Watchlists extends mixins(Subjective) {

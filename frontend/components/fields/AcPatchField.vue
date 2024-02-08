@@ -50,7 +50,7 @@
 <script lang="ts">
 import {toValue} from 'vue'
 import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
-import {Patch} from '@/store/singles/patcher'
+import {Patch} from '@/store/singles/patcher.ts'
 import deepEqual from 'fast-deep-equal'
 import AcEditor from '@/components/fields/AcEditor.vue'
 import AcTagField from '@/components/fields/AcTagField.vue'

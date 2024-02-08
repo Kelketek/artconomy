@@ -30,7 +30,7 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Dialog from '@/mixins/dialog'
+import Dialog from '@/mixins/dialog.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 
 @Component({

@@ -1,5 +1,5 @@
-import {QueryParams} from '@/store/helpers/QueryParams'
-import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
+import {QueryParams} from '@/store/helpers/QueryParams.ts'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
 
 export interface ListModuleOpts {
   grow?: boolean,

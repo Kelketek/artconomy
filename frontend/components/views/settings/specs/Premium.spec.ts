@@ -1,6 +1,6 @@
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   confirmAction,
@@ -10,11 +10,11 @@ import {
   rs,
   setViewer,
   vueSetup, VuetifyWrapped,
-} from '@/specs/helpers'
-import {genUser} from '@/specs/helpers/fixtures'
+} from '@/specs/helpers/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import Premium from '@/components/views/settings/Premium.vue'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import mockAxios from '@/__mocks__/axios'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 let store: ArtStore

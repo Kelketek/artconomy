@@ -67,17 +67,17 @@
 </template>
 
 <script lang="ts">
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Transaction from '@/types/Transaction'
-import {User} from '@/store/profiles/types/User'
-import Formatting from '@/mixins/formatting'
+import Transaction from '@/types/Transaction.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import Formatting from '@/mixins/formatting.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {RelatedUser} from '@/store/profiles/types/RelatedUser'
-import {TransactionCategory} from '@/types/TransactionCategory'
-import {TransactionStatus} from '@/types/TransactionStatus'
-import {AccountType} from '@/types/AccountType'
-import {ISSUERS} from '@/components/views/settings/payment/issuers'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import {TransactionCategory} from '@/types/TransactionCategory.ts'
+import {TransactionStatus} from '@/types/TransactionStatus.ts'
+import {AccountType} from '@/types/AccountType.ts'
+import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
 
 @Component({
   components: {AcLink},

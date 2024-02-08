@@ -43,13 +43,13 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {ListController} from '@/store/lists/controller'
-import {flatten} from '@/lib/lib'
-import Editable from '@/mixins/editable'
+import Subjective from '@/mixins/subjective.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {flatten} from '@/lib/lib.ts'
+import Editable from '@/mixins/editable.ts'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
-import Product from '@/types/Product'
+import Product from '@/types/Product.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcProductManager from '@/components/views/store/AcProductManager.vue'
 

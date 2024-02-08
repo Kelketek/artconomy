@@ -13,14 +13,14 @@
 </template>
 
 <script lang="ts">
-import CharacterCentric from './mixins/CharacterCentric'
+import CharacterCentric from './mixins/CharacterCentric.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import RatingRefresh from '@/mixins/RatingRefresh'
+import RatingRefresh from '@/mixins/RatingRefresh.ts'
 
 @Component({
   components: {

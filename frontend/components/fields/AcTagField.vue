@@ -14,7 +14,7 @@
 
 <script lang="ts">
 import axios from 'axios'
-import {artCall} from '@/lib/lib'
+import {artCall} from '@/lib/lib.ts'
 import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
 import debounce from 'lodash/debounce'
 import deepEqual from 'fast-deep-equal'

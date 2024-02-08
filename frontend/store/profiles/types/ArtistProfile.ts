@@ -1,4 +1,4 @@
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
+import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
 
 export interface ArtistProfile {
   dwolla_configured: boolean,

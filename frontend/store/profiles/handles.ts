@@ -1,6 +1,6 @@
-import {User} from './types/User'
-import {ArtVueInterface} from '@/types/ArtVueInterface'
-import {ArtVue} from '@/lib/lib'
+import {User} from './types/User.ts'
+import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
+import {ArtVue} from '@/lib/lib.ts'
 
 declare type handleDecorator = (cls: InstanceType<typeof ArtVue>, propName: string) => void
 

@@ -1,11 +1,11 @@
-import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks'
-import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts'
-import {ProfileRegistry} from '@/store/profiles/registry'
-import {getController, performUnhook} from '@/store/registry-base'
-import {ProfileState} from '@/store/profiles/types/ProfileState'
-import {ProfileController} from '@/store/profiles/controller'
+import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks.ts'
+import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
+import {ProfileRegistry} from '@/store/profiles/registry.ts'
+import {getController, performUnhook} from '@/store/registry-base.ts'
+import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
+import {ProfileController} from '@/store/profiles/controller.ts'
 import {useRouter} from 'vue-router'
-import {useSocket} from '@/plugins/socket'
+import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 
 export const useProfile = (name: string, schema: ProfileModuleOpts = {}) => {

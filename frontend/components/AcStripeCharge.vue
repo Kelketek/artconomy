@@ -20,8 +20,8 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import StripeMixin from './views/order/mixins/StripeMixin'
-import {genId} from '@/lib/lib'
+import StripeMixin from './views/order/mixins/StripeMixin.ts'
+import {genId} from '@/lib/lib.ts'
 import {StripeCardElement} from '@stripe/stripe-js'
 
 @Component({emits: ['card']})

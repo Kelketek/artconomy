@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
 import AcConfirmation from '../AcConfirmation.vue'
-import {mount, vueSetup, VuetifyWrapped, confirmAction} from '@/specs/helpers'
+import {mount, vueSetup, VuetifyWrapped, confirmAction} from '@/specs/helpers/index.ts'
 import {describe, beforeEach, expect, test, vi} from 'vitest'
 
 let wrapper: VueWrapper<any>

@@ -1,7 +1,7 @@
 import {ComponentInternalInstance, getCurrentInstance, inject, onUnmounted, provide} from 'vue'
-import {ArtVueInterface} from '@/types/ArtVueInterface'
-import {RegistryRegistry} from '@/store/registry-base'
-import {buildRegistries} from '@/plugins/createRegistries'
+import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
+import {RegistryRegistry} from '@/store/registry-base.ts'
+import {buildRegistries} from '@/plugins/createRegistries.ts'
 
 export type ArtVueInstance = ComponentInternalInstance & ArtVueInterface
 

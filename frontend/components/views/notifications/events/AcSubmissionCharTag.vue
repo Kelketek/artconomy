@@ -13,9 +13,9 @@
 
 <script>
 import Notification from '../mixins/notification'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
-import AcLink from '@/components/wrappers/AcLink'
-import {profileLink} from '@/lib/lib'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import {profileLink} from '@/lib/lib.ts'
 
 export default {
   name: 'ac-submission-char-tag',

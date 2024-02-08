@@ -1,4 +1,4 @@
-import {PROCESSORS} from '@/types/PROCESSORS'
+import {PROCESSORS} from '@/types/PROCESSORS.ts'
 
 export interface CreditCardToken {
   id: number,

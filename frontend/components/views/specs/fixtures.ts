@@ -1,5 +1,5 @@
-import {Conversation} from '@/types/Conversation'
-import {TerseUser} from '@/store/profiles/types/TerseUser'
+import {Conversation} from '@/types/Conversation.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
 export function genJournal() {
   return {

@@ -46,9 +46,9 @@
 <script lang="ts">
 import {Component, Prop, toNative} from 'vue-facing-decorator'
 import AcLoadingSpinner from './AcLoadingSpinner.vue'
-import {SingleController} from '@/store/singles/controller'
-import {ListController} from '@/store/lists/controller'
-import {ArtVue} from '@/lib/lib'
+import {SingleController} from '@/store/singles/controller.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({
   components: {AcLoadingSpinner},

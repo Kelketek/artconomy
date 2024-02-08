@@ -1,5 +1,5 @@
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
-import {FieldSetSchema} from '@/store/forms/types/FieldSetSchema'
+import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
+import {FieldSetSchema} from '@/store/forms/types/FieldSetSchema.ts'
 
 export interface NamelessFormSchema {
   endpoint: string,

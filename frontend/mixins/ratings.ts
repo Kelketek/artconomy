@@ -1,5 +1,5 @@
 import {Component} from 'vue-facing-decorator'
-import {ArtVue, RATING_COLOR, RATINGS_SHORT} from '@/lib/lib'
+import {ArtVue, RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
 
 @Component
 export default class Ratings extends ArtVue {

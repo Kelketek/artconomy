@@ -1,5 +1,5 @@
-import {FieldSet} from '@/store/forms/types/FieldSet'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
+import {FieldSet} from '@/store/forms/types/FieldSet.ts'
+import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
 
 export interface FormState {
   fields: FieldSet,

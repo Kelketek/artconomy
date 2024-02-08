@@ -11,7 +11,7 @@
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import {RouteLocationRaw} from 'vue-router'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component
 class AcLink extends ArtVue {

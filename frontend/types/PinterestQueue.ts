@@ -1,4 +1,4 @@
-import {QueueIntake} from '@/types/QueueIntake'
+import {QueueIntake} from '@/types/QueueIntake.ts'
 
 export declare interface PinterestQueue extends QueueIntake {
   queue: any[],

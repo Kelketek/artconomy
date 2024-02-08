@@ -1,4 +1,4 @@
-import {ProfileState} from '@/store/profiles/types/ProfileState'
+import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 
 export interface UserStoreState {
   // Username we are acting as

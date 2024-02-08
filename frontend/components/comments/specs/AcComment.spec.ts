@@ -1,5 +1,5 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   confirmAction, createVuetify,
@@ -10,13 +10,13 @@ import {
   setViewer,
   vueSetup,
   VuetifyWrapped,
-} from '@/specs/helpers'
-import {genUser} from '@/specs/helpers/fixtures'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {commentSet} from './fixtures'
+} from '@/specs/helpers/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {commentSet} from './fixtures.ts'
 import AcComment from '@/components/comments/AcComment.vue'
 import {Router, createRouter, createWebHistory} from 'vue-router'
-import mockAxios from '@/__mocks__/axios'
+import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 

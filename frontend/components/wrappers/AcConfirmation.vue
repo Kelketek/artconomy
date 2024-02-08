@@ -64,7 +64,7 @@
 
 <script lang="ts">
 import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component
 class AcConfirmation extends ArtVue {

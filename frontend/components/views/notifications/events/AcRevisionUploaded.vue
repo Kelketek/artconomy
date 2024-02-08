@@ -13,8 +13,8 @@
 
 <script>
 import Notification from '../mixins/notification'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
-import Viewer from '@/mixins/viewer'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import Viewer from '@/mixins/viewer.ts'
 
 export default {
   name: 'ac-revision-uploaded',

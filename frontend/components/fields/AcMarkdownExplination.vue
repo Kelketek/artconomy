@@ -228,7 +228,7 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 
 @Component({emits: ['update:modelValue']})
 class AcMarkdownExplination extends mixins(Formatting) {

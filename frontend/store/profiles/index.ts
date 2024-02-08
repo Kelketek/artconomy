@@ -2,9 +2,9 @@
 import * as Sentry from '@sentry/browser'
 import {ActionTree, GetterTree, Module, MutationTree} from 'vuex'
 import {State as RootState} from '../state'
-import {UserStoreState} from './types/UserStoreState'
-import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts'
-import {ProfileState} from '@/store/profiles/types/ProfileState'
+import {UserStoreState} from './types/UserStoreState.ts'
+import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
+import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 
 export class ProfileModule {
   public state: ProfileState

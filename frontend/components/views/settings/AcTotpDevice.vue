@@ -170,14 +170,14 @@
 <script lang="ts">
 import QRCode from 'qrcode'
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@//mixins/subjective'
-import {FormController} from '@/store/forms/form-controller'
+import Subjective from '@//mixins/subjective.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
-import {SingleController} from '@/store/singles/controller'
+import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import {BASE_URL} from '@/lib/lib'
+import {BASE_URL} from '@/lib/lib.ts'
 
 @Component({
   components: {

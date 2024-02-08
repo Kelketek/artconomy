@@ -1,9 +1,9 @@
-import {ArtStore, createStore} from '@/store'
-import {mount, setViewer, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import ProductGallery from '@/components/views/product/ProductGallery.vue'
-import {genProduct, genUser} from '@/specs/helpers/fixtures'
+import {genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import {beforeEach, describe, test} from 'vitest'
 
 let store: ArtStore

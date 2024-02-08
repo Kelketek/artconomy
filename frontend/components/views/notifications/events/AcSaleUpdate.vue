@@ -21,7 +21,7 @@
 
 <script>
 import Notification from '../mixins/notification'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 
 const ORDER_STATUSES = {
   0: 'has been added to your waitlist.',

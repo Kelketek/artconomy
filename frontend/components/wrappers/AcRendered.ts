@@ -8,9 +8,9 @@
  * necessary to include the full template compiler.
  */
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '@/mixins/formatting'
+import Formatting from '@/mixins/formatting.ts'
 import {h} from 'vue'
-import {genId} from '@/lib/lib'
+import {genId} from '@/lib/lib.ts'
 
 function fromHTML(html: string, inline: boolean) {
   // Adapted from: https://stackoverflow.com/a/35385518/927224

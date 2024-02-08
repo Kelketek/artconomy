@@ -5,13 +5,13 @@
   </v-container>
 </template>
 <script lang="ts">
-import {setMetaContent, updateTitle} from '@/lib/lib'
+import {setMetaContent, updateTitle} from '@/lib/lib.ts'
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {SingleController} from '@/store/singles/controller'
-import Pricing from '@/types/Pricing'
+import Viewer from '@/mixins/viewer.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import Pricing from '@/types/Pricing.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import StripeCountryList from '@/types/StripeCountryList'
+import StripeCountryList from '@/types/StripeCountryList.ts'
 
 @Component({
   components: {AcTabNav},

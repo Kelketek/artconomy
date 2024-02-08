@@ -1,8 +1,8 @@
-import {cleanUp, confirmAction, mount, rs, vueSetup, VuetifyWrapped} from '@/specs/helpers'
+import {cleanUp, confirmAction, mount, rs, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import OrderList from '@/components/views/orders/OrderList.vue'
-import mockAxios from '@/__mocks__/axios'
-import {genArtistProfile, genOrder, genProduct} from '@/specs/helpers/fixtures'
+import mockAxios from '@/__mocks__/axios.ts'
+import {genArtistProfile, genOrder, genProduct} from '@/specs/helpers/fixtures.ts'
 import {afterEach, describe, expect, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

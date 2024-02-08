@@ -50,14 +50,14 @@
 import AcLoadSection from '../../wrappers/AcLoadSection.vue'
 import AcRelatedManager from '../../wrappers/AcRelatedManager.vue'
 import AcAvatar from '../../AcAvatar.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
-import {ArtVue} from '@/lib/lib'
-import LinkedCharacter from '@/types/LinkedCharacter'
+import {ArtVue} from '@/lib/lib.ts'
+import LinkedCharacter from '@/types/LinkedCharacter.ts'
 
 @Component({
   components: {

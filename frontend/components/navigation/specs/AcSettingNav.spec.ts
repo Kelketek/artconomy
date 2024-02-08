@@ -1,9 +1,9 @@
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import {genArtistProfile, genUser} from '@/specs/helpers/fixtures'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES'
-import {cleanUp, createVuetify, mount, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {genArtistProfile, genUser} from '@/specs/helpers/fixtures.ts'
+import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {cleanUp, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 let store: ArtStore

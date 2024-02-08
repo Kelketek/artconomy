@@ -1,8 +1,8 @@
 import {Component, mixins} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller'
-import {RATING_COLOR, RATINGS_SHORT} from '@/lib/lib'
-import Viewer from '@/mixins/viewer'
-import {ContentRating} from '@/types/ContentRating'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
+import Viewer from '@/mixins/viewer.ts'
+import {ContentRating} from '@/types/ContentRating.ts'
 
 @Component
 export default class SearchContentRatingMixin extends mixins(Viewer) {

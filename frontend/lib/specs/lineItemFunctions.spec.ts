@@ -1,7 +1,7 @@
-import {genLineItem, genPricing} from '@/lib/specs/helpers'
-import {getTotals, invoiceLines, linesByPriority, reckonLines} from '@/lib/lineItemFunctions'
+import {genLineItem, genPricing} from '@/lib/specs/helpers.ts'
+import {getTotals, invoiceLines, linesByPriority, reckonLines} from '@/lib/lineItemFunctions.ts'
 import {Decimal} from 'decimal.js'
-import {genProduct} from '@/specs/helpers/fixtures'
+import {genProduct} from '@/specs/helpers/fixtures.ts'
 import {describe, expect, test} from 'vitest'
 
 describe('lineItemFunctions.ts', () => {

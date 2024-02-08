@@ -129,9 +129,9 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {BASE_URL} from '@/lib/lib'
-import QuestionSet from '@/components/views/faq/mixins/question-set'
+import Viewer from '@/mixins/viewer.ts'
+import {BASE_URL} from '@/lib/lib.ts'
+import QuestionSet from '@/components/views/faq/mixins/question-set.ts'
 
 @Component({})
 class About extends mixins(Viewer, QuestionSet) {

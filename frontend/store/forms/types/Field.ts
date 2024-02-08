@@ -1,5 +1,5 @@
-import {ValidatorSpec} from '@/store/forms/types/ValidatorSpec'
-import {RawData} from '@/store/forms/types/RawData'
+import {ValidatorSpec} from '@/store/forms/types/ValidatorSpec.ts'
+import {RawData} from '@/store/forms/types/RawData.ts'
 
 export interface Field {
   disabled: boolean,

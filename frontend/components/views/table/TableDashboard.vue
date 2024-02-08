@@ -7,12 +7,12 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
-import {TabNavSpec} from '@/types/TabNavSpec'
+import {TabNavSpec} from '@/types/TabNavSpec.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 
 @Component({

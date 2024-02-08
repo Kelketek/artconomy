@@ -1,11 +1,11 @@
 import {VueWrapper} from '@vue/test-utils'
-import mockAxios from '@/specs/helpers/mock-axios'
-import {userResponse} from '@/specs/helpers/fixtures'
+import mockAxios from '@/specs/helpers/mock-axios.ts'
+import {userResponse} from '@/specs/helpers/fixtures.ts'
 import flushPromises from 'flush-promises'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import UserProp from '@/specs/helpers/dummy_components/user-prop.vue'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 
 const mockError = vi.spyOn(console, 'error')
 const mockWarn = vi.spyOn(console, 'warn')

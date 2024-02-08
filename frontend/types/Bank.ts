@@ -1,4 +1,4 @@
-import {BankAccountType} from '@/types/BankAccountType'
+import {BankAccountType} from '@/types/BankAccountType.ts'
 
 export interface Bank {
   last_four: string,

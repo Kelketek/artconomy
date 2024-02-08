@@ -1,4 +1,4 @@
-import {ServicePlan} from '@/types/ServicePlan'
+import {ServicePlan} from '@/types/ServicePlan.ts'
 
 export default interface Pricing {
   plans: ServicePlan[],

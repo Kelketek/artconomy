@@ -4,7 +4,7 @@
 
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component
 class NotFound extends ArtVue {

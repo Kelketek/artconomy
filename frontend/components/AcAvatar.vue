@@ -46,12 +46,12 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
-import {ProfileController} from '@/store/profiles/controller'
-import {userHandle} from '@/store/profiles/handles'
-import {User} from '@/store/profiles/types/User'
-import {artCall, ArtVue, profileLink} from '@/lib/lib'
-import {profileRegistry} from '@/store/profiles/registry'
-import {TerseUser} from '@/store/profiles/types/TerseUser'
+import {ProfileController} from '@/store/profiles/controller.ts'
+import {userHandle} from '@/store/profiles/handles.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {artCall, ArtVue, profileLink} from '@/lib/lib.ts'
+import {profileRegistry} from '@/store/profiles/registry.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 
 @Component({

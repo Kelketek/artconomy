@@ -1,10 +1,10 @@
-import {ListState} from '@/store/lists/types/ListState'
-import {SingleState} from '@/store/singles/types/SingleState'
-import {FormState} from '@/store/forms/types/FormState'
-import {ProfileState} from '@/store/profiles/types/ProfileState'
-import {NotificationsState} from '@/store/notifications/types/NotificationsState'
-import {ErrorState} from '@/store/errors/types'
-import {ContentRating} from '@/types/ContentRating'
+import {ListState} from '@/store/lists/types/ListState.ts'
+import {SingleState} from '@/store/singles/types/SingleState.ts'
+import {FormState} from '@/store/forms/types/FormState.ts'
+import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
+import {NotificationsState} from '@/store/notifications/types/NotificationsState.ts'
+import {ErrorState} from '@/store/errors/types.ts'
+import {ContentRating} from '@/types/ContentRating.ts'
 
 export enum AlertCategory {
   SUCCESS = 'success',

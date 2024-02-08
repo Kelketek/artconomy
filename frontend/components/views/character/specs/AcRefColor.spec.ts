@@ -1,9 +1,9 @@
 import {VueWrapper} from '@vue/test-utils'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {ArtStore, createStore} from '@/store'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import AcRefColor from '@/components/views/character/AcRefColor.vue'
-import {cleanUp, createVuetify, mount, setViewer, vueSetup} from '@/specs/helpers'
-import {genUser} from '@/specs/helpers/fixtures'
+import {cleanUp, createVuetify, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 describe('AcRefColor.vue', () => {

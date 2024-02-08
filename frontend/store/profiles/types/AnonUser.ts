@@ -1,4 +1,4 @@
-import {Ratings} from './Ratings'
+import {Ratings} from './Ratings.ts'
 
 export interface AnonUser {
   rating: Ratings,

@@ -1,6 +1,6 @@
-import {extPreview, getExt, isImage} from '@/lib/lib'
+import {extPreview, getExt, isImage} from '@/lib/lib.ts'
 import {createApp} from 'vue'
-import {Asset} from '@/types/Asset'
+import {Asset} from '@/types/Asset.ts'
 import {v4 as uuidv4} from 'uuid'
 
 export function Shortcuts(app: ReturnType<typeof createApp>): void {

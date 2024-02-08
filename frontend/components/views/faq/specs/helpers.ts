@@ -1,4 +1,4 @@
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import FAQ from '@/components/views/faq/FAQ.vue'
 import BuyAndSell from '@/components/views/faq/BuyAndSell.vue'
 import About from '@/components/views/faq/About.vue'

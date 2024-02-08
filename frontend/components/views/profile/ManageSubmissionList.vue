@@ -42,15 +42,15 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller'
-import Submission from '@/types/Submission'
+import {ListController} from '@/store/lists/controller.ts'
+import Submission from '@/types/Submission.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {flatten} from '@/lib/lib'
-import {Ratings} from '@/store/profiles/types/Ratings'
-import Editable from '@/mixins/editable'
+import {flatten} from '@/lib/lib.ts'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import Editable from '@/mixins/editable.ts'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 

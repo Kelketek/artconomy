@@ -196,9 +196,9 @@
 import AcError from '@/components/navigation/AcError.vue'
 import NavBar from '@/components/navigation/NavBar.vue'
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller'
+import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
 import {
   fallback,
@@ -209,23 +209,23 @@ import {
   RATINGS_SHORT,
   searchSchema,
   setCookie,
-} from './lib/lib'
-import {User} from '@/store/profiles/types/User'
-import Nav from '@/mixins/nav'
-import {SingleController} from '@/store/singles/controller'
-import {ConnectionStatus} from '@/types/ConnectionStatus'
-import {SocketState} from '@/types/SocketState'
-import {AnonUser} from '@/store/profiles/types/AnonUser'
+} from './lib/lib.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import Nav from '@/mixins/nav.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {ConnectionStatus} from '@/types/ConnectionStatus.ts'
+import {SocketState} from '@/types/SocketState.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcCookieConsent from '@/components/AcCookieConsent.vue'
-import {ListController} from '@/store/lists/controller'
-import Product from '@/types/Product'
-import Submission from '@/types/Submission'
-import {Character} from '@/store/characters/types/Character'
-import {TerseUser} from '@/store/profiles/types/TerseUser'
-import RatingRefresh from '@/mixins/RatingRefresh'
-import Ratings from '@/mixins/ratings'
+import {ListController} from '@/store/lists/controller.ts'
+import Product from '@/types/Product.ts'
+import Submission from '@/types/Submission.ts'
+import {Character} from '@/store/characters/types/Character.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import RatingRefresh from '@/mixins/RatingRefresh.ts'
+import Ratings from '@/mixins/ratings.ts'
 
 @Component({
   components: {AcCookieConsent, AcPatchField, AcForm, AcMarkdownExplanation, AcError, AcFormDialog, NavBar},

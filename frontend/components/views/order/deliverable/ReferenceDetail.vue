@@ -38,14 +38,14 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcAsset from '@/components/AcAsset.vue'
-import {SingleController} from '@/store/singles/controller'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin'
+import {SingleController} from '@/store/singles/controller.ts'
+import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import Reference from '@/types/Reference'
-import {markRead, updateLinked} from '@/lib/lib'
+import Reference from '@/types/Reference.ts'
+import {markRead, updateLinked} from '@/lib/lib.ts'
 
 @Component({
   components: {

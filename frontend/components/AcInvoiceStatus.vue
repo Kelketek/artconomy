@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import Invoice from '@/types/Invoice'
+import Invoice from '@/types/Invoice.ts'
 
 @Component
 class AcInvoiceStatus extends Vue {

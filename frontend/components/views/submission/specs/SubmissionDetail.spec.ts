@@ -1,5 +1,5 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   confirmAction,
@@ -9,16 +9,16 @@ import {
   rs,
   setViewer,
   vueSetup, VuetifyWrapped,
-} from '@/specs/helpers'
-import {genUser} from '@/specs/helpers/fixtures'
+} from '@/specs/helpers/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import mockAxios from '@/__mocks__/axios'
-import {User} from '@/store/profiles/types/User'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
+import mockAxios from '@/__mocks__/axios.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import SubmissionDetail from '@/components/views/submission/SubmissionDetail.vue'
-import {RelatedUser} from '@/store/profiles/types/RelatedUser'
-import {searchSchema} from '@/lib/lib'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import {searchSchema} from '@/lib/lib.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 let store: ArtStore

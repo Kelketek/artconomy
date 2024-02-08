@@ -132,11 +132,11 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import {TGDevice} from '@/store/profiles/types/TGDevice'
-import {FormController} from '@/store/forms/form-controller'
-import {artCall, BASE_URL} from '@/lib/lib'
-import Subjective from '@//mixins/subjective'
+import {SingleController} from '@/store/singles/controller.ts'
+import {TGDevice} from '@/store/profiles/types/TGDevice.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {artCall, BASE_URL} from '@/lib/lib.ts'
+import Subjective from '@//mixins/subjective.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'

@@ -30,9 +30,9 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import AssetBase from '@/mixins/asset_base'
-import {Character} from '@/store/characters/types/Character'
-import {Asset} from '@/types/Asset'
+import AssetBase from '@/mixins/asset_base.ts'
+import {Character} from '@/store/characters/types/Character.ts'
+import {Asset} from '@/types/Asset.ts'
 
 @Component({emits: ['remove']})
 class AcMiniCharacter extends mixins(AssetBase) {

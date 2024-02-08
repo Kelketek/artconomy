@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
 import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {parseISO} from 'date-fns'

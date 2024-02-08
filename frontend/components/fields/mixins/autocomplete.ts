@@ -2,9 +2,9 @@ import {Component, Prop, Vue, Watch} from 'vue-facing-decorator'
 import axios from 'axios'
 import cloneDeep from 'lodash/cloneDeep'
 import debounce from 'lodash/debounce'
-import {artCall} from '@/lib/lib'
+import {artCall} from '@/lib/lib.ts'
 import deepEqual from 'fast-deep-equal'
-import {RawData} from '@/store/forms/types/RawData'
+import {RawData} from '@/store/forms/types/RawData.ts'
 
 declare interface IdModel {
   id: number,

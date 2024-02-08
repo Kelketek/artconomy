@@ -161,7 +161,7 @@ import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import SearchHints from '../mixins/SearchHints'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import Viewer from '@/mixins/viewer.ts'
-import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin'
+import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
 import type {ContentRating} from '@/types/ContentRating.ts'
 
 @Component({

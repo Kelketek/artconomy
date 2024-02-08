@@ -1,9 +1,9 @@
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcTab from '@/components/AcTab.vue'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 let store: ArtStore

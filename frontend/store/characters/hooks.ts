@@ -1,10 +1,10 @@
-import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks'
-import {getController, performUnhook} from '@/store/registry-base'
-import CharacterState from '@/store/characters/types/CharacterState'
-import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts'
-import {CharacterController} from '@/store/characters/controller'
+import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks.ts'
+import {getController, performUnhook} from '@/store/registry-base.ts'
+import CharacterState from '@/store/characters/types/CharacterState.ts'
+import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts.ts'
+import {CharacterController} from '@/store/characters/controller.ts'
 import {useRouter} from 'vue-router'
-import {useSocket} from '@/plugins/socket'
+import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 
 export const useCharacter = (name: string, schema: CharacterModuleOpts) => {

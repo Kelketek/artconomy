@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
 import AcTotpDevice from '../AcTotpDevice.vue'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   createVuetify,
@@ -11,12 +11,12 @@ import {
   setViewer,
   vueSetup,
   VuetifyWrapped,
-} from '@/specs/helpers'
-import {genUser} from '@/specs/helpers/fixtures'
-import {ListController} from '@/store/lists/controller'
-import {TOTPDevice} from '@/store/profiles/types/TOTPDevice'
-import mockAxios from '@/specs/helpers/mock-axios'
-import Empty from '@/specs/helpers/dummy_components/empty'
+} from '@/specs/helpers/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
+import mockAxios from '@/specs/helpers/mock-axios.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 
 const qrImageUrl = 'otpauth://totp/Artconomy%20Dev%3Afox%40vulpinity.com?secret=KJZWLZLDMVY3XJAX72V4WAXDKKZZDA76' +

@@ -1,10 +1,10 @@
-import {ListModuleOpts} from '@/store/lists/types/ListModuleOpts'
-import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks'
-import {getController, performUnhook} from '@/store/registry-base'
-import {ListState} from '@/store/lists/types/ListState'
-import {ListController} from '@/store/lists/controller'
+import {ListModuleOpts} from '@/store/lists/types/ListModuleOpts.ts'
+import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks.ts'
+import {getController, performUnhook} from '@/store/registry-base.ts'
+import {ListState} from '@/store/lists/types/ListState.ts'
+import {ListController} from '@/store/lists/controller.ts'
 import {useRouter} from 'vue-router'
-import {useSocket} from '@/plugins/socket'
+import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 
 export const useList = <T extends object>(name: string, schema: ListModuleOpts) => {

@@ -1,7 +1,7 @@
 import {createApp, getCurrentInstance, markRaw} from 'vue'
 import ReconnectingWebSocket, {CloseEvent, Event} from 'reconnecting-websocket'
-import {log} from '@/lib/lib'
-import {ArtVueInterface} from '@/types/ArtVueInterface'
+import {log} from '@/lib/lib.ts'
+import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 
 export interface SocketManager {
   socket?: ReconnectingWebSocket,

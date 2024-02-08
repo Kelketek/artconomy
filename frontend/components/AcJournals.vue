@@ -59,15 +59,15 @@
 </template>
 
 <script lang="ts">
-import Formatting from '@/mixins/formatting'
-import {truncateText} from '@/lib/lib'
+import Formatting from '@/mixins/formatting.ts'
+import {truncateText} from '@/lib/lib.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {Journal} from '@/types/Journal'
-import {ListController} from '@/store/lists/controller'
-import {FormController} from '@/store/forms/form-controller'
-import AcBoundField from '@/components/fields/AcBoundField'
+import {Journal} from '@/types/Journal.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'

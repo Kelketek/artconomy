@@ -98,13 +98,13 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {differenceInYears} from 'date-fns'
-import {BASE_URL, parseISO} from '@/lib/lib'
-import {AnonUser} from '@/store/profiles/types/AnonUser'
-import {SingleController} from '@/store/singles/controller'
+import {BASE_URL, parseISO} from '@/lib/lib.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 
 @Component({
   components: {

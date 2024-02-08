@@ -4,10 +4,10 @@
 
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
-import {userHandle} from '@/store/profiles/handles'
-import {User} from '@/store/profiles/types/User'
-import {ProfileController} from '@/store/profiles/controller'
-import {ArtVue} from '@/lib/lib'
+import {userHandle} from '@/store/profiles/handles.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {ProfileController} from '@/store/profiles/controller.ts'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component
 class UserProp extends ArtVue {

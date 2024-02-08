@@ -32,12 +32,12 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import LineItem from '@/types/LineItem'
-import LineAccumulator from '@/types/LineAccumulator'
-import {SingleController} from '@/store/singles/controller'
+import LineItem from '@/types/LineItem.ts'
+import LineAccumulator from '@/types/LineAccumulator.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import {Decimal} from 'decimal.js'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {LineTypes} from '@/types/LineTypes'
+import {LineTypes} from '@/types/LineTypes.ts'
 
 @Component({
   components: {AcPatchField},

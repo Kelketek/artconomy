@@ -47,16 +47,16 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import Comment from '@/types/Comment'
-import {SingleController} from '@/store/singles/controller'
-import {ListController} from '@/store/lists/controller'
+import Viewer from '@/mixins/viewer.ts'
+import Comment from '@/types/Comment.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {ListController} from '@/store/lists/controller.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcComment from '@/components/comments/AcComment.vue'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {QueryParams} from '@/store/helpers/QueryParams'
-import {RawData} from '@/store/forms/types/RawData'
+import {QueryParams} from '@/store/helpers/QueryParams.ts'
+import {RawData} from '@/store/forms/types/RawData.ts'
 
 @Component({
   components: {

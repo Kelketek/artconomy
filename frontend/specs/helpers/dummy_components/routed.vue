@@ -6,7 +6,7 @@
 
 <script lang="ts">
 
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 export default class Routed extends ArtVue {
   // Container for routing tests.

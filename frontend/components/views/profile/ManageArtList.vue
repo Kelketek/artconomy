@@ -46,16 +46,16 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {flatten} from '@/lib/lib'
-import Editable from '@/mixins/editable'
+import {flatten} from '@/lib/lib.ts'
+import Editable from '@/mixins/editable.ts'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcDraggableList from '@/components/AcDraggableList.vue'
-import ArtistTag from '@/types/ArtistTag'
+import ArtistTag from '@/types/ArtistTag.ts'
 import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
 
 @Component({

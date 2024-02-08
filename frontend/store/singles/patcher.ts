@@ -1,11 +1,11 @@
 // Patcher that allows more flexibility in defining how data will be sent. In most cases, you want patcher in the
 // singles module instead.
-import {artCall, ComputedGetters, dotTraverse} from '@/lib/lib'
+import {artCall, ComputedGetters, dotTraverse} from '@/lib/lib.ts'
 import cloneDeep from 'lodash/cloneDeep'
 import debounce from 'lodash/debounce'
 import axios, {AxiosError} from 'axios'
-import {deriveErrors} from '@/store/forms/helpers'
-import {SingleController} from '@/store/singles/controller'
+import {deriveErrors} from '@/store/forms/helpers.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import {ComputedGetter, ref, Ref, toValue} from 'vue'
 import {v4 as uuidv4} from 'uuid'
 

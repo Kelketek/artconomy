@@ -123,9 +123,9 @@ import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcVideoPlayer from '@/components/AcVideoPlayer.vue'
 import AcAudioPlayer from '@/components/AcAudioPlayer.vue'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
-import {COMPONENT_EXTENSIONS, getExt} from '@/lib/lib'
-import AssetBase from '@/mixins/asset_base'
-import {Asset} from '@/types/Asset'
+import {COMPONENT_EXTENSIONS, getExt} from '@/lib/lib.ts'
+import AssetBase from '@/mixins/asset_base.ts'
+import {Asset} from '@/types/Asset.ts'
 
 @Component({
   components: {

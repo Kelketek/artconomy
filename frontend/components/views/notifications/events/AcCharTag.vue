@@ -13,9 +13,9 @@
 
 <script>
 import Notification from '../mixins/notification'
-import AcLink from '@/components/wrappers/AcLink'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification'
-import {profileLink} from '@/lib/lib'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import {profileLink} from '@/lib/lib.ts'
 
 export default {
   name: 'ac-char-tag',

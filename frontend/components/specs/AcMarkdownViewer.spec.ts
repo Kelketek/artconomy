@@ -1,8 +1,8 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
-import mockAxios from '@/__mocks__/axios'
+import mockAxios from '@/__mocks__/axios.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let wrapper: VueWrapper<any>

@@ -1,6 +1,6 @@
-import {User} from '@/store/profiles/types/User'
-import {SingleState} from '@/store/singles/types/SingleState'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
+import {User} from '@/store/profiles/types/User.ts'
+import {SingleState} from '@/store/singles/types/SingleState.ts'
+import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
 
 export interface ProfileState {
   user?: SingleState<User>,

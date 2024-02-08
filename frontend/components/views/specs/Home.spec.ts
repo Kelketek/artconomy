@@ -1,11 +1,11 @@
-import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers'
+import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import Home from '@/components/views/Home.vue'
-import {genUser} from '@/specs/helpers/fixtures'
-import searchSchema from '@/components/views/search/specs/fixtures'
-import {FormController} from '@/store/forms/form-controller'
-import Empty from '@/specs/helpers/dummy_components/empty'
+import {genUser} from '@/specs/helpers/fixtures.ts'
+import searchSchema from '@/components/views/search/specs/fixtures.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let wrapper: VueWrapper<any>

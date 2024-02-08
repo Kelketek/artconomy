@@ -1,4 +1,4 @@
-import {NotificationStats} from '@/store/notifications/types/NotificationStats'
+import {NotificationStats} from '@/store/notifications/types/NotificationStats.ts'
 
 export interface NotificationsState {
   stats: NotificationStats,

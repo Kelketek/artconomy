@@ -1,7 +1,7 @@
 import {mount} from '@vue/test-utils'
 import FormattedComponent from '@/specs/helpers/dummy_components/formatting.vue'
 import {describe, expect, test} from 'vitest'
-import {vueSetup} from '@/specs/helpers'
+import {vueSetup} from '@/specs/helpers/index.ts'
 
 describe('formatting.ts', () => {
   test('Mounts', () => {

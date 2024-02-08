@@ -33,7 +33,7 @@ import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
-import Reference from '@/types/Reference'
+import Reference from '@/types/Reference.ts'
 
 @Component({
   components: {

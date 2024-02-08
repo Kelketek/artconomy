@@ -1,13 +1,13 @@
 // The functions in this file are meant to mirror the functions in backend/apps/sales/utils. There's not a good way
 // to ensure that they're both updated at the same time, but they should, hopefully, be easy enough to keep in sync.
 // If enough code has to be repeated between the two bases it may be worth looking into a transpiler.
-import LineItem from '@/types/LineItem'
-import {LineMoneyMap} from '@/types/LineMoneyMap'
-import LineAccumulator from '@/types/LineAccumulator'
-import {LineTypes} from '@/types/LineTypes'
+import LineItem from '@/types/LineItem.ts'
+import {LineMoneyMap} from '@/types/LineMoneyMap.ts'
+import LineAccumulator from '@/types/LineAccumulator.ts'
+import {LineTypes} from '@/types/LineTypes.ts'
 import {Decimal} from 'decimal.js'
-import Pricing from '@/types/Pricing'
-import Product from '@/types/Product'
+import Pricing from '@/types/Pricing.ts'
+import Product from '@/types/Product.ts'
 
 // Match Python's decimal defaults.
 Decimal.set({rounding: Decimal.ROUND_HALF_EVEN})

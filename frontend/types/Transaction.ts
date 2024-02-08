@@ -1,8 +1,8 @@
-import {RelatedUser} from '@/store/profiles/types/RelatedUser'
-import {CreditCardToken} from '@/types/CreditCardToken'
-import {AccountType} from '@/types/AccountType'
-import {TransactionCategory} from '@/types/TransactionCategory'
-import {TransactionStatus} from '@/types/TransactionStatus'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import {CreditCardToken} from '@/types/CreditCardToken.ts'
+import {AccountType} from '@/types/AccountType.ts'
+import {TransactionCategory} from '@/types/TransactionCategory.ts'
+import {TransactionStatus} from '@/types/TransactionStatus.ts'
 
 export default interface Transaction {
   id: string,

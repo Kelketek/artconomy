@@ -1,6 +1,6 @@
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {searchSchema} from '@/lib/lib'
+import {searchSchema} from '@/lib/lib.ts'
 import {
   cleanUp,
   flushPromises,
@@ -12,18 +12,18 @@ import {
   vueSetup,
   VuetifyWrapped,
   waitFor,
-} from '@/specs/helpers'
-import {FormController} from '@/store/forms/form-controller'
-import Empty from '@/specs/helpers/dummy_components/empty'
-import {SingleController} from '@/store/singles/controller'
-import Product from '@/types/Product'
-import {ListController} from '@/store/lists/controller'
-import {genProduct, genUser} from '@/specs/helpers/fixtures'
-import Submission from '@/types/Submission'
+} from '@/specs/helpers/index.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import Product from '@/types/Product.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {genProduct, genUser} from '@/specs/helpers/fixtures.ts'
+import Submission from '@/types/Submission.ts'
 import AcSampleEditor from '@/components/views/product/AcSampleEditor.vue'
-import mockAxios from '@/__mocks__/axios'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
-import LinkedSubmission from '@/types/LinkedSubmission'
+import mockAxios from '@/__mocks__/axios.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
+import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 let store: ArtStore

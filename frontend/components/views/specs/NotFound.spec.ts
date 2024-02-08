@@ -1,7 +1,7 @@
 import {shallowMount, VueWrapper} from '@vue/test-utils'
 import NotFound from '../NotFound.vue'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, vueSetup} from '@/specs/helpers/index.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 let wrapper: VueWrapper<any>

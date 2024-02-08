@@ -1,4 +1,4 @@
-import Reference from '@/types/Reference'
+import Reference from '@/types/Reference.ts'
 
 export default interface LinkedReference {
   id: number,

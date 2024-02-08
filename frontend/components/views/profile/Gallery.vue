@@ -35,15 +35,15 @@
 
 <script lang="ts">
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective'
-import {ListController} from '@/store/lists/controller'
-import Submission from '@/types/Submission'
-import {flatten, genId} from '@/lib/lib'
+import Subjective from '@/mixins/subjective.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import Submission from '@/types/Submission.ts'
+import {flatten, genId} from '@/lib/lib.ts'
 import AcTab from '@/components/AcTab.vue'
-import Upload from '@/mixins/upload'
+import Upload from '@/mixins/upload.ts'
 import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import ArtistTag from '@/types/ArtistTag'
+import ArtistTag from '@/types/ArtistTag.ts'
 
 @Component({
   components: {

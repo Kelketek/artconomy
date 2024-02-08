@@ -87,13 +87,13 @@
 
 <script setup lang="ts">
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import {SingleController} from '@/store/singles/controller'
-import ArtistTag from '@/types/ArtistTag'
+import {SingleController} from '@/store/singles/controller.ts'
+import ArtistTag from '@/types/ArtistTag.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import Submission from '@/types/Submission'
+import Submission from '@/types/Submission.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {useSingle} from '@/store/singles/hooks'
+import {useSingle} from '@/store/singles/hooks.ts'
 import {computed, ref} from 'vue'
 
 declare interface ArtistTagManagerProps {

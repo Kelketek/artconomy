@@ -1,10 +1,10 @@
-import LineItem from '@/types/LineItem'
-import {getTotals, totalForTypes} from '@/lib/lineItemFunctions'
-import {LineTypes} from '@/types/LineTypes'
+import LineItem from '@/types/LineItem.ts'
+import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
+import {LineTypes} from '@/types/LineTypes.ts'
 import {Component, Prop} from 'vue-facing-decorator'
-import {ListController} from '@/store/lists/controller'
-import {FormController} from '@/store/forms/form-controller'
-import {ArtVue} from '@/lib/lib'
+import {ListController} from '@/store/lists/controller.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component
 export default class LineItemMixin extends ArtVue {

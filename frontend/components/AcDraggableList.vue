@@ -30,14 +30,14 @@
 import { Sortable } from "sortablejs-vue3"
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import diff, {DiffPatch} from 'list-diff.js'
-import Submission from '@/types/Submission'
-import {artCall} from '@/lib/lib'
+import Submission from '@/types/Submission.ts'
+import {artCall} from '@/lib/lib.ts'
 import {VCol} from 'vuetify/lib/components/VGrid/index.mjs'
 import {SortableEvent} from 'sortablejs'
 import {computed} from 'vue'
-import {SortableModel} from '@/types/SortableModel'
+import {SortableModel} from '@/types/SortableModel.ts'
 
 declare interface AcDraggableListProps<T extends SortableModel = SortableModel> {
   trackPages?: boolean,

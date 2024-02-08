@@ -1,8 +1,8 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import mockAxios from '@/__mocks__/axios'
-import {cleanUp, docTarget, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers'
-import {genUser} from '@/specs/helpers/fixtures'
+import {ArtStore, createStore} from '@/store/index.ts'
+import mockAxios from '@/__mocks__/axios.ts'
+import {cleanUp, docTarget, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import DummyRelated from '@/components/wrappers/specs/DummyRelated.vue'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 

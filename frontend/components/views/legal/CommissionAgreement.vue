@@ -143,7 +143,7 @@
 
 <script lang="ts">
 import {Component, toNative, Vue} from 'vue-facing-decorator'
-import {BASE_URL} from '@/lib/lib'
+import {BASE_URL} from '@/lib/lib.ts'
 
 @Component
 class CommissionAgreement extends Vue {

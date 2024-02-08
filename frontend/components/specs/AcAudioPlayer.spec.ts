@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
-import {genSubmission} from '@/store/submissions/specs/fixtures'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import AcAudioPlayer from '@/components/AcAudioPlayer.vue'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 

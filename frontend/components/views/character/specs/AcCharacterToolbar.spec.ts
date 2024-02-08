@@ -1,7 +1,7 @@
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import mockAxios from '@/__mocks__/axios'
-import {genCharacter} from '@/store/characters/specs/fixtures'
+import mockAxios from '@/__mocks__/axios.ts'
+import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {
   cleanUp,
   confirmAction,
@@ -13,9 +13,9 @@ import {
   setViewer,
   vueSetup,
   VuetifyWrapped,
-} from '@/specs/helpers'
-import {genUser} from '@/specs/helpers/fixtures'
-import {Character} from '@/store/characters/types/Character'
+} from '@/specs/helpers/index.ts'
+import {genUser} from '@/specs/helpers/fixtures.ts'
+import {Character} from '@/store/characters/types/Character.ts'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import flushPromises from 'flush-promises'

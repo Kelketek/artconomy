@@ -8,10 +8,10 @@
 
 <script lang="ts">
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {ListController} from '@/store/lists/controller'
+import {ListController} from '@/store/lists/controller.ts'
 import cloneDeep from 'lodash/cloneDeep'
 import {RouteLocationNamedRaw, RouteLocationRaw} from 'vue-router'
-import {TabSpec} from '@/types/TabSpec'
+import {TabSpec} from '@/types/TabSpec.ts'
 
 @Component
 class AcTab extends Vue {

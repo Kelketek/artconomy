@@ -50,9 +50,9 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {FormController} from '@/store/forms/form-controller'
-import AcBoundField from '@/components/fields/AcBoundField'
+import Viewer from '@/mixins/viewer.ts'
+import {FormController} from '@/store/forms/form-controller.ts'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 
 @Component({
   components: {AcBoundField},

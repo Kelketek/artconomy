@@ -1,7 +1,7 @@
 import {VueWrapper} from '@vue/test-utils'
 import BoundField from '@/specs/helpers/dummy_components/bound-field.vue'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
 let store: ArtStore

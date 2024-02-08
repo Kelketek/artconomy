@@ -1,4 +1,4 @@
-import {TerseUser} from '@/store/profiles/types/TerseUser'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
 export default interface Comment {
   id: number,

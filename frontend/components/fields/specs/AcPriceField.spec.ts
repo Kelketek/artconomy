@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import AcPriceField from '@/components/fields/AcPriceField.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 

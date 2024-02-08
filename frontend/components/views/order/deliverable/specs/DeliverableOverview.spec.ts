@@ -1,12 +1,12 @@
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
 import {Router} from 'vue-router'
-import {ArtStore, createStore} from '@/store'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {deliverableRouter} from '@/components/views/order/specs/helpers'
-import {genDeliverable, genUser} from '@/specs/helpers/fixtures'
+import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
+import {genDeliverable, genUser} from '@/specs/helpers/fixtures.ts'
 import DeliverableOverview from '@/components/views/order/deliverable/DeliverableOverview.vue'
-import mockAxios from '@/__mocks__/axios'
-import {VIEWER_TYPE} from '@/types/VIEWER_TYPE'
+import mockAxios from '@/__mocks__/axios.ts'
+import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let store: ArtStore

@@ -28,7 +28,7 @@
 
 <script>
 import Notification from '../mixins/notification'
-import AcLink from '@/components/wrappers/AcLink'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {
   name: 'ac-base-notification',

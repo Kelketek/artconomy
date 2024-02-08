@@ -1,8 +1,8 @@
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers'
-import {ArtStore, createStore} from '@/store'
+import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import Payout from '@/components/views/settings/payment/Payout.vue'
-import {genUser} from '@/specs/helpers/fixtures'
+import {genUser} from '@/specs/helpers/fixtures.ts'
 import {describe, beforeEach, afterEach, test} from 'vitest'
 
 let store: ArtStore

@@ -19,12 +19,12 @@
 <script lang="ts">
 import {Component, toNative} from 'vue-facing-decorator'
 import AcRelatedManager from '../AcRelatedManager.vue'
-import {FormController} from '@/store/forms/form-controller'
-import {ListController} from '@/store/lists/controller'
-import {User} from '@/store/profiles/types/User'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import {User} from '@/store/profiles/types/User.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {ArtVue} from '@/lib/lib'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({
   components: {

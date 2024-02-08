@@ -51,11 +51,11 @@
 import AcGalleryPreview from '../../AcGalleryPreview.vue'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {Character} from '@/store/characters/types/Character'
-import CharacterCentric from '@/components/views/character/mixins/CharacterCentric'
-import Submission from '@/types/Submission'
-import {SingleController} from '@/store/singles/controller'
-import RatingRefresh from '@/mixins/RatingRefresh'
+import {Character} from '@/store/characters/types/Character.ts'
+import CharacterCentric from '@/components/views/character/mixins/CharacterCentric.ts'
+import Submission from '@/types/Submission.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import RatingRefresh from '@/mixins/RatingRefresh.ts'
 
 @Component({
   components: {

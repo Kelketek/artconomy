@@ -9,13 +9,13 @@
 </template>
 
 <script lang="ts">
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
-import {ListController} from '@/store/lists/controller'
-import {User} from '@/store/profiles/types/User'
-import {flatten} from '@/lib/lib'
+import {ListController} from '@/store/lists/controller.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {flatten} from '@/lib/lib.ts'
 
 @Component({
   components: {

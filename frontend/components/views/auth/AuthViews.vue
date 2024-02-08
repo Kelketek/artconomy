@@ -23,10 +23,10 @@
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
-import {Auth} from '@/components/views/auth/mixins/Auth'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {Auth} from '@/components/views/auth/mixins/Auth.ts'
 import {watch} from 'vue'
 
 declare type SyncFunc = (value: any) => void

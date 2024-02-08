@@ -60,11 +60,11 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import OverviewReport from '@/types/OverviewReport'
+import {SingleController} from '@/store/singles/controller.ts'
+import OverviewReport from '@/types/OverviewReport.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import RangeReport from '@/components/views/reports/mixins/RangeReport'
+import RangeReport from '@/components/views/reports/mixins/RangeReport.ts'
 
 @Component({
   components: {

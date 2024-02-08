@@ -1,4 +1,4 @@
-import {clearItem} from '@/store/registry-base'
+import {clearItem} from '@/store/registry-base.ts'
 import {describe, expect, test} from 'vitest'
 
 describe('registry-base.ts', () => {

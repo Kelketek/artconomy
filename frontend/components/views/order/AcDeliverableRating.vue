@@ -23,12 +23,12 @@
 
 <script lang="ts">
 import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller'
-import Rating from '@/types/Rating'
+import {SingleController} from '@/store/singles/controller.ts'
+import Rating from '@/types/Rating.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
-import {ArtVue} from '@/lib/lib'
+import {ArtVue} from '@/lib/lib.ts'
 
 @Component({
   components: {

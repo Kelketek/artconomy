@@ -49,9 +49,9 @@ import XHRUpload from '@uppy/xhr-upload'
 import Url from '@uppy/url'
 
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import {genId, getCookie} from '@/lib/lib'
-import ExtendedInput from '@/components/fields/mixins/extended_input'
-import {SingleController} from '@/store/singles/controller'
+import {genId, getCookie} from '@/lib/lib.ts'
+import ExtendedInput from '@/components/fields/mixins/extended_input.ts'
+import {SingleController} from '@/store/singles/controller.ts'
 import {GenericState, Listener} from '@uppy/store-default/src'
 
 // Based on upstream's store. Looks like we can't use our own store directly,

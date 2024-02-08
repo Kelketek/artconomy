@@ -1,9 +1,9 @@
 import {RouterLinkStub, VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store'
-import {cleanUp, flushPromises, mount, rq, rs, setViewer, vueSetup} from '@/specs/helpers'
-import {genUser, userResponse} from '@/specs/helpers/fixtures'
+import {ArtStore, createStore} from '@/store/index.ts'
+import {cleanUp, flushPromises, mount, rq, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {genUser, userResponse} from '@/specs/helpers/fixtures.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import mockAxios from '@/__mocks__/axios'
+import mockAxios from '@/__mocks__/axios.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 
 let store: ArtStore

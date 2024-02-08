@@ -5,9 +5,9 @@
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
-import {FormController} from '@/store/forms/form-controller'
-import {baseInvoiceSchema} from '@/lib/lib'
-import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {baseInvoiceSchema} from '@/lib/lib.ts'
+import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin.ts'
 
 @Component({
   components: {AcInvoiceForm},

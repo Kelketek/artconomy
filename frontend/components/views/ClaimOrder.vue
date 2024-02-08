@@ -30,13 +30,13 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
+import Viewer from '@/mixins/viewer.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import {RouteLocationRaw} from 'vue-router'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {FormController} from '@/store/forms/form-controller'
-import {User} from '@/store/profiles/types/User'
-import {BASE_URL} from '@/lib/lib'
+import {FormController} from '@/store/forms/form-controller.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {BASE_URL} from '@/lib/lib.ts'
 
 @Component({
   components: {

@@ -11,9 +11,9 @@
 
 <script>
 import Notification from '../mixins/notification'
-import AcBaseNotification from './AcBaseNotification'
+import AcBaseNotification from './AcBaseNotification.vue'
 import {posse} from '../../../../lib/lib'
-import AcLink from '@/components/wrappers/AcLink'
+import AcLink from '@/components/wrappers/AcLink.vue'
 
 export default {
   name: 'ac-comment-notification',

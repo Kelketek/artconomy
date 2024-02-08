@@ -1,14 +1,14 @@
 import {State as RootState} from '../state'
 import {ActionTree, MutationTree, Store} from 'vuex'
-import {artCall, ArtCallOptions, immediate} from '@/lib/lib'
+import {artCall, ArtCallOptions, immediate} from '@/lib/lib.ts'
 import axios from 'axios'
-import {ListState} from './types/ListState'
-import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse'
+import {ListState} from './types/ListState.ts'
+import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse.ts'
 import {SingleModule} from '../singles'
-import {QueryParams} from '@/store/helpers/QueryParams'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs'
-import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings'
-import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings'
+import {QueryParams} from '@/store/helpers/QueryParams.ts'
+import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
+import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
+import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
 
 function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   if ((state as any).items === undefined) {

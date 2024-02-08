@@ -1,7 +1,7 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcReference from '@/components/views/order/deliverable/AcReference.vue'
-import {genReference} from '@/specs/helpers/fixtures'
+import {genReference} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeAll, describe, expect, MockedFunction, test, vi} from 'vitest'
 
 let wrapper: VueWrapper<any>

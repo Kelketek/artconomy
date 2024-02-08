@@ -13,13 +13,13 @@
 </template>
 
 <script lang="ts">
-import Subjective from '@/mixins/subjective'
+import Subjective from '@/mixins/subjective.ts'
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import {flatten} from '@/lib/lib'
+import {flatten} from '@/lib/lib.ts'
 
 @Component({
   components: {

@@ -23,11 +23,11 @@
 
 <script lang="ts">
 import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer'
-import {Auth} from '@/components/views/auth/mixins/Auth'
+import Viewer from '@/mixins/viewer.ts'
+import {Auth} from '@/components/views/auth/mixins/Auth.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import AcBoundField from '@/components/fields/AcBoundField'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 
 @Component({
   components: {

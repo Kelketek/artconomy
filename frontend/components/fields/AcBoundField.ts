@@ -1,6 +1,6 @@
 import {h, resolveComponent} from 'vue'
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {FieldController} from '@/store/forms/field-controller'
+import {FieldController} from '@/store/forms/field-controller.ts'
 import AcUserSelect from '@/components/fields/AcUserSelect.vue'
 import AcEditor from '@/components/fields/AcEditor.vue'
 import AcTagField from '@/components/fields/AcTagField.vue'

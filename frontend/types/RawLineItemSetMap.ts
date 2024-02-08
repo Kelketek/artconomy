@@ -1,4 +1,4 @@
-import LineItem from '@/types/LineItem'
+import LineItem from '@/types/LineItem.ts'
 
 export interface RawLineItemSetMap {
   name: string,

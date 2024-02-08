@@ -1,26 +1,26 @@
-import {ProfileModule} from './index'
-import {ProfileModuleOpts} from './types/ProfileModuleOpts'
-import {User} from '@/store/profiles/types/User'
-import {ComputedGetters, guestName} from '@/lib/lib'
-import {SingleController} from '@/store/singles/controller'
-import {TerseUser} from '@/store/profiles/types/TerseUser'
-import {AnonUser} from '@/store/profiles/types/AnonUser'
-import {ProfileState} from '@/store/profiles/types/ProfileState'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile'
+import {ProfileModule} from './index.ts'
+import {ProfileModuleOpts} from './types/ProfileModuleOpts.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {ComputedGetters, guestName} from '@/lib/lib.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
+import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
+import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
 import {
   artistProfileEndpointFor,
   artistProfilePathFor,
   endpointFor,
   pathFor,
   userPathFor,
-} from '@/store/profiles/helpers'
-import {BaseController, ControllerArgs} from '@/store/controller-base'
-import {ListController} from '@/store/lists/controller'
-import Product from '@/types/Product'
+} from '@/store/profiles/helpers.ts'
+import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
+import {ListController} from '@/store/lists/controller.ts'
+import Product from '@/types/Product.ts'
 import {nextTick, toValue, watch} from 'vue'
-import {getController} from '@/store/registry-base'
-import {SingleState} from '@/store/singles/types/SingleState'
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts'
+import {getController} from '@/store/registry-base.ts'
+import {SingleState} from '@/store/singles/types/SingleState.ts'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 
 type AnyUser = User | TerseUser | AnonUser
 

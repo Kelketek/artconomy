@@ -1,6 +1,6 @@
 /* This file is run before all tests are run to prep the test environment. */
 
-import {LocalStorageMock} from './setupTestEnv'
+import {LocalStorageMock} from './setupTestEnv.ts'
 
 const internalWindow = window
 
