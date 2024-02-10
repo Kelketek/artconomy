@@ -4,7 +4,7 @@ import * as Sentry from '@sentry/vue'
 // @ts-ignore
 import * as Integrations from '@sentry/integrations'
 import {createApp, h} from 'vue'
-import {createStore} from './store/index.ts'
+import {createStore, key} from './store/index.ts'
 import App from './App.vue'
 import VueMask from '@devindex/vue-mask'
 import {configureHooks, router} from './router/index.ts'
@@ -61,7 +61,7 @@ const app = createApp({
 const store = createStore()
 
 app.use(router)
-app.use(store)
+app.use(store, key)
 app.use(VueMask)
 app.use(createVueSocket({endpoint: `wss://${window.location.host}/ws/events/`}))
 app.use(Shortcuts)

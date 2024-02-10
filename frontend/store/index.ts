@@ -10,6 +10,8 @@ import {genId} from '@/lib/lib.ts'
 import {singles} from './singles/index.ts'
 import {characterModules} from '@/store/characters/index.ts'
 import {ContentRating} from '@/types/ContentRating.ts'
+import {InjectionKey} from 'vue'
+import {Store} from 'vuex/types/index.d.ts'
 
 export function storeDefaults(): StoreOptions<State> {
   return {
@@ -104,7 +106,7 @@ export function storeDefaults(): StoreOptions<State> {
 
 export type ArtStore = VuexStore<State>
 
-
+export const key: InjectionKey<Store<State>> = Symbol()
 
 export const createStore = (options?: StoreOptions<State>): ArtStore => {
   return createVuexStore<State>({...cloneDeep(options || storeDefaults()), plugins: [/**myPlugin**/]})

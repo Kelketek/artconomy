@@ -7,7 +7,128 @@ import {userHandle} from '@/store/profiles/handles.ts'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import ErrorHandling from '@/mixins/ErrorHandling.ts'
 import {parseISO} from '@/lib/lib.ts'
+import {useStore} from 'vuex'
+import {useProfile} from '@/store/profiles/hooks.ts'
+import {ArtStore, key} from '@/store'
+import {computed} from 'vue'
+import {SingleController} from '@/store/singles/controller.ts'
 
+export interface AgeCheckArgs {
+  value: number,
+  force?: boolean,
+}
+
+
+const checkStaff = (isLoggedIn: boolean, viewer: User|AnonUser|null) => {
+  if (!isLoggedIn) {
+    return false
+  }
+  return Boolean((viewer as User).is_staff)
+}
+
+const checkSuperuser = (isLoggedIn: boolean, viewer: User|AnonUser|null) => {
+  if (!isLoggedIn) {
+    return false
+  }
+  return Boolean((viewer as User).is_superuser)
+}
+
+const loginCheck = (viewer: null|AnonUser|User) => {
+  if (!viewer) {
+    return false
+  }
+  return Boolean(viewer.username !== '_')
+}
+
+const checkRegistered = (isLoggedIn: boolean, viewer: User|AnonUser|null) => isLoggedIn && !(viewer as User).guest
+
+const rating = (viewer: User|AnonUser|null) => {
+  if (!viewer || viewer.sfw_mode) {
+    return Ratings.GENERAL
+  }
+  return viewer.rating
+}
+
+const rawRating = (viewer: User|AnonUser|null) => {
+  // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
+  // in and not currently using SFW settings. So, if we want to watch for this value's change, but we want to ignore
+  // the default rating setting, we use this property instead.
+  if (!viewer) {
+    return undefined
+  }
+  if (viewer.sfw_mode) {
+    return Ratings.GENERAL
+  }
+  return viewer.rating
+}
+
+
+const ageCheck = (store: ArtStore, viewer: AnonUser|User, {value, force}: AgeCheckArgs) => {
+  if (!value) {
+    return
+  }
+  if (!force) {
+    if (viewer.birthday) {
+      return
+    }
+    if (store.state.ageAsked) {
+      return
+    }
+  }
+  store.commit('setContentRating', value)
+  store.commit('setShowAgeVerification', true)
+  store.commit('setAgeAsked', true)
+}
+
+const isAdultAllowed = (viewerHandler: ProfileController) => {
+  if (viewerHandler.user.patchers.sfw_mode.model) {
+    return false
+  }
+  const birthday = (viewerHandler.user as SingleController<AnonUser>).patchers.birthday.model
+  if (birthday === null) {
+    return false
+  }
+  return differenceInYears(new Date(), parseISO(birthday)) >= 18
+}
+
+const hasLandscape = (viewer: User|AnonUser|null) => {
+  if (!viewer) {
+    return false
+  }
+  if (!('landscape' in viewer)) {
+    return false
+  }
+  return viewer.landscape
+}
+
+
+export const useViewer = () => {
+  const store = useStore(key)
+  const viewerHandler = useProfile(
+    store.state.profiles!.viewerRawUsername,
+    {persistent: true, viewer: true},
+  )
+  const viewerName = computed(() => viewerHandler.displayName)
+  const rawViewerName = computed(() => store.state.profiles!.viewerRawUsername)
+  const viewer = viewerHandler.user.x as User|AnonUser
+  const adultAllowed = computed(() => isAdultAllowed(viewerHandler))
+  const isLoggedIn = computed(() => loginCheck(viewer))
+  const isRegistered = computed(() => checkRegistered(isLoggedIn.value, viewer))
+  const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer))
+  return {
+    viewer,
+    viewerName,
+    rawViewerName,
+    viewerHandler,
+    adultAllowed,
+    isLoggedIn,
+    isRegistered,
+    isStaff,
+    ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer, args),
+  }
+}
+
+// Deprecated.
 @Component
 export default class Viewer extends mixins(ErrorHandling) {
   public viewerHandler: ProfileController = null as unknown as ProfileController
@@ -15,58 +136,31 @@ export default class Viewer extends mixins(ErrorHandling) {
   public viewer!: User|AnonUser|null
 
   public get rating(): Ratings {
-    if (!this.viewer || this.viewer.sfw_mode) {
-      return Ratings.GENERAL
-    }
-    return this.viewer.rating
+    return rating(this.viewer)
   }
 
   public get rawRating() {
-    // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
-    // in and not currently using SFW settings. So, if we want to watch for this value's change, but we want to ignore
-    // the default rating setting, we use this property instead.
-    if (!this.viewer) {
-      return undefined
-    }
-    if (this.viewer.sfw_mode) {
-      return Ratings.GENERAL
-    }
-    return this.viewer.rating
+    return rawRating(this.viewer)
   }
 
   public get isLoggedIn(): boolean {
-    if (!this.viewer) {
-      return false
-    }
-    return Boolean(this.viewer.username !== '_')
+    return loginCheck(this.viewer)
   }
 
   public get isSuperuser(): boolean {
-    if (!this.isLoggedIn) {
-      return false
-    }
-    return Boolean((this.viewer as User).is_superuser)
+    return checkSuperuser(this.isLoggedIn, this.viewer)
   }
 
   public get isRegistered(): boolean {
-    return this.isLoggedIn && !(this.viewer as User).guest
+    return checkRegistered(this.isLoggedIn, this.viewer)
   }
 
   public get isStaff(): boolean {
-    if (!this.isLoggedIn) {
-      return false
-    }
-    return Boolean((this.viewer as User).is_staff)
+    return checkStaff(this.isLoggedIn, this.viewer)
   }
 
   public get landscape() {
-    if (!this.viewer) {
-      return false
-    }
-    if (!('landscape' in this.viewer)) {
-      return false
-    }
-    return this.viewer.landscape
+    return hasLandscape(this.viewer)
   }
 
   public get viewerName() {
@@ -78,32 +172,11 @@ export default class Viewer extends mixins(ErrorHandling) {
   }
 
   public get adultAllowed() {
-    if (this.viewerHandler.user.patchers.sfw_mode.model) {
-      return false
-    }
-    // @ts-ignore
-    const birthday = this.viewerHandler.user.patchers.birthday.model
-    if (birthday === null) {
-      return false
-    }
-    return differenceInYears(new Date(), parseISO(birthday)) >= 18
+    return isAdultAllowed(this.viewerHandler)
   }
 
   public ageCheck({value, force}: {value: number, force?: boolean}) {
-    if (!value) {
-      return
-    }
-    if (!force) {
-      if (this.viewer!.birthday) {
-        return
-      }
-      if (this.$store.state.ageAsked) {
-        return
-      }
-    }
-    this.$store.commit('setContentRating', value)
-    this.$store.commit('setShowAgeVerification', true)
-    this.$store.commit('setAgeAsked', true)
+    ageCheck(this.$store, this.viewer!,{value, force})
   }
 
   public created() {

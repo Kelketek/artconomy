@@ -1,5 +1,5 @@
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import {cleanUp, flushPromises, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, genAnon, mount, setViewer, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
@@ -136,13 +136,11 @@ describe('Search.vue', () => {
     mockUpdate.mockImplementation(vm.rawUpdate)
     await wrapper.vm.$nextTick()
     searchForm.fields.featured.update(true)
-    await wrapper.vm.$nextTick()
-    await flushPromises()
-    expect(wrapper.vm.$route.query).toEqual({
+    await waitFor(() => expect(wrapper.vm.$route.query).toEqual({
       featured: 'true',
       page: '1',
       size: '24',
-    })
+    }))
   })
   test('Shows an alert when an anonymous user has a max rating under the current search', async() => {
     await router.push({name: 'SearchProducts'})
