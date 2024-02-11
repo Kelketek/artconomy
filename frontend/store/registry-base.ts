@@ -33,6 +33,10 @@ declare interface Registerable<K extends AttrKeys> {
   socketUnmount: () => void,
 }
 
+// TODO: Use of arrays here might be worth changing to some hashable value
+// now that we're using composition-based components, since these will have to
+// check the registration status on each render rather than just on creation,
+// which means looping through these arrays many times a second.
 export interface Registry<K extends AttrKeys, T extends Registerable<K>> {
   typeName: string,
   controllers: { [key: string]: T },

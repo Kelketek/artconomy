@@ -1,5 +1,5 @@
 <template>
-  <v-card class="asset-card">
+  <v-card class="asset-card" ref="el">
     <v-row no-gutters>
       <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="$emit('update:modelValue', true)">
         <v-container fluid class="pa-0 edit-container">
@@ -118,77 +118,134 @@
 
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcVideoPlayer from '@/components/AcVideoPlayer.vue'
 import AcAudioPlayer from '@/components/AcAudioPlayer.vue'
 import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
 import {COMPONENT_EXTENSIONS, getExt} from '@/lib/lib.ts'
-import AssetBase from '@/mixins/asset_base.ts'
+import {assetDefaults, useAssetHelpers} from '@/mixins/asset_base.ts'
 import {Asset} from '@/types/Asset.ts'
+import AssetProps from '@/types/AssetProps.ts'
+import {computed, onMounted, ref} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {
-    AcVideoPlayer,
-    AcAudioPlayer,
-    AcMarkdownViewer,
-  },
-  emits: ['update:modelValue'],
-})
-class AcAsset extends mixins(AssetBase) {
-  @Prop({default: null})
-  // @ts-expect-error
-  public asset!: Asset | null
-
-  @Prop({default: 1})
-  public aspectRatio!: number | null
-
-  @Prop({required: true})
-  // @ts-expect-error
-  public thumbName!: string
-
-  @Prop({required: false})
-  public editing!: boolean
-
-  @Prop({default: true})
-  public text!: boolean
-
-  public fullscreen = false
-
-  public mounted() {
-    window._paq.push(['MediaAnalytics::scanForMedia', this.$el])
-  }
-
-  public get displayComponent() {
-    if (!this.asset) {
-      return null
-    }
-    const ext = getExt(this.asset.file.full)
-    if (['gallery', 'full', 'preview'].indexOf(this.thumbName) === -1) {
-      return null
-    }
-    // @ts-ignore
-    return COMPONENT_EXTENSIONS[ext]
-  }
-
-  public get renderImage() {
-    return this.canDisplay && (this.isImage || !this.displayComponent)
-  }
-
-  public get ratio() {
-    if ((!this.canDisplay) && (this.aspectRatio === null)) {
-      return 1
-    }
-    return this.aspectRatio
-  }
-
-  public get fullUrl() {
-    if (this.asset === null) {
-      return this.fallbackImage
-    }
-    return this.asset.file.full
-  }
+declare interface AcAssetProps extends AssetProps {
+  asset?: Asset | null,
+  aspectRation?: number | null
+  thumbName: string,
+  editing?: boolean,
+  text?: boolean,
 }
 
-export default toNative(AcAsset)
+const props = withDefaults(defineProps<AcAssetProps>(), {
+  ...assetDefaults(),
+  asset: null,
+  aspectRatio: 1,
+  text: true,
+})
+
+const {ageCheck, isRegistered} = useViewer()
+
+const {
+  isImage,
+  displayImage,
+  ratingText,
+  blacklisted,
+  nsfwBlacklisted,
+  permittedRating,
+  nerfed,
+  canDisplay,
+} = useAssetHelpers({asset: props.asset, thumbName: props.thumbName, fallbackImage: props.fallBackImage})
+
+const el = ref<HTMLElement | null>(null)
+
+onMounted(() => window._paq.push(['MediaAnalytics::scanForMedia', el.value]))
+
+const emit = defineEmits<{'update:modelValue': [value: boolean]}>()
+
+const displayComponent = computed(() => {
+  if (!props.asset) {
+    return null
+  }
+  const ext = getExt(props.asset.file.full)
+  if (['gallery', 'full', 'preview'].indexOf(props.thumbName) === -1) {
+    return null
+  }
+  // @ts-ignore
+  return COMPONENT_EXTENSIONS[ext]
+})
+
+const renderImage = computed(() => canDisplay && (isImage.value || !displayComponent.value))
+
+const ratio = computed(() => {
+  if ((!canDisplay) && (props.aspectRatio === null)) {
+    return 1
+  }
+  return props.aspectRatio
+})
+
+// @Component({
+//   components: {
+//     AcVideoPlayer,
+//     AcAudioPlayer,
+//     AcMarkdownViewer,
+//   },
+//   emits: ['update:modelValue'],
+// })
+// class AcAsset extends mixins(AssetBase) {
+//   @Prop({default: null})
+//   // @ts-expect-error
+//   public asset!: Asset | null
+//
+//   @Prop({default: 1})
+//   public aspectRatio!: number | null
+//
+//   @Prop({required: true})
+//   // @ts-expect-error
+//   public thumbName!: string
+//
+//   @Prop({required: false})
+//   public editing!: boolean
+//
+//   @Prop({default: true})
+//   public text!: boolean
+//
+//   public fullscreen = false
+//
+//   public mounted() {
+//     window._paq.push(['MediaAnalytics::scanForMedia', this.$el])
+//   }
+//
+//   public get displayComponent() {
+//     if (!this.asset) {
+//       return null
+//     }
+//     const ext = getExt(this.asset.file.full)
+//     if (['gallery', 'full', 'preview'].indexOf(this.thumbName) === -1) {
+//       return null
+//     }
+//     // @ts-ignore
+//     return COMPONENT_EXTENSIONS[ext]
+//   }
+//
+//   public get renderImage() {
+//     return this.canDisplay && (this.isImage || !this.displayComponent)
+//   }
+//
+//   public get ratio() {
+//     if ((!this.canDisplay) && (this.aspectRatio === null)) {
+//       return 1
+//     }
+//     return this.aspectRatio
+//   }
+//
+//   public get fullUrl() {
+//     if (this.asset === null) {
+//       return this.fallbackImage
+//     }
+//     return this.asset.file.full
+//   }
+// }
+//
+// export default toNative(AcAsset)
 </script>

@@ -43,7 +43,7 @@ const loginCheck = (viewer: null|AnonUser|User) => {
 
 const checkRegistered = (isLoggedIn: boolean, viewer: User|AnonUser|null) => isLoggedIn && !(viewer as User).guest
 
-const rating = (viewer: User|AnonUser|null) => {
+const getRating = (viewer: User|AnonUser|null) => {
   if (!viewer || viewer.sfw_mode) {
     return Ratings.GENERAL
   }
@@ -117,6 +117,8 @@ export const useViewer = () => {
   const isRegistered = computed(() => checkRegistered(isLoggedIn.value, viewer.value))
   const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer.value))
   const isSuperuser = computed(() => checkSuperuser(isLoggedIn.value, viewer.value))
+  const rating = computed(() => getRating(viewer.value))
+
   return {
     viewer,
     viewerName,
@@ -127,6 +129,7 @@ export const useViewer = () => {
     isRegistered,
     isStaff,
     isSuperuser,
+    rating,
     ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer.value, args),
   }
 }
@@ -139,7 +142,7 @@ export default class Viewer extends mixins(ErrorHandling) {
   public viewer!: User|AnonUser|null
 
   public get rating(): Ratings {
-    return rating(this.viewer)
+    return getRating(this.viewer)
   }
 
   public get rawRating() {
