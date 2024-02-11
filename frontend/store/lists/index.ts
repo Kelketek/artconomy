@@ -1,4 +1,4 @@
-import {State as RootState} from '../state.ts'
+import {ArtState as RootState} from '../artState.ts'
 import {ActionTree, MutationTree, Store} from 'vuex'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib.ts'
 import axios from 'axios'

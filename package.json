@@ -69,7 +69,6 @@
     "eslint-plugin-vue": "^9.19.2",
     "flush-promises": "^1.0.2",
     "jsdom": "^23.0.1",
-    "mockdate": "^3.0.5",
     "resize-observer-polyfill": "^1.5.1",
     "stylus": "^0.61.0",
     "typescript": "^5.0.0",

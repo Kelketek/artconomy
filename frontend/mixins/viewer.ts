@@ -9,7 +9,8 @@ import ErrorHandling from '@/mixins/ErrorHandling.ts'
 import {parseISO} from '@/lib/lib.ts'
 import {useStore} from 'vuex'
 import {useProfile} from '@/store/profiles/hooks.ts'
-import {ArtStore, key} from '@/store'
+import {ArtState} from '@/store/artState.ts'
+import {ArtStore} from '@/store/index.ts'
 import {computed} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
 
@@ -103,18 +104,19 @@ const hasLandscape = (viewer: User|AnonUser|null) => {
 
 
 export const useViewer = () => {
-  const store = useStore(key)
+  const store = useStore<ArtState>()
   const viewerHandler = useProfile(
     store.state.profiles!.viewerRawUsername,
     {persistent: true, viewer: true},
   )
   const viewerName = computed(() => viewerHandler.displayName)
   const rawViewerName = computed(() => store.state.profiles!.viewerRawUsername)
-  const viewer = viewerHandler.user.x as User|AnonUser
+  const viewer = computed(() => viewerHandler.user.x as User|AnonUser)
   const adultAllowed = computed(() => isAdultAllowed(viewerHandler))
-  const isLoggedIn = computed(() => loginCheck(viewer))
-  const isRegistered = computed(() => checkRegistered(isLoggedIn.value, viewer))
-  const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer))
+  const isLoggedIn = computed(() => loginCheck(viewer.value))
+  const isRegistered = computed(() => checkRegistered(isLoggedIn.value, viewer.value))
+  const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer.value))
+  const isSuperuser = computed(() => checkSuperuser(isLoggedIn.value, viewer.value))
   return {
     viewer,
     viewerName,
@@ -124,7 +126,8 @@ export const useViewer = () => {
     isLoggedIn,
     isRegistered,
     isStaff,
-    ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer, args),
+    isSuperuser,
+    ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer.value, args),
   }
 }
 

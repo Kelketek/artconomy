@@ -7,7 +7,7 @@ import {useRouter} from 'vue-router'
 import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 
-export const useList = <T extends object>(name: string, schema: ListModuleOpts) => {
+export const useList = <T extends object>(name: string, schema?: ListModuleOpts) => {
   const uid = getUid()
   const registries = useRegistries()
   const controller = getController<ListState<T>, ListModuleOpts, ListController<T>>({

@@ -1,5 +1,5 @@
 import {createStore as createVuexStore, Store as VuexStore, StoreOptions} from 'vuex'
-import {Alert, AlertCategory, State} from './state.ts'
+import {Alert, AlertCategory, ArtState} from './artState.ts'
 import {profiles, userModules} from './profiles/index.ts'
 import {errors} from './errors/index.ts'
 import {forms} from './forms/index.ts'
@@ -13,7 +13,7 @@ import {ContentRating} from '@/types/ContentRating.ts'
 import {InjectionKey} from 'vue'
 import {Store} from 'vuex/types/index.d.ts'
 
-export function storeDefaults(): StoreOptions<State> {
+export function storeDefaults(): StoreOptions<ArtState> {
   return {
     state: {
       projectName: 'Artconomy',
@@ -90,7 +90,9 @@ export function storeDefaults(): StoreOptions<State> {
         return results
       },
     },
-    strict: process.env.NODE_ENV !== 'production',
+    // You might enable this in development to look for bugs, but most of our commits are automatically constructed,
+    // and enabling it will set up deep watchers that kill performance to a frustrating degree.
+    strict: false,
     modules: {
       profiles,
       userModules,
@@ -104,10 +106,9 @@ export function storeDefaults(): StoreOptions<State> {
   }
 }
 
-export type ArtStore = VuexStore<State>
+export type ArtStore = VuexStore<ArtState>
 
-export const key: InjectionKey<Store<State>> = Symbol()
 
-export const createStore = (options?: StoreOptions<State>): ArtStore => {
-  return createVuexStore<State>({...cloneDeep(options || storeDefaults()), plugins: [/**myPlugin**/]})
+export const createStore = (options?: StoreOptions<ArtState>): ArtStore => {
+  return createVuexStore<ArtState>({...cloneDeep(options || storeDefaults()), plugins: [/**myPlugin**/]})
 }

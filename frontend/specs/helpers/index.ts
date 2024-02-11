@@ -41,6 +41,8 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
+import {RouteRecordRaw} from 'vue-router'
+import {routes} from '@/router'
 
 export interface ExtraData {
   status?: number,
@@ -269,12 +271,8 @@ export function setPricing(store: ArtStore) {
   return pricing
 }
 
-export function timeout(ms: number) {
+export function sleep(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-export async function sleep(ms: number, ...args: any[]) {
-  await timeout(ms)
 }
 
 export function docTarget() {
@@ -332,20 +330,50 @@ export function VuetifyWrapped(component: ReturnType<typeof defineComponent>) {
   })
 }
 
+export const realTimerScope = (): () => void => {
+  // Ensures that real timers are used, and returns a function to be called when whatever they are needed
+  // for is finished, which will restore the fake timers if they were used.
+  if (vi.isFakeTimers()) {
+    vi.useRealTimers()
+    return () => vi.useFakeTimers()
+  }
+  return () => {}
+}
+
 export async function waitFor(func: () => any, timeout = 1000) {
+  const restoreFakes = realTimerScope()
   const startTime = Date.now()
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
-      return await func()
+      const result = await func()
+      restoreFakes()
+      return result
     } catch (e) {
       if ((Date.now() - startTime) >= timeout) {
+        restoreFakes()
         throw e
       }
     }
     await sleep(50)
   }
 }
+
+export const nullifyRoutes = (routeArray: RouteRecordRaw[]): RouteRecordRaw[] => {
+  // Takes all given routes and replaces them with the bogus (and cheaply instantiated) Empty component.
+  return routeArray.map((oldRoute: RouteRecordRaw) => {
+    const route = {...oldRoute}
+    if (route.component !== undefined) {
+      route.component = Empty
+    }
+    if (route.children && route.children.length) {
+      route.children = nullifyRoutes(route.children)
+    }
+    return route
+  })
+}
+
+export const mockRoutes = nullifyRoutes(routes)
 
 export const mockStripeInitializer = vi.fn()
 mockStripeInitializer.mockImplementation(mockStripe)

@@ -1,5 +1,5 @@
 import {Component} from 'vue-facing-decorator'
-import {Alert, AlertCategory} from '@/store/state.ts'
+import {Alert, AlertCategory} from '@/store/artState.ts'
 import {deriveErrors} from '@/store/forms/helpers.ts'
 import {ArtVue} from '@/lib/lib.ts'
 import {AcServerError} from '@/types/AcServerError.ts'

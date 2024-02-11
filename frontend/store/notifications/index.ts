@@ -1,4 +1,4 @@
-import {State as RootState} from '../state.ts'
+import {ArtState as RootState} from '../artState.ts'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
 import {artCall} from '@/lib/lib.ts'
 import {NotificationsState} from '@/store/notifications/types/NotificationsState.ts'

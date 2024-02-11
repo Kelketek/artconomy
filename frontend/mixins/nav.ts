@@ -1,5 +1,6 @@
 import {Component, Vue} from 'vue-facing-decorator'
 import {RouteLocationNormalizedLoaded, useRoute} from 'vue-router'
+import {computed} from 'vue'
 
 @Component
 export default class Nav extends Vue {
@@ -18,5 +19,5 @@ const checkForFullInterface = (route: RouteLocationNormalizedLoaded) => {
 
 export const useNav = () => {
   const route = useRoute()
-  return checkForFullInterface(route)
+  return {fullInterface: computed(() => checkForFullInterface(route))}
 }

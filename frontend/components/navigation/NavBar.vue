@@ -7,7 +7,7 @@
         app
         temporary
         width="300"
-        v-if="viewer && !$store.state.iFrame && fullInterface"
+        v-if="viewer && !store.state.iFrame && fullInterface"
     >
       <v-container fluid class="pa-0 fill-height">
         <v-row no-gutters>
@@ -94,7 +94,7 @@
         dark
         :scroll-off-screen="$vuetify.display.mdAndDown"
         :scroll-threshold="150"
-        v-if="!$store.state.iFrame"
+        v-if="!store.state.iFrame"
     >
       <template v-slot:prepend>
         <v-app-bar-nav-icon v-if="viewer && fullInterface"
@@ -204,116 +204,193 @@
 
 </style>
 
-<script lang="ts">
+<script setup lang="ts">
 import {initDrawerValue, makeQueryParams, BASE_URL} from '@/lib/lib.ts'
-import Viewer from '@/mixins/viewer.ts'
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import AcSettingNav from './AcSettingNav.vue'
+import {useViewer} from '@/mixins/viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import Nav from '@/mixins/nav.ts'
+import {useNav} from '@/mixins/nav.ts'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import {siDiscord, siTwitter} from 'simple-icons'
-import {SingleController} from '@/store/singles/controller.ts'
 import {NavSettings} from '@/types/NavSettings.ts'
 import AcIcon from '@/components/AcIcon.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
+import {computed, onUnmounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
+import {useSearchForm} from '@/components/views/search/hooks.ts'
 
-@Component({
-  components: {
-    AcNavLinks,
-    AcBoundField,
-    AcPatchField,
-    AcSettingNav,
-    AcIcon,
-    AcLink,
-  },
-})
-class NavBar extends mixins(Viewer, Nav) {
-  public searchForm: FormController = null as unknown as FormController
-  public navSettings = null as unknown as SingleController<NavSettings>
-  public drawer = false
+// Should already have been populated in the root component.
+const searchForm = useSearchForm()
+const logo = new URL('/static/images/logo.png', BASE_URL).href
+const route = useRoute()
+const router = useRouter()
+const store = useStore<ArtState>()
 
-  public siDiscord = siDiscord
-  public siTwitter = siTwitter
-  public logo = new URL('/static/images/logo.png', BASE_URL).href
+const drawer = ref(false)
 
-  public get loginLink() {
-    if (this.$route.name === 'Login') {
-      return {
-        name: 'Login',
-      }
-    }
+const loginLink = computed(() => {
+  if (route.name === 'Login') {
     return {
       name: 'Login',
-      query: {next: this.$route.path},
     }
   }
+  return {
+    name: 'Login',
+    query: {next: route.path},
+  }
+})
 
-  public runSearch() {
-    if (this.$route.name && (String(this.$route.name).indexOf('Search') !== -1)) {
-      return
-    }
-    this.$router.push({
-      name: 'SearchProducts',
-      query: makeQueryParams(this.searchForm.rawData),
+const runSearch = () => {
+  if (route.name && (String(route.name).indexOf('Search') !== -1)) {
+    return
+  }
+  console.log('query params are', makeQueryParams(searchForm.rawData))
+  router.push({
+    name: 'SearchProducts',
+    query: makeQueryParams(searchForm.rawData),
+  })
+}
+
+const {fullInterface} = useNav()
+
+const {
+  viewer,
+  isRegistered,
+  viewerHandler,
+  isLoggedIn,
+  isStaff,
+  isSuperuser,
+} = useViewer()
+
+const registeredUser = viewer.value as User
+
+const notificationLoad = () => {
+  if (['CommunityNotifications', 'SalesNotifications'].indexOf(String(route.name) + '') !== -1) {
+    router.replace({
+      name: 'Reload',
+      params: {path: route.path},
     })
-  }
-
-  public get registeredUser() {
-    return this.viewer as User
-  }
-
-  public created() {
-    this.searchForm = this.$getForm('search')
-  }
-
-  public notificationLoad() {
-    if (['CommunityNotifications', 'SalesNotifications'].indexOf(String(this.$route.name) + '') !== -1) {
-      this.$router.replace({
-        name: 'Reload',
-        params: {path: this.$route.path},
-      })
-    } else {
-      this.$router.push({name: 'CommunityNotifications'})
-    }
-  }
-
-  public showSupport() {
-    this.$store.commit('supportDialog', true)
-  }
-
-  @Watch('isRegistered', {immediate: true})
-  public viewerUpdate(val: boolean) {
-    if (val) {
-      this.$store.dispatch('notifications/startLoop').then()
-    } else {
-      this.$store.dispatch('notifications/stopLoop').then()
-    }
-  }
-
-  public get profileRoute() {
-    const viewer = this.viewer as User
-    return {
-      name: 'AboutUser',
-      params: {username: viewer.username},
-    }
-  }
-
-  public get sfwMode() {
-    return this.viewerHandler.user.patchers.sfw_mode
-  }
-
-  public get counts() {
-    return this.$store.state.notifications!.stats
-  }
-
-  public unmounted() {
-    this.$store.dispatch('notifications/stopLoop').then()
+  } else {
+    router.push({name: 'CommunityNotifications'})
   }
 }
 
-export default toNative(NavBar)
+const showSupport = () => store.commit('supportDialog', true)
+
+watch(isRegistered, (val: boolean) => {
+  if (val) {
+    store.dispatch('notifications/startLoop').then()
+  } else {
+    store.dispatch('notifications/stopLoop').then()
+  }
+}, {immediate: true})
+
+const profileRoute = computed(() => {
+  return {
+    name: 'AboutUser',
+    params: {username: viewer.value.username},
+  }
+})
+
+const sfwMode = computed(() => viewerHandler.user.patchers.sfw_mode)
+
+const counts = computed(() => store.state.notifications!.stats)
+
+onUnmounted(() => store.dispatch('notifications/stopLoop').then())
+
+// @Component({
+//   components: {
+//     AcNavLinks,
+//     AcBoundField,
+//     AcPatchField,
+//     AcSettingNav,
+//     AcIcon,
+//     AcLink,
+//   },
+// })
+// class NavBar extends mixins(Viewer, Nav) {
+//   public searchForm: FormController = null as unknown as FormController
+//   public drawer = false
+//
+//   public siDiscord = siDiscord
+//   public siTwitter = siTwitter
+//   public logo = new URL('/static/images/logo.png', BASE_URL).href
+//
+//   public get loginLink() {
+//     if (this.$route.name === 'Login') {
+//       return {
+//         name: 'Login',
+//       }
+//     }
+//     return {
+//       name: 'Login',
+//       query: {next: this.$route.path},
+//     }
+//   }
+//
+//   public runSearch() {
+//     if (this.$route.name && (String(this.$route.name).indexOf('Search') !== -1)) {
+//       return
+//     }
+//     this.$router.push({
+//       name: 'SearchProducts',
+//       query: makeQueryParams(this.searchForm.rawData),
+//     })
+//   }
+//
+//   public get registeredUser() {
+//     return this.viewer as User
+//   }
+//
+//   public created() {
+//     this.searchForm = this.$getForm('search')
+//   }
+//
+//   public notificationLoad() {
+//     if (['CommunityNotifications', 'SalesNotifications'].indexOf(String(this.$route.name) + '') !== -1) {
+//       this.$router.replace({
+//         name: 'Reload',
+//         params: {path: this.$route.path},
+//       })
+//     } else {
+//       this.$router.push({name: 'CommunityNotifications'})
+//     }
+//   }
+//
+//   public showSupport() {
+//     this.$store.commit('supportDialog', true)
+//   }
+//
+//   @Watch('isRegistered', {immediate: true})
+//   public viewerUpdate(val: boolean) {
+//     if (val) {
+//       this.$store.dispatch('notifications/startLoop').then()
+//     } else {
+//       this.$store.dispatch('notifications/stopLoop').then()
+//     }
+//   }
+//
+//   public get profileRoute() {
+//     const viewer = this.viewer as User
+//     return {
+//       name: 'AboutUser',
+//       params: {username: viewer.username},
+//     }
+//   }
+//
+//   public get sfwMode() {
+//     return this.viewerHandler.user.patchers.sfw_mode
+//   }
+//
+//   public get counts() {
+//     return this.$store.state.notifications!.stats
+//   }
+//
+//   public unmounted() {
+//     this.$store.dispatch('notifications/stopLoop').then()
+//   }
+// }
+//
+// export default toNative(NavBar)
 </script>

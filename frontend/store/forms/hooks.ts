@@ -7,7 +7,7 @@ import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema.ts'
 
-export const useForm = (name: string, schema: NamelessFormSchema) => {
+export const useForm = (name: string, schema?: NamelessFormSchema) => {
   const uid = getUid()
   const registries = useRegistries()
   const controller = getController<FormState, NamelessFormSchema, FormController>({

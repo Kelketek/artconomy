@@ -20,7 +20,7 @@ export interface Alert {
   category: AlertCategory
 }
 
-export interface State {
+export interface ArtState {
   projectName: string,
   showSupport: boolean,
   markdownHelp: boolean,

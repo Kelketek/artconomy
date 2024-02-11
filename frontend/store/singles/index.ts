@@ -1,4 +1,4 @@
-import {State as RootState} from '../state.ts'
+import {ArtState as RootState} from '../artState.ts'
 import type {ActionTree, GetterTree, MutationTree} from 'vuex/types/index.d.ts'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib.ts'
 import {SingleState} from './types/SingleState.ts'

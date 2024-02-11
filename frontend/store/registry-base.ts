@@ -90,7 +90,6 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
     this.uidTracking = markRaw({})
     this.listeners = markRaw({})
     this.uidListenerTracking = markRaw({})
-    // this.socketListeners = markRaw([])
   }
 
   public register = (uid: string, controller: T) => {

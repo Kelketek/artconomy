@@ -1,7 +1,7 @@
 import {mount} from '@vue/test-utils'
 import AlertComponent from '@/specs/helpers/dummy_components/alert.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {AlertCategory} from '@/store/state.ts'
+import {AlertCategory} from '@/store/artState.ts'
 import {beforeEach, describe, expect, test, vi} from 'vitest'
 import {vueSetup} from '@/specs/helpers/index.ts'
 

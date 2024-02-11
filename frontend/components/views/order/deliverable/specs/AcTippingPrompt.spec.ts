@@ -7,7 +7,6 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {Router} from 'vue-router'
 import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
-import MockDate from 'mockdate'
 import {parseISO} from '@/lib/lib.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ConnectionStatus} from '@/types/ConnectionStatus.ts'
@@ -59,7 +58,7 @@ describe('AcTippingPrompt', () => {
     store = createStore()
     router = deliverableRouter()
     // This is a saturday.
-    MockDate.set(parseISO('2020-08-01'))
+    vi.setSystemTime(parseISO('2020-08-01'))
     empty = mount(Empty, vueSetup({store}))
     empty.vm.$getSingle('socketState', {
       endpoint: '#',

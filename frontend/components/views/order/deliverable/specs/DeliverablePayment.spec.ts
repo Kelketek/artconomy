@@ -15,7 +15,6 @@ import DeliverablePayment from '@/components/views/order/deliverable/Deliverable
 import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
 import {dummyLineItems} from '@/lib/specs/helpers.ts'
 import mockAxios from '@/__mocks__/axios.ts'
-import MockDate from 'mockdate'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
@@ -39,7 +38,7 @@ describe('DeliverablePayment.vue', () => {
     store = createStore()
     router = deliverableRouter()
     // This is a saturday.
-    MockDate.set(parseISO('2020-08-01'))
+    vi.setSystemTime(parseISO('2020-08-01'))
     mount(Empty, vueSetup({store})).vm.$getSingle('socketState', {
       endpoint: '#',
       persist: true,
@@ -52,7 +51,6 @@ describe('DeliverablePayment.vue', () => {
   })
   afterEach(() => {
     cleanUp(wrapper)
-    MockDate.reset()
   })
   test('Handles deletion', async() => {
     const fox = genUser()
@@ -538,7 +536,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
     store = createStore()
     router = deliverableRouter()
     // This is a saturday.
-    MockDate.set(parseISO('2020-08-01'))
+    vi.setSystemTime(parseISO('2020-08-01'))
     const options = vueSetup({
       store,
       extraPlugins: [router],
@@ -582,7 +580,6 @@ describe('DeliverablePayment.vue payment modal checks', () => {
   afterEach(() => {
     vi.clearAllTimers()
     cleanUp(wrapper)
-    MockDate.reset()
   })
   test('Switches to and from cash mode', async() => {
     expect(vm.paymentForm.fields.cash.model).toBe(false)

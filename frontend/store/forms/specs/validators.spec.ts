@@ -4,25 +4,20 @@ import mockAxios from '@/specs/helpers/mock-axios.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {registerValidators, required, simpleAsyncValidator, validateStatus} from '../validators.ts'
 import flushPromises from 'flush-promises'
-import MockDate from 'mockdate'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {cleanUp, mount, rq, vueSetup} from '@/specs/helpers/index.ts'
-import {RootFormState} from '@/store/forms/types/RootFormState.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 
 // These tests ought to be rewritten so we're not using these global changes somehow.
 
 describe('Field validators', () => {
   let store: ArtStore
-  let state: RootFormState
   let wrapper: VueWrapper<any>
   beforeEach(() => {
     store = createStore()
-    state = (store.state as any).forms as RootFormState
     registerValidators()
   })
   afterEach(() => {
-    MockDate.reset()
     formRegistry.resetValidators()
     cleanUp(wrapper)
   })
