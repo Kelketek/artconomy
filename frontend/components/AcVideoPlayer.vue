@@ -1,5 +1,5 @@
 <template>
-  <v-row no-gutters>
+  <v-row no-gutters class="ac-video-player">
     <v-col class="text-center" cols="12">
       <video controls :width="width" style="max-width: 100%">
         <source :src="asset.file.full" :type="type">

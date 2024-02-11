@@ -1,7 +1,7 @@
 <template>
   <v-card class="asset-card" ref="el">
     <v-row no-gutters>
-      <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="$emit('update:modelValue', true)">
+      <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="emit('update:modelValue', true)">
         <v-container fluid class="pa-0 edit-container">
           <v-row no-gutters class="edit-layout justify-content d-flex">
             <v-col class="d-flex">
@@ -20,11 +20,11 @@
       </div>
       <v-col cols="12" v-if="renderImage && isImage">
         <v-img :src="displayImage" :aspect-ratio="ratio || undefined" :contain="contain"
-               max-height="90vh" max-width="100%" class="asset-image" ref="imgContainer"
+               max-height="90vh" max-width="100%" class="asset-image"
                itemprop="image"
         />
       </v-col>
-      <v-col class="text-center" v-else-if="renderImage && !isImage" cols="12">
+      <v-col class="text-center icon-image" v-else-if="renderImage && !isImage" cols="12">
         <img :src="displayImage" alt="" ref="imgContainer">
       </v-col>
       <v-col cols="12" v-else-if="asset && canDisplay">
@@ -64,7 +64,7 @@
                         <span v-for="tag in blacklisted" :key="tag">{{ tag }} </span>
                       </p>
                     </div>
-                    <div v-if="nsfwBlacklisted.length" class="blacklist-info">
+                    <div v-if="nsfwBlacklisted.length" class="nsfw-blacklist-info">
                       <p v-if="terse">This piece contains tags you've blocked in an NSFW context.</p>
                       <p v-else>
                         This piece contains these blocked tags:
@@ -119,9 +119,6 @@
 </style>
 
 <script setup lang="ts">
-import AcVideoPlayer from '@/components/AcVideoPlayer.vue'
-import AcAudioPlayer from '@/components/AcAudioPlayer.vue'
-import AcMarkdownViewer from '@/components/AcMarkdownViewer.vue'
 import {COMPONENT_EXTENSIONS, getExt} from '@/lib/lib.ts'
 import {assetDefaults, useAssetHelpers} from '@/mixins/asset_base.ts'
 import {Asset} from '@/types/Asset.ts'
@@ -131,7 +128,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 
 declare interface AcAssetProps extends AssetProps {
   asset?: Asset | null,
-  aspectRation?: number | null
+  aspectRatio?: number | null
   thumbName: string,
   editing?: boolean,
   text?: boolean,
@@ -155,7 +152,7 @@ const {
   permittedRating,
   nerfed,
   canDisplay,
-} = useAssetHelpers({asset: props.asset, thumbName: props.thumbName, fallbackImage: props.fallBackImage})
+} = useAssetHelpers({asset: props.asset, thumbName: props.thumbName, fallbackImage: props.fallbackImage})
 
 const el = ref<HTMLElement | null>(null)
 
@@ -175,10 +172,10 @@ const displayComponent = computed(() => {
   return COMPONENT_EXTENSIONS[ext]
 })
 
-const renderImage = computed(() => canDisplay && (isImage.value || !displayComponent.value))
+const renderImage = computed(() => canDisplay.value && (isImage.value || !displayComponent.value))
 
 const ratio = computed(() => {
-  if ((!canDisplay) && (props.aspectRatio === null)) {
+  if ((!canDisplay.value) && (props.aspectRatio === null)) {
     return 1
   }
   return props.aspectRatio

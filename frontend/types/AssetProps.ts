@@ -15,7 +15,7 @@
 export default interface AssetProps {
   compact?: boolean,
   terse?: boolean,
-  contain: string,
+  contain?: boolean,
   popOut?: boolean,
-  fallBackImage?: string,
+  fallbackImage?: string,
 }

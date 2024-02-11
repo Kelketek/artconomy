@@ -1,4 +1,4 @@
-import {computed, markRaw} from 'vue'
+import {computed, defineAsyncComponent, markRaw} from 'vue'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
 import MarkDownIt from 'markdown-it'
@@ -439,14 +439,21 @@ const ICON_EXTENSIONS = [
   'WMV', 'XD', 'XLS', 'XLSM', 'XLSX', 'XML', 'ZIP',
 ]
 
+const AcVideoPlayer = defineAsyncComponent(() => import('@/components/AcVideoPlayer.vue'))
+const AcMarkdownViewer = defineAsyncComponent(() => import('@/components/AcMarkdownViewer.vue'))
+const AcAudioPlayer = defineAsyncComponent(() => import('@/components/AcAudioPlayer.vue'))
+const AcPdfViewer = defineAsyncComponent(() => import('@/components/AcPdfViewer.vue'))
+
 export const COMPONENT_EXTENSIONS = {
-  MP4: 'ac-video-player',
-  WEBM: 'ac-video-player',
-  OGV: 'ac-video-player',
-  TXT: 'ac-markdown-viewer',
-  MP3: 'ac-audio-player',
-  WAV: 'ac-audio-player',
-  OGG: 'ac-audio-player',
+  MP4: AcVideoPlayer,
+  WEBM: AcVideoPlayer,
+  OGV: AcVideoPlayer,
+  TXT: AcMarkdownViewer,
+  MD: AcMarkdownViewer,
+  MP3: AcAudioPlayer,
+  WAV: AcAudioPlayer,
+  OGG: AcAudioPlayer,
+  PDF: AcPdfViewer,
 }
 
 export function getExt(filename: string): string {

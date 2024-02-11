@@ -1,5 +1,5 @@
 <template>
-  <v-row no-gutters>
+  <v-row no-gutters class="ac-audio-player">
     <v-col cols="12" sm="6" offset-sm="3" md="4" offset-md="4" v-if="asset.preview">
       <v-img :src="asset.preview.thumbnail" class="mb-2" :aspect-ratio="1"/>
     </v-col>

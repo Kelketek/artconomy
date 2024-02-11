@@ -15,7 +15,7 @@ up:
 	docker-compose up -d
 
 logs:
-	docker-compose logs -f
+	docker-compose logs -f --tail=1000
 
 stop:
 	docker-compose stop

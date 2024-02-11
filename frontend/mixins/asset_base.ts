@@ -194,5 +194,6 @@ export const assetDefaults = () => ({
   compact: false,
   terse: false,
   popOut: false,
-  fallBackImage: '/static/images/default-avatar.png',
+  contain: false,
+  fallbackImage: '/static/images/default-avatar.png',
 })

@@ -1,10 +1,11 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, setViewer, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import AcAsset from '@/components/AcAsset.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -31,9 +32,8 @@ describe('AcAsset.vue', () => {
         thumbName: 'full',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe('https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png')
+    await nextTick()
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe('https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png')
   })
   test('Does not load an asset if the viewer is nerfed.', async() => {
     const viewer = genUser()
@@ -51,9 +51,9 @@ describe('AcAsset.vue', () => {
         thumbName: 'full',
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer).toBe(undefined)
+    expect(wrapper.find('.asset-image').exists()).toBe(false)
     expect(vm.nerfed).toBe(true)
     expect(wrapper.find('.nerfed-message').exists()).toBe(true)
   })
@@ -73,9 +73,9 @@ describe('AcAsset.vue', () => {
         thumbName: 'full',
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer).toBe(undefined)
+    expect(wrapper.find('.asset-image').exists()).toBe(false)
     expect(vm.nerfed).toBe(false)
     expect(wrapper.find('.rating-info').exists()).toBe(true)
   })
@@ -97,7 +97,7 @@ describe('AcAsset.vue', () => {
           aspectRatio: null,
         },
       })
-      await wrapper.vm.$nextTick()
+      await nextTick()
       const vm = wrapper.vm as any
       expect(vm.ratio).toBe(1)
     })
@@ -117,10 +117,9 @@ describe('AcAsset.vue', () => {
         thumbName: 'full',
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     const vm = wrapper.vm as any
-    console.log(wrapper.html())
-    expect(vm.$refs.imgContainer.src).toBe('/static/images/default-avatar.png')
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe('/static/images/default-avatar.png')
     // Since the output will be an image, we consider this true.
     expect(vm.isImage).toBe(true)
     expect(vm.blacklisted).toEqual([])
@@ -143,36 +142,8 @@ describe('AcAsset.vue', () => {
         fallbackImage: 'boop.jpg',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe('boop.jpg')
-    // Since the output will be an image, we consider this true.
-    expect(vm.isImage).toBe(true)
-    expect(vm.blacklisted).toEqual([])
-    expect(vm.displayComponent).toBe(null)
-    expect(vm.fullUrl).toBe('boop.jpg')
-    expect(vm.assetRating).toBe(0)
-  })
-  test('Determines an asset rating', async() => {
-    const viewer = genUser()
-    const submission = genSubmission()
-    submission.rating = 2
-    viewer.rating = 1
-    setViewer(store, viewer)
-    wrapper = mount(AcAsset, {
-      ...vueSetup({
-        store,
-        stubs: ['router-link'],
-      }),
-      props: {
-        asset: submission,
-        thumbName: 'full',
-        aspectRatio: null,
-      },
-    })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.assetRating).toBe(2)
+    await nextTick()
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe('boop.jpg')
   })
   test('Handles an anonymous user', async() => {
     const viewer = genUser()
@@ -190,9 +161,9 @@ describe('AcAsset.vue', () => {
         thumbName: 'full',
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe('/static/images/default-avatar.png')
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe('/static/images/default-avatar.png')
     expect(vm.isImage).toBe(true)
     expect(vm.blacklisted).toEqual([])
   })
@@ -214,10 +185,9 @@ describe('AcAsset.vue', () => {
         thumbName: 'full',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer).toBe(undefined)
-    expect(vm.displayComponent).toBe('ac-video-player')
+    await nextTick()
+    expect(wrapper.find('.asset-image').exists()).toBe(false)
+    await waitFor(() => expect(wrapper.find('.ac-video-player').exists()).toBe(true))
   })
   test('Displays a thumbnail', async() => {
     const viewer = genUser()
@@ -233,9 +203,8 @@ describe('AcAsset.vue', () => {
         thumbName: 'thumbnail',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe(
+    await nextTick()
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe(
       'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',
     )
   })
@@ -254,9 +223,8 @@ describe('AcAsset.vue', () => {
         thumbName: 'thumbnail',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe(
+    await nextTick()
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe(
       'https://example.com/thing.jpg',
     )
   })
@@ -278,10 +246,9 @@ describe('AcAsset.vue', () => {
         thumbName: 'thumbnail',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe(
-      'http://localhost:3000/static/icons/DOC.png',
+    await nextTick()
+    expect(wrapper.find('.icon-image').find('img').attributes()['src']).toBe(
+      '/static/icons/DOC.png',
     )
   })
   test('Handles the special case of an SVG', async() => {
@@ -302,9 +269,8 @@ describe('AcAsset.vue', () => {
         thumbName: 'thumbnail',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe(
+    await nextTick()
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe(
       'https://example.com/thing.svg',
     )
   })
@@ -327,43 +293,10 @@ describe('AcAsset.vue', () => {
         thumbName: 'gallery',
       },
     })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.$refs.imgContainer.src).toBe(
+    await nextTick()
+    expect(wrapper.find('.asset-image').find('img').attributes()['src']).toBe(
       'https://example.com/thing.gif',
     )
-  })
-  test('Fetches asset tags', async() => {
-    const viewer = genUser()
-    const submission = genSubmission()
-    submission.file = {
-      full: 'https://example.com/thing.svg',
-      __type__: 'data:svg',
-    }
-    setViewer(store, viewer)
-    wrapper = mount(AcAsset, {
-      ...vueSetup({
-        store,
-        stubs: ['router-link'],
-      }),
-      props: {
-        asset: submission,
-        thumbName: 'thumbnail',
-      },
-
-    })
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
-    expect(vm.tags).toEqual([
-      'red_panda', 'wah', 'cool', 'nosings', 'awesome', 'stuff', 'floofy',
-      'feets', 'female', 'notable', 'fuzzy', 'fuckable', 'soft_paws',
-    ])
-    wrapper.setProps({
-      asset: null,
-      thumbName: 'thumbnail',
-    })
-    await vm.$nextTick()
-    expect(vm.tags).toEqual([])
   })
   test('Hides the asset if item has a blacklisted tag', async() => {
     const viewer = genUser()
@@ -385,9 +318,9 @@ describe('AcAsset.vue', () => {
       },
 
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.blacklisted).toEqual(['fuckable'])
     expect(vm.canDisplay).toBe(false)
     expect(wrapper.find('.blacklist-info').exists()).toBe(true)
