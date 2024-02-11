@@ -13,7 +13,7 @@
         <router-link :to="route">{{ character.name }}</router-link>
       </div>
       <div class="flex" v-if="removable">
-        <v-btn size="x-small" icon color="danger" @click="$emit('remove')">
+        <v-btn size="x-small" icon color="danger" @click="emit('remove')">
           <v-icon size="large" icon="mdi-close"/>
         </v-btn>
       </div>
@@ -28,39 +28,45 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import AssetBase from '@/mixins/asset_base.ts'
+<script setup lang="ts">
+import {assetDefaults, useAssetHelpers} from '@/mixins/asset_base.ts'
 import {Character} from '@/store/characters/types/Character.ts'
-import {Asset} from '@/types/Asset.ts'
+import AssetProps from '@/types/AssetProps.ts'
+import {computed} from 'vue'
 
-@Component({emits: ['remove']})
-class AcMiniCharacter extends mixins(AssetBase) {
-  @Prop({required: true})
-  public character!: Character
-
-  @Prop({default: true})
-  public showName!: boolean
-
-  @Prop({default: false})
-  public removable!: boolean
-
-  public thumbName = 'thumbnail'
-
-  // @ts-ignore
-  public get asset() {
-    return this.character.primary_submission as Asset
-  }
-
-  public get route() {
-    return {name: 'Character',
-      params: {
-        username: this.character.user.username,
-        characterName: this.character.name,
-      },
-    }
-  }
+declare interface AcMiniCharacterProps extends AssetProps {
+  character: Character,
+  showName?: boolean,
+  removable?: boolean
 }
 
-export default toNative(AcMiniCharacter)
+const props = withDefaults(
+    defineProps<AcMiniCharacterProps>(),
+    {
+      ...assetDefaults(),
+      showName: true,
+      removable: false,
+    },
+)
+
+const asset = computed(() => props.character.primary_submission)
+
+const emit = defineEmits<{ remove: [] }>()
+
+const {
+  canDisplay,
+  displayImage,
+} = useAssetHelpers({
+  asset: asset.value,
+  thumbName: 'thumbnail',
+  fallbackImage: props.fallbackImage,
+})
+
+const route = computed(() => ({
+  name: 'Character',
+  params: {
+    username: props.character.user.username,
+    characterName: props.character.name,
+  },
+}))
 </script>

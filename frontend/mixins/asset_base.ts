@@ -1,75 +1,10 @@
-import {Component, mixins, Prop} from 'vue-facing-decorator'
 import {Asset} from '@/types/Asset.ts'
 import {extPreview, RATINGS, thumbFromSpec} from '@/lib/lib.ts'
-import Viewer, {useViewer} from './viewer.ts'
+import {useViewer} from './viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {computed} from 'vue'
 import {ContentRating} from '@/types/ContentRating.ts'
-
-
-// Deprecated.
-@Component
-export default class AssetBase extends mixins(Viewer) {
-  // Define in child.
-  declare asset: Asset|null
-  // Define in child.
-  declare thumbName: string
-  @Prop({default: false})
-  public compact!: boolean
-
-  @Prop({default: false})
-  public terse!: boolean
-
-  @Prop({default: false})
-  public popOut!: boolean
-
-  @Prop()
-  public contain!: string
-
-  @Prop({default: '/static/images/default-avatar.png'})
-  public fallbackImage!: string
-
-  public get ratingText() {
-    return getRatingText(this.asset)
-  }
-
-  public get tags() {
-    return getTags(this.asset)
-  }
-
-  public get displayImage() {
-    return getDisplayImage(this.asset, this.thumbName, this.isImage, this.fallbackImage)
-  }
-
-  public get blacklisted() {
-    return getBlackListed(this.asset, this.tags, this.viewer as User|AnonUser)
-  }
-
-  public get nsfwBlacklisted() {
-    return getNsfwBlacklisted(this.asset, this.tags, this.assetRating, this.viewer as User|AnonUser)
-  }
-
-  public get assetRating() {
-    return getAssetRating(this.asset)
-  }
-
-  public get permittedRating() {
-    return getPermittedRating(this.asset, this.rating)
-  }
-
-  public get isImage() {
-    return getIsImage(this.asset)
-  }
-
-  public get nerfed() {
-    return getNerfed(this.rating, this.viewer as User|AnonUser)
-  }
-
-  public get canDisplay() {
-    return getCanDisplay(this.permittedRating, this.blacklisted, this.nsfwBlacklisted)
-  }
-}
 
 const getRatingText = (asset: Asset|null) => {
   if (!asset) {
@@ -174,21 +109,6 @@ export const useAssetHelpers = ({asset, thumbName, fallbackImage}: {asset: Asset
     canDisplay,
   }
 }
-
-//   @Prop({default: false})
-//   public compact!: boolean
-//
-//   @Prop({default: false})
-//   public terse!: boolean
-//
-//   @Prop({default: false})
-//   public popOut!: boolean
-//
-//   @Prop()
-//   public contain!: string
-//
-//   @Prop({default: '/static/images/default-avatar.png'})
-//   public fallbackImage!: string
 
 export const assetDefaults = () => ({
   compact: false,
