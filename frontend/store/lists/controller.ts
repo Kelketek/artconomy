@@ -1,6 +1,6 @@
 import {Watch} from 'vue-facing-decorator'
 import {ListModuleOpts} from './types/ListModuleOpts.ts'
-import {SingleController} from '../singles/controller.ts'
+import {RawSingleController, SingleController} from '../singles/controller.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ListState} from '@/store/lists/types/ListState.ts'
 import {ListModule, pageFromParams, pageSizeFromParams, totalPages} from '@/store/lists/index.ts'
@@ -11,9 +11,10 @@ import {ComputedGetters} from '@/lib/lib.ts'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
+import {ShallowReactive} from 'vue'
 
 @ComputedGetters
-export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
+export class RawListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
   public __getterMap = new Map()
   public baseClass = ListModule
 
@@ -100,7 +101,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
       return []
     }
     let controllers = this.attr('refs').map((ref: string) => (
-      getController<SingleState<T>, SingleModuleOpts<T>, SingleController<T>>(
+      getController<SingleState<T>, SingleModuleOpts<T>, RawSingleController<T>>(
         {
           uid: this._uid,
           name: `${this.prefix}items/${ref}`,
@@ -111,7 +112,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
           router: this.$router,
           store: this.$store,
           registries: this.$registries,
-          ControllerClass: SingleController,
+          ControllerClass: RawSingleController,
         },
       )))
     controllers = controllers.filter((controller: SingleController<T>) => !(controller.deleted) && !(controller.x === null))
@@ -305,3 +306,5 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     this.stale = true
   }
 }
+
+export type ListController<T extends object> = ShallowReactive<RawListController<T>>

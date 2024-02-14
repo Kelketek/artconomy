@@ -40,7 +40,7 @@ export default class BaseDeliverableMixin extends mixins(Viewer) {
   public sellerHandler: ProfileController = null as unknown as ProfileController
   public arbitratorHandler: ProfileController | null = null
   public order: SingleController<Order> = null as unknown as SingleController<Order>
-  public viewSettings = null as unknown as SingleController<DeliverableViewSettings>
+  public viewSettings: SingleController<DeliverableViewSettings> = null as unknown as SingleController<DeliverableViewSettings>
   public deliverable: SingleController<Deliverable> = null as unknown as SingleController<Deliverable>
   public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
   public characters: ListController<LinkedCharacter> = null as unknown as ListController<LinkedCharacter>
@@ -278,11 +278,11 @@ export default class BaseDeliverableMixin extends mixins(Viewer) {
     if (this.viewSettings === null) {
       return VIEWER_TYPE.UNSET
     }
-    return this.viewSettings.model.viewerType
+    return this.viewSettings.patchers.viewerType.model
   }
 
   public set viewMode(viewerType: VIEWER_TYPE) {
-    this.viewSettings.model.viewerType = viewerType
+    this.viewSettings.patchers.viewerType.model = viewerType
   }
 
   public get arbitrator() {

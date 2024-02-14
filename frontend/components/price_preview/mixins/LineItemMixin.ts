@@ -5,6 +5,7 @@ import {Component, Prop} from 'vue-facing-decorator'
 import {ListController} from '@/store/lists/controller.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import {ArtVue} from '@/lib/lib.ts'
+import {toValue} from 'vue'
 
 @Component
 export default class LineItemMixin extends ArtVue {
@@ -127,7 +128,7 @@ export default class LineItemMixin extends ArtVue {
   }
 
   public created() {
-    this.addOnForm = this.$getForm(`${this.lineItems.name}_addOn`, {
+    this.addOnForm = this.$getForm(`${toValue(this.lineItems.name)}_addOn`, {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {
@@ -139,7 +140,7 @@ export default class LineItemMixin extends ArtVue {
         percentage: {value: 0},
       },
     })
-    this.extraForm = this.$getForm(`${this.lineItems.name}_extra`, {
+    this.extraForm = this.$getForm(`${toValue(this.lineItems.name)}_extra`, {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {

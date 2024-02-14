@@ -1,5 +1,5 @@
 import {createApp} from 'vue'
-import {FormController} from './form-controller.ts'
+import {RawFormController} from './form-controller.ts'
 import {FieldController} from './field-controller.ts'
 import {registerValidators} from './validators.ts'
 import {NamelessFormSchema} from './types/NamelessFormSchema.ts'
@@ -7,7 +7,7 @@ import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {FormState} from '@/store/forms/types/FormState.ts'
 import {ArtStore} from '@/store/index.ts'
 
-export class FormRegistry extends BaseRegistry<FormState, FormController> {
+export class FormRegistry extends BaseRegistry<FormState, RawFormController> {
   public validators: { [key: string]: (fieldController: FieldController, ...args: any[]) => string[] }
   public asyncValidators: { [key: string]: (fieldController: FieldController, ...args: any[]) => Promise<string[]> }
   constructor() {
@@ -28,7 +28,7 @@ export const formRegistry = new FormRegistry()
 export function createForms(store: ArtStore) {
   return {
     install(app: ReturnType<typeof createApp>) {
-      app.mixin(genRegistryPluginBase<FormState, NamelessFormSchema, FormController>('Form', formRegistry, FormController, store))
+      app.mixin(genRegistryPluginBase<FormState, NamelessFormSchema, RawFormController>('Form', formRegistry, RawFormController, store))
       registerValidators()
     }
   }

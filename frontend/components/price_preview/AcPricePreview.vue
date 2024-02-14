@@ -105,6 +105,7 @@
 <script lang="ts">
 import Subjective from '../../mixins/subjective.ts'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+import {toValue} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import Pricing from '@/types/Pricing.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -310,7 +311,7 @@ class AcPricePreview extends mixins(Subjective) {
   public created() {
     this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
     this.pricing.get()
-    this.addOnForm = this.$getForm(`${this.lineItems.name}_addOn`, {
+    this.addOnForm = this.$getForm(`${toValue(this.lineItems.name)}_addOn`, {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {
@@ -322,7 +323,7 @@ class AcPricePreview extends mixins(Subjective) {
         percentage: {value: 0},
       },
     })
-    this.extraForm = this.$getForm(`${this.lineItems.name}_extra`, {
+    this.extraForm = this.$getForm(`${toValue(this.lineItems.name)}_extra`, {
       endpoint: this.lineItems.endpoint,
       fields: {
         amount: {

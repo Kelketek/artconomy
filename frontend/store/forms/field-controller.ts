@@ -2,7 +2,6 @@ import {formRegistry} from './registry.ts'
 import cloneDeep from 'lodash/cloneDeep'
 import debounce from 'lodash/debounce'
 import axios from 'axios'
-import deepEqual from 'fast-deep-equal'
 import {ComputedGetters, dotTraverse, flatten} from '@/lib/lib.ts'
 import {FormError} from '@/store/forms/types/FormError.ts'
 import {FormState} from '@/store/forms/types/FormState.ts'
@@ -11,7 +10,7 @@ import {RawData} from '@/store/forms/types/RawData.ts'
 import {Field} from '@/store/forms/types/Field.ts'
 import {ControllerArgs} from '@/store/controller-base.ts'
 import {ArtStore} from '@/store/index.ts'
-import {ComputedGetter, ref, toValue, watch} from 'vue'
+import {ComputedGetter, reactive, ref, shallowReactive, ShallowReactive, UnwrapNestedRefs} from 'vue'
 
 export function axiosCatch(error: Error) {
   if (axios.isCancel(error)) {
@@ -27,7 +26,7 @@ declare interface FieldControllerArgs extends Omit<ControllerArgs<undefined>, "i
 }
 
 @ComputedGetters
-export class FieldController {
+export class RawFieldController {
   public __getterMap: Map<keyof FieldController, ComputedGetter<any>>
   public fieldName: string
   public formName: string
@@ -45,10 +44,6 @@ export class FieldController {
     this.validate = debounce(
       this.runValidation, this.debounceRate, {trailing: true},
     )
-    // Force creation of the value computed getter.
-    this.value
-    watch(this.__getterMap.get('value'), this.syncCache, {immediate: true})
-    watch(this.localCache, this.updateInternal, {deep: true})
   }
 
   public get value () {
@@ -64,7 +59,7 @@ export class FieldController {
   }
 
   public get model() {
-    return toValue(this.localCache)
+    return this.value
   }
 
   public set model(value) {
@@ -79,29 +74,6 @@ export class FieldController {
     const data: RawData = {}
     data[this.fieldName] = cloneDeep(value)
     this.$store.commit('forms/updateInitialData', {name: this.formName, data})
-  }
-
-  // Watcher for value
-  public syncCache = (val: any)=> {
-    if (val === undefined) {
-      // Should not happen unless we're tearing down.
-      return
-    }
-    this.localCache.value = cloneDeep(val)
-  }
-
-  // Watcher for localCache
-  public updateInternal = (newVal: any) => {
-    /* istanbul ignore if */
-    if (newVal === undefined) {
-      // Should not happen unless we're tearing down.
-      return
-    }
-    // Ensure that the store is updated even if we've had to clone out a copy and save that.
-    if (deepEqual(this.value, newVal)) {
-      return
-    }
-    this.update(newVal)
   }
 
   public get id() {
@@ -195,6 +167,7 @@ export class FieldController {
   public update = (value: any, validate: boolean = true) => {
     const data: RawData = {}
     data[this.fieldName] = cloneDeep(value)
+    console.log('Committing', data)
     this.$store.commit('forms/updateValues', {name: this.formName, data})
     if (validate) {
       this.validate()
@@ -213,7 +186,7 @@ export class FieldController {
           Object.keys(formRegistry.validators))
         continue
       }
-      errors.push(...formRegistry.validators[validator.name](this, ...(validator.args || [])))
+      errors.push(...formRegistry.validators[validator.name](shallowReactive(this), ...(validator.args || [])))
     }
     const errorFields: FormError = {}
     errorFields[this.fieldName] = errors
@@ -230,7 +203,7 @@ export class FieldController {
       const args = cloneDeep(validator.args || [])
       args.unshift(this.cancelSource.signal)
       promiseSet.push(
-        formRegistry.asyncValidators[validator.name](this, ...args).catch(axiosCatch),
+        formRegistry.asyncValidators[validator.name](shallowReactive(this), ...args).catch(axiosCatch),
       )
     }
     // Batch up the results of all validators to avoid having the form error messages bounce back and forth between
@@ -248,3 +221,5 @@ export class FieldController {
     return {type: this.constructor.name, name: this.fieldName, state: this.value}
   }
 }
+
+export type FieldController = ShallowReactive<RawFieldController>

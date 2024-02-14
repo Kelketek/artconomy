@@ -6,10 +6,10 @@ import debounce from 'lodash/debounce'
 import axios, {AxiosError} from 'axios'
 import {deriveErrors} from '@/store/forms/helpers.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {ComputedGetter, ref, Ref, toValue} from 'vue'
+import {ComputedGetter, ref, Ref, ShallowReactive, toValue} from 'vue'
 import {v4 as uuidv4} from 'uuid'
 
-export function errorSend(config: Patch): (error: AxiosError) => void {
+export function errorSend(config: RawPatch): (error: AxiosError) => void {
   return (error: AxiosError) => {
     const attrName = config.attrName
     if (axios.isCancel(error)) {
@@ -36,7 +36,7 @@ export interface PatcherArgs {
 const uncached = Symbol('Uncached')
 
 @ComputedGetters
-export class Patch<T = any> {
+export class RawPatch<T = any> {
   public __getterMap: Map<keyof Patch, ComputedGetter<any>>
   public target!: any
   public modelProp: string
@@ -195,3 +195,5 @@ export interface PatcherConfig {
   refresh?: boolean,
   silent?: boolean,
 }
+
+export type Patch<T = any> = ShallowReactive<RawPatch<T>>

@@ -1,20 +1,21 @@
-import type {Ref} from 'vue'
-import {ComponentOptions, createApp, h, markRaw, toValue} from 'vue'
+import {Ref, shallowReactive, UnwrapNestedRefs} from 'vue'
+import {ComponentOptions, createApp, h, markRaw, reactive, toValue} from 'vue'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import {Router} from 'vue-router'
 import {SocketManager} from '@/plugins/socket.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
-import {SingleController} from '@/store/singles/controller.ts'
+import {RawSingleController} from '@/store/singles/controller.ts'
 import {ListState} from '@/store/lists/types/ListState.ts'
-import {ListController} from '@/store/lists/controller.ts'
+import {RawListController} from '@/store/lists/controller.ts'
 import {FormState} from '@/store/forms/types/FormState.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {CharacterController} from '@/store/characters/controller.ts'
+import {RawFormController} from '@/store/forms/form-controller.ts'
+import {RawCharacterController} from '@/store/characters/controller.ts'
 import CharacterState from '@/store/characters/types/CharacterState.ts'
-import {ProfileController} from '@/store/profiles/controller.ts'
+import {RawProfileController} from '@/store/profiles/controller.ts'
 import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ArtStore} from '@/store/index.ts'
+import {ShallowReactive} from 'vue'
 
 type _Vue = ReturnType<typeof createApp>
 
@@ -188,11 +189,11 @@ export const performUnhook = <K extends AttrKeys, S, C extends BaseController<S,
 export type ModuleName = 'Single' | 'List' | 'Form' | 'Character' | 'Profile'
 
 export interface RegistryRegistry {
-  Single: Registry<SingleState<any>, SingleController<any>>,
-  List: Registry<ListState<any>, ListController<any>>,
-  Form: Registry<FormState, FormController>,
-  Character: Registry<CharacterState, CharacterController>,
-  Profile: Registry<ProfileState, ProfileController>,
+  Single: Registry<SingleState<any>, RawSingleController<any>>,
+  List: Registry<ListState<any>, RawListController<any>>,
+  Form: Registry<FormState, RawFormController>,
+  Character: Registry<CharacterState, RawCharacterController>,
+  Profile: Registry<ProfileState, RawProfileController>,
 }
 
 
@@ -210,7 +211,7 @@ declare interface ControllerInvocationArgs<S, K extends AttrKeys, C extends Base
 
 export const getController = <K extends AttrKeys, S, C extends BaseController<S, K>>(
 { uid, name, schema, registries, typeName, ControllerClass, socket, router, store }: ControllerInvocationArgs<S, K, C>,
-): C => {
+): ShallowReactive<C> => {
   // Convenience function which registers a module if it does not yet exist, and gets it if it does.
   // Why does TypeScript identify _uid as number? I can't find anywhere I've defined it as such, and it doesn't
   // say where it gets the declaration. It should always be string.
@@ -220,7 +221,7 @@ export const getController = <K extends AttrKeys, S, C extends BaseController<S,
   if (name in registry.controllers) {
     controller = registry.controllers[name]
     registry.register(uid, controller)
-    return registry.controllers[name]
+    return shallowReactive(registry.controllers[name])
   }
   if (schema === undefined) {
     throw Error(`Attempt to pull a ${registry.typeName} which does not exist, '${name}', from cache.`)
@@ -234,7 +235,7 @@ export const getController = <K extends AttrKeys, S, C extends BaseController<S,
     $store: store,
   })
   registry.register(uid, controller)
-  return controller
+  return shallowReactive(controller)
 }
 
 export const listenForRegistryName = <K extends AttrKeys, S, C extends BaseController<S, K>>(uid: string, name: string, registry: Registry<K, C>) => {

@@ -1,6 +1,6 @@
 import {formRegistry} from '../registry.ts'
-import {axiosCatch, FieldController} from '../field-controller.ts'
-import {FormController} from '../form-controller.ts'
+import {axiosCatch, FieldController, RawFieldController} from '../field-controller.ts'
+import {RawFormController} from '../form-controller.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {mount, shallowMount, VueWrapper} from '@vue/test-utils'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
@@ -74,7 +74,7 @@ describe('Form and field controllers', () => {
     cleanUp(wrapper)
   })
   test('Initializes a form controller', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -107,7 +107,7 @@ describe('Form and field controllers', () => {
   })
   test('Submits a form through a FormController', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -132,7 +132,7 @@ describe('Form and field controllers', () => {
     expect(success).toBeCalledWith({test: 'result'})
   })
   test('Allows manual toggle of sending status', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -153,7 +153,7 @@ describe('Form and field controllers', () => {
     expect(state.example.sending).toBe(false)
   })
   test('Clears errors', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -179,7 +179,7 @@ describe('Form and field controllers', () => {
     expect(state.example.fields.name.errors).toEqual([])
   })
   test('Recognizes failed steps', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -212,7 +212,7 @@ describe('Form and field controllers', () => {
   })
   test('Sets field-specific errors upon a failed request', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -237,7 +237,7 @@ describe('Form and field controllers', () => {
   })
   test('Sets the right step upon a failed request', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -270,7 +270,7 @@ describe('Form and field controllers', () => {
   })
   test('Sets a general error upon a failed request', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -297,7 +297,7 @@ describe('Form and field controllers', () => {
   })
   test('Sets a general error upon a DRF error message', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -322,7 +322,7 @@ describe('Form and field controllers', () => {
   })
   test('Sets a general errors upon array error messages', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -347,7 +347,7 @@ describe('Form and field controllers', () => {
   })
   test('Sets general errors upon a non-json error response', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -374,7 +374,7 @@ describe('Form and field controllers', () => {
   })
   test('Lets us know if we forgot a field', async() => {
     const success = vi.fn()
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -403,7 +403,7 @@ describe('Form and field controllers', () => {
     )
   })
   test('Adds a field to the FormController when the schema is updated', () => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -431,7 +431,7 @@ describe('Form and field controllers', () => {
     expect(controller.fields.sex.formName).toBe('example')
   })
   test('Does not add a field to the FormController when a different form is updated', () => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -448,7 +448,7 @@ describe('Form and field controllers', () => {
 
     })
     // eslint-disable-next-line no-new
-    new FormController({
+    new RawFormController({
       $store: store,
       initName: 'example2',
       $router: router,
@@ -476,7 +476,7 @@ describe('Form and field controllers', () => {
     expect(controller.fields.sex).toBe(undefined)
   })
   test('Removes a field from the FormController when the schema is updated', () => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -500,7 +500,7 @@ describe('Form and field controllers', () => {
     expect(controller.fields.age).toBe(undefined)
   })
   test('Does not remove a field from the FormController when deleting from a different form.', () => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -519,7 +519,7 @@ describe('Form and field controllers', () => {
 
     })
     // eslint-disable-next-line no-new
-    new FormController({
+    new RawFormController({
       $store: store,
       initName: 'example2',
       $router: router,
@@ -546,7 +546,7 @@ describe('Form and field controllers', () => {
     expect(controller.fields.age).toBeTruthy()
   })
   test('Handles deletion of the form in a FormController', () => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -569,7 +569,7 @@ describe('Form and field controllers', () => {
     expect(controller.errors).toEqual([])
   })
   test('Doesn\'t self-delete if deleting a different form', () => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -591,7 +591,7 @@ describe('Form and field controllers', () => {
     expect(controller.purged).toBe(false)
   })
   test('Updates the endpoint of the form', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -608,7 +608,7 @@ describe('Form and field controllers', () => {
     expect(state.example.endpoint).toBe('/wat/')
   })
   test('Retrieves an attribute of a form', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -623,7 +623,7 @@ describe('Form and field controllers', () => {
     expect(controller.attr('endpoint')).toBe('/endpoint/')
   })
   test('Retrieves calculated data from a form', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -648,7 +648,7 @@ describe('Form and field controllers', () => {
     })
   })
   test('Allows deletion of the form through a FormController', () => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -674,7 +674,7 @@ describe('Form and field controllers', () => {
     expect(controller.purged).toBe(true)
   })
   test('Scrolls to errors in scrollable text', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -702,7 +702,7 @@ describe('Form and field controllers', () => {
     })
   })
   test('Scrolls to errors in ID only', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -730,7 +730,7 @@ describe('Form and field controllers', () => {
     })
   })
   test('Does not break if there are no errors in the form ID when attempting to scroll', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -754,7 +754,7 @@ describe('Form and field controllers', () => {
     expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled()
   })
   test('Does not break if there is no form to scroll to', async() => {
-    const controller = new FormController({
+    const controller = new RawFormController({
       $store: store,
       initName: 'example',
       $router: router,
@@ -789,7 +789,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $store: store,
       formName: 'example',
       fieldName: 'name',
@@ -814,7 +814,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -846,7 +846,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -890,7 +890,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -914,7 +914,7 @@ describe('Form and field controllers', () => {
       debounce: 500,
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -939,7 +939,7 @@ describe('Form and field controllers', () => {
       debounce: 500,
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -975,7 +975,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1015,7 +1015,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1051,7 +1051,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1069,7 +1069,7 @@ describe('Form and field controllers', () => {
       fields: {name: {value: 'Fox'}},
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1116,7 +1116,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1141,7 +1141,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1172,7 +1172,7 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     formRegistry.validators.max = min
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1209,7 +1209,7 @@ describe('Form and field controllers', () => {
       endpoint: '/test/endpoint/',
     })
     formRegistry.asyncValidators.alwaysSucceed = alwaysSucceed
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,
@@ -1288,7 +1288,7 @@ describe('Form and field controllers', () => {
       },
       endpoint: '/test/endpoint/',
     })
-    const controller = new FieldController({
+    const controller = new RawFieldController({
       $router: router,
       $registries: registries,
       $store: store,

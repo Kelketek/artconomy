@@ -2,7 +2,7 @@ import {ProfileModule} from './index.ts'
 import {ProfileModuleOpts} from './types/ProfileModuleOpts.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {ComputedGetters, guestName} from '@/lib/lib.ts'
-import {SingleController} from '@/store/singles/controller.ts'
+import {RawSingleController, SingleController} from '@/store/singles/controller.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
@@ -17,7 +17,7 @@ import {
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import Product from '@/types/Product.ts'
-import {nextTick, toValue, watch} from 'vue'
+import {nextTick, ShallowReactive, toValue, watch} from 'vue'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
@@ -25,7 +25,7 @@ import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 type AnyUser = User | TerseUser | AnonUser
 
 @ComputedGetters
-export class ProfileController extends BaseController<ProfileModuleOpts, ProfileState> {
+export class RawProfileController extends BaseController<ProfileModuleOpts, ProfileState> {
   public baseClass = ProfileModule
   public submoduleKeys = ['user', 'artistProfile']
   public baseModuleName = 'userModules'
@@ -97,7 +97,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   constructor(args: ControllerArgs<ProfileModuleOpts>) {
     super(args)
     this.register()
-    this.user = getController<SingleState<AnyUser>, SingleModuleOpts<AnyUser>, SingleController<AnyUser>>(
+    this.user = getController<SingleState<AnyUser>, SingleModuleOpts<AnyUser>, RawSingleController<AnyUser>>(
       {
         uid: this._uid,
         name: userPathFor(this.name.value).join('/'),
@@ -115,10 +115,10 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
           },
         },
         registries: this.$registries,
-        ControllerClass: SingleController,
+        ControllerClass: RawSingleController,
       },
     )
-    this.artistProfile = getController<SingleState<ArtistProfile>, SingleModuleOpts<ArtistProfile>, SingleController<ArtistProfile>>(
+    this.artistProfile = getController<SingleState<ArtistProfile>, SingleModuleOpts<ArtistProfile>, RawSingleController<ArtistProfile>>(
       {
         uid: this._uid,
         name: artistProfilePathFor(this.name.value).join('/'),
@@ -137,7 +137,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
           },
         },
         registries: this.$registries,
-        ControllerClass: SingleController,
+        ControllerClass: RawSingleController,
       },
     )
     watch(() => this.user.x?.username || '', this.updateUsername)
@@ -178,3 +178,5 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     return this.path.join('/') + '/'
   }
 }
+
+export type ProfileController = ShallowReactive<RawProfileController>

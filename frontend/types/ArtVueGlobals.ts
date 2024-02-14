@@ -31,11 +31,11 @@ export interface ArtVueGlobals {
   $img: (asset: object | null, thumbName: string, fallback?: boolean) => string,
   $goTo: (selector: string) => void,
   // Single module funcs
-  $getSingle: (name: string, schema?: SingleModuleOpts<any>, uid?: string) => SingleController<any>,
+  $getSingle: <T extends object>(name: string, schema?: SingleModuleOpts<T>, uid?: string) => SingleController<T>,
   $listenForSingle: (name: string, uid?: string) => void,
   $registryForSingle: () => SingleRegistry,
   // List module funcs
-  $getList: (name: string, schema?: ListModuleOpts, uid?: string) => ListController<any>,
+  $getList: <T extends object>(name: string, schema?: ListModuleOpts, uid?: string) => ListController<T>,
   $listenForList: (name: string, uid?: string) => void,
   $registryForList: () => ListRegistry,
   // Form module funcs

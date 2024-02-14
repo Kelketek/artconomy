@@ -1,4 +1,4 @@
-import {ListController} from '../controller.ts'
+import {ListController, RawListController} from '../controller.ts'
 import {listRegistry} from '../registry.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -62,7 +62,7 @@ describe('List controller', () => {
   })
   test('Picks up an existing list', () => {
     const controller = makeController()
-    const newController = new ListController({
+    const newController = new RawListController({
       $store: store,
       $registries: registries,
       $sock: buildSocketManger({endpoint: '/wat/'}),

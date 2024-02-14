@@ -884,7 +884,7 @@ export const ArtVue = Vue as ArtVueClassInterface
  * The target class must have a Map defined on it named __getterMap.
  *
  * Note that this has some subtle implications for the getter functions, which can't be arrow functions.
- * If you need to access any refs within the getter functions, you will need to use `toRaw` to normalize them
+ * If you need to access any refs within the getter functions, you will need to use `toValue` to normalize them
  * as reference objects. Otherwise, Vue's internal proxying will sometimes give you raw values and other times
  * give you the reference objects depending on how the function is called.
 */

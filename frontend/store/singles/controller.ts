@@ -4,14 +4,15 @@ import {SingleModule} from './index.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {SinglePatchers} from '@/store/singles/types/SinglePatchers.ts'
-import {Patch} from '@/store/singles/patcher.ts'
+import {Patch, RawPatch} from '@/store/singles/patcher.ts'
 import {Watch} from 'vue-facing-decorator'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
-import {ref} from 'vue'
+import {reactive, ref} from 'vue'
 import {ComputedGetters} from '@/lib/lib.ts'
+import {ShallowReactive} from 'vue'
 
 @ComputedGetters
-export class SingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
+export class RawSingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
   public baseClass = SingleModule
   public forceRecomputeCounter = ref(0)
 
@@ -62,37 +63,18 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public setX = (x: T | null) => {
-    // Also available as a setter.
-    if (this.x && !x) {
-      this.forceRecomputeCounter.value = this.forceRecomputeCounter.value ? 0 : 1
-    }
     this.commit('setX', x)
   }
 
-  public getModel = () => {
-    const self = this
-    const patchers = self.patchers
-    type KeyType = keyof T
-    return new Proxy<T>({} as T, {
-      get(target, propName) {
-        return patchers[propName as KeyType].model
-      },
-      set(target, propName, value: T[KeyType]): any {
-        patchers[propName as KeyType].model = value
-        return true
-      },
-    })
-  }
-
-  public getPatcher = () => {
+  public getPatcher = (): SinglePatchers<T> => {
     const self = this
     return new Proxy<SinglePatchers<T>>({cached: {} as SinglePatchers<T>} as SinglePatchers<T>, {
       get(target, propName): Patch {
         const intermediary = target as {cached: SinglePatchers<T>}
         if (intermediary.cached[propName as keyof T] === undefined) {
-          intermediary.cached[propName as keyof T] = new Patch({target: self, modelProp: '', attrName: propName as string, silent: true})
+          intermediary.cached[propName as keyof T] = new RawPatch({target: self, modelProp: '', attrName: propName as string, silent: true})
         }
-        return intermediary.cached[propName as keyof T]
+        return reactive(intermediary.cached[propName as keyof T])
       },
     })
   }
@@ -169,16 +151,10 @@ export class SingleController<T extends object> extends BaseController<SingleMod
     this.fetching = false
   }
 
-  public get model(): T {
-    // eslint-disable-next-line no-unused-expressions
-    this.forceRecomputeCounter.value
-    return this.getModel() as unknown as T
-  }
-
   public get patchers(): SinglePatchers<T> {
     // eslint-disable-next-line no-unused-expressions
     this.forceRecomputeCounter.value
-    return this.getPatcher() as unknown as SinglePatchers<T>
+    return this.getPatcher()
   }
 
   public get deleted(): boolean {
@@ -258,3 +234,5 @@ export class SingleController<T extends object> extends BaseController<SingleMod
     }
   }
 }
+
+export type SingleController<T extends object> = ShallowReactive<RawSingleController<T>>

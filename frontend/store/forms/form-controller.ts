@@ -1,4 +1,4 @@
-import {FieldController} from './field-controller.ts'
+import {FieldController, RawFieldController} from './field-controller.ts'
 import {MutationPayload} from 'vuex'
 import {formRegistry} from './registry.ts'
 import {deriveErrors} from './helpers.ts'
@@ -10,7 +10,7 @@ import {FormState} from '@/store/forms/types/FormState.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {ComputedGetters, flatten} from '@/lib/lib.ts'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
-import {nextTick, toValue} from 'vue'
+import {nextTick, reactive, shallowReactive, ShallowReactive, toValue} from 'vue'
 import {AcServerError} from '@/types/AcServerError.ts'
 
 export interface FieldBank {
@@ -21,7 +21,7 @@ export interface FieldBank {
 // At some point we should refactor this component to behave in the same way as the rest of the modules-- with fields
 // as their own component type with their own registry.
 @ComputedGetters
-export class FormController extends BaseController<NamelessFormSchema, FormState> {
+export class RawFormController extends BaseController<NamelessFormSchema, FormState> {
   public __getterMap = new Map()
   public fields: FieldBank = {}
   public watcherMap: { [key: string]: (mutation: MutationPayload) => void } = {}
@@ -41,14 +41,14 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     }
     this.$store.commit('forms/initForm', {...{name: this.name.value}, ...this.schema})
     for (const key of Object.keys(this.schema.fields)) {
-      this.fields[key] = new FieldController({
+      this.fields[key] = shallowReactive(new RawFieldController({
         $router: this.$router,
         $registries: this.$registries,
         $sock: this.$sock,
         formName: this.name.value,
         fieldName: key,
         $store: this.$store
-      })
+      }))
     }
     this.unsubscribe = this.$store.subscribe(this.formWatch)
   }
@@ -192,14 +192,14 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     if (mutation.payload.name !== this.name.value) {
       return
     }
-    this.fields[mutation.payload.field.name] = new FieldController({
+    this.fields[mutation.payload.field.name] = shallowReactive(new RawFieldController({
       $router: this.$router,
       $registries: this.$registries,
       $sock: this.$sock,
       formName: this.name.value,
       fieldName: mutation.payload.field.name,
       $store: this.$store,
-    })
+    }))
   }
 
   public watchDelField = (mutation: MutationPayload) => {
@@ -255,3 +255,5 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     return {type: this.constructor.name, name: this.name.value, state: this.rawData}
   }
 }
+
+export type FormController = ShallowReactive<RawFormController>

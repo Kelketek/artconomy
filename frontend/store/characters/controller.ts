@@ -2,16 +2,16 @@ import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts.ts'
 import CharacterState from '@/store/characters/types/CharacterState.ts'
 import {characterEndpoint} from '@/store/characters/helpers.ts'
-import {SingleController} from '@/store/singles/controller.ts'
+import {RawSingleController, SingleController} from '@/store/singles/controller.ts'
 import {Character} from '@/store/characters/types/Character.ts'
-import {ListController} from '@/store/lists/controller.ts'
+import {ListController, RawListController} from '@/store/lists/controller.ts'
 import Attribute from '@/types/Attribute.ts'
 import Color from '@/store/characters/types/Color.ts'
 import Submission from '@/types/Submission.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {CharacterModule} from '@/store/characters/index.ts'
 import {ComputedGetters} from '@/lib/lib.ts'
-import {toValue, watch} from 'vue'
+import {ShallowReactive, toValue, watch} from 'vue'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
@@ -19,7 +19,7 @@ import {ListState} from '@/store/lists/types/ListState.ts'
 import {ListModuleOpts} from '@/store/lists/types/ListModuleOpts.ts'
 
 @ComputedGetters
-export class CharacterController extends BaseController<CharacterModuleOpts, CharacterState> {
+export class RawCharacterController extends BaseController<CharacterModuleOpts, CharacterState> {
   public __getterMap = new Map()
   public profile: SingleController<Character> = null as unknown as SingleController<Character>
   public attributes: ListController<Attribute> = null as unknown as ListController<Attribute>
@@ -35,7 +35,7 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
   public constructor(args: ControllerArgs<CharacterModuleOpts>) {
     super(args)
     this.register()
-    this.profile = getController<SingleState<Character>, SingleModuleOpts<Character>, SingleController<Character>>(
+    this.profile = getController<SingleState<Character>, SingleModuleOpts<Character>, RawSingleController<Character>>(
       {
         uid: this._uid,
         name: this.path.concat(['profile']).join('/'),
@@ -45,10 +45,10 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
         store: this.$store,
         schema: {endpoint: ''},
         registries: this.$registries,
-        ControllerClass: SingleController,
+        ControllerClass: RawSingleController,
       },
     )
-    this.attributes = getController<ListState<Attribute>, ListModuleOpts, ListController<Attribute>>(
+    this.attributes = getController<ListState<Attribute>, ListModuleOpts, RawListController<Attribute>>(
       {
         uid: this._uid,
         name: this.path.concat(['attributes']).join('/'),
@@ -61,10 +61,10 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
           paginated: false,
         },
         registries: this.$registries,
-        ControllerClass: ListController,
+        ControllerClass: RawListController,
       },
     )
-    this.colors = getController<ListState<Color>, ListModuleOpts, ListController<Color>>(
+    this.colors = getController<ListState<Color>, ListModuleOpts, RawListController<Color>>(
       {
         uid: this._uid,
         name: this.path.concat(['colors']).join('/'),
@@ -77,10 +77,10 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
           paginated: false,
         },
         registries: this.$registries,
-        ControllerClass: ListController,
+        ControllerClass: RawListController,
       },
     )
-    this.submissions = getController<ListState<Submission>, ListModuleOpts, ListController<Submission>>(
+    this.submissions = getController<ListState<Submission>, ListModuleOpts, RawListController<Submission>>(
       {
         uid: this._uid,
         name: this.path.concat(['submissions']).join('/'),
@@ -90,10 +90,10 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
         store: this.$store,
         schema: {endpoint: ''},
         registries: this.$registries,
-        ControllerClass: ListController,
+        ControllerClass: RawListController,
       },
     )
-    this.sharedWith = getController<ListState<TerseUser>, ListModuleOpts, ListController<TerseUser>>(
+    this.sharedWith = getController<ListState<TerseUser>, ListModuleOpts, RawListController<TerseUser>>(
       {
         uid: this._uid,
         name: this.path.concat(['sharedWith']).join('/'),
@@ -106,10 +106,10 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
           paginated: false,
         },
         registries: this.$registries,
-        ControllerClass: ListController,
+        ControllerClass: RawListController,
       },
     )
-    this.recommended = getController<ListState<Character>, ListModuleOpts, ListController<Character>>(
+    this.recommended = getController<ListState<Character>, ListModuleOpts, RawListController<Character>>(
       {
         uid: this._uid,
         name: this.path.concat(['recommended']).join('/'),
@@ -122,7 +122,7 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
           params: {size: 6},
         },
         registries: this.$registries,
-        ControllerClass: ListController,
+        ControllerClass: RawListController,
       },
     )
     this.setEndpoints()
@@ -189,3 +189,6 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
     this.updateRoute(newName, oldName)
   }
 }
+
+
+export type CharacterController = ShallowReactive<RawCharacterController>

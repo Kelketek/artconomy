@@ -1,4 +1,4 @@
-import {FormController} from '../form-controller.ts'
+import {FormController, RawFormController} from '../form-controller.ts'
 import {formRegistry} from '../registry.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '../../index.ts'
@@ -36,7 +36,7 @@ describe('Form and field controllers', () => {
   })
   test('Clears the form controller registry', () => {
     wrapper = mount(Empty, vueSetup({store}))
-    formRegistry.controllers.example = new FormController({
+    formRegistry.controllers.example = new RawFormController({
       $store: store,
       initName: 'example',
       $registries: registries,

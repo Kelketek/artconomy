@@ -2,6 +2,7 @@
 import {Component} from 'vue-facing-decorator'
 import {AxiosError} from 'axios'
 import {ArtVue} from '@/lib/lib.ts'
+import {useStore} from 'vuex'
 
 @Component
 export default class ErrorHandling extends ArtVue {
@@ -21,4 +22,9 @@ export const statusOk = (...statuses: number[]) => {
     }
     throw error
   }
+}
+
+export const setError = (error: Error) => {
+  const store = useStore()
+  store.commit('errors/setError', error)
 }

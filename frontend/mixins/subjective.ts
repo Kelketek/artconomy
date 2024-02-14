@@ -3,10 +3,17 @@ import {userHandle} from '@/store/profiles/handles.ts'
 // Used to augment Vue type.
 // noinspection ES6UnusedImports
 import {User} from '@/store/profiles/types/User.ts'
-import Viewer from './viewer.ts'
+import Viewer, {useViewer} from './viewer.ts'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import {profileRegistry} from '@/store/profiles/registry.ts'
-import PricingAware from '@/mixins/PricingAware.ts'
+import PricingAware, {usePricing} from '@/mixins/PricingAware.ts'
+import {useProfile} from '@/store/profiles/hooks.ts'
+import {computed} from 'vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import {ServicePlan} from '@/types/ServicePlan.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {useStore} from 'vuex'
 
 @Component
 export default class Subjective extends mixins(Viewer, PricingAware) {
@@ -24,17 +31,11 @@ export default class Subjective extends mixins(Viewer, PricingAware) {
   public subjectHandler: ProfileController = null as unknown as ProfileController
 
   public get isCurrent(): boolean {
-    return this.username === this.rawViewerName || this.username === this.viewerName
+    return getIsCurrent(this.username, this.rawViewerName, this.viewerName)
   }
 
   public get controls(): boolean {
-    if (this.isCurrent) {
-      return true
-    }
-    if (this.protectedView) {
-      return this.isSuperuser
-    }
-    return this.isStaff
+    return getControls(this.isCurrent, this.protectedView, this.isSuperuser, this.isStaff)
   }
 
   public get subjectPlan() {
@@ -65,10 +66,72 @@ export default class Subjective extends mixins(Viewer, PricingAware) {
 
   public created() {
     if (this.privateView && !this.isRegistered) {
-      this.$router.replace({name: 'Login', query: {next: this.$route.fullPath}})
+      this.$router.replace({
+        name: 'Login',
+        query: {next: this.$route.fullPath},
+      })
     } else if (this.privateView && !this.controls) {
       this.$store.commit('errors/setError', {response: {status: 403}})
     }
     this.rebuildHandler()
+  }
+}
+
+const getIsCurrent = (username: string, rawViewerName: string, viewerName: string) => {
+  return username === rawViewerName || username === viewerName
+}
+
+const getControls = (isCurrent: boolean, protectedView: boolean, isSuperuser: boolean, isStaff: boolean) => {
+  if (isCurrent) {
+    return true
+  }
+  if (protectedView) {
+    return isSuperuser
+  }
+  return isStaff
+}
+
+const getSubjectPlan = (subject: TerseUser | User | null, getPlan: (planName: string) => ServicePlan | null) => {
+  subject = subject as User
+  if (!subject || !subject.service_plan) {
+    return null
+  }
+  return getPlan(subject.service_plan)
+}
+
+export const useSubject = <T extends SubjectiveProps>(props: T, privateView = false, protectedView = false) => {
+  const {
+    viewerName,
+    rawViewerName,
+    isSuperuser,
+    isStaff,
+    isRegistered,
+  } = useViewer()
+  const subjectHandler = useProfile(props.username)
+
+  const subject = computed(() => subjectHandler.user.x as TerseUser | User)
+  const isCurrent = computed(() => getIsCurrent(props.username, rawViewerName.value, viewerName.value))
+  const controls = computed(() => getControls(isCurrent.value, protectedView, isSuperuser.value, isStaff.value))
+  const {getPlan} = usePricing()
+  const subjectPlan = computed(() => getSubjectPlan(subject.value, getPlan))
+  const store = useStore()
+  // Putting the calls for useRoute and useRouter behind these conditionals so we don't need the
+  // router for as many tests.
+  if (privateView && !isRegistered) {
+    useRouter().replace({
+      name: 'Login',
+      query: {next: useRoute().fullPath},
+    }).then()
+  } else if (privateView && !controls.value) {
+    store.commit('errors/setError', {response: {status: 403}})
+  }
+  const promise = subjectHandler.user.get()
+  return {
+    promise,
+    subject,
+    subjectHandler,
+    isCurrent,
+    controls,
+    subjectPlan,
   }
 }
