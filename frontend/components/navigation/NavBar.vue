@@ -245,7 +245,6 @@ const runSearch = () => {
   if (route.name && (String(route.name).indexOf('Search') !== -1)) {
     return
   }
-  console.log('query params are', makeQueryParams(searchForm.rawData))
   router.push({
     name: 'SearchProducts',
     query: makeQueryParams(searchForm.rawData),
@@ -299,98 +298,4 @@ const counts = computed(() => store.state.notifications!.stats)
 
 onUnmounted(() => store.dispatch('notifications/stopLoop').then())
 
-// @Component({
-//   components: {
-//     AcNavLinks,
-//     AcBoundField,
-//     AcPatchField,
-//     AcSettingNav,
-//     AcIcon,
-//     AcLink,
-//   },
-// })
-// class NavBar extends mixins(Viewer, Nav) {
-//   public searchForm: FormController = null as unknown as FormController
-//   public drawer = false
-//
-//   public siDiscord = siDiscord
-//   public siTwitter = siTwitter
-//   public logo = new URL('/static/images/logo.png', BASE_URL).href
-//
-//   public get loginLink() {
-//     if (this.$route.name === 'Login') {
-//       return {
-//         name: 'Login',
-//       }
-//     }
-//     return {
-//       name: 'Login',
-//       query: {next: this.$route.path},
-//     }
-//   }
-//
-//   public runSearch() {
-//     if (this.$route.name && (String(this.$route.name).indexOf('Search') !== -1)) {
-//       return
-//     }
-//     this.$router.push({
-//       name: 'SearchProducts',
-//       query: makeQueryParams(this.searchForm.rawData),
-//     })
-//   }
-//
-//   public get registeredUser() {
-//     return this.viewer as User
-//   }
-//
-//   public created() {
-//     this.searchForm = this.$getForm('search')
-//   }
-//
-//   public notificationLoad() {
-//     if (['CommunityNotifications', 'SalesNotifications'].indexOf(String(this.$route.name) + '') !== -1) {
-//       this.$router.replace({
-//         name: 'Reload',
-//         params: {path: this.$route.path},
-//       })
-//     } else {
-//       this.$router.push({name: 'CommunityNotifications'})
-//     }
-//   }
-//
-//   public showSupport() {
-//     this.$store.commit('supportDialog', true)
-//   }
-//
-//   @Watch('isRegistered', {immediate: true})
-//   public viewerUpdate(val: boolean) {
-//     if (val) {
-//       this.$store.dispatch('notifications/startLoop').then()
-//     } else {
-//       this.$store.dispatch('notifications/stopLoop').then()
-//     }
-//   }
-//
-//   public get profileRoute() {
-//     const viewer = this.viewer as User
-//     return {
-//       name: 'AboutUser',
-//       params: {username: viewer.username},
-//     }
-//   }
-//
-//   public get sfwMode() {
-//     return this.viewerHandler.user.patchers.sfw_mode
-//   }
-//
-//   public get counts() {
-//     return this.$store.state.notifications!.stats
-//   }
-//
-//   public unmounted() {
-//     this.$store.dispatch('notifications/stopLoop').then()
-//   }
-// }
-//
-// export default toNative(NavBar)
 </script>

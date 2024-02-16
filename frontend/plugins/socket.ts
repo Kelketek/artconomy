@@ -1,4 +1,4 @@
-import {createApp, getCurrentInstance, markRaw} from 'vue'
+import {createApp, getCurrentInstance, inject, markRaw} from 'vue'
 import ReconnectingWebSocket, {CloseEvent, Event} from 'reconnecting-websocket'
 import {log} from '@/lib/lib.ts'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
@@ -87,6 +87,8 @@ export const buildSocketManger = (options: {endpoint: string}) => {
   return $sock
 }
 
+const socketKey = Symbol('SocketKey')
+
 export const createVueSocket = (options: {endpoint: string}) => {
   return {
     install(app: ReturnType<typeof createApp>): void {
@@ -96,15 +98,12 @@ export const createVueSocket = (options: {endpoint: string}) => {
           $sock: () => $sock,
         },
       })
+      app.provide(socketKey, $sock)
     },
   }
 }
 
 
 export const useSocket = () => {
-  const instance = getCurrentInstance()
-  if (!instance) {
-    throw Error('Could not determine the current app instance!')
-  }
-  return (instance.appContext.app as ArtVueInterface).$sock
+  return inject(socketKey) as SocketManager
 }

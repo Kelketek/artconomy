@@ -27,7 +27,7 @@ const getPlan = (pricing: SingleController<Pricing>, planName: string) => {
 }
 
 
-const usePricing = () => {
+export const usePricing = () => {
   const pricing = useSingle<Pricing>('pricing', {endpoint: '/api/sales/pricing-info/'})
   return {promise: pricing.get(), pricing, getPlan: (planName: string) => getPlan(pricing, planName)}
 }

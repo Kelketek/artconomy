@@ -10,7 +10,7 @@ import {FormState} from '@/store/forms/types/FormState.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {ComputedGetters, flatten} from '@/lib/lib.ts'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
-import {nextTick, toValue} from 'vue'
+import {computed, effectScope, nextTick, toValue} from 'vue'
 import {AcServerError} from '@/types/AcServerError.ts'
 
 export interface FieldBank {
@@ -23,6 +23,7 @@ export interface FieldBank {
 @ComputedGetters
 export class FormController extends BaseController<NamelessFormSchema, FormState> {
   public __getterMap = new Map()
+  public scope = effectScope()
   public fields: FieldBank = {}
   public watcherMap: { [key: string]: (mutation: MutationPayload) => void } = {}
 

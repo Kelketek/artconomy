@@ -1,4 +1,5 @@
-import {computed, defineAsyncComponent, markRaw} from 'vue'
+import {defineAsyncComponent, markRaw} from 'vue'
+import {computed} from '@vue/reactivity'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
 import MarkDownIt from 'markdown-it'
@@ -902,7 +903,9 @@ export function ComputedGetters<T extends Function> (
       Object.defineProperty(proto, key, {
         get() {
           if (!this.__getterMap.get(key)) {
-            this.__getterMap.set(key, computed(descriptor.get!.bind(this)))
+            this.scope.run(() => {
+              this.__getterMap.set(key, computed(descriptor.get!.bind(this)))
+            })
           }
           return this.__getterMap.get(key).value
         },

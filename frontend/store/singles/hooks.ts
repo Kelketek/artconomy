@@ -1,42 +1,10 @@
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
-import {ensureUnmountAction, getUid, useRegistries, useRegistry} from '@/store/hooks.ts'
-import {getController, listenForRegistryName, performUnhook} from '@/store/registry-base.ts'
+import {generateModuleHooks} from '@/store/hooks.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
-import {useRouter} from 'vue-router'
-import {useSocket} from '@/plugins/socket.ts'
-import {useStore} from 'vuex'
 
-export const useSingle = <T extends object>(name: string, schema?: SingleModuleOpts<T>) => {
-  const uid = getUid()
-  const registries = useRegistries()
-  const socket = useSocket()
-  const controller = getController<SingleState<T>, SingleModuleOpts<T>, SingleController<T>>({
-    uid,
-    name,
-    schema,
-    registries,
-    socket: socket,
-    store: useStore(),
-    typeName: 'Single',
-    router: useRouter(),
-    ControllerClass: SingleController,
-  })
-  ensureUnmountAction('singleUnmount', clearSingleAssociations)
-  return controller
-}
+const {use, listen, clear} = generateModuleHooks<SingleState<any>, SingleModuleOpts<any>, SingleController<any>>('Single', SingleController)
 
-export const listenForSingle = <T extends object>(name: string) => {
-  const uid = getUid()
-  const registry = useRegistry('Single')
-  registry.listen(uid, name)
-  listenForRegistryName<SingleState<T>, SingleModuleOpts<T>, SingleController<T>>(uid, name, registry)
-  ensureUnmountAction('singleUnmount', clearSingleAssociations)
-}
-
-// Must be called by every component that runs the above on unmount. Need to figure out how to automate this atomically.
-export const clearSingleAssociations = () => {
-  const uid = getUid()
-  const registry = useRegistry('Single')
-  performUnhook<SingleState<any>, SingleModuleOpts<any>, SingleController<any>>(uid, registry)
-}
+export const useSingle = <T extends object>(name: string, schema?: SingleModuleOpts<T>) => use(name, schema) as SingleController<T>
+export const listenForSingle = listen
+export const clearSingleAssociations = clear

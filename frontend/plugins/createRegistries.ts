@@ -2,7 +2,7 @@
 // other modules.
 
 import {createApp, markRaw} from 'vue'
-import {RegistryRegistry} from '@/store/registry-base.ts'
+import {registryKey, RegistryRegistry} from '@/store/registry-base.ts'
 import {singleRegistry} from '@/store/singles/registry.ts'
 import {listRegistry} from '@/store/lists/registry.ts'
 import {formRegistry} from '@/store/forms/registry.ts'
@@ -21,13 +21,15 @@ export const buildRegistries = () => markRaw({
 export const createRegistries = () => {
   return {
     install(app: ReturnType<typeof createApp>) {
+      const registries = buildRegistries()
       app.mixin({
         computed: {
           $registries(): RegistryRegistry {
-            return buildRegistries()
+            return registries
           }
         }
       })
+      app.provide(registryKey, registries)
     }
   }
 }

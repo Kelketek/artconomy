@@ -11,10 +11,12 @@ import {ComputedGetters} from '@/lib/lib.ts'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
+import {effectScope} from 'vue'
 
 @ComputedGetters
 export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
   public __getterMap = new Map()
+  public scope = effectScope()
   public baseClass = ListModule
 
   public baseModuleName = 'lists'

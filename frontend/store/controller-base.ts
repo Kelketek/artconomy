@@ -1,5 +1,5 @@
-import type {Ref} from 'vue'
-import {h, ref, toValue} from 'vue'
+import type {EffectScope, Ref} from 'vue'
+import {effectScope, h, ref, toValue} from 'vue'
 import {v4 as uuidv4} from 'uuid'
 import {NullClass} from '@/store/helpers/NullClass.ts'
 import deepEqual from 'fast-deep-equal'
@@ -22,6 +22,8 @@ export interface ControllerArgs<S> {
 export abstract class BaseController<S, D extends AttrKeys> {
   // Used by @ComputedGetters decorator
   public __getterMap: Map<any, any>
+  // Also used by @ComputedGetters decorator
+  public scope: EffectScope
   public $store: ArtStore
   public initName!: string
   public _uid!: string
@@ -47,6 +49,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
 
   constructor({initName, schema, $store, $sock, $router, $registries}: ControllerArgs<S>) {
     this.__getterMap = new Map()
+    this.scope = effectScope()
     this.initName = initName
     this.name = ref(initName)
     this.schema = schema
@@ -73,6 +76,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
       delete this.$sock.disconnectListeners[`${(this as any)._uid}`]
     }
     this.$store.unregisterModule(path)
+    this.scope.stop()
   }
 
   public kill = () => {

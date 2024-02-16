@@ -11,7 +11,7 @@ import {RawData} from '@/store/forms/types/RawData.ts'
 import {Field} from '@/store/forms/types/Field.ts'
 import {ControllerArgs} from '@/store/controller-base.ts'
 import {ArtStore} from '@/store/index.ts'
-import {ComputedGetter, ref, toValue, watch} from 'vue'
+import {ComputedGetter, EffectScope, effectScope, ref, toValue, watch} from 'vue'
 
 export function axiosCatch(error: Error) {
   if (axios.isCancel(error)) {
@@ -30,6 +30,7 @@ declare interface FieldControllerArgs extends Omit<ControllerArgs<undefined>, "i
 export class FieldController {
   public __getterMap: Map<keyof FieldController, ComputedGetter<any>>
   public fieldName: string
+  public scope: EffectScope
   public formName: string
   public $store: ArtStore
   public validate!: ReturnType<typeof debounce>
@@ -39,6 +40,7 @@ export class FieldController {
   constructor({fieldName, formName, $store}: FieldControllerArgs) {
     // Used by the ComputedGetters decorator
     this.__getterMap = new Map()
+    this.scope = effectScope()
     this.fieldName = fieldName
     this.formName = formName
     this.$store = $store

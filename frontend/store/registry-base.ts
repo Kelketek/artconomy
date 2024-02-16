@@ -1,5 +1,5 @@
-import type {Ref} from 'vue'
-import {ComponentOptions, createApp, h, markRaw, toValue} from 'vue'
+import type {EffectScope, Ref} from 'vue'
+import {ComponentOptions, createApp, effectScope, h, markRaw, toValue} from 'vue'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import {Router} from 'vue-router'
@@ -225,16 +225,20 @@ export const getController = <K extends AttrKeys, S, C extends BaseController<S,
   if (schema === undefined) {
     throw Error(`Attempt to pull a ${registry.typeName} which does not exist, '${name}', from cache.`)
   }
-  controller = new ControllerClass({
-    initName: name,
-    schema,
-    $sock: socket,
-    $registries: registries,
-    $router: router,
-    $store: store,
+  const scope = effectScope(true)
+  scope.run(() => {
+    controller = new ControllerClass({
+      initName: name,
+      schema,
+      $sock: socket,
+      $registries: registries,
+      $router: router,
+      $store: store,
+    })
   })
-  registry.register(uid, controller)
-  return controller
+  // TODO: REAP EFFECT SCOPES TO AVOID MEMORY LEAKS!
+  registry.register(uid, controller!)
+  return controller!
 }
 
 export const listenForRegistryName = <K extends AttrKeys, S, C extends BaseController<S, K>>(uid: string, name: string, registry: Registry<K, C>) => {
@@ -275,3 +279,5 @@ export function genRegistryPluginBase<K extends AttrKeys, S, C extends BaseContr
   (base.methods as ComponentOptions<_Vue>)[`$registryFor${typeName}`] = () => registry
   return base
 }
+
+export const registryKey = Symbol('RegistryKey')

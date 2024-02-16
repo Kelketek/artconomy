@@ -1,4 +1,4 @@
-import {cleanUp, flushPromises, genAnon, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, genAnon, mount, rs, setViewer, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -8,6 +8,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -98,7 +99,7 @@ describe('NewOrder.vue', () => {
         username: 'Fox',
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(window.scrollTo).toHaveBeenCalledWith(0, 0)
   })
   test('Submits a form with a registered user', async() => {
@@ -119,26 +120,23 @@ describe('NewOrder.vue', () => {
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct({id: 1}))
     vm.orderForm.step = 2
-    await vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = vi.spyOn(vm.$router, 'push')
     vm.orderForm.step = 3
-    await vm.$nextTick()
+    await nextTick()
     await wrapper.find('.submit-button').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder()), submitted)
     await flushPromises()
-    await vm.$nextTick()
-    expect(mockPush).toHaveBeenCalledWith({
-      name: 'Order',
-      params: {
-        orderId: '1',
-        username: 'Fox',
-      },
-      query: {
-        showConfirm: 'true',
-      },
+    await nextTick()
+    await waitFor(() => expect(router.currentRoute.value.name).toBe('Order'))
+    expect(router.currentRoute.value.params).toEqual({
+      orderId: '1',
+      username: 'Fox',
+    })
+    expect(router.currentRoute.value.query).toEqual({
+      showConfirm: 'true',
     })
   })
   test('Creates an invoice for an artist', async() => {
@@ -159,13 +157,12 @@ describe('NewOrder.vue', () => {
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct({id: 1}))
     vm.orderForm.step = 2
-    await vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = vi.spyOn(vm.$router, 'push')
     vm.orderForm.step = 3
-    await vm.$nextTick()
+    await nextTick()
     await wrapper.find('.submit-button').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder({
       default_path: {
@@ -177,18 +174,14 @@ describe('NewOrder.vue', () => {
         },
       },
     })), submitted)
-    await flushPromises()
-    await vm.$nextTick()
-    expect(mockPush).toHaveBeenCalledWith({
-      name: 'SaleDeliverablePayment',
-      params: {
-        orderId: '1',
-        deliverableId: '5',
-        username: 'Fox',
-      },
-      query: {
-        view_as: 'Seller',
-      },
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('SaleDeliverablePayment'))
+    expect(router.currentRoute.value.params).toEqual({
+      orderId: '1',
+      deliverableId: '5',
+      username: 'Fox',
+    })
+    expect(router.currentRoute.value.query).toEqual({
+      view_as: 'Seller',
     })
   })
   test('Submits a table order', async() => {
@@ -212,13 +205,12 @@ describe('NewOrder.vue', () => {
       table_product: true,
     }))
     vm.orderForm.step = 2
-    await vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = vi.spyOn(vm.$router, 'push')
     vm.orderForm.step = 3
-    await vm.$nextTick()
+    await nextTick()
     await wrapper.find('.submit-button').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder({
       default_path: {
@@ -231,17 +223,15 @@ describe('NewOrder.vue', () => {
       },
     })), submitted)
     await flushPromises()
-    await vm.$nextTick()
-    expect(mockPush).toHaveBeenCalledWith({
-      name: 'SaleDeliverablePayment',
-      params: {
-        orderId: '1',
-        deliverableId: '1',
-        username: 'Fox',
-      },
-      query: {
-        view_as: 'Seller',
-      },
+    await nextTick()
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('SaleDeliverablePayment'))
+    expect(router.currentRoute.value.params).toEqual({
+      orderId: '1',
+      deliverableId: '1',
+      username: 'Fox',
+    })
+    expect(router.currentRoute.value.query).toEqual({
+      view_as: 'Seller',
     })
   })
   test('Submits a form with an unregistered user', async() => {
@@ -258,37 +248,32 @@ describe('NewOrder.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$router.replace({name: 'Test'})
+    await router.replace({name: 'Test'})
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct({id: 1}))
     vm.orderForm.step = 2
-    await vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
-    const mockPush = vi.spyOn(vm.$router, 'push')
-    const mockReplace = vi.spyOn(vm.$router, 'replace')
     vm.orderForm.step = 3
-    await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
+    await nextTick()
+    await waitFor(() => expect(router.currentRoute.value.query).toEqual({stepId: '3'}))
     await wrapper.find('.submit-button').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     const submitted = mockAxios.getReqByUrl('/api/sales/account/Fox/products/1/order/')
     mockAxios.mockResponse(rs(genOrder()), submitted)
     await flushPromises()
-    await vm.$nextTick()
+    await nextTick()
     const refresh = mockAxios.getReqByUrl('/api/profiles/data/requester/')
     mockAxios.mockResponse(rs(genAnon()), refresh)
     await flushPromises()
-    await vm.$nextTick()
-    expect(mockPush).toHaveBeenCalledWith({
-      name: 'Order',
-      params: {
-        orderId: '1',
-        username: '_',
-      },
-      query: {
-        showConfirm: 'true',
-      },
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('Order'))
+    expect(router.currentRoute.value.params).toEqual({
+      orderId: '1',
+      username: '_',
+    })
+    expect(router.currentRoute.value.query).toEqual({
+      showConfirm: 'true',
     })
   })
   test('Fetches character info', async() => {
@@ -360,14 +345,14 @@ describe('NewOrder.vue', () => {
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct())
-    await vm.$nextTick()
+    await nextTick()
     const successfulRequest = mockAxios.getReqByUrl('/api/profiles/data/character/id/50/')
     const failedRequest = mockAxios.getReqByUrl('/api/profiles/data/character/id/23/')
     const character = genCharacter({name: 'Goof'})
     mockAxios.mockResponse(rs(genCharacter({name: 'Goof'})), successfulRequest)
     mockAxios.mockError(Error('Boop'), failedRequest)
     await flushPromises()
-    await vm.$nextTick()
+    await nextTick()
     expect(form.fields.characters.model).toEqual([50])
     expect(vm.initCharacters).toEqual([character])
     expect(vm.showCharacters).toBeTruthy()
@@ -414,10 +399,10 @@ describe('NewOrder.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(form.fields.email.value).toEqual('')
     vm.viewerHandler.user.updateX({guest_email: 'boop@snoot.com'})
-    await vm.$nextTick()
+    await nextTick()
     expect(form.fields.email.value).toEqual('boop@snoot.com')
   })
   test('Sets the details template when starting from nothing.', async() => {
@@ -435,7 +420,7 @@ describe('NewOrder.vue', () => {
     })
     const vm = wrapper.vm as any
     vm.product.makeReady(genProduct({details_template: 'Beep boop'}))
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('Beep boop')
   })
   test('Does not set the details template when revisiting.', async() => {
@@ -484,7 +469,7 @@ describe('NewOrder.vue', () => {
       id: 5,
       details_template: 'Beep boop',
     }))
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('This is a test.')
   })
   test('Does not set the details template when it is blank.', async() => {
@@ -533,7 +518,7 @@ describe('NewOrder.vue', () => {
       id: 5,
       details_template: '',
     }))
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('This is a test.')
   })
   test('Sets the details template when the order ID changes.', async() => {
@@ -582,7 +567,7 @@ describe('NewOrder.vue', () => {
       id: 5,
       details_template: 'Beep Boop',
     }))
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.orderForm.fields.details.model).toEqual('Beep Boop')
   })
   test('Redirects to step one if using the old order URL', async() => {
@@ -606,8 +591,7 @@ describe('NewOrder.vue', () => {
         username: 'Fox',
       },
     })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '1'}})
   })
   test('Redirects to step one if the starting URL marks a lower number', async() => {
@@ -633,7 +617,7 @@ describe('NewOrder.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '1'}})
   })
   test('Redirects to step three if the starting URL marks a higher number', async() => {
@@ -647,7 +631,6 @@ describe('NewOrder.vue', () => {
       },
       query: {stepId: '4'},
     })
-    const mockReplace = vi.spyOn(router, 'replace')
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -658,9 +641,7 @@ describe('NewOrder.vue', () => {
         username: 'Fox',
       },
     })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
-    expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
+    await waitFor(() => expect(router.currentRoute.value.query.stepId).toEqual('3'))
   })
   test('Does not submit if the last step is not selected.', async() => {
     const user = genAnon()
@@ -686,11 +667,11 @@ describe('NewOrder.vue', () => {
     })
     const vm = wrapper.vm as any
     vm.product.makeReady(genProduct())
-    await vm.$nextTick()
+    await nextTick()
     mockReplace.mockReset()
     const mockSubmitThen = vi.spyOn(vm.orderForm, 'submitThen')
     wrapper.find('input').trigger('submit')
-    await vm.$nextTick()
+    await nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
     expect(mockSubmitThen).not.toHaveBeenCalled()
   })

@@ -256,7 +256,7 @@
                   </span>
                 </v-col>
                 <v-col cols="12">
-                  <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></span>
+                  <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate!)}}</strong></span>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -267,15 +267,11 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
+<script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import ProductCentric from '@/components/views/product/mixins/ProductCentric.ts'
+import {useProduct} from '@/components/views/product/mixins/ProductCentric.ts'
 import AcAsset from '@/components/AcAsset.vue'
-import Formatting from '@/mixins/formatting.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import Order from '@/types/Order.ts'
@@ -283,278 +279,263 @@ import {User} from '@/store/profiles/types/User.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Product from '@/types/Product.ts'
-import {artCall, BASE_URL} from '@/lib/lib.ts'
+import {artCall, BASE_URL, formatDateTerse, profileLink} from '@/lib/lib.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import ProductProps from '@/types/ProductProps.ts'
+import {computed, onMounted, ref, watch} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {useSubject} from '@/mixins/subjective.ts'
 
-@Component({
-  components: {
-    AcEscrowLabel,
-    AcLink,
-    AcForm,
-    AcRendered,
-    AcFormContainer,
-    AcAvatar,
-    AcAsset,
-    AcBoundField,
-    AcLoadSection,
-    AcFormDialog,
-  },
-})
-class NewOrder extends mixins(ProductCentric, Formatting) {
-  public orderForm: FormController = null as unknown as FormController
-  public loginForm: FormController = null as unknown as FormController
-  public initCharacters: Character[] = []
-  public showCharacters = false
-  // Nasty hack, see nextDisabled for application.
-  public clickCounter = 0
-  public laptop = new URL('/static/images/laptop.png', BASE_URL)
-
-  @Watch('viewer.guest_email')
-  public updateEmail(newVal: string) {
-    if (!newVal) {
-      return
-    }
-    this.orderForm.fields.email.update(newVal)
-  }
-
-  @Prop({default: false})
-  public invoiceMode!: boolean
-
-  @Watch('product.x')
-  public trackCart(newProduct: null | Product, oldProduct: null | Product) {
-    if (!newProduct) {
-      return
-    }
-    this.orderForm.fields.rating.model = Math.min(newProduct.max_rating, this.orderForm.fields.rating.value)
-    if ((this.orderForm.fields.productId.value !== newProduct.id) && newProduct.details_template.length) {
-      this.orderForm.fields.details.model = newProduct.details_template
-    }
-    this.orderForm.fields.productId.model = newProduct.id
-  }
-
-  @Watch('orderForm.step')
-  public updateRoute(val: number) {
-    this.$router.replace({
-      query: {
-        ...this.$route.query,
-        stepId: `${val}`,
-      },
-    })
-  }
-
-  public submitAction() {
-    if (this.orderForm.step < 3) {
-      this.orderForm.step += 1
-      return
-    }
-    this.orderForm.submitThen(this.goToOrder)
-  }
-
-  public goToOrder(order: Order) {
-    // Could take a while. Let's not make it look like we're done.
-    this.orderForm.sending = true
-    const link = {...order.default_path}
-    link.query = {
-      ...link.query,
-      showConfirm: 'true',
-    }
-    if (!this.isRegistered) {
-      link.params!.username = this.rawViewerName
-      this.viewerHandler.refresh().then(() => {
-        this.$router.push(link)
-        this.orderForm.sending = false
-      })
-      return
-    }
-    // Special case override for table events.
-    if ((this.product.x?.table_product && this.isStaff) || this.invoicing) { // eslint-disable-line camelcase
-      link.query.view_as = 'Seller'
-      link.name = 'SaleDeliverablePayment'
-      delete link.query.showConfirm
-    }
-    this.$router.push(link)
-    this.orderForm.sending = false
-  }
-
-  public get nextDisabled() {
-    // Touch the order form so this is re-evaluated whenever it changes.
-    // Just checking the email field isn't enough since Vue can't listen for it.
-    // eslint-disable-next-line no-unused-expressions
-    this.clickCounter
-    const element = document.querySelector('#field-newOrder__email')
-    if (!element) {
-      return false
-    }
-    return document.activeElement && document.activeElement.id === element.id
-  }
-
-  public get currentPrice() {
-    const product = this.product.x
-    if (!product) {
-      return NaN
-    }
-    if (this.shielded) {
-      return product.shield_price
-    }
-    return product.starting_price
-  }
-
-  public get ratingHint() {
-    if (this.invoicing) {
-      return 'Please select the desired content rating of the piece being commissioned.'
-    }
-    return 'Please select the desired content rating of the piece you are commissioning.'
-  }
-
-  public get invoicing() {
-    return this.isCurrent || (this.isStaff && this.invoiceMode)
-  }
-
-  public get shielded() {
-    const product = this.product.x
-    if (!product) {
-      return false
-    }
-    if (product.escrow_enabled) {
-      return true
-    }
-    return (product.escrow_upgradable && this.orderForm.fields.escrow_upgrade.value)
-  }
-
-  public get shieldCost() {
-    const product = this.product.x
-    if (!product) {
-      return 0
-    }
-    return product.shield_price - product.starting_price
-  }
-
-  public get shieldUpgradeLabel() {
-    const product = this.product.x
-    if (!product) {
-      return 'Add Shield Protection'
-    }
-    const text = 'Add Shield Protection for '
-    return text + `$${this.shieldCost.toFixed(2)}`
-  }
-
-  public get privateHint() {
-    if (this.invoicing) {
-      return 'Mark if the client has requested that this piece be private-- which means that it will not be publicly ' +
-          'shown, and copyright will be assigned to them by default (if applicable and legally possible, and your ' +
-          'commission info in your artist settings does not explicitly say otherwise). You are advised to upcharge ' +
-          'for this if you do it.'
-    } else {
-      return 'Hides the resulting submission from public view and tells the artist you want this commission ' +
-          'to be private. The artist may charge an additional fee, since they will not be able to use the piece ' +
-          'in their portfolio.'
-    }
-  }
-
-  public get forceShield() {
-    return !!({...this.$route.query}.forceShield)
-  }
-
-  public created() {
-    // The way we're constructed allows us to avoid refetching if we arrive through the product page, but
-    // leaves us in the same scroll position as we were. Fix that here.
-    window.scrollTo(0, 0)
-    this.product.get()
-    const viewer = this.viewer as User
-    let step = parseInt(this.$route.query.stepId + '') || 1
-    if (step > 3) {
-      step = 3
-    } else if (step < 1) {
-      step = 1
-    }
-    const validators = [{name: 'email'}]
-    if (this.invoiceMode) {
-      validators.pop()
-    }
-    this.orderForm = this.$getForm('newOrder', {
-      endpoint: this.product.endpoint + 'order/',
-      persistent: true,
-      step,
-      fields: {
-        // productId field not actually used in submission, but used as a way to track
-        // whether the user is revisiting this product after navigating away, or if this is the first time.
-        // We start with zero to make sure we register a 'change' on the first product visited and copy over the
-        // details template from the product, if it exists.
-        productId: {value: 0},
-        email: {
-          value: (viewer.guest_email || ''),
-          step: 1,
-          validators: validators,
-        },
-        private: {
-          value: false,
-          step: 1,
-        },
-        characters: {
-          value: [],
-          step: 2,
-        },
-        rating: {
-          value: 0,
-          step: 2,
-        },
-        details: {
-          value: '',
-          step: 2,
-        },
-        references: {
-          value: [],
-          step: 2,
-        },
-        invoicing: {
-          value: false,
-          step: 3,
-        },
-        named_price: {
-          value: null,
-          step: 1,
-        },
-        // Note: There are agreements and warnings to display on step 3 even if there aren't fields,
-        // so if this field gets moved to a lower step, a dummy field should be created for step 3 to persist.
-        escrow_upgrade: {
-          value: this.forceShield,
-          step: 3,
-        },
-      },
-    })
-    this.orderForm.fields.invoicing.update(this.invoicing)
-    // Might be overwritten and set false if the form already exists and the visited another product.
-    if (this.forceShield) {
-      this.orderForm.fields.escrow_upgrade.model = true
-    }
-    // Since we allow the form to persist, we want to make sure if the user moves to another product, we update the
-    // endpoint.
-    this.orderForm.endpoint = this.product.endpoint + 'order/'
-    this.subjectHandler.artistProfile.get().then()
-    if (this.orderForm.fields.characters.value.length === 0) {
-      this.showCharacters = true
-    } else {
-      const promises = []
-      for (const charId of this.orderForm.fields.characters.model) {
-        promises.push(artCall({
-          url: `/api/profiles/data/character/id/${charId}/`,
-          method: 'get',
-        }).then(
-            (response) => this.initCharacters.push(response),
-        ).catch(() => {
-          this.orderForm.fields.characters.model = this.orderForm.fields.characters.model.filter(
-              (val: number) => val !== charId,
-          )
-        }))
-      }
-      Promise.all(promises).then(() => {
-        this.showCharacters = true
-      })
-    }
-  }
+declare interface NewOrderProps {
+  invoiceMode?: boolean,
 }
 
-export default toNative(NewOrder)
+const props = withDefaults(defineProps<NewOrderProps & SubjectiveProps & ProductProps>(), {invoiceMode: false})
+const {product, deliveryDate} = useProduct(props)
+const showCharacters = ref(false)
+const initCharacters = ref<Character[]>([])
+// Do we still need this? Or is there now a better way?
+const clickCounter = ref(0)
+const laptop = new URL('/static/images/laptop.png', BASE_URL)
+
+const {viewer, viewerHandler, rawViewerName, isStaff, isRegistered, viewerName} = useViewer()
+const {isCurrent, subjectHandler} = useSubject(props)
+
+
+watch(viewer, () => {
+  if (viewer && (viewer.value as User).guest_email) {
+    const value = (viewer.value as User).guest_email
+    orderForm.fields.email.update(value)
+  }
+})
+
+// The way we're constructed allows us to avoid refetching if we arrive through the product page, but
+// leaves us in the same scroll position as we were. Fix that here.
+onMounted(() => window.scrollTo(0, 0))
+
+const route = useRoute()
+const router = useRouter()
+
+const forceShield = computed(() => !!({...route.query}.forceShield))
+const invoicing = computed(() => isCurrent.value || (isStaff.value && props.invoiceMode))
+
+let step = parseInt(route.query.stepId + '') || 1
+if (step > 3) {
+  step = 3
+} else if (step < 1) {
+  step = 1
+}
+
+const validators = [{name: 'email'}]
+if (props.invoiceMode) {
+  validators.pop()
+}
+
+const orderForm = useForm('newOrder', {
+  endpoint: product.endpoint + 'order/',
+  persistent: true,
+  step,
+  fields: {
+    // productId field not actually used in submission, but used as a way to track
+    // whether the user is revisiting this product after navigating away, or if this is the first time.
+    // We start with zero to make sure we register a 'change' on the first product visited and copy over the
+    // details template from the product, if it exists.
+    productId: {value: 0},
+    email: {
+      value: ((viewer.value as User).guest_email || ''),
+      step: 1,
+      validators: validators,
+    },
+    private: {
+      value: false,
+      step: 1,
+    },
+    characters: {
+      value: [],
+      step: 2,
+    },
+    rating: {
+      value: 0,
+      step: 2,
+    },
+    details: {
+      value: '',
+      step: 2,
+    },
+    references: {
+      value: [],
+      step: 2,
+    },
+    invoicing: {
+      value: false,
+      step: 3,
+    },
+    named_price: {
+      value: null,
+      step: 1,
+    },
+    // Note: There are agreements and warnings to display on step 3 even if there aren't fields,
+    // so if this field gets moved to a lower step, a dummy field should be created for step 3 to persist.
+    escrow_upgrade: {
+      value: forceShield.value,
+      step: 3,
+    },
+  },
+})
+
+orderForm.fields.invoicing.update(invoicing.value)
+
+onMounted(() => orderForm.step = step)
+
+// @ts-ignore
+window.orderForm = orderForm
+
+
+
+watch(() => product.x, (newProduct) => {
+  if (!newProduct) {
+    return
+  }
+  orderForm.fields.rating.model = Math.min(newProduct.max_rating, orderForm.fields.rating.value)
+  if ((orderForm.fields.productId.value !== newProduct.id) && newProduct.details_template.length) {
+    orderForm.fields.details.model = newProduct.details_template
+  }
+  orderForm.fields.productId.model = newProduct.id
+}, {deep: true, immediate: true})
+
+// Keep the order form's step as part of the URL.
+watch(() => orderForm.step, (val: number) => {
+  router.replace({
+    query: {
+      ...route.query,
+      stepId: `${val}`,
+    },
+  })
+}, {immediate: true})
+
+const nextDisabled = computed(() => {
+  // Touch the order form so this is re-evaluated whenever it changes.
+  // Just checking the email field isn't enough since Vue can't listen for it.
+  // eslint-disable-next-line no-unused-expressions
+  clickCounter.value
+  const element = document.querySelector('#field-newOrder__email')
+  if (!element) {
+    return false
+  }
+  return document.activeElement && document.activeElement.id === element.id
+})
+
+const goToOrder = (order: Order) => {
+  // Could take a while. Let's not make it look like we're done.
+  orderForm.sending = true
+  const link = {...order.default_path}
+  link.query = {
+    ...link.query,
+    showConfirm: 'true',
+  }
+  if (!isRegistered.value) {
+    link.params!.username = rawViewerName.value
+    viewerHandler.refresh().then(() => {
+      router.push(link)
+      orderForm.sending = false
+    })
+    return
+  }
+  // Special case override for table events.
+  if ((product.x?.table_product && isStaff.value) || invoicing.value) { // eslint-disable-line camelcase
+    link.query.view_as = 'Seller'
+    link.name = 'SaleDeliverablePayment'
+    delete link.query.showConfirm
+  }
+  router.push(link)
+  orderForm.sending = false
+}
+
+const submitAction = () => {
+  if (orderForm.step < 3) {
+    orderForm.step += 1
+    return
+  }
+  orderForm.submitThen(goToOrder)
+}
+
+const shielded = computed(() => {
+  if (!product.x) {
+    return false
+  }
+  if (product.x.escrow_enabled) {
+    return true
+  }
+  return (product.x.escrow_upgradable && orderForm.fields.escrow_upgrade.value)
+})
+
+const currentPrice = computed(() => {
+  if (!product.x) {
+    return NaN
+  }
+  if (shielded.value) {
+    return product.x.shield_price
+  }
+  return product.x.starting_price
+})
+
+const ratingHint = computed(() => {
+  if (invoicing.value) {
+    return 'Please select the desired content rating of the piece being commissioned.'
+  }
+  return 'Please select the desired content rating of the piece you are commissioning.'
+})
+
+const shieldCost = computed(() => {
+  if (!product.x) {
+    return 0
+  }
+  return product.x.shield_price - product.x.starting_price
+})
+
+const shieldUpgradeLabel = computed(() => {
+  if (!product.x) {
+    return 'Add Shield Protection'
+  }
+  const text = 'Add Shield Protection for '
+  return text + `$${shieldCost.value.toFixed(2)}`
+})
+
+const privateHint = computed(() => {
+  if (invoicing.value) {
+    return 'Mark if the client has requested that this piece be private-- which means that it will not be publicly ' +
+        'shown, and copyright will be assigned to them by default (if applicable and legally possible, and your ' +
+        'commission info in your artist settings does not explicitly say otherwise). You are advised to upcharge ' +
+        'for this if you do it.'
+  } else {
+    return 'Hides the resulting submission from public view and tells the artist you want this commission ' +
+        'to be private. The artist may charge an additional fee, since they will not be able to use the piece ' +
+        'in their portfolio.'
+  }
+})
+
+subjectHandler.artistProfile.get().then()
+if (orderForm.fields.characters.value.length === 0) {
+  showCharacters.value = true
+} else {
+  const promises = []
+  for (const charId of orderForm.fields.characters.model) {
+    promises.push(artCall({
+      url: `/api/profiles/data/character/id/${charId}/`,
+      method: 'get',
+    }).then(
+        (response) => initCharacters.value.push(response),
+    ).catch(() => {
+      orderForm.fields.characters.model = orderForm.fields.characters.model.filter((val: number) => val !== charId)
+    }))
+  }
+  Promise.all(promises).then(() => {
+    showCharacters.value = true
+  })
+}
+
 </script>
