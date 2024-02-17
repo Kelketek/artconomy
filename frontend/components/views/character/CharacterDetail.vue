@@ -53,6 +53,7 @@
                                     field-type="ac-submission-select"
                                     :patcher="character.profile.patchers.primary_submission"
                                     :list="submissionList"
+                                    v-if="submissionList"
                                     :save-comparison="character.profile.x.primary_submission"
                                     :show-progress="true"
                                 />
@@ -110,17 +111,17 @@
               </v-col>
             </v-row>
             <v-row no-gutters>
-              <ac-patch-field
-                  field-type="ac-editor"
-                  :auto-save="false"
-                  :patcher="character.profile.patchers.open_requests_restrictions"
-                  v-if="controls"
-                  v-show="editing"
-                  label="Restrictions"
-                  hint="Write any restrictions you wish to place on having your character commissioned by others.
+              <v-col cols="12" v-show="editing" v-if="controls">
+                <ac-patch-field
+                    field-type="ac-editor"
+                    :auto-save="false"
+                    :patcher="character.profile.patchers.open_requests_restrictions"
+                    label="Restrictions"
+                    hint="Write any restrictions you wish to place on having your character commissioned by others.
                   For instance, if your character would never eat pie, you could write, 'Don't draw them eating pie.'"
-                  :disabled="!character.profile.patchers.open_requests.model"
-                  :save-comparison="character.profile.x.open_requests_restrictions"/>
+                    :disabled="!character.profile.patchers.open_requests.model"
+                    :save-comparison="character.profile.x.open_requests_restrictions"/>
+              </v-col>
               <v-col cols="12" v-if="character.profile.x.open_requests_restrictions" v-show="!editing">
                 <h4 class="mb-2">
                   <v-icon color="yellow" left icon="mdi-warning"/>

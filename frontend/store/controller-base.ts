@@ -27,7 +27,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
   public $store: ArtStore
   public initName!: string
   public _uid!: string
-  public name: Ref<string>
+  public name!: Ref<string>
   public $sock: SocketManager
   public $router: Router
   public $registries: RegistryRegistry
@@ -51,7 +51,9 @@ export abstract class BaseController<S, D extends AttrKeys> {
     this.__getterMap = new Map()
     this.scope = effectScope()
     this.initName = initName
-    this.name = ref(initName)
+    this.scope.run(() => {
+      this.name = ref(initName)
+    })
     this.schema = schema
     this.$store = $store
     this.$router = $router

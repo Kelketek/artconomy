@@ -22,8 +22,6 @@ export interface FieldBank {
 // as their own component type with their own registry.
 @ComputedGetters
 export class FormController extends BaseController<NamelessFormSchema, FormState> {
-  public __getterMap = new Map()
-  public scope = effectScope()
   public fields: FieldBank = {}
   public watcherMap: { [key: string]: (mutation: MutationPayload) => void } = {}
 

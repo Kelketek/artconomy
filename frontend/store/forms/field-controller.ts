@@ -11,7 +11,7 @@ import {RawData} from '@/store/forms/types/RawData.ts'
 import {Field} from '@/store/forms/types/Field.ts'
 import {ControllerArgs} from '@/store/controller-base.ts'
 import {ArtStore} from '@/store/index.ts'
-import {ComputedGetter, EffectScope, effectScope, ref, toValue, watch} from 'vue'
+import {ComputedGetter, EffectScope, effectScope, ref, toValue, watch, Ref} from 'vue'
 
 export function axiosCatch(error: Error) {
   if (axios.isCancel(error)) {
@@ -35,7 +35,7 @@ export class FieldController {
   public $store: ArtStore
   public validate!: ReturnType<typeof debounce>
   public cancelSource = new AbortController()
-  public localCache: any = ref(null)
+  public localCache!: Ref<any>
 
   constructor({fieldName, formName, $store}: FieldControllerArgs) {
     // Used by the ComputedGetters decorator
@@ -49,8 +49,11 @@ export class FieldController {
     )
     // Force creation of the value computed getter.
     this.value
-    watch(this.__getterMap.get('value'), this.syncCache, {immediate: true})
-    watch(this.localCache, this.updateInternal, {deep: true})
+    this.scope.run(() => {
+      this.localCache = ref(null)
+      watch(this.__getterMap.get('value'), this.syncCache, {immediate: true})
+      watch(this.localCache, this.updateInternal, {deep: true})
+    })
   }
 
   public get value () {

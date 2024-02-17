@@ -47,6 +47,9 @@ export class Patch<T = any> {
   // Used for automatically generated patchers which may throw errors during initialization/dereference
   public silent: boolean
   public refresh: boolean
+  public errors!: Ref<string[]>
+  public cached!: Ref<Symbol|T>
+  public patching!: Ref<boolean>
 
   constructor(args: PatcherArgs) {
     this.__getterMap = new Map()
@@ -57,12 +60,14 @@ export class Patch<T = any> {
     this.silent = args.silent || false
     this.refresh = args.refresh === undefined ? true : args.refresh
     this._uid = uuidv4()
+    this.scope.run(() => {
+      this.errors = ref([])
+      this.cached = ref(uncached)
+      this.patching = ref(false)
+    })
   }
 
   public cancelSource = new AbortController()
-  public errors = ref([] as string[])
-  public cached: Ref<Symbol|T> = ref(uncached)
-  public patching = ref(false)
 
   public rawSet = (val: T) => {
     let handler: SingleController<any>

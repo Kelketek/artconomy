@@ -22,6 +22,7 @@
                   field-type="ac-submission-select"
                   :patcher="product.patchers.primary_submission"
                   :list="localSamples"
+                  v-if="localSamples"
                   :save-comparison="product.x!.primary_submission"
                   :related="true"
                   :show-progress="true"

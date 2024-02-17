@@ -7,13 +7,13 @@ import {SinglePatchers} from '@/store/singles/types/SinglePatchers.ts'
 import {Patch} from '@/store/singles/patcher.ts'
 import {Watch} from 'vue-facing-decorator'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
-import {ref} from 'vue'
+import {ref, Ref} from 'vue'
 import {ComputedGetters} from '@/lib/lib.ts'
 
 @ComputedGetters
 export class SingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
   public baseClass = SingleModule
-  public forceRecomputeCounter = ref(0)
+  public forceRecomputeCounter!: Ref<number>
 
   public baseModuleName = 'singles'
 
@@ -24,6 +24,9 @@ export class SingleController<T extends object> extends BaseController<SingleMod
 
   constructor(args: ControllerArgs<SingleModuleOpts<T>>) {
     super(args)
+    this.scope.run(() => {
+      this.forceRecomputeCounter = ref(0)
+    })
     this.register()
   }
 

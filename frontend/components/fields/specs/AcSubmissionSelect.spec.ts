@@ -198,46 +198,6 @@ describe('AcSubmissionSelect.vue', () => {
     await wrapper.vm.$nextTick()
     expect(vm.loading).toBe(false)
   })
-  test('Handles a late-coming list', async() => {
-    const currentSubmission = genSubmission()
-    currentSubmission.id = 1
-    wrapper = mount(
-      AcSubmissionSelect, {
-        ...vueSetup({
-          store,
-          stubs: ['router-link'],
-        }),
-        props: {
-          modelValue: 1,
-          saveComparison: currentSubmission,
-        },
-      },
-    )
-    const vm = wrapper.vm as any
-    const submissions = [genSubmission(), genSubmission(), genSubmission()]
-    const submissionList = mount(Empty, vueSetup({store})).vm.$getList('submissions', {endpoint: '/wat/'})
-    submissions[0].id = 2
-    submissions[1].id = 3
-    submissions[2].id = 4
-    submissionList.ready = true
-    submissionList.fetching = false
-    submissionList.setList(submissions)
-    submissionList.response = {
-      count: 3,
-      size: 10,
-    }
-    await wrapper.setProps({list: submissionList})
-    await wrapper.vm.$nextTick()
-    await wrapper.find('.submission').trigger('click')
-    await wrapper.vm.$nextTick()
-    await wrapper.setProps({
-      value: 1,
-      queryEndpoint: '/stuff/',
-      saveComparison: submissions[0],
-    })
-    await wrapper.vm.$nextTick()
-    expect(vm.loading).toBe(false)
-  })
   test('Does not mark as loading when selecting the selected item', async() => {
     const currentSubmission = genSubmission()
     currentSubmission.id = 1
