@@ -515,10 +515,14 @@ class DeliverableDetail extends mixins(DeliverableMixin, Formatting, Ratings, In
   }
 
   public get viewerItems() {
-    const items = [{
-      title: 'Staff',
-      value: VIEWER_TYPE.STAFF,
-    }]
+    const items = []
+    if (this.viewMode === 0) {
+      items.push({
+        title: 'Please select...',
+        value: VIEWER_TYPE.UNSET,
+      })
+    }
+    items.push({title: 'Staff', value: VIEWER_TYPE.STAFF})
     if (this.buyer) {
       items.push({
         title: 'Buyer',
