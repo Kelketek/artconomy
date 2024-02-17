@@ -162,16 +162,16 @@
   </v-container>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import AcAsset from '@/components/AcAsset.vue'
 import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+import Subjective, {useSubject} from '@/mixins/subjective.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {Patch} from '@/store/singles/patcher.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
-import Editable from '@/mixins/editable.ts'
+import Editable, {useEditable} from '@/mixins/editable.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
@@ -190,98 +190,177 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {setMetaContent, textualize, updateTitle} from '@/lib/lib.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {ListController} from '@/store/lists/controller.ts'
+import {CharacterProps} from '@/types/CharacterProps.ts'
+import {useCharacter} from '@/store/characters/hooks.ts'
+import {setError} from '@/mixins/ErrorHandling.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {computed, ref, watch} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {
-    AcCharacterPreview,
-    AcExpandedProperty,
-    AcCharacterToolbar,
-    AcRelatedManager,
-    AcLink,
-    AcContextGallery,
-    AcTagDisplay,
-    AcColors,
-    AcAttributes,
-    AcConfirmation,
-    AcBoundField,
-    AcFormContainer,
-    AcLoadSection,
-    AcRendered,
-    AcPatchField,
-    AcAvatar,
-    AcAsset,
-  },
+const props = defineProps<CharacterProps>()
+
+const {controls} = useSubject(props)
+const {editing} = useEditable(controls)
+const {ageCheck} = useViewer()
+
+const character = useCharacter({username: props.username, characterName: props.characterName})
+character.profile.get().catch(setError)
+character.attributes.firstRun()
+character.colors.firstRun()
+character.sharedWith.firstRun()
+character.recommended.firstRun()
+const submissionList = useList('characterSubmissions', {endpoint: character.submissions.endpoint})
+
+const newShare = useForm('share_character', {
+  endpoint: character.sharedWith.endpoint,
+  fields: {user_id: {value: null}},
 })
-class CharacterDetail extends mixins(Subjective, CharacterCentric, Editable) {
-  public newShare: FormController = null as unknown as FormController
-  public name: Patch = null as unknown as Patch
-  public showChangePrimary = false
-  public submissionList = null as unknown as ListController<Submission>
 
-  public get primarySubmissionLink() {
-    if (this.editing) {
-      return null
-    }
-    const character = this.character.profile.x as Character
-    if (!character.primary_submission) {
-      return null
-    }
-    return {
-      name: 'Submission',
-      params: {submissionId: character.primary_submission.id},
-    }
+const primarySubmissionLink = computed(() => {
+  if (editing.value) {
+    return null
   }
-
-  @Watch('character.profile.x.primary_submission.id')
-  public closeSubmissionDialog() {
-    this.showChangePrimary = false
+  const profile = character.profile.x
+  if (!profile) {
+    return null
   }
-
-  public addSubmission(submission: Submission) {
-    if (this.showChangePrimary) {
-      if (this.submissionList.empty) {
-        // @ts-expect-error
-        this.character.profile.patchers.primary_submission.model = submission.id
-      }
-      this.submissionList.unshift(submission)
-      this.character.submissions.unshift(submission)
-    }
+  if (!profile.primary_submission) {
+    return null
   }
-
-  @Watch('character.profile.x', {
-    deep: true,
-    immediate: true,
-  })
-  public setMeta(character: Character | null) {
-    /* istanbul ignore if */
-    if (!character) {
-      return
-    }
-    updateTitle(`${character.name} - ${character.user.username} on Artconomy.com`)
-    setMetaContent('description', textualize(character.description).slice(0, 160))
-    if (!character.primary_submission) {
-      if (character.nsfw) {
-        // Adult content rating by default.
-        this.ageCheck({value: 2})
-      }
-      return
-    }
-    this.ageCheck({value: character.primary_submission.rating})
+  return {
+    name: 'Submission',
+    params: {submissionId: profile.primary_submission.id},
   }
+})
 
-  public created() {
-    this.newShare = this.$getForm('share_character', {
-      endpoint: this.character.sharedWith.endpoint,
-      fields: {user_id: {value: null}},
-    })
-    this.character.profile.get().catch(this.setError)
-    this.character.attributes.firstRun().then()
-    this.character.colors.firstRun().then()
-    this.character.sharedWith.firstRun().catch(this.statusOk(403))
-    this.character.recommended.firstRun().then()
-    this.submissionList = this.$getList('characterSubmissions', {endpoint: this.character.submissions.endpoint})
+const showChangePrimary = ref(false)
+
+watch(() => character.profile.x?.primary_submission?.id, (newValue, oldValue) => {
+  console.log('Changed from', oldValue, 'to', newValue)
+  showChangePrimary.value = false
+})
+
+const addSubmission = (submission: Submission) => {
+  if (showChangePrimary.value) {
+    if (submissionList.empty) {
+      // @ts-expect-error
+      this.character.profile.patchers.primary_submission.model = submission.id
+    }
+    submissionList.unshift(submission)
+    character.submissions.unshift(submission)
   }
 }
 
-export default toNative(CharacterDetail)
+watch(() => character.profile.x, (character: Character|null) => {
+  /* istanbul ignore if */
+  if (!character) {
+    return
+  }
+  updateTitle(`${character.name} - ${character.user.username} on Artconomy.com`)
+  setMetaContent('description', textualize(character.description).slice(0, 160))
+  if (!character.primary_submission) {
+    if (character.nsfw) {
+      // Adult content rating by default.
+      ageCheck({value: 2})
+    }
+    return
+  }
+  ageCheck({value: character.primary_submission.rating})
+}, {deep: true, immediate: true})
+
+//
+// @Component({
+//   components: {
+//     AcCharacterPreview,
+//     AcExpandedProperty,
+//     AcCharacterToolbar,
+//     AcRelatedManager,
+//     AcLink,
+//     AcContextGallery,
+//     AcTagDisplay,
+//     AcColors,
+//     AcAttributes,
+//     AcConfirmation,
+//     AcBoundField,
+//     AcFormContainer,
+//     AcLoadSection,
+//     AcRendered,
+//     AcPatchField,
+//     AcAvatar,
+//     AcAsset,
+//   },
+// })
+// class CharacterDetail extends mixins(Subjective, CharacterCentric, Editable) {
+//   public newShare: FormController = null as unknown as FormController
+//   public name: Patch = null as unknown as Patch
+//   public showChangePrimary = false
+//   public submissionList = null as unknown as ListController<Submission>
+//
+//   public get primarySubmissionLink() {
+//     if (this.editing) {
+//       return null
+//     }
+//     const character = this.character.profile.x as Character
+//     if (!character.primary_submission) {
+//       return null
+//     }
+//     return {
+//       name: 'Submission',
+//       params: {submissionId: character.primary_submission.id},
+//     }
+//   }
+//
+//   @Watch('character.profile.x.primary_submission.id')
+//   public closeSubmissionDialog() {
+//     this.showChangePrimary = false
+//   }
+//
+//   public addSubmission(submission: Submission) {
+//     if (this.showChangePrimary) {
+//       if (this.submissionList.empty) {
+//         // @ts-expect-error
+//         this.character.profile.patchers.primary_submission.model = submission.id
+//       }
+//       this.submissionList.unshift(submission)
+//       this.character.submissions.unshift(submission)
+//     }
+//   }
+//
+//   @Watch('character.profile.x', {
+//     deep: true,
+//     immediate: true,
+//   })
+//   public setMeta(character: Character | null) {
+//     /* istanbul ignore if */
+//     if (!character) {
+//       return
+//     }
+//     updateTitle(`${character.name} - ${character.user.username} on Artconomy.com`)
+//     setMetaContent('description', textualize(character.description).slice(0, 160))
+//     if (!character.primary_submission) {
+//       if (character.nsfw) {
+//         // Adult content rating by default.
+//         this.ageCheck({value: 2})
+//       }
+//       return
+//     }
+//     this.ageCheck({value: character.primary_submission.rating})
+//   }
+//
+//   public created() {
+//     this.newShare = this.$getForm('share_character', {
+//       endpoint: this.character.sharedWith.endpoint,
+//       fields: {user_id: {value: null}},
+//     })
+//     this.character.profile.get().catch(this.setError)
+//     this.character.attributes.firstRun().then()
+//     this.character.colors.firstRun().then()
+//     this.character.sharedWith.firstRun().catch(this.statusOk(403))
+//     this.character.recommended.firstRun().then()
+//     this.submissionList = this.$getList('characterSubmissions', {endpoint: this.character.submissions.endpoint})
+//   }
+// }
+//
+// export default toNative(CharacterDetail)
 </script>

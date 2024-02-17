@@ -84,16 +84,22 @@ const getCanDisplay = (permittedRating: boolean, blacklisted: string[], nsfwBlac
   return false
 }
 
-export const useAssetHelpers = ({asset, thumbName, fallbackImage}: {asset: Asset|null, thumbName: string, fallbackImage: string}) => {
+declare interface AssetProps {
+  asset: Asset|null,
+  thumbName: string,
+  fallbackImage: string,
+}
+
+export const useAssetHelpers = (props: AssetProps) => {
   const {viewer, rating} = useViewer()
-  const isImage = computed(() => getIsImage(asset))
-  const displayImage = computed(() => getDisplayImage(asset, thumbName, isImage.value, fallbackImage))
-  const ratingText = computed(() => getRatingText(asset))
-  const tags = computed(() => getTags(asset))
-  const assetRating = computed(() => getAssetRating(asset))
-  const blacklisted = computed(() => getBlackListed(asset, tags.value, viewer.value))
-  const nsfwBlacklisted = computed(() => getNsfwBlacklisted(asset, tags.value, assetRating.value, viewer.value))
-  const permittedRating = computed(() => getPermittedRating(asset, rating.value))
+  const isImage = computed(() => getIsImage(props.asset))
+  const displayImage = computed(() => getDisplayImage(props.asset, props.thumbName, isImage.value, props.fallbackImage))
+  const ratingText = computed(() => getRatingText(props.asset))
+  const tags = computed(() => getTags(props.asset))
+  const assetRating = computed(() => getAssetRating(props.asset))
+  const blacklisted = computed(() => getBlackListed(props.asset, tags.value, viewer.value))
+  const nsfwBlacklisted = computed(() => getNsfwBlacklisted(props.asset, tags.value, assetRating.value, viewer.value))
+  const permittedRating = computed(() => getPermittedRating(props.asset, rating.value))
   const nerfed = computed(() => getNerfed(rating.value, viewer.value))
   const canDisplay = computed(() => getCanDisplay(permittedRating.value, blacklisted.value, nsfwBlacklisted.value))
   return {

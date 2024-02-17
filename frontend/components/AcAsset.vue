@@ -154,7 +154,7 @@ const {
   permittedRating,
   nerfed,
   canDisplay,
-} = useAssetHelpers({asset: props.asset, thumbName: props.thumbName, fallbackImage: props.fallbackImage})
+} = useAssetHelpers(props)
 
 const el = ref<HTMLElement | null>(null)
 
@@ -182,69 +182,4 @@ const ratio = computed(() => {
   }
   return props.aspectRatio
 })
-
-// @Component({
-//   components: {
-//     AcVideoPlayer,
-//     AcAudioPlayer,
-//     AcMarkdownViewer,
-//   },
-//   emits: ['update:modelValue'],
-// })
-// class AcAsset extends mixins(AssetBase) {
-//   @Prop({default: null})
-//   // @ts-expect-error
-//   public asset!: Asset | null
-//
-//   @Prop({default: 1})
-//   public aspectRatio!: number | null
-//
-//   @Prop({required: true})
-//   // @ts-expect-error
-//   public thumbName!: string
-//
-//   @Prop({required: false})
-//   public editing!: boolean
-//
-//   @Prop({default: true})
-//   public text!: boolean
-//
-//   public fullscreen = false
-//
-//   public mounted() {
-//     window._paq.push(['MediaAnalytics::scanForMedia', this.$el])
-//   }
-//
-//   public get displayComponent() {
-//     if (!this.asset) {
-//       return null
-//     }
-//     const ext = getExt(this.asset.file.full)
-//     if (['gallery', 'full', 'preview'].indexOf(this.thumbName) === -1) {
-//       return null
-//     }
-//     // @ts-ignore
-//     return COMPONENT_EXTENSIONS[ext]
-//   }
-//
-//   public get renderImage() {
-//     return this.canDisplay && (this.isImage || !this.displayComponent)
-//   }
-//
-//   public get ratio() {
-//     if ((!this.canDisplay) && (this.aspectRatio === null)) {
-//       return 1
-//     }
-//     return this.aspectRatio
-//   }
-//
-//   public get fullUrl() {
-//     if (this.asset === null) {
-//       return this.fallbackImage
-//     }
-//     return this.asset.file.full
-//   }
-// }
-//
-// export default toNative(AcAsset)
 </script>
