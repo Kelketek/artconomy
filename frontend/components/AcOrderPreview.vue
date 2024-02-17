@@ -6,6 +6,7 @@
         <ac-asset
             :asset="order.x.display"
             thumb-name="thumbnail"
+            :terse="true"
             :allow-preview="false"
         />
       </ac-link>

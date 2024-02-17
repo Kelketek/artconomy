@@ -36,43 +36,45 @@
           <v-row no-gutters justify="center" align-content="center" style="height: 100%">
             <v-col>
               <v-card-text align-self-center>
-                <v-col class="text-center">
-                  <v-icon x-large icon="mdi-cancel"/>
-                  <v-col v-if="text">
-                    <div v-if="!permittedRating">
-                      <div>This piece exceeds your content rating settings.</div>
-                      <p v-if="nerfed && !terse" class="nerfed-message">Please toggle SFW mode off to see this piece.</p>
-                      <p v-else-if="isRegistered && !terse" class="rating-info">
-                        This piece is rated '{{ ratingText }}'. <br/>
-                        <v-btn @click="ageCheck({force: true, value: asset!.rating})" class="mt-2" color="primary"
-                               variant="elevated">Adjust
-                          my Settings
-                        </v-btn>
-                      </p>
-                      <p v-else-if="!terse">
-                        This piece is rated '{{ ratingText }}'. <br/>
-                        <v-btn @click="ageCheck({force: true, value: asset!.rating})" color="primary" class="mt-2"
-                               variant="flat">
-                          Adjust my Settings
-                        </v-btn>
-                      </p>
-                    </div>
-                    <div v-if="blacklisted.length" class="blacklist-info">
-                      <p v-if="terse">This piece contains tags you've blocked.</p>
-                      <p v-else>
-                        This piece contains these blocked tags:
-                        <span v-for="tag in blacklisted" :key="tag">{{ tag }} </span>
-                      </p>
-                    </div>
-                    <div v-if="nsfwBlacklisted.length" class="nsfw-blacklist-info">
-                      <p v-if="terse">This piece contains tags you've blocked in an NSFW context.</p>
-                      <p v-else>
-                        This piece contains these blocked tags:
-                        <span v-for="tag in nsfwBlacklisted" :key="tag">{{ tag }} </span>
-                      </p>
-                    </div>
+                <v-row no-gutters>
+                  <v-col class="text-center" cols="12">
+                    <v-icon x-large icon="mdi-cancel"/>
+                    <v-col v-if="text">
+                      <div v-if="!permittedRating">
+                        <div>This piece exceeds your content rating settings.</div>
+                        <p v-if="nerfed && !terse" class="nerfed-message">Please toggle SFW mode off to see this piece.</p>
+                        <p v-else-if="isRegistered && !terse" class="rating-info">
+                          This piece is rated '{{ ratingText }}'. <br/>
+                          <v-btn @click="ageCheck({force: true, value: asset!.rating})" class="mt-2" color="primary"
+                                 variant="elevated">Adjust
+                            my Settings
+                          </v-btn>
+                        </p>
+                        <p v-else-if="!terse">
+                          This piece is rated '{{ ratingText }}'. <br/>
+                          <v-btn @click="ageCheck({force: true, value: asset!.rating})" color="primary" class="mt-2"
+                                 variant="flat">
+                            Adjust my Settings
+                          </v-btn>
+                        </p>
+                      </div>
+                      <div v-if="blacklisted.length" class="blacklist-info">
+                        <p v-if="terse">This piece contains tags you've blocked.</p>
+                        <p v-else>
+                          This piece contains these blocked tags:
+                          <span v-for="tag in blacklisted" :key="tag">{{ tag }} </span>
+                        </p>
+                      </div>
+                      <div v-if="nsfwBlacklisted.length" class="nsfw-blacklist-info">
+                        <p v-if="terse">This piece contains tags you've blocked in an NSFW context.</p>
+                        <p v-else>
+                          This piece contains these blocked tags:
+                          <span v-for="tag in nsfwBlacklisted" :key="tag">{{ tag }} </span>
+                        </p>
+                      </div>
+                    </v-col>
                   </v-col>
-                </v-col>
+                </v-row>
               </v-card-text>
             </v-col>
           </v-row>
