@@ -25,9 +25,9 @@ export default class Editable extends ArtVue {
 
   public set editing(value) {
     if (value) {
-      this.unlock()
+      this.unlock().then()
     } else {
-      this.lock()
+      this.lock().then()
     }
   }
 }

@@ -41,7 +41,7 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
-import {RouteRecordRaw} from 'vue-router'
+import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
 import {routes} from '@/router'
 
 export interface ExtraData {
@@ -374,6 +374,19 @@ export const nullifyRoutes = (routeArray: RouteRecordRaw[]): RouteRecordRaw[] =>
 }
 
 export const mockRoutes = nullifyRoutes(routes)
+
+export const createTestRouter = (quick = true) => {
+  let routes: RouteRecordRaw[]
+  if (quick) {
+    routes = [{name: 'Home', component: Empty, path: '/'}]
+  } else {
+    routes = mockRoutes
+  }
+  return createRouter({
+    history: createWebHistory(),
+    routes,
+  })
+}
 
 export const mockStripeInitializer = vi.fn()
 mockStripeInitializer.mockImplementation(mockStripe)

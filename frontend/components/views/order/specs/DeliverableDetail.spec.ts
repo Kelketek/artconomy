@@ -120,6 +120,10 @@ describe('DeliverableDetail.vue', () => {
     expect(vm.buyerSubmission).toBe(null)
     expect(vm.viewerItems).toEqual([
       {
+        title: 'Please select...',
+        value: VIEWER_TYPE.UNSET,
+      },
+      {
         title: 'Staff',
         value: VIEWER_TYPE.STAFF,
       },

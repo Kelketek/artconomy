@@ -18,7 +18,7 @@ describe('Editable.ts', () => {
     wrapper = mount(
       Editable, {
         props: {controls: true},
-        ...vueSetup({mocks: {$router: {replace}, $route: {query: {editing: true}}}}),
+        ...vueSetup({mocks: {$router: {replace}, $route: {query: {editing: "true"}}}}),
       },
     )
     const vm = wrapper.vm as any
@@ -40,7 +40,7 @@ describe('Editable.ts', () => {
     wrapper = mount(
       Editable, {
         props: {controls: false},
-        ...vueSetup({mocks: {$router: {replace}, $route: {query: {editing: true}}}}),
+        ...vueSetup({mocks: {$router: {replace}, $route: {query: {editing: "true"}}}}),
       },
     )
     const vm = wrapper.vm as any
@@ -51,7 +51,7 @@ describe('Editable.ts', () => {
     wrapper = mount(
       Editable, {
         props: {controls: true},
-        ...vueSetup({mocks: {$router: {replace}, $route: {query: {editing: true, what: 'things'}}}}),
+        ...vueSetup({mocks: {$router: {replace}, $route: {query: {editing: "true", what: 'things'}}}}),
       },
     )
     const vm = wrapper.vm as any
@@ -68,6 +68,6 @@ describe('Editable.ts', () => {
     )
     const vm = wrapper.vm as any
     vm.editing = true
-    expect(replace).toHaveBeenCalledWith({query: {what: 'things', editing: true}})
+    expect(replace).toHaveBeenCalledWith({query: {what: 'things', editing: "true"}})
   })
 })

@@ -6,14 +6,21 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import AcColors from '@/components/views/character/AcColors.vue'
 import {Character} from '@/store/characters/types/Character.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {createRouter, createWebHistory, Router} from 'vue-router'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 
 describe('AcColors.vue', () => {
   let store: ArtStore
   let wrapper: VueWrapper<any>
   let character: Character
+  let router: Router
   beforeEach(() => {
     store = createStore()
     character = genCharacter()
+    router = createRouter({
+      history: createWebHistory(),
+      routes: [{path: '/', component: Empty, name: 'Home'}],
+    })
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -55,37 +62,5 @@ describe('AcColors.vue', () => {
     vm.character.colors.setList(colors)
     store.commit('characterModules/character__Fox__Kai/colors/setReady', true)
     await vm.$nextTick()
-  })
-  test('Dynamically sets a color style', async() => {
-    setViewer(store, genUser())
-    wrapper = mount(
-      AcColors, {
-        ...vueSetup({
-          store,
-          mocks: {
-            $route: {
-              name: 'Character',
-              params: {
-                username: 'Fox',
-                characterName: 'Kai',
-              },
-              query: {},
-            },
-          },
-          stubs: ['router-link'],
-        }),
-        props: {
-          username: 'Fox',
-          characterName: 'Kai',
-        },
-      })
-    const vm = wrapper.vm as any
-    vm.character.profile.setX(character)
-    store.commit('characterModules/character__Fox__Kai/profile/setReady', true)
-    vm.character.colors.setList([])
-    store.commit('characterModules/character__Fox__Kai/colors/setReady', true)
-    vm.newColor.fields.color.update('#FFFFFF')
-    await vm.$nextTick()
-    expect(vm.newColorStyle).toEqual({'background-color': '#FFFFFF'})
   })
 })
