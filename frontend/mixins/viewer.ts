@@ -50,7 +50,7 @@ const getRating = (viewer: User|AnonUser|null) => {
   return viewer.rating
 }
 
-const rawRating = (viewer: User|AnonUser|null) => {
+const getRawRating = (viewer: User|AnonUser|null) => {
   // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
   // in and not currently using SFW settings. So, if we want to watch for this value's change, but we want to ignore
   // the default rating setting, we use this property instead.
@@ -118,6 +118,7 @@ export const useViewer = () => {
   const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer.value))
   const isSuperuser = computed(() => checkSuperuser(isLoggedIn.value, viewer.value))
   const rating = computed(() => getRating(viewer.value))
+  const rawRating = computed(() => getRawRating(viewer.value))
 
   return {
     viewer,
@@ -130,6 +131,7 @@ export const useViewer = () => {
     isStaff,
     isSuperuser,
     rating,
+    rawRating,
     ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer.value, args),
   }
 }
@@ -146,7 +148,7 @@ export default class Viewer extends mixins(ErrorHandling) {
   }
 
   public get rawRating() {
-    return rawRating(this.viewer)
+    return getRawRating(this.viewer)
   }
 
   public get isLoggedIn(): boolean {

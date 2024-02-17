@@ -164,32 +164,22 @@
 
 <script setup lang="ts">
 import AcAsset from '@/components/AcAsset.vue'
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective, {useSubject} from '@/mixins/subjective.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 import {Character} from '@/store/characters/types/Character.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {Patch} from '@/store/singles/patcher.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
-import Editable, {useEditable} from '@/mixins/editable.ts'
+import {useEditable} from '@/mixins/editable.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import CharacterCentric from '@/components/views/character/mixins/CharacterCentric.ts'
 import AcAttributes from '@/components/views/character/AcAttributes.vue'
 import AcColors from '@/components/views/character/AcColors.vue'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
 import AcContextGallery from '@/components/views/character/AcContextGallery.vue'
 import Submission from '@/types/Submission.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
-import AcRelatedManager from '@/components/wrappers/AcRelatedManager.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {setMetaContent, textualize, updateTitle} from '@/lib/lib.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
 import {setError} from '@/mixins/ErrorHandling.ts'
@@ -204,18 +194,13 @@ const {controls} = useSubject(props)
 const {editing} = useEditable(controls)
 const {ageCheck} = useViewer()
 
-const character = useCharacter({username: props.username, characterName: props.characterName})
+const character = useCharacter(props)
 character.profile.get().catch(setError)
 character.attributes.firstRun()
 character.colors.firstRun()
 character.sharedWith.firstRun()
 character.recommended.firstRun()
 const submissionList = useList('characterSubmissions', {endpoint: character.submissions.endpoint})
-
-const newShare = useForm('share_character', {
-  endpoint: character.sharedWith.endpoint,
-  fields: {user_id: {value: null}},
-})
 
 const primarySubmissionLink = computed(() => {
   if (editing.value) {

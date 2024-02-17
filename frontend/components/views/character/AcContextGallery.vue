@@ -7,16 +7,14 @@
         >
           <div :class="featuredClasses">
             <v-col cols="12">
-              <v-col class="grow">
-                <ac-gallery-preview
-                    :submission="featured"
-                    thumb-name="gallery"
-                    :contain="true"
-                    :compact="true"
-                    :aspect-ratio="null"
-                    :show-footer="$vuetify.display.lgAndUp"
-                />
-              </v-col>
+              <ac-gallery-preview
+                  :submission="featured"
+                  thumb-name="gallery"
+                  :contain="true"
+                  :compact="true"
+                  :aspect-ratio="null"
+                  :show-footer="$vuetify.display.lgAndUp"
+              />
               <v-col class="shrink text-center pt-2" v-if="more && $vuetify.display.mdAndUp">
                 <v-btn color="primary" variant="flat" :to="{name: 'CharacterGallery', params: {username, characterName}}">See all
                   Uploads
@@ -47,7 +45,7 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import AcGalleryPreview from '../../AcGalleryPreview.vue'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -55,50 +53,50 @@ import {Character} from '@/store/characters/types/Character.ts'
 import CharacterCentric from '@/components/views/character/mixins/CharacterCentric.ts'
 import Submission from '@/types/Submission.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import RatingRefresh from '@/mixins/RatingRefresh.ts'
+import RatingRefresh, {useRatingRefresh} from '@/mixins/RatingRefresh.ts'
+import {CharacterProps} from '@/types/CharacterProps.ts'
+import {useCharacter} from '@/store/characters/hooks.ts'
+import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcGalleryPreview,
-  },
+const props = defineProps<CharacterProps>()
+
+const character = useCharacter(props)
+const display = useDisplay()
+
+character.submissions.firstRun()
+
+useRatingRefresh([character.submissions])
+
+const featured = computed(() => {
+  const profile = character.profile.x
+  if (!profile) {
+    return null
+  }
+  return profile.primary_submission || character.submissions.list[0]?.x
 })
-class AcContextGallery extends mixins(CharacterCentric, RatingRefresh) {
-  public refreshLists = ['character.submissions']
 
-  public get featured() {
-    const character = this.character.profile.x as Character
-    return character.primary_submission || this.character.submissions.list[0].x
+const prunedSubmissions = computed(() => {
+  const compare = featured.value?.id
+  const submissions = character.submissions.list.filter(
+      (submission: SingleController<Submission>) =>
+          (submission.x as Submission).id !== compare,
+  )
+  return submissions.slice(0, 4)
+})
+
+const featuredClasses = computed(() => {
+  const single = prunedSubmissions.value.length === 0
+  return {
+    'pb-2': display.smAndDown.value,
+    'v-col-12': true,
+    'v-col-md-7': !single,
+    'v-col-lg-9': !single,
+    'align-self-center': true,
   }
+})
 
-  public created() {
-    this.character.submissions.firstRun().then()
-  }
-
-  public get prunedSubmissions() {
-    let submissions = [...this.character.submissions.list]
-    submissions = submissions.filter(
-        (submission: SingleController<Submission>) =>
-            (submission.x as Submission).id !== (this.featured as Submission).id,
-    )
-    return submissions.slice(0, 4)
-  }
-
-  public get featuredClasses() {
-    const single = this.prunedSubmissions.length === 0
-    return {
-      'pb-2': this.$vuetify.display.smAndDown,
-      'col-12': true,
-      'col-md-7': !single,
-      'col-lg-9': !single,
-      'align-self-center': true,
-    }
-  }
-
-  public get more() {
-    return (this.prunedSubmissions.length < (this.character.submissions.list.length - 1))
-  }
-}
-
-export default toNative(AcContextGallery)
+const more = computed(() => {
+  return (prunedSubmissions.value.length < (character.submissions.list.length - 1))
+})
 </script>
