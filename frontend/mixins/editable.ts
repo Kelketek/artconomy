@@ -1,5 +1,7 @@
 import {Component} from 'vue-facing-decorator'
 import {ArtVue} from '@/lib/lib.ts'
+import {RouteLocation, Router, useRoute, useRouter} from 'vue-router'
+import {computed, ComputedRef} from 'vue'
 
 @Component
 export default class Editable extends ArtVue {
@@ -8,14 +10,12 @@ export default class Editable extends ArtVue {
   // Even if just annotating like below.
   // public controls!: boolean;
 
-  public unlock() {
-    this.$router.replace({query: Object.assign({}, this.$route.query, {editing: true})})
+  public async unlock() {
+    return unlockRoute(this.$router, this.$route)
   }
 
   public lock() {
-    const newQuery = {...this.$route.query}
-    delete newQuery.editing
-    this.$router.replace({query: newQuery})
+    return lockRoute(this.$router, this.$route)
   }
 
   public get editing() {
@@ -29,5 +29,41 @@ export default class Editable extends ArtVue {
     } else {
       this.lock()
     }
+  }
+}
+
+const unlockRoute = async (router: Router, route: RouteLocation) => {
+  return router.replace({query: {...route.query, editing: 'true'}})
+}
+
+const lockRoute = async (router: Router, route: RouteLocation) => {
+  const newQuery = {...route.query}
+  delete newQuery.editing
+  return router.replace({query: newQuery})
+}
+
+export const useEditable = (controls: ComputedRef<boolean>) => {
+  const router = useRouter()
+  const route = useRoute()
+  const lock = () => lockRoute(router, route)
+  const unlock = () => unlockRoute(router, route)
+
+  const editing = computed({
+    get: () => {
+      return Boolean(controls.value && route.query.editing)
+    },
+    set: (val: boolean) => {
+      if (val) {
+        lock().then()
+      } else {
+        unlock().then()
+      }
+    }
+  })
+
+  return {
+    lock,
+    unlock,
+    editing,
   }
 }

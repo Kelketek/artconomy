@@ -2,7 +2,9 @@ import {Component, mixins, Prop} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective.ts'
 import {CharacterController} from '@/store/characters/controller.ts'
 import {flatten} from '@/lib/lib.ts'
+import {useCharacter} from '@/store/characters/hooks.ts'
 
+// Deprecated.
 @Component
 export default class CharacterCentric extends mixins(Subjective) {
   public character: CharacterController = null as unknown as CharacterController
