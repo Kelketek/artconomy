@@ -2,9 +2,6 @@ import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
-  createVuetify,
-  docTarget,
-  flushPromises,
   mount,
   rq,
   setViewer,
@@ -21,14 +18,21 @@ import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import Submission from '@/types/Submission.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {searchSchema} from '@/lib/lib.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
+import {nextTick} from 'vue'
+import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
 let vulpes: User
+let empty: VueWrapper<any>['vm']
 
 const WrappedCharacterDetail = VuetifyWrapped(CharacterDetail)
+
+const getCharacter = () => {
+  return empty.$getCharacter(`character__Vulpes__Kai`)
+}
 
 describe('CharacterDetail.vue', () => {
   beforeEach(() => {
@@ -76,7 +80,8 @@ describe('CharacterDetail.vue', () => {
         },
       ],
     })
-    mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
+    empty = mount(Empty, vueSetup({store})).vm
+    empty.$getForm('search', searchSchema())
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -106,12 +111,12 @@ describe('CharacterDetail.vue', () => {
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/profiles/account/Vulpes/characters/Kai/share/', 'get',
         undefined, {signal: expect.any(Object)}))
-    const vm = wrapper.vm.$refs.vm as any
-    vm.character.profile.makeReady(genCharacter())
-    vm.character.attributes.makeReady([])
-    vm.character.colors.makeReady([])
-    vm.character.submissions.makeReady([])
-    await wrapper.vm.$nextTick()
+    const character = getCharacter()
+    character.profile.makeReady(genCharacter())
+    character.attributes.makeReady([])
+    character.colors.makeReady([])
+    character.submissions.makeReady([])
+    await nextTick()
   })
   test('Produces a relevant link to the primary submission', async() => {
     setViewer(store, vulpes)
@@ -132,28 +137,23 @@ describe('CharacterDetail.vue', () => {
         characterName: 'Kai',
       },
     })
-    const character = genCharacter();
-    (character.primary_submission as Submission).id = 100
-    const vm = wrapper.vm.$refs.vm as any
-    vm.character.profile.setX(character)
-    await vm.$nextTick()
-    expect(vm.primarySubmissionLink).toEqual({
-      name: 'Submission',
-      params: {submissionId: 100},
-    })
-    vm.character.profile.updateX({primary_submission: null})
-    expect(vm.primarySubmissionLink).toBe(null)
+    const characterDef = genCharacter();
+    (characterDef.primary_submission as Submission).id = 100
+    const character = getCharacter()
+    character.profile.makeReady(characterDef)
+    await nextTick()
+    expect(wrapper.find('.primary-submission-container a').attributes()['href']).toEqual('/submissions/100')
+    character.profile.updateX({primary_submission: null})
+    await nextTick()
+    expect(wrapper.find('.primary-submission-container a').exists()).toBe(false)
     const submission = genSubmission()
     submission.id = 101
-    vm.character.profile.updateX({primary_submission: submission})
-    await vm.$nextTick()
-    expect(vm.primarySubmissionLink).toEqual({
-      name: 'Submission',
-      params: {submissionId: 101},
-    })
+    character.profile.updateX({primary_submission: submission})
+    await nextTick()
+    expect(wrapper.find('.primary-submission-container a').attributes()['href']).toEqual('/submissions/101')
     await router.replace({query: {editing: 'true'}})
-    await vm.$nextTick()
-    expect(vm.primarySubmissionLink).toBe(null)
+    await nextTick()
+    expect(wrapper.find('.primary-submission-container a').exists()).toBe(false)
   })
   test('Does not break setting meta information if the primary submission is not set', async() => {
     setViewer(store, vulpes)
@@ -167,10 +167,10 @@ describe('CharacterDetail.vue', () => {
         characterName: 'Kai',
       },
     })
-    const character = genCharacter()
-    character.primary_submission = null
-    const vm = wrapper.vm.$refs.vm as any
-    vm.character.profile.setX(character)
+    const characterDef = genCharacter()
+    characterDef.primary_submission = null
+    const character = getCharacter()
+    character.profile.setX(characterDef)
     await wrapper.vm.$nextTick()
   })
   test('Handles a new submission when the primary is being changed', async() => {
@@ -185,19 +185,22 @@ describe('CharacterDetail.vue', () => {
         characterName: 'Kai',
       },
     })
-    const character = genCharacter()
-    character.primary_submission = null
-    const vm = wrapper.vm.$refs.vm as any
-    vm.character.profile.setX(character)
-    vm.submissionList.makeReady([])
-    vm.showChangePrimary = true
-    await wrapper.vm.$nextTick()
-    expect(vm.character.profile.patchers.primary_submission.model).toBe(null)
+    await router.replace({query: {editing: 'true'}})
+    const characterDef = genCharacter()
+    characterDef.primary_submission = null
+    const character = getCharacter()
+    character.profile.makeReady(characterDef)
+    const submissionList = empty.$getList('characterSubmissions')
+    submissionList.makeReady([])
+    await nextTick()
+    await wrapper.find('.primary-submission .edit-overlay').trigger('click')
+    await nextTick()
+    expect(character.profile.patchers.primary_submission.model).toBe(null)
     const submission = genSubmission({id: 343})
-    vm.addSubmission(submission)
-    expect(vm.character.profile.patchers.primary_submission.model).toBe(submission.id)
-    expect(vm.submissionList.list[0].x.id).toBe(submission.id)
-    expect(vm.character.submissions.list[0].x.id).toBe(submission.id)
+    await wrapper.findComponent(AcCharacterToolbar).vm.$emit('success', submission)
+    expect(character.profile.patchers.primary_submission.model).toBe(submission.id)
+    expect(submissionList.list[0].x.id).toBe(submission.id)
+    expect(character.submissions.list[0].x.id).toBe(submission.id)
   })
   test('Handles a new submission when the primary is not being changed', async() => {
     setViewer(store, vulpes)
@@ -211,15 +214,18 @@ describe('CharacterDetail.vue', () => {
         characterName: 'Kai',
       },
     })
-    const character = genCharacter()
-    character.primary_submission = null
-    const vm = wrapper.vm.$refs.vm as any
-    vm.character.profile.setX(character)
-    vm.submissionList.makeReady([])
+    await router.replace({query: {editing: 'true'}})
+    const characterDef = genCharacter()
+    characterDef.primary_submission = null
+    const character = getCharacter()
+    character.profile.setX(characterDef)
+    const submissionList = empty.$getList('characterSubmissions')
+    submissionList.makeReady([])
     await wrapper.vm.$nextTick()
-    expect(vm.character.profile.patchers.primary_submission.model).toBe(null)
+    expect(character.profile.patchers.primary_submission.model).toBe(null)
     const submission = genSubmission({id: 343})
-    vm.addSubmission(submission)
-    expect(vm.character.profile.patchers.primary_submission.model).toBe(null)
+    await wrapper.findComponent(AcCharacterToolbar).vm.$emit('success', submission)
+    expect(character.profile.patchers.primary_submission.model).toBe(null)
+    expect(submissionList.list[0].x).toEqual(submission)
   })
 })

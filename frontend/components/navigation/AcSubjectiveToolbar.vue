@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar :dense="true" color="black">
+  <v-toolbar :dense="true" color="black" class="subjective-toolbar">
     <slot name="avatar">
       <ac-avatar :username="username" :show-name="false" class="ml-3" />
       <v-toolbar-title class="ml-1">

@@ -30,11 +30,12 @@
               </v-col>
               <v-col cols="12" sm="4" md="4" lg="3" xl="2" offset-md="1">
                 <v-row no-gutters align-content="center" align="center" justify="center">
-                  <v-col align-self="center">
+                  <v-col align-self="center" class="primary-submission-container">
                     <ac-link :to="primarySubmissionLink">
                       <ac-asset :asset="character.profile.x.primary_submission"
                                 thumb-name="thumbnail" :terse="true"
                                 :editing="editing"
+                                class="primary-submission"
                                 v-model="showChangePrimary"
                       >
                         <template v-slot:edit-menu>
@@ -43,7 +44,7 @@
                             <v-row>
                               <v-col cols="12" class="text-center">
                                 <!-- @vue-ignore -->
-                                <v-btn color="green" variant="flat" @click="$refs.toolbar.showUpload = true">
+                                <v-btn color="green" variant="flat" class="upload-button" @click="$refs.toolbar.showUpload = true">
                                   <v-icon left icon="mdi-upload"/>
                                   Upload new Submission
                                 </v-btn>
@@ -184,7 +185,6 @@ import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
 import {setError} from '@/mixins/ErrorHandling.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import {useForm} from '@/store/forms/hooks.ts'
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 
@@ -193,6 +193,7 @@ const props = defineProps<CharacterProps>()
 const {controls} = useSubject(props)
 const {editing} = useEditable(controls)
 const {ageCheck} = useViewer()
+const toolbar = ref(null)
 
 const character = useCharacter(props)
 character.profile.get().catch(setError)
@@ -222,7 +223,6 @@ const primarySubmissionLink = computed(() => {
 const showChangePrimary = ref(false)
 
 watch(() => character.profile.x?.primary_submission?.id, (newValue, oldValue) => {
-  console.log('Changed from', oldValue, 'to', newValue)
   showChangePrimary.value = false
 })
 
@@ -230,11 +230,11 @@ const addSubmission = (submission: Submission) => {
   if (showChangePrimary.value) {
     if (submissionList.empty) {
       // @ts-expect-error
-      this.character.profile.patchers.primary_submission.model = submission.id
+      character.profile.patchers.primary_submission.model = submission.id
     }
-    submissionList.unshift(submission)
-    character.submissions.unshift(submission)
   }
+  submissionList.unshift(submission)
+  character.submissions.unshift(submission)
 }
 
 watch(() => character.profile.x, (character: Character|null) => {
@@ -253,99 +253,4 @@ watch(() => character.profile.x, (character: Character|null) => {
   }
   ageCheck({value: character.primary_submission.rating})
 }, {deep: true, immediate: true})
-
-//
-// @Component({
-//   components: {
-//     AcCharacterPreview,
-//     AcExpandedProperty,
-//     AcCharacterToolbar,
-//     AcRelatedManager,
-//     AcLink,
-//     AcContextGallery,
-//     AcTagDisplay,
-//     AcColors,
-//     AcAttributes,
-//     AcConfirmation,
-//     AcBoundField,
-//     AcFormContainer,
-//     AcLoadSection,
-//     AcRendered,
-//     AcPatchField,
-//     AcAvatar,
-//     AcAsset,
-//   },
-// })
-// class CharacterDetail extends mixins(Subjective, CharacterCentric, Editable) {
-//   public newShare: FormController = null as unknown as FormController
-//   public name: Patch = null as unknown as Patch
-//   public showChangePrimary = false
-//   public submissionList = null as unknown as ListController<Submission>
-//
-//   public get primarySubmissionLink() {
-//     if (this.editing) {
-//       return null
-//     }
-//     const character = this.character.profile.x as Character
-//     if (!character.primary_submission) {
-//       return null
-//     }
-//     return {
-//       name: 'Submission',
-//       params: {submissionId: character.primary_submission.id},
-//     }
-//   }
-//
-//   @Watch('character.profile.x.primary_submission.id')
-//   public closeSubmissionDialog() {
-//     this.showChangePrimary = false
-//   }
-//
-//   public addSubmission(submission: Submission) {
-//     if (this.showChangePrimary) {
-//       if (this.submissionList.empty) {
-//         // @ts-expect-error
-//         this.character.profile.patchers.primary_submission.model = submission.id
-//       }
-//       this.submissionList.unshift(submission)
-//       this.character.submissions.unshift(submission)
-//     }
-//   }
-//
-//   @Watch('character.profile.x', {
-//     deep: true,
-//     immediate: true,
-//   })
-//   public setMeta(character: Character | null) {
-//     /* istanbul ignore if */
-//     if (!character) {
-//       return
-//     }
-//     updateTitle(`${character.name} - ${character.user.username} on Artconomy.com`)
-//     setMetaContent('description', textualize(character.description).slice(0, 160))
-//     if (!character.primary_submission) {
-//       if (character.nsfw) {
-//         // Adult content rating by default.
-//         this.ageCheck({value: 2})
-//       }
-//       return
-//     }
-//     this.ageCheck({value: character.primary_submission.rating})
-//   }
-//
-//   public created() {
-//     this.newShare = this.$getForm('share_character', {
-//       endpoint: this.character.sharedWith.endpoint,
-//       fields: {user_id: {value: null}},
-//     })
-//     this.character.profile.get().catch(this.setError)
-//     this.character.attributes.firstRun().then()
-//     this.character.colors.firstRun().then()
-//     this.character.sharedWith.firstRun().catch(this.statusOk(403))
-//     this.character.recommended.firstRun().then()
-//     this.submissionList = this.$getList('characterSubmissions', {endpoint: this.character.submissions.endpoint})
-//   }
-// }
-//
-// export default toNative(CharacterDetail)
 </script>
