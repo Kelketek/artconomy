@@ -1,4 +1,5 @@
 export const enum DeliverableStatus {
+  WAITING = 0,
   NEW = 1,
   PAYMENT_PENDING = 2,
   QUEUED = 3,
@@ -8,4 +9,6 @@ export const enum DeliverableStatus {
   DISPUTED = 7,
   COMPLETED = 8,
   REFUNDED = 9,
+  LIMBO = 10,
+  MISSED = 11,
 }

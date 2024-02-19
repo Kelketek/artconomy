@@ -1,5 +1,5 @@
 import type {EffectScope, Ref} from 'vue'
-import {ComponentOptions, createApp, effectScope, h, markRaw, toValue} from 'vue'
+import {ComponentOptions, createApp, effectScope, h, markRaw, toRaw, toValue} from 'vue'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import {Router} from 'vue-router'
@@ -225,18 +225,16 @@ export const getController = <K extends AttrKeys, S, C extends BaseController<S,
   if (schema === undefined) {
     throw Error(`Attempt to pull a ${registry.typeName} which does not exist, '${name}', from cache.`)
   }
-  const scope = effectScope(true)
-  scope.run(() => {
-    controller = new ControllerClass({
-      initName: name,
-      schema,
-      $sock: socket,
-      $registries: registries,
-      $router: router,
-      $store: store,
-    })
+  controller = new ControllerClass({
+    initName: name,
+    schema,
+    $sock: socket,
+    $registries: registries,
+    $router: router,
+    $store: store,
   })
-  // TODO: REAP EFFECT SCOPES TO AVOID MEMORY LEAKS!
+  // We can get infected with Vue's reactivity somewhere along the way. Make sure we store as raw so we can retrieve
+  // as raw and be make sure comparisons always match with ===.
   registry.register(uid, controller!)
   return controller!
 }

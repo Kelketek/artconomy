@@ -1,4 +1,4 @@
-import {createApp} from 'vue'
+import {createApp, markRaw} from 'vue'
 import {FormController} from './form-controller.ts'
 import {FieldController} from './field-controller.ts'
 import {registerValidators} from './validators.ts'
@@ -23,7 +23,7 @@ export class FormRegistry extends BaseRegistry<FormState, FormController> {
 }
 
 
-export const formRegistry = new FormRegistry()
+export const formRegistry = markRaw(new FormRegistry())
 
 export function createForms(store: ArtStore) {
   return {

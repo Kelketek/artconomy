@@ -1,4 +1,4 @@
-import {createApp} from 'vue'
+import {createApp, markRaw} from 'vue'
 import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {ProfileController} from './controller.ts'
 import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
@@ -7,7 +7,7 @@ import {ArtStore} from '@/store/index.ts'
 
 export class ProfileRegistry extends BaseRegistry<ProfileState, ProfileController> {}
 
-export const profileRegistry = new ProfileRegistry('Profile')
+export const profileRegistry = markRaw(new ProfileRegistry('Profile'))
 
 export function createProfiles(store: ArtStore) {
   return {

@@ -40,7 +40,7 @@ export class FieldController {
   constructor({fieldName, formName, $store}: FieldControllerArgs) {
     // Used by the ComputedGetters decorator
     this.__getterMap = new Map()
-    this.scope = effectScope()
+    this.scope = effectScope(true)
     this.fieldName = fieldName
     this.formName = formName
     this.$store = $store

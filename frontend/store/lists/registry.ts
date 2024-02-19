@@ -1,4 +1,4 @@
-import {createApp} from 'vue'
+import {createApp, markRaw} from 'vue'
 import {ListController} from './controller.ts'
 import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {ListState} from './types/ListState.ts'
@@ -7,7 +7,7 @@ import {ArtStore} from '@/store/index.ts'
 
 export class ListRegistry extends BaseRegistry<ListState<any>, ListController<any>> {}
 
-export const listRegistry = new ListRegistry('List')
+export const listRegistry = markRaw(new ListRegistry('List'))
 
 export function createLists(store: ArtStore) {
   return {

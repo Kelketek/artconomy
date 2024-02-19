@@ -1,4 +1,4 @@
-import {createApp} from 'vue'
+import {createApp, markRaw} from 'vue'
 import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {CharacterController} from './controller.ts'
 import CharacterState from '@/store/characters/types/CharacterState.ts'
@@ -8,7 +8,7 @@ import {ArtStore} from '@/store/index.ts'
 export class CharacterRegistry extends BaseRegistry<CharacterState, CharacterController> {
 }
 
-export const characterRegistry = new CharacterRegistry('Controller')
+export const characterRegistry = markRaw(new CharacterRegistry('Controller'))
 
 export function createCharacters(store: ArtStore) {
   return {

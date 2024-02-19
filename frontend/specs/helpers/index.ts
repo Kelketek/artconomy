@@ -243,7 +243,7 @@ export function cleanUp(wrapper?: VueWrapper<any>) {
   mockAxios.reset()
   vi.clearAllTimers()
   if (wrapper) {
-    if (wrapper.vm.$sock) {
+    if (wrapper.vm && wrapper.vm.$sock) {
       wrapper.vm.$sock.reset()
     }
     wrapper.unmount()

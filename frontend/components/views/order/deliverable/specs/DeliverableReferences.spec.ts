@@ -25,7 +25,7 @@ describe('DeliverableReferences.vue', () => {
     const fox = genUser()
     fox.username = 'Fox'
     setViewer(store, fox)
-    router.push('/orders/Fox/order/1/deliverables/5/references')
+    await router.push('/orders/Fox/order/1/deliverables/5/references')
     wrapper = mount(
       DeliverableReferences, {
         ...vueSetup({
@@ -46,10 +46,10 @@ describe('DeliverableReferences.vue', () => {
     expect(vm.references.list.length).toBe(0)
     vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
-    vm.references.setList([])
+    vm.references.makeReady([])
     vm.references.ready = true
-    vm.references.fetching = false
     await vm.$nextTick()
+    await flushPromises()
     mockAxios.reset()
     vm.newReference.fields.file.update('Stuff')
     await vm.$nextTick()

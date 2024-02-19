@@ -19,7 +19,7 @@
                   </ac-link>
                 </v-col>
                 <v-col cols="6" md="12">
-                  <ac-asset :asset="deliverable.x.display" thumb-name="thumbnail"/>
+                  <ac-asset :asset="deliverable.x!.display && {...deliverable.x!.display, rating: deliverable.x!.rating}" thumb-name="thumbnail"/>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -40,10 +40,10 @@
                   <h2><span v-if="isSeller">Sale</span>
                     <span v-else-if="isArbitrator">Case</span>
                     <span v-else>Order</span>
-                    #{{ order.x.id }} <span v-if="!isSeller || !(is(NEW) || is(WAITING))">- [{{ deliverable.x.name }}] Details:</span>
+                    #{{ order.x.id }} <span v-if="!isSeller || !(is(s.NEW) || is(s.WAITING))">- [{{ deliverable.x.name }}] Details:</span>
                   </h2>
                   <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name"
-                                  v-if="isSeller && (is(NEW) || is(WAITING))"></ac-patch-field>
+                                  v-if="isSeller && (is(s.NEW) || is(s.WAITING))"></ac-patch-field>
                 </v-col>
                 <v-col cols="12" md="12" order="2" order-md="3" v-if="isSeller">
                   <ac-patch-field
@@ -63,10 +63,10 @@
                     Private
                   </v-chip>
                   <ac-deliverable-status :deliverable="deliverable.x" class="ma-1"/>
-                  <v-btn class="ma-1 rating-button pa-1" variant="flat" small :color="ratingColor[deliverable.x.rating]"
+                  <v-btn class="ma-1 rating-button pa-1" variant="flat" small :color="RATING_COLOR[deliverable.x.rating]"
                          @click="showRating" :ripple="editable">
                     <v-icon left v-if="editable" icon="mdi-pencil"/>
-                    {{ ratingsShort[deliverable.x.rating] }}
+                    {{ RATINGS_SHORT[deliverable.x.rating] }}
                   </v-btn>
                   <ac-expanded-property v-model="ratingDialog">
                     <ac-patch-field field-type="ac-rating-field" :patcher="deliverable.patchers.rating"/>
@@ -74,7 +74,7 @@
                 </v-col>
               </v-row>
               <v-col
-                  v-if="isSeller && unregisteredBuyer && !(is(COMPLETED) || is(DISPUTED) || is(REFUNDED) || is(CANCELLED))"
+                  v-if="isSeller && unregisteredBuyer && !(is(s.COMPLETED) || is(s.DISPUTED) || is(s.REFUNDED) || is(s.CANCELLED))"
                   cols="12">
                 <ac-form @submit.prevent="orderEmail.submitThen(markInviteSent)">
                   <ac-form-container v-bind="orderEmail.bind">
@@ -185,116 +185,102 @@
             <p>
               <strong>It is very important that you verify you're getting emails from Artconomy, or else your artist
                 won't be able to send you messages on their progress.</strong> If you're having trouble,
-              <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact support</a> or ask for
+              <a href="#" @click.prevent="store.commit('supportDialog', true)">please contact support</a> or ask for
               help in the <a href="https://discord.gg/4nWK9mf" target="_blank">Artconomy Discord</a>.</p>
             <p>Your artist will contact you soon to confirm acceptance of your commission, or ask additional
               questions.</p>
           </v-col>
         </v-row>
       </ac-expanded-property>
-      <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved || is(LIMBO) || is(MISSED)"
+      <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved || is(s.LIMBO) || is(s.MISSED)"
                           :guest-ok="true" :show-history="isArbitrator" v-if="$vuetify.display.smAndDown"/>
     </template>
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
+<script setup lang="ts">
+import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import AcAsset from '@/components/AcAsset.vue'
-import Formatting from '@/mixins/formatting.ts'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import Ratings from '@/mixins/ratings.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Order from '@/types/Order.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import {BASE_URL} from '@/lib/lib.ts'
+import {BASE_URL, deriveDisplayName, profileLink, RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
 import {User} from '@/store/profiles/types/User.ts'
+import {ref, watch, computed, onMounted} from 'vue'
+import {useRoute} from 'vue-router'
+import {useStore} from 'vuex'
+import {DeliverableStatus as s} from '@/types/DeliverableStatus.ts'
 
-@Component({
-  components: {
-    AcAvatar,
-    AcLink,
-    AcExpandedProperty,
-    AcCommentSection,
-    AcConfirmation,
-    AcFormDialog,
-    AcBoundField,
-    AcPatchField,
-    AcFormContainer,
-    AcForm,
-    AcRendered,
-    AcDeliverableStatus,
-    AcAsset,
-    AcEscrowLabel,
-    AcLoadSection,
-  },
+const props = defineProps<DeliverableProps>()
+
+const showConfirm = ref(false)
+const inviteSent = ref(false)
+const editDetails = ref(false)
+const ratingDialog = ref(false)
+const cheering = new URL('/static/images/cheering.png', BASE_URL).href
+
+const route = useRoute()
+const store = useStore()
+const {
+  order,
+  deliverable,
+  editable,
+  product,
+  buyer,
+  seller,
+  name,
+  isSeller,
+  isArbitrator,
+  isInvolved,
+  comments,
+  orderEmail,
+  viewSettings,
+  is,
+} = useDeliverable(props)
+
+watch(() => order.patchers.customer_email.model, () => {inviteSent.value = false})
+
+watch(editable, (val: boolean) => {
+  if (!val) {
+    editDetails.value = false
+    ratingDialog.value = false
+  }
 })
-class DeliverableOverview extends mixins(DeliverableMixin, Formatting, Ratings) {
-  public showConfirm = false
-  public inviteSent = false
-  public editDetails = false
-  public ratingDialog = false
-  public cheering = new URL('/static/images/cheering.png', BASE_URL).href
 
-  @Watch('order.patchers.customer_email.model')
-  public resetSent() {
-    this.inviteSent = false
-  }
-
-  @Watch('editable')
-  public stopEditing(val: boolean) {
-    if (!val) {
-      this.editDetails = false
-      this.ratingDialog = false
-    }
-  }
-
-  public showRating() {
-    if (this.editable) {
-      this.ratingDialog = true
-    }
-  }
-
-  public get unregisteredBuyer() {
-    return !this.buyer || (this.buyer as User).guest
-  }
-
-  public get verifiedEmail() {
-    return this.buyer && (this.buyer as User).verified_email
-  }
-
-  public get inviteDisabled() {
-    /* istanbul ignore if */
-    if (!this.order.x) {
-      return true
-    }
-    const value = this.order.patchers.customer_email.model
-    return (this.inviteSent || !value || value !== this.order.x.customer_email)
-  }
-
-  public markInviteSent(order: Order) {
-    this.inviteSent = true
-    this.order.setX(order)
-  }
-
-  public created() {
-    if (this.$route.query.showConfirm) {
-      this.showConfirm = true
-    }
+const showRating = () => {
+  if (editable.value) {
+    ratingDialog.value = true
   }
 }
 
-export default toNative(DeliverableOverview)
+const unregisteredBuyer = computed(() => !buyer.value || (buyer.value as User).verified_email)
+
+const verifiedEmail = computed(() => buyer.value && (buyer.value as User).verified_email)
+
+const inviteDisabled = computed(() => {
+  if (!order.x) {
+    return true
+  }
+  const value = order.patchers.customer_email.model
+  return (inviteSent.value || !value || value !== order.x.customer_email)
+})
+
+const markInviteSent = (ourOrder: Order) => {
+  inviteSent.value = true
+  order.setX(ourOrder)
+}
+
+onMounted(() => {
+  if (route.query.showConfirm) {
+    showConfirm.value = true
+  }
+})
 </script>

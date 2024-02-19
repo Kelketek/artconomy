@@ -16,7 +16,7 @@ import {effectScope} from 'vue'
 @ComputedGetters
 export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
   public __getterMap = new Map()
-  public scope = effectScope()
+  public scope = effectScope(true)
   public baseClass = ListModule
 
   public baseModuleName = 'lists'

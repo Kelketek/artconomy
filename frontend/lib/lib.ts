@@ -295,7 +295,7 @@ export function ratingsNonExtreme() {
   return genOptions(nonExtreme)
 }
 
-export function ratingsShort() {
+export function ratingsShortLister() {
   return genOptions(RATINGS_SHORT)
 }
 

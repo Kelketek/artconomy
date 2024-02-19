@@ -49,7 +49,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
 
   constructor({initName, schema, $store, $sock, $router, $registries}: ControllerArgs<S>) {
     this.__getterMap = new Map()
-    this.scope = effectScope()
+    this.scope = effectScope(true)
     this.initName = initName
     this.scope.run(() => {
       this.name = ref(initName)

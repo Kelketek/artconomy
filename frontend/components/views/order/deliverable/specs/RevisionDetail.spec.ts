@@ -1,4 +1,4 @@
-import {cleanUp, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -306,6 +306,7 @@ describe('DeliverableOverview.vue', () => {
     const otherRevisions = [genRevision({id: 2}), genRevision({id: 3})]
     vm.revisions.makeReady([...otherRevisions, revision])
     await vm.$nextTick()
+    await flushPromises()
     mockAxios.reset()
     await wrapper.find('.delete-revision').trigger('click')
     await vm.$nextTick()

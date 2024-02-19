@@ -27,7 +27,7 @@ import {
   posse,
   ratings,
   ratingsNonExtreme,
-  ratingsShort,
+  ratingsShortLister,
   setCookie,
   setMetaContent,
   singleQ,
@@ -186,7 +186,7 @@ describe('Enumerators', () => {
     delete window.PRERENDERING
   })
   test('Generates shortened options for ratings', () => {
-    expect(ratingsShort()).toEqual(
+    expect(ratingsShortLister()).toEqual(
       [
         {text: 'Clean/Safe', value: '0'}, {text: 'Risque', value: '1'},
         {text: 'Adult content', value: '2'},

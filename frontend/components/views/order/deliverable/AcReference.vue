@@ -1,5 +1,5 @@
 <template>
-  <v-row dense>
+  <v-row dense v-if="reference">
     <v-col cols="12">
       <ac-unread-marker :read="reference.read">
         <div class="pop-out-container">

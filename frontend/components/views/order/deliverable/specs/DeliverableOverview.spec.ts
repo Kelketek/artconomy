@@ -1,4 +1,4 @@
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -8,19 +8,29 @@ import DeliverableOverview from '@/components/views/order/deliverable/Deliverabl
 import mockAxios from '@/__mocks__/axios.ts'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
+let empty: VueWrapper<any>['vm']
 
 const WrappedDeliverableOverview = VuetifyWrapped(DeliverableOverview)
+
 
 describe('DeliverableOverview.vue', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     store = createStore()
     router = deliverableRouter()
+    empty = mount(Empty, vueSetup({store})).vm
   })
+  const getDeliverable = (orderId: number, deliverableId: number) => {
+    return {
+      order: empty.$getSingle(`order${orderId}`),
+      deliverable: empty.$getSingle(`order${orderId}__deliverable${deliverableId}`)}
+  }
   afterEach(() => {
     cleanUp(wrapper)
   })
@@ -42,13 +52,13 @@ describe('DeliverableOverview.vue', () => {
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.product = null
-    vm.order.makeReady(deliverable.order)
-    vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
-    expect(vm.name).toBe('(Custom Project)')
+    const deliverableDef = genDeliverable()
+    deliverableDef.product = null
+    const {order, deliverable} = getDeliverable(1, 5)
+    order.makeReady(deliverableDef.order)
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
+    await waitFor(() => expect(wrapper.text()).toContain('(Custom Project)'))
   })
   test('Sends an invite email', async() => {
     const user = genUser()
@@ -68,22 +78,22 @@ describe('DeliverableOverview.vue', () => {
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.buyer = null
-    deliverable.order.seller = user
-    deliverable.order.customer_email = 'stuff@example.com'
-    vm.order.makeReady(deliverable.order)
-    vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
+    const deliverableDef = genDeliverable()
+    deliverableDef.order.buyer = null
+    deliverableDef.order.seller = user
+    deliverableDef.order.customer_email = 'stuff@example.com'
+    const {order, deliverable} = getDeliverable(1, 5)
+    order.makeReady(deliverableDef.order)
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
+    await flushPromises()
     mockAxios.reset()
     await wrapper.find('.send-invite-button').trigger('click')
     const lastRequest = mockAxios.lastReqGet()
     expect(lastRequest.url).toBe('/api/sales/order/1/deliverables/5/invite/')
-    mockAxios.mockResponse(rs(deliverable.order))
+    mockAxios.mockResponse(rs(deliverableDef.order))
     await flushPromises()
-    await vm.$nextTick()
-    expect(vm.inviteSent).toBe(true)
+    expect(wrapper.text()).toContain('Invite email sent!')
   })
   test('Loads with the order confirmation triggered', async() => {
     setViewer(store, genUser())
@@ -102,9 +112,12 @@ describe('DeliverableOverview.vue', () => {
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    await vm.$nextTick()
-    expect(vm.showConfirm).toBe(true)
+    const deliverableDef = genDeliverable()
+    const {order, deliverable} = getDeliverable(1, 5)
+    order.makeReady(deliverableDef.order)
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
+    await waitFor(() => expect(wrapper.find('.order-confirmation').isVisible()).toBe(true))
   })
   test.each`
   mode                  | string

@@ -1,5 +1,5 @@
 import {Component, mixins, Prop, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
+import Viewer, {useViewer} from '@/mixins/viewer.ts'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import Order from '@/types/Order.ts'
@@ -17,7 +17,16 @@ import LineItem from '@/types/LineItem.ts'
 import LinkedReference from '@/types/LinkedReference.ts'
 import Pricing from '@/types/Pricing.ts'
 import {addBusinessDays, isAfter} from 'date-fns'
-import {LocationQueryValue} from 'vue-router'
+import {LocationQueryValue, useRoute} from 'vue-router'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {usePricing} from '@/mixins/PricingAware.ts'
+import Reference from '@/types/Reference.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {computed, getCurrentInstance, nextTick, Raw, ref, watch} from 'vue'
+import {useProfile} from '@/store/profiles/hooks.ts'
+import {Character} from '@/store/characters/types/Character.ts'
 
 /*
 
@@ -54,18 +63,18 @@ export default class BaseDeliverableMixin extends mixins(Viewer) {
   public newInvoice: FormController = null as unknown as FormController
   public orderEmail: FormController = null as unknown as FormController
   public lineItems: ListController<LineItem> = null as unknown as ListController<LineItem>
-  public WAITING = 0
-  public NEW = 1
-  public PAYMENT_PENDING = 2
-  public QUEUED = 3
-  public IN_PROGRESS = 4
-  public REVIEW = 5
-  public CANCELLED = 6
-  public DISPUTED = 7
-  public COMPLETED = 8
-  public REFUNDED = 9
-  public LIMBO = 10
-  public MISSED = 11
+  public WAITING = DeliverableStatus.WAITING
+  public NEW = DeliverableStatus.NEW
+  public PAYMENT_PENDING = DeliverableStatus.PAYMENT_PENDING
+  public QUEUED = DeliverableStatus.QUEUED
+  public IN_PROGRESS = DeliverableStatus.IN_PROGRESS
+  public REVIEW = DeliverableStatus.REVIEW
+  public CANCELLED = DeliverableStatus.CANCELLED
+  public DISPUTED = DeliverableStatus.DISPUTED
+  public COMPLETED = DeliverableStatus.COMPLETED
+  public REFUNDED = DeliverableStatus.REFUNDED
+  public LIMBO = DeliverableStatus.LIMBO
+  public MISSED = DeliverableStatus.MISSED
 
   public get product() {
     /* istanbul ignore if */
@@ -116,18 +125,7 @@ export default class BaseDeliverableMixin extends mixins(Viewer) {
   }
 
   public ensureHandler(handler: ProfileController, user: User, loadProfile?: boolean) {
-    if (!handler.user.x) {
-      handler.user.setX(user)
-      handler.user.ready = true
-      // Make sure we get the full info since it's cached for other stuff.
-      handler.user.get()
-    }
-    if (loadProfile) {
-      /* istanbul ignore next */
-      if (!handler.artistProfile.x) {
-        handler.artistProfile.get()
-      }
-    }
+    ensureHandler(handler, user, loadProfile)
   }
 
   @Watch('deliverable.x.id')
@@ -460,5 +458,298 @@ export default class BaseDeliverableMixin extends mixins(Viewer) {
     invoiceSchema.fields.references = {value: []}
     invoiceSchema.fields.name = {value: 'New Deliverable'}
     this.newInvoice = this.$getForm(`${this.prefix}__addDeliverable`, invoiceSchema)
+  }
+}
+
+
+export interface DeliverableProps {
+  orderId: string|number,
+  deliverableId: string|number,
+  baseName: 'Order' | 'Sale' | 'Case'
+}
+
+const ensureHandler = (handler: ProfileController, user: User, loadProfile?: boolean) => {
+  if (!handler.user.x) {
+    handler.user.setX(user)
+    handler.user.ready = true
+    nextTick(handler.user.get).then()
+  }
+  if (loadProfile) {
+    /* istanbul ignore next */
+    if (!handler.artistProfile.x) {
+      nextTick(handler.artistProfile.get).then()
+    }
+  }
+}
+
+
+const getInitialViewSetting = (isStaff: boolean, setting: LocationQueryValue | LocationQueryValue[]) => {
+  if (!isStaff) {
+    return false
+  }
+  switch (setting) {
+    case ('Seller'): {
+      return VIEWER_TYPE.SELLER
+    }
+    case ('Buyer'): {
+      return VIEWER_TYPE.BUYER
+    }
+    case ('Staff'): {
+      return VIEWER_TYPE.STAFF
+    }
+  }
+}
+
+
+export const useDeliverable = <T extends DeliverableProps>(props: T) => {
+  const route = useRoute()
+  const {isStaff, rawViewerName} = useViewer()
+  const prefix = computed(() => {
+    return `order${props.orderId}__deliverable${props.deliverableId}`
+  })
+
+  const orderUrl = computed(() => {
+    return `/api/sales/order/${props.orderId}/`
+  })
+
+  const url = computed(() => {
+    return `/api/sales/order/${props.orderId}/deliverables/${props.deliverableId}/`
+  })
+
+  const instance = getCurrentInstance()
+
+  const viewSettings = useSingle<DeliverableViewSettings>(
+    `${prefix.value}__viewSettings`,
+    {
+      x: {
+        viewerType: getInitialViewSetting(isStaff.value, route.query.view_as) || VIEWER_TYPE.UNSET,
+        showAddSubmission: false,
+        showPayment: false,
+        characterInitItems: [],
+        showAddDeliverable: false,
+      },
+      endpoint: '#',
+    },
+  )
+  viewSettings.ready = true
+
+  const buyerHandler = useProfile(`__order__${props.orderId}__buyer`, {})
+  const sellerHandler = useProfile(`__order__${props.orderId}__seller`, {})
+
+  const buyer = computed(() => {
+    return buyerHandler.user.x
+  })
+
+  const seller = computed(() => {
+    return sellerHandler.user.x as User
+  })
+
+  const viewMode = computed({
+    get() {
+      return viewSettings.model.viewerType
+    },
+    set(viewerType: VIEWER_TYPE) {
+      viewSettings.model.viewerType = viewerType
+    }
+  })
+
+  const order = useSingle<Order>(`order${props.orderId}`, {endpoint: orderUrl.value})
+  const deliverable = useSingle<Deliverable>(
+    `${prefix.value}`, {
+      endpoint: url.value,
+      socketSettings: {
+        appLabel: 'sales',
+        modelName: 'Deliverable',
+        serializer: 'DeliverableSerializer',
+      },
+    },
+  )
+  const comments = useList<Comment>(
+    `${prefix.value}__comments`, {
+      endpoint: `/api/lib/comments/sales.Deliverable/${props.deliverableId}/`,
+      reverse: true,
+      grow: true,
+      params: {size: 5},
+    })
+  const characters = useList<Character>(
+    `${prefix.value}__characters`, {
+      endpoint: `${url.value}characters/`,
+      paginated: false,
+    },
+  )
+  const revisions = useList<Revision>(
+    `${prefix.value}__revisions`, {
+      endpoint: `${url.value}revisions/`,
+      paginated: false,
+    },
+  )
+  const references = useList<Reference>(
+    `${prefix.value}__references`, {
+      endpoint: `${url.value}references/`,
+      paginated: false,
+    },
+  )
+  // Used as wrapper for state change events.
+  const stateChange = useForm(`${prefix.value}__stateChange`, {
+    endpoint: url.value,
+    fields: {},
+  })
+  const orderEmail = useForm(`order${props.orderId}__email`, {
+    endpoint: `${url.value}invite/`,
+    fields: {},
+  })
+  // Temporary endpoint URL-- we replace this in the setHandlers function upon loading the deliverable.
+  const schema = baseCardSchema(`${url.value}pay/`)
+  schema.fields = {
+    ...schema.fields,
+    card_id: {value: null},
+    service: {value: null},
+    amount: {value: 0},
+    remote_id: {value: ''},
+    cash: {value: false},
+  }
+  const paymentForm = useForm(`${prefix.value}__payment`, schema)
+  const lineItems = useList(`${prefix.value}__lineItems`, {
+    endpoint: `${url.value}line-items/`,
+    paginated: false,
+    socketSettings: {
+      appLabel: 'sales',
+      modelName: 'LineItem',
+      serializer: 'LineItemSerializer',
+      list: {
+        appLabel: 'sales',
+        modelName: 'Deliverable',
+        pk: `${props.deliverableId}`,
+        listName: 'line_items',
+      },
+    },
+  })
+  lineItems.firstRun().then()
+  const outputUrl = computed(() => `${url.value}outputs/`)
+  const outputs = useList(`${prefix.value}__outputs`, {endpoint: outputUrl.value})
+  const addSubmission = useForm(`${prefix.value}__addSubmission`, {
+    endpoint: outputUrl.value,
+    fields: {
+      title: {value: ''},
+      caption: {value: ''},
+      private: {value: false},
+      tags: {value: []},
+      revision: {value: null},
+      comments_disabled: {value: false},
+    },
+  })
+  const invoiceSchema = baseInvoiceSchema(`/api/sales/order/${props.orderId}/deliverables/`)
+  invoiceSchema.fields.characters = {value: []}
+  invoiceSchema.fields.references = {value: []}
+  invoiceSchema.fields.name = {value: 'New Deliverable'}
+  const newInvoice = useForm(`${prefix.value}__addDeliverable`, invoiceSchema)
+
+  const is = (status: number) => {
+    /* istanbul ignore if */
+    if (!(deliverable && deliverable.x)) {
+      return false
+    }
+    return deliverable.x.status === status
+  }
+
+  const editable = computed(() => {
+    return (is(DeliverableStatus.NEW) || is(DeliverableStatus.WAITING))
+  })
+
+  const isBuyer = computed(() => {
+    if (viewMode.value === VIEWER_TYPE.BUYER) {
+      return true
+    }
+    if (viewMode.value !== VIEWER_TYPE.UNSET) {
+      return false
+    }
+    return buyer.value && buyer.value.username === rawViewerName.value
+  })
+
+  const isSeller = computed(() => {
+    if (viewMode.value === VIEWER_TYPE.SELLER) {
+      return true
+    }
+    if (viewMode.value !== VIEWER_TYPE.UNSET) {
+      return false
+    }
+    return seller.value && seller.value.username === rawViewerName.value
+  })
+
+  const isArbitrator = computed(() => {
+    return viewMode.value === VIEWER_TYPE.STAFF
+  })
+
+  const isInvolved = computed(() => {
+    return isBuyer.value || isSeller.value || isArbitrator.value
+  })
+
+  const product = computed(() => {
+    /* istanbul ignore if */
+    if (!deliverable.x) {
+      return null
+    }
+    if (!deliverable.x.product) {
+      return null
+    }
+    return deliverable.x.product
+  })
+
+  const name = computed(() => {
+    if (!product.value) {
+      return '(Custom Project)'
+    }
+    return product.value.name
+  })
+  // @ts-ignore
+  window.deliverable = deliverable
+
+  watch(() => deliverable.x?.id, (newId?: number) => {
+    if (!newId) {
+      return
+    }
+    const ourDeliverable = deliverable.x as Deliverable
+    const order = ourDeliverable.order
+    if (order.buyer) {
+      // This order has a buyer.
+      ensureHandler(buyerHandler, order.buyer)
+    }
+    ensureHandler(sellerHandler, order.seller, true)
+    paymentForm.endpoint = `/api/sales/invoice/${ourDeliverable.invoice}/pay/`
+    /* istanbul ignore if */
+    if (viewMode.value !== VIEWER_TYPE.UNSET) {
+      return
+    }
+    if (buyer.value && buyer.value.username === rawViewerName.value) {
+      viewMode.value = VIEWER_TYPE.BUYER
+    } else if (seller.value && seller.value.username === rawViewerName.value) {
+      viewMode.value = VIEWER_TYPE.SELLER
+    }
+  }, {immediate: true})
+
+  return {
+    viewSettings,
+    order,
+    deliverable,
+    name,
+    product,
+    comments,
+    characters,
+    revisions,
+    references,
+    stateChange,
+    newInvoice,
+    addSubmission,
+    outputs,
+    paymentForm,
+    orderEmail,
+    buyer,
+    seller,
+    isBuyer,
+    isSeller,
+    isArbitrator,
+    isInvolved,
+    is,
+    editable,
   }
 }

@@ -6,7 +6,7 @@ import debounce from 'lodash/debounce'
 import axios, {AxiosError} from 'axios'
 import {deriveErrors} from '@/store/forms/helpers.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {ComputedGetter, effectScope, ref, Ref, toValue} from 'vue'
+import {ComputedGetter, EffectScope, effectScope, ref, Ref, toValue} from 'vue'
 import {v4 as uuidv4} from 'uuid'
 
 export function errorSend(config: Patch): (error: AxiosError) => void {
@@ -38,7 +38,7 @@ const uncached = Symbol('Uncached')
 @ComputedGetters
 export class Patch<T = any> {
   public __getterMap: Map<keyof Patch, ComputedGetter<any>>
-  public scope = effectScope()
+  public scope: EffectScope
   public target!: any
   public modelProp: string
   public attrName: string
@@ -53,6 +53,7 @@ export class Patch<T = any> {
 
   constructor(args: PatcherArgs) {
     this.__getterMap = new Map()
+    this.scope = effectScope(true)
     this.target  = args.target
     this.modelProp = args.modelProp
     this.attrName = args.attrName
