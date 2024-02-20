@@ -446,7 +446,7 @@
             <p>The following countries are currently supported for shield protection:</p>
             <ac-load-section :controller="stripeCountries">
               <ul>
-                <li v-for="country in stripeCountries.x!.countries" :key="country.value">{{ country.text }}</li>
+                <li v-for="country in stripeCountries.x!.countries" :key="country.value">{{ country.title }}</li>
               </ul>
             </ac-load-section>
             <p>
