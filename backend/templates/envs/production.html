@@ -30,4 +30,17 @@ _paq.push(['enableLinkTracking']);
     s.parentNode.insertBefore(dc, s);
   }
 </script>
+<script type="text/javascript">
+  _ga = function() {
+    var dc = document.createElement('script')
+    dc.type = 'text/javascript'; dc.async = true;
+    dc.src = '//www.googletagmanager.com/gtag/js?id={{ ga_account_id  }}';
+    var s = document.getElementsByTagName('script')[0]
+    s.parentNode.insertBefore(dc, s);
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ ga_account_id }}');
+  }
+</script>
 <!-- end Drip -->

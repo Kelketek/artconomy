@@ -49,6 +49,7 @@ declare global {
     Stripe?: StripeConstructor,
     StripeInstance: Stripe,
     _drip: () => void,
+    _ga: () => void,
   }
 }
 

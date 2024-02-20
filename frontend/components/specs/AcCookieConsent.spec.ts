@@ -10,6 +10,7 @@ describe('AcCookieConsent.vue', () => {
   let store: ArtStore
   let wrapper: VueWrapper<any>
   window._drip = vi.fn()
+  window._ga = vi.fn()
   beforeEach(() => {
     store = createStore()
   })

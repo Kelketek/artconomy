@@ -28,12 +28,18 @@
             <v-checkbox v-model="thirdParty" label="Third Party Analytics" class="third-party-analytics"/>
           </v-col>
           <v-col cols="6">
-            Artconomy may partner with third party networks in order to verify if integrations with those partners is
-            working correctly, or to gain more
-            insight into our customer base. For example, if we ran an ad on Pinterest, these cookies would help us know
-            that these ads were
-            actually being seen and followed. This helps us build a website more tailored to customer needs, but is the
-            least private cookie we use.
+            <p>
+              Artconomy may partner with third party networks in order to verify if integrations with those partners is
+              working correctly, or to gain more
+              insight into our customer base. For example, if we ran an ad on Pinterest, these cookies would help us know
+              that these ads were
+              actually being seen and followed. This helps us build a website more tailored to customer needs, but is the
+              least private cookie we use.
+            </p>
+            <p>
+              For the moment, we have also introduced Google Analytics on advice of a marketing advisor. We are
+              evaluating the possibility of removal pending determination of how our advisor uses the service.
+            </p>
           </v-col>
         </v-row>
       </template>
@@ -174,6 +180,7 @@ class AcCookieConsent extends ArtVue {
     // If and when we add Pinterest ads back in, we'll need to do something with the third party consent cookies.
     if (this.thirdParty) {
       window._drip()
+      window._ga()
     }
   }
 
