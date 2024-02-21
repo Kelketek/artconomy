@@ -1,6 +1,6 @@
 import {Component, mixins, Prop, Watch} from 'vue-facing-decorator'
 import Viewer, {useViewer} from '@/mixins/viewer.ts'
-import {ProfileController} from '@/store/profiles/controller.ts'
+import {AnyUser, ProfileController} from '@/store/profiles/controller.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import Order from '@/types/Order.ts'
 import Deliverable from '@/types/Deliverable.ts'
@@ -27,6 +27,7 @@ import {useSingle} from '@/store/singles/hooks.ts'
 import {computed, getCurrentInstance, nextTick, Raw, ref, watch} from 'vue'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {Character} from '@/store/characters/types/Character.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
 /*
 
@@ -468,7 +469,7 @@ export interface DeliverableProps {
   baseName: 'Order' | 'Sale' | 'Case'
 }
 
-const ensureHandler = (handler: ProfileController, user: User, loadProfile?: boolean) => {
+export const ensureHandler = (handler: ProfileController, user: User, loadProfile?: boolean) => {
   if (!handler.user.x) {
     handler.user.setX(user)
     handler.user.ready = true
@@ -500,6 +501,20 @@ const getInitialViewSetting = (isStaff: boolean, setting: LocationQueryValue | L
   }
 }
 
+const getOutput = (user: AnyUser|null, outputsController: ListController<Submission>) => {
+  if (!user) {
+    return null
+  }
+  const outputs = outputsController.list.filter((x: SingleController<Submission>) => {
+    const submission = x.x as Submission
+    return submission.owner.username === user.username
+  })
+  if (!outputs.length) {
+    return null
+  }
+  return outputs[0].x as Submission
+}
+
 
 export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   const route = useRoute()
@@ -516,8 +531,6 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     return `/api/sales/order/${props.orderId}/deliverables/${props.deliverableId}/`
   })
 
-  const instance = getCurrentInstance()
-
   const viewSettings = useSingle<DeliverableViewSettings>(
     `${prefix.value}__viewSettings`,
     {
@@ -533,8 +546,14 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   )
   viewSettings.ready = true
 
+  const statusEndpoint = (append: string) => () => {
+    stateChange.endpoint = `${url.value}${append}/`
+    return stateChange.submitThen(deliverable.setX)
+  }
+
   const buyerHandler = useProfile(`__order__${props.orderId}__buyer`, {})
   const sellerHandler = useProfile(`__order__${props.orderId}__seller`, {})
+  const arbitratorHandler = useProfile(`__order__${props.orderId}__arbitrator`, {})
 
   const buyer = computed(() => {
     return buyerHandler.user.x
@@ -571,7 +590,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
       grow: true,
       params: {size: 5},
     })
-  const characters = useList<Character>(
+  const characters = useList<LinkedCharacter>(
     `${prefix.value}__characters`, {
       endpoint: `${url.value}characters/`,
       paginated: false,
@@ -583,7 +602,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
       paginated: false,
     },
   )
-  const references = useList<Reference>(
+  const references = useList<LinkedReference>(
     `${prefix.value}__references`, {
       endpoint: `${url.value}references/`,
       paginated: false,
@@ -626,7 +645,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   })
   lineItems.firstRun().then()
   const outputUrl = computed(() => `${url.value}outputs/`)
-  const outputs = useList(`${prefix.value}__outputs`, {endpoint: outputUrl.value})
+  const outputs = useList<Submission>(`${prefix.value}__outputs`, {endpoint: outputUrl.value})
   const addSubmission = useForm(`${prefix.value}__addSubmission`, {
     endpoint: outputUrl.value,
     fields: {
@@ -644,12 +663,42 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   invoiceSchema.fields.name = {value: 'New Deliverable'}
   const newInvoice = useForm(`${prefix.value}__addDeliverable`, invoiceSchema)
 
+  const escrow = computed(() => {
+    /* istanbul ignore if */
+    if (!deliverable.x) {
+      return false
+    }
+    return deliverable.x.escrow_enabled
+  })
+
+  const disputeWindow = computed(() => {
+    let date: Date
+    /* istanbul ignore if */
+    if (!deliverable.x) {
+      return false
+    }
+    if (!deliverable.x.trust_finalized) {
+      return false
+    }
+    if (deliverable.x.auto_finalize_on) {
+      date = parseISO(deliverable.x.auto_finalize_on)
+    } else {
+      return false
+    }
+    return isAfter(date, new Date())
+  })
+
   const is = (status: number) => {
     /* istanbul ignore if */
     if (!(deliverable && deliverable.x)) {
       return false
     }
     return deliverable.x.status === status
+  }
+
+  const updateDeliverable = (revisedDeliverable: Deliverable) => {
+    deliverable.updateX(revisedDeliverable)
+    viewSettings.patchers.showPayment.model = false
   }
 
   const editable = computed(() => {
@@ -683,6 +732,14 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   const isInvolved = computed(() => {
     return isBuyer.value || isSeller.value || isArbitrator.value
   })
+
+  const paypalUrl = computed(() => {
+    if (!deliverable.x) {
+      return ''
+    }
+    return paypalTokenToUrl(deliverable.x.paypal_token, !!isSeller.value)
+  })
+
 
   const product = computed(() => {
     /* istanbul ignore if */
@@ -727,6 +784,9 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     }
   }, {immediate: true})
 
+  const buyerSubmission = computed(() => getOutput(buyer.value, outputs))
+  const sellerSubmission = computed(() => getOutput(seller.value, outputs))
+
   return {
     viewSettings,
     order,
@@ -742,6 +802,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     addSubmission,
     outputs,
     paymentForm,
+    lineItems,
     orderEmail,
     buyer,
     seller,
@@ -749,7 +810,20 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     isSeller,
     isArbitrator,
     isInvolved,
+    arbitratorHandler,
+    sellerHandler,
+    buyerHandler,
+    sellerSubmission,
+    buyerSubmission,
+    statusEndpoint,
     is,
     editable,
+    viewMode,
+    url,
+    escrow,
+    paypalUrl,
+    prefix,
+    disputeWindow,
+    updateDeliverable,
   }
 }

@@ -11,10 +11,10 @@
                                    :errors="stateChange.errors" :sending="stateChange.sending">
                   <v-card-text>
                     <v-row dense>
-                      <v-col v-if="is(LIMBO) && isBuyer" cols="12">
+                      <v-col v-if="is(DeliverableStatus.LIMBO) && isBuyer" cols="12">
                         <p>The artist has been informed about your order and should respond soon.</p>
                       </v-col>
-                      <v-col v-if="is(WAITING) && isBuyer" cols="12">
+                      <v-col v-if="is(DeliverableStatus.WAITING) && isBuyer" cols="12">
                         <p>Your order has been placed in the artist's waitlist. Waitlisted orders are not guaranteed by
                           Artconomy to be accepted in any order and every artist's policy is different in how they are
                           handled.
@@ -23,7 +23,7 @@
                           or in their commission info under the Overview tab, you may want to message them for
                           clarification.</p>
                       </v-col>
-                      <v-col v-if="is(WAITING) && isSeller && seller" cols="12">
+                      <v-col v-if="is(DeliverableStatus.WAITING) && isSeller && seller" cols="12">
                         <p>This order is in your waitlist. You should put your waitlist policy in your commission info
                           in your
                           <router-link :to="{name: 'Artist', params: {username: seller.username}}">Artist Settings
@@ -32,22 +32,22 @@
                           with.
                         </p>
                       </v-col>
-                      <v-col v-if="is(NEW) && isBuyer" cols="12">
+                      <v-col v-if="is(DeliverableStatus.NEW) && isBuyer" cols="12">
                         <p>Your order has been placed and is awaiting the artist's review. You will receive an email
                           when the
                           artist has accepted or rejected the order, or if they have any comments.</p>
                         <p>You may add additional comments or questions below!</p>
                       </v-col>
-                      <v-col v-if="is(NEW) && isSeller" cols="12">
+                      <v-col v-if="is(DeliverableStatus.NEW) && isSeller" cols="12">
                         <p>This order is pending your review. Please make any pricing adjustments and accept the order,
                           or
                           reject the order if you are unwilling or unable to complete the piece.</p>
                         <p>You may add comments to ask the commissioner questions.</p>
                       </v-col>
-                      <v-col class="text-center" v-if="!is(COMPLETED) && !isRegistered" cols="12">
+                      <v-col class="text-center" v-if="!is(DeliverableStatus.COMPLETED) && !isRegistered" cols="12">
                         <v-btn color="green" variant="flat" :to="registerLink" class="link-account">Link an Account</v-btn>
                       </v-col>
-                      <v-col v-if="is(PAYMENT_PENDING) && isBuyer" cols="12">
+                      <v-col v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer" cols="12">
                         <v-divider/>
                         <p>
                           <strong>Congratulations!</strong> Your artist has accepted your order. Please submit payment
@@ -67,16 +67,16 @@
                           Do not use any other method, button, or link, or we will not be able to protect you from
                           fraud. If your
                           artist asks for payment using another method, or if you are getting errors, please <a
-                            @click="$store.commit('supportDialog', true)">contact support.</a>
+                            @click="store.commit('supportDialog', true)">contact support.</a>
                         </p>
                       </v-col>
                       <v-col
-                          v-if="isBuyer && deliverable.x.stream_link && !(is(COMPLETED) || is(CANCELLED) || is(REFUNDED))"
+                          v-if="isBuyer && deliverable.x.stream_link && !(is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED))"
                           cols="12">
                         <p><a :href="deliverable.x.stream_link" target="_blank">Your artist is streaming your commission
                           here!</a></p>
                       </v-col>
-                      <v-col v-if="is(PAYMENT_PENDING) && isSeller" cols="12">
+                      <v-col v-if="is(DeliverableStatus.PAYMENT_PENDING) && isSeller" cols="12">
                         <p>The commissioner has been informed that they must now pay in order for you to work on the
                           order.
                           You may continue to comment and tweak pricing in the interim, or you may cancel the order if
@@ -109,15 +109,15 @@
                           </template>
                         </ac-confirmation>
                       </v-col>
-                      <v-col v-if="isSeller && is(REVIEW)" cols="12">
+                      <v-col v-if="isSeller && is(DeliverableStatus.REVIEW)" cols="12">
                         <p>The commissioner has been informed that the final is ready for their review. Please stand by
                           for final approval!</p>
                       </v-col>
-                      <v-col v-if="is(REVIEW) && deliverable.x.auto_finalize_on" cols="12">
+                      <v-col v-if="is(DeliverableStatus.REVIEW) && deliverable.x.auto_finalize_on" cols="12">
                         <p>This order will auto-finalize on
                           <strong>{{ formatDateTerse(deliverable.x.auto_finalize_on) }}</strong>.</p>
                       </v-col>
-                      <template v-if="isBuyer && is(REVIEW)">
+                      <template v-if="isBuyer && is(DeliverableStatus.REVIEW)">
                         <v-col cols="12">
                           <p>Your artist has completed the piece! If all is well, please hit approve. Otherwise, if
                             there is an
@@ -132,21 +132,21 @@
                           </v-col>
                         </v-row>
                       </template>
-                      <v-col class="text-center pt-2" cols="12" v-if="isBuyer && is(DISPUTED)">
+                      <v-col class="text-center pt-2" cols="12" v-if="isBuyer && is(DeliverableStatus.DISPUTED)">
                         <p><strong>Your dispute has been filed.</strong> Please stand by for further instructions.
                           If you are able to work out your disagreement with the artist, please approve the order using
                           the
                           button below.</p>
                       </v-col>
-                      <v-col class="text-center" v-if="(isBuyer || isArbitrator) && is(DISPUTED)" cols="12">
+                      <v-col class="text-center" v-if="(isBuyer || isArbitrator) && is(DeliverableStatus.DISPUTED)" cols="12">
                         <ac-confirmation :action="statusEndpoint('approve')">
                           <template v-slot:default="{on}">
                             <v-btn color="primary" v-on="on">Approve Final</v-btn>
                           </template>
                         </ac-confirmation>
                       </v-col>
-                      <v-row v-if="is(WAITING) || is(NEW) || is(PAYMENT_PENDING)">
-                        <v-col class="text-center" v-if="is(NEW) && canWaitlist && isSeller">
+                      <v-row v-if="is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW) || is(DeliverableStatus.PAYMENT_PENDING)">
+                        <v-col class="text-center" v-if="is(DeliverableStatus.NEW) && canWaitlist && isSeller">
                           <v-btn color="secondary" @click="statusEndpoint('waitlist')()" variant="flat">Add to Waitlist</v-btn>
                         </v-col>
                         <v-col class="text-center">
@@ -164,8 +164,8 @@
                               @click="scrollToSection"
                               variant="flat"
                               class="review-terms-button"
-                          >Review Terms/Pricing<span v-if="is(PAYMENT_PENDING) && isBuyer">/Pay</span><span
-                              v-else-if="(is(WAITING) || is(NEW)) && isSeller">/Accept</span></v-btn>
+                          >Review Terms/Pricing<span v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer">/Pay</span><span
+                              v-else-if="(is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW)) && isSeller">/Accept</span></v-btn>
                         </v-col>
                         <v-col v-if="isBuyer" class="text-center">
                           <v-btn color="secondary" v-if="$route.params.deliverableId"
@@ -175,17 +175,17 @@
                           </v-btn>
                         </v-col>
                       </v-row>
-                      <v-col v-if="is(QUEUED) && isBuyer" cols="12">
+                      <v-col v-if="is(DeliverableStatus.QUEUED) && isBuyer" cols="12">
                         <p>Your order has been added to the artists queue. We will notify you when they have begun
                           work!</p>
                       </v-col>
-                      <v-col v-if="is(QUEUED) && isSeller" cols="12">
+                      <v-col v-if="is(DeliverableStatus.QUEUED) && isSeller" cols="12">
                         <p><strong>Excellent!</strong> The commissioner has paid<span v-if="escrow"> and the money is being held in safekeeping</span>.
                           When you've started work, hit the 'Mark In Progress' button to let the customer know.
                           You can also set the order's streaming link (if applicable) here:</p>
                       </v-col>
                       <v-col
-                          v-if="deliverable.x.dispute_available_on && !(is(DISPUTED) || is(REVIEW) || is(COMPLETED) || is(REFUNDED))"
+                          v-if="deliverable.x.dispute_available_on && !(is(DeliverableStatus.DISPUTED) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
                           cols="12">
                         <p v-if="disputeTimeElapsed">You may file dispute for non-completion if needed.</p>
                         <p v-else>This order may be disputed for non-completion on:
@@ -196,7 +196,7 @@
                           </v-btn>
                         </v-col>
                       </v-col>
-                      <v-col v-if="isSeller && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED))" cols="12">
+                      <v-col v-if="isSeller && (is(DeliverableStatus.QUEUED) || is(DeliverableStatus.IN_PROGRESS) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.DISPUTED))" cols="12">
                         <v-alert :value="order.x.private">
                           <strong>NOTE:</strong> This user has asked that this commission be private. Please do not use
                           a public streaming link!
@@ -205,33 +205,33 @@
                             :patcher="deliverable.patchers.stream_link" label="Stream URL">
                         </ac-patch-field>
                       </v-col>
-                      <v-col v-if="isBuyer && is(IN_PROGRESS)">
+                      <v-col v-if="isBuyer && is(DeliverableStatus.IN_PROGRESS)">
                         <p>The artist has begun work on your order. You'll be notified as they make progress!</p>
                       </v-col>
-                      <v-col class="text-center" v-if="is(QUEUED) && isSeller" cols="12">
+                      <v-col class="text-center" v-if="is(DeliverableStatus.QUEUED) && isSeller" cols="12">
                         <v-btn color="primary" @click="statusEndpoint('start')()" variant="flat">Mark In Progress</v-btn>
                       </v-col>
-                      <v-col v-if="is(DISPUTED) && isSeller">
+                      <v-col v-if="is(DeliverableStatus.DISPUTED) && isSeller">
                         <p><strong>This order is under dispute.</strong> One of our staff will be along soon to give
                           further
                           instruction. If you wish, you may refund the customer. Otherwise, please wait for our staff to
                           work
                           with you and the commissioner on a resolution.</p>
                       </v-col>
-                      <v-col class="text-center" v-if="is(COMPLETED)" cols="12">
+                      <v-col class="text-center" v-if="is(DeliverableStatus.COMPLETED)" cols="12">
                         <p>This order has been completed! <strong>Thank you for using Artconomy!</strong></p>
                       </v-col>
-                      <v-col class="text-center" v-if="is(COMPLETED) && disputeWindow && isBuyer && deliverable.x.auto_finalize_on" cols="12">
+                      <v-col class="text-center" v-if="is(DeliverableStatus.COMPLETED) && disputeWindow && isBuyer && deliverable.x.auto_finalize_on" cols="12">
                         <v-alert :value="true" type="info">If there is an issue with this order, please <a href="#"
-                          @click.prevent="$store.commit('supportDialog', true)">contact
+                          @click.prevent="store.commit('supportDialog', true)">contact
                           support</a>
                           on or before {{ formatDateTerse(deliverable.x.auto_finalize_on) }}.
                         </v-alert>
                       </v-col>
-                      <v-col class="text-center" v-if="is(REFUNDED)" cols="12">
+                      <v-col class="text-center" v-if="is(DeliverableStatus.REFUNDED)" cols="12">
                         <p>This order has been refunded and is now archived.</p>
                       </v-col>
-                      <v-col class="text-center" v-if="isSeller && escrow && is(COMPLETED)" cols="12">
+                      <v-col class="text-center" v-if="isSeller && escrow && is(DeliverableStatus.COMPLETED)" cols="12">
                         <p>
                           <router-link :to="{name: 'Payout', params: {username: seller!.username}}">
                             If you have not already, please add your bank account in your payout settings.
@@ -250,15 +250,15 @@
                             :is-buyer="isBuyer"
                         />
                       </v-col>
-                      <v-col cols="12" v-if="isBuyer && (is(COMPLETED) || is(REFUNDED))">
+                      <v-col cols="12" v-if="isBuyer && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))">
                         <ac-deliverable-rating end="seller" :order-id="orderId" :deliverable-id="deliverableId"
                                                key="seller"/>
                       </v-col>
-                      <v-col cols="12" v-if="buyer && isSeller && (is(COMPLETED) || is(REFUNDED))">
+                      <v-col cols="12" v-if="buyer && isSeller && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))">
                         <ac-deliverable-rating end="buyer" :order-id="orderId" :deliverable-id="deliverableId"
                                                key="buyer"/>
                       </v-col>
-                      <v-col class="text-center" v-if="isSeller && is(COMPLETED) && !order.x.private" cols="12">
+                      <v-col class="text-center" v-if="isSeller && is(DeliverableStatus.COMPLETED) && !order.x.private" cols="12">
                         <v-img :src="fridge" max-height="20vh" contain/>
                         <v-btn v-if="sellerSubmission" color="primary"
                                variant="flat"
@@ -267,7 +267,7 @@
                         </v-btn>
                         <v-btn color="green" v-else @click="addToGallery" class="gallery-add" variant="elevated">Add to my Gallery</v-btn>
                       </v-col>
-                      <v-col class="text-center" v-if="isBuyer && is(COMPLETED)" cols="12">
+                      <v-col class="text-center" v-if="isBuyer && is(DeliverableStatus.COMPLETED)" cols="12">
                         <v-img :src="fridge" max-height="20vh" contain/>
                         <v-btn v-if="buyerSubmission" color="primary"
                                variant="flat"
@@ -277,14 +277,14 @@
                         <v-btn color="green" v-else variant="elevated" @click="addToCollection" class="collection-add">Add to Collection
                         </v-btn>
                       </v-col>
-                      <v-col v-if="is(CANCELLED) && isBuyer">
+                      <v-col v-if="is(DeliverableStatus.CANCELLED) && isBuyer">
                         <p>This order has been cancelled. You will have to create a new order if you want a
                           commission.</p>
                       </v-col>
-                      <v-col v-if="is(CANCELLED) && isSeller">
+                      <v-col v-if="is(DeliverableStatus.CANCELLED) && isSeller">
                         <p>This order has been cancelled. There is nothing more to do.</p>
                       </v-col>
-                      <v-col v-if="!(is(CANCELLED) || is(REFUNDED) || is(COMPLETED)) && escrow" cols="12">
+                      <v-col v-if="!(is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED) || is(DeliverableStatus.COMPLETED)) && escrow" cols="12">
                         <p><strong class="danger">WARNING:</strong> Any conversations made off-site, such as over
                           instant messanger or text, cannot be viewed or verified by Artconomy staff and will not be
                           considered in the case of a dispute. For your safety, any material discussion should be made
@@ -292,7 +292,7 @@
                           discussion for record, and have the other person affirm it is accurate.</p>
                       </v-col>
                       <ac-form-dialog
-                          v-if="is(COMPLETED) || isSeller"
+                          v-if="is(DeliverableStatus.COMPLETED) || isSeller"
                           @submit.prevent="addSubmission.submitThen(visitSubmission)"
                           v-model="viewSettings.patchers.showAddSubmission.model"
                           v-bind="addSubmission.bind"
@@ -347,6 +347,7 @@
                           v-bind="newInvoice.bind"
                           :large="true"
                           :eager="true"
+                          class="add-deliverable-dialog"
                           :title="'Add new Deliverable to Order.'"
                       >
                         <v-container class="pa-0">
@@ -411,364 +412,345 @@
     </template>
   </ac-load-section>
 </template>
-<script lang="ts">
+
+<script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Order from '@/types/Order.ts'
-import AcProductPreview from '@/components/AcProductPreview.vue'
-import AcAsset from '@/components/AcAsset.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting.ts'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
-import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
-import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import Ratings from '@/mixins/ratings.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import Submission from '@/types/Submission.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcDeliverableRating from '@/components/views/order/AcDeliverableRating.vue'
-import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {RouteLocationRaw} from 'vue-router'
-import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
+import {RouteLocation, RouteLocationRaw, useRoute, useRouter} from 'vue-router'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import Deliverable from '@/types/Deliverable.ts'
-import DeliverableMixin from './mixins/DeliverableMixin.ts'
+import {DeliverableProps, useDeliverable, ensureHandler} from './mixins/DeliverableMixin.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
-import LinkedCharacter from '@/types/LinkedCharacter.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import LinkedReference from '@/types/LinkedReference.ts'
-import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import {BASE_URL, markRead, parseISO} from '@/lib/lib.ts'
-import StripeMixin from './mixins/StripeMixin.ts'
+import {BASE_URL, formatDateTerse, markRead, parseISO} from '@/lib/lib.ts'
 import {isBefore} from 'date-fns'
 import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPrompt.vue'
 import {ServicePlan} from '@/types/ServicePlan.ts'
+import {computed, onMounted, watch} from 'vue'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {useGoTo} from 'vuetify'
+import {useViewer} from '@/mixins/viewer.ts'
+import {usePricing} from '@/mixins/PricingAware.ts'
+import {listenForSingle} from '@/store/singles/hooks.ts'
+import {listenForList, useList} from '@/store/lists/hooks.ts'
+import {setError, statusOk} from '@/mixins/ErrorHandling.ts'
+import {useStore} from 'vuex'
+import {useInvoicing} from '@/components/views/order/mixins/InvoicingMixin.ts'
 
-@Component({
-  components: {
-    AcTippingPrompt,
-    AcInvoiceForm,
-    AcTabNav,
-    AcForm,
-    AcExpandedProperty,
-    AcDeliverableStatus,
-    AcEscrowLabel,
-    AcDeliverableRating,
-    AcBoundField,
-    AcCardManager,
-    AcFormDialog,
-    AcConfirmation,
-    AcPricePreview,
-    AcPatchField,
-    AcFormContainer,
-    AcCommentSection,
-    AcCharacterDisplay,
-    AcAvatar,
-    AcRendered,
-    AcLink,
-    AcAsset,
-    AcProductPreview,
-    AcLoadSection,
-  },
-})
-class DeliverableDetail extends mixins(DeliverableMixin, Formatting, Ratings, InvoicingMixin, StripeMixin) {
-  public parentDeliverables: ListController<Deliverable> = null as unknown as ListController<Deliverable>
-  public fridge = new URL('/static/images/fridge.png', BASE_URL).href
-  // We only place this on DeliverableDetail so that it doesn't get run multiple times. All subcomponents are
-  // reliant on it, however, so keep this in mind during tests.
-  @Watch('deliverable.x.id')
-  public prePopulate() {
-    const deliverable = this.deliverable.x as Deliverable
-    const order = deliverable.order as Order
-    if (deliverable.arbitrator) {
-      this.arbitratorHandler = this.$getProfile(deliverable.arbitrator.username, {})
-      this.ensureHandler(this.arbitratorHandler, deliverable.arbitrator)
-    }
-    this.outputs.setList(deliverable.outputs)
-    this.outputs.fetching = false
-    this.outputs.ready = true
-    this.addSubmission.fields.private.update(order.private)
-    this.newInvoice.fields.details.update(deliverable.details)
-    this.newInvoice.fields.rating.update(deliverable.rating)
-    this.order.setX(order)
-    this.order.ready = true
-  }
+const props = defineProps<{username: string} & DeliverableProps>()
 
-  @Watch('references.list.length')
-  public updateReferences(val: number | undefined) {
-    /* istanbul ignore if */
-    if (val === undefined) {
-      return
-    }
-    this.setReferences()
-  }
+const router = useRouter()
+const route = useRoute()
+const goTo = useGoTo()
 
-  public get viewerItems() {
-    const items = []
-    if (this.viewMode === 0) {
-      items.push({
-        title: 'Please select...',
-        value: VIEWER_TYPE.UNSET,
-      })
-    }
-    items.push({title: 'Staff', value: VIEWER_TYPE.STAFF})
-    if (this.buyer) {
-      items.push({
-        title: 'Buyer',
-        value: VIEWER_TYPE.BUYER,
-      })
-    }
-    items.push({
-      title: 'Seller',
-      value: VIEWER_TYPE.SELLER,
-    })
-    return items
-  }
+const {
+  order,
+  deliverable,
+  buyer,
+  seller,
+  escrow,
+  isSeller,
+  isBuyer,
+  isArbitrator,
+  is,
+  newInvoice,
+  lineItems,
+  prefix,
+  sellerHandler,
+  arbitratorHandler,
+  references,
+  outputs,
+  addSubmission,
+  paypalUrl,
+  viewMode,
+  viewSettings,
+  buyerSubmission,
+  sellerSubmission,
+  url,
+  stateChange,
+  statusEndpoint,
+  characters,
+  revisions,
+  disputeWindow,
+  updateDeliverable,
+} = useDeliverable(props)
 
-  public get disputeTimeElapsed() {
-    const deliverable = this.deliverable.x as Deliverable
-    /* istanbul ignore if */
-    if (!deliverable) {
-      return false
-    }
-    if (!deliverable.dispute_available_on) {
-      return false
-    }
-    return isBefore(parseISO(deliverable.dispute_available_on), new Date())
-  }
+const {isRegistered, isStaff} = useViewer()
 
-  public visitSubmission(submission: Submission) {
-    this.$router.push({
-      name: 'Submission',
-      params: {submissionId: submission.id + ''},
-      query: {editing: 'true'},
-    })
-  }
+const {pricing} = usePricing()
 
-  // @ts-ignore
-  public get sellerName() {
-    if (this.seller) {
-      return this.seller.username
-    }
-    return ''
-  }
+const store = useStore()
 
-  public get planName() {
-    // eslint-disable-next-line camelcase
-    return this.seller?.service_plan || null
-  }
+const fridge = new URL('/static/images/fridge.png', BASE_URL).href
 
-  public get registerLink() {
-    const order = this.order.x as Order
-    const baseRoute: RouteLocationRaw = {
-      name: 'Register',
-      query: {},
-    }
-    /* istanbul ignore if */
-    if (!order) {
-      return baseRoute
-    }
-    baseRoute.query!.claim = order.claim_token
-    /* istanbul ignore next */
-    const nextRoute: RouteLocationRaw = {
-      name: this.$route.name || undefined,
-      params: {...this.$route.params},
-      query: {...this.$route.query},
-    }
-    if (this.is(this.COMPLETED)) {
-      nextRoute.query!.showAdd = 'true'
-    }
-    baseRoute.query!.next = this.$router.resolve(nextRoute).href
-    return baseRoute
-  }
+const parentDeliverables = useList(
+  `order${props.orderId}__deliverables`,
+  {endpoint: `${url.value}deliverables/`},
+)
 
-  public get navItems() {
-    const params = {...this.$route.params}
-    if (!params.deliverableId) {
-      // We're transitioning to another area. Return no items.
-      return []
-    }
-    return [
-      {
-        value: {
-          name: `${this.baseName}DeliverableOverview`,
-          params,
-        },
-        title: 'Overview',
-      },
-      {
-        value: {
-          name: `${this.baseName}DeliverableReferences`,
-          params,
-        },
-        title: 'References/Characters',
-      },
-      {
-        value: {
-          name: `${this.baseName}DeliverablePayment`,
-          params,
-        },
-        title: 'Payment/Terms',
-      },
-      {
-        value: {
-          name: `${this.baseName}DeliverableRevisions`,
-          params,
-        },
-        title: 'Revisions/WIPs',
-      },
-    ]
+watch(() => deliverable.x?.id, () => {
+  if (!deliverable.x) {
+    return
   }
+  if (deliverable.x.arbitrator) {
+    ensureHandler(arbitratorHandler, deliverable.x.arbitrator)
+  }
+  outputs.makeReady(deliverable.x.outputs)
+  addSubmission.fields.private.update(deliverable.x.order.private)
+  newInvoice.fields.details.update(deliverable.x.details)
+  newInvoice.fields.rating.update(deliverable.x.rating)
+  order.setX(deliverable.x.order)
+  order.ready = true
+}, {immediate: true})
 
-  public addToGallery() {
-    this.addSubmission.fields.revision.update(null)
-    this.viewSettings.model.showAddSubmission = true
-  }
-
-  public addToCollection() {
-    if (this.isRegistered) {
-      this.addSubmission.fields.revision.update(null)
-      this.viewSettings.model.showAddSubmission = true
-      return
-    }
-    this.$router.push(this.registerLink)
-  }
-
-  public scrollToSection() {
-    this.$goTo('.section-scroll-target')
-  }
-
-  public visitDeliverable(deliverable: Deliverable) {
-    this.order.updateX({deliverable_count: (this.order.x as Order).deliverable_count + 1})
-    if (this.parentDeliverables.list.length) {
-      this.parentDeliverables.push(deliverable)
-    }
-    this.$router.push({
-      name: `${this.baseName}DeliverableOverview`,
-      params: {
-        orderId: this.orderId + '',
-        deliverableId: deliverable.id + '',
-        username: this.$route.params.username,
-      },
-    })
-  }
-
-  public addTags() {
-    const tags = []
-    const characters = []
-    for (const char of this.characters.list) {
-      const character = char.x as LinkedCharacter
-      tags.push(...character.character.tags)
-      characters.push(character.character)
-    }
-    this.addSubmission.fields.tags.update([...new Set(tags)])
-    this.newInvoice.fields.characters.update(characters.map((char: Character) => char.id))
-    this.viewSettings.patchers.characterInitItems.model = characters
-  }
-
-  public setReferences() {
-    this.newInvoice.fields.references.update(
-        this.references.list.map((x: SingleController<LinkedReference>) => {
-          return x.x && x.x.reference.id
-        }),
-    )
-  }
-
-  // @ts-ignore
-  public get international() {
-    // Note: This flag is currently used for new invoices based on the current deliverable-- I.E.,
-    // multi-stage orders. This assumes the artist has not migrated to or from the US between creating
-    // and issuing the next stage. This is such an edge case that I'm leaving this bug in for now,
-    // however, it should be addressed when we refactor multi-stage orders to be more intuitive.
-    return !!this.deliverable.x?.international
-  }
-
-  public get canWaitlist() {
-    if (!this.planName) {
-      return false
-    }
-    if (!this.pricing.x) {
-      return false
-    }
-    return this.pricing.x.plans.filter((plan: ServicePlan) => plan.name === this.planName)[0].waitlisting
-  }
-
-  // @ts-ignore
-  public get invoiceEscrowEnabled() {
-    if (!this.sellerHandler) {
-      return false
-    }
-    if (!this.sellerHandler.artistProfile.x) {
-      return false
-    }
-    if (this.newInvoice.fields.paid.value) {
-      return false
-    }
-    return this.sellerHandler.artistProfile.x.escrow_enabled
-  }
-
-  public get keepReferences() {
-    return Boolean(this.newInvoice.fields.references.value.length)
-  }
-
-  // Can't even get this to render during tests :/
-  /* istanbul ignore next */
-  public set keepReferences(val: boolean) {
-    if (val) {
-      this.setReferences()
-    } else {
-      this.newInvoice.fields.references.update([])
-    }
-  }
-
-  public created() {
-    this.deliverable.get().then(() => markRead(this.deliverable, 'sales.Deliverable')).then(
-        () => this.parentDeliverables.replace(this.deliverable.x as Deliverable),
-    ).catch(this.setError)
-    this.characters.firstRun().then(this.addTags)
-    this.revisions.firstRun().catch(this.statusOk(403))
-    this.references.firstRun()
-    // Used when adding the deliverable to keep state sane upstream.
-    this.parentDeliverables = this.$getList(
-        `order${this.orderId}__deliverables`, {endpoint: `${this.url}deliverables/`},
-    )
-    this.$listenForList(`${this.prefix}__characters`)
-    this.$listenForList(`${this.prefix}__revisions`)
-    this.$listenForList(`${this.prefix}__lineItems`)
-    this.$listenForSingle(`${this.prefix}__rate__buyer`)
-    this.$listenForSingle(`${this.prefix}__rate__seller`)
-    this.$listenForSingle(`${this.prefix}__revision.*`)
-    this.$listenForSingle('pricing')
-    this.$listenForSingle(`${this.prefix}__clientSecret`)
-    if (this.$route.query.showAdd) {
-      this.viewSettings.patchers.showAddSubmission.model = true
-    }
-    if (this.$route.name === `${this.baseName}Deliverable`) {
-      this.$router.replace({
-        name: `${this.baseName}DeliverableOverview`,
-        params: {...this.$route.params},
-        query: {...this.$route.query},
-        hash: this.$route.hash,
-      })
-    }
-    // At the moment, these aren't much benefit, since dropping a file on the uploader immediately submits.
-    // But if I change the default behavior, not having these will introduce a subtle bug where the contents will
-    // disappear if we navigate away.
-    this.$listenForSingle('new-revision-file')
-    this.$listenForSingle('new-reference-file')
-  }
+const setReferences = () => {
+  newInvoice.fields.references.update(
+    references.list.map((x: SingleController<LinkedReference>) => {
+      return x.x && x.x.reference.id
+    }),
+  )
 }
 
-export default toNative(DeliverableDetail)
+const viewerItems = computed(() => {
+  const items = []
+  if (viewMode.value === 0) {
+    items.push({
+      title: 'Please select...',
+      value: VIEWER_TYPE.UNSET,
+    })
+  }
+  items.push({title: 'Staff', value: VIEWER_TYPE.STAFF})
+  if (buyer.value) {
+    items.push({
+      title: 'Buyer',
+      value: VIEWER_TYPE.BUYER,
+    })
+  }
+  items.push({
+    title: 'Seller',
+    value: VIEWER_TYPE.SELLER,
+  })
+  return items
+})
+
+const disputeTimeElapsed = computed(() => {
+  /* istanbul ignore if */
+  if (!deliverable.x?.dispute_available_on) {
+    return false
+  }
+  return isBefore(parseISO(deliverable.x.dispute_available_on), new Date())
+})
+
+watch(() => references.list.length, setReferences)
+
+const visitSubmission = (submission: Submission) => {
+  return router.push({
+    name: 'Submission',
+    params: {submissionId: submission.id + ''},
+    query: {editing: 'true'},
+  })
+}
+
+const sellerName = computed(() => seller.value?.username || '')
+
+const planName = computed(() => {
+  // eslint-disable-next-line camelcase
+  return seller.value?.service_plan
+})
+
+const registerLink = computed(() => {
+  const baseRoute: RouteLocationRaw = {
+    name: 'Register',
+    query: {},
+  }
+  /* istanbul ignore if */
+  if (!order.x) {
+    return baseRoute
+  }
+  baseRoute.query!.claim = order.x.claim_token
+  /* istanbul ignore next */
+  const nextRoute: RouteLocationRaw = {
+    name: route.name || undefined,
+    params: {...route.params},
+    query: {...route.query},
+  }
+  if (is(DeliverableStatus.COMPLETED)) {
+    nextRoute.query!.showAdd = 'true'
+  }
+  baseRoute.query!.next = router.resolve(nextRoute).href
+  return baseRoute
+})
+
+const navItems = computed(() => {
+  const params = {...route.params}
+  if (!params.deliverableId) {
+    // We're transitioning to another area. Return no items.
+    return []
+  }
+  return [
+    {
+      value: {
+        name: `${props.baseName}DeliverableOverview`,
+        params,
+      },
+      title: 'Overview',
+    },
+    {
+      value: {
+        name: `${props.baseName}DeliverableReferences`,
+        params,
+      },
+      title: 'References/Characters',
+    },
+    {
+      value: {
+        name: `${props.baseName}DeliverablePayment`,
+        params,
+      },
+      title: 'Payment/Terms',
+    },
+    {
+      value: {
+        name: `${props.baseName}DeliverableRevisions`,
+        params,
+      },
+      title: 'Revisions/WIPs',
+    },
+  ]
+})
+
+const addToGallery = () => {
+  addSubmission.fields.revision.update(null)
+  viewSettings.model.showAddSubmission = true
+}
+
+const addToCollection = () => {
+  if (isRegistered.value) {
+    addSubmission.fields.revision.update(null)
+    viewSettings.model.showAddSubmission = true
+    return
+  }
+  router.push(registerLink.value)
+}
+
+const scrollToSection = () => {
+  goTo('.section-scroll-target')
+}
+
+const visitDeliverable = (toVisit: Deliverable) => {
+  order.updateX({deliverable_count: order.x!.deliverable_count + 1})
+  parentDeliverables.push(toVisit)
+  router.push({
+    name: `${props.baseName}DeliverableOverview`,
+    params: {
+      orderId: props.orderId,
+      deliverableId: toVisit.id + '',
+      username: props.username,
+    }
+  })
+}
+
+const addTags = () => {
+  const tags = []
+  const theseCharacters: Character[] = []
+  for (const char of characters.list) {
+    const character = char.x
+    tags.push(...character!.character.tags)
+    theseCharacters.push(character!.character)
+  }
+  addSubmission.fields.tags.update([...new Set(tags)])
+  newInvoice.fields.characters.update(theseCharacters.map((char: Character) => char.id))
+  viewSettings.patchers.characterInitItems.model = theseCharacters
+}
+
+const international = computed(() => {
+  // Note: This flag is currently used for new invoices based on the current deliverable-- I.E.,
+  // multi-stage orders. This assumes the artist has not migrated to or from the US between creating
+  // and issuing the next stage. This is such an edge case that I'm leaving this bug in for now,
+  // however, it should be addressed when we refactor multi-stage orders to be more intuitive.
+  return !!deliverable.x?.international
+})
+
+const canWaitlist = computed(() => {
+  if (!planName.value) {
+    return false
+  }
+  if (!pricing.x) {
+    return false
+  }
+  return pricing.x.plans.filter((plan: ServicePlan) => plan.name === planName.value)[0].waitlisting
+})
+
+const invoiceEscrowEnabled = computed(() => {
+  if (!sellerHandler.user.x || !sellerHandler.artistProfile.x) {
+    return false
+  }
+  if (newInvoice.fields.paid.value) {
+    return false
+  }
+  return sellerHandler.artistProfile.x.escrow_enabled
+})
+
+const keepReferences = computed({
+  get: () => !!newInvoice.fields.references.value.length,
+  set: (val: boolean) => {
+    if (val) {
+      setReferences()
+      return
+    } else {
+      newInvoice.fields.references.update([])
+  }
+}})
+
+listenForList(`${prefix.value}__characters`)
+listenForList(`${prefix.value}__revisions`)
+listenForList(`${prefix.value}__lineItems`)
+listenForSingle(`${prefix.value}__rate__buyer`)
+listenForSingle(`${prefix.value}__rate__seller`)
+listenForSingle(`${prefix.value}__revision.*`)
+listenForSingle(`${prefix.value}__clientSecret`)
+listenForSingle('new-revision-file')
+
+// At the moment, this isn't much benefit, since dropping a file on the uploader immediately submits.
+// But if I change the default behavior, not having this will introduce a subtle bug where the contents will
+// disappear if we navigate away.
+listenForSingle('new-reference-file')
+
+watch(route, (route: RouteLocation) => {
+  if (route.name !== `${props.baseName}Deliverable`) {
+    return
+  }
+  router.replace({
+    name: `${props.baseName}DeliverableOverview`,
+    params: {...route.params},
+    query: {...route.query},
+    hash: route.hash,
+  }).then()
+}, {immediate: true})
+
+const {invoiceLineItems} = useInvoicing({
+  newInvoice, invoiceEscrowEnabled, international, planName, sellerName,
+})
+
+onMounted(() => {
+  if (route.query.showAdd) {
+    viewSettings.patchers.showAddSubmission.model = true
+  }
+  deliverable.get().then(() => markRead(deliverable, 'sales.Deliverable')).then(
+    () => parentDeliverables.replace(deliverable.x as Deliverable),
+  ).catch(setError)
+  characters.firstRun().then(addTags)
+  revisions.firstRun().catch(statusOk(403))
+  references.firstRun()
+})
 </script>

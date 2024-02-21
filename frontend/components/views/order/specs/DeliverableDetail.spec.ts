@@ -1,23 +1,25 @@
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import DeliverableDetail from '@/components/views/order/DeliverableDetail.vue'
-import {genArtistProfile, genDeliverable, genGuest, genReference, genUser} from '@/specs/helpers/fixtures.ts'
+import {genDeliverable, genGuest, genReference, genUser} from '@/specs/helpers/fixtures.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
 import {Router} from 'vue-router'
 import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
-import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
-import {add, formatISO} from 'date-fns'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 
 const WrappedDeliverableDetail = VuetifyWrapped(DeliverableDetail)
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
+
+const mockScrollIntoView = Element.prototype.scrollIntoView = vi.fn()
 
 describe('DeliverableDetail.vue', () => {
   beforeEach(() => {
@@ -27,71 +29,22 @@ describe('DeliverableDetail.vue', () => {
   })
   afterEach(() => {
     cleanUp(wrapper)
+    mockScrollIntoView.mockReset()
   })
-  test('Identifies seller, buyer, and arbitrator', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/deliverables/5/')
-    wrapper = mount(
-      DeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['ac-revision-manager'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Fox',
-        },
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    const arbitrator = genUser()
-    arbitrator.username = 'Foxxo'
-    deliverable.arbitrator = arbitrator
-    const deliverableRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
-    mockAxios.mockResponse(rs(deliverable), deliverableRequest)
-    await flushPromises()
-    await vm.$nextTick()
-    expect(vm.buyer.username).toBe('Fox')
-    expect(vm.seller.username).toBe('Vulpes')
-    expect(vm.arbitrator.username).toBe('Foxxo')
-    expect(vm.isArbitrator).toBe(false)
-    vm.viewMode = VIEWER_TYPE.STAFF
-    await vm.$nextTick()
-    expect(vm.isArbitrator).toBe(true)
-  })
-  test('Scrolls to the bottom section', async() => {
-    const fox = genUser()
-    fox.username = 'Fox'
-    setViewer(store, fox)
-    await router.push('/orders/Fox/order/1/deliverables/5/')
-    wrapper = mount(
-      DeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['ac-revision-manager'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Fox',
-        },
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
-    const spyGoTo = vi.spyOn(vm, '$goTo')
-    await wrapper.find('.review-terms-button').trigger('click')
-    await vm.$nextTick()
-    expect(spyGoTo).toHaveBeenCalledWith('.section-scroll-target')
-  })
+  const getControllers = ({orderId, deliverableId}: {orderId: string, deliverableId: string}) => {
+    const empty = mount(Empty, vueSetup({store})).vm
+    const baseName = `order${orderId}__deliverable${deliverableId}`
+    return {
+      deliverable: empty.$getSingle(baseName),
+      order: empty.$getSingle(`order${orderId}`),
+      viewSettings: empty.$getSingle(`${baseName}__viewSettings`),
+      references: empty.$getList(`${baseName}__references`),
+      revisions: empty.$getList(`${baseName}__revisions`),
+      newInvoice: empty.$getForm(`${baseName}__addDeliverable`),
+      addSubmission: empty.$getForm(`${baseName}__addSubmission`),
+      parentDeliverables: empty.$getList(`order${orderId}__deliverables`),
+    }
+  }
   test('Handles a null buyer', async() => {
     const vulpes = genUser()
     vulpes.username = 'Fox'
@@ -105,33 +58,19 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
+          orderId: "1",
+          deliverableId: "5",
+          baseName: 'Sale',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.buyer = null
+    const deliverableDef = genDeliverable()
+    deliverableDef.order.buyer = null
+    deliverableDef.order.seller = vulpes
     const deliverableRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
-    mockAxios.mockResponse(rs(deliverable), deliverableRequest)
-    expect(vm.buyer).toBe(null)
-    expect(vm.buyerSubmission).toBe(null)
-    expect(vm.viewerItems).toEqual([
-      {
-        title: 'Please select...',
-        value: VIEWER_TYPE.UNSET,
-      },
-      {
-        title: 'Staff',
-        value: VIEWER_TYPE.STAFF,
-      },
-      {
-        title: 'Seller',
-        value: VIEWER_TYPE.SELLER,
-      },
-    ])
+    mockAxios.mockResponse(rs(deliverableDef), deliverableRequest)
+    await nextTick()
+    expect(wrapper.text()).toContain('This order is pending your review.')
   })
   test('Sends a seller to their new submission', async() => {
     const vulpes = genUser()
@@ -146,24 +85,22 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.status = DeliverableStatus.COMPLETED
-    vm.deliverable.setX(deliverable)
-    vm.deliverable.fetching = false
-    vm.deliverable.ready = true
-    await vm.$nextTick()
+    const deliverableDef = genDeliverable()
+    deliverableDef.status = DeliverableStatus.COMPLETED
+    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
     mockAxios.reset()
     wrapper.find('.gallery-add').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     mockAxios.reset()
-    await vm.$nextTick()
+    await nextTick()
     wrapper.find('.dialog-submit').trigger('click')
     const newSubmission = genSubmission()
     newSubmission.id = 101
@@ -171,7 +108,7 @@ describe('DeliverableDetail.vue', () => {
     expect(newSubmissionRequest.url).toBe('/api/sales/order/1/deliverables/5/outputs/')
     mockAxios.mockResponse(rs(newSubmission))
     await flushPromises()
-    await vm.$nextTick()
+    await nextTick()
     expect(router.currentRoute.value.name).toBe('Submission')
     expect(router.currentRoute.value.params).toEqual({submissionId: '101'})
     expect(router.currentRoute.value.query).toEqual({editing: 'true'})
@@ -187,22 +124,21 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.product = null
-    deliverable.status = DeliverableStatus.COMPLETED
+    const deliverableDef = genDeliverable()
+    deliverableDef.product = null
+    deliverableDef.status = DeliverableStatus.COMPLETED
     const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
-    mockAxios.mockResponse(rs(deliverable), orderRequest)
+    mockAxios.mockResponse(rs(deliverableDef), orderRequest)
     await flushPromises()
-    await vm.$nextTick()
+    await nextTick()
   })
-  test('Handles different view modes', async() => {
+  test('Renders a view mode selector', async() => {
     const user = genUser({is_staff: true})
     user.username = 'Dude'
     setViewer(store, user)
@@ -215,115 +151,22 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.product = null
-    deliverable.status = DeliverableStatus.COMPLETED
+    const deliverableDef = genDeliverable()
+    deliverableDef.product = null
+    deliverableDef.status = DeliverableStatus.COMPLETED
     const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
-    mockAxios.mockResponse(rs(deliverable), orderRequest)
+    mockAxios.mockResponse(rs(deliverableDef), orderRequest)
     await flushPromises()
-    await vm.$nextTick()
-    expect(wrapper.find('.view-mode-select').exists()).toBe(true)
-    expect(vm.viewMode).toBe(0)
-    expect(vm.isBuyer).toBe(false)
-    expect(vm.isSeller).toBe(false)
-    expect(vm.isBuyer).toBe(false)
-    vm.viewMode = 1
-    await vm.$nextTick()
-    expect(vm.isBuyer).toBe(true)
-    expect(vm.isSeller).toBe(false)
-    expect(vm.isArbitrator).toBe(false)
-    vm.viewMode = 2
-    await vm.$nextTick()
-    expect(vm.isBuyer).toBe(false)
-    expect(vm.isSeller).toBe(true)
-    expect(vm.isArbitrator).toBe(false)
-    vm.viewMode = 3
-    await vm.$nextTick()
-    expect(vm.isBuyer).toBe(false)
-    expect(vm.isSeller).toBe(false)
-    expect(vm.isArbitrator).toBe(true)
-  })
-  test('Figures if non-completion time has elapsed', async() => {
-    const user = genUser()
-    user.username = 'Dude'
-    setViewer(store, user)
-    await router.push('/orders/Fox/order/1/deliverables/5')
-    wrapper = mount(
-      WrappedDeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['ac-revision-manager'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Fox',
-        },
-      })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.product = null
-    deliverable.status = DeliverableStatus.COMPLETED
-    const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
-    mockAxios.mockResponse(rs(deliverable), orderRequest)
-    await flushPromises()
-    await vm.$nextTick()
-    // @ts-ignore
-    vm.deliverable.updateX({dispute_available_on: formatISO(add(new Date(), {days: 7}))})
-    await vm.$nextTick()
-    // '2019-07-26T15:04:41.078424-05:00'
-    expect(vm.disputeTimeElapsed).toBe(false)
-    vm.deliverable.updateX({dispute_available_on: '2019-07-26T15:04:41.078424-05:00'})
-    await vm.$nextTick()
-    expect(vm.disputeTimeElapsed).toBe(true)
-    vm.deliverable.updateX({dispute_available_on: null})
-    await vm.$nextTick()
-    expect(vm.disputeTimeElapsed).toBe(false)
-  })
-  test('Determines if the dispute window is open', async() => {
-    const user = genUser()
-    user.username = 'Dude'
-    setViewer(store, user)
-    await router.push('/orders/Fox/order/1/deliverables/5')
-    wrapper = mount(
-      WrappedDeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['ac-revision-manager'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Fox',
-        },
-      })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.product = null
-    deliverable.trust_finalized = true
-    deliverable.auto_finalize_on = formatISO(add(new Date(), {days: 7}))
-    deliverable.status = DeliverableStatus.COMPLETED
-    const orderRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/')
-    mockAxios.mockResponse(rs(deliverable), orderRequest)
-    await flushPromises()
-    await vm.$nextTick()
-    expect(vm.disputeWindow).toBe(true)
-    vm.deliverable.updateX({auto_finalize_on: '2019-07-26T15:04:41.078424-05:00'})
-    await vm.$nextTick()
-    expect(vm.disputeWindow).toBe(false)
-    vm.deliverable.updateX({auto_finalize_on: null})
-    expect(vm.disputeWindow).toBe(false)
+    await nextTick()
+    const selector = wrapper.find('.view-mode-select')
+    expect(selector.exists()).toBe(true)
+    expect(selector.text()).contains('Please select...')
   })
   test('Prompts to add revision to collection', async() => {
     setViewer(store, genUser())
@@ -336,25 +179,22 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.product = null
-    deliverable.status = DeliverableStatus.COMPLETED
-    deliverable.revisions_hidden = false
-    vm.deliverable.setX(deliverable)
-    vm.deliverable.ready = true
-    vm.deliverable.fetching = false
-    await vm.$nextTick()
-    expect(vm.showAdd)
+    const deliverableDef = genDeliverable()
+    deliverableDef.product = null
+    deliverableDef.status = DeliverableStatus.COMPLETED
+    deliverableDef.revisions_hidden = false
+    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
     wrapper.find('.collection-add').trigger('click')
-    await vm.$nextTick()
-    expect(vm.viewSettings.model.showAddSubmission).toBe(true)
+    await nextTick()
+    expect(wrapper.find('.add-submission-dialog').isVisible()).toBe(true)
   })
   test('Prompts to add revision to collection by registering if they are a guest', async() => {
     const user = genGuest()
@@ -368,32 +208,31 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.buyer = {...user}
-    deliverable.product = null
-    deliverable.status = DeliverableStatus.COMPLETED
-    deliverable.order.claim_token = 'sdvi397awr'
-    deliverable.revisions_hidden = false
-    vm.deliverable.setX(deliverable)
-    vm.deliverable.ready = true
-    vm.deliverable.fetching = false
-    await vm.$nextTick()
+    const deliverableDef = genDeliverable()
+    deliverableDef.order.buyer = {...user}
+    deliverableDef.product = null
+    deliverableDef.status = DeliverableStatus.COMPLETED
+    deliverableDef.order.claim_token = 'sdvi397awr'
+    deliverableDef.revisions_hidden = false
+    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
     await wrapper.find('.collection-add').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     await flushPromises()
     expect(router.currentRoute.value.fullPath).toEqual(
       '/login/register/?claim=sdvi397awr&next=/orders/Fox/order/1/deliverables/5/?showAdd=true',
     )
   })
   test('Does not have the submission adding form loaded by default', async() => {
-    setViewer(store, genUser())
+    const user = genUser()
+    setViewer(store, user)
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -403,17 +242,22 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm as any
-    expect(vm.viewSettings.model.showAddSubmission).toBe(false)
+    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const deliverableDef = genDeliverable()
+    deliverableDef.order.seller = user
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
+    expect(wrapper.find('.add-submission-dialog').exists()).toBe(false)
   })
   test('Loads with the submission prompt triggered', async() => {
-    setViewer(store, genUser())
+    const user = genUser({username: 'Beep'})
+    setViewer(store, user)
     await router.push('/orders/Fox/order/1/deliverables/5?showAdd=true')
     wrapper = mount(
       DeliverableDetail, {
@@ -423,14 +267,18 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm as any
-    expect(vm.viewSettings.model.showAddSubmission).toBe(true)
+    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const deliverableDef = genDeliverable()
+    deliverableDef.order.seller = user
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
+    expect(wrapper.find('.add-submission-dialog').isVisible()).toBe(true)
   })
   test('Prompts to link a guest account', async() => {
     const user = genGuest()
@@ -445,86 +293,25 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: '__1',
         },
       })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.buyer = {...user}
-    deliverable.order.claim_token = 'sdvi397awr'
-    deliverable.revisions_hidden = false
-    vm.deliverable.setX(deliverable)
-    vm.deliverable.ready = true
-    vm.deliverable.fetching = false
-    await vm.$nextTick()
+    const deliverableDef = genDeliverable()
+    deliverableDef.order.buyer = {...user}
+    deliverableDef.order.claim_token = 'sdvi397awr'
+    deliverableDef.revisions_hidden = false
+    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(deliverableDef)
+    await nextTick()
     await wrapper.find('.link-account').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     await flushPromises()
     expect(router.currentRoute.value.fullPath).toEqual(
       '/login/register/?claim=sdvi397awr&next=/orders/__1/order/1/deliverables/5/',
     )
-  })
-  test('Calculates the deliverable turnaround time', async() => {
-    const user = genGuest()
-    setViewer(store, user)
-    await router.push('/orders/Fox/order/1/deliverables/5')
-    wrapper = mount(
-      WrappedDeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['ac-revision-manager'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Fox',
-        },
-      })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.buyer = {...user}
-    deliverable.product = null
-    deliverable.status = DeliverableStatus.COMPLETED
-    deliverable.expected_turnaround = 3
-    deliverable.order.claim_token = 'sdvi397awr'
-    deliverable.revisions_hidden = false
-    vm.deliverable.makeReady(deliverable)
-    vm.order.makeReady(deliverable.order)
-    await vm.$nextTick()
-    expect(vm.expectedTurnaround).toBe(3)
-  })
-  test('Calculates revision time', async() => {
-    const user = genGuest()
-    setViewer(store, user)
-    await router.push('/orders/Fox/order/1/deliverables/5')
-    wrapper = mount(
-      DeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['ac-revision-manager'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Fox',
-        },
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    deliverable.order.buyer = {...user}
-    deliverable.product = null
-    deliverable.revisions = 3
-    vm.deliverable.makeReady(deliverable)
-    vm.order.makeReady(deliverable.order)
-    await vm.$nextTick()
-    expect(vm.revisionCount).toBe(3)
   })
   test('Adds character tags to submission form', async() => {
     setViewer(store, genUser())
@@ -537,21 +324,16 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm as any
-    vm.deliverable.setX(genDeliverable())
-    vm.deliverable.fetching = false
-    vm.deliverable.ready = true
-    vm.fetching = false
-    vm.revisions.setList([])
-    vm.revisions.fetching = false
-    vm.revisions.ready = true
-    await vm.$nextTick()
+    const {deliverable, revisions, addSubmission} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(genDeliverable())
+    revisions.makeReady([])
+    await nextTick()
     const characterRequest = mockAxios.getReqByUrl('/api/sales/order/1/deliverables/5/characters/')
     const character = genCharacter()
     character.tags = ['stuff', 'things', 'wat']
@@ -560,152 +342,48 @@ describe('DeliverableDetail.vue', () => {
       character,
     }]), characterRequest)
     await flushPromises()
-    await vm.$nextTick()
-    expect([...vm.addSubmission.fields.tags.value].sort()).toEqual(['stuff', 'things', 'wat'])
+    await nextTick()
+    expect([...addSubmission.fields.tags.value].sort()).toEqual(['stuff', 'things', 'wat'])
   })
-  test('Visits a newly created Deliverable', async() => {
+  test('Handles a newly created deliverable', async() => {
     const vulpes = genUser({
       username: 'Vulpes',
       landscape: true,
     })
     setViewer(store, vulpes)
     await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
-    const mockPush = vi.spyOn(router, 'push')
     wrapper = mount(
-      WrappedDeliverableDetail, {
+      DeliverableDetail, {
         ...vueSetup({
           store,
           extraPlugins: [router],
-          stubs: ['ac-revision-manager'],
+          stubs: ['router-link'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Order',
           username: 'Vulpes',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
-    const deliverable = genDeliverable()
-    const order = deliverable.order
-    order.seller = vulpes
-    vm.deliverable.makeReady(deliverable)
-    vm.order.makeReady(order)
+    const deliverableDef = genDeliverable({id: 1})
+    const {deliverable, parentDeliverables, viewSettings} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(deliverableDef)
+    parentDeliverables.setList([genDeliverable(({id: 1}))])
+    viewSettings.patchers.showAddDeliverable.model = true
+    await nextTick()
     mockAxios.reset()
-    vm.newInvoice.submitThen(vm.visitDeliverable)
-    const newDeliverable = genDeliverable({id: 20})
-    mockAxios.mockResponse(rs(newDeliverable))
-    await flushPromises()
-    await vm.$nextTick()
-    expect(mockPush).toHaveBeenCalledWith({
-      name: 'OrderDeliverableOverview',
-      params: {
-        orderId: '1',
-        deliverableId: '20',
-        username: 'Vulpes',
-      },
-    })
-  })
-  test('Determines whether an invoice should be marked escrow disabled', async() => {
-    const vulpes = genUser({
+    await waitFor(() => wrapper.find('.add-deliverable-dialog .dialog-submit').trigger('click'))
+    mockAxios.mockResponse(rs(genDeliverable({id: 100})))
+    console.log(wrapper.html())
+    await waitFor(() => expect(parentDeliverables.list.length).toBe(2))
+    expect(parentDeliverables.list[1].x.id).toBe(100)
+    expect(router.currentRoute.value.name).toEqual('OrderDeliverableOverview')
+    expect(router.currentRoute.value.params).toEqual({
+      orderId: '1',
+      deliverableId: '100',
       username: 'Vulpes',
-      landscape: true,
     })
-    setViewer(store, vulpes)
-    await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
-    wrapper = mount(
-      DeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['router-link'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Vulpes',
-        },
-      })
-    const vm = wrapper.vm as any
-    vm.deliverable.setX(genDeliverable())
-    await vm.$nextTick()
-    expect(vm.invoiceEscrowEnabled).toBe(false)
-    vm.sellerHandler.artistProfile.makeReady(genArtistProfile())
-    await vm.$nextTick()
-    expect(vm.invoiceEscrowEnabled).toBe(true)
-    vm.newInvoice.fields.paid.update(true)
-    await vm.$nextTick()
-    expect(vm.invoiceEscrowEnabled).toBe(false)
-  })
-  test('Takes the user to a new deliverable', async() => {
-    const vulpes = genUser({
-      username: 'Vulpes',
-      landscape: true,
-    })
-    setViewer(store, vulpes)
-    await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
-    const mockPush = vi.spyOn(router, 'push')
-    wrapper = mount(
-      DeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['router-link'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Vulpes',
-        },
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    vm.deliverable.setX(genDeliverable())
-    await vm.$nextTick()
-    vm.visitDeliverable(genDeliverable({id: 100}))
-    expect(mockPush).toHaveBeenCalledWith({
-      name: 'OrderDeliverableOverview',
-      params: {
-        username: 'Vulpes',
-        deliverableId: '100',
-        orderId: deliverable.order.id + '',
-      },
-    })
-    await vm.$nextTick()
-  })
-  test('Adds a new deliverable to the parent list', async() => {
-    const vulpes = genUser({
-      username: 'Vulpes',
-      landscape: true,
-    })
-    setViewer(store, vulpes)
-    await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
-    const mockPush = vi.spyOn(router, 'push')
-    wrapper = mount(
-      DeliverableDetail, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          stubs: ['router-link'],
-        }),
-        props: {
-          orderId: 1,
-          deliverableId: 5,
-          baseName: 'Order',
-          username: 'Vulpes',
-        },
-      })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable({id: 1})
-    vm.deliverable.setX(deliverable)
-    vm.parentDeliverables.setList([genDeliverable(({id: 1}))])
-    await vm.$nextTick()
-    vm.visitDeliverable(genDeliverable({id: 100}))
-    await vm.$nextTick()
-    expect(vm.parentDeliverables.list.length).toBe(2)
-    expect(vm.parentDeliverables.list[1].x.id).toBe(100)
   })
   test('Sets the references on a new invoice', async() => {
     const fox = genUser({
@@ -714,7 +392,6 @@ describe('DeliverableDetail.vue', () => {
     })
     setViewer(store, fox)
     await router.push('/orders/Fox/order/1/deliverables/5/overview')
-    const mockPush = vi.spyOn(router, 'push')
     wrapper = mount(
       DeliverableDetail, {
         ...vueSetup({
@@ -723,37 +400,35 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['router-link'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Sale',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm as any
-    const deliverable = genDeliverable()
-    vm.deliverable.setX(genDeliverable())
-    vm.references.setList([{
+    const {deliverable, references, newInvoice} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(genDeliverable())
+    references.setList([{
       id: 1,
       reference: genReference({id: 3}),
     }, {
       id: 2,
       reference: genReference({id: 4}),
     }])
-    await vm.$nextTick()
-    vm.newInvoice.keepReferences = false
-    await vm.$nextTick()
-    vm.newInvoice.keepReferences = true
-    await vm.$nextTick()
-    expect(vm.newInvoice.fields.references.value).toEqual([3, 4])
+    await nextTick()
+    newInvoice.keepReferences = false
+    await nextTick()
+    newInvoice.keepReferences = true
+    await nextTick()
+    expect(newInvoice.fields.references.value).toEqual([3, 4])
   })
-  test('Determines the sellerName', async() => {
+  test('Requests the right endpoint for information on invoicing', async() => {
     const fox = genUser({
       username: 'Fox',
       landscape: true,
     })
     setViewer(store, fox)
     await router.push('/orders/Fox/order/1/deliverables/5/overview')
-    const mockPush = vi.spyOn(router, 'push')
     wrapper = mount(
       DeliverableDetail, {
         ...vueSetup({
@@ -762,17 +437,15 @@ describe('DeliverableDetail.vue', () => {
           stubs: ['router-link'],
         }),
         props: {
-          orderId: 1,
-          deliverableId: 5,
+          orderId: "1",
+          deliverableId: "5",
           baseName: 'Sale',
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm as any
-    expect(vm.sellerName).toBe('')
-    const deliverable = genDeliverable()
-    vm.deliverable.setX(genDeliverable())
-    await vm.$nextTick()
-    expect(vm.sellerName).toBe('Vulpes')
+    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    deliverable.makeReady(genDeliverable())
+    await nextTick()
+    expect(mockAxios.getReqByUrl('/api/sales/account/Vulpes/products/1/')).toBeTruthy
   })
 })

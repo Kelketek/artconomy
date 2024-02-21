@@ -22,7 +22,7 @@ import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 
-type AnyUser = User | TerseUser | AnonUser
+export type AnyUser = User | TerseUser | AnonUser
 
 @ComputedGetters
 export class ProfileController extends BaseController<ProfileModuleOpts, ProfileState> {
