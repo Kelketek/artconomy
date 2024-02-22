@@ -122,6 +122,11 @@ urlpatterns = [
         name="waitlist",
     ),
     path(
+        "order/<int:order_id>/deliverables/<int:deliverable_id>/make-new/",
+        main.MakeNew.as_view(),
+        name="make_new",
+    ),
+    path(
         "order/<int:order_id>/deliverables/<int:deliverable_id>/start/",
         main.DeliverableStart.as_view(),
         name="start_order",

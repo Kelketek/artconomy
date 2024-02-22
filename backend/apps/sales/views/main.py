@@ -135,7 +135,6 @@ from apps.sales.permissions import (
     PlanDeliverableAddition,
     PublicQueue,
     RevisionsVisible,
-    ValidPaypal,
 )
 from apps.sales.serializers import (
     AccountBalanceSerializer,
@@ -771,6 +770,37 @@ class WaitlistOrder(GenericAPIView):
         deliverable = self.get_object()
         self.check_object_permissions(request, deliverable)
         deliverable.status = WAITING
+        deliverable.save()
+        data = self.serializer_class(
+            instance=deliverable, context=self.get_serializer_context()
+        ).data
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+        return Response(data)
+
+
+class MakeNew(GenericAPIView):
+    permission_classes = [
+        OrderSellerPermission,
+        DeliverableStatusPermission(
+            WAITING,
+            error_message="This endpoint is for moving waitlisted orders back into "
+            "'NEW' status.",
+        ),
+    ]
+    serializer_class = DeliverableSerializer
+
+    def get_object(self):
+        return get_object_or_404(
+            Deliverable,
+            order_id=self.kwargs["order_id"],
+            id=self.kwargs["deliverable_id"],
+        )
+
+    @transaction.atomic
+    def post(self, request, **_kwargs):
+        deliverable = self.get_object()
+        self.check_object_permissions(request, deliverable)
+        deliverable.status = NEW
         deliverable.save()
         data = self.serializer_class(
             instance=deliverable, context=self.get_serializer_context()

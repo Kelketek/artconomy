@@ -31,6 +31,8 @@
                           if you have not already, or else add it to the details of the product this order is associated
                           with.
                         </p>
+                        <p>Hit the <strong>Select for Consideration</strong> button if you'd like to treat this as a
+                          freshly placed order rather than having it chill in the waitlist.</p>
                       </v-col>
                       <v-col v-if="is(DeliverableStatus.NEW) && isBuyer" cols="12">
                         <p>Your order has been placed and is awaiting the artist's review. You will receive an email
@@ -148,6 +150,9 @@
                       <v-row v-if="is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW) || is(DeliverableStatus.PAYMENT_PENDING)">
                         <v-col class="text-center" v-if="is(DeliverableStatus.NEW) && canWaitlist && isSeller">
                           <v-btn color="secondary" @click="statusEndpoint('waitlist')()" variant="flat">Add to Waitlist</v-btn>
+                        </v-col>
+                        <v-col class="text-center" v-if="is(DeliverableStatus.WAITING) && isSeller">
+                          <v-btn color="secondary" @click="statusEndpoint('make-new')()" variant="flat">Select for Consideration</v-btn>
                         </v-col>
                         <v-col class="text-center">
                           <ac-confirmation :action="statusEndpoint('cancel')">

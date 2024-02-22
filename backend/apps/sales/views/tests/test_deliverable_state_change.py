@@ -150,6 +150,11 @@ class TestDeliverableStatusChange(APITestCase):
             "seller", "waitlist/", initial_status=NEW, target_status=WAITING
         )
 
+    def test_make_waitlisted_new(self, _mock_notify):
+        self.state_assertion(
+            "seller", "make-new/", initial_status=WAITING, target_status=NEW
+        )
+
     def test_accept_deliverable_waitlist(self, _mock_notify):
         idempotent_lines(self.deliverable)
         self.state_assertion(
