@@ -210,14 +210,11 @@ class AcUppyFile extends mixins(ExtendedInput) {
       doneButtonHandler: null,
     })
     const companionUrl = `${window.location.origin}/companion`
-    if (window.chrome) {
-      // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
-      this.uppy.use(Url, {
-        target: Dashboard,
-        companionUrl,
-        companionCookiesRule: 'include',
-      })
-    }
+    this.uppy.use(Url, {
+      target: Dashboard,
+      companionUrl,
+      companionCookiesRule: 'include',
+    })
     this.uppy.on('upload-success', (file: UppyFile | undefined, response: any) => {
       if (this.maxNumberOfFiles > 1) {
         this.$emit('update:modelValue', [...this.modelValue, response.body.id])
