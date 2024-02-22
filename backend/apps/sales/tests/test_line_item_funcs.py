@@ -618,6 +618,48 @@ class TestLineCalculations(TestCase):
             ),
         )
 
+    def test_zero_line(self):
+        source = [
+            LineItemSim(amount=Money("19.56", "USD"), priority=0, id=1),
+            LineItemSim(
+                amount=Money("2.75", "USD"),
+                percentage=Decimal("5.75"),
+                cascade_percentage=True,
+                cascade_amount=True,
+                priority=300,
+                id=2,
+            ),
+            LineItemSim(amount=Money("520.36", "USD"), priority=100, id=3),
+            LineItemSim(amount=Money("0.00", "USD"), priority=100, id=4),
+        ]
+        result = get_totals(source)
+        self.assertEqual(
+            result,
+            (
+                Money("539.92", "USD"),
+                Money("0.00", "USD"),
+                {
+                    LineItemSim(amount=Money("19.56", "USD"), priority=0, id=1): Money(
+                        "18.33", "USD"
+                    ),
+                    LineItemSim(
+                        amount=Money("2.75", "USD"),
+                        percentage=Decimal("5.75"),
+                        cascade_percentage=True,
+                        cascade_amount=True,
+                        priority=300,
+                        id=2,
+                    ): Money("33.80", "USD"),
+                    LineItemSim(
+                        amount=Money("520.36", "USD"), priority=100, id=3
+                    ): Money("487.79", "USD"),
+                    LineItemSim(amount=Money("0.00", "USD"), priority=100, id=4): Money(
+                        "0.00", "USD"
+                    ),
+                },
+            ),
+        )
+
     def test_negative_distribution(self):
         """
         In this case, there's a fee that isn't entirely absorbed by the other line

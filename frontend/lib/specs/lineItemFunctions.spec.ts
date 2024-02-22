@@ -342,6 +342,26 @@ describe('lineItemFunctions.ts', () => {
       ]),
     })
   })
+  test('Handles a zero line item', () => {
+    // test_zero_line
+    const source = [
+      genLineItem({amount: 19.56, priority: 0, id: 1}),
+      genLineItem({amount: 2.75, percentage: 5.75, cascade_percentage: true, cascade_amount: true, priority: 300, id: 2}),
+      genLineItem({amount: 520.36, priority: 100, id: 3}),
+      genLineItem({amount: 0.00, priority: 100, id: 4}),
+    ]
+    const result = getTotals(source)
+    expect(result).toEqual({
+      total: new Decimal('539.92'),
+      discount: new Decimal('0'),
+      subtotals: new Map([
+        [genLineItem({amount: 19.56, priority: 0, id: 1}), new Decimal('18.33')],
+        [genLineItem({amount: 2.75, percentage: 5.75, cascade_percentage: true, cascade_amount: true, priority: 300, id: 2}), new Decimal('33.80')],
+        [genLineItem({amount: 520.36, priority: 100, id: 3}), new Decimal('487.79')],
+        [genLineItem({amount: 0.00, priority: 100, id: 4}), new Decimal('0.00')],
+      ]),
+    })
+  })
   test('Handles negative distribution', () => {
     // test_negative_distribution
     const source = [

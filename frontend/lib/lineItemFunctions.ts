@@ -114,7 +114,6 @@ export const priorityTotal = halfEvenContext((current: LineAccumulator, priority
     } else {
       workingAmount = currentTotal.times(multiplier)
     }
-    const lineValues: LineMoneyMap = new Map()
     if (line.cascade_percentage) {
       cascadedAmount = cascadedAmount.plus(workingAmount)
     } else {
@@ -122,6 +121,7 @@ export const priorityTotal = halfEvenContext((current: LineAccumulator, priority
     }
     workingAmount = workingAmount.plus(staticAmount)
     if (!cascadedAmount.eq(new Decimal(0))) {
+      const lineValues: LineMoneyMap = new Map()
       for (const key of subtotals.keys()) {
         /* istanbul ignore else */
         if (key.priority < line.priority) {
@@ -147,7 +147,7 @@ export const priorityTotal = halfEvenContext((current: LineAccumulator, priority
   }
   const addOn = sum([...summableTotals.values()])
   const newTotals = new Map([...newSubtotals, ...workingSubtotals])
-  return {total: currentTotal.plus(addOn), subtotals: newTotals, discount}
+  return {total: currentTotal.plus(addOn), discount, subtotals: newTotals}
 })
 
 export const toDistribute = downContext((total: Decimal, map: LineMoneyMap): Decimal => {
@@ -169,7 +169,10 @@ export function redistributionPriority(ascendingPriority: boolean, a: [LineItem,
     return aLineItem.priority - bLineItem.priority
   }
   if (aAmount.eq(bAmount)) {
-    return bLineItem.id - aLineItem.id
+    const lines = [aLineItem.id, bLineItem.id]
+    // Note: JS Sort converts to strings then sorts alphabetically. [1, 100000, 21, 30, 4] is a sorted array.
+    lines.sort()
+    return lines.indexOf(bLineItem.id) - lines.indexOf(aLineItem.id)
   } else {
     return parseFloat(bAmount.minus(aAmount).toExponential())
   }

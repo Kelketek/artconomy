@@ -64,7 +64,7 @@ def distribute_reduction(
         # Don't apply reductions to discounts, as that would be nonsense.
         if original_value < Money(0, total.currency):
             continue
-        if original_value.amount == Decimal("0"):
+        if total.amount == Decimal("0"):
             multiplier = Decimal("1.00") / len(line_values)
         else:
             multiplier = original_value / total
@@ -114,15 +114,15 @@ def priority_total(
             added_amount += working_amount
         working_amount += line.amount
         if cascaded_amount:
+            line_values = {}
+            for key in subtotals.keys():
+                if key.priority < line.priority:
+                    line_values[key] = subtotals.get(key)
             reductions.append(
                 distribute_reduction(
                     total=current_total - discount,
                     distributed_amount=cascaded_amount,
-                    line_values={
-                        key: value
-                        for key, value in subtotals.items()
-                        if key.priority < line.priority
-                    },
+                    line_values=line_values,
                 )
             )
         if added_amount:
@@ -134,10 +134,12 @@ def priority_total(
     for reduction_set in reductions:
         for line, reduction in reduction_set.items():
             new_subtotals[line] = new_subtotals[line] - reduction
+    add_on = sum(summable_totals.values())
+    new_totals = {**new_subtotals, **working_subtotals}
     return (
-        current_total + sum(summable_totals.values()),
+        current_total + add_on,
         discount,
-        {**new_subtotals, **working_subtotals},
+        new_totals,
     )
 
 
@@ -151,8 +153,8 @@ def to_distribute(total: Money, money_map: "LineMoneyMap") -> Money:
 
 def redistribution_priority(
     ascending_priority: bool,
-    item: Tuple["LineItem", Decimal],
-    item2: Tuple["LineItem", Decimal],
+    item: Tuple["LineItem", Money],
+    item2: Tuple["LineItem", Money],
 ) -> Union[float, int]:
     item_line, item_amount = item
     item2_line, item2_amount = item2
@@ -161,7 +163,7 @@ def redistribution_priority(
             return item2_line.priority - item_line.priority
         return item_line.priority - item2_line.priority
     if item_amount == item2_amount:
-        lines = sorted([item_line, item2_line], key=lambda x: x.id)
+        lines = sorted([item_line, item2_line], key=lambda x: str(x.id))
         # Ids could be something other than integers, but this should work the same as
         # it did before, when I made the assumption they would be.
         return float(lines.index(item2_line) - lines.index(item_line))
@@ -271,7 +273,8 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
     Then, allocate remaining 'pennies' of the currency to the entries until the total
     number of discrete values is accounted for.
 
-    TODO: Replicate in JS version
+    Not used in the normal price calculator, but used in creating estimated costs
+    per transactions in reports.
     """
     assert amount == amount.round(digits(amount.currency))
     target_amount = amount / divisor
