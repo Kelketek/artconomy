@@ -165,6 +165,7 @@ from apps.sales.serializers import (
     TransactionRecordSerializer,
     NewPaypalConfigSerializer,
     PaypalConfigSerializer,
+    SalesStatsSerializer,
 )
 from apps.sales.utils import (
     PENDING,
@@ -2242,31 +2243,17 @@ class WhoIsOpen(ListAPIView):
         )
 
 
-class SalesStats(APIView):
+class SalesStats(RetrieveAPIView):
     permission_classes = [IsRegistered, ObjectControls]
+    serializer_class = SalesStatsSerializer
 
-    # noinspection PyUnusedLocal
-    def get(self, request, **kwargs):
-        user = get_object_or_404(User, username=self.kwargs["username"])
-        self.check_object_permissions(request, user)
-        products_available = available_products_by_load(user.artist_profile).count()
-        escrow_enabled = StripeAccount.objects.filter(active=True, user=user).exists()
-        data = {
-            "load": user.artist_profile.load,
-            "max_load": user.artist_profile.max_load,
-            "commissions_closed": user.artist_profile.commissions_closed,
-            "commissions_disabled": user.artist_profile.commissions_disabled,
-            "products_available": products_available,
-            "delinquent": user.delinquent,
-            "active_orders": Deliverable.objects.filter(
-                status__in=WEIGHTED_STATUSES, order__seller=user
-            ).count(),
-            "new_orders": Deliverable.objects.filter(
-                status=NEW, order__seller=user
-            ).count(),
-            "escrow_enabled": escrow_enabled,
-        }
-        return Response(status=status.HTTP_200_OK, data=data)
+    def get_object(self):
+        profile = get_object_or_404(
+            ArtistProfile,
+            user__username=self.kwargs["username"],
+        )
+        self.check_object_permissions(self.request, profile)
+        return profile
 
 
 class RateBase(RetrieveUpdateAPIView):

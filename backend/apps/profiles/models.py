@@ -562,7 +562,10 @@ class ArtistProfile(Model):
     auto_withdraw = BooleanField(default=True)
     dwolla_url = URLField(blank=True, default="")
     commission_info = CharField(max_length=14000, blank=True, default="")
-    watch_permissions = {"ArtistProfileSerializer": []}
+    watch_permissions = {
+        "ArtistProfileSerializer": [],
+        "SalesStatsSerializer": [UserControls],
+    }
 
     def __str__(self):
         return f"Artist profile for {self.user and self.user.username}"

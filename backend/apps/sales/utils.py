@@ -42,6 +42,7 @@ from apps.lib.models import (
     Subscription,
     ref_for_instance,
 )
+from apps.lib.signals import broadcast_update
 from apps.lib.utils import multi_filter, notify, recall_notification
 from apps.profiles.models import User
 from apps.profiles.tasks import create_or_update_stripe_user
@@ -426,6 +427,7 @@ def update_availability(seller, load, current_closed_status):
             recall_notification(COMMISSIONS_OPEN, seller)
     finally:
         del UPDATING[seller]
+        broadcast_update(seller_profile)
 
 
 def finalize_table_fees(deliverable: "Deliverable"):

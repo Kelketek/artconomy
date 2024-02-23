@@ -18,7 +18,7 @@ from apps.lib.serializers import (
     TagListField,
 )
 from apps.lib.utils import add_check, check_read, multi_filter
-from apps.profiles.models import Character, Submission, User
+from apps.profiles.models import Character, Submission, User, ArtistProfile
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
 from apps.sales.constants import (
@@ -43,6 +43,7 @@ from apps.sales.constants import (
     TIP,
     UNPROCESSED_EARNINGS,
     WAITING,
+    WEIGHTED_STATUSES,
 )
 from apps.sales.line_item_funcs import get_totals, reckon_lines
 from apps.sales.models import (
@@ -72,6 +73,7 @@ from apps.sales.utils import (
     lines_for_product,
     order_context,
     order_context_to_link,
+    available_products_by_load,
 )
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -2134,3 +2136,46 @@ class PaypalConfigSerializer(serializers.ModelSerializer):
             "template_id",
             "active",
         )
+
+
+@register_serializer
+class SalesStatsSerializer(serializers.ModelSerializer):
+    products_available = serializers.SerializerMethodField()
+    delinquent = serializers.SerializerMethodField()
+    active_orders = serializers.SerializerMethodField()
+    products_available = serializers.SerializerMethodField()
+    new_orders = serializers.SerializerMethodField()
+    escrow_enabled = serializers.SerializerMethodField()
+
+    def get_delinquent(self, obj: ArtistProfile):
+        return obj.user.delinquent
+
+    def get_active_orders(self, obj: ArtistProfile):
+        return Deliverable.objects.filter(
+            status__in=WEIGHTED_STATUSES, order__seller=obj.user
+        ).count()
+
+    def get_products_available(self, obj: ArtistProfile):
+        return available_products_by_load(obj).count()
+
+    def get_new_orders(self, obj: ArtistProfile):
+        return Deliverable.objects.filter(status=NEW, order__seller=obj.user).count()
+
+    def get_escrow_enabled(self, obj: ArtistProfile):
+        return StripeAccount.objects.filter(active=True, user=obj.user).exists()
+
+    class Meta:
+        model = ArtistProfile
+        fields = (
+            "id",
+            "load",
+            "max_load",
+            "commissions_closed",
+            "commissions_disabled",
+            "products_available",
+            "delinquent",
+            "active_orders",
+            "new_orders",
+            "escrow_enabled",
+        )
+        read_only_fields = fields

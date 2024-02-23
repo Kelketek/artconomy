@@ -1,5 +1,5 @@
 import {defineAsyncComponent, markRaw} from 'vue'
-import {computed} from '@vue/reactivity'
+import {computed} from 'vue'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
 import MarkDownIt from 'markdown-it'
@@ -918,5 +918,13 @@ export function ComputedGetters<T extends Function> (
   return Wrapped
 }
 
+export const getSalesStatsSchema = (username: string) => ({
+  endpoint: `/api/sales/account/${username}/sales/stats/`,
+  socketSettings: {
+    appLabel: 'profiles',
+    modelName: 'ArtistProfile',
+    serializer: 'SalesStatsSerializer',
+  }
+})
 
 export const BASE_URL = window.location.origin

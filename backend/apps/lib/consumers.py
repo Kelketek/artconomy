@@ -4,12 +4,15 @@ from pprint import pprint
 from typing import Any, DefaultDict, Dict, Optional, Type
 
 from aiofile import async_open
+from django import dispatch
+
 from apps.lib.consumer_serializers import (
     EmptySerializer,
     ViewerParamsSerializer,
     WatchNewSpecSerializer,
     WatchSpecSerializer,
 )
+from apps.lib.signals import send_update
 from apps.lib.utils import FakeRequest, post_commit_defer
 from apps.profiles.models import User
 from apps.profiles.utils import empty_user
@@ -20,7 +23,6 @@ from channels.layers import get_channel_layer
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ObjectDoesNotExist
-from django.db import transaction
 from django.db.models import Model
 from django.db.models.signals import post_delete, post_save
 from rest_framework.serializers import ModelSerializer, Serializer
@@ -32,11 +34,12 @@ BROADCAST_SERIALIZERS: DefaultDict[
 SA = sync_to_async
 
 
-def send_new(model: Type[Model], instance: Model):
+def send_new(instance: Model):
     """
     Constructs and sends a 'created' message to send out for a new instance to relevant
     lists.
     """
+    model = type(instance)
     layer = get_channel_layer()
     app_label = model._meta.app_label
     model_name = model.__name__
@@ -66,10 +69,11 @@ def send_new(model: Type[Model], instance: Model):
             )
 
 
-def send_updated(model, instance):
+def send_updated(instance):
     """
     Constructs and sends an 'updated' message to send out for an instance.
     """
+    model = type(instance)
     layer = get_channel_layer()
     app_label = model._meta.app_label
     model_name = model.__name__
@@ -120,9 +124,9 @@ def update_websocket(model):
     @post_commit_defer
     def update_broadcaster(instance: Model, created=False, **kwargs):
         if created:
-            send_new(model, instance)
+            send_new(instance)
         else:
-            send_updated(model, instance)
+            send_updated(instance)
 
     @post_commit_defer
     def delete_broadcaster(instance: Model, pk: int, **kwargs):
@@ -130,6 +134,7 @@ def update_websocket(model):
 
     post_save.connect(update_broadcaster, sender=model, weak=False)
     post_delete.connect(delete_broadcaster, sender=model, weak=False)
+    send_update.connect(update_broadcaster, sender=model, weak=False)
 
 
 _registered_models = {}

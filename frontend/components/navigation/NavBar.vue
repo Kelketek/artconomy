@@ -145,6 +145,7 @@
         >
         </v-switch>
       </v-card>
+      <ac-stats-bar :username="rawViewerName" v-if="viewer && viewer.artist_mode && fullInterface" />
       <v-toolbar-items v-if="fullInterface">
         <v-btn variant="plain" v-if="isRegistered" @click="notificationLoad" class="notifications-button">
           <template #default>
@@ -205,7 +206,7 @@
 </style>
 
 <script setup lang="ts">
-import {initDrawerValue, makeQueryParams, BASE_URL} from '@/lib/lib.ts'
+import {initDrawerValue, makeQueryParams, BASE_URL, flatten} from '@/lib/lib.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
@@ -219,6 +220,9 @@ import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import {useSearchForm} from '@/components/views/search/hooks.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {username} from '@/store/forms/validators.ts'
+import AcStatsBar from '@/components/navigation/AcStatsBar.vue'
 
 // Should already have been populated in the root component.
 const searchForm = useSearchForm()
@@ -260,6 +264,7 @@ const {
   isLoggedIn,
   isStaff,
   isSuperuser,
+  rawViewerName,
 } = useViewer()
 
 const registeredUser = viewer.value as User
@@ -270,6 +275,8 @@ const notificationLoad = () => {
       name: 'Reload',
       params: {path: route.path},
     })
+  } else if (viewer.value?.artist_mode) {
+    router.push({name: 'SalesNotifications'})
   } else {
     router.push({name: 'CommunityNotifications'})
   }

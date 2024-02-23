@@ -1,6 +1,6 @@
 <template>
   <v-container fluid style="min-height: 75vh" v-if="subject">
-    <v-list density="compact" nav v-model:opened="openFirst" open-strategy="multiple">
+    <v-list density="compact" nav >
       <v-list-item @click="$emit('update:modelValue', false)">
         <template v-slot:prepend>
           <v-icon icon="mdi-close"/>
@@ -25,6 +25,68 @@
         </template>
         <v-list-item-title>Private Messages</v-list-item-title>
       </v-list-item>
+    </v-list>
+    <v-list nav density="compact" v-if="isLoggedIn && subject.artist_mode" v-model:opened="openSecond" open-strategy="multiple">
+      <v-divider/>
+      <v-list-item :to="{name: 'Store', params: {username: subject.username}}">
+        <template v-slot:prepend>
+          <v-icon icon="mdi-storefront"/>
+        </template>
+        <v-list-item-title>My Store</v-list-item-title>
+      </v-list-item>
+      <v-list-item :to="{name: 'CurrentSales', params: {username: subject.username}}">
+        <template v-slot:prepend>
+          <v-icon icon="mdi-cash-multiple"/>
+        </template>
+        <v-list-item-title>Sales/Invoicing</v-list-item-title>
+      </v-list-item>
+      <v-list-group
+          value="Reports"
+          v-if="isLoggedIn && subject.is_superuser"
+          nav
+      >
+        <template v-slot:activator="{props}">
+          <v-list-item v-bind="props">
+            <v-list-item-title>Reports</v-list-item-title>
+          </v-list-item>
+        </template>
+        <v-list-item :to="{name: 'Reports', params: {username: subject.username}}">
+          <template v-slot:prepend>
+            <v-icon icon="mdi-chart-box-outline"/>
+          </template>
+          <v-list-item-title>Financial</v-list-item-title>
+        </v-list-item>
+        <v-list-item :to="{name: 'TroubledDeliverables'}">
+          <template v-slot:prepend>
+            <v-icon icon="mdi-alert"/>
+          </template>
+          <v-list-item-title>Troubled Deliverables</v-list-item-title>
+        </v-list-item>
+      </v-list-group>
+      <v-list-item :to="{name: 'Reports', params: {username: subject.username}}"
+                   v-else-if="isLoggedIn && (subject.artist_mode || subject.is_superuser)">
+        <template v-slot:prepend>
+          <v-icon icon="mdi-chart-box-outline"/>
+        </template>
+        <v-list-item-title>Reports</v-list-item-title>
+      </v-list-item>
+      <v-list-item :to="{name: 'TableProducts'}" v-if="isLoggedIn && subject.is_staff">
+        <template v-slot:prepend>
+          <v-icon icon="mdi-store-cog-outline"/>
+        </template>
+        <v-list-item-title>Table Dashboard</v-list-item-title>
+      </v-list-item>
+      <v-divider/>
+    </v-list>
+    <v-list v-if="isStaff" nav density="compact">
+      <v-list-item :to="{name: 'CurrentCases', params: {username: subject.username}}">
+        <template v-slot:prepend>
+          <v-icon icon="mdi-gavel"/>
+        </template>
+        <v-list-item-title>Cases</v-list-item-title>
+      </v-list-item>
+    </v-list>
+    <v-list density="compact" nav v-model:opened="openFirst" open-strategy="multiple">
       <v-list-item :to="{name: 'CurrentOrders', params: {username: subject.username}}" v-if="isLoggedIn">
         <template v-slot:prepend>
           <v-icon icon="mdi-basket"/>
@@ -118,66 +180,7 @@
         />
       </v-list-item>
     </v-list>
-    <v-list nav density="compact" v-if="isLoggedIn && subject.artist_mode" v-model:opened="openSecond" open-strategy="multiple">
-      <v-divider/>
-      <v-list-item :to="{name: 'Store', params: {username: subject.username}}">
-        <template v-slot:prepend>
-          <v-icon icon="mdi-storefront"/>
-        </template>
-        <v-list-item-title>My Store</v-list-item-title>
-      </v-list-item>
-      <v-list-item :to="{name: 'CurrentSales', params: {username: subject.username}}">
-        <template v-slot:prepend>
-          <v-icon icon="mdi-cash-multiple"/>
-        </template>
-        <v-list-item-title>Sales/Invoicing</v-list-item-title>
-      </v-list-item>
-      <v-list-group
-          value="Reports"
-          v-if="isLoggedIn && subject.is_superuser"
-          nav
-      >
-        <template v-slot:activator="{props}">
-          <v-list-item v-bind="props">
-            <v-list-item-title>Reports</v-list-item-title>
-          </v-list-item>
-        </template>
-        <v-list-item :to="{name: 'Reports', params: {username: subject.username}}">
-          <template v-slot:prepend>
-            <v-icon icon="mdi-chart-box-outline"/>
-          </template>
-          <v-list-item-title>Financial</v-list-item-title>
-        </v-list-item>
-        <v-list-item :to="{name: 'TroubledDeliverables'}">
-          <template v-slot:prepend>
-            <v-icon icon="mdi-alert"/>
-          </template>
-          <v-list-item-title>Troubled Deliverables</v-list-item-title>
-        </v-list-item>
-      </v-list-group>
-      <v-list-item :to="{name: 'Reports', params: {username: subject.username}}"
-                   v-else-if="isLoggedIn && (subject.artist_mode || subject.is_superuser)">
-        <template v-slot:prepend>
-          <v-icon icon="mdi-chart-box-outline"/>
-        </template>
-        <v-list-item-title>Reports</v-list-item-title>
-      </v-list-item>
-      <v-list-item :to="{name: 'TableProducts'}" v-if="isLoggedIn && subject.is_staff">
-        <template v-slot:prepend>
-          <v-icon icon="mdi-store-cog-outline"/>
-        </template>
-        <v-list-item-title>Table Dashboard</v-list-item-title>
-      </v-list-item>
-    </v-list>
     <v-divider></v-divider>
-    <v-list v-if="isStaff" nav density="compact">
-      <v-list-item :to="{name: 'CurrentCases', params: {username: subject.username}}">
-        <template v-slot:prepend>
-          <v-icon icon="mdi-gavel"/>
-        </template>
-        <v-list-item-title>Cases</v-list-item-title>
-      </v-list-item>
-    </v-list>
     <v-list nav density="compact">
       <v-list-group :to="{name: 'Options', params: {'username': subject.username}}" v-if="isRegistered"
                     prepend-icon="mdi-cog" value="Settings">

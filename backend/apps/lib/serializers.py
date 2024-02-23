@@ -32,7 +32,13 @@ from apps.lib.models import (
     Tag,
 )
 from apps.lib.utils import add_check, set_tags, tag_list_cleaner
-from apps.profiles.models import Character, Conversation, Journal, Submission, User
+from apps.profiles.models import (
+    Character,
+    Conversation,
+    Journal,
+    Submission,
+    User,
+)
 from apps.sales.constants import WAITING
 from apps.sales.models import Deliverable, Product, Revision
 from django.conf import settings
@@ -43,6 +49,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField, empty, BooleanField
 from rest_framework_bulk import BulkListSerializer, BulkSerializerMixin
+
 from shortcuts import make_url
 
 
