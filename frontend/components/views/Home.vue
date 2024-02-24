@@ -48,7 +48,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="laptop" max-height="20vh" contain/>
+                  <v-img :src="laptop" max-height="20vh" aspect-ratio="1" contain/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -66,7 +66,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12">
-                  <v-img :src="fingerPainting" max-height="20vh" contain/>
+                  <v-img :src="fingerPainting" max-height="20vh" aspect-ratio="1" contain/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -90,7 +90,7 @@
             <v-col class="grow pa-1">
               <v-row dense>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="fridge" max-height="20vh" contain/>
+                  <v-img :src="fridge" max-height="20vh" aspect-ratio="1" contain/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row class="justify-content fill-height" align="center">
