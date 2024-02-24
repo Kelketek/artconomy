@@ -70,9 +70,7 @@
                         <v-col cols="12" v-if="isRegistered && !product.x.table_product">
                           <ac-bound-field
                               field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
-                              hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
-                  attach them to this order for easy referencing by the artist! If you haven't added any characters, or
-                  no characters are in this piece, you may leave this blank."
+                              hint="Start typing a character's name to search."
                               v-if="showCharacters"
                               :init-items="initCharacters"
                           />
@@ -279,7 +277,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {artCall, BASE_URL, formatDateTerse, profileLink} from '@/lib/lib.ts'
+import {artCall, BASE_URL, formatDateTerse, prepopulateCharacters, profileLink} from '@/lib/lib.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {useForm} from '@/store/forms/hooks.ts'
@@ -519,23 +517,5 @@ const privateHint = computed(() => {
 })
 
 subjectHandler.artistProfile.get().then()
-if (orderForm.fields.characters.value.length === 0) {
-  showCharacters.value = true
-} else {
-  const promises = []
-  for (const charId of orderForm.fields.characters.model) {
-    promises.push(artCall({
-      url: `/api/profiles/data/character/id/${charId}/`,
-      method: 'get',
-    }).then(
-        (response) => initCharacters.value.push(response),
-    ).catch(() => {
-      orderForm.fields.characters.model = orderForm.fields.characters.model.filter((val: number) => val !== charId)
-    }))
-  }
-  Promise.all(promises).then(() => {
-    showCharacters.value = true
-  })
-}
-
+prepopulateCharacters(orderForm.fields.characters, showCharacters, initCharacters)
 </script>

@@ -62,7 +62,9 @@
             <div class="align-self-center justify-end pb-2">
               <v-row>
                 <v-col class="text-center d-flex">
-                  <v-btn color="green" @click="showNewInvoice = true" variant="elevated" class="new-invoice-button">
+                  <v-btn
+                      color="green" :to="{name: 'InvoiceByProduct', params: {username}}" variant="elevated" class="new-invoice-button"
+                  >
                     <v-icon left icon="mdi-receipt"/>
                     New Invoice
                   </v-btn>
