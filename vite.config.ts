@@ -8,7 +8,7 @@ import ViteFonts from 'unplugin-fonts/vite'
 import ChildProcess from 'child_process'
 
 // Utilities
-import { defineConfig } from 'vite'
+import {defineConfig} from 'vite'
 import { fileURLToPath, URL } from 'node:url'
 import checker from 'vite-plugin-checker'
 
@@ -74,6 +74,16 @@ export default defineConfig({
         /static\/.*/,
         /.*[/]specs[/].*/,
       ],
+      output: {
+        manualChunks: {
+          vueCore: ['vue', 'vuetify', 'vuex', 'vue-facing-decorator', 'vue-router', 'vue-observe-visibility', '@devindex/vue-mask'],
+          captcha: ['@hcaptcha/vue3-hcaptcha', '@/components/fields/AcCaptchaField.vue'],
+          dataProcessing: ['decimal.js', 'lodash', 'date-fns', 'markdown-it'],
+          qrCode: ['qrcode'],
+          sortable: ['sortablejs', 'sortablejs-vue3', 'list-diff.js'],
+          uppy: ['@uppy/core', '@uppy/dashboard', '@uppy/url', '@uppy/xhr-upload', '@/components/fields/AcUppyFile.vue']
+        },
+      },
       input,
     },
     outDir: '../public/dist',
