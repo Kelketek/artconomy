@@ -20,26 +20,18 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import Subjective from '@/mixins/subjective.ts'
-import AcUppyFile from '@/components/fields/AcUppyFile.vue'
+<script setup lang="ts">
+import {computed, defineAsyncComponent} from 'vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {listenForSingle} from '@/store/singles/hooks.ts'
+import {useSubject} from '@/mixins/subjective.ts'
+const AcUppyFile = defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue'))
 
-@Component({
-  components: {AcUppyFile},
-})
-class Avatar extends mixins(Viewer, Subjective) {
-  public get url() {
-    return `/api/profiles/account/${this.subject && this.subject.username}/avatar/`
-  }
+const props = defineProps<SubjectiveProps>()
+const {subject} = useSubject(props)
+listenForSingle('uppy-avatar')
 
-  public created() {
-    this.$listenForSingle('uppy-avatar')
-  }
-}
-
-export default toNative(Avatar)
+const url = computed(() => `/api/profiles/account/${props.username}/avatar/`)
 </script>
 
 <style scoped>
