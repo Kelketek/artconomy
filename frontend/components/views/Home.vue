@@ -59,9 +59,6 @@
                 </v-col>
               </v-row>
             </v-col>
-            <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical/>
-            </v-col>
           </v-row>
         </v-col>
         <v-col class="text-center d-flex" cols="12" md="4">
@@ -85,9 +82,6 @@
                   </v-row>
                 </v-col>
               </v-row>
-            </v-col>
-            <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical/>
             </v-col>
           </v-row>
         </v-col>
