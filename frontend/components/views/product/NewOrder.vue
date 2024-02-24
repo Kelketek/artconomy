@@ -70,7 +70,9 @@
                         <v-col cols="12" v-if="isRegistered && !product.x.table_product">
                           <ac-bound-field
                               field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
-                              hint="Start typing a character's name to search."
+                              hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
+                  attach them to this order for easy referencing by the artist! If you haven't added any characters, or
+                  no characters are in this piece, you may leave this blank."
                               v-if="showCharacters"
                               :init-items="initCharacters"
                           />

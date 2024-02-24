@@ -39,9 +39,7 @@
         <v-col cols="6">
           <ac-bound-field
               field-type="ac-character-select" :field="customForm.fields.characters" label="Characters"
-              hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
-                attach them to this order for easy referencing by the artist! If you haven't added any characters, or
-                no characters are in this piece, you may leave this blank."
+              hint="Start typing a character's name to search."
               v-if="showCharacters"
               :init-items="initCharacters"
           />

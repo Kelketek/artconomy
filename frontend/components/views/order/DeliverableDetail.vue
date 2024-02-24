@@ -357,19 +357,14 @@
                       >
                         <v-container class="pa-0">
                           <ac-invoice-form :new-invoice="newInvoice" :username="seller.username"
-                                           :line-items="invoiceLineItems" :escrow-enabled="invoiceEscrowEnabled"
-                                           :show-buyer="false">
+                                           :line-items="invoiceLineItems" :escrow-enabled="invoiceEscrowEnabled">
                             <template v-slot:second>
                               <v-col cols="12" sm="6">
-                                <v-row no-gutters>
-                                  <v-col cols="12" sm="6" md="4" offset-sm="3" offset-md="4">
-                                    <ac-bound-field
-                                        :field="newInvoice.fields.name"
-                                        label="Deliverable Name"
-                                        hint="Give this deliverable a name, like 'Page 2' or 'Inks'. This will help distinguish it from the other deliverables in the order."
-                                    />
-                                  </v-col>
-                                </v-row>
+                                <ac-bound-field
+                                    :field="newInvoice.fields.name"
+                                    label="Deliverable Name"
+                                    hint="Give this deliverable a name, like 'Page 2' or 'Inks'. This will help distinguish it from the other deliverables in the order."
+                                />
                               </v-col>
                               <v-col cols="12" sm="6">
                                 <v-checkbox v-model="keepReferences"
