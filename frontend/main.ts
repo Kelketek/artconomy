@@ -1,17 +1,13 @@
 import './artconomy.css'
-// @ts-ignore
 import * as Sentry from '@sentry/vue'
-// @ts-ignore
-import * as Integrations from '@sentry/integrations'
-import {createApp, h} from 'vue'
+import {createApp, defineAsyncComponent, h} from 'vue'
 import {createStore} from './store/index.ts'
-import App from './App.vue'
+const App = defineAsyncComponent(() => import('./App.vue'))
 import VueMask from '@devindex/vue-mask'
-import {configureHooks, router} from './router/index.ts'
+import {configureHooks, router} from '@/router/index.ts'
 import {createForms} from '@/store/forms/registry.ts'
 import {Shortcuts} from './plugins/shortcuts.ts'
 import supportedBrowsers from './supportedBrowsers.ts'
-import {Decimal} from 'decimal.js'
 import {genId} from './lib/lib.ts'
 import {createLists} from '@/store/lists/registry.ts'
 import {createSingles} from '@/store/singles/registry.ts'
@@ -26,9 +22,8 @@ import {Stripe, StripeConstructor} from '@stripe/stripe-js'
 import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import AcComment from '@/components/comments/AcComment.vue'
-import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import 'vite/modulepreload-polyfill'
+const AcComment = defineAsyncComponent(() => import('@/components/comments/AcComment.vue'))
+const AcCommentSection = defineAsyncComponent(() => import('@/components/comments/AcCommentSection.vue'))
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
 
@@ -82,8 +77,6 @@ app.component('AcCommentSection', AcCommentSection)
 
 window.artconomy = app
 
-// @ts-ignore
-window.Decimal = Decimal
 // The 'window ID' is used to distinguish one tab from another when making requests to the server. This is useful for
 // some websocket activities where one tab is the originator of a change and others need to pick it up.
 window.windowId = genId()

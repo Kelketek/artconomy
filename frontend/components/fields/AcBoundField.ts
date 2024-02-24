@@ -1,16 +1,16 @@
-import {h, resolveComponent} from 'vue'
+import {h, resolveComponent, defineAsyncComponent} from 'vue'
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import {FieldController} from '@/store/forms/field-controller.ts'
-import AcUserSelect from '@/components/fields/AcUserSelect.vue'
-import AcEditor from '@/components/fields/AcEditor.vue'
-import AcTagField from '@/components/fields/AcTagField.vue'
-import AcRatingField from '@/components/fields/AcRatingField.vue'
-import AcUppyFile from '@/components/fields/AcUppyFile.vue'
-import AcCharacterSelect from '@/components/fields/AcCharacterSelect.vue'
-import AcPriceField from '@/components/fields/AcPriceField.vue'
-import AcProductSelect from '@/components/fields/AcProductSelect.vue'
-import AcCheckbox from '@/components/fields/AcCheckbox.vue'
-import AcCaptchaField from '@/components/fields/AcCaptchaField.vue'
+const AcUserSelect = defineAsyncComponent(() => import('@/components/fields/AcUserSelect.vue'))
+const AcEditor = defineAsyncComponent(() => import('@/components/fields/AcEditor.vue'))
+const AcTagField = defineAsyncComponent(() => import('@/components/fields/AcTagField.vue'))
+const AcRatingField = defineAsyncComponent(() => import('@/components/fields/AcRatingField.vue'))
+const AcUppyFile = defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue'))
+const AcCharacterSelect = defineAsyncComponent(() => import('@/components/fields/AcCharacterSelect.vue'))
+const AcPriceField = defineAsyncComponent(() => import('@/components/fields/AcPriceField.vue'))
+const AcProductSelect = defineAsyncComponent(() => import('@/components/fields/AcProductSelect.vue'))
+const AcCheckbox = defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue'))
+const AcCaptchaField = defineAsyncComponent(() => import('@/components/fields/AcCaptchaField.vue'))
 import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
 import {VSwitch} from 'vuetify/lib/components/VSwitch/index.mjs'
 import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'

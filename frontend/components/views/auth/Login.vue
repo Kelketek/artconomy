@@ -87,6 +87,9 @@ import {AcServerError} from '@/types/AcServerError.ts'
     AcFormContainer,
     AcForm,
   },
+  directives: {
+
+  }
 })
 class Login extends mixins(Auth, Viewer) {
   public showTokenPrompt: boolean = false

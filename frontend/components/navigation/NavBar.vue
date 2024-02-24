@@ -206,23 +206,20 @@
 </style>
 
 <script setup lang="ts">
-import {initDrawerValue, makeQueryParams, BASE_URL, flatten} from '@/lib/lib.ts'
+import {makeQueryParams, BASE_URL} from '@/lib/lib.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
+const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
 import {useNav} from '@/mixins/nav.ts'
-import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
+const AcNavLinks = defineAsyncComponent(() => import('@/components/navigation/AcNavLinks.vue'))
 import {siDiscord, siTwitter} from 'simple-icons'
-import {NavSettings} from '@/types/NavSettings.ts'
-import AcIcon from '@/components/AcIcon.vue'
-import {computed, onUnmounted, ref, watch} from 'vue'
+const AcIcon = defineAsyncComponent(() => import('@/components/AcIcon.vue'))
+import {computed, defineAsyncComponent, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import {useSearchForm} from '@/components/views/search/hooks.ts'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {username} from '@/store/forms/validators.ts'
-import AcStatsBar from '@/components/navigation/AcStatsBar.vue'
+const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/AcStatsBar.vue'))
 
 // Should already have been populated in the root component.
 const searchForm = useSearchForm()

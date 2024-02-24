@@ -48,26 +48,26 @@
 </style>
 
 <script lang="ts">
-import {toValue} from 'vue'
+import {toValue, defineAsyncComponent} from 'vue'
 import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
 import {Patch} from '@/store/singles/patcher.ts'
 import deepEqual from 'fast-deep-equal'
-import AcEditor from '@/components/fields/AcEditor.vue'
-import AcTagField from '@/components/fields/AcTagField.vue'
-import AcRatingField from '@/components/fields/AcRatingField.vue'
-import AcUppyFile from '@/components/fields/AcUppyFile.vue'
-import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
-import AcBankToggle from '@/components/fields/AcBankToggle.vue'
-import AcPriceField from '@/components/fields/AcPriceField.vue'
-import AcStarField from '@/components/fields/AcStarField.vue'
+const AcEditor = defineAsyncComponent(() => import('@/components/fields/AcEditor.vue'))
+const AcTagField = defineAsyncComponent(() => import('@/components/fields/AcTagField.vue'))
+const AcRatingField = defineAsyncComponent(() => import('@/components/fields/AcRatingField.vue'))
+const AcUppyFile = defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue'))
+const AcSubmissionSelect = defineAsyncComponent(() => import('@/components/fields/AcSubmissionSelect.vue'))
+const AcBankToggle = defineAsyncComponent(() => import('@/components/fields/AcBankToggle.vue'))
+const AcPriceField = defineAsyncComponent(() => import('@/components/fields/AcPriceField.vue'))
+const AcStarField = defineAsyncComponent(() => import('@/components/fields/AcStarField.vue'))
 import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
 import {VSwitch} from 'vuetify/lib/components/VSwitch/index.mjs'
 import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {VSlider} from 'vuetify/lib/components/VSlider/index.mjs'
 import {VSelect} from 'vuetify/lib/components/VSelect/index.mjs'
-import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
-import AcCheckbox from '@/components/fields/AcCheckbox.vue'
+const AcBirthdayField = defineAsyncComponent(() => import('@/components/fields/AcBirthdayField.vue'))
+const AcCheckbox = defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue'))
 
 // @ts-ignore
 @Component({

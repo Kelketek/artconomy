@@ -8,28 +8,28 @@ import {
 } from 'vue-router'
 import {clearMetaTag, paramsKey, setCookie, setMetaContent} from '@/lib/lib.ts'
 import {ArtStore} from '@/store/index.ts'
-import Reload from '@/components/views/Reload.vue'
-import Login from '@/components/views/auth/Login.vue'
-import Register from '@/components/views/auth/Register.vue'
-import Forgot from '@/components/views/auth/Forgot.vue'
-import AuthViews from '@/components/views/auth/AuthViews.vue'
-import ProductDetail from '@/components/views/product/ProductDetail.vue'
-import FAQ from '@/components/views/faq/FAQ.vue'
-import Submission from '@/components/views/submission/SubmissionDetail.vue'
-import Search from '@/components/views/search/Search.vue'
-import PasswordReset from '@/components/views/PasswordReset.vue'
-import SearchProducts from '@/components/views/search/SearchProducts.vue'
-import SearchCharacters from '@/components/views/search/SearchCharacters.vue'
-import SearchProfiles from '@/components/views/search/SearchProfiles.vue'
-import SearchSubmissions from '@/components/views/search/SearchSubmissions.vue'
-import ProductHints from '@/components/views/search/hints/ProductHints.vue'
-import SubmissionHints from '@/components/views/search/hints/SubmissionHints.vue'
-import CharacterHints from '@/components/views/search/hints/CharacterHints.vue'
-import ProfileHints from '@/components/views/search/hints/ProfileHints.vue'
-import Home from '@/components/views/Home.vue'
-import ProductExtra from '@/components/views/search/extra/ProductExtra.vue'
-import RedirectToViewer from '@/components/views/RedirectToViewer.vue'
 
+const Reload = () => import('@/components/views/Reload.vue')
+const Login = () => import('@/components/views/auth/Login.vue')
+const Register = () => import('@/components/views/auth/Register.vue')
+const Forgot = () => import('@/components/views/auth/Forgot.vue')
+const AuthViews = () => import('@/components/views/auth/AuthViews.vue')
+const ProductDetail = () => import('@/components/views/product/ProductDetail.vue')
+const FAQ = () => import('@/components/views/faq/FAQ.vue')
+const Submission = () => import('@/components/views/submission/SubmissionDetail.vue')
+const Search = () => import('@/components/views/search/Search.vue')
+const PasswordReset = () => import('@/components/views/PasswordReset.vue')
+const SearchProducts = () => import('@/components/views/search/SearchProducts.vue')
+const SearchCharacters = () => import('@/components/views/search/SearchCharacters.vue')
+const SearchProfiles = () => import('@/components/views/search/SearchProfiles.vue')
+const SearchSubmissions = () => import('@/components/views/search/SearchSubmissions.vue')
+const ProductHints = () => import('@/components/views/search/hints/ProductHints.vue')
+const SubmissionHints = () => import('@/components/views/search/hints/SubmissionHints.vue')
+const CharacterHints = () => import('@/components/views/search/hints/CharacterHints.vue')
+const ProfileHints = () => import('@/components/views/search/hints/ProfileHints.vue')
+const Home = () => import('@/components/views/Home.vue')
+const ProductExtra = () => import('@/components/views/search/extra/ProductExtra.vue')
+const RedirectToViewer = () => import('@/components/views/RedirectToViewer.vue')
 const RevisionDetail = () => import('@/components/views/order/deliverable/RevisionDetail.vue')
 const ReferenceDetail = () => import('@/components/views/order/deliverable/ReferenceDetail.vue')
 const DeliverableRevisions = () => import('@/components/views/order/deliverable/DeliverableRevisions.vue')
