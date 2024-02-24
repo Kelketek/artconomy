@@ -121,7 +121,7 @@ describe('NewOrder.vue', () => {
     vm.product.makeReady(genProduct({id: 1}))
     vm.orderForm.step = 2
     await nextTick()
-    expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy()
+    await waitFor(() => expect(wrapper.find('#field-newOrder__details').exists()).toBeTruthy())
     vm.orderForm.step = 3
     await nextTick()
     await wrapper.find('.submit-button').trigger('click')
@@ -665,12 +665,14 @@ describe('NewOrder.vue', () => {
         username: 'Fox',
       },
     })
+    await nextTick()
     const vm = wrapper.vm as any
     vm.product.makeReady(genProduct())
     await nextTick()
     mockReplace.mockReset()
     const mockSubmitThen = vi.spyOn(vm.orderForm, 'submitThen')
-    wrapper.find('input').trigger('submit')
+    await waitFor(() => expect(wrapper.find('input').exists()).toBeTruthy())
+    await wrapper.find('input').trigger('submit')
     await nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})
     expect(mockSubmitThen).not.toHaveBeenCalled()

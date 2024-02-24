@@ -1,5 +1,4 @@
-import {defineAsyncComponent, markRaw} from 'vue'
-import {computed} from 'vue'
+import {computed, defineAsyncComponent, markRaw} from 'vue'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
 import MarkDownIt from 'markdown-it'
@@ -928,3 +927,9 @@ export const getSalesStatsSchema = (username: string) => ({
 })
 
 export const BASE_URL = window.location.origin
+
+export const transformComponentName = (componentName: string) => {
+  return componentName.split('-').map((segment) => (
+    `${segment.charAt(0).toUpperCase()}${segment.substring(1)}`),
+  ).join('')
+}

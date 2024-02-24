@@ -27,10 +27,8 @@ def render_vite_bundle():
             f"Vite manifest file not found or invalid. Maybe your {settings.VITE_APP_DIR}/dist/manifest.json file is empty?"
         )
 
-    import_file = f'<script type="module" src="/static/dist/{manifest["index.html"]["file"]}"></script>'
-
     return mark_safe(
-        f"""<script type="module" src="/static/dist/{manifest['index.html']['file']}"></script>
-        <link rel="stylesheet" type="text/css" href="/static/dist/{manifest['index.html']['css'][0]}" />
-        {import_file}"""
+        f"""<script type="module" src="/static/dist/{manifest['index.html']['file']}" async></script>
+        <link rel="stylesheet" type="text/css" href="/static/dist/{manifest['index.html']['css'][0]}"/>
+"""
     )

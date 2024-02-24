@@ -5,13 +5,26 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import flushPromises from 'flush-promises'
 import {genUser} from './helpers/fixtures.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
-import {cleanUp, dialogExpects, docTarget, genAnon, mount, rq, rs, vueSetup, waitFor} from './helpers/index.ts'
+import {
+  cleanUp,
+  createTestRouter,
+  dialogExpects,
+  docTarget,
+  genAnon,
+  mount,
+  rq,
+  rs,
+  vueSetup,
+  waitFor, waitForSelector,
+} from './helpers/index.ts'
 import {WS} from 'vitest-websocket-mock'
 import {socketNameSpace} from '@/plugins/socket.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
-import {reactive} from 'vue'
+import {nextTick, reactive} from 'vue'
+import {Router} from 'vue-router'
 
 let wrapper: VueWrapper<any>
+let router: Router
 
 // @ts-ignore
 window.__COMMIT_HASH__ = 'bogusHash'
@@ -19,83 +32,55 @@ socketNameSpace.socketClass = WebSocket
 
 describe('App.vue', () => {
   let store: ArtStore
+  const OLD_ENV = process.env
   beforeEach(() => {
     store = createStore()
+    router = createTestRouter(false)
+    process.env = {...OLD_ENV}
   })
   afterEach(() => {
     cleanUp(wrapper)
-  })
-  test('Detects when a full interface should not be used due to a specific name', async() => {
-    wrapper = mount(
-      App,
-      vueSetup({
-        store,
-        mocks: {$route: {fullPath: '/order/', name: 'NewOrder', params: {}, query: {}}},
-        stubs: ['nav-bar', 'router-view', 'router-link'],
-      }))
-    const vm = wrapper.vm as any
-    expect(vm.fullInterface).toBe(false)
-  })
-  test('Detects when a full interface should not be used due to a landing page', async() => {
-    wrapper = mount(App, vueSetup({
-        store,
-        mocks: {$route: {fullPath: '/order/', name: 'LandingStuff', params: {}, query: {}}},
-        stubs: ['nav-bar', 'router-view', 'router-link'],
-      }))
-    const vm = wrapper.vm as any
-    expect(vm.fullInterface).toBe(false)
-  })
-  test('Detects when a full interface should be used', async() => {
-    wrapper = mount(App, vueSetup({
-      store,
-      mocks: {$route: {fullPath: '/order/', name: 'Thingsf', params: {}, query: {}}},
-      stubs: ['nav-bar', 'router-view', 'router-link'],
-    }))
-    const vm = wrapper.vm as any
-    expect(vm.fullInterface).toBe(true)
-  })
-  test('Detects when a full interface should be used on a broken route', async() => {
-    wrapper = mount(App, vueSetup({
-      store,
-      mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
-      stubs: ['nav-bar', 'router-view', 'router-link'],
-    }))
-    const vm = wrapper.vm as any
-    expect(vm.fullInterface).toBe(true)
+    process.env = OLD_ENV
   })
   test('Opens and closes an age verification dialog', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
     }))
+    await nextTick()
     const vm = wrapper.vm as any
     vm.viewerHandler.user.makeReady(genUser())
     store.commit('setShowAgeVerification', true)
-    await vm.$nextTick()
+    await nextTick()
     expect(store.state.showAgeVerification).toBe(true)
     expect(vm.viewerHandler.user.x).toBeTruthy()
-    wrapper.find('.dialog-closer').trigger('click')
-    await vm.$nextTick()
+    await waitForSelector(wrapper, '.dialog-closer')
+    await wrapper.find('.dialog-closer').trigger('click')
+    await nextTick()
     expect(wrapper.find('dialog-closer').exists()).toBe(false)
   })
   test('Submits the support request form', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     }))
-    const state = wrapper.vm.$store.state
+    await nextTick()
+    const state = wrapper.vm.store.state
     expect(state.showSupport).toBe(false)
     const vm = wrapper.vm as any
     expect(vm.showTicketSuccess).toBe(false)
     const supportForm: FormController = (wrapper.vm as any).supportForm
-    vm.$store.commit('supportDialog', true)
+    store.commit('supportDialog', true)
     vm.viewerHandler.user.setX(genUser())
-    await vm.$nextTick()
+    await nextTick()
     supportForm.fields.body.update('This is a test.')
-    await vm.$nextTick()
+    await nextTick()
+    await waitForSelector(wrapper, '#form-supportRequest')
     const submit = dialogExpects({wrapper, formName: 'supportRequest', fields: ['email', 'body']})
     submit.trigger('click')
     const response = rq('/api/lib/support/request/', 'post',
@@ -117,67 +102,72 @@ describe('App.vue', () => {
   test('Updates the email field when the viewer\'s email is updated.', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}, $router: {push: vi.fn()}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
-
     }))
+    await nextTick()
     const vm = wrapper.vm as any
     const supportForm = vm.supportForm
     expect(supportForm.fields.email.value).toBe('')
-    vm.$store.commit('supportDialog', true)
+    vm.store.commit('supportDialog', true)
     vm.viewerHandler.user.setX(genUser())
-    await vm.$nextTick()
+    await nextTick()
     expect(supportForm.fields.email.value).toBe('fox@artconomy.com')
     const editedUser = genUser({email: 'test@example.com'})
     vm.viewerHandler.user.setX(editedUser)
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(supportForm.fields.email.value).toBe('test@example.com')
     vm.viewerHandler.user.setX(genAnon())
-    await vm.$nextTick()
+    await nextTick()
     expect(supportForm.fields.email.value).toBe('')
   })
   test('Updates the email field when the viewer\'s guest email is updated.', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}, $router: {push: vi.fn()}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     const vm = wrapper.vm as any
     const supportForm = vm.supportForm
     expect(supportForm.fields.email.value).toBe('')
     vm.viewerHandler.user.setX(genUser())
-    await vm.$nextTick()
+    await nextTick()
     expect(supportForm.fields.email.value).toBe('fox@artconomy.com')
     const editedUser = genUser({email: 'test@example.com', guest_email: 'test2@example.com'})
     vm.viewerHandler.user.setX(editedUser)
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(supportForm.fields.email.value).toBe('test2@example.com')
     vm.viewerHandler.user.setX(genAnon())
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(supportForm.fields.email.value).toBe('')
   })
   test('Updates the referring_url field when the route has changed.', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      mocks: reactive({$route: {fullPath: '/', params: {}, query: {}}}),
+      extraPlugins: [router],
       stubs: ['router-link', 'router-view', 'nav-bar']
     }))
+    await nextTick()
     const supportForm = (wrapper.vm as any).supportForm
+    await router.push('/')
+    await nextTick()
     expect(supportForm.fields.referring_url.value).toBe('/')
-    wrapper.vm.$route.fullPath = '/test/'
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
-    expect(supportForm.fields.referring_url.value).toBe('/test/')
+    await router.push('/faq/about/')
+    await waitFor(() => expect(supportForm.fields.referring_url.value).toBe('/faq/about/'))
   })
   test('Shows an alert', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
-    await wrapper.vm.$nextTick()
-    console.log(wrapper.html())
+    await nextTick()
     expect(wrapper.find('#alert-bar').exists()).toBe(true)
   })
   test('Removes an alert automatically', async() => {
@@ -188,15 +178,17 @@ describe('App.vue', () => {
     vi.useFakeTimers()
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
-    await wrapper.vm.$nextTick()
+    await nextTick()
     vi.runOnlyPendingTimers()
-    await wrapper.vm.$nextTick()
+    await nextTick()
     vi.runOnlyPendingTimers()
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('#alert-bar').exists()).toBe(false)
     expect((wrapper.vm as any).showAlert).toBe(false)
   })
@@ -204,13 +196,14 @@ describe('App.vue', () => {
     vi.useFakeTimers()
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
-    await wrapper.vm.$nextTick()
+    await nextTick()
     vi.runOnlyPendingTimers()
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect((wrapper.vm as any).alertDismissed).toBe(false)
     vi.runOnlyPendingTimers()
     vi.useRealTimers()
@@ -218,109 +211,121 @@ describe('App.vue', () => {
   test('Manually resets alert dismissal, if needed', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     wrapper.vm.alertDismissed = true;
     wrapper.vm.showAlert = true
     expect((wrapper.vm as any).alertDismissed).toBe(false)
   })
   test('Loads up search form data', async() => {
+    await router.push('/?q=Stuff')
     wrapper = mount(App, vueSetup({
       store,
-      mocks: reactive({$route: {fullPath: '/', params: {}, query: {q: 'Stuff', featured: 'true'}, name: null}}),
+      extraPlugins: [router],
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     const vm = wrapper.vm as any
-    vm.$route.name = 'Home'
-    await vm.$nextTick()
+
+    await nextTick()
     expect(vm.searchForm.fields.q.value).toBe('Stuff')
   })
   test('Shows the markdown help section', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     const vm = wrapper.vm as any
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(store.state.markdownHelp).toBe(false)
     expect(wrapper.find('.markdown-rendered-help').exists()).toBe(false)
     vm.showMarkdownHelp = true
-    await wrapper.vm.$nextTick()
+    await nextTick()
     await waitFor(() => expect(wrapper.find('.markdown-rendered-help').exists()).toBe(true))
     expect(store.state.markdownHelp).toBe(true)
     wrapper.find('#close-markdown-help').trigger('click')
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(store.state.markdownHelp).toBe(false)
     expect(wrapper.find('.markdown-rendered-help').exists()).toBe(true)
   })
   test('Changes the route key', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      mocks: reactive({$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}}),
+      extraPlugins: [router],
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.routeKey).toEqual('')
-    vm.$route.params.username = 'Bob'
-    expect(vm.routeKey).toEqual('username:Bob|')
-    vm.$route.params.characterName = 'Dude'
-    expect(vm.routeKey).toEqual('characterName:Dude|username:Bob|')
-    vm.$route.params.submissionId = '555'
-    expect(vm.routeKey).toEqual('characterName:Dude|submissionId:555|username:Bob|')
+    await router.push({name: 'Profile', params: {username: 'Bob'}})
+    await waitFor(() => expect(vm.routeKey).toEqual('username:Bob|'))
+    await router.push({name: 'Character', params: {username: 'Bob', characterName: 'Dude'}})
+    await waitFor(() => expect(vm.routeKey).toEqual('characterName:Dude|username:Bob|'))
+    await router.push({name: 'Submission', params: {submissionId: '555'}})
+    await waitFor(() => expect(vm.routeKey).toEqual('submissionId:555|'))
   })
   test('Determines whether or not we are in dev mode', async() => {
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
+    await nextTick()
     const vm = wrapper.vm as any
     expect(vm.mode()).toBe('test')
     expect(vm.devMode).toBe(false)
-    const mockMode = vi.spyOn(vm, 'mode')
-    mockMode.mockImplementation(() => 'development')
-    expect(vm.mode()).toBe('development')
+    process.env.NODE_ENV = 'development'
     vm.forceRecompute += 1
-    await vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(vm.devMode).toBe(true)
   })
   test('Shows a reconnecting banner if we have lost connection', async() => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar', 'ac-cookie-consent'],
     }))
+    await nextTick()
     const server = new WS(wrapper.vm.$sock.endpoint)
     await server.connected
     wrapper.vm.socketState.updateX({serverVersion: 'beep'})
     server.close()
     await server.closed
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(wrapper.text()).toContain('Reconnecting...')
   })
   test('Resets the connection', async() => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     }))
+    await nextTick()
     const vm = wrapper.vm
     const server = new WS(wrapper.vm.$sock.endpoint, {jsonProtocol: true})
     // Need to make sure the cookie for the socket key is set, which can happen on next tick.
-    await vm.$nextTick()
+    await nextTick()
     const mockClose = vi.spyOn(vm.$sock.socket!, 'close')
     const mockReconnect = vi.spyOn(vm.$sock.socket!, 'reconnect')
     await server.connected
     expect(mockClose).not.toHaveBeenCalled()
     expect(mockReconnect).not.toHaveBeenCalled()
     server.send({command: 'reset', payload: {}})
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(mockClose).toHaveBeenCalledTimes(1)
     await new Promise((resolve) => setTimeout(resolve, 3000))
     expect(mockReconnect).toHaveBeenCalledTimes(1)
@@ -329,31 +334,35 @@ describe('App.vue', () => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     }))
+    await nextTick()
     const server = new WS(wrapper.vm.$sock.endpoint, {jsonProtocol: true})
     await server.connected
     const person = genUser({username: 'Person'})
     server.send({command: 'viewer', payload: person})
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.viewer.username).toBe('Person')
   })
   test('Gets the current version', async() => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     }))
+    await nextTick()
     const server = new WS(wrapper.vm.$sock.endpoint, {jsonProtocol: true})
     await server.connected
     await expect(server).toReceiveMessage({command: 'version', payload: {}})
     server.send({command: 'version', payload: {version: 'beep'}})
-    await wrapper.vm.$nextTick()
+    await nextTick()
     const vm = wrapper.vm as any
     expect(vm.socketState.x.serverVersion).toEqual('beep')
   })
@@ -361,31 +370,32 @@ describe('App.vue', () => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
+      extraPlugins: [router],
       mocks: reactive({$route: {fullPath: '/', params: {stuff: 'things'}, name: 'Home', query: {}}}),
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
     }))
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     window._paq = []
-    wrapper.vm.$route.fullPath = '/test/'
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await router.push('/submissions/35')
+    await nextTick()
+    await nextTick()
     expect(window._paq).toEqual([
-      ['setCustomUrl', 'http://localhost:3000/test/'],
+      ['setCustomUrl', 'http://localhost:3000/submissions/35'],
       ['setDocumentTitle', ''],
       ['setReferrerUrl', 'http://localhost:3000/'],
       ['trackPageView'],
     ])
+    await router.push({name: 'FAQ'})
     window._paq = []
     // Should not send a tracking event, but others should be tracked.
-    wrapper.vm.$route.name = 'FAQ'
-    wrapper.vm.$route.fullPath = '/test/faq/'
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(window._paq).toEqual([
-      ['setCustomUrl', 'http://localhost:3000/test/faq/'],
+      ['setCustomUrl', 'http://localhost:3000/faq/'],
       ['setDocumentTitle', ''],
-      ['setReferrerUrl', 'http://localhost:3000/test/'],
+      ['setReferrerUrl', 'http://localhost:3000/submissions/35'],
     ])
   })
 })

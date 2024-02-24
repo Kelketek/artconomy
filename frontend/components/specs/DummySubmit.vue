@@ -8,9 +8,10 @@
 </template>
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import AcNewSubmission from '../AcNewSubmission.vue'
 import Subjective from '@/mixins/subjective.ts'
 import Upload from '@/mixins/upload.ts'
+import {defineAsyncComponent} from 'vue'
+const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 @Component({
   components: {AcNewSubmission},

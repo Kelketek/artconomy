@@ -1,4 +1,4 @@
-import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import Home from '@/components/views/Home.vue'
@@ -7,15 +7,19 @@ import searchSchema from '@/components/views/search/specs/fixtures.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {Router} from 'vue-router'
+import {nextTick} from 'vue'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
 let searchForm: FormController
+let router: Router
 
 describe('Home.vue', () => {
   beforeEach(() => {
     store = createStore()
     searchForm = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
+    router = createTestRouter(false)
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -24,17 +28,19 @@ describe('Home.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
-      mocks: {$router: {}},
+      extraPlugins: [router],
       stubs: ['router-link'],
     }))
+    await nextTick()
   })
   test('Handles several lists', async() => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
-      mocks: {$router: {}},
+      extraPlugins: [router],
       stubs: ['router-link'],
     }))
+    await nextTick()
     const vm = wrapper.vm as any
     vm.featured.setList([])
     vm.featured.ready = true
@@ -60,91 +66,87 @@ describe('Home.vue', () => {
     vm.characters.setList([])
     vm.characters.ready = true
     vm.characters.fetching = false
-    await vm.$nextTick()
+    await nextTick()
   })
   test('Performs a premade search for products', async() => {
     setViewer(store, genUser())
-    const push = vi.fn()
     wrapper = mount(Home, vueSetup({
       store,
-      mocks: {$router: {push}},
+      extraPlugins: [router],
       stubs: ['router-link'],
     }))
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     await wrapper.findAll('.v-tab').at(2)!.trigger('click')
-    await wrapper.vm.$nextTick()
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     await wrapper.find('.low-price-more').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({
-      name: 'SearchProducts',
-      query: {
-        max_price: '30.00',
-        page: '1',
-        size: '24',
-      },
+    await nextTick()
+    await router.isReady()
+    expect(router.currentRoute.value.name).toEqual('SearchProducts')
+    expect(router.currentRoute.value.query).toEqual({
+      max_price: '30.00',
+      page: '1',
+      size: '24',
     })
   })
   test('Performs a search for characters', async() => {
     setViewer(store, genUser())
-    const push = vi.fn()
     wrapper = mount(Home, vueSetup({
       store,
-      mocks: {$router: {push}},
+      extraPlugins: [router],
       stubs: ['router-link'],
     }))
+    await nextTick()
     searchForm.fields.q.update('test')
     await wrapper.find('.search-characters').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({
-      name: 'SearchCharacters',
-      query: {
-        page: '1',
-        size: '24',
-      },
+    await nextTick()
+    await router.isReady()
+    expect(router.currentRoute.value.name).toEqual('SearchCharacters')
+    expect(router.currentRoute.value.query).toEqual({
+      page: '1',
+      size: '24',
     })
     expect(searchForm.fields.q.value).toBe('')
   })
   test('Performs a search for submissions', async() => {
     setViewer(store, genUser())
-    const push = vi.fn()
     wrapper = mount(Home, vueSetup({
       store,
-      mocks: {$router: {push}},
+      extraPlugins: [router],
       stubs: ['router-link'],
     }))
+    await nextTick()
     searchForm.fields.q.update('test')
-    await wrapper.vm.$nextTick()
+    await nextTick()
     await wrapper.find('.search-submissions').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({
-      name: 'SearchSubmissions',
-      query: {
-        page: '1',
-        size: '24',
-      },
+    await nextTick()
+    await router.isReady()
+    expect(router.currentRoute.value.name).toEqual('SearchSubmissions')
+    expect(router.currentRoute.value.query).toEqual({
+      page: '1',
+      size: '24',
     })
     expect(searchForm.fields.q.value).toBe('')
   })
   test('Performs a search for Products', async() => {
     setViewer(store, genAnon())
-    const push = vi.fn()
     wrapper = mount(Home, vueSetup({
       store,
-      mocks: {$router: {push}},
+      extraPlugins: [router],
       stubs: ['router-link'],
     }))
+    await nextTick()
     searchForm.fields.q.update('test')
-    await wrapper.vm.$nextTick()
-    wrapper.find('.home-search-field input').trigger('keyup')
-    await wrapper.vm.$nextTick()
-    expect(push).toHaveBeenCalledWith({
-      name: 'SearchProducts',
-      query: {
-        page: '1',
-        size: '24',
-        q: 'test',
-      },
+    await nextTick()
+    await wrapper.find('.home-search-field input').trigger('keyup')
+    await nextTick()
+    await router.isReady()
+    expect(router.currentRoute.value.name).toEqual('SearchProducts')
+    expect(router.currentRoute.value.query).toEqual({
+      page: '1',
+      size: '24',
+      q: 'test',
     })
   })
 })

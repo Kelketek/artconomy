@@ -217,11 +217,12 @@
 import {Component, Prop, toNative} from 'vue-facing-decorator'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
-import {ProfileController} from '@/store/profiles/controller.ts'
+import {AnyUser, ProfileController} from '@/store/profiles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {artCall, ArtVue, makeQueryParams} from '@/lib/lib.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {User} from '@/store/profiles/types/User.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 
 @Component({
   components: {
@@ -295,7 +296,8 @@ class AcNavDrawer extends ArtVue {
     artCall({
       url: '/api/profiles/logout/',
       method: 'post',
-    }).then(this.subjectHandler.user.setX).then(() => {
+    }).then((newUser: AnonUser) => {
+      this.subjectHandler.user.setX(newUser)
       this.$router.push({name: 'Home'})
       this.$emit('update:modelValue', null)
     })

@@ -1,5 +1,5 @@
 import {Router, createRouter, createWebHistory} from 'vue-router'
-import {cleanUp, mount, rq, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, rq, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -82,8 +82,7 @@ describe('AcCommentSection', () => {
     commentList.setList(commentSet.results)
     commentList.fetching = false
     commentList.ready = true
-    await vm.$nextTick()
-    expect(wrapper.findAll('.comment').length).toBe(7)
+    await waitFor(() => expect(wrapper.findAll('.comment').length).toBe(7))
   })
   test('Throws an error if you try to load an unreversedlist', async() => {
     mockError.mockImplementationOnce(() => {

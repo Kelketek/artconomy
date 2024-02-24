@@ -11,7 +11,7 @@ import {
   setViewer,
   vueSetup,
   VuetifyWrapped,
-  waitFor,
+  waitFor, waitForSelector,
 } from '@/specs/helpers/index.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -25,6 +25,7 @@ import mockAxios from '@/__mocks__/axios.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -132,7 +133,8 @@ describe('AcSampleEditor.vue', () => {
         samples: samplesList,
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await waitForSelector(wrapper, '.remove-submission')
     await wrapper.find('.remove-submission').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/1/', 'delete', undefined))
     mockAxios.mockResponse(rs({}))
@@ -181,7 +183,8 @@ describe('AcSampleEditor.vue', () => {
         samples: samplesList,
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await waitForSelector(wrapper, '.remove-submission')
     await wrapper.find('.remove-submission').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/1/', 'delete', undefined))
     mockAxios.mockResponse(rs({}))

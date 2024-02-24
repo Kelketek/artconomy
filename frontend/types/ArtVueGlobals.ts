@@ -29,7 +29,6 @@ export interface ArtVueGlobals {
   // Shortcuts
   $displayImage: (asset: object, thumbName: string) => string,
   $img: (asset: object | null, thumbName: string, fallback?: boolean) => string,
-  $goTo: (selector: string) => void,
   // Single module funcs
   $getSingle: (name: string, schema?: SingleModuleOpts<any>, uid?: string) => SingleController<any>,
   $listenForSingle: (name: string, uid?: string) => void,

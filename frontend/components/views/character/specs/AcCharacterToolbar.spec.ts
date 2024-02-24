@@ -5,14 +5,12 @@ import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {
   cleanUp,
   confirmAction,
-  createVuetify,
-  docTarget,
   mount,
   rq,
   rs,
   setViewer,
   vueSetup,
-  VuetifyWrapped,
+  VuetifyWrapped, waitFor,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {Character} from '@/store/characters/types/Character.ts'
@@ -211,6 +209,7 @@ describe('AcCharacterToolbar.vue', () => {
     await wrapper.find('.upload-button').trigger('click')
     await vm.$nextTick()
     expect(vm.showUpload).toBe(true)
+    await waitFor(() => expect(vm.$refs.submissionDialog).toBeTruthy())
     vm.$refs.submissionDialog.$emit('success', 'test')
     expect(vm.showUpload).toBe(false)
     await vm.$nextTick()

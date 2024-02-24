@@ -1,11 +1,12 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import DummySubmit from '@/components/specs/DummySubmit.vue'
 import mockAxios from '@/__mocks__/axios.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
@@ -57,6 +58,7 @@ describe('AcNewSubmission.vue', () => {
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
+    await waitFor(() => expect(vm.$refs.submissionForm).toBeTruthy())
     const form = vm.$refs.submissionForm
     expect(form.newUpload.fields.artists.value).toEqual([])
     expect(form.isArtist).toBe(false)
@@ -132,8 +134,9 @@ describe('AcNewSubmission.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     mockAxios.reset()
+    await waitFor(() => expect(vm.$refs.submissionForm).toBeTruthy())
     vm.$refs.submissionForm.multiple = true
     const form = vm.$getForm('newUpload')
     form.step = 2

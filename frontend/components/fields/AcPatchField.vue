@@ -1,8 +1,7 @@
-<!--suppress XmlUnboundNsPrefix -->
 <template>
-  <component :is="fieldType" v-bind="inputAttrs" v-model="scratch" v-if="(patcher.loaded || patcher.model)"
+  <component :is="fieldComponent" v-bind="inputAttrs" v-model="scratch" v-if="(patcher.loaded || patcher.model)"
              @keydown.enter="enterHandler" class="patch-field">
-    <template v-for="(_, name) in $slots" #[name]>
+    <template v-for="(_, name) in slots" #[name]>
       <slot :name="name"/>
     </template>
     <template #append>
@@ -47,197 +46,175 @@
 }
 </style>
 
-<script lang="ts">
-import {toValue, defineAsyncComponent} from 'vue'
-import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {toValue, defineAsyncComponent, computed, useAttrs, ref, watch, useSlots} from 'vue'
+import type {Component} from 'vue'
 import {Patch} from '@/store/singles/patcher.ts'
 import deepEqual from 'fast-deep-equal'
-const AcEditor = defineAsyncComponent(() => import('@/components/fields/AcEditor.vue'))
-const AcTagField = defineAsyncComponent(() => import('@/components/fields/AcTagField.vue'))
-const AcRatingField = defineAsyncComponent(() => import('@/components/fields/AcRatingField.vue'))
-const AcUppyFile = defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue'))
-const AcSubmissionSelect = defineAsyncComponent(() => import('@/components/fields/AcSubmissionSelect.vue'))
-const AcBankToggle = defineAsyncComponent(() => import('@/components/fields/AcBankToggle.vue'))
-const AcPriceField = defineAsyncComponent(() => import('@/components/fields/AcPriceField.vue'))
-const AcStarField = defineAsyncComponent(() => import('@/components/fields/AcStarField.vue'))
+import {useTheme} from 'vuetify'
 import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
 import {VSwitch} from 'vuetify/lib/components/VSwitch/index.mjs'
 import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {VSlider} from 'vuetify/lib/components/VSlider/index.mjs'
 import {VSelect} from 'vuetify/lib/components/VSelect/index.mjs'
-const AcBirthdayField = defineAsyncComponent(() => import('@/components/fields/AcBirthdayField.vue'))
-const AcCheckbox = defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue'))
+import {transformComponentName} from '@/lib/lib.ts'
 
-// @ts-ignore
-@Component({
-  components: {
-    AcBirthdayField,
-    AcStarField,
-    AcPriceField,
-    AcBankToggle,
-    AcSubmissionSelect,
-    AcUppyFile,
-    AcRatingField,
-    AcTagField,
-    AcEditor,
-    AcCheckbox,
-    VTextField,
-    VCheckbox,
-    VSwitch,
-    VAutocomplete,
-    VSlider,
-    VSelect,
-  },
+const componentMap: Record<string, Component> = {
+  AcEditor: defineAsyncComponent(() => import('@/components/fields/AcEditor.vue')),
+  AcTagField: defineAsyncComponent(() => import('@/components/fields/AcTagField.vue')),
+  AcRatingField: defineAsyncComponent(() => import('@/components/fields/AcRatingField.vue')),
+  AcUppyFile: defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue')),
+  AcSubmissionSelect: defineAsyncComponent(() => import('@/components/fields/AcSubmissionSelect.vue')),
+  AcBankToggle: defineAsyncComponent(() => import('@/components/fields/AcBankToggle.vue')),
+  AcPriceField: defineAsyncComponent(() => import('@/components/fields/AcPriceField.vue')),
+  AcStarField: defineAsyncComponent(() => import('@/components/fields/AcStarField.vue')),
+  AcBirthdayField: defineAsyncComponent(() => import('@/components/fields/AcBirthdayField.vue')),
+  AcCheckbox: defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue')),
+  VCheckbox,
+  VSwitch,
+  VTextField,
+  VAutocomplete,
+  VSlider,
+  VSelect,
+}
+
+declare interface PatchFieldProps {
+  fieldType?: string,
+  patcher: Patch,
+  saveIndicator?: boolean,
+  autoSave?: boolean,
+  enterSave?: boolean,
+  id?: string,
+  instant?: boolean,
+}
+
+const props = withDefaults(defineProps<PatchFieldProps>(), {
+  fieldType: 'v-text-field',
+  saveIndicator: true,
+  autoSave: true,
+  enterSave: true,
+  instant: false,
 })
-class AcPatchField extends Vue {
-  @Prop({default: 'v-text-field'})
-  public fieldType!: string
 
-  @Prop({required: true})
-  public patcher!: Patch
+const fieldComponent = componentMap[transformComponentName(props.fieldType)]
 
-  @Prop({default: true})
-  public saveIndicator!: boolean
+const passedAttrs = useAttrs()
+const theme = useTheme()
+const slots = useSlots()
 
-  @Prop({default: true})
-  public autoSave!: boolean
+const disabled = computed(() => {
+  return Boolean(passedAttrs.disabled || (!props.autoSave && toValue(props.patcher.patching)))
+})
 
-  @Prop({default: false})
-  public enterSave!: boolean
+const handlesSaving = computed(() => {
+  // May want to find a way to generalize this in the future.
+  return props.fieldType === 'ac-editor'
+})
 
-  @Prop()
-  public id!: string
-
-  // This will update the field from upstream pushes instantly. You don't want this for text. You do for booleans.
-  // For sanity between tabs, this is counted as true if the window is not focused either way.
-  @Prop({default: false})
-  public instant!: boolean
-
-  public scratch: any = ''
-
-  public created() {
-    this.scratch = this.patcher.model
-  }
-
-  public save() {
-    if (!this.saved) {
-      this.patcher.setValue(this.scratch)
-    }
-  }
-
-  @Watch('scratch')
-  public watchScratch() {
-    if (this.autoSave || this.handlesSaving) {
-      this.save()
-    }
-  }
-
-  @Watch('patcher.model')
-  public watchModel(val: any) {
-    if (this.processInstantly) {
-      return
-    }
-    if (this.autoSave || this.handlesSaving) {
-      this.scratch = val
-    }
-  }
-
-  @Watch('patcher.rawValue')
-  public watchRawValue(val: any) {
-    if (!this.processInstantly) {
-      return
-    }
-    this.scratch = val
-  }
-
-  @Watch('patcher.cached')
-  public watchCache(val: any) {
-    // A synced handler is modifying our value.
-    this.scratch = val
-  }
-
-  @Watch('patcher.errors')
-  public errorCheck(val: string[]) {
-    if (val.length && !this.autoSave) {
-      // When we have an error, our cache will still have the new value. We need to reset it so that our child
-      // component knows we've still not saved what's upstream. Note: This is only for child components that handle
-      // their own save events, such as the editor. Doing this on other components runs the risk of wiping out
-      // the value the user set. To override this, set refresh to false.
-      this.scratch = this.patcher.rawValue
-    }
-  }
-
-  public enterHandler() {
-    if (!this.enterSave) {
-      return
-    }
-    this.save()
-  }
-
-  @Watch('saved')
-  public clearErrorsIfSaved(val: boolean) {
-    if (val) {
-      this.patcher.errors.value = []
-    }
-  }
-
-  public get saved() {
-    let result: boolean
-    if (typeof this.scratch !== 'string') {
-      result = deepEqual(this.scratch, this.patcher.rawValue)
-      return result
-    }
-    if (typeof this.patcher.rawValue === 'number') {
-      return parseFloat(this.scratch) === this.patcher.rawValue
-    }
-    if (typeof this.patcher.rawValue !== 'string') {
-      // Can't be saved if it's not the same type.
-      return false
-    }
-    result = this.patcher.rawValue.trim() === this.scratch.trim()
-    return result
-  }
-
-  public get disabled() {
-    return Boolean(this.$attrs.disabled || (!this.autoSave && toValue(this.patcher.patching)))
-  }
-
-  public get processInstantly() {
-    return this.instant || !document.hasFocus()
-  }
-
-  public get loading() {
-    if (this.autoSave) {
-      return false
-    }
-    if (toValue(this.patcher.patching)) {
-      return (this.$vuetify.theme.current.colors.secondary as any).base
-    }
+const loading = computed(() => {
+  if (props.autoSave) {
     return false
   }
-
-  public get handlesSaving() {
-    // May want to find a way to generalize this in the future.
-    return this.fieldType === 'ac-editor'
+  if (toValue(props.patcher.patching)) {
+    return (theme.current.value.colors.secondary as any).base
   }
+  return false
+})
 
-  public get inputAttrs() {
-    const attrs: any = {...this.$attrs}
-    delete attrs.value
-    delete attrs.modelValue
-    attrs.errorMessages = toValue(this.patcher.errors)
-    attrs.disabled = this.disabled
-    attrs.loading = this.loading
-    attrs.id = this.id
-    if (this.handlesSaving) {
-      attrs.autoSave = this.autoSave
-      attrs.saveIndicator = this.saveIndicator
-      attrs.saveComparison = this.patcher.rawValue
-    }
-    return attrs
+const scratch = ref<any>(props.patcher.model)
+
+const saved = computed(() => {
+  let result: boolean
+  if (typeof scratch.value !== 'string') {
+    result = deepEqual(scratch.value, props.patcher.rawValue)
+    return result
+  }
+  if (typeof props.patcher.rawValue === 'number') {
+    return parseFloat(scratch.value) === props.patcher.rawValue
+  }
+  if (typeof props.patcher.rawValue !== 'string') {
+    // Can't be saved if it's not the same type.
+    return false
+  }
+  result = props.patcher.rawValue.trim() === scratch.value.trim()
+  return result
+})
+
+const save = () => {
+  if (!saved.value) {
+    props.patcher.setValue(scratch.value)
   }
 }
 
-export default toNative(AcPatchField)
+const inputAttrs = computed(() => {
+  const attrs: any = {...passedAttrs}
+  delete attrs.value
+  delete attrs.modelValue
+  attrs.errorMessages = toValue(props.patcher.errors)
+  attrs.disabled = disabled.value
+  attrs.loading = loading.value
+  attrs.id = props.id
+  if (handlesSaving.value) {
+    attrs.autoSave = props.autoSave
+    attrs.saveIndicator = props.saveIndicator
+    attrs.saveComparison = props.patcher.rawValue
+  }
+  return attrs
+})
+
+watch(scratch, () => {
+  if (props.autoSave || handlesSaving.value) {
+    save()
+  }
+})
+
+watch(() => props.patcher.model, (val: any) => {
+  if (processInstantly.value) {
+    return
+  }
+  if (props.autoSave || handlesSaving.value) {
+    scratch.value = val
+  }
+})
+
+watch(() => props.patcher.rawValue, (val: any) => {
+  if (!processInstantly.value) {
+    return
+  }
+  scratch.value = val
+})
+
+watch(() => props.patcher.cached, (val: any) => {
+  // A synced handler is modifying our value.
+  scratch.value = val
+})
+
+watch(() => props.patcher.errors, () => {
+  // When we have an error, our cache will still have the new value. We need to reset it so that our child
+  // component knows we've still not saved what's upstream. Note: This is only for child components that handle
+  // their own save events, such as the editor. Doing this on other components runs the risk of wiping out
+  // the value the user set. To override this, set refresh to false.
+  scratch.value = props.patcher.rawValue
+})
+
+watch(saved, (val: boolean) => {
+  if (val) {
+    const patcher = props.patcher
+    patcher.errors.value = []
+  }
+})
+
+const enterHandler = () => {
+  if (!props.enterSave) {
+    return
+  }
+  save()
+}
+
+const processInstantly = computed(() => {
+  // TODO: Pretty sure document.hasFocus() isn't reactive here, so need to find another means of handling it,
+  // if it's important.
+  return props.instant || !document.hasFocus()
+})
 </script>

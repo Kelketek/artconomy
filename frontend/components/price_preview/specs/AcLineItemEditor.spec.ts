@@ -9,6 +9,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import vue from '@vitejs/plugin-vue'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -32,6 +33,7 @@ describe('AcLineItemEditor.vue', () => {
         priceData: getTotals(lineItems),
       },
     })
+    await nextTick()
   })
   test('Gives a default label to a discount', async() => {
     const lineItems = dummyLineItems()
@@ -53,7 +55,8 @@ describe('AcLineItemEditor.vue', () => {
         priceData: getTotals(lineItems),
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(wrapper.html()).toContain('Discount')
   })
   test('Gives a default label to an add-on', async() => {
@@ -76,7 +79,8 @@ describe('AcLineItemEditor.vue', () => {
         priceData: getTotals(lineItems),
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(wrapper.html()).toContain('Additional requirements')
   })
   test('Gives a default label to the base price', async() => {
@@ -99,7 +103,8 @@ describe('AcLineItemEditor.vue', () => {
         priceData: getTotals(lineItems),
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(wrapper.html()).toContain('Base price')
   })
   test('Gives a default label to other types', async() => {
@@ -122,7 +127,8 @@ describe('AcLineItemEditor.vue', () => {
         priceData: getTotals(lineItems),
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(wrapper.html()).toContain('Accessory item')
   })
   test('Gives a blank label for an unknown type', async() => {
@@ -145,7 +151,8 @@ describe('AcLineItemEditor.vue', () => {
         priceData: getTotals(lineItems),
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(wrapper.html()).toContain('Other')
   })
   afterEach(() => {

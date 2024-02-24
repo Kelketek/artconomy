@@ -41,9 +41,10 @@ import Submission from '@/types/Submission.ts'
 import {flatten, genId} from '@/lib/lib.ts'
 import AcTab from '@/components/AcTab.vue'
 import Upload from '@/mixins/upload.ts'
-import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import ArtistTag from '@/types/ArtistTag.ts'
+import {defineAsyncComponent} from 'vue'
+const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 @Component({
   components: {

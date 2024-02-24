@@ -34,6 +34,7 @@
                     <ac-link :to="primarySubmissionLink">
                       <ac-asset :asset="character.profile.x.primary_submission"
                                 thumb-name="thumbnail" :terse="true"
+                                :aspect-ratio="1"
                                 :editing="editing"
                                 class="primary-submission"
                                 v-model="showChangePrimary"

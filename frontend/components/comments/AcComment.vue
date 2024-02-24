@@ -188,22 +188,23 @@
 <script lang="ts">
 
 import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
+import {defineAsyncComponent} from 'vue'
 import Subjective from '@/mixins/subjective.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
 import Comment from '@/types/Comment.ts'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcNewComment from '@/components/comments/AcNewComment.vue'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+const AcAvatar = defineAsyncComponent(() => import('@/components/AcAvatar.vue'))
+const AcRendered = defineAsyncComponent(() => import('@/components/wrappers/AcRendered.ts'))
+const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
+const AcFormContainer = defineAsyncComponent(() => import('@/components/wrappers/AcFormContainer.vue'))
+const AcConfirmation = defineAsyncComponent(() => import('@/components/wrappers/AcConfirmation.vue'))
+const AcLoadingSpinner = defineAsyncComponent(() => import('@/components/wrappers/AcLoadingSpinner.vue'))
+const AcPatchField = defineAsyncComponent(() => import('@/components/fields/AcPatchField.vue'))
+const AcExpandedProperty = defineAsyncComponent(() => import('@/components/wrappers/AcExpandedProperty.vue'))
+const AcLink = defineAsyncComponent(() => import('@/components/wrappers/AcLink.vue'))
+const AcLoadSection = defineAsyncComponent(() => import('@/components/wrappers/AcLoadSection.vue'))
+const AcNewComment = defineAsyncComponent(() => import('@/components/comments/AcNewComment.vue'))
 
 @Component({
   components: {

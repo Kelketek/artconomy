@@ -12,7 +12,7 @@ import {
   rs,
   setViewer,
   vueSetup, VuetifyWrapped,
-  waitFor,
+  waitFor, waitForSelector,
 } from '@/specs/helpers/index.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -123,21 +123,21 @@ describe('NavBar.vue', () => {
   })
   test('Logs out a user', async() => {
     setViewer(store, genUser())
+    await router.push({name: 'FAQ'})
     wrapper = mount(NavBarContainer, vueSetup({
       store,
       extraPlugins: [router],
-      stubs: ['router-link'],
     }))
     await router.isReady()
     await nextTick()
     mockAxios.reset()
-    wrapper.find('.logout-button').trigger('click')
+    await waitForSelector(wrapper, '.logout-button')
+    await wrapper.find('.logout-button').trigger('click')
     await nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/profiles/logout/', 'post', undefined, {}))
-    mockAxios.mockResponse(rs(genAnon()))
-    await flushPromises()
+    mockAxios.mockResponseFor({url: '/api/profiles/logout/'}, rs(genAnon()))
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('Home'))
     expect(store.state.profiles!.viewerRawUsername).toEqual('_')
-    expect(router.currentRoute.value.name).toEqual('Home')
   })
   test('Loads the notifications view for an artist', async() => {
     setViewer(store, genUser({artist_mode: true}))
@@ -206,6 +206,7 @@ describe('NavBar.vue', () => {
       stubs: ['router-link'],
     }))
     await router.push('/')
+    await waitForSelector(wrapper, '.who-is-open')
     await wrapper.find('.who-is-open').trigger('click')
     await waitFor(() => expect(router.currentRoute.value.name).toEqual('SearchProducts'))
     expect(router.currentRoute.value.query.q).toBeFalsy()

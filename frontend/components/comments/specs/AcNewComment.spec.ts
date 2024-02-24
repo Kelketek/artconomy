@@ -1,6 +1,16 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, flushPromises, mount, rq, rs, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {
+  cleanUp,
+  flushPromises,
+  mount,
+  rq,
+  rs,
+  setViewer,
+  vueSetup,
+  VuetifyWrapped,
+  waitForSelector,
+} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {commentSet} from './fixtures.ts'
@@ -63,6 +73,7 @@ describe('AcNewComment.vue', () => {
         extraData: {test: 1},
       },
     })
+    await waitForSelector(wrapper, 'textarea')
     await wrapper.find('textarea').setValue('New comment!')
     await wrapper.vm.$nextTick()
     await wrapper.find('.submit-button').trigger('click')

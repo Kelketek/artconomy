@@ -388,6 +388,10 @@ export const createTestRouter = (quick = true) => {
   })
 }
 
+export const waitForSelector = async (wrapper: VueWrapper, selector: string) => {
+  return await waitFor(() => expect(wrapper.find(selector).exists()).toBe(true))
+}
+
 export const mockStripeInitializer = vi.fn()
 mockStripeInitializer.mockImplementation(mockStripe)
 mockCardCreate.mockImplementation(() => ({mount: mockCardMount}))

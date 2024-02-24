@@ -9,7 +9,7 @@ import {
   rs,
   setViewer,
   vueSetup,
-  VuetifyWrapped,
+  VuetifyWrapped, waitFor, waitForSelector,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -121,7 +121,7 @@ describe('AcComment.vue', () => {
         username: commentList.list[1].x.user.username,
       },
     })
-    expect(wrapper.find('.subcomments').exists()).toBe(true)
+    await waitForSelector(wrapper, '.subcomments')
   })
   test('Scrolls to the comment if it is to be highlighted', async() => {
     const empty = mount(Empty, vueSetup({store}))
@@ -198,7 +198,7 @@ describe('AcComment.vue', () => {
     const replyButton = wrapper.find('.reply-button')
     expect(replyButton.exists()).toBe(true)
     await replyButton.trigger('click')
-    await wrapper.vm.$nextTick()
+    await waitForSelector(wrapper, '.new-comment textarea')
     await wrapper.find('.new-comment textarea').setValue('Response comment!')
     await wrapper.find('.new-comment .cancel-button').trigger('click')
     await wrapper.vm.$nextTick()
@@ -236,6 +236,7 @@ describe('AcComment.vue', () => {
     expect(replyButton.exists()).toBe(true)
     await replyButton.trigger('click')
     await wrapper.vm.$nextTick()
+    await waitForSelector(wrapper, '.new-comment textarea')
     await wrapper.find('.new-comment textarea').setValue('Response comment!')
     await wrapper.find('.new-comment .cancel-button').trigger('click')
     await wrapper.vm.$nextTick()
@@ -291,6 +292,7 @@ describe('AcComment.vue', () => {
     await wrapper.vm.$nextTick()
     await wrapper.find('.edit-button').trigger('click')
     await wrapper.vm.$nextTick()
+    await waitForSelector(wrapper, 'textarea')
     await wrapper.find('textarea').setValue('Edited message')
     await wrapper.vm.$nextTick()
     await wrapper.find('.save-button').trigger('click')

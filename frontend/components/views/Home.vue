@@ -48,7 +48,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="laptop" max-height="20vh" contain/>
+                  <v-img :src="laptop" max-height="20vh" aspect-ratio="1" contain/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -59,9 +59,6 @@
                 </v-col>
               </v-row>
             </v-col>
-            <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical/>
-            </v-col>
           </v-row>
         </v-col>
         <v-col class="text-center d-flex" cols="12" md="4">
@@ -69,7 +66,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12">
-                  <v-img :src="fingerPainting" max-height="20vh" contain/>
+                  <v-img :src="fingerPainting" max-height="20vh" aspect-ratio="1" contain/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -86,9 +83,6 @@
                 </v-col>
               </v-row>
             </v-col>
-            <v-col class="hidden-sm-and-down shrink">
-              <v-divider vertical/>
-            </v-col>
           </v-row>
         </v-col>
         <v-col class="text-center d-flex" cols="12" md="4">
@@ -96,7 +90,7 @@
             <v-col class="grow pa-1">
               <v-row dense>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="fridge" max-height="20vh" contain/>
+                  <v-img :src="fridge" max-height="20vh" aspect-ratio="1" contain/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row class="justify-content fill-height" align="center">
@@ -307,7 +301,7 @@
               </template>
               <template v-slot:loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer($vuetify.display.md)).keys()"
+                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer(display.md.value)).keys()"
                          :key="i">
                     <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
                       <v-skeleton-loader
@@ -370,413 +364,373 @@
 }
 </style>
 
-<script lang="ts">
-
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import AcProductPreview from '@/components/AcProductPreview.vue'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import Product from '@/types/Product.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 import Submission from '@/types/Submission.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
-import {Character} from '@/store/characters/types/Character.ts'
 import {makeQueryParams, shuffle, BASE_URL} from '@/lib/lib.ts'
 import AcTabs from '@/components/navigation/AcTabs.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcAsset from '@/components/AcAsset.vue'
-import Formatting from '@/mixins/formatting.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
 import AcProductSlider from '@/components/AcProductSlider.vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {computed, ref} from 'vue'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {useRouter} from 'vue-router'
+import {useDisplay} from 'vuetify'
 
-// Cannot compile when importing Ratings in tests, for some reason, but these constants are in
-// frontend/store/profiles/types/Ratings.ts
-const ADULT = 2
-
-@Component({
-  components: {
-    AcProductSlider,
-    AcAvatar,
-    AcAsset,
-    AcLink,
-    AcTabs,
-    AcCharacterPreview,
-    AcGalleryPreview,
-    AcBoundField,
-    AcLoadSection,
-    AcProductPreview,
-  },
+const searchForm = useForm('search')
+const featured = useList<Product>('featured', {
+  endpoint: '/api/sales/featured-products/',
+  params: {size: 6},
 })
-class Home extends mixins(Viewer, Formatting) {
-  public searchForm: FormController = null as unknown as FormController
-  public featured: ListController<Product> = null as unknown as ListController<Product>
-  public rated: ListController<Product> = null as unknown as ListController<Product>
-  public newArtistProducts: ListController<Product> = null as unknown as ListController<Product>
-  public randomProducts: ListController<Product> = null as unknown as ListController<Product>
-  public lowPriced: ListController<Product> = null as unknown as ListController<Product>
-  public commissions: ListController<Submission> = null as unknown as ListController<Submission>
-  public submissions: ListController<Submission> = null as unknown as ListController<Submission>
-  public communitySubmissions: ListController<Submission> = null as unknown as ListController<Submission>
-  public characters: ListController<Character> = null as unknown as ListController<Character>
-  public lgbt: ListController<Product> = null as unknown as ListController<Product>
-  public artistsOfColor: ListController<Product> = null as unknown as ListController<Product>
-  public laptop = new URL('/static/images/laptop.png', BASE_URL).href
-  public fridge = new URL('/static/images/fridge.png', BASE_URL).href
-  public fingerPainting = new URL('/static/images/fingerpainting.png', BASE_URL).href
-  public discord = new URL('/static/images/Discord.png', BASE_URL).href
-  public mainSection = 0
-  public communitySection = shuffle([0, 1, 2])[0]
-  public blogEntries = [
-    {
-      link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',
-      title: '7 Tips on Pricing your Artwork',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2020/04/alvaro-reyes-MEldcHumbu8-unsplash.jpg',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2020/01/13/5-tips-for-growing-your-audience-as-an-artist/',
-      title: '5 Tips for Growing your Audience as an Artist',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2020/01/dragon.jpg',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2019/07/31/5-tips-for-character-design/',
-      title: '5 Tips for Character Design',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2019/07/pirate.jpg',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2019/05/17/staying-safe-how-to-prevent-getting-scammed-when-selling-commissions/',
-      title: '5 Ways to Protect Yourself When Selling Art Commissions',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2019/05/piggybank.jpg',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2019/05/01/the-transition-process-making-art-your-side-hustle/',
-      title: '7 Tips on Making Art your Side Hustle',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2018/01/cover-web.jpeg',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2018/11/15/how-to-describe-what-you-need-to-an-artist/',
-      title: 'How to Describe What you Need to an Artist',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2019/06/wrong-question.png',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/',
-      title: 'Escrow For Art Commissions: 5 Reasons we use it',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2022/11/defending-1885x2048.png',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2020/11/18/5-things-to-know-about-art-commissions/',
-      title: '5 Things to Know about Art Commissions',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2020/11/kelly-sikkema-o2TRWThve_I-unsplash.jpg',
-    },
-  ]
+featured.firstRun()
 
-  public nsfwBlogEntries = [
-    {
-      link: 'https://artconomy.com/blog/posts/2020/08/04/nsfw-commissions-5-tips-for-buyers/',
-      title: 'NSFW Commissions: 5 Tips for Buyers',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2020/08/halcy0n-phoex-JasAra02-1536x1075.png',
-    },
-    {
-      link: 'https://artconomy.com/blog/posts/2022/08/16/nsfw-furry-artists-4-tips-to-find/',
-      title: 'NSFW Furry Artists: 4 Tips to Find the Right One for You!',
-      image: 'https://artconomy.com/blog/wp-content/uploads/2022/08/blog1transparent-3.png',
-    },
-  ]
+const rated = useList<Product>('rated', {
+  endpoint: '/api/sales/highly-rated/',
+  params: {size: 6},
+})
+rated.firstRun()
 
-  public banners = [
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-A1-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-A2-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-A3-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-A4-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-B1-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-B2-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-B3-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-B4-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-C1-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-C2-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-C3-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-C4-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-D1-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-D2-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-D3-1440x200.png', BASE_URL),
-    },
-    {
-      artist: 'Halcyon',
-      src: new URL('/static/images/halcy0n-artconomy-banner-D4-1440x200.png', BASE_URL),
-    },
-  ]
+const lowPriced = useList<Product>('lowPriced', {
+  endpoint: '/api/sales/low-price/',
+  params: {size: 6},
+})
+lowPriced.firstRun()
 
-  public get articles() {
-    const sourceArticles = [...this.blogEntries]
-    if (this.rating >= ADULT) {
-      // Remove some clean articles at random to make the NSFW articles more probable, since there
-      // are far less of them.
-      for (let i = 0; i < (this.nsfwBlogEntries.length * 2); i++) {
-        sourceArticles.splice(Math.floor(Math.random() * sourceArticles.length), 1)
-      }
-      sourceArticles.push(...this.nsfwBlogEntries)
-    }
-    const articles = shuffle(sourceArticles)
-    return articles.slice(0, 2)
-  }
+const newArtistProducts = useList<Product>(
+  'newArtistProducts', {
+    endpoint: '/api/sales/new-artist-products/',
+    params: {size: 6},
+  },
+)
+newArtistProducts.firstRun()
 
-  public get searchTerms() {
-    return shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
-  }
-
-  public get mainSectionItems() {
-    return [
-      {
-        value: 0,
-        title: 'Featured',
-        icon: 'mdi-star',
-      },
-      {
-        value: 1,
-        title: 'Highly Rated',
-        icon: 'mdi-emoticon-outline',
-      },
-      {
-        value: 2,
-        title: 'Special Deals',
-        icon: 'mdi-tag',
-      },
-      {
-        value: 3,
-        title: 'Random',
-        icon: 'mdi-dice-5',
-      },
-    ]
-  }
-
-  public get communityItems() {
-    return [
-      {
-        value: 0,
-        title: 'Artists of Color',
-        icon: '',
-      },
-      {
-        value: 1,
-        title: 'LGBTQ+',
-        icon: '',
-      },
-      {
-        value: 2,
-        title: 'Artconomy',
-        icon: '',
-      },
-    ]
-  }
-
-  public searchReplace(data: RawData) {
-    this.searchForm.reset()
-    for (const key of Object.keys(data)) {
-      this.searchForm.fields[key].update(data[key])
-    }
-  }
-
-  public search(data: RawData) {
-    this.searchReplace(data)
-    this.$router.push({
-      name: 'SearchProducts',
-      query: makeQueryParams(this.searchForm.rawData),
-    })
-  }
-
-  public searchFromField() {
-    this.$router.push({
-      name: 'SearchProducts',
-      query: makeQueryParams(this.searchForm.rawData),
-    })
-  }
-
-  public searchCharacters() {
-    this.searchReplace({})
-    this.$router.push({
-      name: 'SearchCharacters',
-      query: makeQueryParams(this.searchForm.rawData),
-    })
-  }
-
-  public searchSubmissions(data: RawData) {
-    this.searchReplace(data)
-    this.$router.push({
-      name: 'SearchSubmissions',
-      query: makeQueryParams(this.searchForm.rawData),
-    })
-  }
-
-  public listSizer(long?: boolean) {
-    /* istanbul ignore if */
-    if (this.$vuetify.display.xs) {
-      return 2
-    }
-    /* istanbul ignore if */
-    if (this.$vuetify.display.md && long) {
-      return 4
-    }
-    /* istanbul ignore if */
-    if (this.$vuetify.display.lgAndUp) {
-      return 6
-    }
-    /* istanbul ignore if */
-    return 3
-  }
-
-  public listPreview(list: ListController<any>, long?: boolean) {
-    // Gives a few items from the list depending on screen size. Useful for things like the home page where we have many
-    // sections to display at once, but don't want to crowd the screen too much.
-    /* istanbul ignore if */
-    return list.list.slice(0, this.listSizer(long))
-  }
-
-  public get commissionsList() {
-    return this.listPreview(this.commissions, true)
-  }
-
-  public get submissionsList() {
-    return this.listPreview(this.submissions, this.$vuetify.display.md)
-  }
-
-  public get communitySubmissionsList() {
-    return this.listPreview(this.communitySubmissions)
-  }
-
-  public get charactersList() {
-    return this.listPreview(this.characters, true)
-  }
-
-  public get featuredOrder() {
-    return (this.isRegistered ? 2 : 1)
-  }
-
-  public get randomBanner() {
-    // Remember: Computed properties are cached, so even if we access this
-    // multiple times in one render, it will be the same value.
-    return this.banners[Math.floor(Math.random() * this.banners.length)]
-  }
-
-  public created() {
-    this.searchForm = this.$getForm('search')
-    this.featured = this.$getList('featured', {
-      endpoint: '/api/sales/featured-products/',
+const artistsOfColor = useList(
+    'artistsOfColor', {
+      endpoint: '/api/sales/artists-of-color/',
       params: {size: 6},
-    })
-    this.featured.firstRun()
-    this.rated = this.$getList('rated', {
-      endpoint: '/api/sales/highly-rated/',
+    },
+)
+artistsOfColor.firstRun()
+
+const randomProducts = useList(
+    'randomProducts', {
+      endpoint: '/api/sales/random/',
       params: {size: 6},
-    })
-    this.rated.firstRun()
-    this.lowPriced = this.$getList('lowPriced', {
-      endpoint: '/api/sales/low-price/',
+    },
+)
+randomProducts.firstRun()
+
+const lgbt = useList<Product>(
+    'lgbt', {
+      endpoint: '/api/sales/lgbt/',
       params: {size: 6},
-    })
-    this.lowPriced.firstRun()
-    this.newArtistProducts = this.$getList(
-        'newArtistProducts', {
-          endpoint: '/api/sales/new-artist-products/',
-          params: {size: 6},
-        },
-    )
-    this.lgbt = this.$getList(
-        'lgbt', {
-          endpoint: '/api/sales/lgbt/',
-          params: {size: 6},
-        },
-    )
-    this.artistsOfColor = this.$getList(
-        'artistsOfColor', {
-          endpoint: '/api/sales/artists-of-color/',
-          params: {size: 6},
-        },
-    )
-    this.randomProducts = this.$getList(
-        'randomProducts', {
-          endpoint: '/api/sales/random/',
-          params: {size: 6},
-        },
-    )
-    this.randomProducts.firstRun()
-    this.newArtistProducts.firstRun()
-    this.artistsOfColor.firstRun()
-    this.lgbt.firstRun()
-    this.commissions = this.$getList(
-        'commissions', {
-          endpoint: '/api/profiles/recent-commissions/',
-          params: {size: 6},
-        },
-    )
-    this.commissions.firstRun()
-    this.submissions = this.$getList(
-        'submissions', {
-          endpoint: '/api/profiles/recent-submissions/',
-          params: {size: 6},
-        },
-    )
-    this.submissions.firstRun()
-    this.communitySubmissions = this.$getList(
-        'communitySubmissions', {
-          endpoint: '/api/profiles/community-submissions/',
-          params: {size: 6},
-        },
-    )
-    this.communitySubmissions.firstRun()
-    this.characters = this.$getList('newCharacters', {
-      endpoint: '/api/profiles/new-characters/',
+    },
+)
+lgbt.firstRun()
+
+const commissions = useList<Submission>(
+    'commissions', {
+      endpoint: '/api/profiles/recent-commissions/',
       params: {size: 6},
-    })
-    this.characters.firstRun()
+    },
+)
+commissions.firstRun()
+
+const submissions = useList<Submission>(
+    'submissions', {
+      endpoint: '/api/profiles/recent-submissions/',
+      params: {size: 6},
+    },
+)
+submissions.firstRun()
+
+const communitySubmissions = useList<Submission>(
+    'communitySubmissions', {
+      endpoint: '/api/profiles/community-submissions/',
+      params: {size: 6},
+    },
+)
+communitySubmissions.firstRun()
+
+const characters = useList('newCharacters', {
+  endpoint: '/api/profiles/new-characters/',
+  params: {size: 6},
+})
+characters.firstRun()
+
+const {rating, isRegistered} = useViewer()
+const router = useRouter()
+const display = useDisplay()
+
+const blogEntries = [
+  {
+    link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',
+    title: '7 Tips on Pricing your Artwork',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2020/04/alvaro-reyes-MEldcHumbu8-unsplash.jpg',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2020/01/13/5-tips-for-growing-your-audience-as-an-artist/',
+    title: '5 Tips for Growing your Audience as an Artist',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2020/01/dragon.jpg',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2019/07/31/5-tips-for-character-design/',
+    title: '5 Tips for Character Design',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2019/07/pirate.jpg',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2019/05/17/staying-safe-how-to-prevent-getting-scammed-when-selling-commissions/',
+    title: '5 Ways to Protect Yourself When Selling Art Commissions',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2019/05/piggybank.jpg',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2019/05/01/the-transition-process-making-art-your-side-hustle/',
+    title: '7 Tips on Making Art your Side Hustle',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2018/01/cover-web.jpeg',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2018/11/15/how-to-describe-what-you-need-to-an-artist/',
+    title: 'How to Describe What you Need to an Artist',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2019/06/wrong-question.png',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/',
+    title: 'Escrow For Art Commissions: 5 Reasons we use it',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2022/11/defending-1885x2048.png',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2020/11/18/5-things-to-know-about-art-commissions/',
+    title: '5 Things to Know about Art Commissions',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2020/11/kelly-sikkema-o2TRWThve_I-unsplash.jpg',
+  },
+]
+
+const nsfwBlogEntries = [
+  {
+    link: 'https://artconomy.com/blog/posts/2020/08/04/nsfw-commissions-5-tips-for-buyers/',
+    title: 'NSFW Commissions: 5 Tips for Buyers',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2020/08/halcy0n-phoex-JasAra02-1536x1075.png',
+  },
+  {
+    link: 'https://artconomy.com/blog/posts/2022/08/16/nsfw-furry-artists-4-tips-to-find/',
+    title: 'NSFW Furry Artists: 4 Tips to Find the Right One for You!',
+    image: 'https://artconomy.com/blog/wp-content/uploads/2022/08/blog1transparent-3.png',
+  },
+]
+
+const banners = [
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-A1-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-A2-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-A3-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-A4-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-B1-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-B2-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-B3-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-B4-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-C1-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-C2-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-C3-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-C4-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-D1-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-D2-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-D3-1440x200.png', BASE_URL),
+  },
+  {
+    artist: 'Halcyon',
+    src: new URL('/static/images/halcy0n-artconomy-banner-D4-1440x200.png', BASE_URL),
+  },
+]
+
+const articles = computed(() => {
+  const sourceArticles = [...blogEntries]
+  if (rating.value >= Ratings.ADULT) {
+    // Remove some clean articles at random to make the NSFW articles more probable, since there
+    // are far less of them.
+    for (let i = 0; i < (nsfwBlogEntries.length * 2); i++) {
+      sourceArticles.splice(Math.floor(Math.random() * sourceArticles.length), 1)
+    }
+    sourceArticles.push(...nsfwBlogEntries)
+  }
+  const articles = shuffle(sourceArticles)
+  return articles.slice(0, 2)
+})
+
+const searchTerms = shuffle(['refsheet', 'ych', 'stickers', 'badge']).slice(0, 3)
+
+const laptop = new URL('/static/images/laptop.png', BASE_URL).href
+const fridge = new URL('/static/images/fridge.png', BASE_URL).href
+const fingerPainting = new URL('/static/images/fingerpainting.png', BASE_URL).href
+const discord = new URL('/static/images/Discord.png', BASE_URL).href
+
+const mainSectionItems = [
+  {
+    value: 0,
+    title: 'Featured',
+    icon: 'mdi-star',
+  },
+  {
+    value: 1,
+    title: 'Highly Rated',
+    icon: 'mdi-emoticon-outline',
+  },
+  {
+    value: 2,
+    title: 'Special Deals',
+    icon: 'mdi-tag',
+  },
+  {
+    value: 3,
+    title: 'Random',
+    icon: 'mdi-dice-5',
+  },
+]
+
+const mainSection = ref(0)
+
+const communityItems = [
+  {
+    value: 0,
+    title: 'Artists of Color',
+    icon: '',
+  },
+  {
+    value: 1,
+    title: 'LGBTQ+',
+    icon: '',
+  },
+  {
+    value: 2,
+    title: 'Artconomy',
+    icon: '',
+  },
+]
+
+const communitySection = ref(shuffle([0, 1, 2])[0])
+
+
+const searchReplace = (data: RawData) => {
+  searchForm.reset()
+  for (const key of Object.keys(data)) {
+    searchForm.fields[key].update(data[key])
   }
 }
 
-export default toNative(Home)
+const search = (data: RawData) => {
+  searchReplace(data)
+  router.push({
+    name: 'SearchProducts',
+    query: makeQueryParams(searchForm.rawData),
+  })
+}
+
+const searchFromField = () => {
+  router.push({
+    name: 'SearchProducts',
+    query: makeQueryParams(searchForm.rawData),
+  })
+}
+
+const searchCharacters = () => {
+  searchReplace({})
+  router.push({
+    name: 'SearchCharacters',
+    query: makeQueryParams(searchForm.rawData),
+  })
+}
+
+const searchSubmissions = (data: RawData) => {
+  searchReplace(data)
+  router.push({
+    name: 'SearchSubmissions',
+    query: makeQueryParams(searchForm.rawData),
+  })
+}
+
+const listSizer = (long?: boolean) => {
+  /* istanbul ignore if */
+  if (display.xs.value) {
+    return 2
+  }
+  /* istanbul ignore if */
+  if (display.md.value && long) {
+    return 4
+  }
+  /* istanbul ignore if */
+  if (display.lgAndUp.value) {
+    return 6
+  }
+  /* istanbul ignore if */
+  return 3
+}
+
+const listPreview = (list: ListController<any>, long?: boolean) => {
+  // Gives a few items from the list depending on screen size. Useful for things like the home page where we have many
+  // sections to display at once, but don't want to crowd the screen too much.
+  /* istanbul ignore if */
+  return list.list.slice(0, listSizer(long))
+}
+
+const commissionsList = computed(() => listPreview(commissions, true))
+
+const submissionsList = computed(() => listPreview(submissions, display.md.value))
+
+const communitySubmissionsList = computed(() => listPreview(communitySubmissions))
+
+const charactersList = computed(() => listPreview(characters, true))
+
+const featuredOrder = computed(() => isRegistered.value ? 2 : 1)
+
+const randomBanner = banners[Math.floor(Math.random() * banners.length)]
 </script>
