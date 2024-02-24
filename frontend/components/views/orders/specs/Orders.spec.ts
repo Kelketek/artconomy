@@ -1,4 +1,4 @@
-import {cleanUp, mount, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -94,6 +94,10 @@ describe('Orders.vue', () => {
         name: 'Home',
         component: Empty,
         path: '/',
+      }, {
+        name: 'InvoiceByProduct',
+        component: Empty,
+        path: '/store/:username/invoice-by-product/'
       }],
     })
     vi.useFakeTimers()
@@ -139,7 +143,7 @@ describe('Orders.vue', () => {
     await vm.$nextTick()
     expect(vm.closed).toBe(false)
   })
-  test('Triggers the invoicing form, and evaluates requisite functions', async() => {
+  test('Sends the user to the invoicing page', async() => {
     setViewer(store, genUser())
     const wrapper = mount(WrappedOrders, {
       ...vueSetup({
@@ -157,12 +161,8 @@ describe('Orders.vue', () => {
     vm.stats.makeReady(genCommissionStats())
     await wrapper.vm.$nextTick()
     await wrapper.find('.new-invoice-button').trigger('click')
-    expect(vm.showNewInvoice).toBe(true)
-    expect(vm.sellerName).toBe('Fox')
-    expect(vm.invoiceEscrowEnabled).toBe(true)
-    vm.newInvoice.fields.paid.update(true)
-    await vm.$nextTick()
-    expect(vm.invoiceEscrowEnabled).toBe(false)
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('InvoiceByProduct'))
+    expect(router.currentRoute.value.params).toEqual({username: 'Fox'})
   })
   test('Redirects to the right subview', async() => {
     await router.replace({

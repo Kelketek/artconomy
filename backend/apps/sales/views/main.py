@@ -2542,21 +2542,24 @@ def get_order_facts(product: Optional[Product], serializer, seller: User):
     # Helper function for seller-initiated invoices
     facts = {
         "table_order": False,
-        "hold": serializer.validated_data.get("hold", False),
+        "hold": serializer.validated_data.get("hold", True),
         "rating": serializer.validated_data.get("rating", 0),
         "cascade_fees": serializer.validated_data.get("cascade_fees", False),
         "created_by": seller,
     }
-    if serializer.validated_data["completed"] or not serializer.validated_data["hold"]:
+    completed = serializer.validated_data.get("completed")
+    if completed or not facts["hold"]:
         facts["commission_info"] = note_for_text(seller.artist_profile.commission_info)
-    if serializer.validated_data["completed"]:
+    if completed:
         raw_task_weight = 0
         raw_expected_turnaround = 0
         raw_revisions = 0
     else:
-        raw_task_weight = serializer.validated_data["task_weight"]
-        raw_expected_turnaround = serializer.validated_data["expected_turnaround"]
-        raw_revisions = serializer.validated_data["revisions"]
+        raw_task_weight = serializer.validated_data.get("task_weight", 1)
+        raw_expected_turnaround = serializer.validated_data.get(
+            "expected_turnaround", 5
+        )
+        raw_revisions = serializer.validated_data.get("revisions", 0)
     if product:
         facts["price"] = product.base_price
         facts["adjustment"] = (
@@ -2573,7 +2576,7 @@ def get_order_facts(product: Optional[Product], serializer, seller: User):
         facts["adjustment_revisions"] = raw_revisions - product.revisions
         facts["table_order"] = product.table_product
     else:
-        facts["price"] = Money(serializer.validated_data["price"], "USD")
+        facts["price"] = Money(serializer.validated_data.get("price", "50.00"), "USD")
         facts["task_weight"] = raw_task_weight
         facts["expected_turnaround"] = raw_expected_turnaround
         facts["revisions"] = raw_revisions
@@ -2581,24 +2584,11 @@ def get_order_facts(product: Optional[Product], serializer, seller: User):
         facts["adjustment_expected_turnaround"] = 0
         facts["adjustment_revisions"] = 0
         facts["adjustment"] = Money("0.00", "USD")
-    facts["paid"] = serializer.validated_data["paid"] or (
-        (facts["price"] + facts["adjustment"]) == Money("0", "USD")
-    )
     facts["escrow_enabled"] = not (
-        facts["paid"]
-        or (
-            (seller.artist_profile.bank_account_status != IN_SUPPORTED_COUNTRY)
-            and not (product and product.table_product)
-        )
+        (seller.artist_profile.bank_account_status != IN_SUPPORTED_COUNTRY)
+        and not (product and product.table_product)
     )
-    if facts["paid"]:
-        if serializer.validated_data["completed"]:
-            # Seller still has to upload revisions.
-            facts["status"] = IN_PROGRESS
-        else:
-            facts["status"] = QUEUED
-        facts["revisions_hidden"] = False
-    elif facts["hold"]:
+    if facts["hold"]:
         facts["status"] = NEW
         facts["revisions_hidden"] = True
     else:
@@ -2632,8 +2622,7 @@ class CreateInvoice(GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         buyer = serializer.validated_data["buyer"]
-        product = serializer.validated_data.get("product", None)
-        facts = get_order_facts(product, serializer, user)
+        facts = get_order_facts(None, serializer, user)
 
         if isinstance(buyer, str) or buyer is None:
             customer_email = buyer or ""
@@ -2641,60 +2630,42 @@ class CreateInvoice(GenericAPIView):
         else:
             buyer = buyer
             customer_email = ""
-        try:
-            with inventory_change(product):
-                order = Order.objects.create(
-                    seller=user,
-                    buyer=buyer,
-                    customer_email=customer_email,
-                    private=serializer.validated_data["private"],
-                )
-                deliverable_facts = {
-                    key: value
-                    for key, value in facts.items()
-                    if key
-                    not in (
-                        "price",
-                        "adjustment",
-                        "hold",
-                        "paid",
-                    )
-                }
-                deliverable = Deliverable.objects.create(
-                    name="Main",
-                    order=order,
-                    details=serializer.validated_data["details"],
-                    product=product,
-                    processor=STRIPE,
-                    **deliverable_facts,
-                )
-                deliverable_target = ref_for_instance(deliverable)
-                item, _ = deliverable.invoice.line_items.get_or_create(
-                    type=BASE_PRICE,
-                    amount=facts["price"],
-                    priority=0,
-                    destination_account=ESCROW,
-                    destination_user=order.seller,
-                )
-                item.targets.add(deliverable_target)
-                if facts["adjustment"]:
-                    item, _ = deliverable.invoice.line_items.get_or_create(
-                        type=ADD_ON,
-                        amount=facts["adjustment"],
-                        priority=1,
-                        destination_account=ESCROW,
-                        destination_user=order.seller,
-                    )
-                    item.targets.add(deliverable_target)
-                # Trigger line item creation.
-                deliverable.save()
-
-                notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
-        except InventoryError:
-            return Response(
-                data={"detail": "This product is out of stock."},
-                status=status.HTTP_400_BAD_REQUEST,
+        order = Order.objects.create(
+            seller=user,
+            buyer=buyer,
+            hide_details=serializer.validated_data["hidden"],
+            customer_email=customer_email,
+        )
+        deliverable_facts = {
+            key: value
+            for key, value in facts.items()
+            if key
+            not in (
+                "price",
+                "adjustment",
+                "hold",
+                "paid",
             )
+        }
+        deliverable = Deliverable.objects.create(
+            name="Main",
+            order=order,
+            details=serializer.validated_data["details"],
+            processor=STRIPE,
+            **deliverable_facts,
+        )
+        deliverable_target = ref_for_instance(deliverable)
+        item, _ = deliverable.invoice.line_items.get_or_create(
+            type=BASE_PRICE,
+            amount=facts["price"],
+            priority=0,
+            destination_account=ESCROW,
+            destination_user=order.seller,
+        )
+        item.targets.add(deliverable_target)
+        # Trigger line item creation.
+        deliverable.save()
+        notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(
             data=DeliverableSerializer(
                 instance=deliverable, context=self.get_serializer_context()

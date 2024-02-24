@@ -104,6 +104,7 @@ const TableInvoices = () => import('@/components/views/table/TableInvoices.vue')
 const Invoices = () => import('@/components/views/settings/payment/Invoices.vue')
 const TroubledDeliverables = () => import('@/components/views/TroubledDeliverables.vue')
 const ProductGallery = () => import('@/components/views/product/ProductGallery.vue')
+const AcInvoiceProductSelection = import('@/components/views/orders/AcInvoiceProductSelection.vue')
 
 function orderViews() {
   const orderRoutes: RouteRecordRaw[] = []
@@ -325,6 +326,12 @@ export const routes: RouteRecordRaw[] = [
           },
         ],
       },
+      {
+        name: 'InvoiceByProduct',
+        path: 'invoice-by-product/',
+        component: AcInvoiceProductSelection,
+        props: true,
+      }
     ],
   },
   {

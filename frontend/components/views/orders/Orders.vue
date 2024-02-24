@@ -62,14 +62,16 @@
             <div class="align-self-center justify-end pb-2">
               <v-row>
                 <v-col class="text-center d-flex">
-                  <v-btn color="green" @click="showNewInvoice = true" variant="elevated" class="new-invoice-button">
+                  <v-btn
+                      color="green" :to="{name: 'InvoiceByProduct', params: {username}}" variant="elevated" class="new-invoice-button"
+                  >
                     <v-icon left icon="mdi-receipt"/>
                     New Invoice
                   </v-btn>
                 </v-col>
                 <v-col class="text-center">
                   <v-btn color="primary" @click="showBroadcast = true" variant="elevated">
-                    <v-icon left icon="mdi-campaign"/>
+                    <v-icon left icon="mdi-bullhorn"/>
                     Broadcast to buyers
                   </v-btn>
                 </v-col>
@@ -88,11 +90,6 @@
     <v-window>
       <router-view :key="$route.path"></router-view>
     </v-window>
-    <ac-form-dialog v-bind="newInvoice.bind" @submit.prevent="newInvoice.submitThen(goToOrder)" v-model="showNewInvoice"
-                    :large="true" title="Issue new Invoice">
-      <ac-invoice-form :escrow-enabled="invoiceEscrowEnabled" :line-items="invoiceLineItems" :new-invoice="newInvoice"
-                       :username="username"/>
-    </ac-form-dialog>
     <ac-form-dialog v-if="isSales" v-bind="broadcastForm.bind" v-model="showBroadcast"
                     @submit.prevent="broadcastForm.submitThen(() => {confirmBroadcast = true})">
       <v-row v-if="!confirmBroadcast">
@@ -147,15 +144,11 @@ import CommissionStats from '@/types/CommissionStats.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import Product from '@/types/Product.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {baseInvoiceSchema, flatten, getSalesStatsSchema} from '@/lib/lib.ts'
-import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
-import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin.ts'
 
 @Component({
   components: {
-    AcInvoiceForm,
     AcPricePreview,
     AcBoundField,
     AcFormDialog,
@@ -163,16 +156,12 @@ import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin.ts'
     AcLoadSection,
   },
 })
-class Orders extends mixins(Subjective, InvoicingMixin) {
+class Orders extends mixins(Subjective) {
   public stats: SingleController<CommissionStats> = null as unknown as SingleController<CommissionStats>
   @Prop({required: true})
   public baseName!: string
-
-  public showNewInvoice = false
   public showBroadcast = false
   public confirmBroadcast = false
-  public newInvoice: FormController = null as unknown as FormController
-  public invoiceProduct: SingleController<Product> = null as unknown as SingleController<Product>
   public broadcastForm: FormController = null as unknown as FormController
 
   public get isSales() {

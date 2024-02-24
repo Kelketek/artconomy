@@ -1175,29 +1175,12 @@ class SearchQuerySerializer(serializers.Serializer):
 
 
 # noinspection PyAbstractClass
-class NewInvoiceSerializer(
-    serializers.Serializer, PriceValidationMixin, ProductValidationMixin
-):
-    product = serializers.IntegerField(allow_null=True)
+class NewInvoiceSerializer(serializers.Serializer):
     buyer = serializers.CharField(allow_null=True, allow_blank=True)
-    price = serializers.DecimalField(
-        max_digits=6,
-        decimal_places=2,
-    )
-    completed = serializers.BooleanField()
-    task_weight = serializers.IntegerField(min_value=0)
-    revisions = serializers.IntegerField(min_value=0)
-    private = serializers.BooleanField()
+    hidden = serializers.BooleanField()
     rating = serializers.IntegerField(min_value=GENERAL, max_value=EXTREME)
+    characters = ListField(child=IntegerField(), required=False)
     details = serializers.CharField(max_length=5000)
-    paid = serializers.BooleanField()
-    hold = serializers.BooleanField()
-    cascade_fees = serializers.BooleanField()
-    expected_turnaround = serializers.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        min_value=settings.MINIMUM_TURNAROUND,
-    )
 
     def validate_buyer(self, value):
         if not value:

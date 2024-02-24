@@ -1,4 +1,4 @@
-import {computed, defineAsyncComponent, markRaw} from 'vue'
+import {computed, defineAsyncComponent, markRaw, Ref} from 'vue'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
 import MarkDownIt from 'markdown-it'
@@ -24,6 +24,8 @@ import {ArtVueClassInterface} from '@/types/ArtVueClassInterface.ts'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 import {ContentRating} from '@/types/ContentRating.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
+import {FieldController} from '@/store/forms/field-controller.ts'
+import {Character} from '@/store/characters/types/Character.ts'
 
 // Needed for Matomo.
 declare global {
@@ -925,6 +927,27 @@ export const getSalesStatsSchema = (username: string) => ({
     serializer: 'SalesStatsSerializer',
   }
 })
+
+export const prepopulateCharacters = (field: FieldController, showRef: Ref<boolean>, initRef: Ref<Character[]>) => {
+  if (field.value.length === 0) {
+    showRef.value = true
+  } else {
+    const promises = []
+    for (const charId of field.model) {
+      promises.push(artCall({
+        url: `/api/profiles/data/character/id/${charId}/`,
+        method: 'get',
+      }).then(
+        (response) => initRef.value.push(response),
+      ).catch(() => {
+        field.model = field.model.filter((val: number) => val !== charId)
+      }))
+    }
+    Promise.all(promises).then(() => {
+      showRef.value = true
+    })
+  }
+}
 
 export const BASE_URL = window.location.origin
 

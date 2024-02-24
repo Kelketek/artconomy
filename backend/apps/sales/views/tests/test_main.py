@@ -1471,6 +1471,9 @@ class TestCreateInvoice(APITestCase):
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/", {}
         )
+        self.assertIn(
+            "You must have your banking settings configured", response.data["detail"]
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_invoice_no_orders_left(self):
@@ -1481,13 +1484,6 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/", {}
         )
@@ -1506,120 +1502,33 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
-                "completed": False,
-                "product": product.id,
                 "buyer": user2.username,
-                "price": "5.00",
-                "cascade_fees": True,
                 "details": "wat",
-                "private": False,
                 "rating": ADULT,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order = Order.objects.get(id=response.data["order"]["id"])
         self.assertEqual(order.seller, user)
         self.assertEqual(order.buyer, user2)
-        self.assertEqual(response.data["status"], PAYMENT_PENDING)
+        self.assertEqual(response.data["status"], NEW)
         self.assertEqual(response.data["details"], "wat")
         self.assertEqual(order.private, False)
-        self.assertEqual(response.data["adjustment_task_weight"], -2)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 2.00)
-        self.assertEqual(response.data["adjustment_revisions"], 2)
+        self.assertEqual(response.data["expected_turnaround"], 5)
+        self.assertEqual(response.data["adjustment_task_weight"], 0)
+        self.assertEqual(response.data["adjustment_expected_turnaround"], 0)
+        self.assertEqual(response.data["adjustment_revisions"], 0)
         self.assertTrue(response.data["revisions_hidden"])
         self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
 
         deliverable = Deliverable.objects.get(id=response.data["id"])
         self.assertEqual(deliverable.created_by, user)
-        self.assertEqual(deliverable.invoice.status, OPEN)
-        item = deliverable.invoice.line_items.get(type=ADD_ON)
-        self.assertEqual(item.amount, Money("2.00", "USD"))
-        self.assertEqual(item.priority, 100)
-        self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, ESCROW)
-        self.assertEqual(item.percentage, 0)
+        self.assertEqual(deliverable.invoice.status, DRAFT)
         item = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(item.amount, Money("3.00", "USD"))
-        self.assertEqual(item.priority, 0)
-        self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, ESCROW)
-        self.assertEqual(item.percentage, 0)
-        self.assertIsNone(order.claim_token)
-        self.assertFalse(deliverable.invoice.record_only)
-
-    def test_create_invoice_table_product(self):
-        user = UserFactory.create()
-        user2 = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-            table_product=True,
-        )
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": product.id,
-                "buyer": user2.username,
-                "price": "15.00",
-                "cascade_fees": True,
-                "details": "wat",
-                "private": False,
-                "task_weight": 3,
-                "rating": ADULT,
-                "revisions": 3,
-                "paid": False,
-                "hold": False,
-                "expected_turnaround": 4,
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        order = Order.objects.get(id=response.data["order"]["id"])
-        self.assertEqual(order.seller, user)
-        self.assertEqual(order.buyer, user2)
-        self.assertEqual(response.data["status"], PAYMENT_PENDING)
-        self.assertEqual(response.data["details"], "wat")
-        self.assertEqual(order.private, False)
-        self.assertEqual(response.data["adjustment_task_weight"], -2)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 2.00)
-        self.assertEqual(response.data["adjustment_revisions"], 2)
-        self.assertTrue(response.data["revisions_hidden"])
-        self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
-
-        deliverable = Deliverable.objects.get(id=response.data["id"])
-        # Actual price will be $8-- $3 plus the $5 static fee. Setting the order price
-        # to $15 will make a $7 adjustment.
-        item = deliverable.invoice.line_items.get(type=ADD_ON)
-        self.assertEqual(item.amount, Money("7.00", "USD"))
-        self.assertEqual(item.priority, 100)
-        self.assertEqual(item.destination_user, order.seller)
-        self.assertEqual(item.destination_account, ESCROW)
-        self.assertEqual(item.percentage, 0)
-        item = deliverable.invoice.line_items.get(type=BASE_PRICE)
-        self.assertEqual(item.amount, Money("3.00", "USD"))
+        self.assertEqual(item.amount, Money("50.00", "USD"))
         self.assertEqual(item.priority, 0)
         self.assertEqual(item.destination_user, order.seller)
         self.assertEqual(item.destination_account, ESCROW)
@@ -1632,40 +1541,21 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
-                "completed": False,
-                "product": product.id,
                 "buyer": "test@example.com",
-                "price": "5.00",
-                "cascade_fees": True,
                 "details": "oh",
                 "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
+                "hide_details": True,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order = Order.objects.get(id=response.data["order"]["id"])
         self.assertEqual(order.seller, user)
         self.assertIsNone(order.buyer)
-        self.assertEqual(response.data["adjustment_task_weight"], -2)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 2.00)
-        self.assertEqual(response.data["adjustment_revisions"], 2)
+        self.assertEqual(response.data["rating"], ADULT)
         self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
         self.assertEqual(order.customer_email, "test@example.com")
         self.assertTrue(order.claim_token)
 
@@ -1688,27 +1578,15 @@ class TestCreateInvoice(APITestCase):
                 "completed": False,
                 "product": product.id,
                 "buyer": user2.email,
-                "price": "5.00",
-                "cascade_fees": True,
                 "details": "oh",
                 "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order = Order.objects.get(id=response.data["order"]["id"])
         self.assertEqual(order.seller, user)
         self.assertEqual(order.buyer, user2)
-        self.assertEqual(response.data["adjustment_task_weight"], -2)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 2.00)
-        self.assertEqual(response.data["adjustment_revisions"], 2)
         self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
         self.assertEqual(order.customer_email, "")
         self.assertIsNone(order.claim_token)
 
@@ -1717,40 +1595,24 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "completed": False,
-                "product": product.id,
                 "buyer": "",
-                "price": "5.00",
-                "cascade_fees": True,
                 "details": "oh",
                 "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
+                "hide_details": False,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order = Order.objects.get(id=response.data["order"]["id"])
         self.assertEqual(order.seller, user)
         self.assertIsNone(order.buyer)
-        self.assertEqual(response.data["adjustment_task_weight"], -2)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 2.00)
-        self.assertEqual(response.data["adjustment_revisions"], 2)
+        self.assertEqual(response.data["adjustment_task_weight"], 0)
+        self.assertEqual(response.data["adjustment_expected_turnaround"], 0)
+        self.assertEqual(response.data["adjustment_revisions"], 0)
         self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
         self.assertEqual(order.customer_email, "")
 
     def test_create_invoice_self_send_fails(self):
@@ -1758,29 +1620,13 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
-                "completed": False,
-                "product": product.id,
                 "buyer": user.email,
-                "price": "5.00",
-                "cascade_fees": True,
                 "details": "oh",
                 "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
+                "hide_details": False,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1795,29 +1641,13 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
-                "completed": False,
-                "product": product.id,
                 "buyer": user2.email,
-                "price": "5.00",
-                "cascade_fees": True,
                 "details": "oh",
                 "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
+                "hide_details": False,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1833,29 +1663,13 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
-                "completed": False,
-                "product": product.id,
                 "buyer": user2.username,
-                "price": "5.00",
-                "cascade_fees": True,
                 "details": "oh",
                 "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
+                "hide_details": False,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -1864,400 +1678,30 @@ class TestCreateInvoice(APITestCase):
             ["User with that username not found, or they are blocking you."],
         )
 
-    def test_create_invoice_no_inventory(self):
-        user = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-            track_inventory=True,
-        )
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": product.id,
-                "buyer": "test@example.com",
-                "price": "5.00",
-                "cascade_fees": True,
-                "details": "oh",
-                "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, {"detail": "This product is out of stock."})
-
-    def test_create_invoice_wrong_product(self):
-        user = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        product = ProductFactory.create(base_price=Money("3.00", "USD"))
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": product.id,
-                "buyer": "test@example.com",
-                "price": "5.00",
-                "cascade_fees": True,
-                "details": "oh",
-                "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(
-            response.data, {"product": ["You don't have a product with that ID."]}
-        )
-
-    @override_settings(MINIMUM_PRICE=Money("1.00", "USD"))
-    def test_create_invoice_bad_price(self):
-        user = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": None,
-                "buyer": "test@example.com",
-                "price": ".50",
-                "cascade_fees": True,
-                "details": "oh",
-                "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
-            },
-            format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertEqual(response.data, {"price": ["Must be $0 or at least $1.00"]})
-
-    def test_create_invoice_completed(self):
-        user = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": True,
-                "product": product.id,
-                "buyer": "test@example.com",
-                "price": "5.00",
-                "cascade_fees": True,
-                "details": "oh",
-                "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "paid": False,
-                "hold": False,
-            },
-        )
-        order = Order.objects.get(id=response.data["order"]["id"])
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(order.seller, user)
-        self.assertIsNone(order.buyer)
-        self.assertEqual(response.data["adjustment_task_weight"], -5)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], -2)
-        self.assertEqual(response.data["adjustment_revisions"], -1)
-        self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
-
-        self.assertEqual(order.customer_email, "test@example.com")
-        self.assertTrue(order.claim_token)
-
-    def test_create_invoice_hold(self):
-        user = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": product.id,
-                "buyer": "test@example.com",
-                "price": "5.00",
-                "cascade_fees": True,
-                "details": "oh",
-                "rating": ADULT,
-                "private": True,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "paid": False,
-                "hold": True,
-            },
-        )
-        order = Order.objects.get(id=response.data["order"]["id"])
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(order.seller, user)
-        self.assertIsNone(order.buyer)
-        self.assertEqual(response.data["status"], NEW)
-        self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
-        self.assertEqual(order.customer_email, "test@example.com")
-        self.assertTrue(order.claim_token)
-        self.assertTrue(order.deliverables.get().revisions_hidden)
-
-    def test_create_invoice_no_product(self):
-        user = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": None,
-                "buyer": "test@example.com",
-                "price": "5.00",
-                "cascade_fees": True,
-                "details": "oh",
-                "private": True,
-                "rating": ADULT,
-                "task_weight": 2,
-                "paid": False,
-                "hold": False,
-                "revisions": 3,
-                "expected_turnaround": 4,
-            },
-            format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        order = Order.objects.get(id=response.data["order"]["id"])
-        self.assertEqual(order.seller, user)
-        self.assertIsNone(order.buyer)
-        self.assertEqual(response.data["adjustment_task_weight"], 0)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 0)
-        self.assertEqual(response.data["adjustment_revisions"], 0)
-        self.assertEqual(response.data["task_weight"], 2)
-        self.assertEqual(response.data["revisions"], 3)
-        self.assertEqual(response.data["details"], "oh")
-        self.assertEqual(response.data["expected_turnaround"], 4)
-        self.assertTrue(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"], None)
-
-        self.assertEqual(order.customer_email, "test@example.com")
-        self.assertTrue(order.claim_token)
-
-    def test_create_invoice_no_product_nonsheild(self):
-        user = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = NO_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": None,
-                "cascade_fees": True,
-                "buyer": "test@example.com",
-                "price": "5.00",
-                "details": "oh",
-                "private": True,
-                "rating": ADULT,
-                "task_weight": 2,
-                "paid": False,
-                "hold": False,
-                "revisions": 3,
-                "expected_turnaround": 4,
-            },
-            format="json",
-        )
-        order = Order.objects.get(id=response.data["order"]["id"])
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(order.seller, user)
-        self.assertIsNone(order.buyer)
-        self.assertEqual(response.data["adjustment_task_weight"], 0)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 0)
-        self.assertEqual(response.data["adjustment_revisions"], 0)
-        self.assertEqual(response.data["task_weight"], 2)
-        self.assertEqual(response.data["revisions"], 3)
-        self.assertEqual(response.data["details"], "oh")
-        self.assertEqual(response.data["expected_turnaround"], 4)
-        self.assertFalse(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"], None)
-
-        self.assertEqual(order.customer_email, "test@example.com")
-        self.assertTrue(order.claim_token)
-
     def test_create_invoice_escrow_disabled(self):
         user = UserFactory.create(artist_mode=True)
         user2 = UserFactory.create()
         self.login(user)
         user.artist_profile.bank_account_status = NO_SUPPORTED_COUNTRY
         user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
-                "completed": False,
-                "product": product.id,
                 "buyer": user2.username,
-                "price": "5.00",
-                "cascade_fees": True,
-                "task_weight": 3,
                 "details": "bla bla",
                 "rating": ADULT,
-                "private": True,
-                "revisions": 3,
-                "expected_turnaround": 4,
-                "hold": False,
-                "paid": False,
+                "hide_details": False,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         order = Order.objects.get(id=response.data["order"]["id"])
         self.assertEqual(order.seller, user)
         self.assertEqual(order.buyer, user2)
-        self.assertEqual(response.data["adjustment_task_weight"], -2)
+        self.assertEqual(response.data["adjustment_task_weight"], 0)
         self.assertEqual(response.data["details"], "bla bla")
-        self.assertTrue(order.private)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 2.00)
-        self.assertEqual(response.data["adjustment_revisions"], 2)
+        self.assertEqual(response.data["adjustment_expected_turnaround"], 0)
+        self.assertEqual(response.data["adjustment_revisions"], 0)
         self.assertFalse(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
-        self.assertIsNone(order.claim_token)
-
-    def test_create_invoice_paid(self):
-        user = UserFactory.create()
-        user2 = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": False,
-                "product": product.id,
-                "buyer": user2.username,
-                "price": "5.00",
-                "cascade_fees": True,
-                "paid": True,
-                "hold": False,
-                "rating": ADULT,
-                "details": "wat",
-                "private": False,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-            },
-            format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        order = Order.objects.get(id=response.data["order"]["id"])
-        self.assertEqual(order.seller, user)
-        self.assertEqual(order.buyer, user2)
-        self.assertEqual(response.data["status"], QUEUED)
-        self.assertEqual(response.data["details"], "wat")
-        self.assertFalse(order.private)
-        self.assertEqual(response.data["adjustment_task_weight"], -2)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], 2.00)
-        self.assertEqual(response.data["adjustment_revisions"], 2)
-        self.assertFalse(response.data["revisions_hidden"])
-        self.assertFalse(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
-        self.assertIsNone(order.claim_token)
-
-    def test_create_invoice_paid_and_completed(self):
-        user = UserFactory.create()
-        user2 = UserFactory.create()
-        self.login(user)
-        user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        user.artist_profile.save()
-        product = ProductFactory.create(
-            user=user,
-            base_price=Money("3.00", "USD"),
-            task_weight=5,
-            expected_turnaround=2,
-            revisions=1,
-        )
-        response = self.client.post(
-            f"/api/sales/account/{user.username}/create-invoice/",
-            {
-                "completed": True,
-                "product": product.id,
-                "buyer": user2.username,
-                "price": "5.00",
-                "cascade_fees": True,
-                "paid": True,
-                "hold": False,
-                "rating": ADULT,
-                "details": "wat",
-                "private": False,
-                "task_weight": 3,
-                "revisions": 3,
-                "expected_turnaround": 4,
-            },
-            format="json",
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        order = Order.objects.get(id=response.data["order"]["id"])
-        self.assertEqual(order.seller, user)
-        self.assertEqual(order.buyer, user2)
-        self.assertEqual(response.data["status"], IN_PROGRESS)
-        self.assertEqual(response.data["details"], "wat")
-        self.assertFalse(order.private)
-        self.assertEqual(response.data["adjustment_task_weight"], -5)
-        self.assertEqual(response.data["adjustment_expected_turnaround"], -2)
-        self.assertEqual(response.data["adjustment_revisions"], -1)
-        self.assertFalse(response.data["revisions_hidden"])
-        self.assertEqual(response.data["rating"], ADULT)
-        self.assertFalse(response.data["escrow_enabled"])
-        self.assertEqual(response.data["product"]["id"], product.id)
         self.assertIsNone(order.claim_token)
 
 
