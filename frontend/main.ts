@@ -2,7 +2,7 @@ import './artconomy.css'
 import * as Sentry from '@sentry/vue'
 import {createApp, defineAsyncComponent, h} from 'vue'
 import {createStore} from './store/index.ts'
-const App = defineAsyncComponent(() => import('./App.vue'))
+import App from './App.vue'
 import VueMask from '@devindex/vue-mask'
 import {configureHooks, router} from '@/router/index.ts'
 import {createForms} from '@/store/forms/registry.ts'

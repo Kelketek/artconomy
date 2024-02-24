@@ -365,24 +365,17 @@
 </style>
 
 <script setup lang="ts">
-
-import Viewer, {useViewer} from '@/mixins/viewer.ts'
-import AcProductPreview from '@/components/AcProductPreview.vue'
+import {useViewer} from '@/mixins/viewer.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import Product from '@/types/Product.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import Submission from '@/types/Submission.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
-import {Character} from '@/store/characters/types/Character.ts'
 import {makeQueryParams, shuffle, BASE_URL} from '@/lib/lib.ts'
 import AcTabs from '@/components/navigation/AcTabs.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcAsset from '@/components/AcAsset.vue'
-import Formatting from '@/mixins/formatting.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
 import AcProductSlider from '@/components/AcProductSlider.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'

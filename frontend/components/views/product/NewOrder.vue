@@ -239,7 +239,7 @@
                   {{product.x.name}}
                 </v-col>
                 <v-col cols="12">
-                  <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail"/>
+                  <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" :aspect-ratio="1"/>
                 </v-col>
                 <v-col class="subtitle-1" cols="12" v-if="product.x.name_your_price">
                   Name your price!

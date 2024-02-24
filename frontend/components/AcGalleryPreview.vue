@@ -7,6 +7,7 @@
           <v-col cols="8" offset="2">
             <ac-link :to="submissionLink">
               <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" :allow-preview="false"
+                        :aspect-ratio="1"
                         :class="{fade: unavailable}"/>
             </ac-link>
           </v-col>

@@ -5,6 +5,7 @@
         <ac-asset
             :asset="deliverable.display"
             thumb-name="thumbnail"
+            aspect-ratio="1"
             :allow-preview="false"
         />
       </ac-link>

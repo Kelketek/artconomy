@@ -11,6 +11,7 @@
                       :text="false"
                       :asset="character.primary_submission"
                       thumb-name="thumbnail"
+                      :aspect-ratio="1"
                       :allow-preview="false"
                   />
                 </ac-link>
