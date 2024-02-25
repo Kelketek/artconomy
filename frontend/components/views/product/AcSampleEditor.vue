@@ -78,7 +78,6 @@ import Subjective from '@/mixins/subjective.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import Product from '@/types/Product.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import {flatten, newUploadSchema} from '@/lib/lib.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Submission from '@/types/Submission.ts'
@@ -86,6 +85,8 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import LinkedSubmission from '@/types/LinkedSubmission.ts'
+import {defineAsyncComponent} from 'vue'
+const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 @Component({
   components: {

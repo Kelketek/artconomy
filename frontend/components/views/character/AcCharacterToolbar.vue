@@ -99,13 +99,14 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {Character} from '@/store/characters/types/Character.ts'
 import {newUploadSchema} from '@/lib/lib.ts'
 import Upload from '@/mixins/upload.ts'
-import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Editable from '@/mixins/editable.ts'
 import Sharable from '@/mixins/sharable.ts'
 import Submission from '@/types/Submission.ts'
+import {defineAsyncComponent} from 'vue'
+const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 @Component({
   components: {
