@@ -47,7 +47,8 @@
 </style>
 
 <script setup lang="ts">
-import {toValue, defineAsyncComponent, computed, useAttrs, ref, watch, resolveComponent, useSlots} from 'vue'
+import {toValue, defineAsyncComponent, computed, useAttrs, ref, watch, useSlots} from 'vue'
+import type {Component} from 'vue'
 import {Patch} from '@/store/singles/patcher.ts'
 import deepEqual from 'fast-deep-equal'
 import {useTheme} from 'vuetify'
@@ -68,6 +69,25 @@ const AcStarField = defineAsyncComponent(() => import('@/components/fields/AcSta
 const AcBirthdayField = defineAsyncComponent(() => import('@/components/fields/AcBirthdayField.vue'))
 const AcCheckbox = defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue'))
 
+const componentMap: Record<string, Component> = {
+  VCheckbox,
+  VSwitch,
+  VTextField,
+  VAutocomplete,
+  VSlider,
+  VSelect,
+  AcEditor,
+  AcTagField,
+  AcRatingField,
+  AcUppyFile,
+  AcSubmissionSelect,
+  AcBankToggle,
+  AcPriceField,
+  AcStarField,
+  AcBirthdayField,
+  AcCheckbox,
+}
+
 declare interface PatchFieldProps {
   fieldType?: string,
   patcher: Patch,
@@ -86,7 +106,7 @@ const props = withDefaults(defineProps<PatchFieldProps>(), {
   instant: false,
 })
 
-const fieldComponent = resolveComponent(props.fieldType)
+const fieldComponent = componentMap[props.fieldType]
 console.log(fieldComponent)
 
 const passedAttrs = useAttrs()

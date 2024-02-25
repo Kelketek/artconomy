@@ -1,5 +1,5 @@
 import './artconomy.css'
-import * as Sentry from '@sentry/vue'
+import {BrowserTracing, Replay, vueRouterInstrumentation, init} from '@sentry/vue'
 import {createApp, defineAsyncComponent, h} from 'vue'
 import {createStore} from './store/index.ts'
 import App from './App.vue'
@@ -99,7 +99,7 @@ const isValidBrowser = supportedBrowsers.test(navigator.userAgent)
 
 if (productionMode && isValidBrowser) {
   // noinspection TypeScriptValidateJSTypes
-  Sentry.init({
+  init({
     app,
     dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
     // @ts-ignore
@@ -108,10 +108,10 @@ if (productionMode && isValidBrowser) {
       'ResizeObserver loop limit exceeded', 'ResizeObserver loop completed with undelivered notifications.',
     ],
     integrations: [
-      new Sentry.BrowserTracing({
-        routingInstrumentation: Sentry.vueRouterInstrumentation(router),
+      new BrowserTracing({
+        routingInstrumentation: vueRouterInstrumentation(router),
       }),
-      new Sentry.Replay(),
+      new Replay(),
     ],
     tracesSampleRate: .05,
   })

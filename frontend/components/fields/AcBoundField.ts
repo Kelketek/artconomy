@@ -1,5 +1,15 @@
-import {h, resolveComponent, defineAsyncComponent, defineComponent, useSlots, useAttrs, computed} from 'vue'
+import {computed, defineAsyncComponent, defineComponent, h, useAttrs, useSlots} from 'vue'
+import type {Component} from 'vue'
 import {FieldController} from '@/store/forms/field-controller.ts'
+import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
+import {VSwitch} from 'vuetify/lib/components/VSwitch/index.mjs'
+import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'
+import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
+import {VSlider} from 'vuetify/lib/components/VSlider/index.mjs'
+import {VSelect} from 'vuetify/lib/components/VSelect/index.mjs'
+import {VRadio as BaseVRadio} from 'vuetify/lib/components/VRadio/index.mjs'
+import {transformComponentName} from '@/lib/lib.ts'
+
 const AcUserSelect = defineAsyncComponent(() => import('@/components/fields/AcUserSelect.vue'))
 const AcEditor = defineAsyncComponent(() => import('@/components/fields/AcEditor.vue'))
 const AcTagField = defineAsyncComponent(() => import('@/components/fields/AcTagField.vue'))
@@ -10,38 +20,31 @@ const AcPriceField = defineAsyncComponent(() => import('@/components/fields/AcPr
 const AcProductSelect = defineAsyncComponent(() => import('@/components/fields/AcProductSelect.vue'))
 const AcCheckbox = defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue'))
 const AcCaptchaField = defineAsyncComponent(() => import('@/components/fields/AcCaptchaField.vue'))
-import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
-import {VSwitch} from 'vuetify/lib/components/VSwitch/index.mjs'
-import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'
-import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
-import {VSlider} from 'vuetify/lib/components/VSlider/index.mjs'
-import {VSelect} from 'vuetify/lib/components/VSelect/index.mjs'
-import {VRadio as BaseVRadio} from 'vuetify/lib/components/VRadio/index.mjs'
 
 const VRadio = BaseVRadio.default
 
 const canonicalFields = ['input', 'button', 'textarea', 'select']
+const componentMapping: Record<string, Component> = {
+  AcUserSelect,
+  AcEditor,
+  AcTagField,
+  AcRatingField,
+  AcUppyFile,
+  AcCharacterSelect,
+  AcPriceField,
+  AcProductSelect,
+  AcCheckbox,
+  AcCaptchaField,
+  VTextField,
+  VSwitch,
+  VCheckbox,
+  VAutocomplete,
+  VSlider,
+  VSelect,
+  VRadio,
+}
 
 export default defineComponent({
-  components: {
-    AcUserSelect,
-    AcEditor,
-    AcTagField,
-    AcRatingField,
-    AcUppyFile,
-    AcCharacterSelect,
-    AcPriceField,
-    AcProductSelect,
-    AcCheckbox,
-    AcCaptchaField,
-    VTextField,
-    VSwitch,
-    VCheckbox,
-    VAutocomplete,
-    VSlider,
-    VSelect,
-    VRadio,
-  },
   props: {
     fieldType: {
       default: 'v-text-field',
@@ -78,9 +81,9 @@ export default defineComponent({
       }
     })
     return () => {
-      return h(resolveComponent(props.fieldType), {
-        ...attrs,
-      }, slots)
+      return h(componentMapping[transformComponentName(props.fieldType)], {
+        ...attrs.value,
+      }, slots.value)
     }
   }
 })
