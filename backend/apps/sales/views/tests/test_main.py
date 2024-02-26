@@ -1502,12 +1502,14 @@ class TestCreateInvoice(APITestCase):
         self.login(user)
         user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         user.artist_profile.save()
+        asset_ids = [AssetFactory.create(uploaded_by=user).id for _ in range(3)]
         response = self.client.post(
             f"/api/sales/account/{user.username}/create-invoice/",
             {
                 "buyer": user2.username,
                 "details": "wat",
                 "rating": ADULT,
+                "references": asset_ids,
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -1523,7 +1525,6 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(response.data["adjustment_revisions"], 0)
         self.assertTrue(response.data["revisions_hidden"])
         self.assertTrue(response.data["escrow_enabled"])
-
         deliverable = Deliverable.objects.get(id=response.data["id"])
         self.assertEqual(deliverable.created_by, user)
         self.assertEqual(deliverable.invoice.status, DRAFT)
@@ -1535,6 +1536,10 @@ class TestCreateInvoice(APITestCase):
         self.assertEqual(item.percentage, 0)
         self.assertIsNone(order.claim_token)
         self.assertFalse(deliverable.invoice.record_only)
+        for asset_id in asset_ids:
+            self.assertTrue(
+                deliverable.reference_set.filter(file__id=asset_id).exists()
+            )
 
     def test_create_invoice_email(self):
         user = UserFactory.create()

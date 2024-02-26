@@ -301,8 +301,29 @@ class ProductNameMixin:
         return name
 
 
+class ReferencesMixin:
+    def validate_references(self, value):
+        value = set(value)
+        assets = Asset.objects.filter(id__in=value)
+        error_message = (
+            "Either you do not have permission to use those assets for reference, "
+            "those asset IDs are invalid, or they have expired. Please try "
+            "re-uploading."
+        )
+        if assets.count() < len(value):
+            raise serializers.ValidationError(error_message)
+        for asset in assets:
+            request = self.context["request"]
+            if not asset.can_reference(request):
+                raise serializers.ValidationError(error_message)
+        return assets
+
+
 class ProductNewOrderSerializer(
-    ProductNameMixin, serializers.ModelSerializer, CharacterValidationMixin
+    ProductNameMixin,
+    serializers.ModelSerializer,
+    CharacterValidationMixin,
+    ReferencesMixin,
 ):
     email = serializers.CharField(write_only=True, required=False, allow_blank=True)
     seller = RelatedUserSerializer(read_only=True)
@@ -1175,12 +1196,18 @@ class SearchQuerySerializer(serializers.Serializer):
 
 
 # noinspection PyAbstractClass
-class NewInvoiceSerializer(serializers.Serializer):
+class NewInvoiceSerializer(serializers.Serializer, ReferencesMixin):
     buyer = serializers.CharField(allow_null=True, allow_blank=True)
     hidden = serializers.BooleanField()
     rating = serializers.IntegerField(min_value=GENERAL, max_value=EXTREME)
     characters = ListField(child=IntegerField(), required=False)
     details = serializers.CharField(max_length=5000)
+    references = ListField(
+        child=serializers.CharField(),
+        required=False,
+        write_only=True,
+        max_length=10,
+    )
 
     def validate_buyer(self, value):
         if not value:

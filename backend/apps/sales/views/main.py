@@ -2665,6 +2665,11 @@ class CreateInvoice(GenericAPIView):
         item.targets.add(deliverable_target)
         # Trigger line item creation.
         deliverable.save()
+        for asset in serializer.validated_data.get("references", []):
+            reference = Reference.objects.create(
+                file=asset, owner=user or self.request.user
+            )
+            reference.deliverables.add(deliverable)
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return Response(
             data=DeliverableSerializer(

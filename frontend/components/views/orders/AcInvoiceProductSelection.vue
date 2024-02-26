@@ -60,6 +60,17 @@
                   NOTE: This information will be visible to the buyer."
           />
         </v-col>
+        <v-col cols="12">
+          <ac-bound-field
+              field-type="ac-uppy-file"
+              uppy-id="uppy-new-order"
+              :field="customForm.fields.references"
+              :max-number-of-files="10"
+              label="(Optional) Add some reference images!"
+              :persistent-hint="true"
+              :persist="true"
+          />
+        </v-col>
         <v-col cols="12" md="4" offset-md="4">
           <ac-bound-field
               field-type="ac-checkbox" :field="customForm.fields.hidden" label="Hidden Order"
@@ -69,7 +80,7 @@
         </v-col>
         <v-col cols="12">
           <v-alert>
-            You will have the opportunity to adjust details, add references, and set line items on the next screen.
+            You will have the opportunity to add line items and make other adjustments on the next screen.
           </v-alert>
         </v-col>
       </v-row>
@@ -114,6 +125,7 @@ const customForm = useForm('custom_work', {
     rating: {value: 0},
     characters: {value: []},
     details: {value: ''},
+    references: {value: []},
   }
 })
 
