@@ -26,6 +26,16 @@ import {ContentRating} from '@/types/ContentRating.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
 import {FieldController} from '@/store/forms/field-controller.ts'
 import {Character} from '@/store/characters/types/Character.ts'
+import {Store} from 'vuex'
+import {
+  artistProfileEndpointFor,
+  artistProfilePathFor,
+  endpointFor,
+  pathFor,
+  userPathFor,
+} from '@/store/profiles/helpers.ts'
+import {ProfileModule} from '@/store/profiles'
+import {SingleModule} from '@/store/singles'
 
 // Needed for Matomo.
 declare global {
@@ -955,4 +965,25 @@ export const transformComponentName = (componentName: string) => {
   return componentName.split('-').map((segment) => (
     `${segment.charAt(0).toUpperCase()}${segment.substring(1)}`),
   ).join('')
+}
+
+export const setViewer = (store: Store<any>, user: User | AnonUser | TerseUser) => {
+  const username = user.username
+  store.registerModule(pathFor(username), new ProfileModule({viewer: true}))
+  store.registerModule(
+    userPathFor(username),
+    new SingleModule<User | AnonUser | TerseUser>({
+      x: user,
+      endpoint: endpointFor(username),
+    }),
+  )
+  store.registerModule(
+    artistProfilePathFor(username),
+    new SingleModule<User | AnonUser | TerseUser>({
+      x: null,
+      endpoint: artistProfileEndpointFor(username),
+    }),
+  )
+  store.commit('profiles/setViewerUsername', username)
+  store.commit(`userModules/${username}/user/setReady`, true)
 }

@@ -1,9 +1,10 @@
 import {shallowMount, VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, genAnon, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, genAnon, vueSetup} from '@/specs/helpers/index.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

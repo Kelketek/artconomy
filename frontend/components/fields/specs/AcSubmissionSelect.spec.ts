@@ -1,10 +1,11 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, genAnon, mount, vueSetup} from '@/specs/helpers/index.ts'
 import AcSubmissionSelect from '@/components/fields/AcSubmissionSelect.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 vi.useFakeTimers()

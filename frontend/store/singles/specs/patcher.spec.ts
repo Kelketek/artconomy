@@ -2,7 +2,7 @@ import mockAxios from '@/specs/helpers/mock-axios.ts'
 import Patcher from '@/specs/helpers/dummy_components/patcher.vue'
 import {VueWrapper} from '@vue/test-utils'
 import flushPromises from 'flush-promises'
-import {cleanUp, mount, rq, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {errorSend} from '@/store/singles/patcher.ts'
@@ -11,6 +11,7 @@ import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick, toValue} from 'vue'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 const mockWarn = vi.spyOn(console, 'warn')

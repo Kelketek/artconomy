@@ -1,5 +1,5 @@
 import {Router, createRouter, createWebHistory} from 'vue-router'
-import {cleanUp, mount, rq, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, rq, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -9,6 +9,7 @@ import {commentSet} from '@/components/comments/specs/fixtures.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import AcComment from '@/components/comments/AcComment.vue'
+import {setViewer} from '@/lib/lib.ts'
 
 const localVue = vueSetup()
 let store: ArtStore

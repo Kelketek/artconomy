@@ -1,9 +1,10 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import Options from '../Options.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 vi.useFakeTimers()
 

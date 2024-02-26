@@ -1,13 +1,14 @@
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
-import {cleanUp, createVuetify, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import AcColors from '@/components/views/character/AcColors.vue'
 import {Character} from '@/store/characters/types/Character.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {setViewer} from '@/lib/lib.ts'
 
 describe('AcColors.vue', () => {
   let store: ArtStore

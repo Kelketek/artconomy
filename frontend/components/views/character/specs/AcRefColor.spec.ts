@@ -2,10 +2,11 @@ import {VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import AcRefColor from '@/components/views/character/AcRefColor.vue'
-import {cleanUp, createTestRouter, createVuetify, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {createRouter, Router} from 'vue-router'
+import {setViewer} from '@/lib/lib.ts'
 
 describe('AcRefColor.vue', () => {
   let store: ArtStore

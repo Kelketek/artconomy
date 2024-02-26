@@ -4,7 +4,6 @@ import {
   cleanUp,
   mount,
   rq,
-  setViewer,
   vueSetup,
   VuetifyWrapped,
 } from '@/specs/helpers/index.ts'
@@ -17,7 +16,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import Submission from '@/types/Submission.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
-import {searchSchema} from '@/lib/lib.ts'
+import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {nextTick} from 'vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'

@@ -1,12 +1,13 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {dummyLineItems, genLineItem} from '@/lib/specs/helpers.ts'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
 import {LineTypes} from '@/types/LineTypes.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

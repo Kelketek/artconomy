@@ -1,4 +1,4 @@
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
 import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -10,6 +10,7 @@ import Revision from '@/types/Revision.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

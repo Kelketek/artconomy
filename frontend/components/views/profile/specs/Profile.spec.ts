@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, flushPromises, mount, rq, rs, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
@@ -10,6 +10,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import {genConversation} from '@/components/views/specs/fixtures.ts'
 import {genPricing} from '@/lib/specs/helpers.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

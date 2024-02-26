@@ -3,9 +3,10 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
-import {cleanUp, docTarget, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, docTarget, vueSetup} from '@/specs/helpers/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 const mockError = vi.spyOn(console, 'error')
 

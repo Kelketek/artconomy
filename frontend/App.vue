@@ -232,10 +232,6 @@ const router = useRouter()
 const route = useRoute()
 const {viewer, viewerHandler, adultAllowed} = useViewer()
 
-if (window.USER_PRELOAD && !viewerHandler.user.x) {
-  viewerHandler.user.makeReady(window.USER_PRELOAD)
-}
-
 const sock = useSocket()
 const store = useStore<ArtState>()
 
@@ -414,9 +410,7 @@ useList<TerseUser>('searchProfiles', {
   persistent: true,
 })
 
-const displayRoute = computed(() => {
-  return viewer.value !== null && !store.state.errors!.code
-})
+const displayRoute = computed(() => !store.state.errors!.code)
 
 watch(() => (viewer.value as User)?.email, (val?: string) => {
   if (viewer.value && (viewer.value as User).guest_email) {

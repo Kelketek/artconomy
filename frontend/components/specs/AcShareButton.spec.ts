@@ -1,11 +1,12 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import DummyShare from '@/components/specs/DummyShare.vue'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore

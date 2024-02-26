@@ -1,5 +1,5 @@
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import {cleanUp, confirmAction, flushPromises, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, confirmAction, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -8,6 +8,7 @@ import ConversationDetail from '@/components/views/ConversationDetail.vue'
 import {genConversation} from '@/components/views/specs/fixtures.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

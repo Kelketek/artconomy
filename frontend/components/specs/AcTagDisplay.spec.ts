@@ -1,11 +1,11 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {searchSchema} from '@/lib/lib.ts'
+import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 

@@ -4,10 +4,11 @@ import AcContextGallery from '@/components/views/character/AcContextGallery.vue'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Submission from '@/types/Submission.ts'
-import {cleanUp, createVuetify, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 describe('AcContextGallery.vue', () => {
   let store: ArtStore

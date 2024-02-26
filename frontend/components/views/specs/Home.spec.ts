@@ -1,4 +1,4 @@
-import {cleanUp, createTestRouter, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, genAnon, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import Home from '@/components/views/Home.vue'
@@ -9,6 +9,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {Router} from 'vue-router'
 import {nextTick} from 'vue'
+import {setViewer} from '@/lib/lib.ts'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore

@@ -1,4 +1,4 @@
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -10,6 +10,7 @@ import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

@@ -2,10 +2,11 @@ import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, flushPromises, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, vueSetup} from '@/specs/helpers/index.ts'
 import Payment from '../Payment.vue'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 vi.useFakeTimers()
 

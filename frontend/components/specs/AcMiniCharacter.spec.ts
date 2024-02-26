@@ -1,10 +1,11 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore

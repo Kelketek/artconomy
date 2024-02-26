@@ -7,7 +7,6 @@ import {
   mount,
   rq,
   rs,
-  setViewer,
   vueSetup,
   VuetifyWrapped,
 } from '@/specs/helpers/index.ts'
@@ -18,6 +17,7 @@ import mockAxios from '@/__mocks__/axios.ts'
 import Journal from '@/components/views/JournalDetail.vue'
 import {genJournal} from '@/components/views/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

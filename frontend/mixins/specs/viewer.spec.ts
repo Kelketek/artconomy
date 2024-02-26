@@ -1,10 +1,11 @@
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, genAnon, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {VueWrapper} from '@vue/test-utils'
+import {setViewer} from '@/lib/lib.ts'
 
 describe('Viewer.ts', () => {
   let store: ArtStore

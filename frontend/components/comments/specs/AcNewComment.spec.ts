@@ -6,7 +6,6 @@ import {
   mount,
   rq,
   rs,
-  setViewer,
   vueSetup,
   VuetifyWrapped,
   waitForSelector,
@@ -18,6 +17,7 @@ import {Router, createRouter, createWebHistory} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

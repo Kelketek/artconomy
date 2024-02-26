@@ -1,6 +1,6 @@
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {searchSchema} from '@/lib/lib.ts'
+import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {
   cleanUp,
   flushPromises,
@@ -8,7 +8,6 @@ import {
   rq,
   rs,
   setPricing,
-  setViewer,
   vueSetup,
   VuetifyWrapped,
   waitFor, waitForSelector,

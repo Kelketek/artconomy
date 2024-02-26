@@ -1,4 +1,4 @@
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import DeliverableDetail from '@/components/views/order/DeliverableDetail.vue'
@@ -12,6 +12,7 @@ import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {setViewer} from '@/lib/lib.ts'
 
 const WrappedDeliverableDetail = VuetifyWrapped(DeliverableDetail)
 

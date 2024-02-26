@@ -3,7 +3,7 @@ import Settings from '../Settings.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, flushPromises, mount, setViewer, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
 import Credentials from '../Credentials.vue'
 import Avatar from '../Avatar.vue'
 import Payment from '../payment/Payment.vue'
@@ -16,6 +16,7 @@ import Premium from '@/components/views/settings/Premium.vue'
 import Invoices from '../payment/Invoices.vue'
 import Email from '@/components/views/settings/Email.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 vi.useFakeTimers()
 

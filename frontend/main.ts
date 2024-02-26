@@ -8,7 +8,7 @@ import {configureHooks, router} from '@/router/index.ts'
 import {createForms} from '@/store/forms/registry.ts'
 import {Shortcuts} from './plugins/shortcuts.ts'
 import supportedBrowsers from './supportedBrowsers.ts'
-import {genId} from './lib/lib.ts'
+import {genId, setViewer} from './lib/lib.ts'
 import {createLists} from '@/store/lists/registry.ts'
 import {createSingles} from '@/store/singles/registry.ts'
 import {createProfiles} from '@/store/profiles/registry.ts'
@@ -73,6 +73,8 @@ app.use(VueObserveVisibility)
 // Needed because these tags are inter-referential
 app.component('AcComment', AcComment)
 app.component('AcCommentSection', AcCommentSection)
+
+setViewer(store, window.USER_PRELOAD)
 
 
 window.artconomy = app

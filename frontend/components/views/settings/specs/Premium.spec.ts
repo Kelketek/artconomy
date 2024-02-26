@@ -8,7 +8,6 @@ import {
   mount,
   rq,
   rs,
-  setViewer,
   vueSetup, VuetifyWrapped,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
@@ -16,6 +15,7 @@ import Premium from '@/components/views/settings/Premium.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let router: Router

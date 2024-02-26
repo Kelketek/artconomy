@@ -9,20 +9,8 @@ import {ComponentPublicInstance, defineComponent} from 'vue'
 import {FieldController} from '@/store/forms/field-controller.ts'
 import {FieldBank} from '@/store/forms/form-controller.ts'
 import flushPromisesUpstream from 'flush-promises'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
-import {Store} from 'vuex/types/index.d.ts'
-import {ProfileModule} from '@/store/profiles/index.ts'
-import {SingleModule} from '@/store/singles/index.ts'
-import {
-  artistProfileEndpointFor,
-  artistProfilePathFor,
-  endpointFor,
-  pathFor,
-  userPathFor,
-} from '@/store/profiles/helpers.ts'
 import {createSingles, singleRegistry} from '@/store/singles/registry.ts'
 import {createLists, listRegistry} from '@/store/lists/registry.ts'
 import {createProfiles, profileRegistry} from '@/store/profiles/registry.ts'
@@ -119,27 +107,6 @@ export function expectFields(fieldSet: FieldBank, names: string[]) {
 }
 
 export const flushPromises = flushPromisesUpstream
-
-export function setViewer(store: Store<any>, user: User | AnonUser | TerseUser) {
-  const username = user.username
-  store.registerModule(pathFor(username), new ProfileModule({viewer: true}))
-  store.registerModule(
-    userPathFor(username),
-    new SingleModule<User | AnonUser | TerseUser>({
-      x: user,
-      endpoint: endpointFor(username),
-    }),
-  )
-  store.registerModule(
-    artistProfilePathFor(username),
-    new SingleModule<User | AnonUser | TerseUser>({
-      x: null,
-      endpoint: artistProfileEndpointFor(username),
-    }),
-  )
-  store.commit('profiles/setViewerUsername', username)
-  store.commit(`userModules/${username}/user/setReady`, true)
-}
 
 export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
   return {

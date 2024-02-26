@@ -1,9 +1,10 @@
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, genAnon, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, genAnon, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import SessionSettings from '@/components/views/SessionSettings.vue'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

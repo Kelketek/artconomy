@@ -1,4 +1,4 @@
-import {cleanUp, createVuetify, docTarget, flushPromises, mount, rq, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createVuetify, docTarget, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {genCard, genUser} from '@/specs/helpers/fixtures.ts'
@@ -6,6 +6,7 @@ import Purchase from '@/components/views/settings/payment/Purchase.vue'
 import mockAxios from '@/__mocks__/axios.ts'
 import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

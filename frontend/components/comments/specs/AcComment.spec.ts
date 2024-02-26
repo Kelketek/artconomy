@@ -7,7 +7,6 @@ import {
   mount,
   rq,
   rs,
-  setViewer,
   vueSetup,
   VuetifyWrapped, waitFor, waitForSelector,
 } from '@/specs/helpers/index.ts'
@@ -19,6 +18,7 @@ import {Router, createRouter, createWebHistory} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

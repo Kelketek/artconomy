@@ -2,10 +2,11 @@ import {shallowMount, VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, mount, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import Credentials from '../Credentials.vue'
 import Settings from '../Settings.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 vi.useFakeTimers()
 

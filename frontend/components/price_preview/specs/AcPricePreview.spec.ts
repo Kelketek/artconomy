@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, mount, setPricing, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, setPricing, vueSetup} from '@/specs/helpers/index.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
@@ -11,6 +11,7 @@ import LineItem from '@/types/LineItem.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {Decimal} from 'decimal.js'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

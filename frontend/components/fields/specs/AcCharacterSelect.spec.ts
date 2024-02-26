@@ -1,10 +1,11 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, flushPromises, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
 import AcCharacterSelect from '@/components/fields/AcCharacterSelect.vue'
 import mockAxios from '@/__mocks__/axios.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {setViewer} from '@/lib/lib.ts'
 
 vi.useFakeTimers()
 let wrapper: VueWrapper<any>

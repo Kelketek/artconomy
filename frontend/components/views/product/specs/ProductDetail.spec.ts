@@ -9,14 +9,13 @@ import {
   mount,
   rs,
   setPricing,
-  setViewer,
   vueSetup,
   VuetifyWrapped, waitFor,
 } from '@/specs/helpers/index.ts'
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
 import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import mockAxios from '@/__mocks__/axios.ts'
-import {searchSchema} from '@/lib/lib.ts'
+import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'

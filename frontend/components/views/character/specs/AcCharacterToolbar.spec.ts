@@ -8,7 +8,6 @@ import {
   mount,
   rq,
   rs,
-  setViewer,
   vueSetup,
   VuetifyWrapped, waitFor,
 } from '@/specs/helpers/index.ts'
@@ -17,6 +16,7 @@ import {Character} from '@/store/characters/types/Character.ts'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import flushPromises from 'flush-promises'
+import {setViewer} from '@/lib/lib.ts'
 
 const WrappedToolbar = VuetifyWrapped(AcCharacterToolbar)
 

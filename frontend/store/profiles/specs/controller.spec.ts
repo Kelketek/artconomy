@@ -1,5 +1,5 @@
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, flushPromises, genAnon, mount, rs, setViewer, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, genAnon, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
@@ -7,6 +7,7 @@ import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-com
 import {ProfileController} from '@/store/profiles/controller.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {setViewer} from '@/lib/lib.ts'
 
 const localVue = vueSetup()
 
