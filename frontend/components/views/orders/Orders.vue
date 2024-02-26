@@ -145,7 +145,7 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
-import {baseInvoiceSchema, flatten, getSalesStatsSchema} from '@/lib/lib.ts'
+import {flatten, getSalesStatsSchema} from '@/lib/lib.ts'
 
 @Component({
   components: {
@@ -199,17 +199,6 @@ class Orders extends mixins(Subjective) {
     return stats.commissions_closed || stats.commissions_disabled || stats.load >= stats.max_load
   }
 
-  // @ts-ignore
-  public get invoiceEscrowEnabled() {
-    if (!this.subjectHandler.artistProfile.x) {
-      return false
-    }
-    if (this.newInvoice.fields.paid.value) {
-      return false
-    }
-    return this.subjectHandler.artistProfile.x.escrow_enabled
-  }
-
   public created() {
     const type = this.baseName.toLocaleLowerCase()
     this.stats = this.$getSingle(`stats__sales__${flatten(this.username)}`, getSalesStatsSchema(this.username))
@@ -226,9 +215,6 @@ class Orders extends mixins(Subjective) {
       this.stats.get()
       this.subjectHandler.artistProfile.get()
     }
-    const invoiceSchema = baseInvoiceSchema(`/api/sales/account/${this.username}/create-invoice/`)
-    invoiceSchema.fields.hold.value = !this.isCurrent
-    this.newInvoice = this.$getForm('newInvoice', invoiceSchema)
     this.broadcastForm = this.$getForm('broadcast', {
       endpoint: `/api/sales/account/${this.username}/broadcast/`,
       fields: {
