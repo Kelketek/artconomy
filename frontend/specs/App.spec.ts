@@ -23,7 +23,7 @@ import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick, reactive} from 'vue'
 import {Router} from 'vue-router'
 
-let wrapper: VueWrapper<any>
+let wrapper: VueWrapper<typeof App>
 let router: Router
 
 // @ts-ignore
@@ -70,7 +70,7 @@ describe('App.vue', () => {
       attachTo: docTarget(),
     }))
     await nextTick()
-    const state = wrapper.vm.store.state
+    const state = wrapper.vm.store!.state
     expect(state.showSupport).toBe(false)
     const vm = wrapper.vm as any
     expect(vm.showTicketSuccess).toBe(false)

@@ -207,7 +207,7 @@ import {
   getCookie,
   paramsKey,
   RATINGS_SHORT,
-  searchSchema,
+  searchSchema as baseSearchSchema,
   setCookie,
 } from './lib/lib.ts'
 import {User} from '@/store/profiles/types/User.ts'
@@ -246,33 +246,37 @@ const supportForm = useForm('supportRequest', {
   },
 })
 
-watch(() => route.fullPath, (newPath: string) => {
-  supportForm.fields.referring_url.update(newPath)
-})
-
 const contentRating = computed(() => store.state.contentRating)
 
 const latestAlert = computed(() => store.getters.latestAlert)
 
-const searchForm = useForm('search', searchSchema())
+const searchSchema = baseSearchSchema()
+
+// Build the search form, which can be used at any time, and thus must be set up in the root.
+const query = {...route.query}
+searchSchema.fields.q.value = fallback(query, 'q', '')
+searchSchema.fields.content_ratings.value = fallback(query, 'content_ratings', '')
+searchSchema.fields.minimum_content_rating.value = fallback(query, 'minimum_content_rating', 0)
+searchSchema.fields.watch_list.value = fallbackBoolean(query, 'watch_list', false)
+searchSchema.fields.shield_only.value = fallbackBoolean(query, 'shield_only', false)
+searchSchema.fields.featured.value = fallbackBoolean(query, 'featured', false)
+searchSchema.fields.rating.value = fallbackBoolean(query, 'rating', false)
+searchSchema.fields.commissions.value = fallbackBoolean(query, 'commissions', false)
+searchSchema.fields.artists_of_color.value = fallbackBoolean(query, 'artists_of_color', false)
+searchSchema.fields.lgbt.value = fallbackBoolean(query, 'lgbt', false)
+searchSchema.fields.max_price.value = fallback(query, 'max_price', '')
+searchSchema.fields.min_price.value = fallback(query, 'min_price', '')
+searchSchema.fields.max_turnaround.value = fallback(query, 'max_turnaround', '')
+searchSchema.fields.page.value = fallback(query, 'page', 1)
+// This variable is accessed in the tests to verify it's set up correctly, even though it does not appear to be used.
+const searchForm = useForm('search', searchSchema)
+
+watch(() => route.fullPath, (newPath: string) => {
+  supportForm.fields.referring_url.update(newPath)
+})
 
 const forceRecompute = ref(0)
 
-const query = {...route.query}
-searchForm.fields.q.update(fallback(query, 'q', ''))
-searchForm.fields.content_ratings.update(fallback(query, 'content_ratings', ''))
-searchForm.fields.minimum_content_rating.update(fallback(query, 'minimum_content_rating', 0))
-searchForm.fields.watch_list.update(fallbackBoolean(query, 'watch_list', false))
-searchForm.fields.shield_only.update(fallbackBoolean(query, 'shield_only', false))
-searchForm.fields.featured.update(fallbackBoolean(query, 'featured', false))
-searchForm.fields.rating.update(fallbackBoolean(query, 'rating', false))
-searchForm.fields.commissions.update(fallbackBoolean(query, 'commissions', false))
-searchForm.fields.artists_of_color.update(fallbackBoolean(query, 'artists_of_color', false))
-searchForm.fields.lgbt.update(fallbackBoolean(query, 'lgbt', false))
-searchForm.fields.max_price.update(fallback(query, 'max_price', ''))
-searchForm.fields.min_price.update(fallback(query, 'min_price', ''))
-searchForm.fields.max_turnaround.update(fallback(query, 'max_turnaround', ''))
-searchForm.fields.page.update(fallback(query, 'page', 1))
 // Do we still need this?
 store.commit('setSearchInitialized', true)
 
