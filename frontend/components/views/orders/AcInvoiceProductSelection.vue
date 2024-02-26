@@ -81,18 +81,18 @@
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {flatten, prepopulateCharacters} from '@/lib/lib.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import AcProductPreview from '@/components/AcProductPreview.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
 import Product from '@/types/Product.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useForm} from '@/store/forms/hooks.ts'
-import {ref} from 'vue'
+import {defineAsyncComponent, ref} from 'vue'
 import {Character} from '@/store/characters/types/Character.ts'
 import Deliverable from '@/types/Deliverable.ts'
 import {useRouter} from 'vue-router'
+const AcProductPreview = defineAsyncComponent(() => import('@/components/AcProductPreview.vue'))
+const AcFormDialog = defineAsyncComponent(() => import('@/components/wrappers/AcFormDialog.vue'))
+const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
+const AcPaginated = defineAsyncComponent(() => import('@/components/wrappers/AcPaginated.vue'))
 
 const props = defineProps<SubjectiveProps>()
 const router = useRouter()
