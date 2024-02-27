@@ -743,6 +743,7 @@ CSP_SCRIPT_SRC = tuple(
             "https://cdn.matomo.cloud",
             "https://hcaptcha.com",
             "https://*.stripe.com/",
+            "https://*.hcaptcha.com",
         ),
         unpack=True,
     )
@@ -769,6 +770,7 @@ CSP_FRAME_SRC = tuple(
             "https://connect-js.stripe.com",
             "https://js.stripe.com",
             "https://hcaptcha.com",
+            "https://*.hcaptcha.com",
         ),
     )
 )
