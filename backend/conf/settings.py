@@ -724,7 +724,6 @@ CSP_STYLE_SRC = tuple(
         (
             "'self'",
             "'unsafe-inline'",
-            "sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk=",
         ),
         unpack=True,
     )
