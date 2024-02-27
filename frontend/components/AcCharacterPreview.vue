@@ -79,12 +79,12 @@ export default {
       }
     },
     characterAltText() {
-      if (this.character.profile.x && this.character.profile.x.primary_submission) {
-        const title = this.character.profile.x.primary_submission.title
+      if (this.character.primary_submission) {
+        const title = this.character.primary_submission.title
         if (!title) {
-          return `Untitled Focus Submission for ${this.character.profile.name}`
+          return `Untitled Focus Submission for ${this.character.name}`
         }
-        return `Focus Submission for ${this.character.profile.name} titled: ${title}`
+        return `Focus Submission for ${this.character.name} titled: ${title}`
       }
       return ''
     },
