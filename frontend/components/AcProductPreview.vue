@@ -298,17 +298,14 @@ class AcProductPreview extends mixins(Formatting) {
   }
 
   public get productAltText() {
-    if (!this.product.x) {
+    if (!this.product.primary_submission) {
       return ''
     }
-    if (!this.product.x.primary_submission) {
-      return ''
-    }
-    const title = this.product.x.primary_submission.title
+    const title = this.product.primary_submission.title
     if (!title) {
-      return `Untitled Showcase submission for ${product.x.name}`
+      return `Untitled Showcase submission for ${this.product.name}`
     }
-    return `Showcase submission for ${product.x.name} entitled `
+    return `Showcase submission for ${this.product.name} entitled `
   }
 
   public get unavailable() {

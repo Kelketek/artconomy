@@ -969,9 +969,9 @@ class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharabl
     }
     const title = this.product.x.primary_submission.title
     if (!title) {
-      return `Untitled Showcase submission for ${product.x.name}`
+      return `Untitled Showcase submission for ${this.product.x.name}`
     }
-    return `Showcase submission for ${product.x.name} entitled `
+    return `Showcase submission for ${this.product.x.name} entitled `
   }
 
   public get prunedSubmissions() {
