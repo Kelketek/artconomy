@@ -737,10 +737,10 @@ CSP_SCRIPT_SRC = tuple(
             "'unsafe-inline'",
             "blob:",
             "https://sentry.io",
-            "https://www.googletagmanager.com/"
+            "https://www.googletagmanager.com",
             "https://static.cloudflareinsights.com",
-            "https://artconomy.matomo.cloud/",
-            "https://cdn.matomo.cloud/artconomy.matomo.cloud/*",
+            "https://artconomy.matomo.cloud",
+            "https://cdn.matomo.cloud",
             "https://*.stripe.com/",
         ),
         unpack=True,
