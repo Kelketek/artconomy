@@ -4,7 +4,7 @@
       <div class="flex">
         <ac-link :to="profileLink">
           <v-avatar>
-            <img alt="" :src="person.avatar_url" v-if="person">
+            <img alt="" :src="person.avatar_url" v-if="person" width="40" height="40">
             <v-icon v-else icon="mdi-person"/>
           </v-avatar>
         </ac-link>

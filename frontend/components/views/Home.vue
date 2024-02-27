@@ -396,13 +396,11 @@ const rated = useList<Product>('rated', {
   endpoint: '/api/sales/highly-rated/',
   params: {size: 6},
 })
-rated.firstRun()
 
 const lowPriced = useList<Product>('lowPriced', {
   endpoint: '/api/sales/low-price/',
   params: {size: 6},
 })
-lowPriced.firstRun()
 
 const newArtistProducts = useList<Product>(
   'newArtistProducts', {
@@ -410,23 +408,20 @@ const newArtistProducts = useList<Product>(
     params: {size: 6},
   },
 )
-newArtistProducts.firstRun()
 
-const artistsOfColor = useList(
+const artistsOfColor = useList<Product>(
     'artistsOfColor', {
       endpoint: '/api/sales/artists-of-color/',
       params: {size: 6},
     },
 )
-artistsOfColor.firstRun()
 
-const randomProducts = useList(
+const randomProducts = useList<Product>(
     'randomProducts', {
       endpoint: '/api/sales/random/',
       params: {size: 6},
     },
 )
-randomProducts.firstRun()
 
 const lgbt = useList<Product>(
     'lgbt', {
@@ -434,7 +429,6 @@ const lgbt = useList<Product>(
       params: {size: 6},
     },
 )
-lgbt.firstRun()
 
 const commissions = useList<Submission>(
     'commissions', {
