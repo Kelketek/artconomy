@@ -39,7 +39,7 @@
           :terse="true"
           :aspect-ratio="1"
           :allow-preview="false"
-          :alt="characterAltTextg"
+          :alt="characterAltText"
       />
     </router-link>
     <v-card-title v-if="showFooter">
