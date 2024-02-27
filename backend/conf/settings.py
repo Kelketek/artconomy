@@ -707,7 +707,13 @@ DEDUPLICATE_ASSETS = get_env("DEDUPLICATE_ASSETS", not DEBUG)
 CSP_IMG_SRC = tuple(
     get_env(
         "CSP_IMG_SRC",
-        ("'self'", "https://*.stripe.com", "https://www.gravatar.com/"),
+        (
+            "'self'",
+            "https://*.stripe.com",
+            "https://www.gravatar.com/",
+            # Blog post images on the front page won't load without this.
+            "https://artconomy.com/",
+        ),
         unpack=True,
     )
 )
@@ -732,7 +738,6 @@ CSP_SCRIPT_SRC = tuple(
             "'unsafe-inline'",
             "https://sentry.io",
             "https://static.cloudflareinsights.com",
-            "connect-src cloudflareinsights.com",
             "https://artconomy.matomo.cloud/",
             "https://*.stripe.com/",
         ),
@@ -741,7 +746,11 @@ CSP_SCRIPT_SRC = tuple(
 )
 
 CSP_CONNECT_SRC = tuple(
-    get_env("CSP_CONNECT_SRC", ("'self'", "https://cloudflareinsights.com"), True)
+    get_env(
+        "CSP_CONNECT_SRC",
+        ("'self'", "https://*.cloudflareinsights.com", "https://sentry.io"),
+        True,
+    )
 )
 
 CSP_FRAME_SRC = tuple(
