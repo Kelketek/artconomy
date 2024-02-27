@@ -767,6 +767,7 @@ CSP_FRAME_SRC = tuple(
             "'self'",
             "https://connect-js.stripe.com",
             "https://js.stripe.com",
+            "https://hcaptcha.com",
         ),
     )
 )
