@@ -103,7 +103,7 @@
       </template>
       <v-toolbar-title class="mr-5 align-center hidden-xs">
         <v-btn variant="text" to="/">
-          <img :src="logo" class="header-logo" alt="A"/>
+          <img :src="logo" class="header-logo" alt="A" height="28" width="28"/>
           <div class="title">rtconomy</div>
         </v-btn>
       </v-toolbar-title>
@@ -161,7 +161,7 @@
         <v-btn class="nav-login-item" variant="text" v-if="isRegistered"
                :to="profileRoute">
           <v-avatar size="32px">
-            <img :src="registeredUser.avatar_url" :alt="registeredUser.username">
+            <img :src="registeredUser.avatar_url" :alt="registeredUser.username" width="32" height="32">
           </v-avatar>
           <div style="padding-left: 1rem;" v-if="isLoggedIn" class="hidden-sm-and-down">{{ viewer!.username }}</div>
         </v-btn>
@@ -223,7 +223,7 @@ const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/Ac
 
 // Should already have been populated in the root component.
 const searchForm = useSearchForm()
-const logo = new URL('/static/images/logo.png', BASE_URL).href
+const logo = new URL('/static/images/mini-logo.png', BASE_URL).href
 const route = useRoute()
 const router = useRouter()
 const store = useStore<ArtState>()
