@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <div class="px-3" v-if="isRegistered">
-      <v-img :src="randomBanner.src.href" aspect-ratio="7.2"/>
+      <v-img :src="randomBanner.src.href" aspect-ratio="7.2" alt="Welcome back to Artconomy!"/>
       <div class="text-right pr-2 elevation-2 credit-overlay">
         <small>
           <ac-link :to="{name: 'AboutUser', params: {username: randomBanner.artist}}">Art by {{randomBanner.artist}}
@@ -48,7 +48,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="laptop" max-height="20vh" aspect-ratio="1" contain/>
+                  <v-img :src="laptop" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox typing away on a Laptop"/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -66,7 +66,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12">
-                  <v-img :src="fingerPainting" max-height="20vh" aspect-ratio="1" contain/>
+                  <v-img :src="fingerPainting" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox painting a piece of art."/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -90,7 +90,7 @@
             <v-col class="grow pa-1">
               <v-row dense>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="fridge" max-height="20vh" aspect-ratio="1" contain/>
+                  <v-img :src="fridge" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox hanging his work on the fridge for all to enjoy!"/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row class="justify-content fill-height" align="center">
@@ -185,7 +185,7 @@
             </v-toolbar>
             <v-row no-gutters>
               <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
-                <v-img :src="discord" :aspect-ratio="3/2" contain/>
+                <v-img :src="discord" :aspect-ratio="3/2" contain alt="Discord"/>
               </v-col>
               <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
                 <v-responsive :aspect-ratio="3/2" class="pa-1">
@@ -209,25 +209,25 @@
               </v-col>
               <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
-                  <a :href="articles[0].link" target="_blank">
+                  <a :href="articles[0].link" target="_blank" :aria-label="articles[0].title">
                     <v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain/>
                   </a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
-                    <a :href="articles[0].link" target="_blank">{{articles[0].title}}</a>
+                    <a :href="articles[0].link" target="_blank" id="article-0-link">{{articles[0].title}}</a>
                   </strong>
                 </v-col>
               </v-col>
               <v-col cols="6" md="3" lg="6" align-self="center">
                 <v-col class="text-center">
-                  <a :href="articles[1].link" target="_blank">
+                  <a :href="articles[1].link" target="_blank" :aria-label="articles[0].title">
                     <v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain/>
                   </a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
-                    <a :href="articles[1].link" target="_blank">{{articles[1].title}}</a>
+                    <a :href="articles[1].link" target="_blank" id="article-1-link">{{articles[1].title}}</a>
                   </strong>
                 </v-col>
               </v-col>

@@ -27,7 +27,7 @@
             <v-carousel height="60vh" :cycle="false" :show-arrows="slides.length > 1"
                         :hide-delimiters="slides.length <= 1">
               <v-carousel-item v-if="product.x.primary_submission === null">
-                <ac-asset thumb-name="thumbnail" :aspect-ratio="1" :asset="null" :contain="true" :terse="true"/>
+                <ac-asset thumb-name="thumbnail" :aspect-ratio="1" :asset="null" :contain="true" :terse="true" :alt="productAltText"/>
               </v-carousel-item>
               <v-carousel-item v-for="sample in slides" :key="sample.id">
                 <ac-gallery-preview :submission="sample"
@@ -57,6 +57,7 @@
                               thumb-name="thumbnail" :terse="true"
                               :text="false"
                               :aspect-ratio="1"
+                              :alt="assetAltText(sample)"
                               :class="{submissionSelected: (shown && shown.id === sample.id)}"
                     />
                   </v-col>
@@ -685,6 +686,14 @@ class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharabl
     }
   }
 
+  public assetAltText(sample: Submission) {
+    const title = sample.title
+    if (title) {
+      return `Sample submission entitled: ${title}`
+    }
+    return `Untitled sample submission for ${this.product.x?.name}`
+  }
+
   public get forceShield() {
     return !!({...this.$route.query}.forceShield)
   }
@@ -949,6 +958,20 @@ class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharabl
       return 0
     }
     return Math.max(...ratings)
+  }
+
+  public get productAltText() {
+    if (!this.product.x) {
+      return ''
+    }
+    if (!this.product.x.primary_submission) {
+      return ''
+    }
+    const title = this.product.x.primary_submission.title
+    if (!title) {
+      return `Untitled Showcase submission for ${product.x.name}`
+    }
+    return `Showcase submission for ${product.x.name} entitled `
   }
 
   public get prunedSubmissions() {

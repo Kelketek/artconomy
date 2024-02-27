@@ -27,7 +27,7 @@
             </code>
             <p>Preview:</p>
             <router-link :to="{name: 'Store', params: {username: username}}">
-              <img :src="`/api/sales/account/${username}/commissions-status-image/`">
+              <img :src="`/api/sales/account/${username}/commissions-status-image/`" alt="Current commission status.">
             </router-link>
           </v-card-text>
         </v-card>

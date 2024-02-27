@@ -7,6 +7,7 @@
             thumb-name="thumbnail"
             aspect-ratio="1"
             :allow-preview="false"
+            :alt="`Current progress image for deliverable #${deliverable.id}`"
         />
       </ac-link>
       <v-card-text>

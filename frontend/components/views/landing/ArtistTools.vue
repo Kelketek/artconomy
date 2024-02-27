@@ -10,10 +10,10 @@
         </v-btn>
       </v-col>
       <v-col cols="12" md="6" order="2" order-md="2" class="pa-2" offset-lg="1">
-        <v-img :src="productDetail" :elevation="14" :aspect-ratio="1357/565"/>
+        <v-img :src="productDetail" :elevation="14" :aspect-ratio="1357/565" alt=""/>
       </v-col>
       <v-col cols="12" md="6" class="pa-2" order="4" order-md="3">
-        <v-img :src="awoo" :elevation="14" :aspect-ratio="1591/844"/>
+        <v-img :src="awoo" :elevation="14" :aspect-ratio="1591/844" alt=""/>
       </v-col>
       <v-col cols="12" md="6" lg="4" offset-lg="1" class="text-center" order="3" order-md="4">
         <hr class="hidden-md-and-up"/>
@@ -37,7 +37,7 @@
         </v-btn>
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="7" order-lg="7">
-        <v-img :src="discordChannelLog" :elevation="14" :aspect-ratio="1591/844"/>
+        <v-img :src="discordChannelLog" :elevation="14" :aspect-ratio="1591/844" alt="A screenshot of a conversation between artists on the Artconomy Discord."/>
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="6" order-lg="6">
         <hr class="hidden-md-and-up"/>
@@ -98,7 +98,7 @@
         </v-btn>
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="9" order-md="9">
-        <v-img :src="pricing" :aspect-ratio="2356/1018" contain></v-img>
+        <v-img :src="pricing" :aspect-ratio="2356/1018" contain alt=""></v-img>
       </v-col>
     </v-row>
     <v-row class="justify-content fill-height" align="center">
@@ -107,7 +107,7 @@
       </v-col>
       <v-col cols="12" md="6" offset-md="3" lg="4" offset-lg="4" class="text-center pa-2">
         <h1>Never get scammed</h1>
-        <v-img :src="forbidden" max-height="30vh" contain :aspect-ratio="1"/>
+        <v-img :src="forbidden" max-height="30vh" contain :aspect-ratio="1" alt=""/>
         <p>With
           <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
           , payment is guaranteed, and deposited right into your bank account.
@@ -129,7 +129,7 @@
     </v-row>
     <v-row class="justify-content fill-height" align="center">
       <v-col cols="12" md="6" lg="4" class="text-center pa-2" order="2" order-lg="1">
-        <v-img :src="references" contain :aspect-ratio="1613/607"/>
+        <v-img :src="references" contain :aspect-ratio="1613/607" alt="A screenshot of the reference management functionality."/>
       </v-col>
       <v-col cols="12" lg="4" class="text-center pa-5" order="1" order-lg="2">
         <h2>Keep Track of All of your References</h2>
@@ -139,7 +139,7 @@
           customer's OC!</p>
       </v-col>
       <v-col cols="12" md="6" lg="4" class="text-center pa-2" order="3" order-lg="3">
-        <v-img :src="character" contain :aspect-ratio="2334/978"/>
+        <v-img :src="character" contain :aspect-ratio="2334/978" alt=""/>
       </v-col>
     </v-row>
     <v-row>

@@ -8,7 +8,7 @@
               <v-card-text>
                 <v-row>
                   <v-col cols="2" class="text-left">
-                    <v-img :src="logo" max-height="3rem" max-width="3rem"/>
+                    <v-img :src="logo" max-height="3rem" max-width="3rem" alt="Artconomy.com"/>
                   </v-col>
                   <v-col cols="7" class="text-left" align-self="center"><h1>Artconomy.com</h1></v-col>
                   <v-col cols="3" class="text-right" align-self="center"><h2 class="text-uppercase">Invoice</h2></v-col>

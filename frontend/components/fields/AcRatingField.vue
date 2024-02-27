@@ -3,7 +3,7 @@
     <v-card-text>
       <v-row>
         <v-col cols="12" v-if="label">
-          <label :for="$attrs.id as string | undefined" class="v-label">{{label}}</label>
+          <label :for="$attrs.id as string || undefined" class="v-label">{{label}}</label>
         </v-col>
         <v-col cols="12" class="text-center hidden-sm-and-down">
           <v-btn-toggle v-model="scratch" mandatory elevation="3" variant="flat">
@@ -63,13 +63,11 @@
 
 <script lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import AcAsset from '../AcAsset.vue'
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
 import ExtendedInput from '@/components/fields/mixins/extended_input.ts'
 import {ContentRating} from '@/types/ContentRating.ts'
 
 @Component({
-  components: {AcAsset},
   emits: ['update:modelValue'],
 })
 class AcRatingField extends mixins(ExtendedInput) {

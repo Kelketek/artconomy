@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0">
-    <v-img :src="banner" :aspect-ratio="16/9" max-height="250px">
+    <v-img :src="banner" :aspect-ratio="16/9" max-height="250px" alt="Welcome to Artconomy.com!">
       <v-row no-gutters
              align="center"
              justify="center"
@@ -19,7 +19,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="laptop" max-height="20vh" contain/>
+                  <v-img :src="laptop" max-height="20vh" alt="" contain/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -40,7 +40,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12">
-                  <v-img :src="forbidden" max-height="20vh" contain/>
+                  <v-img :src="forbidden" max-height="20vh" alt="" contain/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -65,7 +65,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="fridge" max-height="20vh" contain/>
+                  <v-img :src="fridge" max-height="20vh" alt="" contain/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">

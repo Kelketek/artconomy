@@ -264,7 +264,7 @@
                                                key="buyer"/>
                       </v-col>
                       <v-col class="text-center" v-if="isSeller && is(DeliverableStatus.COMPLETED) && !order.x.private" cols="12">
-                        <v-img :src="fridge" max-height="20vh" contain/>
+                        <v-img :src="fridge" max-height="20vh" alt="" contain/>
                         <v-btn v-if="sellerSubmission" color="primary"
                                variant="flat"
                                :to="{name: 'Submission', params: {submissionId: sellerSubmission.id}}">Visit in
@@ -273,7 +273,7 @@
                         <v-btn color="green" v-else @click="addToGallery" class="gallery-add" variant="elevated">Add to my Gallery</v-btn>
                       </v-col>
                       <v-col class="text-center" v-if="isBuyer && is(DeliverableStatus.COMPLETED)" cols="12">
-                        <v-img :src="fridge" max-height="20vh" contain/>
+                        <v-img :src="fridge" max-height="20vh" alt="" contain/>
                         <v-btn v-if="buyerSubmission" color="primary"
                                variant="flat"
                                :to="{name: 'Submission', params: {submissionId: buyerSubmission.id}}">Visit in

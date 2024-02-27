@@ -7,7 +7,7 @@
         </v-btn>
         <ac-load-section :controller="revision">
           <template v-slot:default>
-            <ac-asset thumb-name="gallery" :asset="revision.x" :contain="true"/>
+            <ac-asset thumb-name="gallery" :asset="revision.x" :contain="true" alt="Revision for order."/>
             <ac-form-container v-bind="approveForm.bind" v-if="revision.x">
               <v-row>
                 <v-col class="text-center" cols="12" :lg="isBuyer && !isFinal ? '6' : '12'" v-if="isBuyer || archived">

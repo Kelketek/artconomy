@@ -31,6 +31,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: genSubmission(),
         thumbName: 'full',
+        alt: '',
       },
     })
     await nextTick()
@@ -50,6 +51,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'full',
+        alt: '',
       },
     })
     await nextTick()
@@ -72,6 +74,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'full',
+        alt: '',
       },
     })
     await nextTick()
@@ -96,6 +99,7 @@ describe('AcAsset.vue', () => {
           asset: submission,
           thumbName: 'full',
           aspectRatio: null,
+          alt: '',
         },
       })
       await nextTick()
@@ -116,6 +120,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: null,
         thumbName: 'full',
+        alt: '',
       },
     })
     await nextTick()
@@ -141,6 +146,7 @@ describe('AcAsset.vue', () => {
         asset: null,
         thumbName: 'full',
         fallbackImage: 'boop.jpg',
+        alt: '',
       },
     })
     await nextTick()
@@ -160,6 +166,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: null,
         thumbName: 'full',
+        alt: '',
       },
     })
     await nextTick()
@@ -184,6 +191,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'full',
+        alt: '',
       },
     })
     await nextTick()
@@ -202,6 +210,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'thumbnail',
+        alt: '',
       },
     })
     await nextTick()
@@ -222,6 +231,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'thumbnail',
+        alt: '',
       },
     })
     await nextTick()
@@ -245,6 +255,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'thumbnail',
+        alt: '',
       },
     })
     await nextTick()
@@ -268,6 +279,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'thumbnail',
+        alt: '',
       },
     })
     await nextTick()
@@ -292,6 +304,7 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'gallery',
+        alt: '',
       },
     })
     await nextTick()
@@ -316,8 +329,8 @@ describe('AcAsset.vue', () => {
       props: {
         asset: submission,
         thumbName: 'thumbnail',
+        alt: '',
       },
-
     })
     await nextTick()
     const vm = wrapper.vm as any

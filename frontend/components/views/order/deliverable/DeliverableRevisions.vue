@@ -78,7 +78,7 @@
                     <router-link
                         :to="{name: `${baseName}DeliverableRevision`, params: {...$route.params, revisionId: revision.x!.id}}">
                       <ac-unread-marker :read="revision.x!.read" content-type="sales.Revision">
-                        <ac-asset :asset="revision.x" thumb-name="thumbnail"/>
+                        <ac-asset :asset="revision.x" thumb-name="thumbnail" :alt="`Revision #${index} for order.`"/>
                       </ac-unread-marker>
                     </router-link>
                   </v-col>

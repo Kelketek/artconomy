@@ -30,7 +30,7 @@
     <v-col cols="12" sm="4" md="6" class="pa-2 text-center">
       <v-row no-gutters>
         <v-col cols="8" offset="2" sm="6" offset-sm="3" md="4" offset-md="4">
-          <v-img :src="defending.href" contain class="shield-indicator" :class="{faded: !inSupportedCountry}"></v-img>
+          <v-img :src="defending.href" contain class="shield-indicator" :class="{faded: !inSupportedCountry}" alt="" aria-hidden="true"></v-img>
         </v-col>
         <v-col class="text-center" cols="12">
           <p v-if="inSupportedCountry">Artconomy Shield is enabled!</p>

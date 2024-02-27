@@ -78,7 +78,7 @@
         <v-card>
           <v-card-text>
             <p>Our team consists of people who are passionate about art.</p>
-            <v-img :src="amberAndFox" :contain="true" max-height="40vh"></v-img>
+            <v-img :src="amberAndFox" :contain="true" max-height="40vh" alt="Amber and Fox, taking a selfie together."></v-img>
             <h3>CEO and Lead Developer: Fox Danger Piacenti</h3>
             <p>Fox is a long term online role player who has had a passion to see characters
               come alive online. He has worked as a lead developer, administrator, and director in the recreational

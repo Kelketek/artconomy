@@ -8,7 +8,7 @@
           </v-btn>
           <ac-link
               :to="{name: `${baseName}DeliverableReference`, params: {...$route.params, referenceId: reference.id}}">
-            <ac-asset :asset="reference" thumb-name="thumbnail"/>
+            <ac-asset :asset="reference" thumb-name="thumbnail" alt="Reference image for order. Click to read comments."/>
           </ac-link>
         </div>
       </ac-unread-marker>

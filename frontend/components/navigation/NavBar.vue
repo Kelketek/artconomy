@@ -69,7 +69,7 @@
                     </v-row>
                   </a>
                 </v-col>
-                <v-col class="bottom-button" @click.capture.prevent="showSupport">
+                <v-col class="bottom-button" @click.capture.prevent="showSupport" tabindex="0">
                   <v-row no-gutters>
                     <v-col cols="12" class="text-center support-button">
                       <v-icon medium icon="mdi-chat-question"/>
@@ -99,6 +99,8 @@
       <template v-slot:prepend>
         <v-app-bar-nav-icon v-if="viewer && fullInterface"
                             @click.stop="drawer = !drawer"
+                            tabindex="0"
+                            aria-label="Open Menu"
                             name="Main Menu"/>
       </template>
       <v-toolbar-title class="mr-5 align-center hidden-xs">
@@ -109,7 +111,7 @@
       </v-toolbar-title>
       <v-toolbar-title class="align-center hidden-sm-and-up" v-if="isLoggedIn">
         <v-btn variant="text" to="/" icon>
-          <img :src="logo" class="header-logo" alt="Artconomy"/>
+          <img :src="logo" class="header-logo" alt="A"/>
         </v-btn>
       </v-toolbar-title>
       <v-btn icon class="hidden-md-and-up" :to="{name: 'SearchProducts'}" aria-label="Search">
@@ -147,7 +149,7 @@
       </v-card>
       <ac-stats-bar :username="rawViewerName" v-if="viewer && viewer.artist_mode && fullInterface" />
       <v-toolbar-items v-if="fullInterface">
-        <v-btn variant="plain" v-if="isRegistered" @click="notificationLoad" class="notifications-button">
+        <v-btn variant="plain" v-if="isRegistered" @click="notificationLoad" class="notifications-button" aria-label="Notifications">
           <template #default>
             <v-badge overlap right color="red" :model-value="!!counts.count">
               <template v-slot:badge>
@@ -161,7 +163,7 @@
         <v-btn class="nav-login-item" variant="text" v-if="isRegistered"
                :to="profileRoute">
           <v-avatar size="32px">
-            <img :src="registeredUser.avatar_url" :alt="registeredUser.username" width="32" height="32">
+            <img :src="registeredUser.avatar_url" aria-hidden="true" width="32" height="32" alt="">
           </v-avatar>
           <div style="padding-left: 1rem;" v-if="isLoggedIn" class="hidden-sm-and-down">{{ viewer!.username }}</div>
         </v-btn>

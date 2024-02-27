@@ -21,15 +21,15 @@
       <v-col cols="12" v-if="renderImage && isImage">
         <v-img :src="displayImage" :aspect-ratio="ratio || undefined" :contain="contain"
                max-height="90vh" max-width="100%" class="asset-image"
-               itemprop="image"
+               itemprop="image" :alt="alt"
         />
       </v-col>
       <v-col class="text-center icon-image" v-else-if="renderImage && !isImage" cols="12">
-        <img :src="displayImage" alt="" ref="imgContainer">
+        <img :src="displayImage" :alt="alt" ref="imgContainer">
       </v-col>
       <v-col cols="12" v-else-if="asset && canDisplay">
         <component :asset="asset" :compact="compact" :pop-out="popOut"
-                   :is="displayComponent"/>
+                   :is="displayComponent" :alt="alt"/>
       </v-col>
       <v-col cols="12" v-else>
         <v-responsive :aspect-ratio="ratio || undefined">

@@ -11,7 +11,7 @@
             <v-col cols="6" sm="12" lg="8">
               <ac-link :to="{name: 'Product', params: {productId: `${product.id}`, username: product.user.username}}">
                 <ac-hidden-flag :value="product.table_product || product.hidden"/>
-                <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1"/>
+                <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :alt="productAltText"/>
               </ac-link>
             </v-col>
           </v-row>
@@ -99,7 +99,7 @@
             <ac-link :to="productLink">
               <ac-hidden-flag :value="product.table_product || product.hidden"/>
               <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1"
-                        :allow-preview="false"/>
+                        :allow-preview="false" :alt="productAltText"/>
             </ac-link>
           </v-col>
         </v-row>
@@ -131,7 +131,7 @@
   <v-card class="product-preview" :class="{unavailable}" v-else>
     <ac-link :to="productLink">
       <ac-hidden-flag :value="product.table_product || product.hidden"/>
-      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :allow-preview="false"/>
+      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :allow-preview="false" :alt="productAltText"/>
     </ac-link>
     <v-card-text class="pt-2">
       <v-row no-gutters>
@@ -295,6 +295,20 @@ class AcProductPreview extends mixins(Formatting) {
       path.query = {forceShield: 'true'}
     }
     return path
+  }
+
+  public get productAltText() {
+    if (!this.product.x) {
+      return ''
+    }
+    if (!this.product.x.primary_submission) {
+      return ''
+    }
+    const title = this.product.x.primary_submission.title
+    if (!title) {
+      return `Untitled Showcase submission for ${product.x.name}`
+    }
+    return `Showcase submission for ${product.x.name} entitled `
   }
 
   public get unavailable() {

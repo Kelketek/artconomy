@@ -129,7 +129,7 @@
           :timeout="-1"
           v-if="socketState.x"
           :model-value="!!(socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion))"
-          color="green"
+          color="primary"
           shaped
           width="100vw"
           rounded="pill"
@@ -139,7 +139,7 @@
           <div class="align-self-center">
             <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
           </div>
-          <v-btn color="primary" class="ml-2" icon small @click="location.reload()"><v-icon icon="mdi-update" /></v-btn>
+          <v-btn color="green" class="ml-2" icon small @click="location.reload()" aria-label="Refresh Page"><v-icon icon="mdi-update" /></v-btn>
         </div>
       </v-snackbar>
       <v-snackbar

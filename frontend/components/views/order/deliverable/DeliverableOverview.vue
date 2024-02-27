@@ -19,7 +19,7 @@
                   </ac-link>
                 </v-col>
                 <v-col cols="6" md="12">
-                  <ac-asset :asset="deliverable.x!.display && {...deliverable.x!.display, rating: deliverable.x!.rating}" thumb-name="thumbnail"/>
+                  <ac-asset :asset="deliverable.x!.display && {...deliverable.x!.display, rating: deliverable.x!.rating}" thumb-name="thumbnail" alt=""/>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -175,7 +175,7 @@
         <template v-slot:title>We're on it!</template>
         <v-row align="center" class="order-confirmation justify-content-center">
           <v-col cols="12" sm="6" md="3" align-self="center">
-            <v-img :src="cheering" :contain="true" max-height="30vh"/>
+            <v-img :src="cheering" :contain="true" max-height="30vh" alt="Hooray! The order has been placed."/>
           </v-col>
           <v-col cols="12" sm="6" md="9" align-self="center">
             <h1 class="display-1 mb-4">Order Placed.</h1>

@@ -2,7 +2,7 @@
   <v-list-item>
     <router-link :to="casePath">
       <template v-slot:prepend>
-        <img :src="$img(event.data.display, 'notification', true)"/>
+        <img :src="$img(event.data.display, 'notification', true)" alt=""/>
       </template>
     </router-link>
     <v-list-item-title>

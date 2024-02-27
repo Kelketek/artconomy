@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0">
-    <v-img :src="banner" :aspect-ratio="16/9" max-height="250px">
+    <v-img :src="banner" :aspect-ratio="16/9" max-height="250px" alt="Welcome to Artconomy.com!">
       <v-row no-gutters
              align="center"
              justify="center"

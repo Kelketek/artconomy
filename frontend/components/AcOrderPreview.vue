@@ -9,6 +9,7 @@
             :aspect-ratio="1"
             :terse="true"
             :allow-preview="false"
+            alt=""
         />
       </ac-link>
       <v-card-text>

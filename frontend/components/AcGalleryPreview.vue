@@ -37,6 +37,7 @@
           :terse="true"
           :aspect-ratio="aspectRatio"
           :allow-preview="allowPreview"
+          :alt="showFooter ? '' : submission.title || 'Untitled Submission.'"
       />
     </ac-link>
     <ac-link :to="submissionLink" v-if="showFooter">

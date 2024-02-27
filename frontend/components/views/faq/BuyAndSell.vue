@@ -405,7 +405,7 @@
               (often, con badges), which are printed on a printer and handed over during the convention. This way, you
               get the benefit of taking orders at a convention without having to leave home!
             </p>
-            <v-img :src="conBadge" :contain="true" max-height="40vh"></v-img>
+            <v-img :src="conBadge" :contain="true" max-height="40vh" alt="An example convention badge printed and laminated on site." />
             <p>The Virtual Table is also an opportunity to sell your merch for events that you cannot physically attend.
               If you can get the merchandise to us ahead of the event and we have room, we'll sell it for you.</p>
             <p>The virtual table event is also quite social-- you'll be in a private Discord channel with other selected

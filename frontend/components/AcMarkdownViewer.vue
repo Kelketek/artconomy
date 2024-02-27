@@ -1,7 +1,7 @@
 <template>
   <v-row no-gutters>
     <v-col cols="12" sm="6" offset-sm="3" md="4" offset-md="4">
-      <v-img :src="asset.preview.thumbnail" class="mb-2" :aspect-ratio="1" v-if="asset.preview"/>
+      <v-img :src="asset.preview.thumbnail" class="mb-2" :aspect-ratio="1" v-if="asset.preview" alt="An example image loaded via Markdown."/>
     </v-col>
     <v-col cols="12">
       <v-expansion-panel v-if="compact && !popOut">

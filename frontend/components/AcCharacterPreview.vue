@@ -13,6 +13,7 @@
                       thumb-name="thumbnail"
                       :aspect-ratio="1"
                       :allow-preview="false"
+                      :alt="characterAltText"
                   />
                 </ac-link>
               </v-col>
@@ -38,6 +39,7 @@
           :terse="true"
           :aspect-ratio="1"
           :allow-preview="false"
+          :alt="characterAltTextg"
       />
     </router-link>
     <v-card-title v-if="showFooter">
@@ -75,6 +77,16 @@ export default {
           characterName: this.character.name,
         },
       }
+    },
+    characterAltText() {
+      if (this.character.profile.x && this.character.profile.x.primary_submission) {
+        const title = this.character.profile.x.primary_submission.title
+        if (!title) {
+          return `Untitled Focus Submission for ${this.character.profile.name}`
+        }
+        return `Focus Submission for ${this.character.profile.name} titled: ${title}`
+      }
+      return ''
     },
     unavailable() {
       return this.character.hidden

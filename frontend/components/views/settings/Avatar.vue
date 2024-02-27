@@ -4,7 +4,7 @@
       <v-card>
         <v-card-text>
           <v-list-subheader>Current Avatar</v-list-subheader>
-          <img class="avatar-preview shadowed pt-3" :src="subject!.avatar_url" :alt="subject!.username"/>
+          <img class="avatar-preview shadowed pt-3" :src="subject!.avatar_url" :alt="subject!.username" />
           <p v-if="subject!.avatar_url.indexOf('gravatar') > -1">Default avatars provided by <a
               href="http://en.gravatar.com/">Gravatar</a></p>
         </v-card-text>

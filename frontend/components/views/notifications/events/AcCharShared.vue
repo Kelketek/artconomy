@@ -4,7 +4,7 @@
       <v-badge left overlap :model-value="!notification.read" color="primary">
         <template v-slot:badge>*</template>
         <template v-slot:prepend>
-          <img :src="$img(event.data.display, 'notification', true)">
+          <img :src="$img(event.data.display, 'notification', true)" alt="">
         </template>
       </v-badge>
     </router-link>

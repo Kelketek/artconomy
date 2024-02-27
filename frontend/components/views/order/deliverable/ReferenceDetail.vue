@@ -7,7 +7,7 @@
         </v-btn>
         <ac-load-section :controller="reference">
           <template v-slot:default>
-            <ac-asset thumb-name="gallery" :asset="reference.x" :contain="true"/>
+            <ac-asset thumb-name="gallery" :asset="reference.x" :contain="true" alt="Reference for order. See comments below, if available."/>
             <v-row v-if="reference.x!.owner === rawViewerName">
               <v-col class="text-center">
                 <ac-confirmation :action="performDelete">

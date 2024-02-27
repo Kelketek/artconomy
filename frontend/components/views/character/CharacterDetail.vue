@@ -38,6 +38,7 @@
                                 :editing="editing"
                                 class="primary-submission"
                                 v-model="showChangePrimary"
+                                :alt="primarySubmissionText"
                       >
                         <template v-slot:edit-menu>
                           <ac-expanded-property v-model="showChangePrimary" :large="true">
@@ -237,6 +238,17 @@ const addSubmission = (submission: Submission) => {
   submissionList.unshift(submission)
   character.submissions.unshift(submission)
 }
+
+const primarySubmissionText = computed(() => {
+  if (character.profile.x && character.profile.x.primary_submission) {
+    const title = character.profile.x.primary_submission.title
+    if (!title) {
+      return `Untitled Focus Submission for ${character.profile.name}`
+    }
+    return `Focus Submission for ${character.profile.name} titled: ${title}`
+  }
+  return ''
+})
 
 watch(() => character.profile.x, (character: Character|null) => {
   /* istanbul ignore if */

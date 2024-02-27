@@ -108,7 +108,7 @@
                           <v-row>
                             <v-col class="d-flex justify-content justify-center align-content-center" cols="5"
                                    style="flex-direction: column">
-                              <v-img :src="laptop.href" max-height="30vh" :contain="true"/>
+                              <v-img :src="laptop.href" max-height="30vh" :contain="true" alt="An example image showing a drawing based on the description below."/>
                             </v-col>
                             <v-col cols="7">
                               <h2>Example description</h2>
@@ -239,7 +239,7 @@
                   {{product.x.name}}
                 </v-col>
                 <v-col cols="12">
-                  <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" :aspect-ratio="1"/>
+                  <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :alt="productSubmissionText"/>
                 </v-col>
                 <v-col class="subtitle-1" cols="12" v-if="product.x.name_your_price">
                   Name your price!
@@ -516,6 +516,17 @@ const privateHint = computed(() => {
         'to be private. The artist may charge an additional fee, since they will not be able to use the piece ' +
         'in their portfolio.'
   }
+})
+
+const productSubmissionText = computed(() => {
+  if (product.x && product.x.primary_submission) {
+    const title = product.x.primary_submission.title
+    if (!title) {
+      return `Untitled Focus Submission for ${product.x.name}`
+    }
+    return `Focus Submission for ${product.x.name} titled: ${title}`
+  }
+  return ''
 })
 
 subjectHandler.artistProfile.get().then()

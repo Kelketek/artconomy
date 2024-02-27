@@ -56,7 +56,7 @@
               <v-col class="d-flex" cols="12" sm="6" order="8">
                 <v-row no-gutters class="justify-content d-flex" align="center">
                   <v-col>
-                    <v-img :src="laptop" max-height="30vh" :contain="true"></v-img>
+                    <v-img :src="laptop" max-height="30vh" :contain="true" alt="A fox typing away on a laptop."></v-img>
                   </v-col>
                 </v-row>
               </v-col>

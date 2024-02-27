@@ -57,7 +57,6 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Reference from '@/types/Reference.ts'
-import AcAsset from '@/components/AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcReference from '@/components/views/order/deliverable/AcReference.vue'
@@ -67,7 +66,6 @@ import AcReference from '@/components/views/order/deliverable/AcReference.vue'
     AcReference,
     AcUnreadMarker,
     AcLink,
-    AcAsset,
     AcBoundField,
     AcFormContainer,
     AcForm,

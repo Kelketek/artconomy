@@ -5,6 +5,7 @@
         <v-row dense>
           <v-col cols="12" md="9" lg="9" xl="10">
             <ac-asset :asset="submission.x" thumb-name="gallery" aspect-ratio="" :contain="true" :editing="editing"
+                      :alt="submissionAltText"
                       v-model="showEditAsset">
               <template v-slot:edit-menu>
                 <ac-expanded-property v-model="showEditAsset">
@@ -335,6 +336,16 @@ class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {
 
   public get url() {
     return `/api/profiles/submission/${this.submissionId}/`
+  }
+
+  public get submissionAltText() {
+    if (!this.submission.x) {
+      return ''
+    }
+    if (!this.submission.x.title) {
+      return 'Untitled Submission'
+    }
+    return `Submission entitled: ${this.submission.x.title}`
   }
 
   public get favorite() {
