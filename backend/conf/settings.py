@@ -735,6 +735,7 @@ CSP_SCRIPT_SRC = tuple(
         (
             "'self'",
             "'unsafe-inline'",
+            "blob:",
             "https://sentry.io",
             "https://static.cloudflareinsights.com",
             "https://artconomy.matomo.cloud/",
