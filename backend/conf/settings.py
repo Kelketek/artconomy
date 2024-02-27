@@ -750,7 +750,12 @@ CSP_SCRIPT_SRC = tuple(
 CSP_CONNECT_SRC = tuple(
     get_env(
         "CSP_CONNECT_SRC",
-        ("'self'", "https://*.cloudflareinsights.com", "https://sentry.io"),
+        (
+            "'self'",
+            "https://*.cloudflareinsights.com",
+            "https://sentry.io",
+            "https://artconomy.matomo.cloud",
+        ),
         True,
     )
 )
