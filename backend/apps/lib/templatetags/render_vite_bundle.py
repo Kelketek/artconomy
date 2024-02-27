@@ -28,7 +28,7 @@ def render_vite_bundle():
         )
 
     return mark_safe(
-        f"""<script type="module" src="/static/dist/{manifest['index.html']['file']}" async></script>
-        <link rel="stylesheet" type="text/css" href="/static/dist/{manifest['index.html']['css'][0]}"/>
+        f"""<script type="module" src="/static/dist/{manifest['index.html']['file']}" crossOrigin="anonymous" async></script>
+        <link rel="stylesheet" type="text/css" href="/static/dist/{manifest['index.html']['css'][0]}" crossOrigin="anonymous"/>
 """
     )

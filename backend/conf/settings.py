@@ -113,6 +113,7 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
+    "csp.middleware.CSPMiddleware",
     "apps.lib.middleware.GlobalRequestMiddleware",
     "apps.lib.middleware.VersionShimMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -698,3 +699,67 @@ COMMUNITY_ACCOUNT_NAMES = get_env(
 USER_AGENT = get_env("USER_AGENT", "Artconomy (fox@artconomy.com)")
 
 DEDUPLICATE_ASSETS = get_env("DEDUPLICATE_ASSETS", not DEBUG)
+
+
+# CSP Content settings
+
+# Stripe required settings reference: https://docs.stripe.com/connect/get-started-connect-embedded-components#csp-and-http-header-requirements
+CSP_IMG_SRC = tuple(
+    get_env(
+        "CSP_IMG_SRC",
+        (
+            "'self'",
+            "https://*.stripe.com",
+            "https://www.gravatar.com/",
+            # Blog post images on the front page won't load without this.
+            "https://artconomy.com/",
+        ),
+        unpack=True,
+    )
+)
+
+CSP_STYLE_SRC = tuple(
+    get_env(
+        "CSP_STYLE_SRC",
+        (
+            "'self'",
+            "'unsafe-inline'",
+        ),
+        unpack=True,
+    )
+)
+
+CSP_SCRIPT_SRC = tuple(
+    get_env(
+        "CSP_SCRIPT_SRC",
+        (
+            "'self'",
+            "'unsafe-inline'",
+            "blob:",
+            "https://sentry.io",
+            "https://static.cloudflareinsights.com",
+            "https://artconomy.matomo.cloud/",
+            "https://*.stripe.com/",
+        ),
+        unpack=True,
+    )
+)
+
+CSP_CONNECT_SRC = tuple(
+    get_env(
+        "CSP_CONNECT_SRC",
+        ("'self'", "https://*.cloudflareinsights.com", "https://sentry.io"),
+        True,
+    )
+)
+
+CSP_FRAME_SRC = tuple(
+    get_env(
+        "CSP_FRAME_SRC",
+        (
+            "'self'",
+            "https://connect-js.stripe.com",
+            "https://js.stripe.com",
+        ),
+    )
+)

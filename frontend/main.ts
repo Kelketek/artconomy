@@ -115,6 +115,7 @@ if (productionMode && isValidBrowser) {
       }),
       new Replay(),
     ],
+    replaysOnErrorSampleRate: 1.0,
     tracesSampleRate: .05,
   })
 } else if (process.env.NODE_ENV === 'production') {
