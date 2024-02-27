@@ -37,6 +37,8 @@ django-celery-email
 # Utilities for deleting orphaned files. Django doesn't delete files from the HD automatically
 # and though we try to do so, it's possible that some files may be orphaned, especially in the thumbnails.
 django_cleanup
+# Content Security Policy plugin for Django
+django-csp
 # Model base for our custom Django user model, allowing email login.
 django-custom-user
 # Hitcount application-- helps users know many views their submissions are getting, for instance.
