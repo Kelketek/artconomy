@@ -15,7 +15,7 @@
       </v-list-item-subtitle>
     </div>
     <template v-slot:append>
-      <v-btn icon variant="text" @click="showDetails = true">
+      <v-btn icon variant="text" @click="showDetails = true" aria-label="Actions">
         <v-icon icon="mdi-dots-horizontal"/>
       </v-btn>
     </template>

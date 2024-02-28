@@ -20,7 +20,7 @@
                 </v-tooltip>
                 <v-menu offset-x left :close-on-content-click="false" :attach="$menuTarget">
                   <template v-slot:activator="{props}">
-                    <v-btn icon v-bind="props" class="more-button">
+                    <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
                       <v-icon icon="mdi-dots-horizontal"/>
                     </v-btn>
                   </template>

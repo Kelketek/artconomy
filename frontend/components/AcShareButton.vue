@@ -3,7 +3,7 @@
     <v-icon left icon="mdi-share"/>
     Share
   </v-btn>
-  <ac-expanded-property v-model="showModal">
+  <ac-expanded-property v-model="showModal" aria-label="Sharing dialog">
     <template v-slot:title>
       <span>Share this!</span>
     </template>
@@ -69,7 +69,7 @@
         </v-row>
       </v-col>
     </v-row>
-    <ac-expanded-property v-model="showQr" class="qr-modal">
+    <ac-expanded-property v-model="showQr" class="qr-modal" aria-label="QR Code display modal">
       <v-row>
         <v-col class="text-center" cols="12">
           <div v-html="image" class="qrcode" v-if="image"></div>

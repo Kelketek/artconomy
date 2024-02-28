@@ -266,7 +266,7 @@ const {
   rawViewerName,
 } = useViewer()
 
-const registeredUser = viewer.value as User
+const registeredUser = computed(() => viewer.value as User)
 
 const notificationLoad = () => {
   if (['CommunityNotifications', 'SalesNotifications'].indexOf(String(route.name) + '') !== -1) {

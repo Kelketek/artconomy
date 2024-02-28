@@ -2,7 +2,7 @@
   <ac-load-section :controller="character.profile">
     <ac-subjective-toolbar :username="username">
       <template v-if="characterAvatar" v-slot:avatar>
-        <ac-mini-character :show-name="false" :character="character.profile.x" class="ml-3"/>
+        <ac-mini-character :show-name="false" :character="character.profile.x" class="ml-3" :alt="character.profile.x!.name"/>
         <v-toolbar-title>
           <ac-link :to="{name: 'Character', params: {username, characterName}}">{{characterName}}</ac-link>
         </v-toolbar-title>
@@ -32,7 +32,7 @@
         />
         <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="$menuTarget">
           <template v-slot:activator="{props}">
-            <v-btn icon v-bind="props" class="more-button">
+            <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
               <v-icon icon="mdi-dots-horizontal"/>
             </v-btn>
           </template>

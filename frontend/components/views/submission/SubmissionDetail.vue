@@ -4,11 +4,11 @@
       <template v-slot:default>
         <v-row dense>
           <v-col cols="12" md="9" lg="9" xl="10">
-            <ac-asset :asset="submission.x" thumb-name="gallery" aspect-ratio="" :contain="true" :editing="editing"
+            <ac-asset :asset="submission.x" thumb-name="gallery" :contain="true" :editing="editing"
                       :alt="submissionAltText"
                       v-model="showEditAsset">
               <template v-slot:edit-menu>
-                <ac-expanded-property v-model="showEditAsset">
+                <ac-expanded-property v-model="showEditAsset" aria-label="Edit file dialog" v-if="controls">
                   <v-tabs v-model="editAssetTab">
                     <v-tab>Edit File</v-tab>
                     <v-tab>Preview Listing</v-tab>
@@ -138,7 +138,7 @@
                 </v-col>
                 <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="$menuTarget">
                   <template v-slot:activator="{props}">
-                    <v-btn icon v-bind="props" class="more-button">
+                    <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
                       <v-icon icon="mdi-dots-horizontal"/>
                     </v-btn>
                   </template>
@@ -235,7 +235,7 @@
                           <v-icon left v-if="editing" icon="mdi-pencil"/>
                           {{ratingsShort[submission.x!.rating]}}
                         </v-btn>
-                        <ac-expanded-property v-model="ratingDialog">
+                        <ac-expanded-property v-model="ratingDialog" aria-label="Edit rating dialog" v-if="controls">
                           <ac-patch-field field-type="ac-rating-field" :patcher="submission.patchers.rating"/>
                         </ac-expanded-property>
                       </v-col>

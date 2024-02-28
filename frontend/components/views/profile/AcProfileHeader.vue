@@ -58,7 +58,7 @@
     </v-toolbar-items>
     <v-menu offset-y v-else-if="subject && isRegistered">
       <template v-slot:activator="{props}">
-        <v-btn v-bind="props" icon>
+        <v-btn v-bind="props" icon aria-label="Actions">
           <v-icon icon="mdi-dots-horizontal"/>
         </v-btn>
       </template>

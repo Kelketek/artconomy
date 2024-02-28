@@ -1,15 +1,15 @@
 <template>
   <ac-load-section :controller="controller">
     <v-row dense>
-      <v-tooltip top v-if="editable">
+      <v-tooltip top v-if="editable" aria-label="Tooltip for Artist tagger">
         <template v-slot:activator="{props}">
-          <v-btn v-bind="props" @click="toggle=true" color="secondary" icon size="small" class="mr-1">
+          <v-btn v-bind="props" @click="toggle=true" color="secondary" icon size="small" class="mr-1" aria-label="Tag Artists">
             <v-icon icon="mdi-palette" size="x-large" />
           </v-btn>
         </template>
         Edit Artists
       </v-tooltip>
-      <v-tooltip top v-else>
+      <v-tooltip top v-else aria-label="Tooltip for Artists">
         <template v-slot:activator="{props}">
           <v-icon v-bind="props" icon="mdi-palette"/>
         </template>
@@ -19,7 +19,7 @@
         No artists tagged.
       </v-col>
       <ac-avatar :user="artist.x!.user" v-for="artist in controller.list" :key="artist.x!.id" class="mr-1"/>
-      <ac-expanded-property v-model="toggle" v-if="editable">
+      <ac-expanded-property v-model="toggle" v-if="editable" aria-label="Artist tagging dialog">
         <template v-slot:title>Artists</template>
         <ac-related-manager
             :field-controller="tagArtist.fields.user_id" :list-controller="controller"

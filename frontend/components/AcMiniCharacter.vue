@@ -5,7 +5,7 @@
         <router-link :to="route">
           <v-avatar :color="$vuetify.theme.current.colors.well">
             <v-icon v-if="!canDisplay" icon="mdi-cancel"/>
-            <img :src="displayImage" v-else-if="canDisplay && displayImage" class="asset-image" alt="">
+            <img :src="displayImage" v-else-if="canDisplay && displayImage" class="asset-image" :alt="alt">
           </v-avatar>
         </router-link>
       </div>

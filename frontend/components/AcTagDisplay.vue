@@ -3,16 +3,16 @@
     <v-row dense>
       <v-col>
         <v-tooltip top v-if="controls">
-          <template v-slot:activator="{props}">
-            <v-btn color="primary" icon size="small" v-bind="props" @click="editTags" class="edit-button">
+          <template v-slot:activator="{props}" aria-label="Tooltip for tags">
+            <v-btn color="primary" icon size="small" v-bind="props" @click="editTags" class="edit-button" aria-label="Edit tags">
               <v-icon size="x-large" icon="mdi-tag-multiple"/>
             </v-btn>
           </template>
           Edit Tags
         </v-tooltip>
-        <v-tooltip top v-else>
+        <v-tooltip top v-else aria-label="Tooltip for tags">
           <template v-slot:activator="{props}">
-            <v-icon v-bind="props" icon="mdi-tag-multiple"/>
+            <v-icon v-bind="props" icon="mdi-tag-multiple" aria-label="Tags"/>
           </template>
           Tags
         </v-tooltip>
@@ -28,7 +28,7 @@
           <span v-else>No tags set.</span>
         </span>
       </v-col>
-      <ac-expanded-property v-model="toggle">
+      <ac-expanded-property v-model="toggle" aria-label="Tag Editing Dialog">
         <template v-slot:title>
           All Tags
         </template>

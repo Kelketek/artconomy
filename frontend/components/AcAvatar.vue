@@ -3,20 +3,20 @@
     <div class="flex">
       <div class="flex">
         <ac-link :to="profileLink">
-          <v-avatar>
+          <v-avatar :aria-label="`Profile for ${displayName}`">
             <img alt="" :src="person.avatar_url" v-if="person" width="40" height="40">
             <v-icon v-else icon="mdi-person"/>
           </v-avatar>
         </ac-link>
       </div>
       <div v-if="showName" class="text-center flex">
-        <v-tooltip bottom v-if="person && person.is_superuser">
+        <v-tooltip bottom v-if="person && person.is_superuser" aria-label="Admin status tooltip">
           <template v-slot:activator="{props}">
             <v-icon size="small" color="green" v-bind="props" icon="mdi-star-circle"/>
           </template>
           <span>Admin</span>
         </v-tooltip>
-        <v-tooltip bottom v-else-if="person && person.is_staff">
+        <v-tooltip bottom v-else-if="person && person.is_staff" aria-label="Staff status tooltip">
           <template v-slot:activator="{props}">
             <v-icon v-bind="props" size="small" color="yellow" icon="mdi-star-circle"/>
           </template>

@@ -14,11 +14,12 @@
       <v-col cols="12">
         <div class="d-flex">
           <div class="flex-shrink-1">
-            <v-tooltip top>
+            <v-tooltip top aria-label="Preview mode tooltip">
               <template v-slot:activator="{ props }">
                 <v-btn size="small" v-bind="props" @click="previewMode = !previewMode" class="preview-mode-toggle"
                        :icon="previewMode ? 'mdi-eye-off' : 'mdi-eye'" :class="{weakened: disabled}"
                        color="grey-darken-4"
+                       :aria-label="`Preview mode ${previewMode ? 'on' : 'off'}`"
                 >
                   <v-icon v-if="previewMode" size="x-large" icon="mdi-eye-off"/>
                   <v-icon v-else icon="mdi-eye" size="x-large"/>
@@ -28,10 +29,10 @@
             </v-tooltip>
           </div>
           <div class="flex-shrink-1 mx-2">
-            <v-tooltip top>
+            <v-tooltip top aria-label="Tooltip for Formatting help button">
               <template v-slot:activator="{ props }">
                 <v-btn v-bind="props" @click="$store.commit('setMarkdownHelp', true)" :class="{weakened: disabled}"
-                       size="small" icon color="blue">
+                       size="small" icon color="blue" aria-label="Formatting help">
                   <v-icon size="x-large" icon="mdi-help-circle"/>
                 </v-btn>
               </template>
@@ -45,11 +46,11 @@
                 <v-spacer/>
                 <slot name="pre-actions" :disabled="disabled"/>
                 <v-col class="shrink">
-                  <v-tooltip top v-if="saved && saveIndicator">
+                  <v-tooltip top v-if="saved && saveIndicator" aria-label="Tooltip for save indicator">
                     <template v-slot:activator="{ props }">
                       <!-- Using a button here so the two elements are aligned. -->
                       <v-btn v-bind="props" variant="plain" icon size="small" class="save-indicator"
-                             @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled">
+                             @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled" aria-label="Saved.">
                         <v-icon color="green" size="x-large" class="save-indicator" icon="mdi-check-circle"/>
                       </v-btn>
                     </template>
@@ -59,7 +60,7 @@
                     <template v-slot:activator="{ props }">
                       <!-- Using a button here so the two elements are aligned. -->
                       <v-btn v-bind="props" variant="plain" icon size="small" class="save-indicator"
-                             @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled">
+                             @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled" aria-label="Unsaved.">
                         <v-icon color="yellow" size="x-large" class="save-indicator" icon="mdi-alert"/>
                       </v-btn>
                     </template>
@@ -70,7 +71,7 @@
                   <v-tooltip top>
                     <template v-slot:activator="{ props }">
                       <v-btn v-bind="props" @click="save" :disabled="saved || disabled" color="black" icon size="small"
-                             class="save-button">
+                             class="save-button" aria-label="Needs saving.">
                         <v-icon color="yellow" icon="mdi-content-save"/>
                       </v-btn>
                     </template>
@@ -193,6 +194,9 @@ class AcEditor extends ArtVue {
     delete attrs.onChange
     delete attrs.onBlur
     delete attrs['onUpdate:modelValue']
+    if (attrs.id) {
+      attrs['id'] += '__textarea'
+    }
     return attrs
   }
 

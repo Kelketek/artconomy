@@ -39,9 +39,9 @@
                     <v-spacer></v-spacer>
                     <v-col class="shrink" align-self="end">
                       <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                        <v-tooltip bottom v-if="product.escrow_enabled">
+                        <v-tooltip bottom v-if="product.escrow_enabled" aria-label="Tooltip for shield indicator">
                           <template v-slot:activator="{props}">
-                            <v-icon color="green" class="pl-1" small v-bind="props" icon="mdi-shield-half-full"/>
+                            <v-icon color="green" class="pl-1" small v-bind="props" icon="mdi-shield-half-full" aria-label="Learn More About this product's shield protection."/>
                           </template>
                           <span>Protected by Artconomy Shield</span>
                         </v-tooltip>
@@ -113,9 +113,10 @@
               <v-col class="grow" v-else><small>From</small> ${{product.starting_price.toFixed(2)}}</v-col>
               <v-col class="no-underline shrink">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                  <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable">
+                  <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable" aria-label="Tooltip for shield status indicator">
                     <template v-slot:activator="{props}">
                       <v-icon :color="shieldColor" class="pl-1" small v-bind="props" icon="mdi-shield-half-full"/>
+                      <span class="d-sr-only">Learn more about shield.</span>
                     </template>
                     <span v-if="product.escrow_enabled || forceShield">Protected by Artconomy Shield</span>
                     <span v-else>Shield upgrade available for this product</span>
@@ -152,9 +153,10 @@
             </ac-link>
             <v-spacer v-else/>
             <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-              <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable">
+              <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable" aria-label="Shield Status Tooltip">
                 <template v-slot:activator="{props}">
-                  <v-icon :color="shieldColor" class="pl-1" v-bind="props" icon="mdi-shield-half-full"/>
+                  <v-icon :color="shieldColor" class="pl-1" v-bind="props" icon="mdi-shield-half-full" aria-label="Learn more about Shield."/>
+                  <span class="d-sr-only">Learn more about shield.</span>
                 </template>
                 <span v-if="product.escrow_enabled || forceShield">Protected by Artconomy Shield</span>
                 <span v-else>Shield upgrade available for this product</span>
@@ -299,7 +301,7 @@ class AcProductPreview extends mixins(Formatting) {
 
   public get productAltText() {
     if (!this.product.primary_submission) {
-      return ''
+      return this.product.name
     }
     const title = this.product.primary_submission.title
     if (!title) {

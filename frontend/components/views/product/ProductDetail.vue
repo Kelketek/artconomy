@@ -68,6 +68,7 @@
                   <ac-asset :asset="shown"
                             thumb-name="gallery" :terse="true"
                             :editing="editing"
+                            :alt="productAltText"
                             v-model="showChangePrimary"
                   >
                     <template v-slot:edit-prompt>
@@ -97,9 +98,9 @@
             </v-toolbar-title>
             <v-spacer/>
             <v-toolbar-items>
-              <v-menu offset-x left :close-on-content-click="false" :attach="$menuTarget">
+              <v-menu offset-x left :close-on-content-click="false" :attach="$menuTarget" v-if="controls">
                 <template v-slot:activator="{props}">
-                  <v-btn icon v-bind="props" class="more-button">
+                  <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
                     <v-icon icon="mdi-dots-horizontal"/>
                   </v-btn>
                 </template>
@@ -210,7 +211,7 @@
                             <v-icon left v-if="editing" icon="mdi-pencil"/>
                             {{ratingsShort[product.x.max_rating]}}
                           </v-btn>
-                          <ac-expanded-property v-model="ratingDialog">
+                          <ac-expanded-property v-model="ratingDialog" v-if="controls" aria-label="Edit rating">
                             <ac-patch-field field-type="ac-rating-field" :patcher="product.patchers.max_rating"/>
                           </ac-expanded-property>
                         </v-col>
@@ -288,7 +289,7 @@
                   <v-btn v-show="editing" icon variant="plain" color="primary" @click="showTerms = true">
                     <v-icon icon="mdi-pencil"/>
                   </v-btn>
-                  <ac-expanded-property v-model="showTerms" :large="true">
+                  <ac-expanded-property v-model="showTerms" :large="true" v-if="controls" aria-label="Edit terms">
                     <template v-slot:title>Edit Terms</template>
                     <v-row>
                       <v-col cols="12" md="6" lg="4">
@@ -450,7 +451,7 @@
                     <v-icon left icon="mdi-cog"/>
                     Workload
                   </v-btn>
-                  <ac-expanded-property v-model="showWorkload" :large="true">
+                  <ac-expanded-property v-model="showWorkload" :large="true" v-if="controls" aria-label="Edit Workload Settings">
                     <template v-slot:title>Edit Workload Settings</template>
                     <v-row no-gutters>
                       <v-col cols="12" class="text-center">

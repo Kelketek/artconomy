@@ -1,7 +1,7 @@
 <template>
   <ac-load-section :controller="controller">
     <v-row dense>
-      <v-tooltip top v-if="editable">
+      <v-tooltip top v-if="editable" aria-label="Tooltip for edit character button">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" @click="toggle=true" color="accent" icon size="small" class="mr-1">
             <v-icon icon="mdi-account" size="x-large"/>
@@ -9,7 +9,7 @@
         </template>
         Edit Characters
       </v-tooltip>
-      <v-tooltip top v-else>
+      <v-tooltip top v-else aria-label="Tooltip for character listing">
         <template v-slot:activator="{props}">
           <v-icon v-bind="props" icon="mdi-people"/>
         </template>
@@ -18,8 +18,8 @@
       <v-col align-self="center" v-if="controller.empty">
         No characters tagged.
       </v-col>
-      <ac-mini-character :character="item.x!.character" v-for="item in controller.list" :key="item.x!.id" class="mr-1"/>
-      <ac-expanded-property v-model="toggle" v-if="editable">
+      <ac-mini-character :character="item.x!.character" v-for="item in controller.list" :key="item.x!.id" :alt="item.x!.character.name" class="mr-1"/>
+      <ac-expanded-property v-model="toggle" v-if="editable" aria-label="Character editing dialog">
         <template v-slot:title>Characters</template>
         <ac-related-manager
             :field-controller="tagCharacter.fields.character_id" :list-controller="controller"
@@ -27,6 +27,7 @@
         >
           <template v-slot:preview="{item}">
               <ac-mini-character :character="item.x.character" :removable="true"
+                                 :alt="item.x.character.name"
                                  @remove="item.delete().catch(tagCharacter.setErrors)" class="mr-1"/>
           </template>
           <template v-slot:default="{filter}">
