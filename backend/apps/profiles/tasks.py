@@ -63,6 +63,7 @@ def drip_tag(self, user_id):
         .exclude(drip_id="")
         .exclude(is_active=False)
         .exclude(guest=True)
+        .exclude(email_nulled=True)
         .first()
     )
     if not user:

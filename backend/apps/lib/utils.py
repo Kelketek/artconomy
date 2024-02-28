@@ -378,6 +378,7 @@ def notify(
         subscriber__email_preferences__type=event_type,
         subscriber__email_preferences__enabled=True,
     )
+    email_subscriptions = email_subscriptions.exclude(subscriber__email_nulled=True)
     if not silent_broadcast and email_subscriptions.exists():
         path = Path(settings.BACKEND_ROOT) / "templates" / "notifications"
         template = [

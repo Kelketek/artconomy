@@ -13,7 +13,11 @@ class Command(BaseCommand):
     help = "Sends updated privacy policy information to all active users."
 
     def handle(self, *args, **options):
-        users = User.objects.exclude(guest=True).exclude(is_active=False)
+        users = (
+            User.objects.exclude(guest=True)
+            .exclude(is_active=False)
+            .exclude(email_nulled=True)
+        )
         template_path = (
             Path(settings.BACKEND_ROOT)
             / "templates"
@@ -21,7 +25,7 @@ class Command(BaseCommand):
             / "terms_of_service_update.html"
         )
         for user in users:
-            subject = "We are updating our Terms of Service"
+            subject = "CORRECTED: We are updating our Terms of Service"
             ctx = {}
             to = [user.guest_email or user.email]
             from_email = settings.DEFAULT_FROM_EMAIL

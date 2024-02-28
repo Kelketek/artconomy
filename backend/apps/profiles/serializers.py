@@ -657,6 +657,7 @@ class CredentialsSerializer(serializers.ModelSerializer):
         instance = super(CredentialsSerializer, self).update(instance, validated_data)
         if "new_password" in validated_data and validated_data["new_password"]:
             instance.set_password(validated_data["new_password"])
+            instance.email_nulled = False
             instance.save()
         return instance
 

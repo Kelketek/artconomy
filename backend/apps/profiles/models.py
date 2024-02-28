@@ -216,6 +216,9 @@ class User(AbstractEmailUser, HitsMixin):
     # Don't create the migration for removing these until service plans have been
     # created and are active in production.
     landscape_enabled = BooleanField(default=False, db_index=True, null=True)
+    # Used for the users where we have received bounce notifications for their email
+    # address. Prevents us from sending email to them.
+    email_nulled = BooleanField(default=False, db_index=True)
     landscape_paid_through = DateField(
         null=True, default=None, blank=True, db_index=True
     )
