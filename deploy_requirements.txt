@@ -4,7 +4,7 @@
 #
 #    pip-compile deploy_requirements.in
 #
-ansible==9.2.0
+ansible==9.3.0
     # via -r deploy_requirements.in
 ansible-core==2.16.4
     # via ansible

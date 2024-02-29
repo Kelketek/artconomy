@@ -120,17 +120,17 @@ function orderViews() {
       props,
       children: [{
         name: `${baseName}Deliverable`,
-        path: 'deliverables/:deliverableId',
+        path: 'deliverables/:deliverableId/',
         props,
         component: DeliverableDetail,
         children: [{
           name: `${baseName}DeliverableOverview`,
-          path: 'overview',
+          path: 'overview/',
           props,
           component: DeliverableOverview,
         }, {
           name: `${baseName}DeliverableReferences`,
-          path: 'references',
+          path: 'references/',
           props,
           component: DeliverableReferences,
           children: [{
@@ -141,7 +141,7 @@ function orderViews() {
           }],
         }, {
           name: `${baseName}DeliverableRevisions`,
-          path: 'revisions',
+          path: 'revisions/',
           props,
           component: DeliverableRevisions,
           children: [{
@@ -152,7 +152,7 @@ function orderViews() {
           }],
         }, {
           name: `${baseName}DeliverablePayment`,
-          path: 'payment',
+          path: 'payment/',
           props,
           component: DeliverablePayment,
         }],
@@ -278,7 +278,7 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         name: 'CommunityNotifications',
-        path: 'community',
+        path: 'community/',
         component: NotificationsList,
         props() {
           return {subset: 'community', autoRead: true}
@@ -286,7 +286,7 @@ export const routes: RouteRecordRaw[] = [
       },
       {
         name: 'SalesNotifications',
-        path: 'sales',
+        path: 'sales/',
         component: NotificationsList,
         props() {
           return {subset: 'sales', autoRead: false}
@@ -306,13 +306,13 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         name: 'Product',
-        path: 'product/:productId',
+        path: 'product/:productId/',
         component: ProductDetail,
         props: true,
         children: [
           {
             name: 'NewOrder',
-            path: 'order/:invoiceMode(invoice)?',
+            path: 'order/:invoiceMode(invoice)?/',
             component: NewOrder,
             props(route: RouteLocation) {
               return {...route.params, invoiceMode: !!route.params.invoiceMode}
@@ -385,43 +385,43 @@ export const routes: RouteRecordRaw[] = [
     children: [
       {
         name: 'Login Details',
-        path: 'credentials',
+        path: 'credentials/',
         component: Credentials,
         props: true,
       },
       {
         name: 'Premium',
-        path: 'premium',
+        path: 'premium/',
         component: Premium,
         props: true,
       },
       {
         name: 'Avatar',
-        path: 'avatar',
+        path: 'avatar/',
         component: Avatar,
         props: true,
       },
       {
         name: 'Payment',
-        path: 'payment',
+        path: 'payment/',
         component: Payment,
         props: true,
         children: [
           {
             name: 'Purchase',
-            path: 'purchase',
+            path: 'purchase/',
             component: Purchase,
             props: true,
           },
           {
             name: 'Payout',
-            path: 'payout',
+            path: 'payout/',
             component: Payout,
             props: true,
           },
           {
             name: 'Invoices',
-            path: 'invoices',
+            path: 'invoices/',
             component: Invoices,
             props: true,
             children: [
@@ -435,7 +435,7 @@ export const routes: RouteRecordRaw[] = [
           },
           {
             name: 'TransactionHistory',
-            path: 'transactions',
+            path: 'transactions/',
             component: TransactionHistory,
             props: true,
           },
@@ -443,19 +443,19 @@ export const routes: RouteRecordRaw[] = [
       },
       {
         name: 'Artist',
-        path: 'artist',
+        path: 'artist/',
         component: Artist,
         props: true,
       },
       {
         name: 'Options',
-        path: 'options',
+        path: 'options/',
         component: Options,
         props: true,
       },
       {
         name: 'Email',
-        path: 'email',
+        path: 'email/',
         component: Email,
         props: true,
       },
@@ -527,13 +527,13 @@ export const routes: RouteRecordRaw[] = [
     props: true,
     children: [
       {
-        path: 'about',
+        path: 'about/',
         name: 'AboutUser',
         component: AboutUser,
         props: true,
       },
       {
-        path: 'products',
+        path: 'products/',
         name: 'Products',
         component: Products,
         props: true,
@@ -545,13 +545,13 @@ export const routes: RouteRecordRaw[] = [
         }],
       },
       {
-        path: 'characters',
+        path: 'characters/',
         name: 'Characters',
         component: Characters,
         props: true,
       },
       {
-        path: 'gallery',
+        path: 'gallery/',
         name: 'Gallery',
         component: Gallery,
         props: true,
@@ -568,7 +568,7 @@ export const routes: RouteRecordRaw[] = [
             }
           },
         }, {
-          path: 'art/manage',
+          path: 'art/manage/',
           name: 'ManageArt',
           component: ManageArtList,
           props(route: RouteLocation) {
@@ -580,7 +580,7 @@ export const routes: RouteRecordRaw[] = [
             }
           },
         }, {
-          path: 'collection',
+          path: 'collection/',
           name: 'Collection',
           component: SubmissionList,
           props(route: RouteLocation) {
@@ -592,7 +592,7 @@ export const routes: RouteRecordRaw[] = [
             }
           },
         }, {
-          path: 'collection/manage',
+          path: 'collection/manage/',
           name: 'ManageCollection',
           component: ManageSubmissionList,
           props(route: RouteLocation) {
@@ -606,7 +606,7 @@ export const routes: RouteRecordRaw[] = [
         }],
       },
       {
-        path: 'favorites',
+        path: 'favorites/',
         name: 'Favorites',
         component: SubmissionList,
         props(route: RouteLocation) {
@@ -620,13 +620,13 @@ export const routes: RouteRecordRaw[] = [
         },
       },
       {
-        path: 'watchlists',
+        path: 'watchlists/',
         name: 'Watchlists',
         component: Watchlists,
         props: true,
         children: [{
           name: 'Watching',
-          path: 'watching',
+          path: 'watching/',
           component: WatchList,
           props(route: RouteLocation) {
             return {
@@ -637,7 +637,7 @@ export const routes: RouteRecordRaw[] = [
           },
         }, {
           name: 'Watchers',
-          path: 'watchers',
+          path: 'watchers/',
           component: WatchList,
           props(route: RouteLocation) {
             return {
@@ -670,7 +670,7 @@ export const routes: RouteRecordRaw[] = [
     component: Search,
     props: true,
     children: [{
-      path: 'products',
+      path: 'products/',
       name: 'SearchProducts',
       components: {
         default: SearchProducts,
@@ -679,7 +679,7 @@ export const routes: RouteRecordRaw[] = [
       },
       props: true,
     }, {
-      path: 'submissions',
+      path: 'submissions/',
       name: 'SearchSubmissions',
       components: {
         default: SearchSubmissions,
@@ -688,7 +688,7 @@ export const routes: RouteRecordRaw[] = [
       },
       props: true,
     }, {
-      path: 'characters',
+      path: 'characters/',
       name: 'SearchCharacters',
       components: {
         default: SearchCharacters,
@@ -696,7 +696,7 @@ export const routes: RouteRecordRaw[] = [
       },
       props: true,
     }, {
-      path: 'profiles',
+      path: 'profiles/',
       name: 'SearchProfiles',
       components: {
         default: SearchProfiles,
@@ -738,15 +738,15 @@ export const routes: RouteRecordRaw[] = [
     name: 'TableDashboard',
     component: TableDashboard,
     children: [{
-      path: 'products',
+      path: 'products/',
       name: 'TableProducts',
       component: TableProducts,
     }, {
-      path: 'orders',
+      path: 'orders/',
       name: 'TableOrders',
       component: TableOrders,
     }, {
-      path: 'invoices',
+      path: 'invoices/',
       name: 'TableInvoices',
       component: TableInvoices,
       children: [{

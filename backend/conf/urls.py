@@ -13,20 +13,50 @@ Including another URLconf
     1. Import the include() function: from django.conf.urls import url, include
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
+
 import re
 import sys
+
+import django.contrib.sitemaps.views as sitemap_core_views
 
 import views
 from django.conf import settings
 from django.contrib import admin
 from django.core.exceptions import ImproperlyConfigured
-from django.urls import include, re_path
+from django.urls import include, re_path, path
 from django.views.static import serve
 from django_otp.admin import OTPAdminSite
+
+import apps.profiles.sitemaps as profile_sitemaps
+import apps.sales.sitemaps as sales_sitemaps
+import apps.lib.sitemaps as lib_sitemaps
+import sitemaps as base_sitemaps
 
 if not settings.DEBUG:
     admin.site.__class__ = OTPAdminSite
 
+
+sitemaps = {
+    "UserAbout": profile_sitemaps.UserAboutSitemap,
+    "UserProductListing": profile_sitemaps.UserProductListingSitemap,
+    "CharacterListing": profile_sitemaps.UserCharactersListingSitemap,
+    "UserFavoritesListing": profile_sitemaps.UserFavoritesListingSitemap,
+    "UserArtGallery": profile_sitemaps.UserArtGallerySitemap,
+    "UserArtCollection": profile_sitemaps.UserArtCollectionSitemap,
+    "UserWatching": profile_sitemaps.UserWatchingSitemap,
+    "UserWatchers": profile_sitemaps.UserWatchersSitemap,
+    "Ratings": profile_sitemaps.RatingsSitemap,
+    "Submission": profile_sitemaps.SubmissionSitemap,
+    "Character": profile_sitemaps.CharacterSitemap,
+    "Journal": profile_sitemaps.JournalSitemap,
+    "Product": sales_sitemaps.ProductSitemap,
+    "Static": base_sitemaps.StaticSitemap,
+    "HighDynamic": base_sitemaps.HighDynamicSitemap,
+    "About": base_sitemaps.AboutSitemap,
+    "Other": base_sitemaps.OtherSitemap,
+    "BuyAndSell": base_sitemaps.BuyAndSellSitemap,
+    **lib_sitemaps.maps,
+}
 
 urlpatterns = [
     re_path(r"^admin/", admin.site.urls),
@@ -45,6 +75,18 @@ urlpatterns = [
     re_path(r"^force-error-email/", views.force_error_email, name="force_error"),
     re_path(r"^test-telegram/", views.test_telegram, name="test_telegram"),
     re_path(r"^discord/", include("apps.discord_bot.urls", namespace="discord_bot")),
+    path(
+        "sitemap.xml",
+        sitemap_core_views.index,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.index",
+    ),
+    path(
+        "sitemap-<section>.xml",
+        sitemap_core_views.sitemap,
+        {"sitemaps": sitemaps},
+        name="django.contrib.sitemaps.views.sitemap",
+    ),
 ]
 
 

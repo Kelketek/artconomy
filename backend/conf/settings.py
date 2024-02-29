@@ -80,6 +80,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "django.contrib.sites",
+    "django.contrib.sitemaps",
     "daphne",
     "django.contrib.staticfiles",
     "django_premailer",
@@ -773,4 +775,31 @@ CSP_FRAME_SRC = tuple(
             "https://*.hcaptcha.com",
         ),
     )
+)
+
+# Sites
+
+SITE_ID = int(get_env("SITE_ID", "1"))
+
+# Used in the initial sites migration.
+
+SITE_DOMAIN_NAME = get_env("SITE_DOMAIN_NAME", DEFAULT_DOMAIN)
+
+SITE_DISPLAY_NAME = get_env(
+    "SITE_DISPLAY_NAME", SITE_DOMAIN_NAME.replace("www.", "", 1).capitalize()
+)
+
+# Sitemaps
+
+# Included external sitemaps. This is for doing things like making sure our WordPress
+# blog's generated sitemap data is included in the global listings.
+
+EXTERNAL_SITEMAPS = get_env(
+    "EXTERNAL_SITEMAPS",
+    {
+        "BlogPosts": "https://artconomy.com/blog/post-sitemap.xml",
+        "BlogCategories": "https://artconomy.com/blog/category-sitemap.xml",
+        "BlogTags": "https://artconomy.com/blog/post_tag-sitemap.xml",
+    },
+    unpack=True,
 )
