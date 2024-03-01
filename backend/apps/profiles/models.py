@@ -1,6 +1,7 @@
 """
 Models dealing primarily with user preferences and personalization.
 """
+
 import hashlib
 import uuid
 from urllib.parse import urlencode, urljoin
@@ -176,6 +177,9 @@ class User(AbstractEmailUser, HitsMixin):
     """
     User model for Artconomy.
     """
+
+    class Meta:
+        ordering = ("-date_joined",)
 
     username = CICharField(
         max_length=40,
@@ -840,6 +844,7 @@ class Character(Model, HitsMixin):
 
     class Meta:
         unique_together = (("name", "user"),)
+        ordering = ("-created_on",)
 
     def preview_image(self, request):
         if not self.primary_submission:
@@ -1147,6 +1152,9 @@ class Journal(Model):
     """
     Model for private messages.
     """
+
+    class Meta:
+        ordering = ("-created_on",)
 
     user = ForeignKey(User, on_delete=CASCADE, related_name="journals")
     subject = CharField(max_length=150)

@@ -131,6 +131,7 @@ django==4.2.10
     #   django-reversion
     #   django-sendgrid-v5
     #   django-signal-disabler
+    #   django-static-sitemaps
     #   django-vite
     #   djangorestframework
     #   djangorestframework-bulk
@@ -151,8 +152,6 @@ django-custom-user==1.1
     # via -r requirements.in
 django-etc==1.4.0
     # via django-hitcount
-django-fastsitemaps @ git+https://github.com/Artconomy/django-fastsitemaps.git@6458209a0968ebbd8ba6ca25c2d28840e77913ee
-    # via -r requirements.in
 django-hitcount @ git+https://github.com/thornomad/django-hitcount.git@fcf399698455d656810a9456ccd0b42a8290969f
     # via -r requirements.in
 django-markdown2==0.3.1
@@ -172,6 +171,8 @@ django-reversion==5.0.12
 django-sendgrid-v5==1.2.3
     # via -r requirements.in
 django-signal-disabler==0.1.1
+    # via -r requirements.in
+django-static-sitemaps==5.0.0
     # via -r requirements.in
 django-vite==3.0.3
     # via -r requirements.in
@@ -375,6 +376,7 @@ six==1.16.0
     # via
     #   asttokens
     #   automat
+    #   django-static-sitemaps
     #   python-dateutil
 smmap==5.0.1
     # via gitdb

@@ -53,8 +53,6 @@ django-money
 django-premailer
 # Library for providing One Time Passwords for 2FA apps
 django-otp
-# Fast sitemap views
-git+https://github.com/Artconomy/django-fastsitemaps.git@6458209a0968ebbd8ba6ca25c2d28840e77913ee#egg=django-fastsitemaps
 # Redis support for Django's caching system
 django-redis
 # The Django REST Framework is the primary library for constructing our API endpoints and handling their serialization
@@ -68,6 +66,8 @@ djangorestframework-csv
 # Stores old versions of a model in the database so they can be reverted or reviewed. We use this on order comments
 # to make sure no one is pulling a sneaky during disputes, for instance.
 django-reversion
+# Generate sitemaps via celery task for serving by NginX
+django-static-sitemaps
 # Sendgrid support for sending email. I'm not entirely sure we're actually using this yet, but we might be.
 django-sendgrid-v5
 # Allows us to disable Django's signal feature-- useful sometimes during tests.

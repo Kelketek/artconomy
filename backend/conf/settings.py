@@ -82,6 +82,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.sites",
     "django.contrib.sitemaps",
+    "static_sitemaps",
     "daphne",
     "django.contrib.staticfiles",
     "django_premailer",
@@ -803,3 +804,10 @@ EXTERNAL_SITEMAPS = get_env(
     },
     unpack=True,
 )
+
+# These settings used by django-static-sitemaps
+STATICSITEMAPS_ROOT_SITEMAP = "conf.sitemaps.sitemaps"
+
+STATICSITEMAPS_MOCK_SITE_NAME = DEFAULT_DOMAIN
+
+STATICSITEMAPS_ROOT_DIR = str(Path(STATIC_ROOT) / "sitemaps")

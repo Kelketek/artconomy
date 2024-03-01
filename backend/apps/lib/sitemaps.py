@@ -19,7 +19,7 @@ def get_entries(url, cache):
     # urls, we'll need to use defusedxml.
     soup = BeautifulSoup(
         data.content,
-        "lxml",
+        features="xml",
     )
     cache["last_fetch"] = timezone.now()
     cache["locs"] = [

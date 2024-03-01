@@ -25,6 +25,12 @@ class StaticSitemap(Sitemap):
     def items(self):
         return static_entries
 
+    def lastmod(self, item):
+        return last_update
+
+    def location(self, item):
+        return item
+
 
 high_dynamic_entries = (
     "/",
