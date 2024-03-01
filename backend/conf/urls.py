@@ -75,18 +75,18 @@ urlpatterns = [
     re_path(r"^force-error-email/", views.force_error_email, name="force_error"),
     re_path(r"^test-telegram/", views.test_telegram, name="test_telegram"),
     re_path(r"^discord/", include("apps.discord_bot.urls", namespace="discord_bot")),
-    path(
-        "sitemap.xml",
-        sitemap_core_views.index,
-        {"sitemaps": sitemaps},
-        name="fastsitemaps.views.index",
-    ),
-    path(
-        "sitemap-<section>.xml",
-        sitemap_core_views.sitemap,
-        {"sitemaps": sitemaps},
-        name="fastsitemaps.views.sitemap",
-    ),
+    # path(
+    #     "sitemap.xml",
+    #     sitemap_core_views.index,
+    #     {"sitemaps": sitemaps},
+    #     name="fastsitemaps.views.index",
+    # ),
+    # path(
+    #     "sitemap-<section>.xml",
+    #     sitemap_core_views.sitemap,
+    #     {"sitemaps": sitemaps},
+    #     name="fastsitemaps.views.sitemap",
+    # ),
 ]
 
 
