@@ -54,7 +54,7 @@ django-premailer
 # Library for providing One Time Passwords for 2FA apps
 django-otp
 # Fast sitemap views
-git+https://github.com/Artconomy/django-fastsitemaps.git@25093593c91b9ac40ac41d6b575c95e641d13591#egg=django-fastsitemaps
+git+https://github.com/Artconomy/django-fastsitemaps.git@6458209a0968ebbd8ba6ca25c2d28840e77913ee#egg=django-fastsitemaps
 # Redis support for Django's caching system
 django-redis
 # The Django REST Framework is the primary library for constructing our API endpoints and handling their serialization
