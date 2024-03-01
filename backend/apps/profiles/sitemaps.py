@@ -3,7 +3,6 @@ from apps.profiles.models import User, Submission, Journal, Character
 
 
 class UserAboutSitemap(Sitemap):
-    limit = 1000
     priority = 0.7
     protocol = "https"
 
@@ -18,7 +17,6 @@ class UserAboutSitemap(Sitemap):
 
 
 class UserQueueSitemap(Sitemap):
-    limit = 1000
     priority = 0.3
     protocol = "https"
 
@@ -41,7 +39,6 @@ class UserQueueSitemap(Sitemap):
 
 
 class UserProductListingSitemap(Sitemap):
-    limit = 1000
     priority = 0.6
     protocol = "https"
 
@@ -66,7 +63,6 @@ class UserProductListingSitemap(Sitemap):
 
 
 class UserCharactersListingSitemap(Sitemap):
-    limit = 1000
     protocol = "https"
 
     def items(self):
@@ -89,7 +85,6 @@ class UserCharactersListingSitemap(Sitemap):
 
 
 class UserFavoritesListingSitemap(Sitemap):
-    limit = 1000
     priority = 0.4
     protocol = "https"
 
@@ -104,7 +99,6 @@ class UserFavoritesListingSitemap(Sitemap):
 
 
 class UserArtGallerySitemap(Sitemap):
-    limit = 1000
     protocol = "https"
 
     def items(self):
@@ -121,7 +115,6 @@ class UserArtGallerySitemap(Sitemap):
 
 
 class UserArtCollectionSitemap(Sitemap):
-    limit = 1000
     protocol = "https"
 
     def items(self):
@@ -142,7 +135,6 @@ class UserArtCollectionSitemap(Sitemap):
 
 
 class UserWatchingSitemap(Sitemap):
-    limit = 1000
     protocol = "https"
     priority = 0.3
 
@@ -157,7 +149,6 @@ class UserWatchingSitemap(Sitemap):
 
 
 class UserWatchersSitemap(Sitemap):
-    limit = 1000
     protocol = "https"
     priority = 0.3
 
@@ -172,7 +163,6 @@ class UserWatchersSitemap(Sitemap):
 
 
 class SubmissionSitemap(Sitemap):
-    limit = 1000
     protocol = "https"
 
     def items(self):
@@ -189,7 +179,6 @@ class SubmissionSitemap(Sitemap):
 
 
 class CharacterSitemap(Sitemap):
-    limit = 1000
     protocol = "https"
 
     def items(self):
@@ -206,7 +195,6 @@ class CharacterSitemap(Sitemap):
 
 
 class JournalSitemap(Sitemap):
-    limit = 1000
     protocol = "https"
     priority = 0.3
 
@@ -221,7 +209,6 @@ class JournalSitemap(Sitemap):
 
 
 class RatingsSitemap(Sitemap):
-    limit = 1000
     priority = 0.2
     protocol = "https"
 

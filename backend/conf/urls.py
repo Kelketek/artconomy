@@ -17,7 +17,7 @@ Including another URLconf
 import re
 import sys
 
-import django.contrib.sitemaps.views as sitemap_core_views
+import fastsitemaps.views as sitemap_core_views
 
 import views
 from django.conf import settings
@@ -79,13 +79,13 @@ urlpatterns = [
         "sitemap.xml",
         sitemap_core_views.index,
         {"sitemaps": sitemaps},
-        name="django.contrib.sitemaps.views.index",
+        name="fastsitemaps.views.index",
     ),
     path(
         "sitemap-<section>.xml",
         sitemap_core_views.sitemap,
         {"sitemaps": sitemaps},
-        name="django.contrib.sitemaps.views.sitemap",
+        name="fastsitemaps.views.sitemap",
     ),
 ]
 

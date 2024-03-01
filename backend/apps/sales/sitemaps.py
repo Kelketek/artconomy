@@ -4,7 +4,6 @@ from apps.sales.models import Product
 
 
 class ProductSitemap(Sitemap):
-    limit = 1000
     priority = 0.8
     protocol = "https"
 
