@@ -151,8 +151,7 @@ django-custom-user==1.1
     # via -r requirements.in
 django-etc==1.4.0
     # via django-hitcount
--e django-fastsitemaps
-#django-fastsitemaps @ git+https://github.com/Artconomy/django-fastsitemaps.git@95975e5b95a252f50136320c27ae8686997dab06
+django-fastsitemaps @ git+https://github.com/Artconomy/django-fastsitemaps.git@25093593c91b9ac40ac41d6b575c95e641d13591
     # via -r requirements.in
 django-hitcount @ git+https://github.com/thornomad/django-hitcount.git@fcf399698455d656810a9456ccd0b42a8290969f
     # via -r requirements.in
