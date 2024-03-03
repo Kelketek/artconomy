@@ -774,6 +774,7 @@ CSP_FRAME_SRC = tuple(
             "https://js.stripe.com",
             "https://hcaptcha.com",
             "https://*.hcaptcha.com",
+            "https://www.youtube-nocookie.com",
         ),
     )
 )

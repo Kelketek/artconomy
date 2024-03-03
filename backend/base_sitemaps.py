@@ -70,7 +70,7 @@ buy_and_sell = (
     "virtual-table",
     "bank-accounts",
     "workload-management",
-    "outside-orders",
+    "invoicing",
     "waitlists",
     "why-commissions-disabled",
     "paypal",

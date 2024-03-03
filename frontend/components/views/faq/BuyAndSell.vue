@@ -7,6 +7,14 @@
       <v-expansion-panel-text>
         <v-card>
           <v-card-text>
+            <iframe
+                width="560"
+                height="315"
+                src="https://www.youtube-nocookie.com/embed/1PyT9JgcDDo?si=Nsp7eYiCS9h3-KmX"
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+            />
             <p>
               To buy a commission on Artconomy, find any artist who is open.
               <span @click.capture.stop.prevent="searchOpen" class="who-is-open-link">
@@ -70,6 +78,14 @@
       <v-expansion-panel-text>
         <v-card>
           <v-card-text>
+            <iframe
+                width="560"
+                height="315"
+                src="https://www.youtube-nocookie.com/embed/1PyT9JgcDDo?si=Nsp7eYiCS9h3-KmX"
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+            />
             <p>
               To sell commissions on Artconomy, you must first
               <router-link
@@ -489,8 +505,8 @@
               experience possible!
             </p>
             <p>You can also use the green
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'outside-orders'}}">'New Invoice'</router-link>
-              button to track sales made off-site.
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'invoicing'}}">'New Invoice'</router-link>
+              button to invoice out to a client rather than having them place an order.
             </p>
             <h3>Smart Availability</h3>
             <p>AWOO is also able to intelligently manage your availability.
@@ -560,6 +576,13 @@
       <v-expansion-panel-text>
         <v-card>
           <v-card-text>
+            <iframe
+                width="560"
+                height="315"
+                src="https://www.youtube-nocookie.com/embed/MMTyxXjN1ko?si=f9DKB3mr4TfregSw"
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen />
             <p>
               If you're out and about at a convention, working on a special project, or you're taking orders on the fly
               from customers in your stream, you might want to create an order for tracking yourself,
@@ -581,15 +604,13 @@
               <li>You can specify an email or Artconomy user name to send the invoice to in order to collect payment.
               </li>
               <li>You can use your existing product listings as a template for pricing and workload management.</li>
-              <li>You can prevent AWOO from tracking any impact on your workload if the piece is already finished, and
-                you just need to collect payment or send the finished piece.
-              </li>
               <li>You can handle tasks that have already been paid, but which impact your workload, so
                 AWOO can keep track of them.
               </li>
               <li>You can issue a completely custom order not related to any product you currently have listed.</li>
               <li>You can create an order that doesn't have the customer's information-- useful if you want to track the
-                impact of an outside project or commission but don't need to send updates to anyone.
+                impact of an outside project or commission but don't need to send updates to anyone. In this case,
+                just leave the customer email/username field blank.
               </li>
             </ul>
             <p>
@@ -942,7 +963,7 @@ class BuyAndSell extends mixins(Viewer, QuestionSet) {
     'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'compare-and-contrast-plans', 'landscape',
     'fee-calculation',
     'virtual-table', 'bank-accounts',
-    'workload-management', 'outside-orders', 'waitlists',
+    'workload-management', 'invoicing', 'waitlists',
     'why-commissions-disabled',
     'paypal', 'patreon-comparison', 'featured-products', 'security',
     'payouts', 'crypto-currencies',
