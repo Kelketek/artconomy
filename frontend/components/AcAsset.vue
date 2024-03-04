@@ -21,7 +21,7 @@
       <v-col cols="12" v-if="renderImage && isImage">
         <v-img :src="displayImage" :aspect-ratio="ratio || undefined" :contain="contain"
                max-height="90vh" max-width="100%" class="asset-image"
-               itemprop="image" :alt="alt"
+               itemprop="image" :alt="alt" :eager="prerendering"
         />
       </v-col>
       <v-col class="text-center icon-image" v-else-if="renderImage && !isImage" cols="12">
@@ -127,6 +127,7 @@ import {Asset} from '@/types/Asset.ts'
 import AssetProps from '@/types/AssetProps.ts'
 import {computed, onMounted, ref} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
+import {usePrerendering} from '@/mixins/prerendering.ts'
 
 declare interface AcAssetProps extends AssetProps {
   asset?: Asset | null,
@@ -175,6 +176,8 @@ const displayComponent = computed(() => {
 })
 
 const renderImage = computed(() => canDisplay.value && (isImage.value || !displayComponent.value))
+
+const {prerendering} = usePrerendering()
 
 const ratio = computed(() => {
   if ((!canDisplay.value) && (props.aspectRatio === null)) {
