@@ -153,7 +153,7 @@ describe('NavBar.vue', () => {
     await wrapper.find('.notifications-button').trigger('click')
     await nextTick()
     await waitFor(() => expect(router.currentRoute.value.name).toEqual('Reload'))
-    expect(router.currentRoute.value.params).toEqual({path: '/notifications/sales'})
+    expect(router.currentRoute.value.params).toEqual({path: '/notifications/sales/'})
   })
   test('Loads the notifications view for a non-artist', async() => {
     setViewer(store, genUser({artist_mode: false}))
@@ -169,7 +169,7 @@ describe('NavBar.vue', () => {
     await wrapper.find('.notifications-button').trigger('click')
     await nextTick()
     await waitFor(() => expect(router.currentRoute.value.name).toEqual('Reload'))
-    expect(router.currentRoute.value.params).toEqual({path: '/notifications/community'})
+    expect(router.currentRoute.value.params).toEqual({path: '/notifications/community/'})
   })
   test('Loads a login link', async() => {
     setViewer(store, genAnon())
