@@ -738,6 +738,7 @@ CSP_SCRIPT_SRC = tuple(
         (
             "'self'",
             "'unsafe-inline'",
+            "data:",
             "blob:",
             "https://sentry.io",
             "https://www.googletagmanager.com",
