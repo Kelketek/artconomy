@@ -49,7 +49,7 @@ watch(() => store.state.errors!.code, (val: HttpStatusCode|null) => {
   if (val) {
     setStatus(val)
   }
-})
+}, {immediate: true})
 
 const code = computed(() => {
   return store.state.errors!.code
