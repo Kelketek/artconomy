@@ -175,7 +175,7 @@
         <template v-slot:title>We're on it!</template>
         <v-row align="center" class="order-confirmation justify-content-center">
           <v-col cols="12" sm="6" md="3" align-self="center">
-            <v-img :src="cheering" :contain="true" max-height="30vh" alt="Hooray! The order has been placed."/>
+            <v-img :src="cheering" :contain="true" max-height="30vh" alt="Hooray! The order has been placed." :eager="prerendering"/>
           </v-col>
           <v-col cols="12" sm="6" md="9" align-self="center">
             <h1 class="display-1 mb-4">Order Placed.</h1>
@@ -218,6 +218,7 @@ import {ref, watch, computed, onMounted} from 'vue'
 import {useRoute} from 'vue-router'
 import {useStore} from 'vuex'
 import {DeliverableStatus as s} from '@/types/DeliverableStatus.ts'
+import {usePrerendering} from '@/mixins/prerendering.ts'
 
 const props = defineProps<DeliverableProps>()
 
@@ -277,6 +278,8 @@ const markInviteSent = (ourOrder: Order) => {
   inviteSent.value = true
   order.setX(ourOrder)
 }
+
+const {prerendering} = usePrerendering()
 
 onMounted(() => {
   if (route.query.showConfirm) {

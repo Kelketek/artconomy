@@ -97,32 +97,26 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, toNative, Vue} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {ArtVue, BASE_URL} from '@/lib/lib.ts'
+<script setup lang="ts">
+import {BASE_URL} from '@/lib/lib.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRouter} from 'vue-router'
 
-@Component
-class ShieldCommissioner extends ArtVue {
-  public searchForm: FormController = null as unknown as FormController
-  public fridge = new URL('/static/images/fridge.png', BASE_URL).href
-  public forbidden = new URL('/static/images/403.png', BASE_URL).href
-  public laptop = new URL('/static/images/laptop.png', BASE_URL).href
-  public banner = new URL('/static/images/banner.jpg', BASE_URL).href
+const router = useRouter()
 
-  public search() {
-    this.searchForm.reset()
-    this.searchForm.fields.shield_only.update(true)
-    this.$router.push({
-      name: 'SearchProducts',
-      query: this.searchForm.rawData,
-    })
-  }
+const fridge = new URL('/static/images/fridge.png', BASE_URL).href
+const forbidden = new URL('/static/images/403.png', BASE_URL).href
+const laptop = new URL('/static/images/laptop.png', BASE_URL).href
+const banner = new URL('/static/images/banner.jpg', BASE_URL).href
 
-  public created() {
-    this.searchForm = this.$getForm('search')
-  }
+const search = () => {
+  searchForm.reset()
+  searchForm.fields.shield_only.update(true)
+  router.push({
+    name: 'SearchProducts',
+    query: searchForm.rawData,
+  })
 }
 
-export default toNative(ShieldCommissioner)
+const searchForm = useForm('search')
 </script>

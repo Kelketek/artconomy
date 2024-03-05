@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0">
-    <v-img :src="banner" :aspect-ratio="16/9" max-height="250px">
+    <v-img :src="banner" :aspect-ratio="16/9" max-height="250px" :eager="prerendering">
       <v-row no-gutters
              align="center"
              justify="center"
@@ -19,7 +19,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="laptop" max-height="20vh" contain/>
+                  <v-img :src="laptop" max-height="20vh" contain :eager="prerendering"/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -40,7 +40,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12">
-                  <v-img :src="fingerPainting" max-height="20vh" contain/>
+                  <v-img :src="fingerPainting" max-height="20vh" contain :eager="prerendering"/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -61,7 +61,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="fridge" max-height="20vh" contain/>
+                  <v-img :src="fridge" max-height="20vh" contain :eager="prerendering"/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -93,31 +93,28 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, toNative} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {ArtVue, BASE_URL} from '@/lib/lib.ts'
+<script setup lang="ts">
+import {BASE_URL} from '@/lib/lib.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRouter} from 'vue-router'
+import {usePrerendering} from '@/mixins/prerendering.ts'
 
-@Component
-class AlwaysOpen extends ArtVue {
-  public searchForm: FormController = null as unknown as FormController
-  public fridge = new URL('/static/images/fridge.png', BASE_URL).href
-  public fingerPainting = new URL('/static/images/fingerpainting.png', BASE_URL).href
-  public laptop = new URL('/static/images/laptop.png', BASE_URL).href
-  public banner = new URL('/static/images/banner.jpg', BASE_URL).href
+const router = useRouter()
 
-  public search() {
-    this.searchForm.reset()
-    this.$router.push({
-      name: 'SearchProducts',
-      query: this.searchForm.rawData,
-    })
-  }
+const fridge = new URL('/static/images/fridge.png', BASE_URL).href
+const fingerPainting = new URL('/static/images/fingerpainting.png', BASE_URL).href
+const laptop = new URL('/static/images/laptop.png', BASE_URL).href
+const banner = new URL('/static/images/banner.jpg', BASE_URL).href
 
-  public created() {
-    this.searchForm = this.$getForm('search')
-  }
+const search = () => {
+  searchForm.reset()
+  router.push({
+    name: 'SearchProducts',
+    query: searchForm.rawData,
+  })
 }
 
-export default toNative(AlwaysOpen)
+const searchForm = useForm('search')
+
+const {prerendering} = usePrerendering()
 </script>

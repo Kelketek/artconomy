@@ -10,10 +10,10 @@
         </v-btn>
       </v-col>
       <v-col cols="12" md="6" order="2" order-md="2" class="pa-2" offset-lg="1">
-        <v-img :src="productDetail" :elevation="14" :aspect-ratio="1357/565" alt=""/>
+        <v-img :src="productDetail" :elevation="14" :aspect-ratio="1357/565" alt="" :eager="prerendering"/>
       </v-col>
       <v-col cols="12" md="6" class="pa-2" order="4" order-md="3">
-        <v-img :src="awoo" :elevation="14" :aspect-ratio="1591/844" alt=""/>
+        <v-img :src="awoo" :elevation="14" :aspect-ratio="1591/844" alt="" :eager="prerendering"/>
       </v-col>
       <v-col cols="12" md="6" lg="4" offset-lg="1" class="text-center" order="3" order-md="4">
         <hr class="hidden-md-and-up"/>
@@ -37,7 +37,7 @@
         </v-btn>
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="7" order-lg="7">
-        <v-img :src="discordChannelLog" :elevation="14" :aspect-ratio="1591/844" alt="A screenshot of a conversation between artists on the Artconomy Discord."/>
+        <v-img :src="discordChannelLog" :elevation="14" :aspect-ratio="1591/844" alt="A screenshot of a conversation between artists on the Artconomy Discord." :eager="prerendering"/>
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="6" order-lg="6">
         <hr class="hidden-md-and-up"/>
@@ -56,7 +56,7 @@
                 :block="block"
                 variant="flat"
                 color="primary">
-              <v-icon left icon="{{discordPath}}"/>
+              <ac-icon size="default" :icon="siDiscord"/>
               Join our Discord
             </v-btn>
           </v-col>
@@ -98,7 +98,7 @@
         </v-btn>
       </v-col>
       <v-col cols="12" md="6" class="text-center pa-2" order="9" order-md="9">
-        <v-img :src="pricing" :aspect-ratio="2356/1018" contain alt=""></v-img>
+        <v-img :src="pricing" :aspect-ratio="2356/1018" contain alt="" :eager="prerendering" />
       </v-col>
     </v-row>
     <v-row class="justify-content fill-height" align="center">
@@ -107,7 +107,7 @@
       </v-col>
       <v-col cols="12" md="6" offset-md="3" lg="4" offset-lg="4" class="text-center pa-2">
         <h1>Never get scammed</h1>
-        <v-img :src="forbidden" max-height="30vh" contain :aspect-ratio="1" alt=""/>
+        <v-img :src="forbidden" max-height="30vh" contain :aspect-ratio="1" alt="" :eager="prerendering"/>
         <p>With
           <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
           , payment is guaranteed, and deposited right into your bank account.
@@ -129,7 +129,7 @@
     </v-row>
     <v-row class="justify-content fill-height" align="center">
       <v-col cols="12" md="6" lg="4" class="text-center pa-2" order="2" order-lg="1">
-        <v-img :src="references" contain :aspect-ratio="1613/607" alt="A screenshot of the reference management functionality."/>
+        <v-img :src="references" contain :aspect-ratio="1613/607" alt="A screenshot of the reference management functionality." :eager="prerendering"/>
       </v-col>
       <v-col cols="12" lg="4" class="text-center pa-5" order="1" order-lg="2">
         <h2>Keep Track of All of your References</h2>
@@ -139,7 +139,7 @@
           customer's OC!</p>
       </v-col>
       <v-col cols="12" md="6" lg="4" class="text-center pa-2" order="3" order-lg="3">
-        <v-img :src="character" contain :aspect-ratio="2334/978" alt=""/>
+        <v-img :src="character" contain :aspect-ratio="2334/978" alt="" :eager="prerendering"/>
       </v-col>
     </v-row>
     <v-row>
@@ -163,41 +163,40 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {siDiscord} from 'simple-icons'
-import Viewer from '@/mixins/viewer.ts'
 import {BASE_URL} from '@/lib/lib.ts'
+import {computed} from 'vue'
+import AcIcon from '@/components/AcIcon.vue'
+import {useViewer} from '@/mixins/viewer.ts'
+import {usePrerendering} from '@/mixins/prerendering.ts'
 
-@Component({})
-class ArtistTools extends mixins(Viewer) {
-  public discordPath = siDiscord
-  public character = new URL('/static/images/marketing/character.jpg', BASE_URL).href
-  public references = new URL('/static/images/marketing/references.jpg', BASE_URL).href
-  public forbidden = new URL('/static/images/403.png', BASE_URL).href
-  public pricing = new URL('/static/images/marketing/pricing.jpg', BASE_URL).href
-  public discordChannelLog = new URL('/static/images/marketing/discord-channel-log.jpg', BASE_URL).href
-  public awoo = new URL('/static/images/marketing/AWOO.jpg', BASE_URL).href
-  public productDetail = new URL('/static/images/marketing/product-detail.jpg', BASE_URL).href
+const {isRegistered, viewerName} = useViewer()
 
-  public get url() {
-    if (this.isRegistered) {
-      return {
-        name: 'Profile',
-        params: {username: this.viewerName},
-      }
-    }
+const character = new URL('/static/images/marketing/character.jpg', BASE_URL).href
+const references = new URL('/static/images/marketing/references.jpg', BASE_URL).href
+const forbidden = new URL('/static/images/403.png', BASE_URL).href
+const pricing = new URL('/static/images/marketing/pricing.jpg', BASE_URL).href
+const discordChannelLog = new URL('/static/images/marketing/discord-channel-log.jpg', BASE_URL).href
+const awoo = new URL('/static/images/marketing/AWOO.jpg', BASE_URL).href
+const productDetail = new URL('/static/images/marketing/product-detail.jpg', BASE_URL).href
+
+const url = computed(() => {
+  if (isRegistered.value) {
     return {
-      name: 'Register',
-      query: {artist_mode: 'true'},
+      name: 'Profile',
+      params: {username: viewerName.value},
     }
   }
-
-  public get block() {
-    return true
-    // return this.$vuetify.display.xs
+  return {
+    name: 'Register',
+    query: {artist_mode: 'true'},
   }
-}
+})
 
-export default toNative(ArtistTools)
+const block = computed(() => {
+  return true
+})
+
+const {prerendering} = usePrerendering()
 </script>

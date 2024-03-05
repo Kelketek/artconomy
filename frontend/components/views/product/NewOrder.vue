@@ -108,7 +108,13 @@
                           <v-row>
                             <v-col class="d-flex justify-content justify-center align-content-center" cols="5"
                                    style="flex-direction: column">
-                              <v-img :src="laptop.href" max-height="30vh" :contain="true" alt="An example image showing a drawing based on the description below."/>
+                              <v-img
+                                  :src="laptop.href"
+                                  max-height="30vh"
+                                  :contain="true"
+                                  :eager="prerendering"
+                                  alt="An example image showing a drawing based on the description below."
+                              />
                             </v-col>
                             <v-col cols="7">
                               <h2>Example description</h2>
@@ -289,6 +295,7 @@ import {computed, onMounted, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useSubject} from '@/mixins/subjective.ts'
+import {usePrerendering} from '@/mixins/prerendering.ts'
 
 declare interface NewOrderProps {
   invoiceMode?: boolean,
@@ -528,6 +535,8 @@ const productSubmissionText = computed(() => {
   }
   return ''
 })
+
+const {prerendering} = usePrerendering()
 
 subjectHandler.artistProfile.get().then()
 prepopulateCharacters(orderForm.fields.characters, showCharacters, initCharacters)

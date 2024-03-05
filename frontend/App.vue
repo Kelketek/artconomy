@@ -227,6 +227,7 @@ import {useStore} from 'vuex'
 import {useList} from '@/store/lists/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
 import {useTargets} from '@/plugins/targets.ts'
+import {usePrerendering} from '@/mixins/prerendering.ts'
 
 const router = useRouter()
 const route = useRoute()
