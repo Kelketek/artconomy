@@ -1,6 +1,11 @@
 <template>
   <v-container class="faq">
-    <ac-tab-nav :items="items" label="Category"/>
+    <v-row>
+      <v-col cols="12" class="text-center">
+        <h1>Frequently Asked Questions</h1>
+      </v-col>
+    </v-row>
+    <ac-tab-nav :items="items" label="Category" :heading-level="2"/>
     <router-view/>
   </v-container>
 </template>

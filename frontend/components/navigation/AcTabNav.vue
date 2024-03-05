@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <v-tabs grow centered show-arrows class="hidden-sm-and-down">
-      <ac-tab :to="item.value" v-for="item in items" :key="item.title" :count="item.count" :icon="item.icon">
+      <ac-tab :to="item.value" v-for="item in items" :key="item.title" :count="item.count" :icon="item.icon" :tag="tagFor(item)">
         {{item.title}}
       </ac-tab>
     </v-tabs>
@@ -15,39 +15,40 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {TabNavSpec} from '@/types/TabNavSpec.ts'
-import {RouteLocationRaw} from 'vue-router'
+import {RouteLocationRaw, useRoute, useRouter} from 'vue-router'
 import AcTab from '@/components/AcTab.vue'
+import {computed} from 'vue'
 
-@Component({
-  components: {AcTab},
-})
-class AcTabNav extends Vue {
-  @Prop({required: true})
-  public label!: string
+const route = useRoute()
+const router = useRouter()
+const props = withDefaults(defineProps<{label: string, items: TabNavSpec[], headingLevel: number}>(), {headingLevel: 0})
 
-  @Prop({required: true})
-  public items!: TabNavSpec[]
-
-  public renderText(item: TabNavSpec) {
-    if (item.count) {
-      return `${item.title} (${item.count})`
-    }
-    return item.title
+const renderText = (item: TabNavSpec) => {
+  if (item.count) {
+    return `${item.title} (${item.count})`
   }
-
-  public get tab() {
-    // Match the name or any parent route name. Ignores params.
-    return this.items.filter(
-        (item) => this.$route.matched.filter((match) => match.name === item.value.name).length)[0]
-  }
-
-  public set tab(val) {
-    this.$router.replace(val as RouteLocationRaw)
-  }
+  return item.title
 }
 
-export default toNative(AcTabNav)
+const tagFor = (item: TabNavSpec) => {
+  if (!props.headingLevel) {
+    return 'span'
+  }
+  if (item === tab.value) {
+    return `h${props.headingLevel}`
+  }
+  return 'span'
+}
+
+const tab = computed({
+  get() {
+    return props.items.filter(
+        (item) => route.matched.filter((match) => match.name === item.value.name).length)[0] as TabNavSpec
+  },
+  set(val) {
+    router.replace(val as RouteLocationRaw)
+  }
+})
 </script>

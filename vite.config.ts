@@ -82,6 +82,14 @@ export default defineConfig({
           dataProcessing: ['decimal.js', 'lodash', 'date-fns', 'markdown-it'],
           qrCode: ['qrcode'],
           sortable: ['sortablejs', 'sortablejs-vue3', 'list-diff.js'],
+          faq: [
+            '@/components/views/faq/FAQ.vue',
+            '@/components/views/faq/About.vue',
+            '@/components/views/faq/BuyAndSell.vue',
+            '@/components/views/faq/Other.vue',
+            '@/components/views/faq/AcQuestion.vue',
+            '@/components/views/faq/mixins/question-set.ts',
+          ],
           uppy: ['@uppy/core', '@uppy/dashboard', '@uppy/url', '@uppy/xhr-upload', '@/components/fields/AcUppyFile.vue']
         },
       },
