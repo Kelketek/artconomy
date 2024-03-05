@@ -36,34 +36,34 @@
   </div>
 </template>
 
-<script lang="ts">
-import {Component, toNative, Vue, Watch} from 'vue-facing-decorator'
-import {ArtVue, setMetaContent} from '@/lib/lib.ts'
+<script setup lang="ts">
+import {watch, computed} from 'vue'
+import {HttpStatusCode} from 'axios'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
+import {setStatus} from '@/mixins/prerendering.ts'
 
-@Component
-class AcErrors extends ArtVue {
-  @Watch('$store.state.errors.code')
-  private updateMetaError(val: number) {
-    if (val) {
-      setMetaContent('prerender-status-code', val + '')
-    }
+const store = useStore<ArtState>()
+
+watch(() => store.state.errors!.code, (val: HttpStatusCode|null) => {
+  if (val) {
+    setStatus(val)
   }
+})
 
-  public get code(): number | string {
-    return this.$store.state.errors!.code
+const code = computed(() => {
+  return store.state.errors!.code
+})
+
+const logo = computed(() => {
+  const errors: Array<string|number> = [500, 503, 400, 404, 403]
+  if (errors.indexOf(code.value) !== -1) {
+    return `/static/images/${code.value}.png`
+  } else {
+    return '/static/images/generic-error.png'
   }
+})
 
-  public get logo(): string {
-    const errors: Array<string|number> = [500, 503, 400, 404, 403]
-    if (errors.indexOf(this.code) !== -1) {
-      return `/static/images/${this.code}.png`
-    } else {
-      return '/static/images/generic-error.png'
-    }
-  }
-}
-
-export default toNative(AcErrors)
 </script>
 
 <style scoped>

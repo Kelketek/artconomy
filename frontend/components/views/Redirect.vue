@@ -12,26 +12,22 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {RouteLocationRaw} from 'vue-router'
+<script setup lang="ts">
+import {RouteLocationRaw, useRouter} from 'vue-router'
+import {redirect, usePrerendering} from '@/mixins/prerendering.ts'
+import {onMounted} from 'vue'
 
-@Component
-class Redirect extends Vue {
-  @Prop({required: false})
-  public route!: RouteLocationRaw
+const {prerendering} = usePrerendering()
 
-  public get portString() {
-    if (window.location.port) {
-      return ':80'
-    }
-    return ''
+const router = useRouter()
+
+const props = defineProps<{route: RouteLocationRaw}>()
+
+onMounted(() => {
+  if (prerendering.value) {
+    redirect(`${window.location.origin}${router.resolve(props.route).fullPath}`)
+    return
   }
-
-  public created() {
-    this.$router.replace(this.route)
-  }
-}
-
-export default toNative(Redirect)
+  router.push(props.route)
+})
 </script>
