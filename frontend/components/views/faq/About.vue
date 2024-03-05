@@ -127,17 +127,11 @@
   </v-expansion-panels>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
+<script setup lang="ts">
 import {BASE_URL} from '@/lib/lib.ts'
-import QuestionSet from '@/components/views/faq/mixins/question-set.ts'
+import {useQuestionSet} from '@/components/views/faq/mixins/question-set.ts'
 
-@Component({})
-class About extends mixins(Viewer, QuestionSet) {
-  public questions = ['what-is-artconomy', 'cost', 'team', 'source-code']
-  public amberAndFox = new URL('/static/images/Amber-And-Fox.jpg', BASE_URL).href
-}
+const {tab} = useQuestionSet(['what-is-artconomy', 'cost', 'team', 'source-code'])
 
-export default toNative(About)
+const amberAndFox = new URL('/static/images/Amber-And-Fox.jpg', BASE_URL).href
 </script>

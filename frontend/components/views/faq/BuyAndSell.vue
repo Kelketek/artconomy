@@ -792,7 +792,7 @@
             <p>
               Featured products may change and are rotated on the front page at random. If you believe there is a
               product that should be considered for featured status,
-              <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact support</a>.
+              <a href="#" @click.prevent="store.commit('supportDialog', true)">please contact support</a>.
             </p>
           </v-card-text>
         </v-card>
@@ -870,7 +870,7 @@
                       you may submit a withdrawal request.
                     </span>
               Payouts take up to 5 business days to complete, but usually complete in 2-3. If you're having an issue
-              with your payout, <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact
+              with your payout, <a href="#" @click.prevent="store.commit('supportDialog', true)">please contact
               support!</a>
             </p>
           </v-card-text>
@@ -942,45 +942,39 @@
   </v-expansion-panels>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
+<script setup lang="ts">
 import {BASE_URL} from '@/lib/lib.ts'
-import QuestionSet from '@/components/views/faq/mixins/question-set.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
+import {useQuestionSet} from '@/components/views/faq/mixins/question-set.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller.ts'
 import StripeCountryList from '@/types/StripeCountryList.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useRouter} from 'vue-router'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
 
-@Component({
-  components: {AcLoadSection},
-})
-class BuyAndSell extends mixins(Viewer, QuestionSet) {
-  public searchForm: FormController = null as unknown as FormController
-  public stripeCountries: SingleController<StripeCountryList> = null as unknown as SingleController<StripeCountryList>
-  public conBadge = new URL('/static/images/con-badge.jpg', BASE_URL).href
-  public questions = [
-    'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'compare-and-contrast-plans', 'landscape',
-    'fee-calculation',
-    'virtual-table', 'bank-accounts',
-    'workload-management', 'invoicing', 'waitlists',
-    'why-commissions-disabled',
-    'paypal', 'patreon-comparison', 'featured-products', 'security',
-    'payouts', 'crypto-currencies',
-    'auctions', 'physical-goods', 'digital-downloads',
-  ]
+const router = useRouter()
+const {isRegistered, viewer, viewerName} = useViewer()
+const store = useStore<ArtState>()
 
-  public searchOpen() {
-    this.searchForm.reset()
-    this.$router.push({name: 'SearchProducts'})
-  }
+const {tab} = useQuestionSet([
+  'how-to-buy', 'how-to-sell', 'shield', 'disputes', 'compare-and-contrast-plans', 'landscape',
+  'fee-calculation',
+  'virtual-table', 'bank-accounts',
+  'workload-management', 'invoicing', 'waitlists',
+  'why-commissions-disabled',
+  'paypal', 'patreon-comparison', 'featured-products', 'security',
+  'payouts', 'crypto-currencies',
+  'auctions', 'physical-goods', 'digital-downloads',
+])
 
-  public created() {
-    this.searchForm = this.$getForm('search')
-    this.stripeCountries = this.$getSingle('stripeCountries')
-    this.stripeCountries.get()
-  }
+const conBadge = new URL('/static/images/con-badge.jpg', BASE_URL).href
+const stripeCountries = useSingle<StripeCountryList>('stripeCountries')
+const searchForm = useForm('search')
+
+const searchOpen = () => {
+  searchForm.reset()
+  router.push({name: 'SearchProducts'})
 }
-
-export default toNative(BuyAndSell)
 </script>

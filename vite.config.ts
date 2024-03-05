@@ -60,6 +60,7 @@ export default defineConfig({
         inline: ['vuetify']
       }
     },
+    reporters: ['dot'],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'clover'],

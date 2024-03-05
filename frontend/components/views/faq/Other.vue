@@ -284,7 +284,7 @@
             <p>
               If you find a bug in the blocking that allows users to continue harassing you, or you have continued
               to be harassed on the platform after asking someone to stop,
-              <a href="#" @click.prevent="$store.commit('supportDialog', true)">please contact support</a> with
+              <a href="#" @click.prevent="store.commit('supportDialog', true)">please contact support</a> with
               the details. Harassment can be subject to disciplinary action, including account closure, depending on
               severity.
             </p>
@@ -328,17 +328,16 @@
   </v-expansion-panels>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import QuestionSet from '@/components/views/faq/mixins/question-set.ts'
+<script setup lang="ts">
+import {useQuestionSet} from '@/components/views/faq/mixins/question-set.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
 
-@Component({})
-class Other extends mixins(Viewer, QuestionSet) {
-  public questions = [
-    'content-ratings', 'content-policy', 'tagging', 'tag-blocking', 'watching', 'blocking', 'file-formats',
-  ]
-}
+const store = useStore<ArtState>()
+const {viewer, isRegistered} = useViewer()
 
-export default toNative(Other)
+const {tab} = useQuestionSet([
+  'content-ratings', 'content-policy', 'tagging', 'tag-blocking', 'watching', 'blocking', 'file-formats',
+])
 </script>

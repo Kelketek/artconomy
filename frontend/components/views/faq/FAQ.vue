@@ -4,66 +4,56 @@
     <router-view/>
   </v-container>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import {setMetaContent, updateTitle} from '@/lib/lib.ts'
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import Pricing from '@/types/Pricing.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import StripeCountryList from '@/types/StripeCountryList.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {onMounted, watch} from 'vue'
+import {useSingle} from '@/store/singles/hooks.ts'
 
-@Component({
-  components: {AcTabNav},
+
+const route = useRoute()
+const router = useRouter()
+
+const items = [
+  {
+    value: {name: 'About'},
+    title: 'About',
+  },
+  {
+    value: {name: 'BuyAndSell'},
+    title: 'Buying/Selling',
+  },
+  {
+    value: {name: 'Other'},
+    title: 'Other/Misc',
+  },
+]
+
+watch(route, () => {
+  /* istanbul ignore if */
+  if (!route.params.question) {
+    return
+  }
+  window._paq.push(['trackPageView'])
 })
-class FAQ extends mixins(Viewer) {
-  public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
-  public stripeCountries: SingleController<StripeCountryList> = null as unknown as SingleController<StripeCountryList>
 
-  public get items() {
-    return [
-      {
-        value: {name: 'About'},
-        title: 'About',
-      },
-      {
-        value: {name: 'BuyAndSell'},
-        title: 'Buying/Selling',
-      },
-      {
-        value: {name: 'Other'},
-        title: 'Other/Misc',
-      },
-    ]
+const stripeCountries = useSingle<StripeCountryList>('stripeCountries', {
+  endpoint: '/api/sales/stripe-countries/',
+  persist: true,
+  x: {countries: []},
+})
+stripeCountries.get()
+
+onMounted(() => {
+  updateTitle('Frequently Asked Questions -- Artconomy')
+  setMetaContent(
+      'description',
+      'Learn how Artconomy works, how to buy art safely online, and how to make money selling your art!',
+  )
+  if (route.name === 'FAQ') {
+    router.replace({name: 'About'})
   }
-
-  @Watch('$route')
-  public updateTracker() {
-    /* istanbul ignore if */
-    if (!this.$route.params.question) {
-      return
-    }
-    window._paq.push(['trackPageView'])
-  }
-
-  public created() {
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
-    this.stripeCountries = this.$getSingle('stripeCountries', {
-      endpoint: '/api/sales/stripe-countries/',
-      persist: true,
-      x: {countries: []},
-    })
-    this.stripeCountries.get()
-    updateTitle('Frequently Asked Questions -- Artconomy')
-    setMetaContent(
-        'description',
-        'Learn how Artconomy works, how to buy art safely online, and how to make money selling your art!',
-    )
-    if (this.$route.name === 'FAQ') {
-      this.$router.replace({name: 'About'})
-    }
-  }
-}
-
-export default toNative(FAQ)
+})
 </script>

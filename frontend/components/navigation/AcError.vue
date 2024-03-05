@@ -45,15 +45,15 @@ import {setStatus} from '@/mixins/prerendering.ts'
 
 const store = useStore<ArtState>()
 
-watch(() => store.state.errors!.code, (val: HttpStatusCode|null) => {
+const code = computed(() => {
+  return store.state.errors!.code
+})
+
+watch(code, (val: HttpStatusCode|null) => {
   if (val) {
     setStatus(val)
   }
 }, {immediate: true})
-
-const code = computed(() => {
-  return store.state.errors!.code
-})
 
 const logo = computed(() => {
   const errors: Array<string|number> = [500, 503, 400, 404, 403]

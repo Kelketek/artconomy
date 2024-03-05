@@ -227,7 +227,6 @@ import {useStore} from 'vuex'
 import {useList} from '@/store/lists/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
 import {useTargets} from '@/plugins/targets.ts'
-import {usePrerendering} from '@/mixins/prerendering.ts'
 
 const router = useRouter()
 const route = useRoute()
@@ -270,6 +269,7 @@ searchSchema.fields.min_price.value = fallback(query, 'min_price', '')
 searchSchema.fields.max_turnaround.value = fallback(query, 'max_turnaround', '')
 searchSchema.fields.page.value = fallback(query, 'page', 1)
 // This variable is accessed in the tests to verify it's set up correctly, even though it does not appear to be used.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const searchForm = useForm('search', searchSchema)
 
 watch(() => route.fullPath, (newPath: string) => {
