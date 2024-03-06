@@ -59,7 +59,6 @@ from apps.sales.constants import (
     INVOICE_TYPES,
     LIMBO,
     LINE_ITEM_TYPES,
-    MISSED,
     MONEY_HOLE_STAGE,
     NEW,
     OPEN,
@@ -84,7 +83,6 @@ from apps.sales.constants import (
 )
 from apps.sales.line_item_funcs import reckon_lines
 from apps.sales.permissions import (
-    DeliverableStatusPermission,
     OrderViewPermission,
     ReferenceViewPermission,
     LimboCheck,
@@ -218,8 +216,14 @@ class Product(ImageModel, HitsMixin):
         default=GENERAL,
         help_text="The maximum content rating you will support for this product.",
     )
-    samples = ManyToManyField(
+    samples_old = ManyToManyField(
         "profiles.Submission", related_name="is_sample_for", blank=True
+    )
+    samples = ManyToManyField(
+        "profiles.Submission",
+        related_name="+",
+        blank=True,
+        through="sales.Sample",
     )
     created_on = DateTimeField(default=timezone.now, db_index=True)
     edited_on = DateTimeField(db_index=True, auto_now=True)
@@ -336,6 +340,20 @@ class Product(ImageModel, HitsMixin):
         return "{} offered by {} at {}".format(
             self.name, self.user.username, self.base_price
         )
+
+
+def get_next_sample_position():
+    """
+    Must be defined in root for migrations.
+    """
+    return get_next_increment(Sample, "display_position")
+
+
+class Sample(models.Model):
+    id = ShortCodeField(default=gen_shortcode, db_index=True, primary_key=True)
+    submission = ForeignKey("profiles.Submission", on_delete=CASCADE)
+    product = ForeignKey("sales.Product", on_delete=CASCADE)
+    display_position = FloatField(db_index=True, default=get_next_sample_position)
 
 
 # noinspection PyUnusedLocal

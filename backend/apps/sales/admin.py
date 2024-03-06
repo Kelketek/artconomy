@@ -303,9 +303,9 @@ class PaypalConfigAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.id:
-            self.fields[
-                "secret"
-            ].help_text = "Secret not displayed. Enter a new secret to overwrite."
+            self.fields["secret"].help_text = (
+                "Secret not displayed. Enter a new secret to overwrite."
+            )
             self.fields["secret"].required = False
 
     def clean_secret(self):

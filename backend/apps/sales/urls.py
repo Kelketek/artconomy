@@ -1,5 +1,6 @@
 """artconomy URL Configuration
 """
+
 from apps.sales.views import main, reports, stripe_views, webhooks
 from django.urls import path, register_converter
 from django.views.decorators.csrf import csrf_exempt
@@ -288,7 +289,7 @@ urlpatterns = [
         name="product_sample",
     ),
     path(
-        "account/<username>/products/<int:product>/samples/<int:tag_id>/",
+        "account/<username>/products/<int:product>/samples/<short_code:tag_id>/",
         main.ProductSampleManager.as_view(),
         name="product_sample_tags",
     ),
