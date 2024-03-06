@@ -62,7 +62,6 @@
                               field-type="ac-rating-field" :field="orderForm.fields.rating"
                               :persistent-hint="true"
                               :max="product.x.max_rating"
-                              :hint="ratingHint"
                           />
                         </v-col>
                       </v-row>
@@ -74,6 +73,7 @@
                   attach them to this order for easy referencing by the artist! If you haven't added any characters, or
                   no characters are in this piece, you may leave this blank."
                               v-if="showCharacters"
+                              autocomplete="off"
                               :init-items="initCharacters"
                           />
                         </v-col>
@@ -285,7 +285,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {artCall, BASE_URL, formatDateTerse, prepopulateCharacters, profileLink} from '@/lib/lib.ts'
+import {BASE_URL, formatDateTerse, prepopulateCharacters, profileLink} from '@/lib/lib.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {useForm} from '@/store/forms/hooks.ts'
@@ -490,12 +490,6 @@ const currentPrice = computed(() => {
   return product.x.starting_price
 })
 
-const ratingHint = computed(() => {
-  if (invoicing.value) {
-    return 'Please select the desired content rating of the piece being commissioned.'
-  }
-  return 'Please select the desired content rating of the piece you are commissioning.'
-})
 
 const shieldCost = computed(() => {
   if (!product.x) {
