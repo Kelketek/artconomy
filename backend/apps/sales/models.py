@@ -216,9 +216,6 @@ class Product(ImageModel, HitsMixin):
         default=GENERAL,
         help_text="The maximum content rating you will support for this product.",
     )
-    samples_old = ManyToManyField(
-        "profiles.Submission", related_name="is_sample_for", blank=True
-    )
     samples = ManyToManyField(
         "profiles.Submission",
         related_name="+",
