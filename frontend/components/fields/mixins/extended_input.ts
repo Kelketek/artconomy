@@ -33,7 +33,7 @@ export default class ExtendedInput extends ArtVue {
 
 export interface ExtendedInputProps {
   label: string,
-  errorMessages: string[],
+  errorMessages?: string[],
 }
 
 export const useExtendedInput = <T extends ExtendedInputProps>(props: T) => {
@@ -46,6 +46,9 @@ export const useExtendedInput = <T extends ExtendedInputProps>(props: T) => {
     return props
   })
   const errorFocused = computed(() => {
+    if (!props.errorMessages) {
+      return 0
+    }
     return props.errorMessages.length
   })
   const errorColor = computed(() => errorFocused.value ? 'red' : 'primary')

@@ -41,18 +41,18 @@
 }
 </style>
 
-<script lang="ts">
+<script setup lang="ts">
 import Uppy, {UppyFile} from '@uppy/core'
-import {toRaw, markRaw} from 'vue'
+import {toRaw, markRaw, ref, watch, onMounted} from 'vue'
 import Dashboard from '@uppy/dashboard'
 import XHRUpload from '@uppy/xhr-upload'
 import Url from '@uppy/url'
 
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import {genId, getCookie} from '@/lib/lib.ts'
-import ExtendedInput from '@/components/fields/mixins/extended_input.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {GenericState, Listener} from '@uppy/store-default/src'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
 
 // Based on upstream's store. Looks like we can't use our own store directly,
 // we can only make a copy and work with that. Hell knows why.
@@ -103,138 +103,135 @@ class ArtconomyUppyStore<T extends GenericState = GenericState> {
   }
 }
 
-@Component({emits: ['update:modelValue']})
-class AcUppyFile extends mixins(ExtendedInput) {
-  @Prop({default: '/api/lib/asset/'})
-  public endpoint!: string
-
-  @Prop({default: ''})
-  public modelValue!: string
-
-  @Prop({default: true})
-  public inForm!: boolean
-
-  @Prop({default: true})
-  public showReset!: boolean
-
-  @Prop({default: false})
-  public showClear!: boolean
-
-  @Prop({default: 1})
-  public maxNumberOfFiles!: number
-
-  // noinspection SpellCheckingInspection
-  @Prop({default: genId})
-  public uppyId!: string
-
-  @Prop({default: false})
-  public persist!: boolean
-
-  public uppy: Uppy = null as unknown as Uppy
-
-  public originalState = {} as GenericState
-
-  public uppySingle = null as unknown as SingleController<GenericState>
-
-  public toRemove: Array<() => void> = []
-
-  // Not sure where this is getting set. However, if I remove this boolean, test coverage plummets, so it must
-  // be used somewhere. Maybe by an upstream callback?
-  public unmounting = false
-
-  @Watch('modelValue')
-  public tripReset(newVal: string, oldVal: string) {
-    /* istanbul ignore if */
-    if (this.unmounting) {
-      return
-    }
-    if (!newVal && oldVal) {
-      (this.uppy as Uppy).cancelAll()
-    }
-  }
-
-  public reset() {
-    /* istanbul ignore if */
-    if (this.unmounting) {
-      return
-    }
-    (this.uppy as Uppy).cancelAll()
-    this.$emit('update:modelValue', '')
-  }
-
-  public clear() {
-    (this.uppy as Uppy).cancelAll()
-    this.$emit('update:modelValue', null)
-  }
-
-  public created() {
-    this.uppySingle = this.$getSingle(this.uppyId, {
-      x: {},
-      endpoint: '#',
-      persist: this.persist,
-    })
-    this.originalState = {...toRaw(this.uppySingle.x)}
-    this.uppySingle.setX({})
-    this.uppy = new Uppy({
-      id: this.uppyId,
-      autoProceed: true,
-      debug: false,
-      store: new ArtconomyUppyStore(this.uppySingle),
-      restrictions: {
-        maxFileSize: null,
-        maxNumberOfFiles: this.maxNumberOfFiles,
-        minNumberOfFiles: 1,
-      },
-    })
-    this.uppy.use(XHRUpload, {
-      endpoint: `${window.location.origin}${this.endpoint}`,
-      fieldName: 'files[]',
-      headers: {
-        'X-CSRFToken': getCookie('csrftoken') + '',
-      },
-    })
-  }
-
-  public mounted() {
-    this.uppy.use(Dashboard, {
-      inline: true,
-      target: `#${this.uppyId} .dashboard-container`,
-      replaceTargetContent: true,
-      note: 'Images only.',
-      height: 250,
-      width: 250,
-      theme: 'dark',
-      proudlyDisplayPoweredByUppy: false,
-      showLinkToFileUploadResult: false,
-      // @ts-ignore
-      doneButtonHandler: null,
-    })
-    const companionUrl = `${window.location.origin}/companion`
-    if (window.chrome) {
-      // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
-      this.uppy.use(Url, {
-        target: Dashboard,
-        companionUrl,
-        companionCookiesRule: 'include',
-      })
-    }
-    this.uppy.on('upload-success', (file: UppyFile | undefined, response: any) => {
-      if (this.maxNumberOfFiles > 1) {
-        this.$emit('update:modelValue', [...this.modelValue, response.body.id])
-        return
-      } else  {
-        this.$emit('update:modelValue', response.body.id)
-      }
-    })
-    // If this component is remounted, Uppy is regenerated, and we have to restore state.
-    /* istanbul ignore if */
-    if (Object.keys(this.originalState).length) {
-      this.uppy.setState(this.originalState)
-    }
-  }
+declare interface AcUppyFileProps extends ExtendedInputProps {
+  endpoint?: string,
+  modelValue: string|string[]|null,
+  inForm?: boolean,
+  showReset?: boolean,
+  showClear?: boolean,
+  maxNumberOfFiles?: number,
+  uppyId?: string,
+  persist?: boolean,
 }
 
-export default toNative(AcUppyFile)
+const props = withDefaults(
+    defineProps<AcUppyFileProps>(),
+    {
+      endpoint: '/api/lib/asset/',
+      inForm: true,
+      showReset: true,
+      showClear: false,
+      maxNumberOfFiles: 1,
+      uppyId: genId,
+      persist: false,
+      modelValue: (props) => {
+        if (props.maxNumberOfFiles && props.maxNumberOfFiles > 1) {
+          return []
+        }
+        return ''
+      },
+    },
+)
+
+const {passedProps, errorColor, errorFocused} = useExtendedInput(props)
+
+const emits = defineEmits<{'update:modelValue': [string|string[]|null]}>()
+
+const originalState = ref({})
+
+const uppySingle = useSingle(props.uppyId, {
+  x: {},
+  endpoint: '#',
+  persist: props.persist,
+})
+
+originalState.value = {...toRaw(uppySingle.x)}
+
+const uppy = ref(new Uppy({
+  id: props.uppyId,
+  autoProceed: true,
+  debug: false,
+  store: new ArtconomyUppyStore(uppySingle),
+  restrictions: {
+    maxFileSize: null,
+    maxNumberOfFiles: props.maxNumberOfFiles,
+    minNumberOfFiles: 1,
+  },
+}))
+uppy.value.use(XHRUpload, {
+  endpoint: `${window.location.origin}${props.endpoint}`,
+  fieldName: 'files[]',
+  headers: {
+    'X-CSRFToken': getCookie('csrftoken') + '',
+  },
+})
+
+// Not sure where this is getting set. However, if I remove this boolean, test coverage plummets, so it must
+// be used somewhere. Maybe by an upstream callback?
+const unmounting = ref(false)
+
+watch(() => props.modelValue, (newVal: string|string[]|null, oldVal: string|string[]|null) => {
+  /* istanbul ignore if */
+  if (unmounting.value) {
+    return
+  }
+  if (!newVal && oldVal) {
+    uppy.value.cancelAll()
+  }
+})
+
+const reset = () => {
+  /* istanbul ignore if */
+  if (unmounting.value) {
+    return
+  }
+  uppy.value.cancelAll()
+  emits('update:modelValue', '')
+}
+
+const clear = () => {
+  uppy.value.cancelAll()
+  emits('update:modelValue', null)
+}
+
+
+onMounted(() => {
+  uppy.value.use(Dashboard, {
+    inline: true,
+    target: `#${props.uppyId} .dashboard-container`,
+    replaceTargetContent: true,
+    note: 'Images only.',
+    height: 250,
+    width: 250,
+    theme: 'dark',
+    proudlyDisplayPoweredByUppy: false,
+    showLinkToFileUploadResult: false,
+    // @ts-ignore
+    doneButtonHandler: null,
+  })
+  const companionUrl = `${window.location.origin}/companion`
+  if (window.chrome) {
+    // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
+    uppy.value.use(Url, {
+      target: Dashboard,
+      companionUrl,
+      companionCookiesRule: 'include',
+    })
+  }
+  uppy.value.on('upload-success', (file: UppyFile | undefined, response: any) => {
+    if (props.maxNumberOfFiles > 1) {
+      emits('update:modelValue', [...props.modelValue || [], response.body.id])
+      return
+    } else  {
+      emits('update:modelValue', response.body.id)
+    }
+  })
+  // If this component is remounted, Uppy is regenerated, and we have to restore state.
+  /* istanbul ignore if */
+  if (Object.keys(originalState.value).length) {
+    uppy.value.setState(originalState.value)
+  }
+})
 </script>
 
 <style scoped>
