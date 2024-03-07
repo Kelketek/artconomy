@@ -9,9 +9,19 @@ def migrate_samples(apps, schema):
     for old_sample in Product.samples.through.objects.all().only(
         "submission_id", "product_id"
     ):
-        Sample.objects.create(
+        Sample.objects.get_or_create(
             submission_id=old_sample.submission_id,
             product_id=old_sample.product_id,
+        )
+
+
+def return_samples(apps, schema):
+    Sample = apps.get_model("sales", "Sample")
+    Product = apps.get_model("sales", "Product")
+    for sample in Sample.objects.all().only("submission_id", "product_id"):
+        Product.samples.through.objects.get_or_create(
+            submission_id=sample.submission_id,
+            product_id=sample.product_id,
         )
 
 
@@ -21,4 +31,4 @@ class Migration(migrations.Migration):
         ("sales", "0183_add_sample_leaf_table"),
     ]
 
-    operations = [migrations.RunPython(migrate_samples, reverse_code=lambda x, y: None)]
+    operations = [migrations.RunPython(migrate_samples, reverse_code=return_samples)]
