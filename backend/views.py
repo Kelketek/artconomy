@@ -22,7 +22,7 @@ def mastodon_profiles_for_routes(path: str) -> List[str]:
     return []
 
 
-def base_template(request, extra=None):
+def base_template(request, extra=None, exception=None):
     if request.method != "GET":
         return bad_endpoint(request)
     if request.content_type == "application/json":
@@ -43,6 +43,7 @@ def base_template(request, extra=None):
         "mastodon_profiles": mastodon_profiles_for_routes(request.path),
         "drip_account_id": settings.DRIP_ACCOUNT_ID,
         "ga_account_id": settings.GA_ACCOUNT_ID,
+        "exception": exception,
     }
     if request.user.is_authenticated:
         context["user_email"] = request.user.guest_email or request.user.email
@@ -50,15 +51,24 @@ def base_template(request, extra=None):
         email_hash.update(context["user_email"].encode("utf-8"))
         context["user_email_hash"] = email_hash.hexdigest()
     context.update(extra or default_context())
+    status_code = status.HTTP_200_OK
+    if code := getattr(exception, "code", None):
+        if isinstance(int, code) and 100 < code > 999:
+            status_code = code
     return render(
         request,
         "index.html",
         context,
+        status=status_code,
     )
 
 
 def index(request):
     return base_template(request)
+
+
+def error(request, exception):
+    return base_template(request, exception=exception)
 
 
 @api_view(("GET", "POST", "PATCH", "PUT", "HEAD", "DELETE", "OPTIONS"))
