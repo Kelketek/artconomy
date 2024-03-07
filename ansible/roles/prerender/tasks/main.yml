@@ -68,5 +68,5 @@
     executable: "/bin/bash"
   when: service_installed.changed
 
-- name: Ensure prerender running
-  service: name=prerender state=started enabled=yes
+- name: Ensure prerender service state
+  service: name=prerender state="{% if prerender_enabled %}started{% else %}stopped{% endif %}" enabled="{{ prerender_enabled }}"
