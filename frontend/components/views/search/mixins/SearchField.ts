@@ -6,6 +6,11 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import debounce from 'lodash/debounce'
 import {Component, mixins, Watch} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer.ts'
+import {nextTick, ref, watch} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {router} from '@/router'
+import {useStore} from 'vuex'
+import {ArtStore} from '@/store'
 
 @Component
 export default class SearchField extends mixins(Viewer) {
@@ -86,5 +91,70 @@ export default class SearchField extends mixins(Viewer) {
         this.list.get().then()
       }
     })
+  }
+}
+
+
+export const useSearchField = (searchForm: FormController, list: ListController<any>) => {
+  watch(() => list.params?.page, (newValue?: unknown) => {
+    if (newValue === undefined) {
+      return
+    }
+    searchForm.fields.page.update(parseInt(newValue + '', 10))
+  })
+
+  watch(() => list.params?.size,(newValue: unknown) => {
+    /* istanbul ignore next */
+    if (newValue === undefined) {
+      return
+    }
+    searchForm.fields.size.update(newValue)
+  })
+
+  const rawUpdate = (newData: RawData) => {
+    const newParams = makeQueryParams(newData)
+    /* istanbul ignore next */
+    const oldParams = makeQueryParams(list.params || {})
+    /* istanbul ignore if */
+    if (deepEqual(newParams, oldParams)) {
+      return
+    }
+    // I'm not entirely sure how, but this seems to create a situation, sometimes, where we no longer have the list.
+    // It might be that I'm reacting to something that destroys this component based on this change.
+    list.params = newParams
+    /* istanbul ignore next */
+    if (!oldParams && (list.ready || list.fetching)) {
+      // Already in the process of pulling for the first time. Bail.
+      return
+    }
+    /* istanbul ignore if */
+    if (!(list && list.reset)) {
+      return
+    }
+    router.replace({query: newParams}).then(() => {})
+    // Same issue here.
+    /* istanbul ignore if */
+    if (!(list && list.reset)) {
+      return
+    }
+    if (list.ready || list.fetching || list.failed) {
+      list.reset().catch(searchForm.setErrors)
+    } else {
+      list.get().catch(searchForm.setErrors)
+    }
+  }
+
+  watch(() => searchForm.rawData, (newData: RawData) => {
+    debouncedUpdate(newData)
+  }, {deep: true})
+
+  const debouncedUpdate = debounce(rawUpdate, 250, {trailing: true})
+
+  if (!(list.ready || list.fetching || list.failed)) {
+    list.get().then()
+  }
+  return {
+    debouncedUpdate,
+    rawUpdate,
   }
 }

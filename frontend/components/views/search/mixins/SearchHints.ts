@@ -14,3 +14,4 @@ export default class SearchHints extends ArtVue {
     this.searchForm = this.$getForm('search')
   }
 }
+

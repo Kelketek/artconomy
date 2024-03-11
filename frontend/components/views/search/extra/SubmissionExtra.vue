@@ -18,7 +18,7 @@
                         class="mx-1">Content
                   <template v-for="value in contentRatings" :key="`rating-${value}`">
                     <span class="px-1"/>
-                    <v-badge dot :color="ratingColor[value]"/>
+                    <v-badge dot :color="RATING_COLOR[value]"/>
                   </template>
                 </v-chip>
               </v-col>
@@ -51,6 +51,8 @@
                       label="Content Ratings"
                       :persistent-hint="true"
                       :items="ratingItems"
+                      item-title="title"
+                      item-value="value"
                       v-model="contentRatings"
                       solo-inverted
                       multiple
@@ -81,24 +83,20 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import SearchHints from '../mixins/SearchHints.ts'
+<script setup lang="ts">
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import Viewer from '@/mixins/viewer.ts'
-import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useContentRatingSearch,} from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {ref, watch} from 'vue'
+import {ContentRating} from '@/types/ContentRating.ts'
+import {RATING_COLOR} from '@/lib/lib.ts'
 
-@Component({
-  components: {AcBoundField},
+const panel = ref<null|number>(null)
+const searchForm = useForm('search')
+const {ageCheck, isRegistered, rating} = useViewer()
+const {maxSelected, contentRatings, showRatings, ratingItems} = useContentRatingSearch(searchForm)
+watch(maxSelected, (value: ContentRating) => {
+  ageCheck({value})
 })
-class SubmissionExtra extends mixins(SearchHints, SearchContentRatingMixin, Viewer) {
-  public panel: null | number = null
-
-  @Watch('maxSelected')
-  public triggerCheck(value: number) {
-    this.ageCheck({value})
-  }
-}
-
-export default toNative(SubmissionExtra)
 </script>

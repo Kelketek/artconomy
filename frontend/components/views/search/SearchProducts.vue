@@ -18,31 +18,24 @@
     </ac-paginated>
   </v-container>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import Product from '@/types/Product.ts'
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import SearchList from '@/components/views/search/mixins/SearchList.ts'
 import AcProductPreview from '@/components/AcProductPreview.vue'
+import {useList} from '@/store/lists/hooks.ts'
+import {onMounted} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
+import Product from '@/types/Product.ts'
 
-@Component({
-  components: {
-    AcProductPreview,
-    AcPaginated,
-  },
+const searchForm = useForm('search')
+const list = useList<Product>('searchProducts', {
+  endpoint: '/api/sales/search/product/',
+  persistent: true,
 })
-class SearchProducts extends mixins(SearchList) {
-  public list: ListController<Product> = null as unknown as ListController<Product>
-
-  public created() {
-    this.list = this.$getList('searchProducts', {
-      endpoint: '/api/sales/search/product/',
-      persistent: true,
-    })
-    this.rawUpdate(this.searchForm.rawData)
-  }
-}
-
-export default toNative(SearchProducts)
+// We use this debouncedUpdate during testing.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const {rawUpdate} = useSearchList(searchForm, list)
+onMounted(() => {
+  rawUpdate(searchForm.rawData)
+})
 </script>

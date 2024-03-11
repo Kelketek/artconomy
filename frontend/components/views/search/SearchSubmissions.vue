@@ -18,31 +18,19 @@
     </template>
   </ac-paginated>
 </template>
-<script lang="ts">
+<script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Submission from '@/types/Submission.ts'
-import SearchList from '@/components/views/search/mixins/SearchList.ts'
+import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import Submission from '@/types/Submission.ts'
 
-@Component({
-  components: {
-    AcGalleryPreview,
-    AcPaginated,
-  },
-  mixins: [],
+const searchForm = useForm('search')
+
+const list = useList<Submission>('searchSubmissions', {
+  endpoint: '/api/profiles/search/submission/',
+  persistent: true,
 })
-class SearchSubmissions extends mixins(SearchList) {
-  public list: ListController<Submission> = null as unknown as ListController<Submission>
-
-  public created() {
-    this.list = this.$getList('searchSubmissions', {
-      endpoint: '/api/profiles/search/submission/',
-      persistent: true,
-    })
-  }
-}
-
-export default toNative(SearchSubmissions)
+useSearchList(searchForm, list)
 </script>

@@ -253,7 +253,7 @@ const latestAlert = computed(() => store.getters.latestAlert)
 const searchSchema = baseSearchSchema()
 
 // Build the search form, which can be used at any time, and thus must be set up in the root.
-const query = {...route.query}
+const query = Object.fromEntries(new URLSearchParams(window.location.search).entries())
 searchSchema.fields.q.value = fallback(query, 'q', '')
 searchSchema.fields.content_ratings.value = fallback(query, 'content_ratings', '')
 searchSchema.fields.minimum_content_rating.value = fallback(query, 'minimum_content_rating', 0)

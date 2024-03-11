@@ -439,7 +439,11 @@ class Deliverable(Model):
         "Order", null=False, on_delete=CASCADE, related_name="deliverables"
     )
     product = models.ForeignKey(
-        "Product", null=True, on_delete=SET_NULL, related_name="deliverables"
+        "Product",
+        null=True,
+        on_delete=SET_NULL,
+        related_name="deliverables",
+        blank=True,
     )
     invoice = models.ForeignKey(
         "Invoice", null=True, on_delete=SET_NULL, related_name="deliverables"

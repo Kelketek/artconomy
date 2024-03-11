@@ -32,7 +32,7 @@
                 <v-chip v-if="ratingKey" variant="flat" color="white" light
                         class="mx-1">Content
                   <span class="px-1"/>
-                  <v-badge dot :color="ratingColor[ratingKey]"/>
+                  <v-badge dot :color="RATING_COLOR[ratingKey]"/>
                 </v-chip>
               </v-col>
             </v-row>
@@ -156,31 +156,23 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import SearchHints from '../mixins/SearchHints.ts'
+<script setup lang="ts">
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import Viewer from '@/mixins/viewer.ts'
-import SearchContentRatingMixin from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
+import {useViewer} from '@/mixins/viewer.ts'
 import type {ContentRating} from '@/types/ContentRating.ts'
+import {computed, ref, watch} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {RATING_COLOR} from '@/lib/lib.ts'
+import {useContentRatingSearch} from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
 
-@Component({
-  components: {AcBoundField},
+const searchForm = useForm('search')
+const {showRatings, ratingItems} = useContentRatingSearch(searchForm)
+const {isRegistered, rating, ageCheck} = useViewer()
+const panel = ref<number|null>(null)
+const ratingKey = computed(() => searchForm.fields.minimum_content_rating.value as ContentRating)
+watch(() => searchForm.fields.minimum_content_rating.value, (value: ContentRating) => {
+  if (value) {
+    ageCheck({value})
+  }
 })
-class ProductExtra extends mixins(SearchHints, SearchContentRatingMixin, Viewer) {
-  public panel: null | number = null
-
-  public get ratingKey() {
-    return this.searchForm.fields.minimum_content_rating.value as ContentRating
-  }
-
-  @Watch('searchForm.fields.minimum_content_rating.value', {immediate: true})
-  public triggerCheck(value: number) {
-    if (value) {
-      this.ageCheck({value})
-    }
-  }
-}
-
-export default toNative(ProductExtra)
 </script>

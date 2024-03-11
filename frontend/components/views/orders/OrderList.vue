@@ -91,143 +91,117 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import Order from '@/types/Order.ts'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {RawData} from '@/store/forms/types/RawData.ts'
-import SearchField from '@/components/views/search/mixins/SearchField.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
-import {artCall, fallback, fallbackBoolean, flatten} from '@/lib/lib.ts'
+import {artCall, deriveDisplayName, fallback, fallbackBoolean, flatten, formatDateTime, profileLink} from '@/lib/lib.ts'
 import Product from '@/types/Product.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import Formatting from '@/mixins/formatting.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import {computed, ref} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRoute} from 'vue-router'
+import {useList} from '@/store/lists/hooks.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useSearchField} from '@/components/views/search/mixins/SearchField.ts'
 
-@Component({
-  components: {
-    AcLink,
-    AcConfirmation,
-    AcUnreadMarker,
-    AcBoundField,
-    AcOrderPreview,
-    AcPaginated,
-  },
-})
-class OrderList extends mixins(Subjective, SearchField, Formatting) {
-  @Prop({required: true})
-  public type!: string
-
-  @Prop({required: true})
-  public category!: string
-
-  public showProduct = false
-  public dataMode = false
-  public inProgress = false
-
-  public list: ListController<Order> = null as unknown as ListController<Order>
-  // @ts-ignore
-  public debouncedUpdate!: ((newData: RawData) => void)
-  public searchForm: FormController = null as unknown as FormController
-  public productInitItems: Product[] = []
-
-  public get headers() {
-    return [
-      {
-        value: 'id',
-        title: 'ID',
-      },
-      {
-        value: 'product_name',
-        title: 'Product',
-      },
-      {
-        value: 'username',
-        title: 'User',
-      },
-      {
-        value: 'created_on',
-        title: 'Placed on',
-      },
-      {
-        value: 'activity',
-        title: 'New Activity',
-      },
-    ]
-  }
-
-  public get orderItems() {
-    return this.list.list.map((x) => {
-      const order = x.x as Order
-      return {
-        id: order.id,
-        product_name: order.product_name,
-        activity: (!order.read) ? '*' : '',
-        username: order.buyer ? this.deriveDisplayName(order.buyer.username) : '(Pending)',
-        created_on: this.formatDateTime(order.created_on),
-        default_path: order.default_path,
-        buyer: order.buyer,
-      }
-    })
-  }
-
-  public populateProduct() {
-    artCall({
-      url: `/api/sales/account/${this.username}/products/${this.searchForm.fields.product.value}/`,
-      method: 'get',
-    }).then((response: Product) => {
-      this.productInitItems = [response]
-    }).finally(() => {
-      this.showProduct = true
-    })
-  }
-
-  public get salesWaiting() {
-    return (this.type === 'sales') && (this.category === 'waiting')
-  }
-
-  public async clearWaitlist() {
-    this.inProgress = true
-    return artCall({
-      url: `/api/sales/account/${this.username}/products/${this.searchForm.fields.product.value}/clear-waitlist/`,
-      method: 'post',
-    }).then(() => {
-      this.list.reset()
-    }).finally(() => {
-      this.inProgress = false
-    })
-  }
-
-  public created() {
-    this.searchForm = this.$getForm('waitlistSearch', {
-      endpoint: '#',
-      fields: {
-        q: {value: ''},
-        product: {
-          value: null,
-          omitIf: null,
-        },
-        size: {value: 24},
-        page: {value: 1},
-      },
-    })
-    this.searchForm.fields.q.update(fallback(this.$route.query, 'q', ''))
-    this.searchForm.fields.product.update(fallbackBoolean(this.$route.query, 'product', null))
-    if (this.searchForm.fields.product.value) {
-      this.populateProduct()
-    } else {
-      this.showProduct = true
-    }
-    this.list = this.$getList(`orders__${flatten(this.username)}__${this.type}__${this.category}`, {
-      endpoint: `/api/sales/account/${this.username}/${this.type}/${this.category}/`,
-    })
-  }
+declare interface OrderListProps {
+  type: string,
+  category: string,
 }
 
-export default toNative(OrderList)
+const props = defineProps<OrderListProps & SubjectiveProps>()
+const route = useRoute()
+const showProduct = ref(false)
+const dataMode = ref(false)
+const inProgress = ref(false)
+const productInitItems = ref<Product[]>([])
+
+const populateProduct = () => {
+  artCall({
+    url: `/api/sales/account/${props.username}/products/${searchForm.fields.product.value}/`,
+    method: 'get',
+  }).then((response: Product) => {
+    productInitItems.value = [response]
+  }).finally(() => {
+    showProduct.value = true
+  })
+}
+const searchForm = useForm('waitlistSearch', {
+  endpoint: '#',
+  fields: {
+    q: {value: ''},
+    product: {
+      value: null,
+      omitIf: null,
+    },
+    size: {value: 24},
+    page: {value: 1},
+  },
+})
+searchForm.fields.q.update(fallback(route.query, 'q', ''))
+searchForm.fields.product.update(fallbackBoolean(route.query, 'product', null))
+if (searchForm.fields.product.value) {
+  populateProduct()
+} else {
+  showProduct.value = true
+}
+const list = useList<Order>(`orders__${flatten(props.username)}__${props.type}__${props.category}`, {
+  endpoint: `/api/sales/account/${props.username}/${props.type}/${props.category}/`,
+})
+useSearchField(searchForm, list)
+const headers = [
+  {
+    value: 'id',
+    title: 'ID',
+  },
+  {
+    value: 'product_name',
+    title: 'Product',
+  },
+  {
+    value: 'username',
+    title: 'User',
+  },
+  {
+    value: 'created_on',
+    title: 'Placed on',
+  },
+  {
+    value: 'activity',
+    title: 'New Activity',
+  },
+]
+
+const orderItems = computed(() => list.list.map((x) => {
+  const order = x.x as Order
+  return {
+    id: order.id,
+    product_name: order.product_name,
+    activity: (!order.read) ? '*' : '',
+    username: order.buyer ? deriveDisplayName(order.buyer.username) : '(Pending)',
+    created_on: formatDateTime(order.created_on),
+    default_path: order.default_path,
+    buyer: order.buyer,
+  }
+}))
+
+const salesWaiting = computed(() => {
+  return (props.type === 'sales') && (props.category === 'waiting')
+})
+
+const clearWaitlist = async () => {
+  inProgress.value = true
+  return artCall({
+    url: `/api/sales/account/${props.username}/products/${searchForm.fields.product.value}/clear-waitlist/`,
+    method: 'post',
+  }).then(() => {
+    list.reset()
+  }).finally(() => {
+    inProgress.value = false
+  })
+}
 </script>

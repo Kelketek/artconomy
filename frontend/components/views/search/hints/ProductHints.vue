@@ -13,21 +13,9 @@
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import SearchHints from '@/components/views/search/mixins/SearchHints.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import Viewer from '@/mixins/viewer.ts'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
+<script setup lang="ts">
+import {useForm} from '@/store/forms/hooks.ts'
 
-@Component({
-  components: {
-    AcExpandedProperty,
-    AcBoundField,
-  },
-})
-class ProductHints extends mixins(SearchHints, Viewer) {
-}
-
-export default toNative(ProductHints)
+const searchForm = useForm('search')
+const search = (val: string) => searchForm.fields.q.model = val
 </script>

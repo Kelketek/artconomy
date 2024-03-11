@@ -48,33 +48,24 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
+<script setup lang="ts">
 import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {listenForList} from '@/store/lists/hooks.ts'
+import {useRoute, useRouter} from 'vue-router'
 
-@Component({
-  components: {AcBoundField},
-})
-class Search extends mixins(Viewer) {
-  public searchForm: FormController = null as unknown as FormController
-
-  public created() {
-    this.searchForm = this.$getForm('search')
-    this.$listenForList('searchProducts')
-    this.$listenForList('searchSubmissions')
-    this.$listenForList('searchCharacters')
-    this.$listenForList('searchProfiles')
-    if (this.$route.name === 'Search') {
-      this.$router.replace({
-        name: 'SearchProducts',
-        params: {...this.$route.params},
-        query: {...this.$route.query},
-      })
-    }
-  }
+const searchForm = useForm('search')
+listenForList('searchProducts')
+listenForList('searchSubmissions')
+listenForList('searchCharacters')
+listenForList('searchProfiles')
+const route = useRoute()
+const router = useRouter()
+if (route.name === 'Search') {
+  router.replace({
+    name: 'SearchProducts',
+    params: {...route.params},
+    query: {...route.query},
+  })
 }
-
-export default toNative(Search)
 </script>

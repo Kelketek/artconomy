@@ -1,18 +1,9 @@
-import {Component, mixins} from 'vue-facing-decorator'
-import debounce from 'lodash/debounce'
 import {FormController} from '@/store/forms/form-controller.ts'
-import SearchField from '@/components/views/search/mixins/SearchField.ts'
+import {useSearchField} from '@/components/views/search/mixins/SearchField.ts'
+import {ListController} from '@/store/lists/controller.ts'
 
-@Component
-export default class SearchList extends mixins(SearchField) {
-  public searchForm: FormController = null as unknown as FormController
-
-  public mounted() {
-    this.rawUpdate(this.searchForm.rawData)
-  }
-
-  public created() {
-    this.searchForm = this.$getForm('search')
-    this.debouncedUpdate = debounce(this.rawUpdate, 250, {trailing: true})
-  }
+export const useSearchList = (searchForm: FormController, list: ListController<any>) => {
+  const searchFieldFuncs = useSearchField(searchForm, list)
+  searchFieldFuncs.rawUpdate(searchForm.rawData)
+  return searchFieldFuncs
 }
