@@ -21,9 +21,10 @@ import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
 import {ConnectionStatus} from '@/types/ConnectionStatus.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {PROCESSORS} from '@/types/PROCESSORS.ts'
-import {parseISO, setViewer} from '@/lib/lib.ts'
+import {setViewer} from '@/lib/lib.ts'
 import Deliverable from '@/types/Deliverable.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {parseISO} from '@/lib/formattingTools.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

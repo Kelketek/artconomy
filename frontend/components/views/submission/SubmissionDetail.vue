@@ -272,7 +272,7 @@ import Formatting from '@/mixins/formatting.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {Journal} from '@/types/Journal.ts'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {posse, RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib/lib.ts'
+import {posse, RATING_COLOR, RATINGS_SHORT, setMetaContent, updateTitle} from '@/lib/lib.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Editable from '@/mixins/editable.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
@@ -293,6 +293,7 @@ import AcShareButton from '@/components/AcShareButton.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Sharable from '@/mixins/sharable.ts'
+import {textualize} from '@/lib/formattingTools.ts'
 
 @Component({
   components: {

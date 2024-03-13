@@ -110,7 +110,7 @@
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer.ts'
 import Subjective from '@/mixins/subjective.ts'
-import {parseISO, RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
+import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import Alerts from '@/mixins/alerts.ts'
 import AcTagField from '@/components/fields/AcTagField.vue'
@@ -120,6 +120,7 @@ import {differenceInYears} from 'date-fns'
 import {ContentRating} from '@/types/ContentRating.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {User} from '@/store/profiles/types/User.ts'
+import {parseISO} from '@/lib/formattingTools.ts'
 
 @Component({
   components: {

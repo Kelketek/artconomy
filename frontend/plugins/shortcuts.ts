@@ -1,7 +1,7 @@
-import {extPreview, getExt, isImage} from '@/lib/lib.ts'
 import {createApp} from 'vue'
 import {Asset} from '@/types/Asset.ts'
 import {v4 as uuidv4} from 'uuid'
+import {extPreview, getExt, isImage} from '@/mixins/asset_base.ts'
 
 export function Shortcuts(app: ReturnType<typeof createApp>): void {
   app.mixin({

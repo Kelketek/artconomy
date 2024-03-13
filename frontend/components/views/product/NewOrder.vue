@@ -285,7 +285,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {BASE_URL, formatDateTerse, prepopulateCharacters, profileLink} from '@/lib/lib.ts'
+import {BASE_URL, prepopulateCharacters, profileLink} from '@/lib/lib.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {useForm} from '@/store/forms/hooks.ts'
@@ -296,6 +296,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useSubject} from '@/mixins/subjective.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
+import {formatDateTerse} from '@/lib/formattingTools.ts'
 
 declare interface NewOrderProps {
   invoiceMode?: boolean,

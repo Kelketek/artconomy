@@ -9,9 +9,10 @@
 </template>
 
 <script lang="ts">
-import {getExt} from '@/lib/lib.ts'
 import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import {Asset} from '@/types/Asset.ts'
+
+import {getExt} from '@/mixins/asset_base.ts'
 
 const VID_TYPES = {
   MP4: 'video/mp4',

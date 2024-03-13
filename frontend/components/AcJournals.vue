@@ -60,7 +60,6 @@
 
 <script lang="ts">
 import Formatting from '@/mixins/formatting.ts'
-import {truncateText} from '@/lib/lib.ts'
 import {Component, mixins, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
@@ -71,6 +70,7 @@ import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import {truncateText} from '@/lib/formattingTools.ts'
 
 @Component({
   components: {

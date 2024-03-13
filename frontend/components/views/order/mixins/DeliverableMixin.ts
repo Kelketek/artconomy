@@ -7,7 +7,7 @@ import Deliverable from '@/types/Deliverable.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import Submission from '@/types/Submission.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
-import {baseCardSchema, baseInvoiceSchema, parseISO, paypalTokenToUrl} from '@/lib/lib.ts'
+import {baseCardSchema, baseInvoiceSchema, paypalTokenToUrl} from '@/lib/lib.ts'
 import DeliverableViewSettings from '@/types/DeliverableViewSettings.ts'
 import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
 import {User} from '@/store/profiles/types/User.ts'
@@ -28,6 +28,7 @@ import {computed, getCurrentInstance, nextTick, Raw, ref, watch} from 'vue'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import {parseISO} from '@/lib/formattingTools.ts'
 
 /*
 

@@ -7,12 +7,13 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {Router} from 'vue-router'
 import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
-import {parseISO, setViewer} from '@/lib/lib.ts'
+import {setViewer} from '@/lib/lib.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ConnectionStatus} from '@/types/ConnectionStatus.ts'
 import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPrompt.vue'
 import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import {beforeEach, describe, expect, test, vi} from 'vitest'
+import {parseISO} from '@/lib/formattingTools.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

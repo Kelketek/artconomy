@@ -1,7 +1,7 @@
 import {ProfileModule} from './index.ts'
 import {ProfileModuleOpts} from './types/ProfileModuleOpts.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {ComputedGetters, guestName} from '@/lib/lib.ts'
+import {ComputedGetters} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
@@ -21,6 +21,7 @@ import {nextTick, toValue, watch} from 'vue'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
+import {guestName} from '@/lib/formattingTools.ts'
 
 export type AnyUser = User | TerseUser | AnonUser
 

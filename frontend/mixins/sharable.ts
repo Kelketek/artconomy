@@ -1,7 +1,8 @@
-import {ArtVue, thumbFromSpec} from '@/lib/lib.ts'
+import {ArtVue} from '@/lib/lib.ts'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import FileSpec from '@/types/FileSpec.ts'
 import {Component} from 'vue-facing-decorator'
+import {thumbFromSpec} from '@/mixins/asset_base.ts'
 
 @Component
 export default class Sharable extends ArtVue {

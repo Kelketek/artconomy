@@ -5,24 +5,14 @@ import {
   clearMetaTag,
   crossDomain,
   csrfSafeMethod,
-  deriveDisplayName,
   dotTraverse,
-  extPreview,
   flatten,
-  formatDate,
-  formatDateTerse,
-  formatDateTime,
-  formatSize,
   getCookie,
-  getExt,
   getHeaders,
-  guestName,
   initDrawerValue,
-  isImage,
   log,
   makeQueryParams,
   markRead,
-  md,
   newUploadSchema,
   posse,
   ratings,
@@ -31,9 +21,6 @@ import {
   setCookie,
   setMetaContent,
   singleQ,
-  textualize,
-  thumbFromSpec,
-  truncateText,
   updateLinked,
 } from '@/lib/lib.ts'
 import {shallowMount, VueWrapper} from '@vue/test-utils'
@@ -43,6 +30,15 @@ import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/i
 import {LogLevels} from '@/types/LogLevels.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {
+  deriveDisplayName, formatDate,
+  formatDateTerse, formatDateTime,
+  formatSize,
+  guestName, md,
+  textualize,
+  truncateText,
+} from '@/lib/formattingTools.ts'
+import {extPreview, getExt, isImage, thumbFromSpec} from '@/mixins/asset_base.ts'
 
 describe('artCall', () => {
   beforeEach(() => {

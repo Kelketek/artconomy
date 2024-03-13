@@ -1,19 +1,20 @@
 import {Component} from 'vue-facing-decorator'
 import {
   ArtVue,
-  deriveDisplayName,
-  formatDate,
-  formatDateTerse,
-  formatDateTime,
-  formatSize,
-  guestName,
-  md,
   profileLink,
-  textualize,
-  truncateText,
+
+
 } from '@/lib/lib.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import {
+  deriveDisplayName, formatDate,
+  formatDateTerse, formatDateTime,
+  formatSize,
+  guestName, md,
+  textualize,
+  truncateText,
+} from '@/lib/formattingTools.ts'
 
 @Component
 export default class Formatting extends ArtVue {

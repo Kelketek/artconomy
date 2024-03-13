@@ -6,13 +6,13 @@ import {ProfileController} from '@/store/profiles/controller.ts'
 import {userHandle} from '@/store/profiles/handles.ts'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import ErrorHandling from '@/mixins/ErrorHandling.ts'
-import {parseISO} from '@/lib/lib.ts'
 import {useStore} from 'vuex'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
 import {ArtStore} from '@/store/index.ts'
 import {computed} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
+import {parseISO} from '@/lib/formattingTools.ts'
 
 export interface AgeCheckArgs {
   value: number,

@@ -97,7 +97,7 @@ import Order from '@/types/Order.ts'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
-import {artCall, deriveDisplayName, fallback, fallbackBoolean, flatten, formatDateTime, profileLink} from '@/lib/lib.ts'
+import {artCall, fallback, fallbackBoolean, flatten, profileLink} from '@/lib/lib.ts'
 import Product from '@/types/Product.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
@@ -107,6 +107,7 @@ import {useRoute} from 'vue-router'
 import {useList} from '@/store/lists/hooks.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSearchField} from '@/components/views/search/mixins/SearchField.ts'
+import {deriveDisplayName, formatDateTime} from '@/lib/formattingTools.ts'
 
 declare interface OrderListProps {
   type: string,

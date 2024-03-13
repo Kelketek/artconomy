@@ -12,7 +12,9 @@
 </template>
 
 <script>
-import {getExt} from '../lib/lib.ts'
+
+
+import {getExt} from '@/mixins/asset_base.ts'
 
 export default {
   props: ['asset', 'alt'],

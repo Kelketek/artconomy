@@ -626,7 +626,7 @@ import {RouteLocationRaw} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import ProductCentric from '@/components/views/product/mixins/ProductCentric.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {RATING_COLOR, RATINGS_SHORT, setMetaContent, textualize, updateTitle} from '@/lib/lib.ts'
+import {RATING_COLOR, RATINGS_SHORT, setMetaContent, updateTitle} from '@/lib/lib.ts'
 import AcShareButton from '@/components/AcShareButton.vue'
 import Pricing from '@/types/Pricing.ts'
 import Inventory from '@/types/Inventory.ts'
@@ -637,6 +637,7 @@ import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {RawLineItemSetMap} from '@/types/RawLineItemSetMap.ts'
 import LineItem from '@/types/LineItem.ts'
+import {textualize} from '@/lib/formattingTools.ts'
 
 @Component({
   components: {

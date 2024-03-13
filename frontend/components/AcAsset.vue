@@ -121,13 +121,28 @@
 </style>
 
 <script setup lang="ts">
-import {COMPONENT_EXTENSIONS, getExt} from '@/lib/lib.ts'
-import {assetDefaults, useAssetHelpers} from '@/mixins/asset_base.ts'
+import {assetDefaults, getExt, useAssetHelpers} from '@/mixins/asset_base.ts'
 import {Asset} from '@/types/Asset.ts'
 import AssetProps from '@/types/AssetProps.ts'
-import {computed, onMounted, ref} from 'vue'
+import {computed, defineAsyncComponent, onMounted, ref} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
+
+const AcVideoPlayer = defineAsyncComponent(() => import('@/components/AcVideoPlayer.vue'))
+const AcMarkdownViewer = defineAsyncComponent(() => import('@/components/AcMarkdownViewer.vue'))
+const AcAudioPlayer = defineAsyncComponent(() => import('@/components/AcAudioPlayer.vue'))
+const AcPdfViewer = defineAsyncComponent(() => import('@/components/AcPdfViewer.vue'))
+const COMPONENT_EXTENSIONS = {
+  MP4: AcVideoPlayer,
+  WEBM: AcVideoPlayer,
+  OGV: AcVideoPlayer,
+  TXT: AcMarkdownViewer,
+  MD: AcMarkdownViewer,
+  MP3: AcAudioPlayer,
+  WAV: AcAudioPlayer,
+  OGG: AcAudioPlayer,
+  PDF: AcPdfViewer,
+}
 
 declare interface AcAssetProps extends AssetProps {
   asset?: Asset | null,

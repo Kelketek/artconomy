@@ -1,10 +1,11 @@
 import {Asset} from '@/types/Asset.ts'
-import {extPreview, RATINGS, thumbFromSpec} from '@/lib/lib.ts'
+import {RATINGS} from '@/lib/lib.ts'
 import {useViewer} from './viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {computed} from 'vue'
+import {computed, defineAsyncComponent} from 'vue'
 import {ContentRating} from '@/types/ContentRating.ts'
+import FileSpec from '@/types/FileSpec.ts'
 
 const getRatingText = (asset: Asset|null) => {
   if (!asset) {
@@ -15,6 +16,48 @@ const getRatingText = (asset: Asset|null) => {
 
 const getTags = (asset: Asset | null): string[] => {
   return (asset && asset.tags) || []
+}
+
+const ICON_EXTENSIONS = [
+  'ACC', 'AE', 'AI', 'AN', 'AVI', 'BMP', 'CSV', 'DAT', 'DGN', 'DOC', 'DOCH', 'DOCM', 'DOCX', 'DOTH', 'DW', 'DWFX',
+  'DWG', 'DXF', 'DXL', 'EML', 'EPS', 'F4A', 'F4V', 'FLV', 'FS', 'GIF', 'HTML', 'IND', 'JPEG', 'JPG',
+  'JPP', 'LR', 'LOG',
+  'M4V', 'MBOX', 'MDB', 'MIDI', 'MKV', 'MOV', 'MP3', 'MP4', 'MPEG', 'MPG', 'MPP', 'MPT', 'MPW', 'MPX', 'MSG', 'ODS',
+  'OGA', 'OGG', 'OGV', 'ONE', 'OST', 'PDF', 'PHP', 'PNG', 'POT', 'POTH', 'POTM', 'POTX', 'PPS', 'PPSX',
+  'PPT', 'PPTH',
+  'PPTM', 'PPTX', 'PREM', 'PS', 'PSD', 'PST', 'PUB', 'PUBH', 'PUBM', 'PWZ', 'READ', 'RP', 'RTF', 'SQL', 'SVG', 'SWF',
+  'TIF', 'TIFF', 'TXT', 'URL', 'VCF', 'VDX', 'VOB', 'VSD', 'VSS', 'VST', 'VSX', 'VTX', 'WAV', 'WDP', 'WEBM', 'WMA',
+  'WMV', 'XD', 'XLS', 'XLSM', 'XLSX', 'XML', 'ZIP',
+]
+
+export function getExt(filename: string): string {
+  filename = filename || ''
+  const components = filename.split('.')
+  return components[components.length - 1].toUpperCase() as string
+}
+
+//
+export function isImage(filename: string) {
+  return !(['JPG', 'BMP', 'JPEG', 'GIF', 'PNG', 'SVG'].indexOf(getExt(filename)) === -1)
+}
+
+//
+export function extPreview(filename: string) {
+  let ext: string | 'UN.KNOWN' = getExt(filename)
+  if (ICON_EXTENSIONS.indexOf(ext) === -1) {
+    ext = 'UN.KNOWN'
+  }
+  return `/static/icons/${ext}.png`
+}
+
+export function thumbFromSpec(thumbName: string, spec: FileSpec) {
+  if ((['gallery', 'full', 'preview'].indexOf(thumbName) !== -1) && getExt(spec.full) === 'GIF') {
+    return spec.full
+  }
+  if (spec[thumbName]) {
+    return spec[thumbName]
+  }
+  return spec.full
 }
 
 const getDisplayImage = (asset: Asset|null, thumbName: string, isImage: boolean, fallbackImage: string) => {
@@ -123,3 +166,4 @@ export const assetDefaults = () => ({
   contain: false,
   fallbackImage: '/static/images/default-avatar.png',
 })
+

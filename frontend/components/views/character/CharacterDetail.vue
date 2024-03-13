@@ -181,7 +181,7 @@ import Submission from '@/types/Submission.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import {setMetaContent, textualize, updateTitle} from '@/lib/lib.ts'
+import {setMetaContent, updateTitle} from '@/lib/lib.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
@@ -189,6 +189,7 @@ import {setError} from '@/mixins/ErrorHandling.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
+import {textualize} from '@/lib/formattingTools.ts'
 
 const props = defineProps<CharacterProps>()
 
