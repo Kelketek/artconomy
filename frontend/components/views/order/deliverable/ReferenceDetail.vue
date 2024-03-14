@@ -3,7 +3,7 @@
     <v-row no-gutters>
       <v-col cols="12" style="position: relative">
         <v-btn icon absolute top left :to="backUrl" color="primary">
-          <v-icon icon="mdi-arrow-back"/>
+          <v-icon :icon="mdiArrowLeft"/>
         </v-btn>
         <ac-load-section :controller="reference">
           <template v-slot:default>
@@ -13,7 +13,7 @@
                 <ac-confirmation :action="performDelete">
                   <template v-slot:default="{on}">
                     <v-btn color="red" v-on="on"  variant="flat">
-                      <v-icon left icon="mdi-delete"/>
+                      <v-icon left :icon="mdiDelete"/>
                       Delete
                     </v-btn>
                   </template>
@@ -46,6 +46,7 @@ import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import Reference from '@/types/Reference.ts'
 import {markRead, updateLinked} from '@/lib/lib.ts'
+import {mdiArrowLeft, mdiDelete} from '@mdi/js'
 
 @Component({
   components: {
@@ -61,6 +62,8 @@ class referenceDetail extends mixins(DeliverableMixin) {
 
   public reference!: SingleController<Reference>
   public referenceComments!: ListController<Comment>
+  public mdiArrowLeft = mdiArrowLeft
+  public mdiDelete = mdiDelete
 
   public get backUrl() {
     return {

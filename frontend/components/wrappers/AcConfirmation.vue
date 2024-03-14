@@ -11,7 +11,7 @@
         </v-toolbar-title>
         <v-spacer/>
         <v-btn icon @click="showModal=false" dark class="dialog-closer">
-          <v-icon icon="mdi-close"/>
+          <v-icon :icon="mdiClose"/>
         </v-btn>
       </v-toolbar>
       <div class="loading-overlay" v-if="sending">
@@ -65,6 +65,7 @@
 <script lang="ts">
 import {Component, Prop, toNative} from 'vue-facing-decorator'
 import {ArtVue} from '@/lib/lib.ts'
+import {mdiClose} from '@mdi/js'
 
 @Component
 class AcConfirmation extends ArtVue {
@@ -76,6 +77,7 @@ class AcConfirmation extends ArtVue {
 
   public showModal: boolean = false
   public sending: boolean = false
+  public mdiClose = mdiClose
 
   public dismiss() {
     this.showModal = false

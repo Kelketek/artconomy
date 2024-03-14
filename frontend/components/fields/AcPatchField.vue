@@ -11,7 +11,7 @@
             <!-- Using a button here so the two elements are aligned. -->
             <v-btn size="x-small" v-bind="props" icon variant="plain" density="compact" class="save-indicator" @click.stop="() => {}"
                    :ripple="false" tabindex="-1">
-              <v-icon size="x-small" color="green" class="save-indicator" icon="mdi-check-circle"/>
+              <v-icon size="x-small" color="green" class="save-indicator" :icon="mdiCheckCircle"/>
             </v-btn>
           </template>
         </v-tooltip>
@@ -20,7 +20,7 @@
             <!-- Using a button here so the two elements are aligned. -->
             <v-btn v-bind="props" size="x-small" icon variant="plain" density="compact" class="save-indicator" @click.stop="() => {}"
                    :ripple="false" tabindex="-1" :disabled="disabled">
-              <v-icon size="x-small" color="yellow" class="save-indicator" icon="mdi-alert"/>
+              <v-icon size="x-small" color="yellow" class="save-indicator" :icon="mdiAlert"/>
             </v-btn>
           </template>
         </v-tooltip>
@@ -28,7 +28,7 @@
           <template v-slot:activator="{ props }">
             <v-btn v-bind="props" @click="save" :disabled="saved || disabled" icon variant="plain" color="black"
                    class="save-button">
-              <v-icon color="yellow" icon="mdi-content-save"/>
+              <v-icon color="yellow" :icon="mdiContentSave"/>
             </v-btn>
           </template>
         </v-tooltip>
@@ -59,6 +59,7 @@ import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {VSlider} from 'vuetify/lib/components/VSlider/index.mjs'
 import {VSelect} from 'vuetify/lib/components/VSelect/index.mjs'
 import {transformComponentName} from '@/lib/lib.ts'
+import {mdiAlert, mdiCheckCircle, mdiContentSave} from '@mdi/js'
 
 const componentMap: Record<string, Component> = {
   AcEditor: defineAsyncComponent(() => import('@/components/fields/AcEditor.vue')),

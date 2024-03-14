@@ -53,8 +53,8 @@
                 <v-col cols="5" sm="6" md="12" lg="5" :class="{sm3: commissionLink, sm6: !commissionLink}">
                   <v-btn variant="flat" block @click="submission.patch({favorites: !submission.x!.favorites})"
                          color="secondary">
-                    <v-icon left v-if="favorite" icon="mdi-heart"/>
-                    <v-icon left v-else icon="mdi-heart-outline"/>
+                    <v-icon left v-if="favorite" :icon="mdiHeart"/>
+                    <v-icon left v-else :icon="mdiHeartOutline"/>
                     Fav
                   </v-btn>
                 </v-col>
@@ -62,13 +62,13 @@
                   <v-row no-gutters>
                     <v-col cols="6" class="pr-1">
                       <v-btn color="primary" variant="flat" block :href="submission.x!.file.full" download>
-                        <v-icon left icon="mdi-content-save-outline"/>
+                        <v-icon left :icon="mdiContentSaveOutline"/>
                         Save
                       </v-btn>
                     </v-col>
                     <v-col cols="6" class="pl-1">
                       <v-btn color="primary" variant="flat" block :href="submission.x!.file.full" class=".rounded-e">
-                        <v-icon left icon="mdi-eye"/>
+                        <v-icon left :icon="mdiEye"/>
                         View
                       </v-btn>
                     </v-col>
@@ -76,7 +76,7 @@
                 </v-col>
                 <v-col cols="12" v-if="commissionLink">
                   <v-btn color="green" variant="flat" block :to="submission.x!.commission_link || undefined">
-                    <v-icon left icon="mdi-palette"/>
+                    <v-icon left :icon="mdiPalette"/>
                     Commission me!
                   </v-btn>
                 </v-col>
@@ -139,14 +139,14 @@
                 <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="$menuTarget">
                   <template v-slot:activator="{props}">
                     <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-                      <v-icon icon="mdi-dots-horizontal"/>
+                      <v-icon :icon="mdiDotsHorizontal"/>
                     </v-btn>
                   </template>
                   <v-list dense>
                     <v-list-item @click.stop="editing = !editing">
                       <template v-slot:prepend>
-                        <v-icon v-if="editing" icon="mdi-lock"/>
-                        <v-icon v-else icon="mdi-pencil"/>
+                        <v-icon v-if="editing" :icon="mdiLock"/>
+                        <v-icon v-else :icon="mdiPencil"/>
                       </template>
                       <v-list-item-title v-if="editing">Lock</v-list-item-title>
                       <v-list-item-title v-else>Edit</v-list-item-title>
@@ -177,7 +177,7 @@
                       <template v-slot:default="confirmContext">
                         <v-list-item v-on="confirmContext.on">
                           <template v-slot:prepend>
-                            <v-icon class="delete-button" icon="mdi-delete"/>
+                            <v-icon class="delete-button" :icon="mdiDelete"/>
                           </template>
                           <v-list-item-title>Delete</v-list-item-title>
                         </v-list-item>
@@ -232,7 +232,7 @@
                       <v-col class="text-center" cols="12">
                         <v-btn class="mx-0 rating-button" variant="flat" size="small" :color="ratingColor[submission.x!.rating]"
                                @click="showRating" :ripple="editing">
-                          <v-icon left v-if="editing" icon="mdi-pencil"/>
+                          <v-icon left v-if="editing" :icon="mdiPencil"/>
                           {{ratingsShort[submission.x!.rating]}}
                         </v-btn>
                         <ac-expanded-property v-model="ratingDialog" aria-label="Edit rating dialog" v-if="controls">
@@ -294,6 +294,7 @@ import AcShareManager from '@/components/AcShareManager.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Sharable from '@/mixins/sharable.ts'
 import {textualize} from '@/lib/formattingTools.ts'
+import {mdiPencil, mdiDelete, mdiLock, mdiDotsHorizontal, mdiPalette, mdiEye, mdiContentSaveOutline, mdiHeartOutline, mdiHeart} from '@mdi/js'
 
 @Component({
   components: {
@@ -334,6 +335,15 @@ class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {
   public ratingDialog = false
   public showEditAsset = false
   public editAssetTab = 0
+  public mdiPencil = mdiPencil
+  public mdiDelete = mdiDelete
+  public mdiLock = mdiLock
+  public mdiDotsHorizontal = mdiDotsHorizontal
+  public mdiPalette = mdiPalette
+  public mdiEye = mdiEye
+  public mdiContentSaveOutline = mdiContentSaveOutline
+  public mdiHeartOutline = mdiHeartOutline
+  public mdiHeart = mdiHeart
 
   public get url() {
     return `/api/profiles/submission/${this.submissionId}/`

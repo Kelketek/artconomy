@@ -4,10 +4,10 @@
       <ac-unread-marker :read="reference.read">
         <div class="pop-out-container">
           <v-btn icon absolute left color="secondary" variant="flat" class="pop-out-button" @click="refTab">
-            <v-icon icon="mdi-tab"/>
+            <v-icon :icon="mdiTab"/>
           </v-btn>
           <ac-link
-              :to="{name: `${baseName}DeliverableReference`, params: {...$route.params, referenceId: reference.id}}">
+              :to="{name: `${baseName}DeliverableReference`, params: {...route.params, referenceId: reference.id}}">
             <ac-asset :asset="reference" thumb-name="thumbnail" alt="Reference image for order. Click to read comments."/>
           </ac-link>
         </div>
@@ -28,31 +28,15 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import Reference from '@/types/Reference.ts'
+import {mdiTab} from '@mdi/js'
+import {useRoute} from 'vue-router'
 
-@Component({
-  components: {
-    AcAsset,
-    AcLink,
-    AcUnreadMarker,
-  },
-})
-class AcReference extends Vue {
-  @Prop({required: true})
-  public reference!: Reference
-
-  @Prop({required: true})
-  public baseName!: string
-
-  public refTab() {
-    window.open(this.reference.file.full, '_blank')
-  }
-}
-
-export default toNative(AcReference)
+const route = useRoute()
+const props = defineProps<{reference: Reference, baseName: string}>()
+const refTab = () => window.open(props.reference.file.full, '_blank')
 </script>

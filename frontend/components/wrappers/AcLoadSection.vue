@@ -21,13 +21,13 @@
           </v-col>
           <v-col cols="12" align-self="center" class="shrink text-center">
             <v-btn variant="elevated" @click="controller.retryGet" color="primary" class="retry-button">
-              <v-icon left icon="mdi-refresh"/>
+              <v-icon left :icon="mdiRefresh"/>
               Retry
             </v-btn>
           </v-col>
           <v-col cols="12" align-self="center" class="shrink text-center">
             <v-btn variant="elevated" color="orange" @click="showSupport" class="support-button">
-              <v-icon left icon="mdi-contact-support"/>
+              <v-icon left :icon="mdiHelpCircleOutline"/>
               Contact Support
             </v-btn>
           </v-col>
@@ -49,6 +49,7 @@ import AcLoadingSpinner from './AcLoadingSpinner.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {ArtVue} from '@/lib/lib.ts'
+import {mdiHelpCircleOutline, mdiRefresh} from '@mdi/js'
 
 @Component({
   components: {AcLoadingSpinner},
@@ -67,6 +68,8 @@ class AcLoadSection extends ArtVue {
   public loadOnGrow!: boolean
 
   public prerendering = false
+  public mdiHelpCircleOutline = mdiHelpCircleOutline
+  public mdiRefresh = mdiRefresh
 
   public created() {
     this.prerendering = Boolean(window.PRERENDERING || 0)

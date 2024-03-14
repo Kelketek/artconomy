@@ -13,7 +13,7 @@
                 <v-spacer/>
                 <v-tooltip bottom>
                   <template v-slot:activator="{props}">
-                    <v-icon v-bind="props" icon="mdi-information"/>
+                    <v-icon v-bind="props" :icon="mdiInformation"/>
                   </template>
                   {{formatDateTime(journal.x.created_on)}}
                   <span v-if="journal.x.edited"><br/>Edited: {{formatDateTime(journal.x.edited_on)}}</span>
@@ -21,22 +21,22 @@
                 <v-menu offset-x left :close-on-content-click="false" :attach="$menuTarget">
                   <template v-slot:activator="{props}">
                     <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-                      <v-icon icon="mdi-dots-horizontal"/>
+                      <v-icon :icon="mdiDotsHorizontal"/>
                     </v-btn>
                   </template>
                   <v-list dense>
                     <v-list-item @click.stop="editing = !editing" class="edit-toggle">
                       <template v-slot:prepend>
-                        <v-icon v-if="editing" icon="mdi-lock"/>
-                        <v-icon v-else icon="mdi-pencil"/>
+                        <v-icon v-if="editing" :icon="mdiLock"/>
+                        <v-icon v-else :icon="mdiPencil"/>
                       </template>
                       <v-list-item-title v-if="editing">Lock</v-list-item-title>
                       <v-list-item-title v-else>Edit</v-list-item-title>
                     </v-list-item>
                     <v-list-item @click.stop="journal.patch({subscribed: !journal.x.subscribed})">
                       <template v-slot:prepend>
-                        <v-icon v-if="journal.x.subscribed" icon="mdi-volume-high"/>
-                        <v-icon v-else icon="mdi-volume-off"/>
+                        <v-icon v-if="journal.x.subscribed" :icon="mdiVolumeHigh"/>
+                        <v-icon v-else :icon="mdiVolumeOff"/>
                       </template>
                       <v-list-item-title>
                         Notifications
@@ -58,7 +58,7 @@
                       <template v-slot:default="confirmContext">
                         <v-list-item v-on="confirmContext.on">
                           <template v-slot:prepend>
-                            <v-icon class="delete-button" icon="mdi-delete"/>
+                            <v-icon class="delete-button" :icon="mdiDelete"/>
                           </template>
                           <v-list-item-title>Delete</v-list-item-title>
                         </v-list-item>
@@ -82,7 +82,7 @@
                           <v-tooltip top>
                             <template v-slot:activator="{ props }">
                               <v-btn v-bind="props" @click="editing=false" icon color="danger" class="cancel-button">
-                                <v-icon icon="mdi-lock"/>
+                                <v-icon :icon="mdiLock"/>
                               </v-btn>
                             </template>
                             <span>Stop Editing</span>
@@ -112,7 +112,6 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import {SingleController} from '@/store/singles/controller.ts'
 import Subjective from '@/mixins/subjective.ts'
-import {Patch} from '@/store/singles/patcher.ts'
 import {Journal} from '@/types/Journal.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcEditor from '@/components/fields/AcEditor.vue'
@@ -124,6 +123,7 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Formatting from '@/mixins/formatting.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import {mdiLock, mdiPencil, mdiVolumeHigh, mdiVolumeOff, mdiDelete, mdiDotsHorizontal, mdiInformation} from '@mdi/js'
 
 @Component({
   components: {
@@ -144,6 +144,13 @@ class JournalDetail extends mixins(Subjective, Editable, Formatting) {
 
   public journal = null as unknown as SingleController<Journal>
   public journalComments = null as unknown as ListController<Journal>
+  public mdiInformation = mdiInformation
+  public mdiDotsHorizontal = mdiDotsHorizontal
+  public mdiLock = mdiLock
+  public mdiPencil = mdiPencil
+  public mdiVolumeHigh = mdiVolumeHigh
+  public mdiVolumeOff = mdiVolumeOff
+  public mdiDelete = mdiDelete
 
   public created() {
     this.journal = this.$getSingle(

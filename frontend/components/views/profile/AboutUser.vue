@@ -40,7 +40,7 @@
                        color="secondary"
                        :to="{name: 'Queue', params: {username}}"
                 >
-                  <v-icon left icon="mdi-queue"/>
+                  <v-icon left :icon="mdiTrayFull"/>
                   View Artist Queue
                 </v-btn>
               </v-card-text>
@@ -92,6 +92,7 @@ import Submission from '@/types/Submission.ts'
 import SubmissionList from '@/components/views/profile/SubmissionList.vue'
 import {User} from '@/store/profiles/types/User.ts'
 import {SingleController} from '@/store/singles/controller.ts'
+import {mdiTrayFull} from '@mdi/js'
 
 declare interface ProfileBadge {
   label: string,
@@ -114,6 +115,7 @@ class AboutUser extends mixins(Subjective, Editable) {
   public products = null as unknown as ListController<Product>
   public art = null as unknown as ListController<Submission>
   public collection = null as unknown as ListController<Submission>
+  public mdiTrayFull = mdiTrayFull
 
   public get badges(): ProfileBadge[] {
     const badges: ProfileBadge[] = []

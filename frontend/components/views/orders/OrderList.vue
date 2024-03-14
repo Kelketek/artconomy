@@ -12,7 +12,7 @@
                 :init-items="productInitItems"
                 v-if="showProduct"
                 label="Filter by product"
-                prepend-icon="mdi-shopping"
+                :prepend-icon="mdiShopping"
             />
           </v-col>
           <v-col class="shrink">
@@ -20,7 +20,7 @@
               <template v-slot:default="{on}">
                 <v-btn class="clear-waitlist" color="red" :disabled="(!searchForm.fields.product.value) || inProgress"
                        v-on="on" aria-label="Clear waitlist">
-                  <v-icon icon="mdi-delete"/>
+                  <v-icon :icon="mdiDelete"/>
                 </v-btn>
               </template>
               <template v-slot:confirmation-text>
@@ -39,7 +39,7 @@
       <v-col cols="12" md="6" lg="4" class="text-center">
         <v-row class="justify-content fill-height" align="center">
           <v-col class="grow">
-            <ac-bound-field :field="searchForm.fields.q" prepend-icon="mdi-search" auto-focus
+            <ac-bound-field :field="searchForm.fields.q" :prepend-icon="mdiMagnify" auto-focus
                             label="Search by username or email"
             />
           </v-col>
@@ -47,7 +47,7 @@
             <v-tooltip top>
               <template v-slot:activator="{props}">
                 <v-btn v-bind="props" @click="dataMode = true">
-                  <v-icon icon="mdi-list-box"/>
+                  <v-icon :icon="mdiListBox"/>
                 </v-btn>
               </template>
               <span>Show orders in 'list mode'.</span>
@@ -108,6 +108,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSearchField} from '@/components/views/search/mixins/SearchField.ts'
 import {deriveDisplayName, formatDateTime} from '@/lib/formattingTools.ts'
+import {mdiDelete, mdiListBox, mdiMagnify, mdiShopping} from '@mdi/js'
 
 declare interface OrderListProps {
   type: string,

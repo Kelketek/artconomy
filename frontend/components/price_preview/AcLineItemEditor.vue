@@ -24,7 +24,7 @@
     </v-col>
     <v-col cols="2" sm="1" class="text-center d-flex justify-center pl-1">
       <v-btn size="x-small" icon color="red" @click.prevent="line.delete" v-if="deletable" :disabled="disabled" class="align-self-start mt-1">
-        <v-icon icon="mdi-delete"/>
+        <v-icon :icon="mdiDelete"/>
       </v-btn>
     </v-col>
   </v-row>
@@ -38,6 +38,7 @@ import {SingleController} from '@/store/singles/controller.ts'
 import {Decimal} from 'decimal.js'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {LineTypes} from '@/types/LineTypes.ts'
+import {mdiDelete} from '@mdi/js'
 
 @Component({
   components: {AcPatchField},
@@ -55,6 +56,8 @@ class AcLineItemEditor extends Vue {
 
   @Prop({default: false})
   public disabled!: boolean
+
+  public mdiDelete = mdiDelete
 
   public get deletable() {
     return (this.line.x as LineItem).type !== LineTypes.BASE_PRICE

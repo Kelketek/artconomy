@@ -6,11 +6,11 @@
     <v-row class="d-flex align-content-end" v-if="controls">
       <v-col class="text-center mt-3 text-md-right">
         <v-btn @click="showUpload = true" v-if="artPage || collectionPage" color="green" class="mx-2" variant="flat">
-          <v-icon left icon="mdi-plus"/>
+          <v-icon left :icon="mdiPlus"/>
           New Submission
         </v-btn>
         <v-btn @click="managing = !managing" color="primary" variant="flat">
-          <v-icon left icon="mdi-cog"/>
+          <v-icon left :icon="mdiCog"/>
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
@@ -44,6 +44,7 @@ import Upload from '@/mixins/upload.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import ArtistTag from '@/types/ArtistTag.ts'
 import {defineAsyncComponent} from 'vue'
+import {mdiCog, mdiImageMultiple, mdiPalette, mdiPlus} from '@mdi/js'
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 @Component({
@@ -57,6 +58,8 @@ class Gallery extends mixins(Subjective, Upload) {
   public art = null as unknown as ListController<ArtistTag>
   public collection = null as unknown as ListController<Submission>
   public id = genId()
+  public mdiCog = mdiCog
+  public mdiPlus = mdiPlus
 
   @Watch('showUpload')
   public setOwnership() {
@@ -104,7 +107,7 @@ class Gallery extends mixins(Subjective, Upload) {
         params: {username: this.username},
       },
       count: this.art.count,
-      icon: 'mdi-palette',
+      icon: mdiPalette,
       title: `${this.possessive} Art`,
     }, {
       value: {
@@ -112,7 +115,7 @@ class Gallery extends mixins(Subjective, Upload) {
         params: {username: this.username},
       },
       count: this.collection.count,
-      icon: 'mdi-image-multiple',
+      icon: mdiImageMultiple,
       title: `${this.possessive} Collection`,
     }]
   }

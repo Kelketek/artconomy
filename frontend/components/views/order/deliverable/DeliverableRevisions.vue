@@ -48,13 +48,13 @@
                     You have uploaded {{ 0 - remainingRevisions }} more revision<span
                       v-if="(0 - remainingRevisions >= 2)">s</span> than you have promised. Please be sure you
                     are not overextending yourself. It's OK to say 'No.'
-                    <v-icon icon="mdi-favorite"/>
+                    <v-icon :icon="mdiHeart"/>
                   </v-alert>
                 </v-card-text>
               </v-col>
               <v-col cols="12" class="text-center">
                 <v-btn color="green" @click="showNew = true">
-                  <v-icon left icon="mdi-plus" />
+                  <v-icon left :icon="mdiPlus" />
                   Upload Revision/WIP
                 </v-btn>
               </v-col>
@@ -85,7 +85,7 @@
                   <v-col class="text-center" cols="12"
                          v-if="deliverable.x.final_uploaded && (index === revisions.list.length - 1)">
                     <v-chip color="yellow" icon light>
-                      <v-icon icon="mdi-star"/>
+                      <v-icon :icon="mdiStar"/>
                       Final
                     </v-chip>
                   </v-col>
@@ -153,6 +153,7 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import Revision from '@/types/Revision.ts'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
+import {mdiHeart, mdiPlus, mdiStar} from '@mdi/js'
 
 @Component({
   components: {
@@ -170,6 +171,9 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 class DeliverableRevisions extends mixins(DeliverableMixin) {
   public newRevision: FormController = null as unknown as FormController
   public showNew = false
+  public mdiHeart = mdiHeart
+  public mdiPlus = mdiPlus
+  public mdiStar = mdiStar
 
   public get isPath() {
     return this.$route.name === `${this.baseName}DeliverableRevisions`

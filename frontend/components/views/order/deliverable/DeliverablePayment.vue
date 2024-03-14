@@ -95,7 +95,7 @@
                     />
                     <v-row v-if="deliverable.x.paid_on">
                       <v-col class="text-center">
-                        <v-icon left color="green" icon="mdi-check-circle"/>
+                        <v-icon left color="green" :icon="mdiCheckCircle"/>
                         Paid on {{ formatDate(deliverable.x.paid_on) }}
                       </v-col>
                     </v-row>
@@ -293,6 +293,7 @@ import {SocketState} from '@/types/SocketState.ts'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin.ts'
 import StripeMixin from '../mixins/StripeMixin.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import {mdiCheckCircle} from '@mdi/js'
 
 @Component({
   components: {
@@ -320,6 +321,7 @@ class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHost
   public canUpdateStorage = false
   public cardTabs = 0
   public destroyed = false
+  public mdiCheckCircle = mdiCheckCircle
 
   @Watch('cardTabs')
   public clearManualTransactionSettings(tabValue: number) {

@@ -185,7 +185,7 @@
           </p>
           <p>Look for the shield icon on products to see if they're shielded!</p>
           <p>
-            <v-icon class="green--text" icon="mdi-shield-half-full"/>
+            <v-icon class="green--text" :icon="mdiShieldHalfFull"/>
           </p>
         </v-card-text>
       </template>
@@ -909,6 +909,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import AcQuestion from '@/components/views/faq/AcQuestion.vue'
+import {mdiShieldHalfFull} from '@mdi/js'
 
 const router = useRouter()
 const {isRegistered, viewer, viewerName} = useViewer()

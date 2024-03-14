@@ -98,7 +98,7 @@
           </v-card>
           <v-card v-else-if="invoice.x.status === PAID">
             <v-col class="text-center">
-              <v-icon left color="green" icon="mdi-check-circle"/>
+              <v-icon left color="green" :icon="mdiCheckCircle"/>
               <span v-if="isBuyer">Tip Sent!</span>
               <span v-else>Tip Received!</span>
             </v-col>
@@ -139,6 +139,7 @@ import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import Subjective from '@/mixins/subjective.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import Deliverable from '@/types/Deliverable.ts'
+import {mdiCheckCircle} from '@mdi/js'
 
 @Component({
   components: {
@@ -164,6 +165,7 @@ class AcTippingPrompt extends mixins(Subjective, StripeHostMixin) {
   @Prop({required: true})
   public isBuyer!: boolean
 
+  public mdiCheckCircle = mdiCheckCircle
   public invoice = null as unknown as SingleController<Invoice>
 
   public lineItems = null as unknown as ListController<LineItem>

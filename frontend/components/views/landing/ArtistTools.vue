@@ -5,7 +5,7 @@
         <h2>List all of your products</h2>
         <p>With samples, commission info, and tags on a beautiful, mobile-ready site.</p>
         <v-btn x-large color="green" :to="url" :block="block" variant="flat" class="commission-cta">
-          <v-icon left icon="mdi-store"/>
+          <v-icon left :icon="mdiStore"/>
           Open Your Store!
         </v-btn>
       </v-col>
@@ -32,7 +32,7 @@
           can still help you keep track of it, and in touch with your commissioner.
         </p>
         <v-btn x-large color="green" :to="url" :block="block" variant="flat" class="commission-cta">
-          <v-icon left icon="mdi-assignment"/>
+          <v-icon left :icon="mdiClipboardText"/>
           Get Organized
         </v-btn>
       </v-col>
@@ -69,7 +69,7 @@
                 target="_blank"
                 :block="block"
             >
-              <v-icon left icon="mdi-palette"/>
+              <v-icon left :icon="mdiPalette"/>
               Get ArtSmarts
             </v-btn>
           </v-col>
@@ -93,7 +93,7 @@
           stable businesses.
         </p>
         <v-btn x-large color="green" :to="url" :block="block" variant="flat" class="commission-cta">
-          <v-icon left icon="mdi-construction"/>
+          <v-icon left :icon="mdiTools"/>
           Equip Yourself!
         </v-btn>
       </v-col>
@@ -112,14 +112,14 @@
           <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
           , payment is guaranteed, and deposited right into your bank account.
         </p>
-        <v-icon color="green" icon="mdi-shield-half-full"/>
+        <v-icon color="green" :icon="mdiShieldHalfFull"/>
         <p><small>Artconomy shield currently available
           <router-link :to="{name: 'BuyAndSell', params: {question: 'bank-accounts'}}">in many countries</router-link>
           . However, some countries may not support shield.
           You can still handle orders through Artconomy if you are not in a supported country, but will have to take
           payment from an outside source.</small></p>
         <v-btn x-large color="green" :to="url" :block="block" variant="flat" class="commission-cta">
-          <v-icon left icon="mdi-lock"/>
+          <v-icon left :icon="mdiLock"/>
           Get Protected
         </v-btn>
       </v-col>
@@ -149,7 +149,7 @@
         <h1>Ready?</h1>
         <p>Let's grow together!</p>
         <v-btn x-large color="green" :to="url" :block="block" variant="flat" class="commission-cta">
-          <v-icon left icon="mdi-pencil"/>
+          <v-icon left :icon="mdiPencil"/>
           Get started!
         </v-btn>
       </v-col>
@@ -170,6 +170,7 @@ import {computed} from 'vue'
 import AcIcon from '@/components/AcIcon.vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
+import {mdiClipboardText, mdiLock, mdiPalette, mdiPencil, mdiShieldHalfFull, mdiStore, mdiTools} from '@mdi/js'
 
 const {isRegistered, viewerName} = useViewer()
 

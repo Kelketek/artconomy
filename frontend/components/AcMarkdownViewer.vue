@@ -27,7 +27,7 @@
           <v-card tile>
             <v-toolbar flat dark color="primary">
               <v-btn icon @click="toggle = false" dark>
-                <v-icon icon="mdi-close"/>
+                <v-icon :icon="mdiClose"/>
               </v-btn>
               <v-toolbar-title></v-toolbar-title>
               <v-spacer/>
@@ -55,6 +55,7 @@ import {defineComponent} from 'vue'
 import {toNative} from 'vue-facing-decorator'
 import {artCall} from '../lib/lib.ts'
 import Formatting from '../mixins/formatting.ts'
+import {mdiClose} from '@mdi/js'
 
 export default defineComponent({
   props: ['asset', 'compact', 'popOut'],
@@ -63,9 +64,13 @@ export default defineComponent({
     return {
       response: null,
       toggle: false,
+      mdiClose,
     }
   },
   methods: {
+    mdiClose() {
+      return mdiClose
+    },
     loadFile(response) {
       this.response = response
     },

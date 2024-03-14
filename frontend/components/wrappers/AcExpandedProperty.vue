@@ -8,7 +8,7 @@
         </v-toolbar-title>
         <v-spacer/>
         <v-btn icon @click="toggle = false" dark class="dialog-closer">
-          <v-icon icon="mdi-close"/>
+          <v-icon :icon="mdiClose"/>
         </v-btn>
       </v-toolbar>
       <ac-form @submit.prevent="toggle=false">
@@ -32,6 +32,7 @@
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Dialog from '@/mixins/dialog.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import {mdiClose} from '@mdi/js'
 
 @Component({
   components: {AcForm},
@@ -39,6 +40,7 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 class AcExpandedProperty extends mixins(Dialog) {
   @Prop({default: true})
   public eager!: boolean
+  public mdiClose = mdiClose
 }
 
 export default toNative(AcExpandedProperty)

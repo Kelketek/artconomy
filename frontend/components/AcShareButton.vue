@@ -1,6 +1,6 @@
 <template>
   <v-btn color="primary" @click="showModal = true" :block="block" variant="flat" class="share-button">
-    <v-icon left icon="mdi-share"/>
+    <v-icon left :icon="mdiShare"/>
     Share
   </v-btn>
   <ac-expanded-property v-model="showModal" aria-label="Sharing dialog">
@@ -23,7 +23,7 @@
           <v-spacer/>
           <v-col class="shrink">
             <v-btn color="purple" icon small @click="showQr = true" class="qr-button">
-              <v-icon icon="mdi-qrcode" size="large" />
+              <v-icon :icon="mdiQrcode" size="large" />
             </v-btn>
           </v-col>
           <v-col class="shrink" v-if="clean">
@@ -100,6 +100,7 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import QRCode from 'qrcode'
 import {siPinterest, siReddit, siX, siTumblr, siTelegram} from 'simple-icons'
 import AcIcon from '@/components/AcIcon.vue'
+import {mdiShare, mdiQrcode} from '@mdi/js'
 
 declare interface ExtraReferred {
   [key: string]: string,
@@ -120,6 +121,8 @@ class AcShareButton extends mixins(Dialog, Viewer) {
   @Prop()
   public block!: boolean
 
+  public mdiShare = mdiShare
+  public mdiQrcode = mdiQrcode
   public siPinterest = siPinterest
   public siTumblr = siTumblr
   public siReddit = siReddit

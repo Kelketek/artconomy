@@ -1,13 +1,13 @@
 <template>
   <v-row dense>
     <v-col cols="12" v-if="escrow" class="text-center">
-      <v-icon size="large" color="green" icon="mdi-shield-half-full"/>
+      <v-icon size="large" color="green" :icon="mdiShieldHalfFull"/>
     </v-col>
     <v-col cols="12" v-else-if="!upgradeAvailable" class="text-center">
-      <v-icon size="large" color="yellow" icon="mdi-alert"/>
+      <v-icon size="large" color="yellow" :icon="mdiAlert"/>
     </v-col>
     <v-col cols="12" v-else class="text-center">
-      <v-icon size="large" icon="mdi-shield-half-full"/>
+      <v-icon size="large" :icon="mdiShieldHalfFull"/>
     </v-col>
     <v-col class="text-center" cols="12" v-if="escrow">
       <p>
@@ -31,20 +31,11 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {mdiAlert, mdiShieldHalfFull} from '@mdi/js'
 
-@Component
-class AcEscrowLabel extends Vue {
-  @Prop({required: true})
-  public escrow!: boolean
-
-  @Prop({default: false})
-  public upgradeAvailable!: boolean
-
-  @Prop({required: true})
-  public name!: string
-}
-
-export default toNative(AcEscrowLabel)
+const props = withDefaults(
+  defineProps<{escrow: boolean, upgradeAvailable?: boolean, name: string}>(),
+  {upgradeAvailable: false},
+)
 </script>

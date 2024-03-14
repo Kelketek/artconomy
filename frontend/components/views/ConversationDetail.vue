@@ -17,7 +17,7 @@
               <ac-confirmation :action="leaveConversation">
                 <template v-slot:default="{on}">
                   <v-btn icon v-on="on" color="red" class="delete-button" aria-label="Delete Conversation">
-                    <v-icon icon="mdi-delete"/>
+                    <v-icon :icon="mdiDelete"/>
                   </v-btn>
                 </template>
                 <template v-slot:confirmation-text>
@@ -65,8 +65,8 @@
         <v-row no-gutters>
           <v-col class="text-center" cols="12" v-if="!inConversation">
             <v-btn @click="locked = !locked" :block="$vuetify.display.xs" class="lock-toggle" variant="flat">
-              <v-icon v-if="locked" left icon="mdi-lock"/>
-              <v-icon v-else left icon="mdi-lock-open"/>
+              <v-icon v-if="locked" left :icon="mdiLock"/>
+              <v-icon v-else left :icon="mdiLockOpen"/>
               <span v-if="locked">Unlock to allow outside comment.</span>
               <span v-else>Lock to prevent outside comment.</span>
             </v-btn>
@@ -88,6 +88,7 @@ import {Conversation} from '@/types/Conversation.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import {mdiLock, mdiDelete, mdiLockOpen} from '@mdi/js'
 
 @Component({
   components: {
@@ -104,6 +105,9 @@ class ConversationDetail extends mixins(Subjective, Formatting) {
   public conversation: SingleController<Conversation> = null as unknown as SingleController<Conversation>
   public conversationComments: ListController<Comment> = null as unknown as ListController<Comment>
   public locked = true
+  public mdiLock = mdiLock
+  public mdiDelete = mdiDelete
+  public mdiLockOpen = mdiLockOpen
 
   public goBack() {
     this.$router.push({

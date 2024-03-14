@@ -1,40 +1,39 @@
-<!--suppress XmlUnboundNsPrefix -->
 <template>
   <v-list v-if="subject" no-action v-model:opened="open" nav density="compact" :role="nested ? undefined : 'list'">
     <v-list-item :to="{name: 'Options', params: {username}}" exact role="listitem" tabindex="0">
       <v-list-item-title>Options</v-list-item-title>
       <template v-slot:append>
-        <v-icon icon="mdi-wrench"/>
+        <v-icon :icon="mdiWrench"/>
       </template>
     </v-list-item>
     <v-list-item class="artist-panel-link" :to="{name: 'Artist', params: {username}}" exact v-if="subject.artist_mode" role="listitem" tabindex="0">
       <v-list-item-title>Artist</v-list-item-title>
       <template v-slot:append>
-        <v-icon icon="mdi-palette"/>
+        <v-icon :icon="mdiPalette"/>
       </template>
     </v-list-item>
     <v-list-item :to="{name: 'Email', params: {username}}" exact role="listitem" tabindex="0">
       <v-list-item-title>Email Notifications</v-list-item-title>
       <template v-slot:append>
-        <v-icon icon="mdi-send"/>
+        <v-icon :icon="mdiSend"/>
       </template>
     </v-list-item>
     <v-list-item :to="{name: 'Login Details', params: {username}}" role="listitem" tabindex="0">
       <v-list-item-title>Login Details</v-list-item-title>
       <template v-slot:append>
-        <v-icon icon="mdi-lock"/>
+        <v-icon :icon="mdiLock"/>
       </template>
     </v-list-item>
     <v-list-item :to="{name: 'Avatar', params: {username}}" role="listitem" tabindex="0">
       <v-list-item-title>Avatar</v-list-item-title>
       <template v-slot:append>
-        <v-icon icon="mdi-account"/>
+        <v-icon :icon="mdiAccount"/>
       </template>
     </v-list-item>
     <v-list-item :to="{name: 'Premium', params: {username}}" role="listitem" tabindex="0">
       <v-list-item-title>Premium</v-list-item-title>
       <template v-slot:append>
-        <v-icon icon="mdi-star"/>
+        <v-icon :icon="mdiStar"/>
       </template>
     </v-list-item>
     <v-list-group
@@ -48,25 +47,25 @@
       </template>
       <v-list-item :to="{name: 'Purchase', params: {username}}" role="listitem" tabindex="0">
         <template v-slot:append>
-          <v-icon icon="mdi-credit-card"/>
+          <v-icon :icon="mdiCreditCard"/>
         </template>
         <v-list-item-title>Payment Methods</v-list-item-title>
       </v-list-item>
       <v-list-item :to="{name: 'Payout', params: {username}}" class="payout-link" v-if="showPayout" role="listitem" tabindex="0">
         <template v-slot:append>
-          <v-icon icon="mdi-wallet"/>
+          <v-icon :icon="mdiWallet"/>
         </template>
         <v-list-item-title>Payout Methods</v-list-item-title>
       </v-list-item>
       <v-list-item :to="{name: 'Invoices', params: {username}}" role="listitem" tabindex="0">
         <template v-slot:append>
-          <v-icon icon="mdi-receipt-text"/>
+          <v-icon :icon="mdiReceiptText"/>
         </template>
         <v-list-item-title>Invoices</v-list-item-title>
       </v-list-item>
       <v-list-item :to="{name: 'TransactionHistory', params: {username}}" role="listitem" tabindex="0">
         <template v-slot:append>
-          <v-icon icon="mdi-list-box"/>
+          <v-icon :icon="mdiListBox"/>
         </template>
         <v-list-item-title>Raw Transaction History</v-list-item-title>
       </v-list-item>
@@ -74,41 +73,33 @@
   </v-list>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '../../mixins/viewer.ts'
-import Subjective from '../../mixins/subjective.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import * as VListComponents from 'vuetify/lib/components/VList/index.mjs'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed, ref} from 'vue'
+import {
+  mdiAccount,
+  mdiCreditCard,
+  mdiListBox,
+  mdiLock,
+  mdiPalette,
+  mdiReceiptText,
+  mdiSend,
+  mdiStar,
+  mdiWallet, mdiWrench,
+} from '@mdi/js'
+import {User} from '@sentry/vue'
 
-@Component({
-  components: {
-    ...VListComponents,
-  },
+const props = defineProps<SubjectiveProps & {nested: boolean}>()
+const open = ref(['Payment'])
+const {subjectHandler, subject} = useSubject(props)
+const inSupportedCountry = computed(() => {
+  const profile = subjectHandler.artistProfile
+  return profile.x && (profile.x.bank_account_status === BANK_STATUSES.IN_SUPPORTED_COUNTRY)
 })
-class AcSettingNav extends mixins(Viewer, Subjective) {
-  @Prop({default: false})
-  public nested!: boolean
-
-  public open = ['Payment']
-
-  public HAS_US_ACCOUNT = 1 as BANK_STATUSES
-
-  public get hasUSAccount() {
-    const profile = this.subjectHandler.artistProfile
-    return profile.x && (profile.x.bank_account_status === this.HAS_US_ACCOUNT)
-  }
-
-  public get showPayout() {
-    const subject = this.subject as User
-    return subject.artist_mode || this.hasUSAccount
-  }
-
-  public created() {
-    this.subjectHandler.artistProfile.get().then()
-  }
-}
-
-export default toNative(AcSettingNav)
+const showPayout = computed(() => {
+  return (subject.value as User).artist_mode || inSupportedCountry.value
+})
+subjectHandler.artistProfile.get().then()
 </script>

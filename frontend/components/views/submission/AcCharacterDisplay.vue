@@ -4,14 +4,14 @@
       <v-tooltip top v-if="editable" aria-label="Tooltip for edit character button">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" @click="toggle=true" color="accent" icon size="small" class="mr-1">
-            <v-icon icon="mdi-account" size="x-large"/>
+            <v-icon :icon="mdiAccount" size="x-large"/>
           </v-btn>
         </template>
         Edit Characters
       </v-tooltip>
       <v-tooltip top v-else aria-label="Tooltip for character listing">
         <template v-slot:activator="{props}">
-          <v-icon v-bind="props" icon="mdi-people"/>
+          <v-icon v-bind="props" :icon="mdiAccountGroup"/>
         </template>
         Characters
       </v-tooltip>
@@ -59,6 +59,7 @@ import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import {ArtVue} from '@/lib/lib.ts'
 import LinkedCharacter from '@/types/LinkedCharacter.ts'
+import {mdiAccountGroup, mdiAccount} from '@mdi/js'
 
 @Component({
   components: {
@@ -78,6 +79,8 @@ class AcCharacterDisplay extends ArtVue {
   public toggle = false
   @Prop({required: true})
   public editable!: boolean
+  public mdiAccount = mdiAccount
+  public mdiAccountGroup = mdiAccountGroup
 
   public created() {
     this.tagCharacter = this.$getForm(

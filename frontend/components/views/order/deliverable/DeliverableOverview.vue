@@ -59,13 +59,13 @@
                 </v-col>
                 <v-col cols="12" md="3" class="text-md-right text-center" order="3" order-md="2" align-self="center">
                   <v-chip color="white" variant="flat" light v-if="order.x.private" class="ma-1">
-                    <v-icon left icon="mdi-eye-off"/>
+                    <v-icon left :icon="mdiEyeOff"/>
                     Private
                   </v-chip>
                   <ac-deliverable-status :deliverable="deliverable.x" class="ma-1"/>
                   <v-btn class="ma-1 rating-button pa-1" variant="flat" small :color="RATING_COLOR[deliverable.x.rating]"
                          @click="showRating" :ripple="editable">
-                    <v-icon left v-if="editable" icon="mdi-pencil"/>
+                    <v-icon left v-if="editable" :icon="mdiPencil"/>
                     {{ RATINGS_SHORT[deliverable.x.rating] }}
                   </v-btn>
                   <ac-expanded-property v-model="ratingDialog">
@@ -131,7 +131,7 @@
                   <v-col cols="12">
                     <h2>Details:
                       <v-btn v-show="(!editDetails) && editable" icon="mdi-pencil" variant="plain" @click="editDetails = true">
-                        <v-icon icon="mdi-pencil"/>
+                        <v-icon :icon="mdiPencil"/>
                       </v-btn>
                     </h2>
                   </v-col>
@@ -220,6 +220,7 @@ import {useStore} from 'vuex'
 import {DeliverableStatus as s} from '@/types/DeliverableStatus.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {deriveDisplayName} from '@/lib/formattingTools.ts'
+import {mdiEyeOff, mdiPencil} from '@mdi/js'
 
 const props = defineProps<DeliverableProps>()
 

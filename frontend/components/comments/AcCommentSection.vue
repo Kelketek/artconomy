@@ -3,15 +3,14 @@
     <v-row no-gutters v-if="commentList.moreAvailable || showHistory">
       <v-col v-if="commentList.moreAvailable">
         <v-btn block @click="commentList.next" variant="flat">
-          <v-icon left>expand_more</v-icon>
           Load More
-          <v-icon right icon="mdi-expand-more"/>
+          <v-icon right :icon="mdiArrowExpandDown"/>
         </v-btn>
       </v-col>
       <v-col class="text-center" v-if="showHistory">
         <v-btn @click="historyToggle = !historyToggle" class="comment-history-button" variant="flat">
-          <v-icon left v-if="historyToggle" icon="mdi-eye"/>
-          <v-icon left v-else icon="mdi-eye-off"/>
+          <v-icon left v-if="historyToggle" :icon="mdiEye"/>
+          <v-icon left v-else :icon="mdiEyeOff"/>
           Toggle History
         </v-btn>
       </v-col>
@@ -57,6 +56,7 @@ import AcNewComment from '@/components/comments/AcNewComment.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {QueryParams} from '@/store/helpers/QueryParams.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
+import {mdiEye, mdiEyeOff, mdiArrowExpandDown} from '@mdi/js'
 
 @Component({
   components: {
@@ -94,6 +94,9 @@ class AcCommentSection extends mixins(Viewer) {
   public commentList!: ListController<Comment>
 
   public historyToggle = false
+  public mdiArrowExpandDown = mdiArrowExpandDown
+  public mdiEye = mdiEye
+  public mdiEyeOff = mdiEyeOff
 
   public adjustParams() {
     if (this.historyToggle) {

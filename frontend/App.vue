@@ -139,7 +139,7 @@
           <div class="align-self-center">
             <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
           </div>
-          <v-btn color="green" class="ml-2" icon small @click="location.reload()" aria-label="Refresh Page"><v-icon icon="mdi-update" /></v-btn>
+          <v-btn color="green" class="ml-2" icon small @click="location.reload()" aria-label="Refresh Page"><v-icon :icon="mdiUpdate" /></v-btn>
         </div>
       </v-snackbar>
       <v-snackbar
@@ -164,7 +164,7 @@
       <ac-cookie-consent />
     </v-main>
     <div class="dev-mode-overlay text-center" v-if="devMode">
-      <v-icon size="50vw" icon="mdi-hammer-wrench" />
+      <v-icon size="50vw" :icon="mdiHammerWrench" />
     </div>
     <div id="modal-target" />
     <div id="snackbar-target" />
@@ -227,6 +227,7 @@ import {useStore} from 'vuex'
 import {useList} from '@/store/lists/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
 import {useTargets} from '@/plugins/targets.ts'
+import {mdiHammerWrench, mdiUpdate} from '@mdi/js'
 
 const router = useRouter()
 const route = useRoute()

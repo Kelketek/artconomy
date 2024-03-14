@@ -149,7 +149,7 @@
             </v-col>
             <v-col cols="12" class="text-center">
               <v-btn color="danger" @click="showDeleteAccount = true" variant="elevated">
-                <v-icon left icon="mdi-delete-forever"/>
+                <v-icon left :icon="mdiDeleteForever"/>
                 Delete my account.
               </v-btn>
             </v-col>
@@ -165,7 +165,7 @@
                 <v-col cols="12">
                   <v-alert color="danger" :value="true" class="mt-2">
                     <template v-slot:prepend>
-                      <v-icon icon="mdi-alert" size="x-large" />
+                      <v-icon :icon="mdiAlert" size="x-large" />
                     </template>
                     Account deletion is PERMANENT. To make sure this is not a mistake, please fill in the following
                     information to confirm. You must have no open orders and no outstanding balance before removing your
@@ -210,6 +210,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import Alerts from '@/mixins/alerts.ts'
+import {mdiAlert, mdiDeleteForever} from '@mdi/js'
 
 @Component({
   components: {
@@ -229,6 +230,9 @@ class Credentials extends mixins(Subjective, Alerts) {
   public passwordForm: FormController = null as unknown as FormController
   public emailForm: FormController = null as unknown as FormController
   public deleteUserForm: FormController = null as unknown as FormController
+
+  public mdiDeleteForever = mdiDeleteForever
+  public mdiAlert = mdiAlert
 
   public created() {
     this.usernameForm = this.$getForm('usernameChange', {

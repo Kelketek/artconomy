@@ -14,6 +14,7 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import {TabNavSpec} from '@/types/TabNavSpec.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
+import {mdiReceipt, mdiShopping, mdiStorefront} from '@mdi/js'
 
 @Component({
   components: {
@@ -29,17 +30,17 @@ class TableDashboard extends mixins(Viewer) {
     {
       value: {name: 'TableProducts'},
       title: 'Products',
-      icon: 'storefront',
+      icon: mdiStorefront,
     },
     {
       value: {name: 'TableOrders'},
       title: 'Orders',
-      icon: 'shopping_bag',
+      icon: mdiShopping,
     },
     {
       value: {name: 'TableInvoices'},
       title: 'Invoices',
-      icon: 'receipt',
+      icon: mdiReceipt,
     },
   ]
 

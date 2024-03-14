@@ -31,11 +31,11 @@
     <v-toolbar class="invoice-toolbar">
       <v-toolbar-items>
         <v-btn @click="goBack" color="secondary">
-          <v-icon left icon="mdi-arrow-back"/>
+          <v-icon left :icon="mdiArrowLeftBold"/>
           Back
         </v-btn>
         <v-btn color="primary" variant="flat" @click="performPrint">
-          <v-icon left icon="mdi-print"/>
+          <v-icon left :icon="mdiPrinter"/>
           Print
         </v-btn>
       </v-toolbar-items>
@@ -64,7 +64,7 @@ import {SingleController} from '@/store/singles/controller.ts'
 import {NavSettings} from '@/types/NavSettings.ts'
 import {initDrawerValue, INVOICE_TYPES} from '@/lib/lib.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
-import {InvoiceType} from '@/types/InvoiceType.ts'
+import {mdiArrowLeftBold, mdiPrinter} from '@mdi/js'
 
 @Component({
   components: {
@@ -77,6 +77,8 @@ class Invoices extends mixins(Subjective, Formatting) {
   public invoices = null as unknown as ListController<Invoice>
   public navSettings = null as unknown as SingleController<NavSettings>
   public INVOICE_TYPES = INVOICE_TYPES
+  public mdiArrowLeftBold = mdiArrowLeftBold
+  public mdiPrinter = mdiPrinter
 
   @Prop({default: initDrawerValue})
   public initialState!: null | boolean

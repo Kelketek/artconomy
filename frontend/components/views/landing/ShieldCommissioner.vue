@@ -82,7 +82,7 @@
       <v-row no-gutters>
         <v-col class="text-center" cols="12">
           <v-btn large color="green" @click="search" :block="$vuetify.display.xs" variant="flat" class="commission-cta">
-            <v-icon left icon="mdi-palette"/>
+            <v-icon left :icon="mdiPalette"/>
             Commission an Artist Now!
           </v-btn>
         </v-col>
@@ -101,6 +101,7 @@
 import {BASE_URL} from '@/lib/lib.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
+import {mdiPalette} from '@mdi/js'
 
 const router = useRouter()
 

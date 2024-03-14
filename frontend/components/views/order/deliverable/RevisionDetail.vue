@@ -3,7 +3,7 @@
     <v-row no-gutters>
       <v-col cols="12" style="position: relative">
         <v-btn icon absolute top left :to="backUrl" color="primary">
-          <v-icon icon="mdi-arrow-left"/>
+          <v-icon :icon="mdiArrowLeft"/>
         </v-btn>
         <ac-load-section :controller="revision">
           <template v-slot:default>
@@ -12,7 +12,7 @@
               <v-row>
                 <v-col class="text-center" cols="12" :lg="isBuyer && !isFinal ? '6' : '12'" v-if="isBuyer || archived">
                   <v-btn color="green" :href="revision.x.file.full" variant="flat" download>
-                    <v-icon left icon="mdi-cloud-download"/>
+                    <v-icon left :icon="mdiCloudDownload"/>
                     Download
                   </v-btn>
                 </v-col>
@@ -20,20 +20,20 @@
                        v-if="isBuyer && !isFinal && (!archived || revision.x.approved_on)">
                   <v-btn @click="approveForm.submitThen(revision.updateX)" color="primary" variant="flat"
                          v-if="!revision.x.approved_on">
-                    <v-icon left icon="mdi-check-circle"/>
+                    <v-icon left :icon="mdiCheckCircle"/>
                     Approve
                   </v-btn>
                   <span v-else-if="revision.x.approved_on">Approved on {{ formatDateTime(revision.x.approved_on) }}</span>
                 </v-col>
                 <v-col class="text-center" cols="6" lg="3" v-else-if="isSeller">
                   <v-btn icon small color="green" :href="revision.x.file.full" variant="flat" download aria-label="Download">
-                    <v-icon icon="mdi-cloud-download"/>
+                    <v-icon :icon="mdiCloudDownload"/>
                   </v-btn>
                 </v-col>
                 <v-col class="text-center" cols="6" lg="3" v-if="isSeller && isLast && !archived">
                   <v-btn icon small color="danger" class="delete-revision" @click="handleDelete"
                          aria-label="Delete Revision">
-                    <v-icon icon="mdi-delete"/>
+                    <v-icon :icon="mdiDelete"/>
                   </v-btn>
                 </v-col>
                 <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isLast &&! isFinal && !archived">
@@ -44,14 +44,14 @@
                 </v-col>
                 <v-col class="'text-center" cols="12" v-if="galleryLink">
                   <v-btn color="green" block :to="galleryLink" variant="flat">
-                    <v-icon icon="mdi-upload"/>
+                    <v-icon :icon="mdiUpload"/>
                     <span v-if="isSeller">View in Gallery</span><span v-else>View in Collection</span>
                   </v-btn>
                 </v-col>
                 <v-col class="text-center mb-2" cols="12" lg="12"
                        v-else-if="isSeller || (is(COMPLETED) && isRegistered)">
                   <v-btn color="green" block @click="prepSubmission" class="prep-submission-button" variant="elevated">
-                    <v-icon icon="mdi-upload"/>
+                    <v-icon :icon="mdiUpload"/>
                     <span v-if="isSeller">Add to Gallery</span><span v-else>Add to Collection</span>
                   </v-btn>
                 </v-col>
@@ -81,6 +81,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import Formatting from '@/mixins/formatting.ts'
+import {mdiCloudDownload, mdiCheckCircle, mdiDelete, mdiUpload, mdiArrowLeft} from '@mdi/js'
 
 @Component({
   components: {
@@ -97,6 +98,11 @@ class RevisionDetail extends mixins(DeliverableMixin, Formatting) {
   public revision!: SingleController<Revision>
   public revisionComments!: ListController<Comment>
   public approveForm!: FormController
+  public mdiCloudDownload = mdiCloudDownload
+  public mdiCheckCircle = mdiCheckCircle
+  public mdiDelete = mdiDelete
+  public mdiUpload = mdiUpload
+  public mdiArrowLeft = mdiArrowLeft
 
   public get isLast() {
     if (!this.revision.x) {

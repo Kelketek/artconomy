@@ -47,7 +47,7 @@
                               <v-col cols="12" class="text-center">
                                 <!-- @vue-ignore -->
                                 <v-btn color="green" variant="flat" class="upload-button" @click="$refs.toolbar.showUpload = true">
-                                  <v-icon left icon="mdi-upload"/>
+                                  <v-icon left :icon="mdiUpload"/>
                                   Upload new Submission
                                 </v-btn>
                               </v-col>
@@ -108,7 +108,7 @@
               />
               <v-col cols="12" v-if="character.profile.x.open_requests" v-show="!editing">
                 <h3>
-                  <v-icon left color="green" icon="mdi-check-circle"/>
+                  <v-icon left color="green" :icon="mdiCheckCircle"/>
                   Character can be used in other people's commissions
                 </h3>
               </v-col>
@@ -127,7 +127,7 @@
               </v-col>
               <v-col cols="12" v-if="character.profile.x.open_requests_restrictions" v-show="!editing">
                 <h4 class="mb-2">
-                  <v-icon color="yellow" left icon="mdi-warning"/>
+                  <v-icon color="yellow" left :icon="mdiAlert"/>
                   With the following restrictions:
                 </h4>
                 <ac-rendered :value="character.profile.x.open_requests_restrictions"/>
@@ -190,6 +190,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {textualize} from '@/lib/formattingTools.ts'
+import {mdiCheckCircle, mdiAlert, mdiUpload} from '@mdi/js'
 
 const props = defineProps<CharacterProps>()
 

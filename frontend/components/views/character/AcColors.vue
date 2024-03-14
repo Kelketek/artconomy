@@ -12,7 +12,7 @@
         <v-expansion-panel-title>
           <v-row no-gutters>
             <v-col class="text-center">
-              <v-icon left icon="mdi-palette"/>
+              <v-icon left :icon="mdiPalette"/>
               Color References
             </v-col>
           </v-row>
@@ -48,6 +48,7 @@ import {useCharacter} from '@/store/characters/hooks.ts'
 import {useEditable} from '@/mixins/editable.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import Color from '@/store/characters/types/Color.ts'
+import {mdiPalette} from '@mdi/js'
 
 const props = defineProps<CharacterProps>()
 

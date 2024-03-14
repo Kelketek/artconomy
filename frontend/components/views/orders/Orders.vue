@@ -65,13 +65,13 @@
                   <v-btn
                       color="green" :to="{name: 'InvoiceByProduct', params: {username}}" variant="elevated" class="new-invoice-button"
                   >
-                    <v-icon left icon="mdi-receipt"/>
+                    <v-icon left :icon="mdiReceipt"/>
                     New Invoice
                   </v-btn>
                 </v-col>
                 <v-col class="text-center">
                   <v-btn color="primary" @click="showBroadcast = true" variant="elevated">
-                    <v-icon left icon="mdi-bullhorn"/>
+                    <v-icon left :icon="mdiBullhorn"/>
                     Broadcast to buyers
                   </v-btn>
                 </v-col>
@@ -119,7 +119,7 @@
           <span class="title">Broadcast sent!</span>
         </v-col>
         <v-col cols="12" class="text-center">
-          <v-icon x-large color="green" icon="mdi-check-circle"/>
+          <v-icon x-large color="green" :icon="mdiCheckCircle"/>
         </v-col>
       </v-row>
       <template v-slot:bottom-buttons v-if="confirmBroadcast">
@@ -146,6 +146,7 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {flatten, getSalesStatsSchema} from '@/lib/lib.ts'
+import {mdiCheckCircle, mdiBullhorn, mdiReceipt} from '@mdi/js'
 
 @Component({
   components: {
@@ -163,6 +164,9 @@ class Orders extends mixins(Subjective) {
   public showBroadcast = false
   public confirmBroadcast = false
   public broadcastForm: FormController = null as unknown as FormController
+  public mdiCheckCircle = mdiCheckCircle
+  public mdiBullhorn = mdiBullhorn
+  public mdiReceipt = mdiReceipt
 
   public get isSales() {
     return this.baseName === 'Sales'

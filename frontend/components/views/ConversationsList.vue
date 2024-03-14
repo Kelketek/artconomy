@@ -5,7 +5,7 @@
         <v-row no-gutters>
           <v-col cols="12" class="text-center text-md-right py-2" v-if="isCurrent">
             <v-btn color="green" @click="showNew = true" variant="elevated">
-              <v-icon left icon="mdi-plus"/>
+              <v-icon left :icon="mdiPlus"/>
               New Conversation
             </v-btn>
           </v-col>
@@ -90,6 +90,7 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+import {mdiPlus} from '@mdi/js'
 
 @Component({
   components: {
@@ -106,6 +107,7 @@ class ConversationsList extends mixins(Subjective, Formatting) {
   public showNew = false
   public privateView = true
   public protectedView = true
+  public mdiPlus = mdiPlus
 
   public otherParticipants(participants: TerseUser[]) {
     return participants.filter(

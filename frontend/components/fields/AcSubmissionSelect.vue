@@ -23,7 +23,7 @@
                         :size="24"
                         v-if="loading === derived(submission).id"
                     ></v-progress-circular>
-                    <v-icon v-if="derived(submission).id === compare" color="green" icon="mdi-check-circle"/>
+                    <v-icon v-if="derived(submission).id === compare" color="green" :icon="mdiCheckCircle"/>
                   </v-col>
                 </template>
               </ac-gallery-preview>
@@ -48,6 +48,7 @@ import {genId} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref, watch} from 'vue'
+import {mdiCheckCircle} from '@mdi/js'
 
 declare interface AcSubmissionSelectProps {
   list?: ListController<Submission>,

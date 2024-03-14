@@ -3,7 +3,7 @@
     <v-row class="d-flex">
       <v-col class="text-right">
         <v-btn color="green" @click="showNew = true" v-if="controls" variant="flat">
-          <v-icon left icon="mdi-plus"/>
+          <v-icon left :icon="mdiPlus"/>
           New Character
         </v-btn>
       </v-col>
@@ -63,6 +63,7 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {flatten} from '@/lib/lib.ts'
+import {mdiPlus} from '@mdi/js'
 
 @Component({
   components: {
@@ -76,6 +77,7 @@ class Characters extends mixins(Subjective) {
   public characters: ListController<Character> = null as unknown as ListController<Character>
   public form: FormController = null as unknown as FormController
   public showNew = false
+  public mdiPlus = mdiPlus
 
   public get url() {
     return `/api/profiles/account/${this.username}/characters/`

@@ -135,7 +135,7 @@ const props = withDefaults(
 
 const {passedProps, errorColor, errorFocused} = useExtendedInput(props)
 
-const emits = defineEmits<{'update:modelValue': [string|string[]|null]}>()
+const emit = defineEmits<{'update:modelValue': [string|string[]|null]}>()
 
 const originalState = ref({})
 
@@ -186,12 +186,12 @@ const reset = () => {
     return
   }
   uppy.value.cancelAll()
-  emits('update:modelValue', '')
+  emit('update:modelValue', '')
 }
 
 const clear = () => {
   uppy.value.cancelAll()
-  emits('update:modelValue', null)
+  emit('update:modelValue', null)
 }
 
 
@@ -220,10 +220,10 @@ onMounted(() => {
   }
   uppy.value.on('upload-success', (file: UppyFile | undefined, response: any) => {
     if (props.maxNumberOfFiles > 1) {
-      emits('update:modelValue', [...props.modelValue || [], response.body.id])
+      emit('update:modelValue', [...props.modelValue || [], response.body.id])
       return
     } else  {
-      emits('update:modelValue', response.body.id)
+      emit('update:modelValue', response.body.id)
     }
   })
   // If this component is remounted, Uppy is regenerated, and we have to restore state.

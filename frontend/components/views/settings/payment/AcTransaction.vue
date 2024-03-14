@@ -16,7 +16,7 @@
     </div>
     <template v-slot:append>
       <v-btn icon variant="text" @click="showDetails = true" aria-label="Actions">
-        <v-icon icon="mdi-dots-horizontal"/>
+        <v-icon :icon="mdiDotsHorizontal"/>
       </v-btn>
     </template>
     <v-dialog v-model="showDetails" max-width="800px" :attach="$modalTarget">
@@ -26,7 +26,7 @@
         </v-toolbar-title>
         <v-spacer/>
         <v-btn icon @click="showDetails = false" variant="flat" dark class="dialog-closer">
-          <v-icon icon="mdi-close"/>
+          <v-icon :icon="mdiClose"/>
         </v-btn>
       </v-toolbar>
       <v-card>
@@ -78,6 +78,7 @@ import {TransactionCategory} from '@/types/TransactionCategory.ts'
 import {TransactionStatus} from '@/types/TransactionStatus.ts'
 import {AccountType} from '@/types/AccountType.ts'
 import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
+import {mdiClose, mdiDotsHorizontal} from '@mdi/js'
 
 @Component({
   components: {AcLink},
@@ -90,6 +91,8 @@ class AcTransaction extends mixins(Subjective, Formatting) {
   public currentAccount!: number
 
   public showDetails = false
+  public mdiClose = mdiClose
+  public mdiDotsHorizontal = mdiDotsHorizontal
 
   public STATUS_COMMENTS: Record<TransactionStatus, string> = {
     0: '',

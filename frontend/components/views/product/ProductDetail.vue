@@ -14,7 +14,7 @@
                     <v-row no-gutters class="justify-content" align="center">
                       <v-col class="edit-cta text-center">
                         <slot name="edit-prompt">
-                          <v-icon large icon="mdi-camera-burst"/>
+                          <v-icon large :icon="mdiCameraBurst"/>
                           <p>Edit</p>
                         </slot>
                       </v-col>
@@ -72,7 +72,7 @@
                             v-model="showChangePrimary"
                   >
                     <template v-slot:edit-prompt>
-                      <v-icon size="x-large" large icon="mdi-camera-burst"/>
+                      <v-icon size="x-large" large :icon="mdiCameraBurst"/>
                       <p>Add/Edit Samples</p>
                     </template>
                     <template v-slot:edit-menu>
@@ -101,14 +101,14 @@
               <v-menu offset-x left :close-on-content-click="false" :attach="$menuTarget" v-if="controls">
                 <template v-slot:activator="{props}">
                   <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-                    <v-icon icon="mdi-dots-horizontal"/>
+                    <v-icon :icon="mdiDotsHorizontal"/>
                   </v-btn>
                 </template>
                 <v-list dense>
                   <v-list-item @click.stop="editing = !editing">
                     <template v-slot:prepend>
-                      <v-icon v-if="editing" icon="mdi-lock"/>
-                      <v-icon v-else icon="mdi-pencil"/>
+                      <v-icon v-if="editing" :icon="mdiLock"/>
+                      <v-icon v-else :icon="mdiPencil"/>
                     </template>
                     <v-list-item-title v-if="editing">Lock</v-list-item-title>
                     <v-list-item-title v-else>Edit</v-list-item-title>
@@ -128,7 +128,7 @@
                     <template v-slot:default="confirmContext">
                       <v-list-item v-on="confirmContext.on">
                         <template v-slot:prepend>
-                          <v-icon class="delete-button" icon="mdi-delete"/>
+                          <v-icon class="delete-button" :icon="mdiDelete"/>
                         </template>
                         <v-list-item-title>Delete</v-list-item-title>
                       </v-list-item>
@@ -163,14 +163,14 @@
                     </div>
                     <div class="d-inline-flex mr-1">
                       <v-chip size="small"  variant="flat">
-                        <v-icon left icon="mdi-eye"/>
+                        <v-icon left :icon="mdiEye"/>
                         {{product.x.hits}}
                       </v-chip>
                     </div>
                     <div class="d-inline-flex mr-1" v-if="product.x.featured">
                       <v-chip size="small" color="success" variant="flat">
                         <v-avatar>
-                          <v-icon icon="mdi-star"/>
+                          <v-icon :icon="mdiStar"/>
                         </v-avatar>
                         Featured!
                       </v-chip>
@@ -208,7 +208,7 @@
                           <strong>Maximum Content Rating:</strong>
                           <v-btn class="mx-2 rating-button" size="x-small" :color="ratingColor[product.x.max_rating]"
                                  @click="showRating" :ripple="editing" :variant="editing ? 'elevated' : 'flat'">
-                            <v-icon left v-if="editing" icon="mdi-pencil"/>
+                            <v-icon left v-if="editing" :icon="mdiPencil"/>
                             {{ratingsShort[product.x.max_rating]}}
                           </v-btn>
                           <ac-expanded-property v-model="ratingDialog" v-if="controls" aria-label="Edit rating">
@@ -287,7 +287,7 @@
                     </span>
                   </template>
                   <v-btn v-show="editing" icon variant="plain" color="primary" @click="showTerms = true">
-                    <v-icon icon="mdi-pencil"/>
+                    <v-icon :icon="mdiPencil"/>
                   </v-btn>
                   <ac-expanded-property v-model="showTerms" :large="true" v-if="controls" aria-label="Edit terms">
                     <template v-slot:title>Edit Terms</template>
@@ -421,7 +421,7 @@
                     </div>
                     <v-alert v-if="product.x.wait_list" :value="true" type="info">This product is waitlisted.</v-alert>
                     <v-btn color="green" block :to="orderLink" v-if="!product.x.table_product" variant="flat">
-                      <v-icon left icon="mdi-basket"/>
+                      <v-icon left :icon="mdiBasket"/>
                       <span v-if="isCurrent">Create Invoice</span>
                       <span v-else>Order</span>
                     </v-btn>
@@ -448,7 +448,7 @@
                 </v-col>
                 <v-col class="text-center" cols="12" v-if="editing">
                   <v-btn color="warning" block @click="showWorkload = true" variant="flat">
-                    <v-icon left icon="mdi-cog"/>
+                    <v-icon left :icon="mdiCog"/>
                     Workload
                   </v-btn>
                   <ac-expanded-property v-model="showWorkload" :large="true" v-if="controls" aria-label="Edit Workload Settings">
@@ -638,6 +638,7 @@ import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {RawLineItemSetMap} from '@/types/RawLineItemSetMap.ts'
 import LineItem from '@/types/LineItem.ts'
 import {textualize} from '@/lib/formattingTools.ts'
+import {mdiCog, mdiBasket, mdiPencil, mdiStar, mdiEye, mdiDelete, mdiLock, mdiDotsHorizontal, mdiCameraBurst} from '@mdi/js'
 
 @Component({
   components: {
@@ -674,6 +675,15 @@ class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharabl
   public recommended: ListController<Product> = null as unknown as ListController<Product>
   public ratingsShort = RATINGS_SHORT
   public ratingColor = RATING_COLOR
+  public mdiCog = mdiCog
+  public mdiBasket = mdiBasket
+  public mdiPencil = mdiPencil
+  public mdiStar = mdiStar
+  public mdiEye = mdiEye
+  public mdiDelete = mdiDelete
+  public mdiLock = mdiLock
+  public mdiDotsHorizontal = mdiDotsHorizontal
+  public mdiCameraBurst = mdiCameraBurst
 
   public get shownSubmissionLink(): RouteLocationRaw | null {
     if (!this.shown) {

@@ -5,7 +5,7 @@
         <v-toolbar-title>Journals</v-toolbar-title>
         <v-spacer/>
         <v-btn color="green" @click="showNew = true" v-if="isCurrent" variant="flat">
-          <v-icon left icon="mdi-add"/>
+          <v-icon left :icon="mdiPlus"/>
           Add New
         </v-btn>
       </v-toolbar>
@@ -19,7 +19,7 @@
                     v-if="item.x"
                 >
                   <template v-slot:prepend>
-                    <v-icon icon="mdi-pencil"/>
+                    <v-icon :icon="mdiPencil"/>
                   </template>
                   <v-list-item-title>{{item.x.subject}}</v-list-item-title>
                   <v-list-item-subtitle>{{formatDate(item.x.created_on)}}</v-list-item-subtitle>
@@ -71,6 +71,7 @@ import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {truncateText} from '@/lib/formattingTools.ts'
+import {mdiPencil, mdiPlus} from '@mdi/js'
 
 @Component({
   components: {
@@ -87,6 +88,8 @@ class AcJournals extends mixins(Subjective, Formatting) {
   public showNew = false
   public journals: ListController<Journal> = null as unknown as ListController<Journal>
   public newJournal: FormController = null as unknown as FormController
+  public mdiPencil = mdiPencil
+  public mdiPlus = mdiPlus
 
   public created() {
     this.newJournal = this.$getForm(this.username + '-newJournal', {

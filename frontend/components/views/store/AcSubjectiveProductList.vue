@@ -3,11 +3,11 @@
     <v-row class="d-flex" v-if="controls && !$store.state.iFrame && !firstProduct && !hideNewButton">
       <v-col class="text-md-right text-center">
         <v-btn variant="flat" color="green" @click="showNew = true" class="mx-2 d-inline-block" v-if="!managing">
-          <v-icon left icon="mdi-plus"/>
+          <v-icon left :icon="mdiPlus"/>
           New Product
         </v-btn>
         <v-btn @click="managing = !managing" color="primary" variant="flat">
-          <v-icon left icon="mdi-cog"/>
+          <v-icon left :icon="mdiCog"/>
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
@@ -25,7 +25,7 @@
     <v-row no-gutters v-if="firstProduct">
       <v-col cols="12" class="text-md-right text-center">
         <v-btn @click="managing = !managing" color="primary" variant="flat">
-          <v-icon left icon="mdi-cog"/>
+          <v-icon left :icon="mdiCog"/>
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
@@ -63,6 +63,7 @@ import AcNewProduct from '@/components/views/store/AcNewProduct.vue'
 import {flatten} from '@/lib/lib.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import Product from '@/types/Product.ts'
+import {mdiCog, mdiPlus} from '@mdi/js'
 
 @Component({
   components: {
@@ -79,6 +80,9 @@ class AcSubjectiveProductList extends mixins(Subjective) {
 
   @Prop({default: false})
   public hideNewButton!: boolean
+
+  public mdiCog = mdiCog
+  public mdiPlus = mdiPlus
 
   public get showNew(): boolean {
     return this.$route.query.new === 'true'

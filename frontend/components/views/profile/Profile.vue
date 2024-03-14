@@ -20,6 +20,7 @@ import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {flatten} from '@/lib/lib.ts'
+import {mdiAccount, mdiAccountMultiple, mdiBasket, mdiEye, mdiHeart, mdiImageAlbum} from '@mdi/js'
 
 @Component({
   components: {
@@ -61,7 +62,7 @@ class Profile extends mixins(Subjective) {
           name: 'AboutUser',
           params: {username: this.username},
         },
-        icon: 'mdi-account',
+        icon: mdiAccount,
         title: 'About',
       },
     ]
@@ -72,7 +73,7 @@ class Profile extends mixins(Subjective) {
               name: 'Products',
               params: {username: this.username},
             },
-            icon: 'mdi-basket',
+            icon: mdiBasket,
             title: 'Products',
           },
       )
@@ -82,28 +83,28 @@ class Profile extends mixins(Subjective) {
         name: 'Characters',
         params: {username: this.username},
       },
-      icon: 'mdi-account-multiple',
+      icon: mdiAccountMultiple,
       title: 'Characters',
     }, {
       value: {
         name: 'Gallery',
         params: {username: this.username},
       },
-      icon: 'mdi-image-album',
+      icon: mdiImageAlbum,
       title: 'Gallery',
     }, {
       value: {
         name: 'Favorites',
         params: {username: this.username},
       },
-      icon: 'mdi-heart',
+      icon: mdiHeart,
       title: 'Favorites',
     }, {
       value: {
         name: 'Watchlists',
         params: {username: this.username},
       },
-      icon: 'mdi-eye',
+      icon: mdiEye,
       title: 'Watchlists',
     })
     return items

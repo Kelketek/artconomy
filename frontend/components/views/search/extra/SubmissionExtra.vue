@@ -6,7 +6,7 @@
           <v-expansion-panel-title class="pa-1">
             <v-row no-gutters>
               <v-col class="text-center extra-height">
-                <v-icon left icon="mdi-cog"/>
+                <v-icon left :icon="mdiCog"/>
                 Search Options
                 <v-chip v-if="searchForm.fields.watch_list.value" variant="flat" color="primary" class="mx-1">
                   watchlist
@@ -91,6 +91,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {ref, watch} from 'vue'
 import {ContentRating} from '@/types/ContentRating.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'
+import {mdiCog} from '@mdi/js'
 
 const panel = ref<null|number>(null)
 const searchForm = useForm('search')

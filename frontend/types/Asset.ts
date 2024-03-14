@@ -5,5 +5,5 @@ export interface Asset {
   file: FileSpec,
   tags?: string[],
   rating: Ratings,
-  preview: FileSpec|null,
+  preview?: FileSpec|null,
 }

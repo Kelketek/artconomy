@@ -4,7 +4,7 @@
       <div class="flex">
         <router-link :to="route">
           <v-avatar :color="$vuetify.theme.current.colors.well">
-            <v-icon v-if="!canDisplay" icon="mdi-cancel"/>
+            <v-icon v-if="!canDisplay" :icon="mdiCancel"/>
             <img :src="displayImage" v-else-if="canDisplay && displayImage" class="asset-image" :alt="alt">
           </v-avatar>
         </router-link>
@@ -14,7 +14,7 @@
       </div>
       <div class="flex" v-if="removable">
         <v-btn size="x-small" icon color="danger" @click="emit('remove')">
-          <v-icon size="large" icon="mdi-close"/>
+          <v-icon size="large" :icon="mdiClose"/>
         </v-btn>
       </div>
     </div>
@@ -33,6 +33,7 @@ import {assetDefaults, useAssetHelpers} from '@/mixins/asset_base.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AssetProps from '@/types/AssetProps.ts'
 import {computed} from 'vue'
+import {mdiCancel, mdiClose} from '@mdi/js'
 
 declare interface AcMiniCharacterProps extends AssetProps {
   character: Character,

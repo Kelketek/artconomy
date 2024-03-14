@@ -20,7 +20,7 @@
               @keyup="searchFromField"
               label="I'm looking for..."
               class="home-search-field"
-              prepend-icon="mdi-search"
+              :prepend-icon="mdiMagnify"
           />
         </v-col>
         <v-col class="text-center" cols="12" lg="6" offset-lg="3">
@@ -31,13 +31,13 @@
         </v-col>
         <v-col class="text-center text-lg-right pt-3 px-lg-2" cols="12" lg="6">
           <v-btn color="primary" @click="search({})" variant="flat">
-            <v-icon left icon="mdi-search"/>
+            <v-icon left :icon="mdiMagnify"/>
             Browse Everyone Open
           </v-btn>
         </v-col>
         <v-col class="text-center text-lg-left pt-3 px-lg-2" cols="12" lg="6">
           <v-btn color="secondary" :to="{name: 'LandingArtistTools'}" variant="flat">
-            <v-icon left icon="mdi-palette"/>
+            <v-icon left :icon="mdiPalette"/>
             Are you an artist?
           </v-btn>
         </v-col>
@@ -76,7 +76,7 @@
                       <p><small>* Protection available only on
                         <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield
                         </router-link>
-                        <v-icon color="green" class="px-1" icon="mdi-shield-half-full"/>
+                        <v-icon color="green" class="px-1" :icon="mdiShieldHalfFull"/>
                         enabled products.</small></p>
                     </v-col>
                   </v-row>
@@ -385,6 +385,7 @@ import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import {useRouter} from 'vue-router'
 import {useDisplay} from 'vuetify'
 import {usePrerendering} from '@/mixins/prerendering.ts'
+import {mdiPalette, mdiShieldHalfFull, mdiMagnify, mdiStar, mdiEmoticonOutline, mdiTag, mdiDice5} from '@mdi/js'
 
 const searchForm = useForm('search')
 const featured = useList<Product>('featured', {
@@ -402,13 +403,6 @@ const lowPriced = useList<Product>('lowPriced', {
   endpoint: '/api/sales/low-price/',
   params: {size: 6},
 })
-
-const newArtistProducts = useList<Product>(
-  'newArtistProducts', {
-    endpoint: '/api/sales/new-artist-products/',
-    params: {size: 6},
-  },
-)
 
 const artistsOfColor = useList<Product>(
     'artistsOfColor', {
@@ -613,22 +607,22 @@ const mainSectionItems = [
   {
     value: 0,
     title: 'Featured',
-    icon: 'mdi-star',
+    icon: mdiStar,
   },
   {
     value: 1,
     title: 'Highly Rated',
-    icon: 'mdi-emoticon-outline',
+    icon: mdiEmoticonOutline,
   },
   {
     value: 2,
     title: 'Special Deals',
-    icon: 'mdi-tag',
+    icon: mdiTag,
   },
   {
     value: 3,
     title: 'Random',
-    icon: 'mdi-dice-5',
+    icon: mdiDice5,
   },
 ]
 

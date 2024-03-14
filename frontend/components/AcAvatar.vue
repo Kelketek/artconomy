@@ -5,20 +5,20 @@
         <ac-link :to="profileLink">
           <v-avatar :aria-label="`Profile for ${displayName}`">
             <img alt="" :src="person.avatar_url" v-if="person" width="40" height="40">
-            <v-icon v-else icon="mdi-person"/>
+            <v-icon v-else :icon="mdiAccount"/>
           </v-avatar>
         </ac-link>
       </div>
       <div v-if="showName" class="text-center flex">
         <v-tooltip bottom v-if="person && person.is_superuser" aria-label="Admin status tooltip">
           <template v-slot:activator="{props}">
-            <v-icon size="small" color="green" v-bind="props" icon="mdi-star-circle"/>
+            <v-icon size="small" color="green" v-bind="props" :icon="mdiStarCircle"/>
           </template>
           <span>Admin</span>
         </v-tooltip>
         <v-tooltip bottom v-else-if="person && person.is_staff" aria-label="Staff status tooltip">
           <template v-slot:activator="{props}">
-            <v-icon v-bind="props" size="small" color="yellow" icon="mdi-star-circle"/>
+            <v-icon v-bind="props" size="small" color="yellow" :icon="mdiStarCircle"/>
           </template>
           <span>Staff</span>
         </v-tooltip>
@@ -26,7 +26,7 @@
       </div>
       <div v-if="person && removable" class="flex">
         <v-btn size="x-small" icon color="danger" @click="$emit('remove')">
-          <v-icon size="large" icon="mdi-close"/>
+          <v-icon size="large" :icon="mdiClose"/>
         </v-btn>
       </div>
       <router-link :to="{name: 'Ratings', params: {username: person.username}}"
@@ -45,7 +45,7 @@
 </style>
 
 <script lang="ts">
-import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
+import {Component, Prop, toNative, Watch} from 'vue-facing-decorator'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import {userHandle} from '@/store/profiles/handles.ts'
 import {User} from '@/store/profiles/types/User.ts'
@@ -53,6 +53,7 @@ import {artCall, ArtVue, profileLink} from '@/lib/lib.ts'
 import {profileRegistry} from '@/store/profiles/registry.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import {mdiAccount, mdiClose, mdiStarCircle} from '@mdi/js'
 
 @Component({
   components: {AcLink},
@@ -93,6 +94,10 @@ class AcAvatar extends ArtVue {
   public subject!: User | null
 
   public subjectHandler: ProfileController = null as unknown as ProfileController
+
+  public mdiAccount = mdiAccount
+  public mdiStarCircle = mdiStarCircle
+  public mdiClose = mdiClose
 
   public setUser(response: User) {
     this.subjectHandler = this.$getProfile(response.username, {})

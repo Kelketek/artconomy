@@ -6,12 +6,12 @@
       transition="dialog-bottom-transition"
       :overlay="false"
       scrollable
-      :attach="$modalTarget"
+      :attach="modalTarget"
   >
     <v-card tile class="markdown-help">
       <v-toolbar flat dark color="primary">
         <v-btn icon @click="toggle = false" dark id="close-markdown-help">
-          <v-icon icon="mdi-close"/>
+          <v-icon :icon="mdiClose"/>
         </v-btn>
         <v-toolbar-title>Formatting Help</v-toolbar-title>
         <v-spacer/>
@@ -46,7 +46,7 @@
                         <v-divider></v-divider>
                       </v-col>
                       <v-col cols="6"><kbd>{{item.input}}</kbd></v-col>
-                      <v-col cols="6" v-html="mdRenderInline(item.input)"></v-col>
+                      <v-col cols="6" v-html="md.renderInline(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
@@ -71,7 +71,7 @@
                         <v-divider></v-divider>
                       </v-col>
                       <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
-                      <v-col cols="5" md="4" lg="5" v-html="mdRenderInline(item.input)"></v-col>
+                      <v-col cols="5" md="4" lg="5" v-html="md.renderInline(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
@@ -105,7 +105,7 @@
                         <v-divider></v-divider>
                       </v-col>
                       <v-col cols="6"><kbd>{{item.input}}</kbd></v-col>
-                      <v-col cols="6" v-html="mdRender(item.input)"></v-col>
+                      <v-col cols="6" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
@@ -135,7 +135,7 @@
                         <v-divider></v-divider>
                       </v-col>
                       <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
-                      <v-col cols="5" md="4" lg="5" v-html="mdRender(item.input)"></v-col>
+                      <v-col cols="5" md="4" lg="5" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
@@ -164,7 +164,7 @@
                         <v-divider></v-divider>
                       </v-col>
                       <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
-                      <v-col cols="5" md="4" lg="5" v-html="mdRender(item.input)"></v-col>
+                      <v-col cols="5" md="4" lg="5" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
@@ -192,7 +192,7 @@
                         <v-divider></v-divider>
                       </v-col>
                       <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
-                      <v-col cols="5" md="4" lg="5" v-html="mdRender(item.input)"></v-col>
+                      <v-col cols="5" md="4" lg="5" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
@@ -223,104 +223,105 @@
   padding: 0 10px; }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '@/mixins/formatting.ts'
+<script setup lang="ts">
+import {mdiClose} from '@mdi/js'
+import {computed, ref, watch} from 'vue'
+import {md} from '@/lib/formattingTools.ts'
+import {useTargets} from '@/plugins/targets.ts'
 
-@Component({emits: ['update:modelValue']})
-class AcMarkdownExplination extends mixins(Formatting) {
-  @Prop({required: true})
-  public modelValue!: boolean
+const props = defineProps<{modelValue: boolean}>()
+const emit = defineEmits<{'update:modelValue': [value: boolean]}>()
+const {modalTarget} = useTargets()
 
-  public display = false
-  public headers = [
-    {
-      title: 'Write...',
-      sortable: false,
-      value: 'input',
-    },
-    {
-      title: 'and get',
-      sortable: false,
-      value: 'input',
-    },
-  ]
+const display = ref(false)
+const headers = [
+  {
+    title: 'Write...',
+    sortable: false,
+    value: 'input',
+  },
+  {
+    title: 'and get',
+    sortable: false,
+    value: 'input',
+  },
+]
 
-  public basicsItems = [
-    {input: '*Emphasis*'},
-    {input: '_Also Emphasis_'},
-    {input: '**Strong**'},
-    {input: '__Also Strong__'},
-    {input: '**Strong and then _Emphasized_**'},
-    {input: '___Strong and Emphasized___'},
-    {input: '~~Deleted~~'},
-    {input: '`code`'},
-  ]
+const basicsItems = [
+  {input: '*Emphasis*'},
+  {input: '_Also Emphasis_'},
+  {input: '**Strong**'},
+  {input: '__Also Strong__'},
+  {input: '**Strong and then _Emphasized_**'},
+  {input: '___Strong and Emphasized___'},
+  {input: '~~Deleted~~'},
+  {input: '`code`'},
+]
 
-  public linksItems = [
-    {input: 'https://artconomy.com/'},
-    {input: '[A link](https://artconomy.com/)'},
-    {input: 'contact@artconomy.com'},
-    {input: '[Email us](mailto:contact@artconomy.com)'},
-  ]
+const linksItems = [
+  {input: 'https://artconomy.com/'},
+  {input: '[A link](https://artconomy.com/)'},
+  {input: 'contact@artconomy.com'},
+  {input: '[Email us](mailto:contact@artconomy.com)'},
+]
 
-  public blocksItems = [
-    {input: 'This is a test.\nThis is only a test.'},
-    {input: 'This is a test.\n\nThis is only a test.'},
-    {input: '> This is a block quote.\nIt continues on the next line.\n\nYou need two lines to stop here, too!'},
-    {input: '> This is another block quote.\n> \n> We can add blank lines to quotes this way.'},
-    {input: '```\n# This is a code block.\n\nfunction greet():\n    print("Hello, world!")\n\ngreet()\n```'},
-  ]
+const blocksItems = [
+  {input: 'This is a test.\nThis is only a test.'},
+  {input: 'This is a test.\n\nThis is only a test.'},
+  {input: '> This is a block quote.\nIt continues on the next line.\n\nYou need two lines to stop here, too!'},
+  {input: '> This is another block quote.\n> \n> We can add blank lines to quotes this way.'},
+  {input: '```\n# This is a code block.\n\nfunction greet():\n    print("Hello, world!")\n\ngreet()\n```'},
+]
 
-  public listsItems = [
-    {input: '1. Put on shoes\n1. Tie laces\n1. Grab keys\n1. Forget wallet'},
-    {input: '* Fox\n* Wolf\n* Human\n* Elf'},
-    {input: '- Fox\n+ Wolf\n+ Human\n- Elf'},
-    {
-      input: '1. First item\n    * Sub item\n    * Sub item 2\n2. Second item\n\n    ' +
-          'This is a test paragraph.\n\n1. Third item',
-    },
-  ]
+const listsItems = [
+  {input: '1. Put on shoes\n1. Tie laces\n1. Grab keys\n1. Forget wallet'},
+  {input: '* Fox\n* Wolf\n* Human\n* Elf'},
+  {input: '- Fox\n+ Wolf\n+ Human\n- Elf'},
+  {
+    input: '1. First item\n    * Sub item\n    * Sub item 2\n2. Second item\n\n    ' +
+        'This is a test paragraph.\n\n1. Third item',
+  },
+]
 
-  public headersItems = [
-    {input: '# Header 1'},
-    {input: 'Header 1\n==='},
-    {input: '## Header 2'},
-    {input: 'Header 2\n---'},
-    {input: '### Header 3'},
-    {input: '#### Header 4'},
-    {input: '##### Header 5'},
-    {input: '###### Header 6'},
-  ]
+const headersItems = [
+  {input: '# Header 1'},
+  {input: 'Header 1\n==='},
+  {input: '## Header 2'},
+  {input: 'Header 2\n---'},
+  {input: '### Header 3'},
+  {input: '#### Header 4'},
+  {input: '##### Header 5'},
+  {input: '###### Header 6'},
+]
 
-  public extrasItems = [
-    {
-      input: '**Tables**\n\n' +
-          '| Headers       | Go            | Here  |\n' +
-          '| ------------- |:-------------:| -----:|\n' +
-          '| col 3 is      | right-aligned |  $600 |\n' +
-          '| col 2 is      | centered      |   $12 |\n' +
-          '| zebra stripes | are neat      |    $1 |\n',
-    },
-    {input: '**Images**\n\n![Artconomy Logo](https://artconomy.com/static/images/logo.png)'},
-    {
-      input: '**Dividers**\n\nWe thought driving downtown wouldn\'t take that long.\n\n***\n\nThree hours later...' +
-          '\n\n---\n\n"Why did we do this again?"',
-    },
-  ]
+const extrasItems = [
+  {
+    input: '**Tables**\n\n' +
+        '| Headers       | Go            | Here  |\n' +
+        '| ------------- |:-------------:| -----:|\n' +
+        '| col 3 is      | right-aligned |  $600 |\n' +
+        '| col 2 is      | centered      |   $12 |\n' +
+        '| zebra stripes | are neat      |    $1 |\n',
+  },
+  {input: '**Images**\n\n![Artconomy Logo](https://artconomy.com/static/images/logo.png)'},
+  {
+    input: '**Dividers**\n\nWe thought driving downtown wouldn\'t take that long.\n\n***\n\nThree hours later...' +
+        '\n\n---\n\n"Why did we do this again?"',
+  },
+]
 
-  public get toggle() {
-    if (this.modelValue) {
-      // Lazy evaluation with caching of all the Markdown examples.
-      this.display = true
-    }
-    return this.modelValue
+const toggle = computed({
+  get: () => {
+    return props.modelValue
+  },
+  set: (val: boolean) => {
+    emit('update:modelValue', val)
   }
+})
 
-  public set toggle(val: boolean) {
-    this.$emit('update:modelValue', val)
+watch(toggle, (val: boolean) => {
+  if (val) {
+    display.value = true
   }
-}
-
-export default toNative(AcMarkdownExplination)
+}, {immediate: true})
 </script>

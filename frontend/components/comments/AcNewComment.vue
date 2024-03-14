@@ -3,7 +3,7 @@
     <v-toolbar dense color="black" v-if="isRegistered || (isLoggedIn && guestOk)">
       <ac-avatar :user="viewer" :show-name="false" class="ml-3"/>
       <v-toolbar-title class="ml-1">
-        <ac-link :to="profileLink(viewer as User)">{{viewerName}}</ac-link>
+        <ac-link :to="profileLink(viewerUser)">{{viewerName}}</ac-link>
       </v-toolbar-title>
       <v-spacer/>
     </v-toolbar>
@@ -33,7 +33,7 @@
                         <v-tooltip top>
                           <template v-slot:activator="{ props }">
                             <v-btn v-bind="props" @click="cancel" color="danger" icon small class="cancel-button">
-                              <v-icon icon="mdi-cancel"/>
+                              <v-icon :icon="mdiCancel"/>
                             </v-btn>
                           </template>
                           <span>Cancel</span>
@@ -43,7 +43,7 @@
                         <v-tooltip top>
                           <template v-slot:activator="{ props }">
                             <v-btn v-bind="props" color="blue" type="submit" icon class="submit-button" small>
-                              <v-icon icon="mdi-send"/>
+                              <v-icon :icon="mdiSend"/>
                             </v-btn>
                           </template>
                           <span>Send</span>
@@ -80,6 +80,7 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Formatting from '@/mixins/formatting.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
+import {mdiCancel, mdiSend} from '@mdi/js'
 import {User} from '@/store/profiles/types/User.ts'
 
 @Component({
@@ -110,7 +111,12 @@ class AcNewComment extends mixins(Viewer, Formatting) {
   public extraData!: RawData
 
   public newCommentForm: FormController = null as unknown as FormController
+  public mdiCancel = mdiCancel
+  public mdiSend = mdiSend
 
+  public get viewerUser() {
+    return this.viewer as User
+  }
   public get color() {
     if (this.alternate) {
       // @ts-ignore

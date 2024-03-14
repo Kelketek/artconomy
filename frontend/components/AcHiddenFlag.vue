@@ -1,6 +1,6 @@
 <template>
   <div class="hidden-marker-container" v-if="value">
-    <v-icon class="ml-2 mt-2 elevation-20 background-black" icon="mdi-eye-off"/>
+    <v-icon class="ml-2 mt-2 elevation-20 background-black" :icon="mdiEyeOff"/>
   </div>
 </template>
 
@@ -18,14 +18,7 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-
-@Component
-class AcHiddenFlag extends Vue {
-  @Prop({required: true})
-  public value!: boolean
-}
-
-export default toNative(AcHiddenFlag)
+<script setup lang="ts">
+import {mdiEyeOff} from '@mdi/js'
+const props = defineProps<{value: boolean}>()
 </script>

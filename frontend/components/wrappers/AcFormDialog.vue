@@ -14,7 +14,7 @@
       <div v-if="$vuetify.display.smAndDown">
         <v-toolbar dark color="secondary">
           <v-btn variant="plain" @click="toggle = false" dark class="dialog-closer">
-            <v-icon icon="mdi-close"/>
+            <v-icon :icon="mdiClose"/>
           </v-btn>
           <v-toolbar-title>{{title}}</v-toolbar-title>
           <v-spacer/>
@@ -29,7 +29,7 @@
         <v-toolbar-title>{{title}}</v-toolbar-title>
         <v-spacer/>
         <v-btn icon @click="toggle = false" dark class="dialog-closer">
-          <v-icon icon="mdi-close"/>
+          <v-icon :icon="mdiClose"/>
         </v-btn>
       </v-toolbar>
       <v-card-text class="scrollableText" :class="{'pa-0': fluid}">
@@ -70,6 +70,7 @@ import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
 import AcFormContainer from './AcFormContainer.vue'
 import Dialog from '@/mixins/dialog.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import {mdiClose} from '@mdi/js'
 
 @Component({
   name: 'ac-form-dialog',
@@ -112,6 +113,8 @@ class AcFormDialog extends mixins(Dialog) {
 
   @Prop({default: true})
   public showSubmit!: boolean
+
+  public mdiClose = mdiClose
 
   public reSend(event: Event) {
     // Re-emit form so that we can use semantic Vue @event directives without the browser

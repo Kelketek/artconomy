@@ -9,7 +9,7 @@
       <v-spacer/>
       <v-tooltip bottom>
         <template v-slot:activator="{ props }">
-          <v-icon v-bind="props" icon="mdi-information"/>
+          <v-icon v-bind="props" :icon="mdiInformation"/>
         </template>
         {{formatDateTime(comment.x.created_on)}}
         <span v-if="comment.x.edited"><br/>Edited: {{formatDateTime(comment.x.edited_on)}}</span>
@@ -17,32 +17,32 @@
       <v-menu offset-x left v-if="!inHistory" :attach="$menuTarget">
         <template v-slot:activator="{props}">
           <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-            <v-icon icon="mdi-dots-horizontal"/>
+            <v-icon :icon="mdiDotsHorizontal"/>
           </v-btn>
         </template>
         <v-list dense>
           <v-list-item @click="historyDisplay = true" v-if="showHistory">
             <template v-slot:prepend>
-              <v-icon class="history-button" icon="mdi-history"/>
+              <v-icon class="history-button" :icon="mdiHistory"/>
             </template>
             <v-list-item-title>Revision history</v-list-item-title>
           </v-list-item>
           <v-list-item @click="editing = true" v-if="!editing && controls">
             <template v-slot:prepend>
-              <v-icon class="edit-button" icon="mdi-pencil"/>
+              <v-icon class="edit-button" :icon="mdiPencil"/>
             </template>
             <v-list-item-title>Edit</v-list-item-title>
           </v-list-item>
           <v-list-item @click="editing = false" v-if="editing && controls">
             <template v-slot:prepend>
-              <v-icon class="lock-button" icon="mdi-cancel"/>
+              <v-icon class="lock-button" :icon="mdiCancel"/>
             </template>
             <v-list-item-title>Cancel edit</v-list-item-title>
           </v-list-item>
           <v-list-item @click.stop="comment.patch({subscribed: !comment.x.subscribed})">
             <template v-slot:prepend>
-              <v-icon v-if="comment.x.subscribed" icon="mdi-volume-up"/>
-              <v-icon v-else icon="mdi-volume-off"/>
+              <v-icon v-if="comment.x.subscribed" :icon="mdiVolumeHigh"/>
+              <v-icon v-else :icon="mdiVolumeOff"/>
             </template>
             <v-list-item-title>
               Notifications
@@ -54,7 +54,7 @@
             <template v-slot:default="confirmContext">
               <v-list-item v-on="confirmContext.on">
                 <template v-slot:prepend>
-                  <v-icon class="delete-button" icon="mdi-delete"/>
+                  <v-icon class="delete-button" :icon="mdiDelete"/>
                 </template>
                 <v-list-item-title>Delete</v-list-item-title>
               </v-list-item>
@@ -82,7 +82,7 @@
                       <template v-slot:activator="{ props }">
                         <v-btn v-bind="props" @click="editing=false" icon small color="danger" class="cancel-button"
                                :disabled="!!comment.patchers.text.patching">
-                          <v-icon icon="mdi-cancel"/>
+                          <v-icon :icon="mdiCancel"/>
                         </v-btn>
                       </template>
                       <span>Cancel</span>
@@ -101,7 +101,7 @@
                   <v-tooltip top>
                     <template v-slot:activator="{ props }">
                       <v-btn v-bind="props" color="primary" icon small @click="replying = true" class="reply-button">
-                        <v-icon icon="mdi-reply"/>
+                        <v-icon :icon="mdiReply"/>
                       </v-btn>
                     </template>
                     <span>Reply</span>
@@ -118,9 +118,8 @@
           <v-row no-gutters class="mt-4">
             <v-col v-if="subCommentList.moreAvailable">
               <v-btn block @click="subCommentList.next" variant="flat">
-                <v-icon left>expand_more</v-icon>
                 Load More
-                <v-icon right icon="mdi-expand-more"/>
+                <v-icon right :icon="mdiArrowExpandDown"/>
               </v-btn>
             </v-col>
             <ac-load-section :controller="subCommentList">
@@ -159,7 +158,7 @@
               <v-tooltip top>
                 <template v-slot:activator="{ props }">
                   <v-btn v-bind="props" color="primary" small icon @click="replying = true" class="reply-button">
-                    <v-icon icon="mdi-reply"/>
+                    <v-icon :icon="mdiReply"/>
                   </v-btn>
                 </template>
                 <span>Reply</span>
@@ -194,6 +193,7 @@ import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import Comment from '@/types/Comment.ts'
 import Formatting from '@/mixins/formatting.ts'
+import {mdiArrowExpandDown, mdiDotsHorizontal, mdiReply, mdiCancel, mdiDelete, mdiVolumeOff, mdiVolumeHigh, mdiPencil, mdiHistory, mdiHeadDotsHorizontal, mdiInformation} from '@mdi/js'
 const AcAvatar = defineAsyncComponent(() => import('@/components/AcAvatar.vue'))
 const AcRendered = defineAsyncComponent(() => import('@/components/wrappers/AcRendered.ts'))
 const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
@@ -257,6 +257,17 @@ class AcComment extends mixins(Subjective, Formatting) {
   public scrolled = false
   public historyDisplay = false
   public renderHistory = false
+  public mdiArrowExpandDown = mdiArrowExpandDown
+  public mdiDotsHorizontal = mdiDotsHorizontal
+  public mdiReply = mdiReply
+  public mdiCancel = mdiCancel
+  public mdiDelete = mdiDelete
+  public mdiVolumeOff = mdiVolumeOff
+  public mdiVolumeHigh = mdiVolumeHigh
+  public mdiPencil = mdiPencil
+  public mdiHistory = mdiHistory
+  public mdiHeadDotsHorizontal = mdiHeadDotsHorizontal
+  public mdiInformation = mdiInformation
 
   public get canHaveChildren() {
     if (!this.nesting) {

@@ -8,24 +8,17 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
+const props = defineProps<{modelValue: number}>()
+const emit = defineEmits<{'update:modelValue': [number]}>()
 
-@Component({emits: ['update:modelValue']})
-class AcStarField extends Vue {
-  @Prop({required: true})
-  public modelValue!: number
-
-  public update(val: number|string) {
-    let result: number
-    if (typeof val === 'number') {
-      result = val
-    } else {
-      result = parseInt(val, 10)
-    }
-    this.$emit('update:modelValue', result)
+const update = (val: number|string) => {
+  let result: number
+  if (typeof val === 'number') {
+    result = val
+  } else {
+    result = parseInt(val, 10)
   }
+  emit('update:modelValue', result)
 }
-
-export default toNative(AcStarField)
 </script>

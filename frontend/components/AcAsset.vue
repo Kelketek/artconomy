@@ -8,7 +8,7 @@
               <v-row no-gutters class="justify-content" align="center">
                 <v-col class="edit-cta text-center">
                   <slot name="edit-prompt">
-                    <v-icon large icon="mdi-pencil"/>
+                    <v-icon large :icon="mdiPencil"/>
                     <p>Edit</p>
                   </slot>
                 </v-col>
@@ -38,7 +38,7 @@
               <v-card-text align-self-center>
                 <v-row no-gutters>
                   <v-col class="text-center" cols="12">
-                    <v-icon x-large icon="mdi-cancel"/>
+                    <v-icon x-large :icon="mdiCancel"/>
                     <v-col v-if="text">
                       <div v-if="!permittedRating">
                         <div>This piece exceeds your content rating settings.</div>
@@ -127,6 +127,7 @@ import AssetProps from '@/types/AssetProps.ts'
 import {computed, defineAsyncComponent, onMounted, ref} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
+import {mdiCancel, mdiPencil} from '@mdi/js'
 
 const AcVideoPlayer = defineAsyncComponent(() => import('@/components/AcVideoPlayer.vue'))
 const AcMarkdownViewer = defineAsyncComponent(() => import('@/components/AcMarkdownViewer.vue'))

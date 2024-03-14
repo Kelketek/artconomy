@@ -41,7 +41,7 @@
                       <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                         <v-tooltip bottom v-if="product.escrow_enabled" aria-label="Tooltip for shield indicator">
                           <template v-slot:activator="{props}">
-                            <v-icon color="green" class="pl-1" small v-bind="props" icon="mdi-shield-half-full" aria-label="Learn More About this product's shield protection."/>
+                            <v-icon color="green" class="pl-1" small v-bind="props" :icon="mdiShieldHalfFull" aria-label="Learn More About this product's shield protection."/>
                           </template>
                           <span>Protected by Artconomy Shield</span>
                         </v-tooltip>
@@ -51,7 +51,7 @@
                 </v-col>
                 <v-col class="text-center hidden-sm-and-down" cols="12" v-if="product.escrow_enabled">
                   <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                    <v-icon color="green" class="pr-1" icon="mdi-shield-half-full"/>
+                    <v-icon color="green" class="pr-1" :icon="mdiShieldHalfFull"/>
                     <span>Protected by Artconomy Shield</span>
                   </ac-link>
                 </v-col>
@@ -115,7 +115,7 @@
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                   <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable" aria-label="Tooltip for shield status indicator">
                     <template v-slot:activator="{props}">
-                      <v-icon :color="shieldColor" class="pl-1" small v-bind="props" icon="mdi-shield-half-full"/>
+                      <v-icon :color="shieldColor" class="pl-1" small v-bind="props" :icon="mdiShieldHalfFull"/>
                       <span class="d-sr-only">Learn more about shield.</span>
                     </template>
                     <span v-if="product.escrow_enabled || forceShield">Protected by Artconomy Shield</span>
@@ -155,7 +155,7 @@
             <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
               <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable" aria-label="Shield Status Tooltip">
                 <template v-slot:activator="{props}">
-                  <v-icon :color="shieldColor" class="pl-1" v-bind="props" icon="mdi-shield-half-full" aria-label="Learn more about Shield."/>
+                  <v-icon :color="shieldColor" class="pl-1" v-bind="props" :icon="mdiShieldHalfFull" aria-label="Learn more about Shield."/>
                   <span class="d-sr-only">Learn more about shield.</span>
                 </template>
                 <span v-if="product.escrow_enabled || forceShield">Protected by Artconomy Shield</span>
@@ -236,6 +236,7 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import Formatting from '@/mixins/formatting.ts'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
 import {RouteLocationRaw} from 'vue-router'
+import {mdiShieldHalfFull} from '@mdi/js'
 
 @Component({
   components: {
@@ -264,6 +265,8 @@ class AcProductPreview extends mixins(Formatting) {
 
   @Prop({default: true})
   public linked!: boolean
+
+  public mdiShieldHalfFull = mdiShieldHalfFull
 
   public get startingPrice() {
     if (this.forceShield) {

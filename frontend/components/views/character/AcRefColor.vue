@@ -27,7 +27,7 @@
         </template>
         <template v-slot:default="{on}">
           <v-btn size="x-small" icon v-on="on" color="red" class="delete-button align-self-center">
-            <v-icon icon="mdi-delete"/>
+            <v-icon :icon="mdiDelete"/>
           </v-btn>
         </template>
       </ac-confirmation>
@@ -51,6 +51,7 @@ import {SingleController} from '@/store/singles/controller.ts'
 import Color from '@/store/characters/types/Color.ts'
 import {useEditable} from '@/mixins/editable.ts'
 import {computed} from 'vue'
+import {mdiDelete} from '@mdi/js'
 
 const props = defineProps<{color: SingleController<Color>, username: string}>()
 

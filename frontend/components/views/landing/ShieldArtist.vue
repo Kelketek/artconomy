@@ -85,7 +85,7 @@
         <v-col class="text-center" cols="12">
           <v-btn large color="green" :to="{name: 'Register', query: {artist_mode: 'true'}}"
                  :block="$vuetify.display.xs" variant="flat" class="commission-cta">
-            <v-icon left icon="mdi-palette"/>
+            <v-icon left :icon="mdiPalette"/>
             Open Your Store Now!
           </v-btn>
         </v-col>
@@ -105,6 +105,7 @@ import {BASE_URL} from '@/lib/lib.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {usePrerendering} from '@/mixins/prerendering.ts'
+import {mdiPalette} from '@mdi/js'
 
 const router = useRouter()
 

@@ -7,22 +7,22 @@
     <v-spacer/>
     <v-toolbar-items v-if="subject && isRegistered && $vuetify.display.smAndUp">
       <v-btn color="secondary" variant="flat" @click="editing = !editing" v-if="showEdit && controls">
-        <v-icon v-if="editing" icon="mdi-lock"/>
-        <v-icon v-else icon="mdi-pencil"/>
+        <v-icon v-if="editing" :icon="mdiLock"/>
+        <v-icon v-else :icon="mdiPencil"/>
         <span v-if="editing">Lock</span>
         <span v-else>Edit</span>
       </v-btn>
       <v-btn color="secondary" @click="showMenu=!showMenu" v-if="isStaff && !isCurrent" variant="flat">
-        <v-icon left icon="mdi-menu"/>
+        <v-icon left :icon="mdiMenu"/>
         Menu
       </v-btn>
       <v-btn color="primary" class="message-button" @click="showNew = true" v-if="!isCurrent" variant="flat">
-        <v-icon left icon="mdi-message"/>
+        <v-icon left :icon="mdiMessage"/>
         Message
       </v-btn>
       <v-btn color="grey-darken-2" @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent" variant="flat">
-        <v-icon left v-if="subject.watching" icon="mdi-eye-off"/>
-        <v-icon left v-else icon="mdi-eye"/>
+        <v-icon left v-if="subject.watching" :icon="mdiEyeOff"/>
+        <v-icon left v-else :icon="mdiEye"/>
         <span v-if="subject.watching">Unwatch</span>
         <span v-else>Watch</span>
       </v-btn>
@@ -49,7 +49,7 @@
         </template>
         <template v-slot:default="{on}">
           <v-btn color="red" v-on="on" variant="flat">
-            <v-icon left icon="mdi-cancel"/>
+            <v-icon left :icon="mdiCancel"/>
             <span v-if="subject!.blocking">Unblock</span>
             <span v-else>Block</span>
           </v-btn>
@@ -59,26 +59,26 @@
     <v-menu offset-y v-else-if="subject && isRegistered">
       <template v-slot:activator="{props}">
         <v-btn v-bind="props" icon aria-label="Actions">
-          <v-icon icon="mdi-dots-horizontal"/>
+          <v-icon :icon="mdiDotsHorizontal"/>
         </v-btn>
       </template>
       <v-list dense>
         <v-list-item v-if="isStaff && !isCurrent" @click="showMenu=true">
           <template v-slot:prepend>
-            <v-icon icon="mdi-menu"/>
+            <v-icon :icon="mdiMenu"/>
           </template>
           <v-list-item-title>Menu</v-list-item-title>
         </v-list-item>
         <v-list-item class="message-button" @click="showNew = true" v-if="!isCurrent">
           <template v-slot:prepend>
-            <v-icon icon="mdi-message"/>
+            <v-icon :icon="mdiMessage"/>
           </template>
           <v-list-item-title>Message</v-list-item-title>
         </v-list-item>
         <v-list-item @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent">
           <template v-slot:prepend>
-            <v-icon v-if="subject.watching" icon="mdi-eye-off"/>
-            <v-icon v-else icon="mdi-eye"/>
+            <v-icon v-if="subject.watching" :icon="mdiEyeOff"/>
+            <v-icon v-else :icon="mdiEye"/>
           </template>
           <v-list-item-title>
             <span v-if="subject.watching">Unwatch</span>
@@ -87,8 +87,8 @@
         </v-list-item>
         <v-list-item @click.stop="editing = !editing" v-if="controls && showEdit">
           <template v-slot:prepend>
-            <v-icon v-if="editing" icon="mdi-lock"/>
-            <v-icon v-else icon="mdi-pencil"/>
+            <v-icon v-if="editing" :icon="mdiLock"/>
+            <v-icon v-else :icon="mdiPencil"/>
           </template>
           <v-list-item-title v-if="editing">Lock</v-list-item-title>
           <v-list-item-title v-else>Edit</v-list-item-title>
@@ -116,7 +116,7 @@
           <template v-slot:default="{on}">
             <v-list-item v-on="on">
               <template v-slot:prepend>
-                <v-icon icon="mdi-cancel"/>
+                <v-icon :icon="mdiCancel"/>
               </template>
               <v-list-item-title>
                 <span v-if="subject.blocking">Unblock</span>
@@ -176,6 +176,7 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {SingleController} from '@/store/singles/controller.ts'
+import {mdiLock, mdiPencil, mdiMenu, mdiMessage, mdiEyeOff, mdiEye, mdiCancel, mdiDotsHorizontal} from '@mdi/js'
 
 @Component({
   components: {
@@ -200,6 +201,14 @@ class AcProfileHeader extends mixins(Subjective, Formatting, Editable) {
   public newConversation = null as unknown as FormController
 
   public showMenu = false
+  public mdiLock = mdiLock
+  public mdiPencil = mdiPencil
+  public mdiMenu = mdiMenu
+  public mdiMessage = mdiMessage
+  public mdiEyeOff = mdiEyeOff
+  public mdiCancel = mdiCancel
+  public mdiDotsHorizontal = mdiDotsHorizontal
+  public mdiEye = mdiEye
 
   public blockToggle() {
     (this.subjectHandler.user as SingleController<User>).patch({blocking: this.subject!.blocking})

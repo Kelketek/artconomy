@@ -6,7 +6,7 @@
       </v-col>
       <v-col class="text-center fill-height shrink px-2">
         <ac-icon :icon="cardIcon" v-if="cardIcon"/>
-        <v-icon icon="mdi-credit-card" v-else/>
+        <v-icon :icon="mdiCreditCard" v-else/>
       </v-col>
       <v-col class="text-center fill-height shrink px-2">
         <v-row no-gutters justify="center" align="center">
@@ -17,7 +17,7 @@
         <v-tooltip v-if="wrongProcessor" top>
           <template v-slot:activator="{props}">
             <v-btn color="yellow" v-bind="props" icon size="x-small" class="default-indicator">
-              <v-icon icon="mdi-warning" size="x-large"/>
+              <v-icon :icon="mdiAlert" size="x-large"/>
             </v-btn>
           </template>
           <span>
@@ -27,7 +27,7 @@
         <v-tooltip v-if="card.x.primary" top>
           <template v-slot:activator="{props}">
             <v-btn color="green" v-bind="props" icon size="x-small" class="default-indicator">
-              <v-icon icon="mdi-star" size="x-large"/>
+              <v-icon :icon="mdiStar" size="x-large"/>
             </v-btn>
           </template>
           <span>Default Card</span>
@@ -35,7 +35,7 @@
         <v-tooltip v-else top>
           <template v-slot:activator="{props}">
             <v-btn v-bind="props" size="x-small" icon @click="makePrimary" color="black" class="make-default">
-              <v-icon icon="mdi-star-border" size="x-large"/>
+              <v-icon :icon="mdiStarOutline" size="x-large"/>
             </v-btn>
           </template>
           <span>Set Default</span>
@@ -43,7 +43,7 @@
         <ac-confirmation :action="deleteCard" card-class="delete-confirm">
           <template v-slot:default="{on}">
             <v-btn v-on="on" icon size="x-small" color="error" class="delete-card">
-              <v-icon icon="mdi-delete" size="x-large"/>
+              <v-icon :icon="mdiDelete" size="x-large"/>
             </v-btn>
           </template>
         </ac-confirmation>
@@ -67,9 +67,9 @@ import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {artCall} from '@/lib/lib.ts'
-import {siVisa, siMastercard, siAmericanexpress, siDiscover, siDinersclub, SimpleIcon} from 'simple-icons'
 import AcIcon from '@/components/AcIcon.vue'
 import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
+import {mdiCreditCard, mdiAlert, mdiStar, mdiStarOutline, mdiDelete} from '@mdi/js'
 
 @Component({
   components: {
@@ -89,6 +89,12 @@ class AcCard extends Vue {
 
   @Prop({default: ''})
   public processor!: string
+
+  public mdiCreditCard = mdiCreditCard
+  public mdiAlert = mdiAlert
+  public mdiStar = mdiStar
+  public mdiStarOutline = mdiStarOutline
+  public mdiDelete = mdiDelete
 
   public async deleteCard() {
     return this.card.delete().then(this.cardList.get)

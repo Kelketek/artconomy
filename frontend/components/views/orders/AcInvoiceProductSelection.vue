@@ -16,7 +16,7 @@
           <v-card>
             <v-card-title>Custom Project</v-card-title>
             <v-card-text>
-              <v-btn color="green" block @click="showCustom = true"><v-icon icon="mdi-plus"/>Create Custom Invoice</v-btn>
+              <v-btn color="green" block @click="showCustom = true"><v-icon :icon="mdiPlus"/>Create Custom Invoice</v-btn>
             </v-card-text>
           </v-card>
         </v-col>
@@ -100,6 +100,7 @@ import {defineAsyncComponent, ref} from 'vue'
 import {Character} from '@/store/characters/types/Character.ts'
 import Deliverable from '@/types/Deliverable.ts'
 import {useRouter} from 'vue-router'
+import {mdiPlus} from '@mdi/js'
 const AcProductPreview = defineAsyncComponent(() => import('@/components/AcProductPreview.vue'))
 const AcFormDialog = defineAsyncComponent(() => import('@/components/wrappers/AcFormDialog.vue'))
 const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))

@@ -1,7 +1,7 @@
 <template>
   <div class="unread-container">
     <v-btn icon size="x-small" color="primary" v-if="!read" top right absolute class="no-mouse badge-pin">
-      <v-icon icon="mdi-alert-decagram"/>
+      <v-icon :icon="mdiAlertDecagram"/>
     </v-btn>
     <slot></slot>
   </div>
@@ -23,14 +23,8 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {mdiAlertDecagram} from '@mdi/js'
 
-@Component
-class AcUnreadMarker extends Vue {
-  @Prop({required: true})
-  public read!: boolean
-}
-
-export default toNative(AcUnreadMarker)
+const props = defineProps<{read: boolean}>()
 </script>

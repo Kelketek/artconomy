@@ -23,7 +23,7 @@
                 <ac-confirmation :action="attribute.delete">
                   <template v-slot:default="{on}">
                     <v-btn color="red" icon small type="submit" v-on="on">
-                      <v-icon icon="mdi-delete"/>
+                      <v-icon :icon="mdiDelete"/>
                     </v-btn>
                   </template>
                 </ac-confirmation>
@@ -45,7 +45,7 @@
             <v-col cols="2" lg="1" class="d-flex">
               <v-col class="text-center">
                 <v-btn color="black" icon elevation="0" type="submit" size="x-small" class="submit-attribute">
-                  <v-icon color="yellow" icon="mdi-content-save"/>
+                  <v-icon color="yellow" :icon="mdiContentSave"/>
                 </v-btn>
               </v-col>
             </v-col>
@@ -91,9 +91,9 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import CharacterCentric from '@/components/views/character/mixins/CharacterCentric.ts'
 import Editable from '@/mixins/editable.ts'
 import {artCall} from '@/lib/lib.ts'
-import axios from 'axios'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import {mdiContentSave, mdiDelete} from '@mdi/js'
 
 @Component({
   components: {
@@ -108,6 +108,8 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 class AcAttributes extends mixins(Subjective, CharacterCentric, Editable) {
   public newAttribute: FormController = null as unknown as FormController
   public cancelSource = new AbortController()
+  public mdiContentSave = mdiContentSave
+  public mdiDelete = mdiDelete
 
   @Watch('stickies')
   public updateTags(newVal: string[], oldVal: string[]) {

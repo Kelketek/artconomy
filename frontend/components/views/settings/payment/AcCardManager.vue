@@ -5,11 +5,11 @@
         <v-col>
           <v-tabs v-if="cards.list.length" v-model="tab" fixed-tabs>
             <v-tab value="saved-cards" class="saved-card-tab">
-              <v-icon icon="mdi-content-save"/>
+              <v-icon :icon="mdiContentSave"/>
               Saved Cards
             </v-tab>
             <v-tab href="#new-card" class="new-card-tab">
-              <v-icon icon="mdi-credit-card"/>
+              <v-icon :icon="mdiCreditCard"/>
               New Card
             </v-tab>
           </v-tabs>
@@ -89,6 +89,7 @@ import {StripeCardElement} from '@stripe/stripe-js'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {User} from '@/store/profiles/types/User.ts'
+import {mdiCreditCard, mdiContentSave} from '@mdi/js'
 
 declare type StripeError = { error: null | { message: string } }
 
@@ -133,6 +134,8 @@ class AcCardManager extends mixins(Subjective, Alerts, StripeMixin) {
 
   public lastCard: null | number = null
   public stripeCard: StripeCardElement | null = null
+  public mdiCreditCard = mdiCreditCard
+  public mdiContentSave = mdiContentSave
 
   public created() {
     let cardsName = `${flatten(this.username)}__creditCards`

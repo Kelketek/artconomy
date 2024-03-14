@@ -35,7 +35,7 @@
               <v-row no-gutters>
                 <v-col class="text-center" cols="12">
                   <v-btn @click="newUpload = true" color="primary" variant="flat">
-                    <v-icon left icon="mdi-upload"/>
+                    <v-icon left :icon="mdiUpload"/>
                     Upload New Sample
                   </v-btn>
                 </v-col>
@@ -86,6 +86,8 @@ import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import {defineAsyncComponent} from 'vue'
+import {mdiUpload} from '@mdi/js'
+
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 @Component({
@@ -117,6 +119,7 @@ class AcSampleEditor extends mixins(Subjective) {
   public newSubmission: FormController = null as unknown as FormController
   public tab = 'tab-pick-sample'
   public newUpload = false
+  public mdiUpload = mdiUpload
 
   // These two functions reference the new submission form, which is not playing nicely with other test suites, and
   // it's not clear why.

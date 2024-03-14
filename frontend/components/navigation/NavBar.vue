@@ -45,7 +45,7 @@
                   >
                     <v-row no-gutters class="px-2">
                       <v-col cols="12" class="text-center">
-                        <v-icon medium icon="mdi-pencil"/>
+                        <v-icon medium :icon="mdiPencil"/>
                       </v-col>
                       <v-col cols="12" class="text-center pt-1">
                         <small>Blog</small>
@@ -72,7 +72,7 @@
                 <v-col class="bottom-button" @click.capture.prevent="showSupport" tabindex="0">
                   <v-row no-gutters>
                     <v-col cols="12" class="text-center support-button">
-                      <v-icon medium icon="mdi-chat-question"/>
+                      <v-icon medium :icon="mdiChatQuestion"/>
                     </v-col>
                     <v-col cols="12" class="text-center pt-1">
                       <small>Support</small>
@@ -115,7 +115,7 @@
         </v-btn>
       </v-toolbar-title>
       <v-btn icon class="hidden-md-and-up" :to="{name: 'SearchProducts'}" aria-label="Search">
-        <v-icon x-large icon="mdi-magnify"></v-icon>
+        <v-icon x-large :icon="mdiMagnify"></v-icon>
       </v-btn>
       <ac-bound-field
           :field="searchForm.fields.q"
@@ -131,7 +131,7 @@
       >
         <template v-slot:prepend>
           <v-btn icon variant="plain" :to="{name: 'SearchProducts'}" aria-label="Search" class="search-button-offset">
-            <v-icon x-large icon="mdi-magnify"></v-icon>
+            <v-icon x-large :icon="mdiMagnify"></v-icon>
           </v-btn>
         </template>
       </ac-bound-field>
@@ -156,7 +156,7 @@
                 <span v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
                 <span v-else>*</span>
               </template>
-              <v-icon size="x-large" icon="mdi-bell"/>
+              <v-icon size="x-large" :icon="mdiBell"/>
             </v-badge>
           </template>
         </v-btn>
@@ -221,6 +221,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import {useSearchForm} from '@/components/views/search/hooks.ts'
+import {mdiBell, mdiChatQuestion, mdiMagnify, mdiPencil} from '@mdi/js'
 const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/AcStatsBar.vue'))
 
 // Should already have been populated in the root component.

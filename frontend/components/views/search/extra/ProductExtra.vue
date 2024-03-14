@@ -6,7 +6,7 @@
           <v-expansion-panel-title class="pa-1">
             <v-row no-gutters>
               <v-col class="text-center extra-height">
-                <v-icon left icon="mdi-cog"/>
+                <v-icon left :icon="mdiCog"/>
                 Search Options
                 <v-chip v-if="searchForm.fields.shield_only.value" variant="flat" color="green" class="mx-1">shield
                 </v-chip>
@@ -164,6 +164,7 @@ import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'
 import {useContentRatingSearch} from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
+import {mdiCog} from '@mdi/js'
 
 const searchForm = useForm('search')
 const {showRatings, ratingItems} = useContentRatingSearch(searchForm)

@@ -11,7 +11,7 @@
         </v-col>
         <v-col cols="2">
           <v-btn color="green" variant="flat" class="mt-2" :to="{name: 'Product', params: {username, productId: `${product.x!.id}`}}">
-            <v-icon icon="mdi-open-in_full"/>
+            <v-icon :icon="mdiArrowExpand"/>
           </v-btn>
         </v-col>
       </v-row>
@@ -36,30 +36,17 @@
     </ac-expanded-property>
   </v-row>
 </template>
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import Product from '@/types/Product.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import Subjective from '@/mixins/subjective.ts'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
+import {ref} from 'vue'
+import {mdiArrowExpand} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
-@Component({
-  components: {
-    AcPatchField,
-    AcExpandedProperty,
-    AcFormDialog,
-    AcProductPreview,
-  },
-})
-class AcProductManager extends mixins(Subjective) {
-  @Prop({required: true})
-  public product!: SingleController<Product>
 
-  public showSettings = false
-}
-
-export default toNative(AcProductManager)
+const props = defineProps<{product: SingleController<Product>} & SubjectiveProps>()
+const showSettings = ref(false)
 </script>

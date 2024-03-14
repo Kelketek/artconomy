@@ -4,14 +4,14 @@
       <v-tooltip top v-if="editable" aria-label="Tooltip for Artist tagger">
         <template v-slot:activator="{props}">
           <v-btn v-bind="props" @click="toggle=true" color="secondary" icon size="small" class="mr-1" aria-label="Tag Artists">
-            <v-icon icon="mdi-palette" size="x-large" />
+            <v-icon :icon="mdiPalette" size="x-large" />
           </v-btn>
         </template>
         Edit Artists
       </v-tooltip>
       <v-tooltip top v-else aria-label="Tooltip for Artists">
         <template v-slot:activator="{props}">
-          <v-icon v-bind="props" icon="mdi-palette"/>
+          <v-icon v-bind="props" :icon="mdiPalette"/>
         </template>
         Artists
       </v-tooltip>
@@ -56,6 +56,7 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import ArtistTag from '@/types/ArtistTag.ts'
 import {ArtVue} from '@/lib/lib.ts'
+import {mdiPalette} from '@mdi/js'
 
 @Component({
   components: {
@@ -77,6 +78,8 @@ class AcArtistDisplay extends ArtVue {
   public toggle = false
   @Prop({required: true})
   public editable!: boolean
+
+  public mdiPalette = mdiPalette
 
   public created() {
     this.tagArtist = this.$getForm(

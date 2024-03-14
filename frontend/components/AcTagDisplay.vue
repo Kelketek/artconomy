@@ -5,14 +5,14 @@
         <v-tooltip top v-if="controls">
           <template v-slot:activator="{props}" aria-label="Tooltip for tags">
             <v-btn color="primary" icon size="small" v-bind="props" @click="editTags" class="edit-button" aria-label="Edit tags">
-              <v-icon size="x-large" icon="mdi-tag-multiple"/>
+              <v-icon size="x-large" :icon="mdiTagMultiple"/>
             </v-btn>
           </template>
           Edit Tags
         </v-tooltip>
         <v-tooltip top v-else aria-label="Tooltip for tags">
           <template v-slot:activator="{props}">
-            <v-icon v-bind="props" icon="mdi-tag-multiple" aria-label="Tags"/>
+            <v-icon v-bind="props" :icon="mdiTagMultiple" aria-label="Tags"/>
           </template>
           Tags
         </v-tooltip>
@@ -63,6 +63,7 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
+import {mdiTagMultiple} from '@mdi/js'
 
 @Component({
   components: {
@@ -85,6 +86,7 @@ class AcTagDisplay extends mixins(Subjective) {
 
   public toggle = false
   public editing = false
+  public mdiTagMultiple = mdiTagMultiple
 
   public editTags() {
     this.toggle = true

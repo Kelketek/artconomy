@@ -5,7 +5,7 @@
         <ac-form-container v-bind="invoiceForm.bind">
           <ac-form @submit.prevent="invoiceForm.submitThen(goToInvoice)">
             <v-btn color="green" block type="submit" variant="flat">
-              <v-icon icon="mdi-receipt-text"/>
+              <v-icon :icon="mdiReceiptText"/>
               New invoice
             </v-btn>
           </ac-form>
@@ -39,11 +39,11 @@
     <v-toolbar class="table-invoice-toolbar">
       <v-toolbar-items>
         <v-btn @click="() => $router.go(-1)" color="secondary" variant="flat">
-          <v-icon left icon="mdi-arrow-back"/>
+          <v-icon left :icon="mdiArrowLeftThick"/>
           Back
         </v-btn>
         <v-btn color="primary" @click="performPrint" variant="flat">
-          <v-icon left icon="mdi-print"/>
+          <v-icon left :icon="mdiPrinter"/>
           Print
         </v-btn>
       </v-toolbar-items>
@@ -82,6 +82,7 @@ import Formatting from '@/mixins/formatting.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {NavSettings} from '@/types/NavSettings.ts'
 import {initDrawerValue} from '@/lib/lib.ts'
+import {mdiArrowLeftThick, mdiPrinter, mdiReceiptText} from '@mdi/js'
 
 @Component({
   components: {
@@ -95,6 +96,9 @@ class TableInvoices extends mixins(Viewer, Formatting) {
   invoices = null as unknown as ListController<Invoice>
   invoiceForm = null as unknown as FormController
   navSettings = null as unknown as SingleController<NavSettings>
+  mdiArrowLeftThick = mdiArrowLeftThick
+  mdiPrinter = mdiPrinter
+  mdiReceiptText = mdiReceiptText
 
   @Prop({default: initDrawerValue})
   public initialState!: null | boolean

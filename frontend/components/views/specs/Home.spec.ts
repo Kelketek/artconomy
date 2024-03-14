@@ -52,9 +52,6 @@ describe('Home.vue', () => {
     vm.lowPriced.setList([])
     vm.lowPriced.ready = true
     vm.lowPriced.fetching = false
-    vm.newArtistProducts.setList([])
-    vm.newArtistProducts.ready = true
-    vm.newArtistProducts.fetching = false
     vm.randomProducts.setList([])
     vm.randomProducts.ready = true
     vm.randomProducts.fetching = false

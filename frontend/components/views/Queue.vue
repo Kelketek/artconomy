@@ -7,11 +7,11 @@
           <v-row>
             <v-col cols="12" class="text-right">
               <v-btn color="green" :to="{name: 'Products', params: {username}}" variant="flat">
-                <v-icon left icon="mdi-add"/>
+                <v-icon left :icon="mdiPlus"/>
                 Place an order!
               </v-btn>
               <v-btn class="ml-2" @click="openListing" variant="elevated" v-if="isCurrent">
-                <v-icon icon="mdi-open-in_new"/>
+                <v-icon :icon="mdiOpenInNew"/>
                 Stream list display
               </v-btn>
             </v-col>
@@ -30,7 +30,7 @@
           </v-col>
           <v-col cols="12" class="text-center">
             <v-btn color="green" :to="{name: 'Products', params: {username}}" variant="flat">
-              <v-icon left icon="mdi-add"/>
+              <v-icon left :icon="mdiPlus"/>
               Place an order!
             </v-btn>
           </v-col>
@@ -40,39 +40,27 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+<script setup lang="ts">
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import Order from '@/types/Order.ts'
+import {mdiOpenInNew, mdiPlus} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {setError} from '@/mixins/ErrorHandling.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 
-@Component({
-  components: {
-    AcOrderPreview,
-    AcPaginated,
-    AcProfileHeader,
-    AcLoadSection,
-  },
-})
-class Queue extends mixins(Subjective) {
-  public list: ListController<Order> = null as unknown as ListController<Order>
+const props = defineProps<SubjectiveProps>()
+const {isCurrent} = useSubject(props)
 
-  public openListing() {
-    const params = 'scrollbars=no,resizable=yes,status=no,location=no,toolbar=no,menubar=no,width=200,height=300,left=100,top=100'
-    open(`/store/${this.username}/queue-listing/`, 'test', params)
-  }
-
-  public created() {
-    this.list = this.$getList(`${this.username}__queue`, {
-      endpoint: `/api/sales/account/${this.username}/queue/`,
-    })
-    this.list.get().catch(this.setError)
-  }
+const openListing = () => {
+  const params = 'scrollbars=no,resizable=yes,status=no,location=no,toolbar=no,menubar=no,width=200,height=300,left=100,top=100'
+  open(`/store/${props.username}/queue-listing/`, 'test', params)
 }
 
-export default toNative(Queue)
+const list = useList<Order>(`${props.username}__queue`, {
+  endpoint: `/api/sales/account/${props.username}/queue/`,
+})
+list.get().catch(setError)
 </script>

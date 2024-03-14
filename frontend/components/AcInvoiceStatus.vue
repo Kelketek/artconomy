@@ -5,42 +5,35 @@
   </v-chip>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import Invoice from '@/types/Invoice.ts'
+import {mdiInvoiceCheck, mdiInvoiceTextEdit, mdiInvoiceTextRemove, mdiStar} from '@mdi/js'
 
-@Component
-class AcInvoiceStatus extends Vue {
-  public STATUSES = {
-    0: {
-      text: 'Draft',
-      icon: 'edit_note',
-      color: 'white',
-      dark: false,
-    },
-    1: {
-      text: 'Open',
-      icon: 'star',
-      color: 'primary',
-      dark: true,
-    },
-    2: {
-      text: 'Paid',
-      icon: 'paid',
-      color: 'green',
-      dark: true,
-    },
-    5: {
-      text: 'Void',
-      icon: 'block',
-      color: 'black',
-      dark: true,
-    },
-  }
-
-  @Prop({required: true})
-  public invoice!: Invoice
+const props = defineProps<{invoice: Invoice}>()
+const STATUSES = {
+  0: {
+    text: 'Draft',
+    icon: mdiInvoiceTextEdit,
+    color: 'white',
+    dark: false,
+  },
+  1: {
+    text: 'Open',
+    icon: mdiStar,
+    color: 'primary',
+    dark: true,
+  },
+  2: {
+    text: 'Paid',
+    icon: mdiInvoiceCheck,
+    color: 'green',
+    dark: true,
+  },
+  5: {
+    text: 'Void',
+    icon: mdiInvoiceTextRemove,
+    color: 'black',
+    dark: true,
+  },
 }
-
-export default toNative(AcInvoiceStatus)
 </script>

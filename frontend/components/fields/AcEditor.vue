@@ -21,8 +21,8 @@
                        color="grey-darken-4"
                        :aria-label="`Preview mode ${previewMode ? 'on' : 'off'}`"
                 >
-                  <v-icon v-if="previewMode" size="x-large" icon="mdi-eye-off"/>
-                  <v-icon v-else icon="mdi-eye" size="x-large"/>
+                  <v-icon v-if="previewMode" size="x-large" :icon="mdiEyeOff"/>
+                  <v-icon v-else :icon="mdiEye" size="x-large"/>
                 </v-btn>
               </template>
               <span>Preview</span>
@@ -33,7 +33,7 @@
               <template v-slot:activator="{ props }">
                 <v-btn v-bind="props" @click="$store.commit('setMarkdownHelp', true)" :class="{weakened: disabled}"
                        size="small" icon color="blue" aria-label="Formatting help">
-                  <v-icon size="x-large" icon="mdi-help-circle"/>
+                  <v-icon size="x-large" :icon="mdiHelpCircle"/>
                 </v-btn>
               </template>
               <span>Formatting help</span>
@@ -51,7 +51,7 @@
                       <!-- Using a button here so the two elements are aligned. -->
                       <v-btn v-bind="props" variant="plain" icon size="small" class="save-indicator"
                              @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled" aria-label="Saved.">
-                        <v-icon color="green" size="x-large" class="save-indicator" icon="mdi-check-circle"/>
+                        <v-icon color="green" size="x-large" class="save-indicator" :icon="mdiCheckCircle"/>
                       </v-btn>
                     </template>
                     <span>Saved</span>
@@ -61,7 +61,7 @@
                       <!-- Using a button here so the two elements are aligned. -->
                       <v-btn v-bind="props" variant="plain" icon size="small" class="save-indicator"
                              @click.stop="() => {}" :ripple="false" tabindex="-1" :disabled="disabled" aria-label="Unsaved.">
-                        <v-icon color="yellow" size="x-large" class="save-indicator" icon="mdi-alert"/>
+                        <v-icon color="yellow" size="x-large" class="save-indicator" :icon="mdiAlert"/>
                       </v-btn>
                     </template>
                     <span>Unsaved</span>
@@ -72,7 +72,7 @@
                     <template v-slot:activator="{ props }">
                       <v-btn v-bind="props" @click="save" :disabled="saved || disabled" color="black" icon size="small"
                              class="save-button" aria-label="Needs saving.">
-                        <v-icon color="yellow" icon="mdi-content-save"/>
+                        <v-icon color="yellow" :icon="mdiContentSave"/>
                       </v-btn>
                     </template>
                     <span>Save</span>
@@ -106,6 +106,7 @@ import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import {ComponentPublicInstance} from 'vue'
 import {ArtVue} from '@/lib/lib.ts'
+import {mdiEyeOff, mdiEye, mdiHelpCircle, mdiCheckCircle, mdiAlert, mdiContentSave} from '@mdi/js'
 
 @Component({
   components: {
@@ -139,6 +140,12 @@ class AcEditor extends ArtVue {
   public previewMode = false
 
   public scratch: string = ''
+  public mdiEyeOff = mdiEyeOff
+  public mdiEye = mdiEye
+  public mdiHelpCircle = mdiHelpCircle
+  public mdiCheckCircle = mdiCheckCircle
+  public mdiAlert = mdiAlert
+  public mdiContentSave = mdiContentSave
 
   public created() {
     this.scratch = this.modelValue

@@ -144,7 +144,7 @@
       </v-window-item>
       <v-window-item value="completed">
         <v-col cols="12" class="mt-4 text-center" v-if="selectedPlan">
-          <v-icon icon="mdi-check-circle" size="x-large" />
+          <v-icon :icon="mdiCheckCircle" size="x-large" />
           <div v-if="selectedPlan.monthly_charge">
             <p><strong>Your payment has been received!</strong></p>
             <p>We've received your payment and your account has been upgraded! Visit your
@@ -183,6 +183,7 @@ import Subjective from '@/mixins/subjective.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import Pricing from '@/types/Pricing.ts'
+import {mdiCheckCircle} from '@mdi/js'
 
 @Component({
   components: {
@@ -198,6 +199,7 @@ class Upgrade extends mixins(Subjective, StripeHostMixin, Formatting) {
   public paymentForm = null as unknown as FormController
   public selection: null | string = null
   public paid = false
+  public mdiCheckCircle = mdiCheckCircle
 
   public get tab() {
     if (this.selection === null) {

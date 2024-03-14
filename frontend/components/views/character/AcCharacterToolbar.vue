@@ -18,7 +18,7 @@
           </template>
         </ac-share-button>
         <v-btn color="green" variant="flat" @click="showUpload = true" v-if="controls" class="upload-button">
-          <v-icon left icon="mdi-upload"/>
+          <v-icon left :icon="mdiUpload"/>
           Upload
         </v-btn>
         <ac-new-submission :show-characters="character.profile.x"
@@ -33,14 +33,14 @@
         <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="$menuTarget">
           <template v-slot:activator="{props}">
             <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-              <v-icon icon="mdi-dots-horizontal"/>
+              <v-icon :icon="mdiDotsHorizontal"/>
             </v-btn>
           </template>
           <v-list dense>
             <v-list-item @click.stop="editing = !editing" v-if="showEdit">
               <template v-slot:prepend>
-                <v-icon v-if="editing" icon="mdi-lock"/>
-                <v-icon v-else icon="mdi-pencil"/>
+                <v-icon v-if="editing" :icon="mdiLock"/>
+                <v-icon v-else :icon="mdiPencil"/>
               </template>
               <v-list-item-title v-if="editing">Lock</v-list-item-title>
               <v-list-item-title v-else>Edit</v-list-item-title>
@@ -71,7 +71,7 @@
               <template v-slot:default="confirmContext">
                 <v-list-item v-on="confirmContext.on">
                   <template v-slot:prepend>
-                    <v-icon class="delete-button" icon="mdi-delete"/>
+                    <v-icon class="delete-button" :icon="mdiDelete"/>
                   </template>
                   <v-list-item-title>Delete</v-list-item-title>
                 </v-list-item>
@@ -106,6 +106,7 @@ import Editable from '@/mixins/editable.ts'
 import Sharable from '@/mixins/sharable.ts'
 import Submission from '@/types/Submission.ts'
 import {defineAsyncComponent} from 'vue'
+import {mdiDelete, mdiPencil, mdiLock, mdiDotsHorizontal, mdiUpload} from '@mdi/js'
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 @Component({
@@ -134,6 +135,11 @@ class AcCharacterToolbar extends mixins(CharacterCentric, Upload, Editable, Shar
 
   public newUpload: FormController = null as unknown as FormController
   public step = 1
+  public mdiDelete = mdiDelete
+  public mdiPencil = mdiPencil
+  public mdiLock = mdiLock
+  public mdiDotsHorizontal = mdiDotsHorizontal
+  public mdiUpload = mdiUpload
 
   public success(submission: Submission) {
     this.showUpload = false

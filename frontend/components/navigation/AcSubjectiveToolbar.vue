@@ -7,11 +7,11 @@
       </v-toolbar-title>
     </slot>
     <v-spacer/>
-    <v-toolbar-items v-if="!$vuetify.display.xs">
+    <v-toolbar-items v-if="!display.xs">
       <slot/>
     </v-toolbar-items>
   </v-toolbar>
-  <v-toolbar v-if="$vuetify.display.xs" dense class="subjective-mini-buttons" height="32px">
+  <v-toolbar v-if="display.xs" dense class="subjective-mini-buttons" height="32px">
     <slot/>
   </v-toolbar>
 </template>
@@ -26,21 +26,15 @@
   margin-right: 4px; }
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcAvatar from '../AcAvatar.vue'
-import Subjective from '../../mixins/subjective.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useSubject} from '@/mixins/subjective.ts'
+import {useDisplay} from 'vuetify'
+import {profileLink} from '@/lib/lib.ts'
 
-@Component({
-  components: {
-    AcLink,
-    AcAvatar,
-  },
-})
-class AcSubjectiveToolbar extends mixins(Subjective, Formatting) {
-}
-
-export default toNative(AcSubjectiveToolbar)
+const props = defineProps<SubjectiveProps>()
+const {subjectHandler, subject} = useSubject(props)
+const display = useDisplay()
 </script>
