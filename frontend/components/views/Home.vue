@@ -142,7 +142,7 @@
         </v-col>
         <v-col cols="12" md="12" :lg="isRegistered ? 12 : 6" :class="{'py-2': !isRegistered}"
                :order="isRegistered ? 1 : 5" :order-lg="isRegistered ? 1 : 2">
-          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
+          <v-card :color="theme.current.value.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
               <v-spacer/>
@@ -179,7 +179,7 @@
           </v-card>
         </v-col>
         <v-col cols="12" md="12" :lg="6" class="px-1 py-2 fill-height" order="2" order-lg="3">
-          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
+          <v-card :color="theme.current.value.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Community Resources</v-toolbar-title>
             </v-toolbar>
@@ -245,16 +245,16 @@
           <v-card>
             <ac-tabs :items="communityItems" v-model="communitySection" label="Communities"/>
           </v-card>
-          <v-window :value="communitySection">
-            <v-window-item>
+          <v-window v-model="communitySection">
+            <v-window-item :value="0">
               <ac-product-slider :list="artistsOfColor"></ac-product-slider>
               <v-btn block color="primary" @click="search({artists_of_color: true})" variant="flat">See More</v-btn>
             </v-window-item>
-            <v-window-item>
+            <v-window-item :value="1">
               <ac-product-slider :list="lgbt"></ac-product-slider>
               <v-btn block color="primary" @click="search({lgbt: true})" variant="flat">See More</v-btn>
             </v-window-item>
-            <v-window-item>
+            <v-window-item :value="2">
               <ac-load-section :controller="communitySubmissions">
                 <template v-slot:default>
                   <v-row dense>
@@ -281,7 +281,7 @@
           </v-window>
         </v-col>
         <v-col cols="12" md="12" :lg="isRegistered? 6 : 12" class="px-1 py-2" :order="isRegistered ? 4 : 6">
-          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
+          <v-card :color="theme.current.value.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>Recent Submissions</v-toolbar-title>
               <v-spacer/>
@@ -316,7 +316,7 @@
           </v-card>
         </v-col>
         <v-col cols="12" class="px-1 py-2" order="7">
-          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
+          <v-card :color="theme.current.value.colors['well-darken-4']">
             <v-toolbar dense color="secondary">
               <v-toolbar-title>New Characters</v-toolbar-title>
               <v-spacer/>
@@ -383,7 +383,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref} from 'vue'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import {useRouter} from 'vue-router'
-import {useDisplay} from 'vuetify'
+import {useDisplay, useTheme} from 'vuetify'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {mdiPalette, mdiShieldHalfFull, mdiMagnify, mdiStar, mdiEmoticonOutline, mdiTag, mdiDice5} from '@mdi/js'
 
@@ -393,6 +393,8 @@ const featured = useList<Product>('featured', {
   params: {size: 6},
 })
 featured.firstRun()
+
+const theme = useTheme()
 
 const rated = useList<Product>('rated', {
   endpoint: '/api/sales/highly-rated/',
@@ -632,17 +634,14 @@ const communityItems = [
   {
     value: 0,
     title: 'Artists of Color',
-    icon: '',
   },
   {
     value: 1,
     title: 'LGBTQ+',
-    icon: '',
   },
   {
     value: 2,
     title: 'Artconomy',
-    icon: '',
   },
 ]
 

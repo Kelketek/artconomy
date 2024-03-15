@@ -71,5 +71,9 @@ const slider = ref(0)
 const cycle = ref(true)
 const shown = ref(props.eager)
 
-watch(shown, () => props.list.firstRun(), {immediate: true})
+watch(shown,(value: boolean) => {
+  if (value) {
+    props.list.firstRun()
+  }}, {immediate: true}
+)
 </script>
