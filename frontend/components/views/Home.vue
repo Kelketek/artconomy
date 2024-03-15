@@ -48,7 +48,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="laptop" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox typing away on a Laptop" :eager="prerendering"/>
+                  <v-img :src="laptop" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox typing away on a Laptop" :eager="true" :transition="false"/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -66,7 +66,7 @@
             <v-col class="grow pa-1">
               <v-row no-gutters>
                 <v-col cols="6" md="12">
-                  <v-img :src="fingerPainting" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox painting a piece of art." :eager="prerendering"/>
+                  <v-img :src="fingerPainting" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox painting a piece of art." :eager="true" :transition="false"/>
                 </v-col>
                 <v-col class="pa-1" cols="6" md="12">
                   <v-row no-gutters class="justify-content fill-height" align="center">
@@ -90,7 +90,7 @@
             <v-col class="grow pa-1">
               <v-row dense>
                 <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="fridge" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox hanging his work on the fridge for all to enjoy!" :eager="prerendering"/>
+                  <v-img :src="fridge" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox hanging his work on the fridge for all to enjoy!" :eager="true" :transition="false"/>
                 </v-col>
                 <v-col cols="6" md="12" order="1" order-md="2">
                   <v-row class="justify-content fill-height" align="center">
@@ -118,7 +118,7 @@
           <v-window v-model="mainSection">
             <v-window-item :value="0">
               <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>
-              <ac-product-slider :list="featured"/>
+              <ac-product-slider :list="featured" :eager="true"/>
               <v-btn block color="primary" @click="search({featured: true})" variant="flat">See All Featured</v-btn>
             </v-window-item>
             <v-window-item :value="1">

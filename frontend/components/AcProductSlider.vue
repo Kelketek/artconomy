@@ -5,7 +5,7 @@
         <template v-slot:default>
           <v-carousel :show-arrows="true" height="100%" v-model="slider" :cycle="cycle" :hide-delimiters="true">
             <v-carousel-item v-for="product in list.list" :key="product.x!.id">
-              <ac-product-preview :carousel="true" :product="product.x"/>
+              <ac-product-preview :carousel="true" :product="product.x!" :eager="eager"/>
             </v-carousel-item>
           </v-carousel>
         </template>
@@ -65,11 +65,11 @@ import Product from '@/types/Product.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ref, watch} from 'vue'
 
-const props = defineProps<{list: ListController<Product>}>()
+const props = withDefaults(defineProps<{list: ListController<Product>, eager?: boolean}>(), {eager: false})
 
 const slider = ref(0)
 const cycle = ref(true)
-const shown = ref(false)
+const shown = ref(props.eager)
 
 watch(shown, () => props.list.firstRun(), {immediate: true})
 </script>

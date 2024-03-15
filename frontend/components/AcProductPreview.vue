@@ -11,7 +11,7 @@
             <v-col cols="6" sm="12" lg="8">
               <ac-link :to="{name: 'Product', params: {productId: `${product.id}`, username: product.user.username}}">
                 <ac-hidden-flag :value="product.table_product || product.hidden"/>
-                <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :alt="productAltText"/>
+                <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :alt="productAltText" :eager="eager"/>
               </ac-link>
             </v-col>
           </v-row>
@@ -22,7 +22,7 @@
               <v-row class="fill-height" no-gutters>
                 <v-col cols="12" class="text-center hidden-sm-and-down title py-3">
                   <ac-link :to="productLink" class="text-center">
-                    <div v-html="mdRenderInline(product.name)" class="text-center"/>
+                    <div v-html="md.renderInline(product.name)" class="text-center"/>
                   </ac-link>
                 </v-col>
                 <v-col cols="12" class="text-center hidden-md-and-up">
@@ -226,101 +226,83 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import Product from '@/types/Product.ts'
 import AcAsset from '@/components/AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import Formatting from '@/mixins/formatting.ts'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
 import {RouteLocationRaw} from 'vue-router'
 import {mdiShieldHalfFull} from '@mdi/js'
+import {computed} from 'vue'
+import {md} from '@/lib/formattingTools.ts'
 
-@Component({
-  components: {
-    AcHiddenFlag,
-    AcAvatar,
-    AcRendered,
-    AcLink,
-    AcAsset,
-  },
-})
-class AcProductPreview extends mixins(Formatting) {
-  @Prop({required: true})
-  public product!: Product
-
-  @Prop({default: false})
-  public mini!: boolean
-
-  @Prop({default: false})
-  public carousel!: boolean
-
-  @Prop({default: true})
-  public showUsername!: boolean
-
-  @Prop({default: false})
-  public forceShield!: boolean
-
-  @Prop({default: true})
-  public linked!: boolean
-
-  public mdiShieldHalfFull = mdiShieldHalfFull
-
-  public get startingPrice() {
-    if (this.forceShield) {
-      return this.product.shield_price.toFixed(2)
-    }
-    return this.product.starting_price.toFixed(2)
-  }
-
-  public get shieldColor() {
-    if (this.forceShield) {
-      return 'green'
-    }
-    if (this.product.escrow_enabled) {
-      return 'green'
-    }
-    return ''
-  }
-
-  public get productLink() {
-    if (!this.linked) {
-      return undefined
-    }
-    const path: RouteLocationRaw = {
-      name: 'Product',
-      params: {
-        username: this.product.user.username,
-        productId: `${this.product.id}`,
-      },
-    }
-    if (this.forceShield) {
-      path.query = {forceShield: 'true'}
-    }
-    return path
-  }
-
-  public get productAltText() {
-    if (!this.product.primary_submission) {
-      return this.product.name
-    }
-    const title = this.product.primary_submission.title
-    if (!title) {
-      return `Untitled Showcase submission for ${this.product.name}`
-    }
-    return `Showcase submission for ${this.product.name} entitled `
-  }
-
-  public get unavailable() {
-    return !this.product.available
-  }
-
-  public get turnaround() {
-    return Math.ceil(this.product.expected_turnaround)
-  }
+declare interface AcProductPreviewProps {
+  product: Product,
+  mini?: boolean,
+  carousel?: boolean,
+  showUsername?: boolean,
+  forceShield?: boolean,
+  linked?: boolean,
+  eager?: boolean,
 }
 
-export default toNative(AcProductPreview)
+const props = withDefaults(defineProps<AcProductPreviewProps>(), {
+  mini: false,
+  carousel: false,
+  showUsername: true,
+  forceShield: false,
+  linked: true,
+  eager: false,
+})
+
+const startingPrice = computed(() => {
+  if (props.forceShield) {
+    return props.product.shield_price.toFixed(2)
+  }
+  return props.product.starting_price.toFixed(2)
+})
+
+const shieldColor = computed(() => {
+  if (props.forceShield) {
+    return 'green'
+  }
+  if (props.product.escrow_enabled) {
+    return 'green'
+  }
+  return ''
+})
+
+const productLink = computed(() => {
+  if (!props.linked) {
+    return undefined
+  }
+  const path: RouteLocationRaw = {
+    name: 'Product',
+    params: {
+      username: props.product.user.username,
+      productId: `${props.product.id}`,
+    },
+  }
+  if (props.forceShield) {
+    path.query = {forceShield: 'true'}
+  }
+  return path
+})
+
+const productAltText = computed(() => {
+  if (!props.product.primary_submission) {
+    return props.product.name
+  }
+  const title = props.product.primary_submission.title
+  if (!title) {
+    return `Untitled Showcase submission for ${props.product.name}`
+  }
+  return `Showcase submission for ${props.product.name} entitled `
+})
+
+const unavailable = () => computed(() => !props.product.available)
+
+const turnaround = computed(() => Math.ceil(props.product.expected_turnaround))
 </script>

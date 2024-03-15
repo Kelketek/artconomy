@@ -14,6 +14,12 @@
     <meta name="og:image" content="{{base_url}}/static/images/twitter-card.jpg" />
     <meta name="twitter:image" content="{{base_url}}/static/images/twitter-card.jpg" />
   {% endfor %}
+  {% for link in image_links %}
+    <link rel="preload" as="image" href="{{link}}" />
+  {% endfor %}
+  {% for link in preload_images %}
+  <link rel="preload" as="image" href="{{link}}" />
+  {% endfor %}
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@ArtconomyArt" />
   <meta name="og:title" content="{{title}}" />
@@ -42,6 +48,7 @@
   DEFAULT_CARD_PROCESSOR = "{{ settings.DEFAULT_CARD_PROCESSOR }}";
   DEFAULT_SERVICE_PLAN_NAME = "{{ settings.DEFAULT_SERVICE_PLAN_NAME }}";
   SANDBOX_APIS = JSON.parse(document.getElementById('card-test-flag').textContent);
+  {% if initial_modules %}INITIAL_MODULES={{ initial_modules|safe }}{% endif %};
 </script>
 <div id="app">
   <div class="lds-dual-ring"></div>

@@ -1,7 +1,7 @@
 <template>
   <v-row no-gutters>
     <v-col cols="12">
-      <ac-product-preview :product="product.x" :username="username" @click.capture.stop.prevent="() => false"
+      <ac-product-preview :product="product.x!" :username="username" @click.capture.stop.prevent="() => false"
                           :linked="false"/>
     </v-col>
     <v-col cols="12">

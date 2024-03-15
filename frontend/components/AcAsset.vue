@@ -21,7 +21,8 @@
       <v-col cols="12" v-if="renderImage && isImage">
         <v-img :src="displayImage" :aspect-ratio="ratio || undefined" :contain="contain"
                max-height="90vh" max-width="100%" class="asset-image"
-               itemprop="image" :alt="alt" :eager="prerendering"
+               itemprop="image" :alt="alt" :eager="immediate"
+               :transition="immediate ? false : undefined"
         />
       </v-col>
       <v-col class="text-center icon-image" v-else-if="renderImage && !isImage" cols="12">
@@ -151,6 +152,7 @@ declare interface AcAssetProps extends AssetProps {
   thumbName: string,
   editing?: boolean,
   text?: boolean,
+  eager?: boolean,
 }
 
 const props = withDefaults(defineProps<AcAssetProps>(), {
@@ -158,6 +160,7 @@ const props = withDefaults(defineProps<AcAssetProps>(), {
   asset: null,
   aspectRatio: 1,
   text: true,
+  eager: false,
 })
 
 const {ageCheck, isRegistered} = useViewer()
@@ -194,6 +197,8 @@ const displayComponent = computed(() => {
 const renderImage = computed(() => canDisplay.value && (isImage.value || !displayComponent.value))
 
 const {prerendering} = usePrerendering()
+
+const immediate = computed(() => prerendering.value || props.eager)
 
 const ratio = computed(() => {
   if ((!canDisplay.value) && (props.aspectRatio === null)) {

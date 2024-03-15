@@ -92,12 +92,14 @@ def country_choices():
 subdivisions.get(country_code="US")
 
 subdivision_map = {
-    country.alpha_2: {
-        subdivision.code[3:]: subdivision.name
-        for subdivision in subdivisions.get(country_code=country.alpha_2)
-    }
-    if country.alpha_2 in subdivisions.indices["country_code"]
-    else {}
+    country.alpha_2: (
+        {
+            subdivision.code[3:]: subdivision.name
+            for subdivision in subdivisions.get(country_code=country.alpha_2)
+        }
+        if country.alpha_2 in subdivisions.indices["country_code"]
+        else {}
+    )
     for country in countries
 }
 
@@ -1238,3 +1240,25 @@ def utc_now():
 
 def request_key(request):
     return request.session.session_key
+
+
+def preload_single(module_name: str, url: str, data: dict, schema_extras: dict):
+    return {
+        "type": "single",
+        "name": module_name,
+        "endpoint": url,
+        "x": data,
+        "ready": True,
+        **schema_extras,
+    }
+
+
+def preload_list(module_name: str, url: str, data: list, schema_extras: dict):
+    return {
+        "type": "list",
+        "name": module_name,
+        "endpoint": url,
+        "entries": data,
+        "ready": True,
+        **schema_extras,
+    }
