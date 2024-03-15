@@ -302,7 +302,7 @@ const productAltText = computed(() => {
   return `Showcase submission for ${props.product.name} entitled `
 })
 
-const unavailable = () => computed(() => !props.product.available)
+const unavailable = computed(() => !props.product.available)
 
 const turnaround = computed(() => Math.ceil(props.product.expected_turnaround))
 </script>
