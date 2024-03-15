@@ -14,20 +14,13 @@
 
 <script setup lang="ts">
 import {RouteLocationRaw, useRouter} from 'vue-router'
-import {redirect, usePrerendering} from '@/mixins/prerendering.ts'
 import {onMounted} from 'vue'
-
-const {prerendering} = usePrerendering()
 
 const router = useRouter()
 
 const props = defineProps<{route: RouteLocationRaw}>()
 
 onMounted(() => {
-  if (prerendering.value) {
-    redirect(`${window.location.origin}${router.resolve(props.route).fullPath}`)
-    return
-  }
   router.push(props.route)
 })
 </script>
