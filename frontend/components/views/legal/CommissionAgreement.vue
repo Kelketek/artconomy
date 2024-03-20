@@ -11,8 +11,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <p><strong>Last updated: November 29, 2019</strong>
-        </p>
+        <p><strong>Last updated: March 29, 2024</strong></p>
         <p>
           This is an agreement ("Agreement") between the commissioner (“Commissioner”), artist (“Artist”), and the
           intermediary (“Artconomy”) to complete an artistic work ("Commission").
@@ -109,6 +108,14 @@
           unless it has been uploaded to their public gallery, in which case it may be used within screenshots of the
           service or when posting examples of what work has been commissioned through Artconomy.
         </p>
+        <p>
+          In the event that rights assignment is limited by law, such as inalienable authors rights in Germany, the
+          Artist shall inform the Commissioner of these limitations in the Commission Info settings of their account,
+          which is copied and appended to every commission agreement. To the extent possible by law, the Author affirms
+          intent to assign or grant rights as intended in this agreement, and any assignment or grant deemed invalid
+          will not invalidate any other assignment or grant. Rights will be assigned in the regimes of the Commissioner,
+          the Artist, and Artconomy per the Governing Law section.
+        </p>
         <h2>Arbitration</h2>
         <p>
           Any controversy or claim arising out of or relating to this contract, or the breach thereof, shall be settled
@@ -141,16 +148,10 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {BASE_URL} from '@/lib/lib.ts'
 
-@Component
-class CommissionAgreement extends Vue {
-  public logo = new URL('/static/images/logo.svg', BASE_URL).href
-}
-
-export default toNative(CommissionAgreement)
+const logo = new URL('/static/images/logo.svg', BASE_URL).href
 </script>
 
 <style scoped>

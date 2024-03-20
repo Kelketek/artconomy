@@ -157,16 +157,10 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {BASE_URL} from '@/lib/lib.ts'
 
-@Component
-class PrivacyPolicy extends Vue {
-  public logo = new URL('/static/images/logo.svg', BASE_URL).href
-}
-
-export default toNative(PrivacyPolicy)
+const logo = new URL('/static/images/logo.svg', BASE_URL).href
 </script>
 
 <style scoped>

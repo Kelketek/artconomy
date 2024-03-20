@@ -11,7 +11,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <p><strong>Last updated: April 1, 2023</strong></p>
+        <p><strong>Last updated: March 29, 2024</strong></p>
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
           the https://artconomy.com/ website (the "Service") operated by
@@ -120,6 +120,18 @@
           subscription.
         </p>
 
+        <h3>Auctions</h3>
+
+        <p>Artconomy may provide auction listings. If you bid in an auction, you commit to purchasing the offered
+          product or service from the seller at the bid price. Sellers commit to sell at the bid price, so long as any
+          pre-specified reserve price has been met.</p>
+
+        <p>Failure to honor these commitments can result in disciplinary action including suspension or removal of
+          your account.</p>
+
+        <p>Attempts to manipulate bid pricing, even unsuccessful attempts, may also result in similar disciplinary
+          action, and potential referral to law enforcement.</p>
+
         <p>Refunds are covered by our
           <router-link :to="{name: 'RefundPolicy'}">Refund Policy.</router-link>
         </p>
@@ -226,11 +238,6 @@
           known of the controversy, claim, dispute or breach.
         </p>
         <p>
-          Prevailing party means the party in whose favor final judgment after appeal (if any) is rendered with
-          respect to the claims asserted in the Complaint. "Reasonable attorneys' fees" are those reasonable attorneys'
-          fees actually incurred in obtaining a judgment in favor of the prevailing party.
-        </p>
-        <p>
           The prevailing party will be entitled to Reasonable attorneys' fees.
         </p>
         <h2>Contact Us</h2>
@@ -240,16 +247,10 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {BASE_URL} from '@/lib/lib.ts'
 
-@Component
-class TermsOfService extends Vue {
-  public logo = new URL('/static/images/logo.svg', BASE_URL).href
-}
-
-export default toNative(TermsOfService)
+const logo = new URL('/static/images/logo.svg', BASE_URL).href
 </script>
 
 <style scoped>
