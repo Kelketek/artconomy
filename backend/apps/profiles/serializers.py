@@ -724,7 +724,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         except PaypalConfig.DoesNotExist:
             return False
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict):
         if attrs.get("rating", 0):
             birthday = attrs.get("birthday", self.instance.birthday)
             if birthday is None:
@@ -776,6 +776,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "next_service_plan",
             "international",
             "verified_email",
+            "verified_adult",
             "paypal_configured",
         )
         read_only_fields = [
@@ -791,6 +792,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                 "favorites_hidden",
                 "blacklist",
                 "biography",
+                "verified_adult",
                 "rating_count",
                 "birthday",
             ]
@@ -804,7 +806,7 @@ class SessionSettingsSerializer(serializers.Serializer):
     sfw_mode = serializers.BooleanField()
     birthday = serializers.DateField(allow_null=True)
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict):
         if attrs.get("rating", 0):
             birthday = attrs.get("birthday")
             if birthday is None:

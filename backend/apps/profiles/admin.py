@@ -15,6 +15,8 @@ class ArtconomyUserAdmin(EmailUserAdmin):
                     "is_active",
                     "is_staff",
                     "is_superuser",
+                    "artist_mode",
+                    "verified_adult",
                     "groups",
                     "user_permissions",
                     "guest",

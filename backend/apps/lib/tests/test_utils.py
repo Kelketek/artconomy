@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import ddt
 from apps.lib.models import (
     FAVORITE,
@@ -9,6 +11,7 @@ from apps.lib.models import (
 )
 from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
+from apps.lib.tests.fixtures.ip_checks import ip_result_sets
 from apps.lib.utils import (
     check_read,
     clear_events_subscriptions_and_comments,
@@ -19,11 +22,12 @@ from apps.lib.utils import (
     send_transaction_email,
     shift_position,
     subscribe,
+    check_theocratic_ban,
 )
 from apps.profiles.models import ArtconomyAnonymousUser, Submission
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from django.contrib.contenttypes.models import ContentType
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 
@@ -398,3 +402,23 @@ class TestPositionShifts(EnsurePlansMixin, TestCase):
                 f"Expected delta of {delta} to result in position value of {result} "
                 f"with initial position {start}. {err}",
             )
+
+
+@override_settings(
+    THEOCRACIES={
+        "blocked_regions": [
+            [{"key": "country_code", "value": "US"}, {"key": "region", "value": "TX"}],
+        ]
+    },
+    BYPASS_THEOCRACIES=False,
+)
+@ddt.ddt
+class TestCheckTheocraticBan(TestCase):
+    @ddt.data(*ip_result_sets)
+    @ddt.unpack
+    def test_detects_theocracy(self, ip, data, result):
+        with patch("apps.lib.utils.GeoIP2") as geoip_class:
+            mock_func = geoip_class.return_value.city
+            mock_func.return_value = data
+            self.assertEqual(check_theocratic_ban(ip), result)
+            mock_func.assert_called_with(ip)

@@ -9,10 +9,11 @@ RUN apt-get update
 RUN apt-get update --fix-missing
 RUN apt-get install software-properties-common apt-utils -y
 RUN add-apt-repository ppa:deadsnakes/ppa -y
+RUN add-apt-repository ppa:maxmind/ppa -y
 RUN apt-get update --fix-missing
 ENV DEBIAN_FRONTEND=noninteractive
 # Python compilation dependencies
-RUN apt-get install -y --no-install-recommends lzma lzma-dev bzip2 libbz2-dev libreadline-dev libncurses-dev sqlite3 libsqlite3-dev libffi-dev zlib1g zlib1g-dev
+RUN apt-get install -y --no-install-recommends lzma lzma-dev bzip2 libbz2-dev libreadline-dev libncurses-dev sqlite3 libsqlite3-dev libffi-dev zlib1g zlib1g-dev geoipupdate libmaxminddb0 libmaxminddb-dev mmdb-bin
 # Main dependencies
 RUN apt-get install -y --no-install-recommends python3-venv python3-pip python3.11 python3.11-dev build-essential curl git wget postgresql-client psmisc libpq-dev vim
 RUN apt-get upgrade -y

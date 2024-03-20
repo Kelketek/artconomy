@@ -209,6 +209,9 @@ class User(AbstractEmailUser, HitsMixin):
     )
     favorites_hidden = BooleanField(default=False)
     taggable = BooleanField(default=True, db_index=True)
+    # Used for states that require hard ID-based verification for access to adult
+    # content. Ignored otherwise. See the THEOCRACIES setting.
+    verified_adult = BooleanField(default=False, db_index=True)
     authorize_token = CharField(max_length=50, default="", db_index=True)
     stripe_token = CharField(max_length=50, default="", db_index=True)
     # Whether the user has made a shield purchase.

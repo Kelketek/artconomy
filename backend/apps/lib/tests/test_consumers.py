@@ -44,6 +44,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
         payload = await SA(empty_user)(
             session=session,
             user=ArtconomyAnonymousUser(),
+            ip=com.scope["client"][0],
         )
         self.assertEqual(response, {"command": "viewer", "payload": payload})
         await com.disconnect()

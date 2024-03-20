@@ -141,8 +141,8 @@ def extend_landscape(user, months):
     user.save()
 
 
-def empty_user(*, session, user):
-    session_settings = derive_session_settings(user=user, session=session)
+def empty_user(*, session, user, ip):
+    session_settings = derive_session_settings(user=user, session=session, ip=ip)
     return {
         "blacklist": [],
         "nsfw_blacklist": [],
