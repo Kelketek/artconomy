@@ -4,12 +4,11 @@ import {
   cleanUp,
   confirmAction,
   flushPromises,
-  genAnon,
   mount,
   rs,
   vueSetup, VuetifyWrapped,
 } from '@/specs/helpers/index.ts'
-import {genUser} from '@/specs/helpers/fixtures.ts'
+import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
 import {User} from '@/store/profiles/types/User.ts'

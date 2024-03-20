@@ -114,3 +114,9 @@
   args:
     executable: "/bin/bash"
     creates: "{{ home }}/.anonymous-user-created"
+
+- name: Pull GeoIP
+  shell: "/usr/bin/geoipupdate && touch {{ home }}/.initial-geoip-pull"
+  args:
+    executable: "/bin/bash"
+    creates: "{{ home }}/.initial-geoip-pull"

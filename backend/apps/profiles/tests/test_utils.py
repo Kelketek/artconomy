@@ -78,7 +78,7 @@ class TestEmptyUser(APITestCase):
             "birthday": "1988-08-01",
         }
         self.assertEqual(
-            empty_user(user=ArtconomyAnonymousUser(), session=session),
+            empty_user(user=ArtconomyAnonymousUser(), session=session, ip="127.0.0.1"),
             {
                 "blacklist": [],
                 "nsfw_blacklist": [],

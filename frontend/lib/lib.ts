@@ -30,6 +30,7 @@ import {
 import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
 import {defaultRender, deriveDisplayName, guestName, isForeign, md, mention} from '@/lib/formattingTools.ts'
+import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 
 // Needed for Matomo.
 declare global {
@@ -620,6 +621,8 @@ export function updateLinked(options: LinkUpdateOptions) {
   updateItems.map(options.list.replace)
 }
 
+window.__LOG_LEVEL__ = LogLevels.INFO
+
 export const log = {
   // Eventually I want to filter log statements based on their label.
   filter: [],
@@ -766,6 +769,7 @@ export const setViewer = (store: Store<any>, user: User | AnonUser | TerseUser) 
     new SingleModule<User | AnonUser | TerseUser>({
       x: user,
       endpoint: endpointFor(username),
+      socketSettings: {serializer: 'UserSerializer', appLabel: 'profiles', modelName: 'User'},
     }),
   )
   store.registerModule(

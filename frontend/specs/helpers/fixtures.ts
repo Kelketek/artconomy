@@ -16,6 +16,8 @@ import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import Invoice from '@/types/Invoice.ts'
 import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
 
 export function genUser(overrides?: Partial<User>): User {
   return {
@@ -53,6 +55,7 @@ export function genUser(overrides?: Partial<User>): User {
     next_service_plan: 'Free',
     verified_email: false,
     paypal_configured: false,
+    verified_adult: false,
     ...overrides,
   }
 }
@@ -305,6 +308,19 @@ export function genInvoice(overrides?: Partial<Invoice>): Invoice {
     issued_by: genUser({username: 'Vulpes'}),
     targets: [],
     total: 10.00,
+    ...overrides,
+  }
+}
+
+export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
+  return {
+    rating: Ratings.GENERAL,
+    blacklist: [],
+    nsfw_blacklist: [],
+    sfw_mode: false,
+    username: '_',
+    birthday: null,
+    verified_adult: false,
     ...overrides,
   }
 }

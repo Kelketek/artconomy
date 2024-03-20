@@ -9,8 +9,6 @@ import {ComponentPublicInstance, defineComponent} from 'vue'
 import {FieldController} from '@/store/forms/field-controller.ts'
 import {FieldBank} from '@/store/forms/form-controller.ts'
 import flushPromisesUpstream from 'flush-promises'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import {createSingles, singleRegistry} from '@/store/singles/registry.ts'
 import {createLists, listRegistry} from '@/store/lists/registry.ts'
 import {createProfiles, profileRegistry} from '@/store/profiles/registry.ts'
@@ -107,18 +105,6 @@ export function expectFields(fieldSet: FieldBank, names: string[]) {
 }
 
 export const flushPromises = flushPromisesUpstream
-
-export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
-  return {
-    rating: Ratings.GENERAL,
-    blacklist: [],
-    nsfw_blacklist: [],
-    sfw_mode: false,
-    username: '_',
-    birthday: null,
-    ...overrides,
-  }
-}
 
 export async function confirmAction(wrapper: VueWrapper<any>, selectors: string[]) {
   for (const selector of selectors) {

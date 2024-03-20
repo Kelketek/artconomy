@@ -83,6 +83,8 @@ factory-boy
 # Freezes time. Or rather, freezes the output of time libraries such that you can depend on them to return a particular
 # value during tests.
 freezegun
+# GeoIP2 for Region detection
+geoip2
 # Git analysis library-- used for getting context about the current version of the app.
 GitPython
 # After using bs4 to massage the markup, we use html2text to convert a section of HTML to markdown-style text.

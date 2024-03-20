@@ -816,3 +816,33 @@ STATICSITEMAPS_MOCK_SITE_NAME = DEFAULT_DOMAIN
 STATICSITEMAPS_ROOT_DIR = str(Path(STATIC_ROOT) / "sitemaps")
 
 STATICSITEMAPS_URL = str(Path(STATIC_URL) / "sitemaps")
+
+# Jurisdictions whose laws we need to concern ourselves with that have lost control
+# to religious nutjobs and thus must have content restricted. Think 'Texas' rather than
+# 'Qatar' since Qatar's laws have no effect on us directly, while we are headquartered
+# in Texas.
+#
+# The matches for these are tested against the MaxMind GeoIP database. The tests will
+# check for these key/value pairs, in order, to determine if the user is affected by a
+# law that requires onerous verification procedures to access adult content.
+#
+# We have a slight advantage here in that our artists who onboard with Stripe must be 18
+# to complete onboarding. So we can be sure that anyone who has onboarded counts. We
+# will have to investigate other means for allowing the remaining users verify if they
+# wish to.
+THEOCRACIES = get_env(
+    "THEOCRACIES",
+    {
+        "blocked_regions": [
+            [{"key": "country_code", "value": "US"}, {"key": "region", "value": "TX"}]
+        ]
+    },
+    unpack=True,
+)
+
+BYPASS_THEOCRACIES = bool(int(get_env("BYPASS_THEOCRACIES", DEBUG)))
+
+# Force rendering of theocratic ban. Useful for testing.
+FORCE_THEOCRACY = bool(int(get_env("FORCE_THEOCRACY", False)))
+
+GEOIP_PATH = get_env("GEO_IP_PATH", "/usr/share/GeoIP/")

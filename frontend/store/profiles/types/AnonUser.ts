@@ -11,4 +11,5 @@ export interface AnonUser {
   avatar_url?: undefined
   is_staff?: undefined,
   is_superuser?: undefined,
+  verified_adult: boolean,
 }

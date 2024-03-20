@@ -36,4 +36,5 @@ export interface User {
   next_service_plan: string,
   verified_email: boolean,
   paypal_configured: boolean,
+  verified_adult: boolean,
 }

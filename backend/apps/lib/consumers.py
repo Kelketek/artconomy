@@ -27,9 +27,9 @@ from django.db.models import Model
 from django.db.models.signals import post_delete, post_save
 from rest_framework.serializers import ModelSerializer, Serializer
 
-BROADCAST_SERIALIZERS: DefaultDict[
-    Type[Model], Dict[str, Type[ModelSerializer]]
-] = defaultdict(dict)
+BROADCAST_SERIALIZERS: DefaultDict[Type[Model], Dict[str, Type[ModelSerializer]]] = (
+    defaultdict(dict)
+)
 
 SA = sync_to_async
 
@@ -162,11 +162,11 @@ def register_serializer(cls: Type[ModelSerializer]):
 
 
 @database_sync_to_async
-def detailed_user_info(*, session, user):
+def detailed_user_info(*, session, user, ip):
     from apps.profiles.serializers import UserSerializer
 
     if not user.is_authenticated:
-        return empty_user(session=session, user=user)
+        return empty_user(session=session, user=user, ip=ip)
     return UserSerializer(instance=user).data
 
 
@@ -222,7 +222,11 @@ async def viewer(consumer, payload):
     """
     session = consumer.scope["session"]
     user = consumer.scope["user"]
-    user_info = await detailed_user_info(user=user, session=session)
+    user_info = await detailed_user_info(
+        user=user,
+        session=session,
+        ip=consumer.scope["client"][0],
+    )
     consumer.scope["socket_key"] = payload["socket_key"]
     await consumer.channel_layer.group_add(
         f'client.socket_key.{payload["socket_key"]}',

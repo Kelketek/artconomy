@@ -3,14 +3,13 @@ import {VueWrapper} from '@vue/test-utils'
 import App from '../App.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import flushPromises from 'flush-promises'
-import {genUser} from './helpers/fixtures.ts'
+import {genAnon, genUser} from './helpers/fixtures.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import {
   cleanUp,
   createTestRouter,
   dialogExpects,
   docTarget,
-  genAnon,
   mount,
   rq,
   rs,

@@ -4,12 +4,20 @@
       <v-container>
         <v-card>
           <v-card-text>
-            <v-row no-gutters>
+            <v-row>
+              <v-col cols="12" v-if="unverifiedInTheocracy">
+                <v-alert type="error">
+                  You are currently accessing Artconomy from a location that has restrictive laws on adult content.
+                  You will not be allowed to load adult content unless specific conditions are met.
+                  <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
+                </v-alert>
+              </v-col>
               <v-col cols="12" md="6" lg="4" order="2" order-md="1">
                 <ac-patch-field
                     field-type="ac-birthday-field"
                     label="Birthday"
                     :patcher="patchers.birthday"
+                    :disables="unverifiedInTheocracy"
                     :persistent-hint="true"
                     hint="You must be at least 18 years old to view adult content."
                 />
@@ -31,12 +39,6 @@
                       hint="You must be at least 18 years old to view adult content."
                   />
                 </v-card-text>
-              </v-col>
-              <v-col cols="12" order="4">
-                <v-alert type="warning" class="my-2" v-if="patchers.rating.model === EXTREME">
-                  What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this
-                  content.
-                </v-alert>
               </v-col>
               <v-col cols="12" order="5">
               </v-col>
@@ -121,11 +123,17 @@ class SessionSettings extends mixins(Viewer) {
     return (this.viewerHandler.user as SingleController<AnonUser>).patchers
   }
 
+  public get unverifiedInTheocracy() {
+    return this.theocraticBan && !this.patchers.verified_adult.model
+  }
+
   public get adultAllowed() {
     if (this.patchers.sfw_mode.model) {
       return false
     }
-    // @ts-ignore
+    if (this.unverifiedInTheocracy) {
+      return false
+    }
     const birthday = this.patchers.birthday.model
     if (birthday === null) {
       return false

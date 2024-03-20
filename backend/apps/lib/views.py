@@ -78,6 +78,7 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
             All(IsSafeMethod, CommentViewPermission),
         )
     ]
+    queryset = Comment.objects.all()
 
     def get_object(self):
         comment = get_object_or_404(Comment, id=self.kwargs["comment_id"])

@@ -266,6 +266,7 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
             IsSafeMethod,
         )
     ]
+    queryset = ArtistProfile.objects.all()
 
     @lru_cache()
     def get_object(self):
@@ -342,6 +343,7 @@ class TOTPDeviceList(ListCreateAPIView):
 class TOTPDeviceManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsUser]
     serializer_class = TwoFactorTimerSerializer
+    queryset = TOTPDevice.objects.all()
 
     def get_object(self):
         device = get_object_or_404(
@@ -356,6 +358,7 @@ class TOTPDeviceManager(RetrieveUpdateDestroyAPIView):
 class Telegram2FA(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsUser]
     serializer_class = TelegramDeviceSerializer
+    queryset = TelegramDevice.objects.all()
 
     def get_object(self):
         return get_object_or_404(TelegramDevice, user__username=self.kwargs["username"])
@@ -446,6 +449,7 @@ class CharacterManager(RetrieveUpdateDestroyAPIView):
             All(IsRegistered, ObjectControls),
         )
     ]
+    queryset = Character.objects.all()
 
     def get_object(self):
         character = get_object_or_404(
@@ -483,6 +487,7 @@ class SubmissionManager(RetrieveUpdateDestroyAPIView):
             SubmissionControls,
         )
     ]
+    queryset = Submission.objects.all()
     cached_submission = None
 
     def patch(self, request, *args, **kwargs):
@@ -575,11 +580,13 @@ class UserInfo(APIView):
             )
             data = serializer.data
             if not request.user.is_registered:
-                patch_data = empty_user(user=request.user, session=request.session)
+                patch_data = empty_user(
+                    user=request.user, session=request.session, ip=request.ip
+                )
                 del patch_data["username"]
                 data = {**data, **patch_data}
         else:
-            data = empty_user(user=request.user, session=request.session)
+            data = empty_user(user=request.user, session=request.session, ip=request.ip)
         return Response(data=data, status=status.HTTP_200_OK)
 
     # noinspection PyUnusedLocal
@@ -610,13 +617,15 @@ class CurrentUserInfo(UserInfo):
             return super().get(request, **kwargs)
         return Response(
             status=status.HTTP_200_OK,
-            data=empty_user(session=request.session, user=request.user),
+            data=empty_user(session=request.session, user=request.user, ip=request.ip),
         )
 
     def patch(self, request, **kwargs):
         if request.user.is_registered:
             return super().patch(request, **kwargs)
-        base_settings = empty_user(user=request.user, session=request.session)
+        base_settings = empty_user(
+            user=request.user, session=request.session, ip=request.ip
+        )
         serializer = SessionSettingsSerializer(data={**base_settings, **request.data})
         serializer.is_valid(raise_exception=True)
         request.session.update(serializer.data)
@@ -628,7 +637,7 @@ class CurrentUserInfo(UserInfo):
         request.rating = serializer.data["rating"]
         request.sfw_mode = sfw_mode
         request.session.save()
-        data = empty_user(session=request.session, user=request.user)
+        data = empty_user(session=request.session, user=request.user, ip=request.ip)
         if request.user.is_authenticated:
             base_data = UserSerializer(
                 instance=request.user, context=self.get_serializer_context()
@@ -1019,6 +1028,7 @@ class AttributeList(ListCreateAPIView):
 class AttributeManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsRegistered, ObjectControls]
     serializer_class = AttributeSerializer
+    queryset = Attribute.objects.all()
 
     @lru_cache()
     def get_object(self):
@@ -1170,6 +1180,7 @@ class RefColorList(ListCreateAPIView):
 class RefColorManager(RetrieveUpdateDestroyAPIView):
     serializer_class = RefColorSerializer
     permission_classes = [ColorControls]
+    queryset = RefColor.objects.all()
 
     def get_object(self):
         obj = get_object_or_404(RefColor, id=self.kwargs["ref_color_id"])
@@ -1440,6 +1451,7 @@ class ArtRelationManager(RetrieveUpdateDestroyAPIView):
 
     serializer_class = ArtistTagSerializer
     permission_classes = [ObjectControls]
+    queryset = ArtistTag.objects.all()
 
     def get_object(self) -> Any:
         tag = get_object_or_404(
@@ -1662,6 +1674,7 @@ class ConversationManager(RetrieveUpdateDestroyAPIView):
     # Since conversations are
     permission_classes = [MessageReadPermission, IsSubject]
     serializer_class = ConversationManagementSerializer
+    queryset = Conversation.objects.all()
 
     def get_object(self):
         message = get_object_or_404(
@@ -1837,6 +1850,7 @@ class JournalManager(RetrieveUpdateDestroyAPIView):
             All(IsRegistered, ObjectControls),
         )
     ]
+    queryset = Journal.objects.all()
 
     def get_object(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -1858,7 +1872,7 @@ def perform_logout(request):
     request.session.pop("rating", None)
     return Response(
         status=status.HTTP_200_OK,
-        data=empty_user(user=request.user, session=request.session),
+        data=empty_user(user=request.user, session=request.session, ip=request.ip),
     )
 
 
@@ -1874,9 +1888,9 @@ class CharacterPreview(BasePreview):
         )
         if not self.check_object_permissions(self.request, character):
             return char_context
-        char_context[
-            "title"
-        ] = f"{demark(character.name)} - {character.user.username} on Artconomy.com"
+        char_context["title"] = (
+            f"{demark(character.name)} - {character.user.username} on Artconomy.com"
+        )
         char_context["description"] = shorten(demark(character.description), 160)
         submissions = character_submissions(character, self.request)
         char_context["image_links"] = [character.preview_image(self.request)] + [
@@ -2109,6 +2123,7 @@ class DestroyAccount(GenericAPIView):
 class NotificationSettings(RetrieveUpdateAPIView):
     serializer_class = EmailPreferencesSerializer
     permission_classes = [UserControls]
+    queryset = User.objects.all()
 
     @property
     def extra_deliverable_content_types(self):

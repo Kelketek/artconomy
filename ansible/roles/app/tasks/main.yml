@@ -4,6 +4,11 @@
   apt_repository:
     repo: ppa:deadsnakes/ppa
 
+- name: Add MaxMind GeoIP repo
+  apt_repository:
+    repo: ppa:maxmind/ppa
+  notify: Pull GeoIP
+
 - name: Install base requirements
   apt:
     name:
@@ -20,6 +25,10 @@
       - software-properties-common
       - redis-server
       - unzip
+      - geoipupdate
+      - libmaxminddb0
+      - libmaxminddb-dev
+      - mmdb-bin
 
 - name: Enable redis service
   service: name=redis-server enabled=true
@@ -77,6 +86,19 @@
   with_items:
     - {src: "templates/bash/.profile", dest: ".profile"}
     - {src: "templates/bash/.bashrc", dest: ".bashrc"}
+
+- name: Add GeoIP Configuration file
+  template: src="templates/geoip/GeoIP.conf" dest="/etc/GeoIP.conf"
+  notify: Pull GeoIP
+
+- name: Add GeoIP crontab entry
+  copy:
+    src: files/crontab/geoip
+    dest: /etc/cron.d/geoip
+    owner: root
+    group: root
+    mode: 0644
+  notify: Pull GeoIP
 
 - name: Copy deployment key
   copy: src="keys/{{ env_prefix }}/.ssh" dest="{{ home }}/" owner="{{ env_prefix }}" mode=0600 directory_mode=0700 force=yes

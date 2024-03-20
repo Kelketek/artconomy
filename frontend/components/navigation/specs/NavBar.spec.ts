@@ -1,11 +1,10 @@
 import {shallowMount, VueWrapper} from '@vue/test-utils'
 import NavBar from '../NavBar.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {genUser} from '@/specs/helpers/fixtures.ts'
+import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {
   cleanUp,
   flushPromises,
-  genAnon,
   mockRoutes,
   mount,
   rq,

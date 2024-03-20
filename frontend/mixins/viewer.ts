@@ -43,8 +43,10 @@ const loginCheck = (viewer: null|AnonUser|User) => {
 
 const checkRegistered = (isLoggedIn: boolean, viewer: User|AnonUser|null) => isLoggedIn && !(viewer as User).guest
 
+const getTheocraticBan = () => window.THEOCRATIC_BAN
+
 const getRating = (viewer: User|AnonUser|null) => {
-  if (!viewer || viewer.sfw_mode) {
+  if (!viewer || viewer.sfw_mode || (getTheocraticBan() && !viewer.verified_adult)) {
     return Ratings.GENERAL
   }
   return viewer.rating
@@ -81,8 +83,11 @@ const ageCheck = (store: ArtStore, viewer: AnonUser|User, {value, force}: AgeChe
   store.commit('setAgeAsked', true)
 }
 
-const isAdultAllowed = (viewerHandler: ProfileController) => {
+const isAdultAllowed = (viewerHandler: ProfileController, theocraticBan: boolean) => {
   if (viewerHandler.user.patchers.sfw_mode.model) {
+    return false
+  }
+  if (theocraticBan && !(viewerHandler.user as SingleController<User|AnonUser>).patchers.verified_adult.model) {
     return false
   }
   const birthday = (viewerHandler.user as SingleController<AnonUser>).patchers.birthday.model
@@ -112,13 +117,15 @@ export const useViewer = () => {
   const viewerName = computed(() => viewerHandler.displayName)
   const rawViewerName = computed(() => store.state.profiles!.viewerRawUsername)
   const viewer = computed(() => viewerHandler.user.x as User|AnonUser)
-  const adultAllowed = computed(() => isAdultAllowed(viewerHandler))
+  const theocraticBan = computed(getTheocraticBan)
+  const adultAllowed = computed(() => isAdultAllowed(viewerHandler, theocraticBan.value))
   const isLoggedIn = computed(() => loginCheck(viewer.value))
   const isRegistered = computed(() => checkRegistered(isLoggedIn.value, viewer.value))
   const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer.value))
   const isSuperuser = computed(() => checkSuperuser(isLoggedIn.value, viewer.value))
   const rating = computed(() => getRating(viewer.value))
   const rawRating = computed(() => getRawRating(viewer.value))
+  const unverifiedInTheocracy = computed(() => theocraticBan.value && !viewer.value.verified_adult)
 
   return {
     viewer,
@@ -132,6 +139,8 @@ export const useViewer = () => {
     isSuperuser,
     rating,
     rawRating,
+    theocraticBan,
+    unverifiedInTheocracy,
     ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer.value, args),
   }
 }
@@ -180,7 +189,11 @@ export default class Viewer extends mixins(ErrorHandling) {
   }
 
   public get adultAllowed() {
-    return isAdultAllowed(this.viewerHandler)
+    return isAdultAllowed(this.viewerHandler, this.theocraticBan)
+  }
+
+  public get theocraticBan() {
+    return window.THEOCRATIC_BAN
   }
 
   public ageCheck({value, force}: {value: number, force?: boolean}) {

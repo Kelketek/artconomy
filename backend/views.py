@@ -2,7 +2,7 @@ import json
 from hashlib import sha256
 from typing import List
 
-from apps.lib.utils import default_context
+from apps.lib.utils import default_context, check_theocratic_ban
 from apps.profiles.serializers import UserSerializer
 from apps.profiles.utils import empty_user
 from django.conf import settings
@@ -27,12 +27,15 @@ def base_template(request, extra=None, exception=None):
         return bad_endpoint(request)
     if request.content_type == "application/json":
         return bad_endpoint(request)
+    theocratic_ban = check_theocratic_ban(request.ip)
     if request.user.is_authenticated:
         user_data = UserSerializer(
             instance=request.user, context={"request": request}
         ).data
     else:
-        user_data = empty_user(session=request.session, user=request.user)
+        user_data = empty_user(
+            session=request.session, user=request.user, ip=request.ip
+        )
     context = {
         "debug": settings.DEBUG,
         "render_legacy": not (settings.DEBUG or settings.TESTING),
@@ -44,6 +47,7 @@ def base_template(request, extra=None, exception=None):
         "drip_account_id": settings.DRIP_ACCOUNT_ID,
         "ga_account_id": settings.GA_ACCOUNT_ID,
         "exception": exception,
+        "theocratic_ban": theocratic_ban,
     }
     if request.user.is_authenticated:
         context["user_email"] = request.user.guest_email or request.user.email

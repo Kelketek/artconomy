@@ -5,7 +5,6 @@ import {
   confirmAction,
   docTarget,
   flushPromises,
-  genAnon,
   mount,
   rs,
   setPricing,
@@ -13,7 +12,7 @@ import {
   VuetifyWrapped, waitFor,
 } from '@/specs/helpers/index.ts'
 import ProductDetail from '@/components/views/product/ProductDetail.vue'
-import {genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
+import {genAnon, genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {FormController} from '@/store/forms/form-controller.ts'

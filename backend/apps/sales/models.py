@@ -97,6 +97,7 @@ from apps.sales.utils import (
     order_context_to_link,
     set_service_plan,
     update_availability,
+    mark_adult,
 )
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -683,6 +684,7 @@ def deliverable_post_pay(
     ).date()
     deliverable.paid_on = timezone.now()
     deliverable.save()
+    mark_adult(deliverable)
     credit_referral(deliverable)
     notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
     return records

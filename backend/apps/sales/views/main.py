@@ -279,6 +279,7 @@ class ProductList(ListCreateAPIView):
 class ProductManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
+    queryset = Product.objects.all()
 
     def perform_update(self, serializer):
         super().perform_update(serializer)
@@ -302,6 +303,7 @@ class ProductManager(RetrieveUpdateDestroyAPIView):
 class ProductInventoryManager(RetrieveUpdateAPIView):
     serializer_class = InventorySerializer
     permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
+    queryset = Product.objects.all()
 
     @lru_cache()
     def get_object(self):
@@ -528,6 +530,7 @@ class PlaceOrder(CreateAPIView):
 class OrderManager(RetrieveUpdateAPIView):
     permission_classes = [OrderViewPermission]
     serializer_class = OrderViewSerializer
+    queryset = Order.objects.all()
 
     def get_object(self):
         order = get_object_or_404(Order, id=self.kwargs["order_id"])
@@ -625,6 +628,7 @@ class OrderDeliverables(ListCreateAPIView):
 class DeliverableManager(RetrieveUpdateAPIView):
     permission_classes = [OrderViewPermission, LimboCheck]
     serializer_class = DeliverableSerializer
+    queryset = Deliverable.objects.all()
 
     def get_object(self):
         deliverable = get_object_or_404(
@@ -981,6 +985,7 @@ class InvoiceLineItemManager(RetrieveUpdateDestroyAPIView):
         InvoiceStatus(DRAFT),
     ]
     serializer_class = LineItemSerializer
+    queryset = LineItem.objects.all()
 
     def get_object(self):
         line_item = get_object_or_404(
@@ -1103,6 +1108,7 @@ class DeliverableLineItemManager(RetrieveUpdateDestroyAPIView):
         )
     ]
     serializer_class = LineItemSerializer
+    queryset = LineItem.objects.all()
 
     @lru_cache
     def get_object(self):
@@ -1952,6 +1958,7 @@ class CardList(ListAPIView):
 class CardManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsRegistered, ObjectControls]
     serializer_class = CardSerializer
+    queryset = CreditCardToken.objects.all()
 
     def get_object(self):
         card = get_object_or_404(
@@ -2260,6 +2267,7 @@ class RateBase(RetrieveUpdateAPIView):
     serializer_class = RatingSerializer
     # Override the permissions per-end.
     permission_classes = [OrderViewPermission]
+    queryset = Rating.objects.all()
 
     def get_target(self):
         raise NotImplementedError("Override in subclass")  # pragma: no cover
@@ -2867,7 +2875,9 @@ class OrderAuth(GenericAPIView):
         data = serializer.data
         if not user.is_registered:
             patch_data = empty_user(
-                user=self.request.user, session=self.request.session
+                user=self.request.user,
+                session=self.request.session,
+                ip=self.request.ip,
             )
             del patch_data["username"]
             data = {**data, **patch_data}
@@ -3002,6 +3012,7 @@ class InvoiceDetail(RetrieveUpdateAPIView):
         Any(IsSafeMethod, IsStaff),
     ]
     serializer_class = InvoiceSerializer
+    queryset = Invoice.objects.all()
 
     def get_object(self):
         invoice = get_object_or_404(Invoice, id=self.kwargs["invoice"])
@@ -3232,6 +3243,7 @@ class QueueListing(View):
 
 class PaypalSettings(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsRegistered, UserControls]
+    queryset = PaypalConfig.objects.all()
 
     def get_object(self):
         user = get_object_or_404(User, username=self.kwargs["username"])

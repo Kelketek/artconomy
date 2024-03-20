@@ -60,6 +60,7 @@ from apps.sales.utils import (
     term_charge,
     update_downstream_pricing,
     verify_total,
+    mark_adult,
 )
 from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.relativedelta import relativedelta
@@ -542,6 +543,31 @@ class TestFromRemoteID(EnsurePlansMixin, TestCase):
         )
         post_success.assert_not_called()
         initiate_transactions.assert_not_called()
+
+
+class TestMarkAdult(EnsurePlansMixin, TestCase):
+    def test_mark_adult_escrow_enabled(self):
+        deliverable = DeliverableFactory.create(escrow_enabled=True)
+        self.assertFalse(deliverable.order.buyer.verified_adult)
+        mark_adult(deliverable)
+        deliverable.order.buyer.refresh_from_db()
+        self.assertTrue(deliverable.order.buyer.verified_adult)
+
+    def test_mark_adult_paypal_invoice(self):
+        deliverable = DeliverableFactory.create(
+            escrow_enabled=False, invoice__paypal_token="beep"
+        )
+        self.assertFalse(deliverable.order.buyer.verified_adult)
+        mark_adult(deliverable)
+        deliverable.order.buyer.refresh_from_db()
+        self.assertTrue(deliverable.order.buyer.verified_adult)
+
+    def test_no_mark(self):
+        deliverable = DeliverableFactory.create(escrow_enabled=False)
+        self.assertFalse(deliverable.order.buyer.verified_adult)
+        mark_adult(deliverable)
+        deliverable.order.buyer.refresh_from_db()
+        self.assertFalse(deliverable.order.buyer.verified_adult)
 
 
 class TestCreditReferral(EnsurePlansMixin, TestCase):

@@ -6,6 +6,7 @@ updated at the same time, but they should, hopefully, be easy enough to keep in 
 If enough code has to be repeated between the two bases it may be worth looking into a
 transpiler.
 """
+
 import json
 import logging
 from collections import defaultdict
@@ -232,7 +233,7 @@ def product_ordering(qs, query=""):
                 When(tags__name__iexact=query, then=0),
                 default=1,
                 output_field=IntegerField(),
-            )
+            ),
             # How can we make it distinct on id while making matches and tag_matches
             # priority ordering?
         )
@@ -1770,6 +1771,13 @@ def update_downstream_pricing(user):
     ):
         deliverable.save()
     update_user_availability(None, user.artist_profile)
+
+
+def mark_adult(deliverable):
+    if deliverable.escrow_enabled or deliverable.invoice.paypal_token:
+        if deliverable.order.buyer:
+            deliverable.order.buyer.verified_adult = True
+            deliverable.order.buyer.save()
 
 
 def credit_referral(deliverable):

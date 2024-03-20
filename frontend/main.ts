@@ -40,6 +40,7 @@ declare global {
     RECAPTCHA_SITE_KEY: string,
     STRIPE_PUBLIC_KEY: string,
     DEFAULT_CARD_PROCESSOR: PROCESSORS,
+    THEOCRATIC_BAN: boolean,
     DEFAULT_SERVICE_PLAN_NAME: string,
     Stripe?: StripeConstructor,
     StripeInstance: Stripe,

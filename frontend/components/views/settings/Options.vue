@@ -40,9 +40,17 @@
           <v-list-subheader>Content/Browsing</v-list-subheader>
           <v-card-text>
             <v-row>
+              <v-col cols="12" v-if="unverifiedInTheocracy">
+                <v-alert type="error">
+                  You are currently accessing Artconomy from a location that has restrictive laws on adult content.
+                  You will not be allowed to load adult content unless specific conditions are met.
+                  <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
+                </v-alert>
+              </v-col>
               <v-col cols="12" offset-md="3" md="6" :class="{disabled: patchers.sfw_mode.model}">
                 <ac-patch-field
                     field-type="ac-birthday-field"
+                    :disabled="unverifiedInTheocracy"
                     label="Birthday"
                     :patcher="patchers.birthday"
                     :persistent-hint="true"
@@ -73,6 +81,7 @@
                     :patcher="patchers.rating"
                     :max="3"
                     step="1"
+                    :disabled="!adultAllowed"
                     show-ticks="always"
                     tick-size="2"
                     :show-warning="true"
@@ -137,7 +146,7 @@ class Options extends mixins(Viewer, Subjective, Alerts) {
   public ratingColor = RATING_COLOR
 
   public get adultAllowed() {
-    if (this.patchers.sfw_mode.model) {
+    if (this.patchers.sfw_mode.model || this.unverifiedInTheocracy) {
       return false
     }
     // @ts-ignore
@@ -146,6 +155,10 @@ class Options extends mixins(Viewer, Subjective, Alerts) {
       return false
     }
     return differenceInYears(new Date(), parseISO(birthday)) >= 18
+  }
+
+  public get unverifiedInTheocracy() {
+    return this.theocraticBan && !this.patchers.verified_adult.model
   }
 
   public get patchers() {

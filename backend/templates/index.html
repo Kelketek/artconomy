@@ -48,7 +48,7 @@
   DEFAULT_CARD_PROCESSOR = "{{ settings.DEFAULT_CARD_PROCESSOR }}";
   DEFAULT_SERVICE_PLAN_NAME = "{{ settings.DEFAULT_SERVICE_PLAN_NAME }}";
   SANDBOX_APIS = JSON.parse(document.getElementById('card-test-flag').textContent);
-  {% if initial_modules %}INITIAL_MODULES={{ initial_modules|safe }}{% endif %};
+  {% if theocratic_ban %}THEOCRATIC_BAN = 1;{% else %}THEOCRATIC_BAN = 0;{% endif %}
 </script>
 <div id="app">
   <div class="lds-dual-ring"></div>

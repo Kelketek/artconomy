@@ -10,6 +10,8 @@ from typing import TYPE_CHECKING, List, Optional, Type, Union
 from uuid import uuid4
 
 import markdown
+from django.contrib.gis.geoip2 import GeoIP2
+
 from apps.lib.models import (
     COMMENT,
     COMMISSIONS_OPEN,
@@ -1262,3 +1264,19 @@ def preload_list(module_name: str, url: str, data: list, schema_extras: dict):
         "ready": True,
         **schema_extras,
     }
+
+
+def check_theocratic_ban(ip):
+    if settings.FORCE_THEOCRACY:
+        return True
+    if settings.BYPASS_THEOCRACIES:
+        return False
+    geo_ip = GeoIP2()
+    city_data = geo_ip.city(ip)
+    for check in settings.THEOCRACIES["blocked_regions"]:
+        results = []
+        for item in check:
+            results.append(city_data.get(item["key"]) == item["value"])
+        if all(results):
+            return True
+    return False

@@ -65,6 +65,13 @@
         :large="true"
       >
         <v-row>
+          <v-col cols="12" v-if="unverifiedInTheocracy">
+            <v-alert type="error">
+              You are currently accessing Artconomy from a location that has restrictive laws on adult content.
+              You will not be allowed to load adult content unless specific conditions are met.
+              <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
+            </v-alert>
+          </v-col>
           <v-col cols="12" class="text-center">
             <span class="title">Warning: {{RATINGS_SHORT[contentRating]}}. Please verify your age and content preferences.</span>
           </v-col>
@@ -72,6 +79,7 @@
             <ac-patch-field
                 field-type="ac-birthday-field"
                 label="Birthday"
+                :disabled="unverifiedInTheocracy"
                 :patcher="userHandler.patchers.birthday"
                 :persistent-hint="true"
                 :save-indicator="false"
@@ -231,7 +239,7 @@ import {mdiHammerWrench, mdiUpdate} from '@mdi/js'
 
 const router = useRouter()
 const route = useRoute()
-const {viewer, viewerHandler, adultAllowed} = useViewer()
+const {viewer, viewerHandler, adultAllowed, unverifiedInTheocracy} = useViewer()
 
 const sock = useSocket()
 const store = useStore<ArtState>()

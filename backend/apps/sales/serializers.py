@@ -161,7 +161,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         add_check(self.instance, "tags", replace=True, *value)
         return value
 
-    def validate(self, data):
+    def validate(self, data: dict):
         errors = defaultdict(list)
         instance = self.instance or DottedDict(**data)
         revised = DottedDict()
@@ -174,7 +174,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             revised.escrow_enabled
             and self.context["request"].subject.artist_profile.escrow_enabled
         )
-        data.escrow_enabled = escrow_enabled
+        data["escrow_enabled"] = escrow_enabled
         minimum = settings.MINIMUM_PRICE
         total = reckon_lines(lines_for_product(revised))
         if escrow_enabled and (total < minimum):
@@ -390,7 +390,7 @@ class ProductNewOrderSerializer(
                 raise serializers.ValidationError(error_message)
         return assets
 
-    def validate(self, data):
+    def validate(self, data: dict):
         if self.context["product"].name_your_price:
             if "named_price" not in data:
                 raise ValidationError(
@@ -850,7 +850,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def validate(self, data):
+    def validate(self, data: dict):
         errors = defaultdict(list)
         instance = self.instance or DottedDict(**data)
         revised = DottedDict()
