@@ -50,7 +50,7 @@
           <v-col cols="12" md="3" lg="3" xl="2">
             <v-col>
               <v-row dense>
-                <v-col cols="5" sm="6" md="12" lg="5" :class="{sm3: commissionLink, sm6: !commissionLink}">
+                <v-col cols="5" sm="6" md="12" lg="5" :class="{sm3: commissionLink, sm6: !commissionLink}" v-if="!restrictedDownload">
                   <v-btn variant="flat" block @click="submission.patch({favorites: !submission.x!.favorites})"
                          color="secondary">
                     <v-icon left v-if="favorite" :icon="mdiHeart"/>
@@ -58,7 +58,7 @@
                     Fav
                   </v-btn>
                 </v-col>
-                <v-col cols="7" sm="6" md="12" lg="7" :class="{sm4: commissionLink, sm6: !commissionLink}">
+                <v-col cols="7" sm="6" md="12" lg="7" :class="{sm4: commissionLink, sm6: !commissionLink}" v-if="!restrictedDownload">
                   <v-row no-gutters>
                     <v-col cols="6" class="pr-1">
                       <v-btn color="primary" variant="flat" block :href="submission.x!.file.full" download>
@@ -294,7 +294,18 @@ import AcShareManager from '@/components/AcShareManager.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Sharable from '@/mixins/sharable.ts'
 import {textualize} from '@/lib/formattingTools.ts'
-import {mdiPencil, mdiDelete, mdiLock, mdiDotsHorizontal, mdiPalette, mdiEye, mdiContentSaveOutline, mdiHeartOutline, mdiHeart} from '@mdi/js'
+import {
+  mdiContentSaveOutline,
+  mdiDelete,
+  mdiDotsHorizontal,
+  mdiEye,
+  mdiHeart,
+  mdiHeartOutline,
+  mdiLock,
+  mdiPalette,
+  mdiPencil,
+} from '@mdi/js'
+import {Ratings} from '@/store/profiles/types/Ratings.ts'
 
 @Component({
   components: {
@@ -361,6 +372,16 @@ class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {
 
   public get favorite() {
     return this.submission.x && this.submission.x.favorites
+  }
+
+  public get restrictedDownload() {
+    if (!this.submission.x) {
+      return false
+    }
+    if (this.theocraticBan && this.submission.x.rating > Ratings.GENERAL) {
+      return true
+    }
+    return false
   }
 
   public get controls() {
