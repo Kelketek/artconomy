@@ -27,7 +27,7 @@
             <v-carousel height="60vh" :cycle="false" :show-arrows="slides.length > 1"
                         :hide-delimiters="slides.length <= 1">
               <v-carousel-item v-if="product.x.primary_submission === null">
-                <ac-asset thumb-name="thumbnail" :aspect-ratio="1" :asset="null" :contain="true" :terse="true" :alt="productAltText"/>
+                <ac-asset thumb-name="thumbnail" :aspect-ratio="1" :asset="null" :contain="true" :terse="true" :alt="productAltText" :transition="false"/>
               </v-carousel-item>
               <v-carousel-item v-for="sample in slides" :key="sample.id">
                 <ac-gallery-preview :submission="sample"

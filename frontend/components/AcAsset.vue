@@ -22,7 +22,7 @@
         <v-img :src="displayImage" :aspect-ratio="ratio || undefined" :contain="contain"
                max-height="90vh" max-width="100%" class="asset-image"
                itemprop="image" :alt="alt" :eager="immediate"
-               :transition="immediate ? false : undefined"
+               :transition="immediate ? false : transition"
         />
       </v-col>
       <v-col class="text-center icon-image" v-else-if="renderImage && !isImage" cols="12">
@@ -153,6 +153,7 @@ declare interface AcAssetProps extends AssetProps {
   editing?: boolean,
   text?: boolean,
   eager?: boolean,
+  transition?: false|string,
 }
 
 const props = withDefaults(defineProps<AcAssetProps>(), {

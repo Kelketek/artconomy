@@ -6,6 +6,7 @@
           <v-col cols="12" md="9" lg="9" xl="10">
             <ac-asset :asset="submission.x" thumb-name="gallery" :contain="true" :editing="editing"
                       :alt="submissionAltText"
+                      :transition="false"
                       v-model="showEditAsset">
               <template v-slot:edit-menu>
                 <ac-expanded-property v-model="showEditAsset" aria-label="Edit file dialog" v-if="controls">
