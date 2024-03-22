@@ -15,7 +15,8 @@
 import Notification from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {profileLink} from '@/lib/lib.ts'
+
+import {profileLink} from '@/lib/otherFormatters.ts'
 
 export default {
   name: 'ac-submission-char-tag',

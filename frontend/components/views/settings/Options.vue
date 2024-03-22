@@ -129,7 +129,7 @@ import {differenceInYears} from 'date-fns'
 import {ContentRating} from '@/types/ContentRating.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {parseISO} from '@/lib/formattingTools.ts'
+import {parseISO} from '@/lib/otherFormatters.ts'
 
 @Component({
   components: {

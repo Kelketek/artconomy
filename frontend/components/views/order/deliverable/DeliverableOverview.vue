@@ -212,15 +212,16 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Order from '@/types/Order.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import {BASE_URL, profileLink, RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
+import {BASE_URL, RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {ref, watch, computed, onMounted} from 'vue'
 import {useRoute} from 'vue-router'
 import {useStore} from 'vuex'
 import {DeliverableStatus as s} from '@/types/DeliverableStatus.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
-import {deriveDisplayName} from '@/lib/formattingTools.ts'
+import {deriveDisplayName} from '@/lib/otherFormatters.ts'
 import {mdiEyeOff, mdiPencil} from '@mdi/js'
+import {profileLink} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<DeliverableProps>()
 

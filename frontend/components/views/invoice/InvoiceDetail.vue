@@ -226,7 +226,7 @@ import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin.ts'
 import {reckonLines} from '@/lib/lineItemFunctions.ts'
-import {BASE_URL, baseCardSchema, INVOICE_TYPES, profileLink} from '@/lib/lib.ts'
+import {BASE_URL, baseCardSchema, INVOICE_TYPES} from '@/lib/lib.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
@@ -235,6 +235,7 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Transaction from '@/types/Transaction.ts'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
+import {profileLink} from '@/lib/otherFormatters.ts'
 
 @Component({
   components: {

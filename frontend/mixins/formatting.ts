@@ -1,7 +1,7 @@
 import {Component} from 'vue-facing-decorator'
 import {
   ArtVue,
-  profileLink,
+
 
 
 } from '@/lib/lib.ts'
@@ -11,10 +11,11 @@ import {
   deriveDisplayName, formatDate,
   formatDateTerse, formatDateTime,
   formatSize,
-  guestName, md,
-  textualize,
+  guestName,
   truncateText,
-} from '@/lib/formattingTools.ts'
+} from '@/lib/otherFormatters.ts'
+import {profileLink} from '@/lib/otherFormatters.ts'
+import {md, textualize} from '@/lib/markdown.ts'
 
 @Component
 export default class Formatting extends ArtVue {

@@ -80,7 +80,7 @@ export default defineConfig({
         manualChunks: {
           vueCore: ['vue', 'vuetify', 'vuex', 'vue-facing-decorator', 'vue-router', 'vue-observe-visibility', '@devindex/vue-mask'],
           captcha: ['@hcaptcha/vue3-hcaptcha', '@/components/fields/AcCaptchaField.vue'],
-          dataProcessing: ['decimal.js', 'lodash', 'date-fns', 'markdown-it'],
+          dataProcessing: ['decimal.js', 'lodash', 'date-fns'],
           qrCode: ['qrcode'],
           sortable: ['sortablejs', 'sortablejs-vue3', 'list-diff.js'],
           faq: [

@@ -637,7 +637,6 @@ import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {RawLineItemSetMap} from '@/types/RawLineItemSetMap.ts'
 import LineItem from '@/types/LineItem.ts'
-import {textualize} from '@/lib/formattingTools.ts'
 import {mdiCog, mdiBasket, mdiPencil, mdiStar, mdiEye, mdiDelete, mdiLock, mdiDotsHorizontal, mdiCameraBurst} from '@mdi/js'
 
 @Component({
@@ -750,7 +749,7 @@ class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharabl
     } else {
       prefix = '[Starts at FREE] - '
     }
-    const description = textualize(product.description).slice(0, 160 - prefix.length)
+    const description = this.textualize(product.description).slice(0, 160 - prefix.length)
     setMetaContent('description', prefix + description)
   }
 

@@ -28,7 +28,7 @@ import {computed, getCurrentInstance, nextTick, Raw, ref, watch} from 'vue'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import {parseISO} from '@/lib/formattingTools.ts'
+import {parseISO} from '@/lib/otherFormatters.ts'
 
 /*
 

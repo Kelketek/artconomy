@@ -84,13 +84,13 @@ import {Conversation} from '@/types/Conversation.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import Formatting from '@/mixins/formatting.ts'
-import {posse} from '@/lib/lib.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {mdiPlus} from '@mdi/js'
+import {posse} from '@/lib/otherFormatters.ts'
 
 @Component({
   components: {

@@ -49,11 +49,12 @@ import {Component, Prop, toNative, Watch} from 'vue-facing-decorator'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import {userHandle} from '@/store/profiles/handles.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {artCall, ArtVue, profileLink} from '@/lib/lib.ts'
+import {artCall, ArtVue} from '@/lib/lib.ts'
 import {profileRegistry} from '@/store/profiles/registry.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {mdiAccount, mdiClose, mdiStarCircle} from '@mdi/js'
+import {profileLink} from '@/lib/otherFormatters.ts'
 
 @Component({
   components: {AcLink},

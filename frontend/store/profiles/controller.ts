@@ -21,7 +21,7 @@ import {nextTick, toValue, watch} from 'vue'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
-import {guestName} from '@/lib/formattingTools.ts'
+import {guestName} from '@/lib/otherFormatters.ts'
 
 export type AnyUser = User | TerseUser | AnonUser
 

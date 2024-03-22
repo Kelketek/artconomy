@@ -10,7 +10,7 @@
 import AcBaseNotification from './AcBaseNotification.vue'
 import Notifiction from '../mixins/notification.ts'
 
-import {deriveDisplayName} from '@/lib/formattingTools.ts'
+import {deriveDisplayName} from '@/lib/otherFormatters.ts'
 
 export default {
   name: 'ac-tip-received',

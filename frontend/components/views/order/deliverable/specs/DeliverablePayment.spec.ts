@@ -24,7 +24,7 @@ import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {setViewer} from '@/lib/lib.ts'
 import Deliverable from '@/types/Deliverable.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
-import {parseISO} from '@/lib/formattingTools.ts'
+import {parseISO} from '@/lib/otherFormatters.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

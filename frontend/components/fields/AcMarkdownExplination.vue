@@ -226,8 +226,8 @@
 <script setup lang="ts">
 import {mdiClose} from '@mdi/js'
 import {computed, ref, watch} from 'vue'
-import {md} from '@/lib/formattingTools.ts'
 import {useTargets} from '@/plugins/targets.ts'
+import {md} from '@/lib/markdown.ts'
 
 const props = defineProps<{modelValue: boolean}>()
 const emit = defineEmits<{'update:modelValue': [value: boolean]}>()

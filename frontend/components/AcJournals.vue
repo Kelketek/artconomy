@@ -70,7 +70,7 @@ import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {truncateText} from '@/lib/formattingTools.ts'
+import {truncateText} from '@/lib/otherFormatters.ts'
 import {mdiPencil, mdiPlus} from '@mdi/js'
 
 @Component({

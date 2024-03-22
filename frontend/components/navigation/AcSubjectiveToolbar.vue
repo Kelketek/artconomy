@@ -32,7 +32,8 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useDisplay} from 'vuetify'
-import {profileLink} from '@/lib/lib.ts'
+
+import {profileLink} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<SubjectiveProps>()
 const {subjectHandler, subject} = useSubject(props)

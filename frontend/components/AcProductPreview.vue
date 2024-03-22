@@ -22,12 +22,12 @@
               <v-row class="fill-height" no-gutters>
                 <v-col cols="12" class="text-center hidden-sm-and-down title py-3">
                   <ac-link :to="productLink" class="text-center">
-                    <div v-html="md.renderInline(product.name)" class="text-center"/>
+                    {{product.name}}
                   </ac-link>
                 </v-col>
                 <v-col cols="12" class="text-center hidden-md-and-up">
                   <strong>
-                    <ac-rendered inline="true" tag="span" :classes="{}" :value="product.name"/>
+                    {{product.name}}
                   </strong>
                 </v-col>
                 <v-col cols="12" class="hidden-md-and-up">
@@ -230,13 +230,11 @@
 import Product from '@/types/Product.ts'
 import AcAsset from '@/components/AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
 import {RouteLocationRaw} from 'vue-router'
 import {mdiShieldHalfFull} from '@mdi/js'
 import {computed} from 'vue'
-import {md} from '@/lib/formattingTools.ts'
 
 declare interface AcProductPreviewProps {
   product: Product,

@@ -189,7 +189,7 @@ import {setError} from '@/mixins/ErrorHandling.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
-import {textualize} from '@/lib/formattingTools.ts'
+import {textualize} from '@/lib/markdown.ts'
 import {mdiCheckCircle, mdiAlert, mdiUpload} from '@mdi/js'
 
 const props = defineProps<CharacterProps>()

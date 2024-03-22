@@ -447,7 +447,7 @@ import {setError, statusOk} from '@/mixins/ErrorHandling.ts'
 import {useStore} from 'vuex'
 import {useInvoicing} from '@/components/views/order/mixins/InvoicingMixin.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
-import {formatDateTerse, parseISO} from '@/lib/formattingTools.ts'
+import {formatDateTerse, parseISO} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<{username: string} & DeliverableProps>()
 

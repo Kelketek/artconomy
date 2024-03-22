@@ -107,7 +107,7 @@ import {differenceInYears} from 'date-fns'
 import {BASE_URL} from '@/lib/lib.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {parseISO} from '@/lib/formattingTools.ts'
+import {parseISO} from '@/lib/otherFormatters.ts'
 
 @Component({
   components: {

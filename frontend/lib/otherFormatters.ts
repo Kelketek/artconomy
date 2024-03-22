@@ -1,10 +1,7 @@
-import Token from 'markdown-it/lib/token'
-import {Options} from 'markdown-it/lib'
-import Renderer from 'markdown-it/lib/renderer'
-import StateInline from 'markdown-it/lib/rules_inline/state_inline'
 import {format, parseISO as upstreamParseISO} from 'date-fns'
-import {markRaw} from 'vue'
-import MarkDownIt from 'markdown-it'
+import {User} from '@/store/profiles/types/User.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 
 export const truncateText = (text: string, maxLength: number) => {
   if (text.length <= maxLength) {
@@ -23,70 +20,6 @@ export const truncateText = (text: string, maxLength: number) => {
   }
   // Super long word for some reason.
   return newText + '...'
-}
-export const md = markRaw(new MarkDownIt({
-  linkify: true,
-  breaks: true,
-}))
-type TokenRenderer = (
-  tokens: Token[], idx: number, options: Options, env: any, self: Renderer,
-) => string
-export const defaultRender: TokenRenderer = (
-  tokens: Token[], idx: number, options: Options, env: any, self: Renderer,
-): string => {
-  return self.renderToken(tokens, idx, options)
-}
-
-export function isForeign(url: string) {
-  if (url.toLowerCase().startsWith('mailto:')) {
-    return false
-  }
-  // noinspection RedundantIfStatementJS
-  if (url.startsWith('/') ||
-    url.match(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/) ||
-    url.match(/^http(s)?:[/][/]artconomy[.]vulpinity[.]com([/]|$)/)) {
-    return false
-  }
-  return true
-}
-
-export function mention(state: StateInline, silent: boolean) {
-  let token: Token
-  let pos = state.pos
-  const ch = state.src.charCodeAt(pos)
-
-  // Bug out if this @ is in the middle of a word instead of the beginning.
-  const prCh = state.src[pos - 1]
-  if (prCh !== undefined) {
-    if (!/^\s+$/.test(prCh)) {
-      return false
-    }
-  }
-  if (ch !== 0x40/* @ */) {
-    return false
-  }
-  const start = pos
-  pos++
-  const max = state.posMax
-
-  while (pos < max && /[-a-zA-Z_0-9]/.test(state.src[pos])) {
-    pos++
-  }
-  if (pos - start === 1) {
-    // Hanging @.
-    return false
-  }
-
-  const marker = state.src.slice(start, pos)
-  // Never found an instance where this is true, but the MarkdownIt rules require handling it.
-  /* istanbul ignore else */
-  if (!silent) {
-    token = state.push('mention', 'ac-avatar', 0)
-    token.content = marker
-    state.pos = pos
-    return true
-  }
-  return false
 }
 
 export function parseISO(dateString: string | Date) {
@@ -111,12 +44,6 @@ export function formatDateTerse(dateString: string | Date) {
     return format(date, 'MMM do yy')
   }
   return format(date, 'MMM do')
-}
-
-export function textualize(markdown: string) {
-  const container = document.createElement('div')
-  container.innerHTML = md.render(markdown)
-  return (container.textContent && container.textContent.trim()) || ''
 }
 
 export function formatSize(size: number): string {
@@ -154,4 +81,37 @@ export function guestName(username: string) {
     return true
   }
   return (username.startsWith('__'))
+}
+
+export function posse(userList: string[], additional: number) {
+  userList = userList.map((username) => deriveDisplayName(username))
+  if (userList.length === 2 && !additional) {
+    return `${userList[0]} and ${userList[1]}`
+  }
+  if (userList.length === 3 && !additional) {
+    return `${userList[0]}, ${userList[1]}, and ${userList[2]}`
+  }
+  let group = userList.join(', ')
+  if (additional) {
+    group += ' and ' + additional
+    if (additional === 1) {
+      group += ' other'
+    } else {
+      group += ' others'
+    }
+  }
+  return group
+}
+
+export function profileLink(user: User | TerseUser | RelatedUser | null) {
+  if (!user) {
+    return null
+  }
+  if (guestName(user.username)) {
+    return null
+  }
+  return {
+    name: 'AboutUser',
+    params: {username: user.username},
+  }
 }

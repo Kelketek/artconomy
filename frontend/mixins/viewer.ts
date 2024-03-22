@@ -12,7 +12,7 @@ import {ArtState} from '@/store/artState.ts'
 import {ArtStore} from '@/store/index.ts'
 import {computed} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
-import {parseISO} from '@/lib/formattingTools.ts'
+import {parseISO} from '@/lib/otherFormatters.ts'
 
 export interface AgeCheckArgs {
   value: number,

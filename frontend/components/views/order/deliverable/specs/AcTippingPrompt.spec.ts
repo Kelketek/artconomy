@@ -13,7 +13,7 @@ import {ConnectionStatus} from '@/types/ConnectionStatus.ts'
 import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPrompt.vue'
 import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import {beforeEach, describe, expect, test, vi} from 'vitest'
-import {parseISO} from '@/lib/formattingTools.ts'
+import {parseISO} from '@/lib/otherFormatters.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

@@ -14,7 +14,6 @@ import cloneDeep from 'lodash/cloneDeep'
 import {LogLevels} from '@/types/LogLevels.ts'
 import {Vue} from 'vue-facing-decorator'
 import {ArtVueClassInterface} from '@/types/ArtVueClassInterface.ts'
-import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 import {ContentRating} from '@/types/ContentRating.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
 import {FieldController} from '@/store/forms/field-controller.ts'
@@ -29,8 +28,6 @@ import {
 } from '@/store/profiles/helpers.ts'
 import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
-import {defaultRender, deriveDisplayName, guestName, isForeign, md, mention} from '@/lib/formattingTools.ts'
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 
 // Needed for Matomo.
 declare global {
@@ -46,48 +43,6 @@ window._paq = window._paq || []
 if (window.__LOG_LEVEL__ === undefined) {
   window.__LOG_LEVEL__ = LogLevels.INFO
 }
-
-md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
-  // @ts-ignore
-  if (window.PRERENDERING) {
-    return tokens[idx].content
-  }
-  tokens[idx].attrPush(['target', '_blank']) // add new attribute
-  const hrefIndex = tokens[idx].attrIndex('href')
-  // Should always have href for a link.
-  let href = tokens[idx].attrs![hrefIndex][1]
-  if (isForeign(href)) {
-    tokens[idx].attrPush(['rel', 'nofollow noopener'])
-    return defaultRender(tokens, idx, options, env, self)
-  }
-  // Local dev URL format.
-  href = href.replace(/^http(s)?:[/][/]artconomy[.]vulpinity[.]com([/]|$)/, '/')
-  // Public server format.
-  href = href.replace(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/, '/')
-  href = encodeURI(href)
-  if (!href.startsWith('mailto:')) {
-    tokens[idx].attrPush(['onclick', `artconomy.$router.history.push('${href}');return false`])
-  }
-  return defaultRender(tokens, idx, options, env, self)
-}
-
-md.renderer.rules.link_close = (tokens, idx, options, env, self) => {
-  // @ts-ignore
-  if (window.PRERENDERING) {
-    return ''
-  }
-  return defaultRender(tokens, idx, options, env, self)
-}
-
-md.renderer.rules.mention = (tokens, idx) => {
-  const token = tokens[idx]
-  const username = token.content.slice(1, token.content.length)
-  // Must have no returns, or will affect spacing.
-  const url = `/profile/${encodeURIComponent(username)}/about`
-  return `<a href="${url}" onclick="artconomy.$router.push('${url}');return false">@${username}</a>`
-}
-
-md.inline.ruler.push('mention', mention, {alt: ['mention']})
 
 export function getCookie(name: string): string | null {
   let cookieValue = null
@@ -373,26 +328,6 @@ export function flatten(name: string) {
   return name.replace(/[_]/g, '__').replace(/[./]/g, '_')
 }
 
-export function posse(userList: string[], additional: number) {
-  userList = userList.map((username) => deriveDisplayName(username))
-  if (userList.length === 2 && !additional) {
-    return `${userList[0]} and ${userList[1]}`
-  }
-  if (userList.length === 3 && !additional) {
-    return `${userList[0]}, ${userList[1]}, and ${userList[2]}`
-  }
-  let group = userList.join(', ')
-  if (additional) {
-    group += ' and ' + additional
-    if (additional === 1) {
-      group += ' other'
-    } else {
-      group += ' others'
-    }
-  }
-  return group
-}
-
 export function immediate(val: any) {
   return new Promise((resolve) => {
     resolve(val)
@@ -547,16 +482,6 @@ export function paramsKey(sourceParams: RouteParamsRaw) {
 export function updateTitle(title: string) {
   document.title = title
   window._paq.push(['setDocumentTitle', document.title])
-}
-
-export function profileLink(user: User|TerseUser|RelatedUser|null) {
-  if (!user) {
-    return null
-  }
-  if (guestName(user.username)) {
-    return null
-  }
-  return {name: 'AboutUser', params: {username: user.username}}
 }
 
 export function shuffle(array: any[]) {

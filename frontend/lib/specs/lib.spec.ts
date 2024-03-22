@@ -14,7 +14,6 @@ import {
   makeQueryParams,
   markRead,
   newUploadSchema,
-  posse,
   ratings,
   ratingsNonExtreme,
   ratingsShortLister,
@@ -34,11 +33,12 @@ import {
   deriveDisplayName, formatDate,
   formatDateTerse, formatDateTime,
   formatSize,
-  guestName, md,
-  textualize,
+  guestName,
   truncateText,
-} from '@/lib/formattingTools.ts'
+} from '@/lib/otherFormatters.ts'
+import {md, textualize} from '@/lib/markdown.ts'
 import {extPreview, getExt, isImage, thumbFromSpec} from '@/mixins/asset_base.ts'
+import {posse} from '@/lib/otherFormatters.ts'
 
 describe('artCall', () => {
   beforeEach(() => {
