@@ -8,6 +8,7 @@ import {
 } from 'vue-router'
 import {clearMetaTag, paramsKey, setCookie, setMetaContent} from '@/lib/lib.ts'
 import {ArtStore} from '@/store/index.ts'
+import {defineComponent, h} from 'vue'
 
 const Reload = () => import('@/components/views/Reload.vue')
 const Login = () => import('@/components/views/auth/Login.vue')
@@ -105,6 +106,8 @@ const Invoices = () => import('@/components/views/settings/payment/Invoices.vue'
 const TroubledDeliverables = () => import('@/components/views/TroubledDeliverables.vue')
 const ProductGallery = () => import('@/components/views/product/ProductGallery.vue')
 const AcInvoiceProductSelection = () => import('@/components/views/orders/AcInvoiceProductSelection.vue')
+
+const Empty = defineComponent({render: () => h('div'), data: () => ({})})
 
 function orderViews() {
   const orderRoutes: RouteRecordRaw[] = []
@@ -788,6 +791,11 @@ export const routes: RouteRecordRaw[] = [
     name: 'RecentArtRedirect',
     component: Redirect,
     props: {route: '/search/submissions/'},
+  },
+  {
+    path: '/empty/',
+    name: 'Empty',
+    component: Empty,
   },
   {
     path: '/:pathMatch(.*)',
