@@ -67,6 +67,9 @@ const getRawRating = (viewer: User|AnonUser|null) => {
 
 
 const ageCheck = (store: ArtStore, viewer: AnonUser|User, {value, force}: AgeCheckArgs) => {
+  if (window.PRERENDERING) {
+    return
+  }
   if (!value) {
     return
   }

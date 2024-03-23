@@ -1,4 +1,4 @@
-import {computed, Ref} from 'vue'
+import {computed, ref, Ref, watch, WatchSource} from 'vue'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
 import {LocationQueryRaw, LocationQueryValue, RouteLocation, RouteLocationRaw, RouteParamsRaw} from 'vue-router'
@@ -706,4 +706,14 @@ export const setViewer = (store: Store<any>, user: User | AnonUser | TerseUser) 
   )
   store.commit('profiles/setViewerUsername', username)
   store.commit(`userModules/${username}/user/setReady`, true)
+}
+
+export const useLazyInitializer = <T>(initializer: WatchSource<T>) => {
+  const reactive = ref(false)
+  watch(initializer, (val) => {
+    if (val) {
+      reactive.value = true
+    }
+  })
+  return reactive
 }

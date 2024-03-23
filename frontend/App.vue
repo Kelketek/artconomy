@@ -3,13 +3,14 @@
   <v-app dark>
     <nav-bar/>
     <v-main class="main-content">
-      <ac-error/>
       <router-view v-if="displayRoute" :key="routeKey"/>
+      <ac-error v-else/>
       <ac-form-dialog
           :modelValue="store.state.showSupport"
           @update:modelValue="(val: boolean) => store.commit('supportDialog', val)"
           @submit="supportForm.submitThen(showSuccess)"
           v-bind="supportForm.bind"
+          v-if="loadSupport"
           title="Get Support or Give Feedback!"
       >
         <v-row no-gutters>
@@ -60,7 +61,7 @@
       <ac-form-dialog
         :modelValue="store.state.showAgeVerification"
         @update:modelValue="closeAgeVerification"
-        v-if="viewerHandler.user.x"
+        v-if="viewerHandler.user.x && loadAgeVerification"
         @submit="closeAgeVerification"
         :large="true"
       >
@@ -132,7 +133,7 @@
           Close
         </v-btn>
       </v-snackbar>
-      <ac-markdown-explanation v-model="showMarkdownHelp" />
+      <ac-markdown-explanation v-model="showMarkdownHelp" v-if="loadMarkdownHelp" />
       <v-snackbar
           :timeout="-1"
           v-if="socketState.x"
@@ -216,7 +217,7 @@ import {
   paramsKey,
   RATINGS_SHORT,
   searchSchema as baseSearchSchema,
-  setCookie,
+  setCookie, useLazyInitializer,
 } from './lib/lib.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {SingleController} from '@/store/singles/controller.ts'
@@ -302,6 +303,9 @@ const socketState = useSingle('socketState', {
   },
 })
 
+const loadSupport = useLazyInitializer(() => store.state.showSupport)
+const loadAgeVerification = useLazyInitializer(() => store.state.showAgeVerification)
+
 watch(() => viewer.value?.username, (newName: string, oldName: string) => {
   if (oldName && (oldName !== '_') && (newName === '_')) {
     router.push('/')
@@ -384,6 +388,10 @@ const showMarkdownHelp = computed({
     store.commit('setMarkdownHelp', val)
   }
 })
+
+// We have a conditional on the loading of the markdown component to avoid pulling down the
+// parser library when we don't have to.
+const loadMarkdownHelp = useLazyInitializer(showMarkdownHelp)
 
 const alertDismissed = ref(false)
 
