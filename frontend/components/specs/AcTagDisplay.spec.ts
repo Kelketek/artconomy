@@ -1,5 +1,5 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup, createTestRouter, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
@@ -8,18 +8,23 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {Router} from 'vue-router'
+import {nextTick} from 'vue'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
 let form: FormController
+let router: Router
 
 const mockError = vi.spyOn(console, 'error')
+const WrappedTagDisplay = VuetifyWrapped(AcTagDisplay)
 
 describe('AcTagDisplay.vue', () => {
   beforeEach(() => {
     store = createStore()
     mockError.mockClear()
     form = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
+    router = createTestRouter(false)
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -33,14 +38,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        mocks: {
-          $route: {
-            name: 'Profile',
-            params: {username: 'Fox'},
-            query: {editing: false},
-          },
-        },
-        stubs: ['router-link'],
+        extraPlugins: [router],
       }),
       props: {
         patcher: single.patchers.tags,
@@ -58,14 +56,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        mocks: {
-          $route: {
-            name: 'Profile',
-            params: {username: 'Fox'},
-            query: {editing: false},
-          },
-        },
-        stubs: ['router-link'],
+        extraPlugins: [router],
       }),
       props: {
         patcher: single.patchers.tags,
@@ -90,17 +81,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        mocks: {
-          $route: {
-            name: 'Profile',
-            params: {
-              username: 'Fox',
-              scope: 'Submissions',
-            },
-            query: {editing: false},
-          },
-        },
-        stubs: ['router-link'],
+        extraPlugins: [router],
       }),
       props: {
         patcher: single.patchers.tags,
@@ -127,17 +108,10 @@ describe('AcTagDisplay.vue', () => {
     vulpes.username = 'Vulpes'
     otherUser.user.setX(vulpes)
     single.setX(submission)
-    wrapper = mount(AcTagDisplay, {
+    wrapper = mount(WrappedTagDisplay, {
       ...vueSetup({
         store,
-        mocks: {
-          $route: {
-            name: 'Profile',
-            params: {username: 'Vulpes'},
-            query: {editing: false},
-          },
-        },
-        stubs: ['router-link'],
+        extraPlugins: [router],
       }),
       props: {
         patcher: single.patchers.tags,
@@ -146,7 +120,9 @@ describe('AcTagDisplay.vue', () => {
         editable: false,
       },
     })
-    const vm = wrapper.vm as any
+    await nextTick()
+    // Why is this torture necessary?
+    const vm = (wrapper.findComponent(AcTagDisplay) as unknown as VueWrapper<typeof AcTagDisplay>).vm
     expect(vm.controls).toBe(true)
   })
   test('Edits the search query', async() => {
@@ -155,19 +131,11 @@ describe('AcTagDisplay.vue', () => {
     submission.tags = ['fox', 'sexy', 'fluffy', 'herm']
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
     single.setX(submission)
-    const push = vi.fn()
+    await router.push('/')
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        mocks: {
-          $route: {
-            name: 'Profile',
-            params: {username: 'Fox'},
-            query: {editing: false},
-          },
-          $router: {push},
-        },
-        stubs: ['router-link'],
+        extraPlugins: [router],
       }),
       props: {
         patcher: single.patchers.tags,
@@ -176,11 +144,9 @@ describe('AcTagDisplay.vue', () => {
       },
     })
     await wrapper.find('.tag-search-link').trigger('click')
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(form.fields.q.value).toEqual('fox')
-    expect(push).toHaveBeenCalledWith({
-      name: 'SearchSubmissions',
-      query: {q: 'fox'},
-    })
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('SearchSubmissions'))
+    expect(router.currentRoute.value.query.q).toEqual('fox')
   })
 })

@@ -2,8 +2,8 @@
   <v-container fluid class="pa-0">
     <v-row dense>
       <v-col>
-        <v-tooltip top v-if="controls">
-          <template v-slot:activator="{props}" aria-label="Tooltip for tags">
+        <v-tooltip top v-if="controls" aria-label="Tooltip for tags">
+          <template v-slot:activator="{props}">
             <v-btn color="primary" icon size="small" v-bind="props" @click="editTags" class="edit-button" aria-label="Edit tags">
               <v-icon size="x-large" :icon="mdiTagMultiple"/>
             </v-btn>
@@ -54,85 +54,71 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import AcTagField from '@/components/fields/AcTagField.vue'
+<script setup lang="ts">
 import {Patch} from '@/store/singles/patcher.ts'
-import Subjective from '@/mixins/subjective.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import {mdiTagMultiple} from '@mdi/js'
+import {computed, ref} from 'vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRouter} from 'vue-router'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 
-@Component({
-  components: {
-    AcLink,
-    AcPatchField,
-    AcExpandedProperty,
-    AcTagField,
-  },
-})
-class AcTagDisplay extends mixins(Subjective) {
-  public searchForm: FormController = null as unknown as FormController
-  @Prop({required: true})
-  public patcher!: Patch
+declare interface AcTagDisplayProps {
+  patcher: Patch,
+  editable?: boolean,
+  scope: string,
+}
 
-  @Prop({default: false})
-  public editable!: boolean
+const props = withDefaults(defineProps<AcTagDisplayProps & SubjectiveProps>(), {editable: false})
 
-  @Prop({required: true})
-  public scope!: string
+const {isRegistered, isStaff} = useViewer()
+const {isCurrent} = useSubject(props)
 
-  public toggle = false
-  public editing = false
-  public mdiTagMultiple = mdiTagMultiple
+const router = useRouter()
 
-  public editTags() {
-    this.toggle = true
-    this.editing = true
-  }
+const toggle = ref(false)
+const editing = ref(false)
 
-  public showMore() {
-    this.editing = false
-    this.toggle = true
-  }
+const editTags = () => {
+  toggle.value = true
+  editing.value = true
+}
 
-  public setSearch(tag: string) {
-    this.searchForm.reset()
-    this.searchForm.fields.q.update(tag)
-    this.$router.push(this.tagLink(tag))
-  }
+const showMore = () => {
+  editing.value = false
+  toggle.value = true
+}
 
-  public tagLink(tag: string) {
-    return {
-      name: 'Search' + this.scope,
-      query: {q: tag},
-    }
-  }
-
-  public get displayedTags() {
-    return this.patcher.rawValue.slice(0, 10)
-  }
-
-  public get controls() {
-    if (this.editable && this.isRegistered) {
-      return true
-    }
-    if (this.isCurrent) {
-      return true
-    }
-    return this.isStaff
-  }
-
-  public get moreTags() {
-    return this.patcher.rawValue.length - this.displayedTags.length
-  }
-
-  public created() {
-    this.searchForm = this.$getForm('search')
+const tagLink = (tag: string) => {
+  return {
+    name: 'Search' + props.scope,
+    query: {q: tag},
   }
 }
 
-export default toNative(AcTagDisplay)
+const setSearch = (tag: string) => {
+  searchForm.reset()
+  searchForm.fields.q.update(tag)
+  router.push(tagLink(tag))
+}
+
+const searchForm = useForm('search')
+
+const displayedTags = computed(() => props.patcher.rawValue.slice(0, 10))
+
+const controls = computed(() => {
+  if (props.editable && isRegistered.value) {
+    return true
+  }
+  if (isCurrent.value) {
+    return true
+  }
+  return isStaff.value
+})
+
+const moreTags = computed(() => props.patcher.rawValue.length - displayedTags.value.length)
 </script>

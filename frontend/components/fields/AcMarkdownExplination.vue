@@ -234,18 +234,6 @@ const emit = defineEmits<{'update:modelValue': [value: boolean]}>()
 const {modalTarget} = useTargets()
 
 const display = ref(false)
-const headers = [
-  {
-    title: 'Write...',
-    sortable: false,
-    value: 'input',
-  },
-  {
-    title: 'and get',
-    sortable: false,
-    value: 'input',
-  },
-]
 
 const basicsItems = [
   {input: '*Emphasis*'},
