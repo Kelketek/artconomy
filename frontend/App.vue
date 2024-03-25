@@ -163,7 +163,7 @@
           <strong>Reconnecting...</strong>
         </div>
       </v-snackbar>
-      <v-row no-gutters class="mb-4">
+      <v-row no-gutters class="mb-4" v-if="contentReady">
         <v-col class="text-center">
           <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
           <span class="mx-3 d-inline-block">|</span>
@@ -467,4 +467,8 @@ watch(() => route.fullPath, (newPath: string, oldPath?: string) => {
 const {modalTarget, snackbarTarget, statusTarget} = useTargets()
 
 const location = window.location
+
+const contentReady = ref(false)
+
+router.isReady().then(() => contentReady.value = true)
 </script>
