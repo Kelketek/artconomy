@@ -13,7 +13,12 @@ register = template.Library()
 
 
 def markup_from_entry(entry: dict) -> str:
-    string = f"""<script type="module" src="/static/dist/{entry['file']}" crossOrigin="anonymous" async></script>"""
+    file_name = entry['file']
+    string = ""
+    if file_name.lower().endswith('.js'):
+        string += f"""<script type="module" src="/static/dist/{entry['file']}" crossOrigin="anonymous" async></script>"""
+    elif file_name.lower().endswith('.css'):
+        string += f"""<link rel="stylesheet" type="text/css" href="/static/dist/{entry['css'][0]}" crossOrigin="anonymous"/>"""
     if "css" in entry:
         string += f"""<link rel="stylesheet" type="text/css" href="/static/dist/{entry['css'][0]}" crossOrigin="anonymous"/>"""
     return string
