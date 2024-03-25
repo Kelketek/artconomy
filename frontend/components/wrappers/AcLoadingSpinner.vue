@@ -13,15 +13,6 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib.ts'
-
-@Component
-class AcLoadingSpinner extends ArtVue {
-  @Prop({default: '50vh'})
-  public minHeight!: string
-}
-
-export default toNative(AcLoadingSpinner)
+<script setup lang="ts">
+const props = withDefaults(defineProps<{minHeight?: string}>(), {minHeight: '50vh'})
 </script>

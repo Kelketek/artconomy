@@ -1,15 +1,15 @@
-import { sentryVitePlugin } from "@sentry/vite-plugin";
+import {sentryVitePlugin} from '@sentry/vite-plugin'
 /// <reference types="vitest" />
 
 // Plugins
 import vue from '@vitejs/plugin-vue'
-import vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import vuetify, {transformAssetUrls} from 'vite-plugin-vuetify'
 import ViteFonts from 'unplugin-fonts/vite'
 import ChildProcess from 'child_process'
 
 // Utilities
 import {defineConfig} from 'vite'
-import { fileURLToPath, URL } from 'node:url'
+import {fileURLToPath, URL} from 'node:url'
 import checker from 'vite-plugin-checker'
 
 const commitHash = ChildProcess.execSync('git rev-parse --short HEAD').toString().trim()
@@ -22,7 +22,7 @@ const input = productionMode ? undefined : 'frontend/main.ts'
 
 const plugins = [
   vue({
-    template: { transformAssetUrls }
+    template: {transformAssetUrls},
   }),
   // https://github.com/vuetifyjs/vuetify-loader/tree/next/packages/vite-plugin
   vuetify({
@@ -43,8 +43,8 @@ const plugins = [
 
 if (productionMode) {
   plugins.push(sentryVitePlugin({
-    org: "artconomycom",
-    project: "vue"
+    org: 'artconomycom',
+    project: 'vue',
   }))
 }
 
@@ -57,19 +57,19 @@ export default defineConfig({
     setupFiles: ['specs/setupTestEnv.ts'],
     server: {
       deps: {
-        inline: ['vuetify']
-      }
+        inline: ['vuetify'],
+      },
     },
     reporters: ['dot'],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'clover'],
-      reportsDirectory: '../reports/coverage'
+      reportsDirectory: '../reports/coverage',
     },
   },
   base: base,
   build: {
-    manifest: "manifest.json",
+    manifest: 'manifest.json',
     emptyOutDir: true,
     rollupOptions: {
       external: [
@@ -81,7 +81,7 @@ export default defineConfig({
           vueCore: ['vue', 'vuetify', 'vuex', 'vue-facing-decorator', 'vue-router', 'vue-observe-visibility', '@devindex/vue-mask'],
           vueStyles: ['vuetify/styles'],
           captcha: ['@hcaptcha/vue3-hcaptcha', '@/components/fields/AcCaptchaField.vue'],
-          tabs: ['@/components/navigation/AcTabs.vue', '@/components/AcTab.vue'],
+          navAssist: ['@/components/navigation/AcTabs.vue', '@/components/AcTab.vue', '@/components/wrapper/AcLoadSection.vue', '@/components/wrapper/AcLoadingSpinner.vue'],
           dataProcessing: ['decimal.js', 'lodash', 'date-fns'],
           qrCode: ['qrcode'],
           sortable: ['sortablejs', 'sortablejs-vue3', 'list-diff.js'],
@@ -93,18 +93,23 @@ export default defineConfig({
             '@/components/views/faq/AcQuestion.vue',
             '@/components/views/faq/mixins/question-set.ts',
           ],
-          uppy: ['@uppy/core', '@uppy/dashboard', '@uppy/url', '@uppy/xhr-upload', '@/components/fields/AcUppyFile.vue']
+          uppy: ['@uppy/core', '@uppy/dashboard', '@uppy/url', '@uppy/xhr-upload', '@/components/fields/AcUppyFile.vue'],
         },
       },
       input,
     },
     outDir: '../public/dist',
-    sourcemap: true
+    sourcemap: true,
   },
   optimizeDeps: {
-    exclude: ['@date-io/date-fns']
+    exclude: ['@date-io/date-fns'],
   },
-  define: { 'process.env': {'__COMMIT_HASH__': commitHash, 'NODE_ENV': process.env.NODE_ENV} },
+  define: {
+    'process.env': {
+      '__COMMIT_HASH__': commitHash,
+      'NODE_ENV': process.env.NODE_ENV,
+    },
+  },
   root: './frontend/',
   resolve: {
     alias: {

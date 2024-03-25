@@ -900,7 +900,6 @@
 <script setup lang="ts">
 import {BASE_URL} from '@/lib/lib.ts'
 import {useQuestionSet} from '@/components/views/faq/mixins/question-set.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import StripeCountryList from '@/types/StripeCountryList.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useRouter} from 'vue-router'
@@ -910,6 +909,8 @@ import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import AcQuestion from '@/components/views/faq/AcQuestion.vue'
 import {mdiShieldHalfFull} from '@mdi/js'
+import {defineAsyncComponent} from 'vue'
+const AcLoadSection = defineAsyncComponent(() => import('@/components/wrappers/AcLoadSection.vue'))
 
 const router = useRouter()
 const {isRegistered, viewer, viewerName} = useViewer()

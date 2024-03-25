@@ -43,64 +43,43 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcLoadingSpinner from './AcLoadingSpinner.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {ArtVue} from '@/lib/lib.ts'
 import {mdiHelpCircleOutline, mdiRefresh} from '@mdi/js'
+import {computed} from 'vue'
+import {useStore} from 'vuex'
 
-@Component({
-  components: {AcLoadingSpinner},
+const props = withDefaults(defineProps<{
+  controller: SingleController<any> | ListController<any> & { isFetchableController: true },
+  fluid?: boolean,
+  forceRender?: boolean,
+  loadOnGrow?: boolean,
+}>(), {
+  forceRender: false,
+  fluid: true,
+  loadOnGrow: true,
 })
-class AcLoadSection extends ArtVue {
-  @Prop({required: true})
-  public controller!: SingleController<any> | ListController<any>
 
-  @Prop({default: true})
-  public fluid!: boolean
+const store = useStore()
 
-  @Prop({default: false})
-  public forceRender!: boolean
-
-  @Prop({default: true})
-  public loadOnGrow!: boolean
-
-  public prerendering = false
-  public mdiHelpCircleOutline = mdiHelpCircleOutline
-  public mdiRefresh = mdiRefresh
-
-  public created() {
-    this.prerendering = Boolean(window.PRERENDERING || 0)
-    /* istanbul ignore if */
-    if (!this.controller.isFetchableController) {
-      console.error(JSON.stringify(this.controller))
-      throw Error('HANDED AN INVALID OBJECT FOR A CONTROLLER. THIS WILL NEVER LOAD!')
-    }
-  }
-
-  public showSupport() {
-    this.$store.commit('supportDialog', true)
-  }
-
-  public get grow() {
-    return Boolean((this.controller as ListController<any>).grow)
-  }
-
-  public get growPermitting() {
-    if (this.loadOnGrow) {
-      return true
-    }
-    const controller = this.controller as ListController<any>
-    if ((this.controller as ListController<any>).grow) {
-      if (controller.list.length) {
-        return false
-      }
-    }
-    return true
-  }
+const showSupport = () => {
+  store.commit('supportDialog', true)
 }
 
-export default toNative(AcLoadSection)
+const grow = computed(() => Boolean((props.controller as ListController<any>).grow))
+
+const growPermitting = computed(() => {
+  if (props.loadOnGrow) {
+    return true
+  }
+  const controller = props.controller as ListController<any>
+  if ((props.controller as ListController<any>).grow) {
+    if (controller.list.length) {
+      return false
+    }
+  }
+  return true
+})
 </script>

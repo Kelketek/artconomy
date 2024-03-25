@@ -352,7 +352,7 @@ PRELOADED_BUNDLE_ASSETS = [
     "_vueCore",
     "_AcAsset",
     "_subjective",
-    "_tabs",
+    "_navAssist",
 ]
 
 # Items that should be inlined directly into the page as critical CSS/JS.
