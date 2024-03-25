@@ -52,7 +52,7 @@ import {computed} from 'vue'
 import {useStore} from 'vuex'
 
 const props = withDefaults(defineProps<{
-  controller: SingleController<any> | ListController<any> & { isFetchableController: true },
+  controller: SingleController<any> | ListController<any>,
   fluid?: boolean,
   forceRender?: boolean,
   loadOnGrow?: boolean,
