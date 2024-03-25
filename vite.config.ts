@@ -79,6 +79,7 @@ export default defineConfig({
       output: {
         manualChunks: {
           vueCore: ['vue', 'vuetify', 'vuex', 'vue-facing-decorator', 'vue-router', 'vue-observe-visibility', '@devindex/vue-mask'],
+          vueStyles: ['vuetify/styles'],
           captcha: ['@hcaptcha/vue3-hcaptcha', '@/components/fields/AcCaptchaField.vue'],
           dataProcessing: ['decimal.js', 'lodash', 'date-fns'],
           qrCode: ['qrcode'],

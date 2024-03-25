@@ -1,4 +1,3 @@
-import './artconomy.css'
 import {BrowserTracing, Replay, vueRouterInstrumentation, init} from '@sentry/vue'
 import {createApp, defineAsyncComponent, h} from 'vue'
 import {createStore} from './store/index.ts'
@@ -50,6 +49,10 @@ declare global {
 }
 
 const productionMode = process.env.NODE_ENV === 'production'
+if (!productionMode) {
+  // @ts-expect-error
+  import('vuetify/styles')
+}
 
 const app = createApp({
   render: () => h(App),

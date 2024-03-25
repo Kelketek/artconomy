@@ -4,9 +4,6 @@
  * Framework documentation: https://vuetifyjs.com`
  */
 
-// Styles
-import 'vuetify/styles'
-
 // Composables
 import DateFnsAdapter from '@date-io/date-fns'
 import {createVuetify as upstreamCreateVuetify} from 'vuetify'

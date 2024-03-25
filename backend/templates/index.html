@@ -104,8 +104,74 @@
             transform: rotate(360deg);
         }
     }
-    /* https://github.com/filipinhares/ress */
-    html{-webkit-text-size-adjust:100%;box-sizing:border-box;-moz-tab-size:4;tab-size:4;word-break:normal}*,:after,:before{background-repeat:no-repeat;box-sizing:inherit}:after,:before{text-decoration:inherit;vertical-align:inherit}*{margin:0;padding:0}hr{color:inherit;height:0;overflow:visible}details,main{display:block}summary{display:list-item}small{font-size:80%}[hidden]{display:none}abbr[title]{border-bottom:none;text-decoration:underline;text-decoration:underline dotted}a{background-color:transparent}a:active,a:hover{outline-width:0}code,kbd,pre,samp{font-family:monospace,monospace}pre{font-size:1em}b,strong{font-weight:bolder}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{border-color:inherit;text-indent:0}iframe{border-style:none}input{border-radius:0}[type=number]::-webkit-inner-spin-button,[type=number]::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}[type=search]::-webkit-search-decoration{-webkit-appearance:none}textarea{overflow:auto;resize:vertical}button,input,optgroup,select,textarea{font:inherit}optgroup{font-weight:700}button{overflow:visible}button,select{text-transform:none}[role=button],[type=button],[type=reset],[type=submit],button{cursor:pointer}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button::-moz-focus-inner{border-style:none;padding:0}[type=button]::-moz-focus-inner,[type=reset]::-moz-focus-inner,[type=submit]::-moz-focus-inner,button:-moz-focusring{outline:1px dotted ButtonText}[type=reset],[type=submit],button,html [type=button]{-webkit-appearance:button}button,input,select,textarea{background-color:transparent;border-style:none}a:focus,button:focus,input:focus,select:focus,textarea:focus{outline-width:0}select{-moz-appearance:none;-webkit-appearance:none}select::-ms-expand{display:none}select::-ms-value{color:currentColor}legend{border:0;color:inherit;display:table;max-width:100%;white-space:normal}::-webkit-file-upload-button{-webkit-appearance:button;color:inherit;font:inherit}[disabled]{cursor:default}img{border-style:none}progress{vertical-align:baseline}[aria-busy=true]{cursor:progress}[aria-controls]{cursor:pointer}[aria-disabled=true]{cursor:default}
+    fieldset {
+        border: 0;
+    }
+    img {
+        max-width: 100%;
+    }
+    .v-application.v-theme--dark a {
+        color: #fff;
+    }
+    /* Force the cursor to have more contrast. */
+    #app.theme--dark, .v-application .primary--text input,  .v-application .primary--text textarea {
+        caret-color: #fff !important;
+    }
+    #app a {
+        font-weight: bold
+    }
+    #app p a, #app ul a, #app ol a, #app .v-responsive__content a,
+    .v-alert a {
+        color: #fff;
+        text-decoration: underline;
+    }
+    #app.theme--dark p a, #app.theme--dark ul a, #app.theme--dark ol a, #app.theme--dark .v-responsive__content a,
+    .theme--dark .v-alert a {
+        color: #fff;
+    }
+    #app a.v-btn {
+        text-decoration: none;
+    }
+    .clickable {
+        cursor: pointer;
+    }
+    .container.fluid {
+        padding-left: 0;
+        padding-right: 0;
+        max-width: 100%;
+    }
+    .highlight-icon:hover {
+        text-shadow: 1px 1px 3px #fff, 1px 1px 10px #ccc;
+    }
+    blockquote {
+        padding-left: 1rem;
+        border-left: 3px solid darkgray;
+        opacity: .8;
+    }
+    .compact-fields .v-label--active {
+        top: 13px;
+        font-size: 12px;
+    }
+    .compact-fields .v-text-field {
+        padding: 0;
+        margin: 0;
+    }
+    .compact-fields .v-input, .compact-fields .v-btn--icon.v-size--default, .compact-fields .v-input, .compact-fields .v-btn--icon.v-size--small {
+        height: unset;
+        padding: 0;
+        margin: 0;
+        width: unset;
+        min-width: unset;
+    }
+    .compact-fields .v-input__slot {
+        margin-bottom: 0;
+    }
+    .v-toolbar-title a {
+        text-decoration: none;
+    }
+    p {
+        margin-bottom: 1rem;
+    }
 </style>
 </body>
 </html>

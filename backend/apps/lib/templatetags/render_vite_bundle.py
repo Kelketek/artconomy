@@ -3,6 +3,7 @@
 # in our production use case, and it's not clear why.
 
 import json
+from itertools import chain
 
 from django import template
 from django.conf import settings
@@ -18,7 +19,21 @@ def markup_from_entry(entry: dict) -> str:
     return string
 
 
-def asset_markup(manifest: dict, file_name: str) -> str:
+def embed_markup_from_entry(entry: dict) -> str:
+    file_name = entry["file"]
+    string = ""
+    with open(f"{settings.VITE_APP_DIR}/dist/{file_name}") as file_handle:
+        data = file_handle.read()
+    if file_name.lower().endswith(".css"):
+        string += f"<style>{data}</style>"
+    elif file_name.lower().endswith(".js"):
+        string += f"<script>{data}</script>"
+    if "css" in entry:
+        string += f"<style>{data}</style>"
+    return string
+
+
+def asset_markup(manifest: dict, file_name: str, inline: bool = False) -> str:
     if file_name.startswith("_"):
         # This is a derived asset name and may be in several pieces.
         entries = [
@@ -26,7 +41,8 @@ def asset_markup(manifest: dict, file_name: str) -> str:
         ]
     else:
         entries = [manifest[file_name]]
-    return "".join(markup_from_entry(entry) for entry in entries)
+    transformer = embed_markup_from_entry if inline else markup_from_entry
+    return "".join(transformer(entry) for entry in entries)
 
 
 @register.simple_tag
@@ -46,7 +62,15 @@ def render_vite_bundle():
         )
     return mark_safe(
         "".join(
-            asset_markup(manifest, preload)
-            for preload in settings.PRELOADED_BUNDLE_ASSETS
+            chain(
+                (
+                    asset_markup(manifest, preload)
+                    for preload in settings.PRELOADED_BUNDLE_ASSETS
+                ),
+                (
+                    asset_markup(manifest, inline, inline=True)
+                    for inline in settings.INLINE_BUNDLE_ASSETS
+                ),
+            ),
         )
     )
