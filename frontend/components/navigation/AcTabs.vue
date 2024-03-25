@@ -15,45 +15,31 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcTab from '@/components/AcTab.vue'
 import {TabSpec} from '@/types/TabSpec.ts'
+import {computed} from 'vue'
 
-@Component({
-  components: {AcTab},
-  emits: ['update:modelValue'],
+const props = defineProps<{modelValue: number, label: string, items: TabSpec[]}>()
+const emit = defineEmits<{'update:modelValue': [number]}>()
+
+const tab = computed({
+  get() {
+    return props.modelValue
+  },
+  set(val: number) {
+    emit('update:modelValue', val)
+  }
 })
-class AcTabs extends Vue {
-  @Prop({required: true})
-  public label!: string
 
-  @Prop({required: true})
-  public modelValue!: number
-
-  @Prop({required: true})
-  public items!: TabSpec[]
-
-  public renderText(item: TabSpec) {
-    if (item.count) {
-      return `${item.title} (${item.count})`
-    }
-    return item.title
+const renderText = (item: TabSpec) => {
+  if (item.count) {
+    return `${item.title} (${item.count})`
   }
-
-  public get tabSpec() {
-    return this.items[this.tab]
-  }
-
-  public get tab() {
-    // Match the name or any parent route name. Ignores params.
-    return this.modelValue
-  }
-
-  public set tab(val: number) {
-    this.$emit('update:modelValue', val)
-  }
+  return item.title
 }
 
-export default toNative(AcTabs)
+const tabSpec = computed(() => {
+  return props.items[tab.value]
+})
 </script>

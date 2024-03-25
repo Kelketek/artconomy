@@ -81,6 +81,7 @@ export default defineConfig({
           vueCore: ['vue', 'vuetify', 'vuex', 'vue-facing-decorator', 'vue-router', 'vue-observe-visibility', '@devindex/vue-mask'],
           vueStyles: ['vuetify/styles'],
           captcha: ['@hcaptcha/vue3-hcaptcha', '@/components/fields/AcCaptchaField.vue'],
+          tabs: ['@/components/navigation/AcTabs.vue', '@/components/AcTab.vue'],
           dataProcessing: ['decimal.js', 'lodash', 'date-fns'],
           qrCode: ['qrcode'],
           sortable: ['sortablejs', 'sortablejs-vue3', 'list-diff.js'],

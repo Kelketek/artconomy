@@ -11,11 +11,11 @@
 </template>
 <script setup lang="ts">
 import {setMetaContent, updateTitle} from '@/lib/lib.ts'
-import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import StripeCountryList from '@/types/StripeCountryList.ts'
 import {useRoute, useRouter} from 'vue-router'
-import {onMounted, watch} from 'vue'
+import {defineAsyncComponent, onMounted, watch} from 'vue'
 import {useSingle} from '@/store/singles/hooks.ts'
+const AcTabNav = defineAsyncComponent(() => import('@/components/navigation/AcTabNav.vue'))
 
 
 const route = useRoute()

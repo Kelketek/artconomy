@@ -347,7 +347,13 @@ DJANGO_VITE = {
 VITE_APP_DIR = get_env("VITE_APP_DIR", STATIC_ROOT)
 
 # Items that should be included in the header markup for preloading by the browser.
-PRELOADED_BUNDLE_ASSETS = ["index.html", "_vueCore", "_AcAsset", "_subjective"]
+PRELOADED_BUNDLE_ASSETS = [
+    "index.html",
+    "_vueCore",
+    "_AcAsset",
+    "_subjective",
+    "_tabs",
+]
 
 # Items that should be inlined directly into the page as critical CSS/JS.
 INLINE_BUNDLE_ASSETS = ["_vueStyles"]

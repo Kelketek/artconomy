@@ -18,7 +18,7 @@ declare interface TabProps {
   list?: ListController<any>
   count?: number,
   to?: RouteLocationNamedRaw,
-  value?: TabSpec,
+  value?: number,
   trackPages?: boolean,
   pageVariable?: string,
   tag?: string,
