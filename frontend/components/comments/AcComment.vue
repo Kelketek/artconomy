@@ -4,17 +4,17 @@
     <v-toolbar dense color="black">
       <ac-avatar :username="username" :show-name="false" v-if="username"/>
       <v-toolbar-title v-if="username" class="ml-1">
-        <ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link>
+        <ac-link :to="profileLink(subject)">{{ subjectHandler.displayName }}</ac-link>
       </v-toolbar-title>
       <v-spacer/>
       <v-tooltip bottom>
         <template v-slot:activator="{ props }">
           <v-icon v-bind="props" :icon="mdiInformation"/>
         </template>
-        {{formatDateTime(comment.x.created_on)}}
-        <span v-if="comment.x.edited"><br/>Edited: {{formatDateTime(comment.x.edited_on)}}</span>
+        {{ formatDateTime(comment.x.created_on) }}
+        <span v-if="comment.x.edited"><br/>Edited: {{ formatDateTime(comment.x.edited_on) }}</span>
       </v-tooltip>
-      <v-menu offset-x left v-if="!inHistory" :attach="$menuTarget">
+      <v-menu offset-x left v-if="!inHistory" :attach="menuTarget">
         <template v-slot:activator="{props}">
           <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
             <v-icon :icon="mdiDotsHorizontal"/>
@@ -63,7 +63,7 @@
         </v-list>
       </v-menu>
     </v-toolbar>
-    <v-card-text>
+    <v-card-text ref="main">
       <v-row no-gutters>
         <v-col cols="12" sm="12">
           <v-row no-gutters>
@@ -113,6 +113,7 @@
           </v-row>
         </v-col>
       </v-row>
+      <span>BEFORE SECTION!</span>
       <v-row no-gutters v-if="subCommentList.list.length || replying">
         <v-col cols="11" offset="1">
           <v-row no-gutters class="mt-4">
@@ -122,6 +123,7 @@
                 <v-icon right :icon="mdiArrowExpandDown"/>
               </v-btn>
             </v-col>
+            <span>THIS WOULD BE HERE!</span>
             <ac-load-section :controller="subCommentList">
               <template v-slot:default>
                 <div class="flex subcomments">
@@ -130,7 +132,7 @@
                         :alternate="checkAlternate(index)"
                         :comment="comment"
                         :comment-list="subCommentList"
-                        :username="comment.x!.user?.username"
+                        :username="comment.x!.user?.username || ''"
                         :level="level + 1"
                         :key="comment.x!.id"
                         :nesting="nesting"
@@ -184,192 +186,172 @@
 }
 </style>
 
-<script lang="ts">
-
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import {defineAsyncComponent} from 'vue'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {computed, defineAsyncComponent, ref, watch} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import Comment from '@/types/Comment.ts'
-import Formatting from '@/mixins/formatting.ts'
-import {mdiArrowExpandDown, mdiDotsHorizontal, mdiReply, mdiCancel, mdiDelete, mdiVolumeOff, mdiVolumeHigh, mdiPencil, mdiHistory, mdiHeadDotsHorizontal, mdiInformation} from '@mdi/js'
+import {
+  mdiArrowExpandDown,
+  mdiDotsHorizontal,
+  mdiReply,
+  mdiCancel,
+  mdiDelete,
+  mdiVolumeOff,
+  mdiVolumeHigh,
+  mdiPencil,
+  mdiHistory,
+  mdiInformation,
+} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useGoTo, useTheme} from 'vuetify'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useRoute} from 'vue-router'
+import {useList} from '@/store/lists/hooks.ts'
+import {useSubject} from '@/mixins/subjective.ts'
+import {useTargets} from '@/plugins/targets.ts'
+import {formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
+
 const AcAvatar = defineAsyncComponent(() => import('@/components/AcAvatar.vue'))
 const AcRendered = defineAsyncComponent(() => import('@/components/wrappers/AcRendered.ts'))
-const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
-const AcFormContainer = defineAsyncComponent(() => import('@/components/wrappers/AcFormContainer.vue'))
 const AcConfirmation = defineAsyncComponent(() => import('@/components/wrappers/AcConfirmation.vue'))
-const AcLoadingSpinner = defineAsyncComponent(() => import('@/components/wrappers/AcLoadingSpinner.vue'))
 const AcPatchField = defineAsyncComponent(() => import('@/components/fields/AcPatchField.vue'))
 const AcExpandedProperty = defineAsyncComponent(() => import('@/components/wrappers/AcExpandedProperty.vue'))
 const AcLink = defineAsyncComponent(() => import('@/components/wrappers/AcLink.vue'))
 const AcLoadSection = defineAsyncComponent(() => import('@/components/wrappers/AcLoadSection.vue'))
 const AcNewComment = defineAsyncComponent(() => import('@/components/comments/AcNewComment.vue'))
+const AcCommentSection = defineAsyncComponent(() => import('@/components/comments/AcCommentSection.vue'))
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcLink,
-    AcExpandedProperty,
-    AcPatchField,
-    AcLoadingSpinner,
-    AcNewComment,
-    AcConfirmation,
-    AcFormContainer,
-    AcBoundField,
-    AcRendered,
-    AcAvatar,
-  },
-})
-class AcComment extends mixins(Subjective, Formatting) {
-  @Prop({required: true})
-  public comment!: SingleController<Comment>
-
-  @Prop({required: true})
-  public commentList!: ListController<Comment>
-
-  // Used to make sure every other comment is a different style.
-  @Prop({default: false})
-  public alternate!: boolean
-
-  // When true, allows replies.
-  @Prop({default: true})
-  public nesting!: boolean
-
-  // When greater than zero, we won't allow direct replies. They must be at the thread level.
-  @Prop({default: 0})
-  public level!: number
-
-  @Prop({default: false})
-  public locked!: boolean
-
-  @Prop({default: false})
-  public showHistory!: boolean
-
-  @Prop({default: false})
-  public inHistory!: boolean
-
-  public subCommentList: ListController<Comment> = null as unknown as ListController<Comment>
-  public historyList: ListController<Comment> = null as unknown as ListController<Comment>
-  public editing = false
-  public replying = false
-  public missingOk = true
-  public scrolled = false
-  public historyDisplay = false
-  public renderHistory = false
-  public mdiArrowExpandDown = mdiArrowExpandDown
-  public mdiDotsHorizontal = mdiDotsHorizontal
-  public mdiReply = mdiReply
-  public mdiCancel = mdiCancel
-  public mdiDelete = mdiDelete
-  public mdiVolumeOff = mdiVolumeOff
-  public mdiVolumeHigh = mdiVolumeHigh
-  public mdiPencil = mdiPencil
-  public mdiHistory = mdiHistory
-  public mdiHeadDotsHorizontal = mdiHeadDotsHorizontal
-  public mdiInformation = mdiInformation
-
-  public get canHaveChildren() {
-    if (!this.nesting) {
-      return false
-    }
-    return this.level === 0
-  }
-
-  public get color() {
-    if (this.alternate) {
-      // @ts-ignore
-      return this.$vuetify.theme.current.colors['well-darken-4']
-    }
-    return undefined
-  }
-
-  public get canReply() {
-    return this.canHaveChildren && this.isRegistered && !this.locked
-  }
-
-  public get selected() {
-    if (!this.comment.x) {
-      return false
-    }
-    if (this.$route.query && this.$route.query.commentId) {
-      if (this.$route.query.commentId === (this.comment.x as Comment).id + '') {
-        return true
-      }
-    }
-    return false
-  }
-
-  public checkAlternate(index: number) {
-    if (this.alternate) {
-      index += 1
-    }
-    return !(index % 2)
-  }
-
-  @Watch('subCommentList.list.length')
-  public syncDeletion(val: number) {
-    if (this.showHistory || this.inHistory) {
-      return
-    }
-    if (this.comment.x === null) {
-      return
-    }
-    if (val === 0) {
-      // All children are deleted. Are we?
-      if ((this.comment.x as Comment).deleted) {
-        // Be gone, if so. We won't be on the server anymore, either!
-        this.comment.setX(null)
-      }
-    }
-  }
-
-  @Watch('historyDisplay')
-  public historyRender(val: boolean) {
-    /* istanbul ignore else */
-    if (val) {
-      this.renderHistory = true
-    }
-  }
-
-  public mounted() {
-    this.$nextTick(() => {
-      if (this.selected && !this.scrolled) {
-        this.$el.scrollIntoView()
-        this.scrolled = true
-      }
-    })
-  }
-
-  public created() {
-    const comment = this.comment.x as Comment
-    this.subCommentList = this.$getList(this.comment.name + '_comments', {
-      endpoint: `/api/lib/comments/lib.Comment/${comment.id}/`,
-      params: {size: 5},
-      grow: true,
-      reverse: true,
-    })
-    this.historyList = this.$getList(this.comment.name + '_history', {
-      endpoint: `/api/lib/comments/lib.Comment/${comment.id}/history/`,
-      params: {size: 5},
-      grow: true,
-      reverse: true,
-    })
-    // Normally we might create a watcher for this param, but the parent list should be refetched if it changes,
-    // rebuilding the whole comment set.
-    if (this.showHistory) {
-      this.subCommentList.params = {history: '1'}
-    }
-    this.subCommentList.setList(comment.comments)
-    this.subCommentList.response = {
-      size: 5,
-      count: comment.comment_count,
-    }
-    this.subCommentList.ready = true
-    // @ts-ignore
-    window.comment = this
-  }
+declare interface AcCommentProps {
+  comment: SingleController<Comment>,
+  commentList: ListController<Comment>,
+  alternate?: boolean,
+  nesting?: boolean,
+  level?: number,
+  locked?: boolean,
+  showHistory?: boolean,
+  inHistory?: boolean,
 }
 
-export default toNative(AcComment)
+const props = withDefaults(
+    defineProps<AcCommentProps & SubjectiveProps>(),
+    {
+      alternate: false,
+      nesting: true,
+      level: 0,
+      locked: false,
+      showHistory: false,
+      inHistory: false,
+    },
+)
+
+const editing = ref(false)
+const replying = ref(false)
+const scrolled = ref(false)
+const historyDisplay = ref(false)
+const renderHistory = ref(false)
+const main = ref<HTMLElement | null>(null)
+
+const theme = useTheme()
+const route = useRoute()
+const goTo = useGoTo()
+
+const {isRegistered} = useViewer()
+const {
+  controls,
+  subject,
+  subjectHandler,
+} = useSubject(props)
+const {menuTarget} = useTargets()
+
+const canHaveChildren = computed(() => {
+  if (!props.nesting) {
+    return false
+  }
+  return props.level === 0
+})
+
+const color = computed(() => {
+  if (props.alternate) {
+    return theme.current.value.colors['well-darken-4']
+  }
+  return undefined
+})
+
+const canReply = computed(() => {
+  return canHaveChildren.value && isRegistered.value && !props.locked
+})
+
+const selected = computed(() => {
+  if (!props.comment.x) {
+    return false
+  }
+  if (route.query && route.query.commentId) {
+    if (route.query.commentId === (props.comment.x!.id + '')) {
+      return true
+    }
+  }
+  return false
+})
+
+const checkAlternate = (index: number) => {
+  if (props.alternate) {
+    index += 1
+  }
+  return !(index % 2)
+}
+
+const currentComment = props.comment.x as Comment
+const subCommentList = useList<Comment>(props.comment.name.value + '_comments', {
+  endpoint: `/api/lib/comments/lib.Comment/${currentComment.id}/`,
+  params: {size: 5},
+  grow: true,
+  reverse: true,
+})
+const historyList = useList<Comment>(props.comment.name.value + '_history', {
+  endpoint: `/api/lib/comments/lib.Comment/${currentComment.id}/history/`,
+  params: {size: 5},
+  grow: true,
+  reverse: true,
+})
+// Normally we might create a watcher for this param, but the parent list should be refetched if it changes,
+// rebuilding the whole comment set.
+if (props.showHistory) {
+  subCommentList.params = {history: '1'}
+}
+subCommentList.response = {
+  size: 5,
+  count: currentComment.comment_count,
+}
+subCommentList.makeReady(currentComment.comments)
+
+watch(() => subCommentList.list.length, (val: number) => {
+  if (props.showHistory || props.inHistory) {
+    return
+  }
+  if (props.comment.x === null) {
+    return
+  }
+  if (val === 0) {
+    if (props.comment.x!.deleted) {
+      props.comment.setX(null)
+    }
+  }
+})
+
+watch(historyDisplay, (val: boolean) => {
+  if (val) {
+    renderHistory.value = true
+  }
+})
+
+watch(main, (el) => {
+  if (!el) {
+    return
+  }
+  if (selected.value && !scrolled.value) {
+    goTo(el)
+    scrolled.value = true
+  }
+})
 </script>

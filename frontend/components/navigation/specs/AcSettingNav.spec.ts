@@ -3,15 +3,18 @@ import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures.ts'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
-import {cleanUp, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {Router} from 'vue-router'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
+let router: Router
 
 describe('AcSettingNav.vue', () => {
   beforeEach(() => {
     store = createStore()
+    router = createTestRouter(false)
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -21,7 +24,7 @@ describe('AcSettingNav.vue', () => {
       AcSettingNav, {
         ...vueSetup({
           store,
-          stubs: ['router-link'],
+          extraPlugins: [router],
         }),
         props: {username: 'Fox'},
       },
@@ -36,7 +39,7 @@ describe('AcSettingNav.vue', () => {
       AcSettingNav, {
         ...vueSetup({
           store,
-          stubs: ['router-link'],
+          extraPlugins: [router],
         }),
         props: {username: 'Fox'},
       },
@@ -55,7 +58,7 @@ describe('AcSettingNav.vue', () => {
       AcSettingNav, {
         ...vueSetup({
           store,
-          stubs: ['router-link'],
+          extraPlugins: [router],
         }),
         props: {username: 'Fox'},
       },

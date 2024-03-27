@@ -158,7 +158,6 @@ describe('Credentials.vue', () => {
     vm.showPasswordChange = true
     vm.showEmailChange = true
     await vm.$nextTick()
-    console.log(wrapper.html())
     expect(wrapper.findAll('.v-overlay--active').length).toBe(3)
     vm.save(genUser())
     await vm.$nextTick()

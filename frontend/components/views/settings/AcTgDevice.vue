@@ -108,7 +108,7 @@
                     <v-col class="text-center" cols="12" sm="8" offset-sm="2" md="4" offset-md="4">
                       <ac-form @submit.prevent="form.submitThen(device.setX)">
                         <ac-form-container v-bind="form.bind">
-                          <v-text-field v-bind="form.fields.code.bind" v-mask="'### ###'">
+                          <v-text-field v-bind="form.fields.code.bind" v-mask-token>
                           </v-text-field>
                           <v-btn color="primary" type="submit" class="submit-button" variant="flat">Verify</v-btn>
                         </ac-form-container>
@@ -130,64 +130,52 @@
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {SingleController} from '@/store/singles/controller.ts'
 import {TGDevice} from '@/store/profiles/types/TGDevice.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import {artCall, BASE_URL} from '@/lib/lib.ts'
-import Subjective from '@//mixins/subjective.ts'
+import {useSubject} from '@//mixins/subjective.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import {vMaskToken} from '@/lib/vMask.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {computed, ComputedRef, ref, watch} from 'vue'
+import {User} from '@/store/profiles/types/User.ts'
 
-@Component({
-  components: {
-    AcForm,
-    AcConfirmation,
-    AcFormContainer,
-  },
-})
-class AcTgDevice extends mixins(Subjective) {
-  @Prop({required: true})
-  public device!: SingleController<TGDevice>
+const telegramLogo = new URL('/static/images/telegram_logo.svg', BASE_URL).href
+const logo = new URL('/static/images/logo.png', BASE_URL).href
 
-  public form: FormController = null as unknown as FormController
-  public step: number = 1
-
-  public telegramLogo = new URL('/static/images/telegram_logo.svg', BASE_URL).href
-  public logo = new URL('/static/images/logo.png', BASE_URL).href
-
-  public created() {
-    this.form = this.$getForm('telegramOTP', {
-      method: 'patch',
-      endpoint: this.url,
-      fields: {
-        code: {
-          value: null,
-          validators: [{name: 'required'}],
-        },
-      },
-    })
-  }
-
-  public sendTGCode() {
-    this.step = 3
-    artCall({
-      url: this.url,
-      method: 'post',
-    }).then()
-  }
-
-  @Watch('url')
-  public updateEndpoints(val: string) {
-    this.form.endpoint = val
-  }
-
-  public get url() {
-    return `/api/profiles/account/${this.username}/auth/two-factor/tg/`
-  }
+declare interface AcTgDeviceProps {
+  device: SingleController<TGDevice>
 }
 
-export default toNative(AcTgDevice)
+const props = defineProps<AcTgDeviceProps & SubjectiveProps>()
+const subjectTraits = useSubject(props)
+const subject = subjectTraits.subject as ComputedRef<User>
+const step = ref(1)
+
+const url = computed(() => `/api/profiles/account/${props.username}/auth/two-factor/tg/`)
+
+const form = useForm('telegramOTP', {
+  method: 'patch',
+  endpoint: url.value,
+  fields: {
+    code: {
+      value: null,
+      validators: [{name: 'required'}],
+    },
+  },
+})
+
+const sendTGCode = () => {
+  step.value = 3
+  artCall({
+    url: url.value,
+    method: 'post',
+  }).then()
+}
+
+watch(url, (val: string) => form.endpoint = val)
 </script>

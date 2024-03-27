@@ -49,6 +49,8 @@ global.ResizeObserver = require('resize-observer-polyfill')
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
+document.hasFocus = () => true
+
 // @ts-ignore
 // window.ResizeObserver = window.ResizeObserver || vi.fn().mockImplementation(() => ({
 //   disconnect: vi.fn(),

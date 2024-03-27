@@ -47,7 +47,7 @@
             <ac-form-container :sending="loginForm.sending" :errors="loginForm.errors">
               <ac-bound-field
                   label="Token"
-                  v-mask="'### ###'"
+                  v-mask-token
                   :field="loginForm.fields.token"
                   :autofocus="true"
                   id="field-token"
@@ -80,6 +80,7 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import Viewer from '@/mixins/viewer.ts'
 import {AcServerError} from '@/types/AcServerError.ts'
+import {vMaskToken as MaskToken} from '@/lib/vMask.ts'
 
 @Component({
   components: {
@@ -88,7 +89,7 @@ import {AcServerError} from '@/types/AcServerError.ts'
     AcForm,
   },
   directives: {
-
+    MaskToken,
   }
 })
 class Login extends mixins(Auth, Viewer) {

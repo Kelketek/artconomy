@@ -25,7 +25,7 @@ describe('AcMiniCharacter.vue', () => {
     wrapper = mount(
       AcMiniCharacter, {
         ...vueSetup({stubs: ['router-link']}),
-        props: {character: genCharacter()},
+        props: {character: genCharacter(), alt: 'Kai'},
       },
     )
   })

@@ -191,13 +191,13 @@ watch(() => props.patcher.cached, (val: any) => {
   scratch.value = val
 })
 
-watch(() => props.patcher.errors, () => {
+watch(() => props.patcher.errors, (val: string[]) => {
   // When we have an error, our cache will still have the new value. We need to reset it so that our child
   // component knows we've still not saved what's upstream. Note: This is only for child components that handle
   // their own save events, such as the editor. Doing this on other components runs the risk of wiping out
   // the value the user set. To override this, set refresh to false.
   scratch.value = props.patcher.rawValue
-})
+}, {deep: true})
 
 watch(saved, (val: boolean) => {
   if (val) {

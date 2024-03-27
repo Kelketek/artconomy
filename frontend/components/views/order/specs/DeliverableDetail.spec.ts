@@ -376,7 +376,6 @@ describe('DeliverableDetail.vue', () => {
     mockAxios.reset()
     await waitFor(() => wrapper.find('.add-deliverable-dialog .dialog-submit').trigger('click'))
     mockAxios.mockResponse(rs(genDeliverable({id: 100})))
-    console.log(wrapper.html())
     await waitFor(() => expect(parentDeliverables.list.length).toBe(2))
     expect(parentDeliverables.list[1].x.id).toBe(100)
     expect(router.currentRoute.value.name).toEqual('OrderDeliverableOverview')

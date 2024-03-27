@@ -3,8 +3,7 @@ import NavBar from '../NavBar.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {
-  cleanUp,
-  flushPromises,
+  cleanUp, createTestRouter,
   mockRoutes,
   mount,
   rq,
@@ -36,10 +35,7 @@ describe('NavBar.vue', () => {
       endpoint: '/',
       fields: {q: {value: ''}},
     })
-    router = createRouter({
-      history: createWebHistory(),
-      routes: mockRoutes,
-    })
+    router = createTestRouter(false)
     router.push('/')
   })
   afterEach(() => {
@@ -175,13 +171,12 @@ describe('NavBar.vue', () => {
     wrapper = mount(NavBarContainer, vueSetup({
       store,
       extraPlugins: [router],
-      stubs: ['router-link'],
     }))
     await nextTick()
-    expect(wrapper.find('.nav-login-item').attributes()['href']).toEqual(router.resolve({name: 'Login', query: {next: '/'}}).fullPath)
+    const vm = wrapper.findComponent(NavBar)!.vm as any
+    expect(vm.loginLink).toEqual({name: 'Login', query: {next: '/'}})
     await router.replace({name: 'Login'})
-    await nextTick()
-    expect(wrapper.find('.nav-login-item').attributes()['href']).toEqual(router.resolve({name: 'Login'}).fullPath)
+    await waitFor(() => expect(vm.loginLink).toEqual({name: 'Login'}))
   })
   test('Sends you to the search page', async() => {
     wrapper = mount(NavBarContainer, vueSetup({

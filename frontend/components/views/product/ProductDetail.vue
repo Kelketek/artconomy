@@ -948,8 +948,9 @@ class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharabl
     return list
   }
 
-  @Watch('maxSampleRating')
+  @Watch('maxSampleRating', {immediate: true})
   public triggerAgeCheck(value: number) {
+    console.log('Triggered-- is now', value)
     this.ageCheck({value})
   }
 
@@ -963,6 +964,7 @@ class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharabl
       return linkedSubmission.submission.rating
     })
     if (this.product.x && this.product.x.primary_submission) {
+      console.log('Adding primary submission', this.product.x.primary_submission.rating)
       ratings.push(this.product.x.primary_submission.rating)
     }
     if (!ratings.length) {

@@ -366,7 +366,6 @@ describe('AcSampleEditor.vue', () => {
     await wrapper.find('.dialog-closer').trigger('click')
     await wrapper.vm.$nextTick()
     await flushPromises()
-    console.log(wrapper.emitted())
     expect(wrapper.emitted('update:modelValue')![0])
   })
 })

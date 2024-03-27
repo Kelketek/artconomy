@@ -19,6 +19,7 @@ import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -147,8 +148,9 @@ describe('AcComment.vue', () => {
         username: commentList.list[0].x.user.username,
       },
     })
-    await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$refs.vm.scrolled).toBe(true)
+    await nextTick()
+    const vm = wrapper.findComponent(AcComment).vm as any
+    expect(vm.scrolled).toBe(true)
   })
   test('Sets an alternate coloration', async() => {
     const empty = mount(Empty, vueSetup({store}))
@@ -342,23 +344,24 @@ describe('AcComment.vue', () => {
       props: {
         commentList,
         comment: commentList.list[2],
-        username: null,
+        username: '',
         nesting: false,
       },
     })
-    expect((wrapper.vm as any).$refs.vm.comment.x).toBeTruthy()
-    await wrapper.vm.$nextTick()
+    const vm = wrapper.findComponent(AcComment).vm as any
+    expect(vm.comment.x).toBeTruthy()
+    await nextTick()
     mockAxios.reset()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/comments/13/', 'delete'),
     )
     mockAxios.mockResponse(rs(null))
     await flushPromises()
-    expect((wrapper.vm as any).$refs.vm.comment.x).toBe(null)
-    expect((wrapper.vm as any).$refs.vm.comment.deleted).toBe(true)
-    expect((wrapper.vm as any).$refs.vm.comment.ready).toBe(false)
+    expect(vm.comment.x).toBe(null)
+    expect(vm.comment.deleted).toBe(true)
+    expect(vm.comment.ready).toBe(false)
   })
   test('Deletes a thread', async() => {
     setViewer(store, genUser())
@@ -378,11 +381,11 @@ describe('AcComment.vue', () => {
       props: {
         commentList,
         comment: commentList.list[2],
-        username: null,
+        username: '',
         nesting: false,
       },
     })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.findComponent(AcComment).vm as any
     expect(vm.comment.x).toBeTruthy()
     vm.comment.updateX({deleted: true})
     await vm.$nextTick()
@@ -411,12 +414,12 @@ describe('AcComment.vue', () => {
       props: {
         commentList,
         comment: commentList.list[2],
-        username: null,
+        username: '',
         nesting: false,
         showHistory: true,
       },
     })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.findComponent(AcComment).vm as any
     expect(vm.comment.x).toBeTruthy()
     vm.comment.updateX({deleted: true})
     await vm.$nextTick()
@@ -445,12 +448,12 @@ describe('AcComment.vue', () => {
       props: {
         commentList,
         comment: commentList.list[2],
-        username: null,
+        username: '',
         nesting: false,
         inHistory: true,
       },
     })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.findComponent(AcComment).vm as any
     expect(vm.comment.x).toBeTruthy()
     vm.comment.updateX({deleted: true})
     await vm.$nextTick()
@@ -479,18 +482,17 @@ describe('AcComment.vue', () => {
       props: {
         commentList,
         comment: commentList.list[2],
-        username: null,
+        username: '',
         nesting: false,
         showHistory: true,
       },
     })
     mockAxios.reset()
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.findComponent(AcComment).vm as any
     await wrapper.find('.more-button').trigger('click')
-    await vm.$nextTick()
     await wrapper.find('.history-button').trigger('click')
-    await wrapper.vm.$nextTick()
-    expect(mockAxios.lastReqGet().url).toBe('/api/lib/comments/lib.Comment/13/history/')
+    await nextTick()
+    await waitFor(() => expect(mockAxios.lastReqGet().url).toBe('/api/lib/comments/lib.Comment/13/history/'))
     vm.historyList.response = {...commentSet}
     vm.historyList.setList([...commentSet.results])
     vm.historyList.fetching = false

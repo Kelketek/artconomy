@@ -145,7 +145,7 @@
                     <v-col class="text-center" cols="12" sm="8" offset-sm="2" md="4" offset-md="4">
                       <ac-form @submit.prevent="totpForm.submitThen(device.setX)">
                         <ac-form-container v-bind="totpForm.bind">
-                          <v-text-field v-bind="totpForm.fields.code.bind" v-mask="'### ###'">
+                          <v-text-field v-bind="totpForm.fields.code.bind" v-mask-token>
                           </v-text-field>
                           <v-btn color="primary" type="submit" class="submit-button" variant="flat">Verify</v-btn>
                         </ac-form-container>
@@ -178,6 +178,7 @@ import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {BASE_URL} from '@/lib/lib.ts'
+import {vMaskToken as MaskToken} from '@/lib/vMask.ts'
 
 @Component({
   components: {
@@ -185,6 +186,9 @@ import {BASE_URL} from '@/lib/lib.ts'
     AcConfirmation,
     AcFormContainer,
   },
+  directives: {
+    MaskToken,
+  }
 })
 class AcTotpDevice extends mixins(Subjective) {
   @Prop({required: true})

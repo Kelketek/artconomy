@@ -173,6 +173,7 @@ describe('ProductDetail.vue', () => {
     vm.product.makeReady(genProduct({primary_submission: genSubmission({rating: Ratings.ADULT})}))
     await vm.$nextTick()
     expect(vm.maxSampleRating).toBe(Ratings.ADULT)
+    await flushPromises()
     await waitFor(() => expect(store.state.showAgeVerification).toBe(true))
   })
   // This test fails due to an infinite recursion issue in a computed property. It's not clear how it happens because

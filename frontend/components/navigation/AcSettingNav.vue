@@ -91,7 +91,7 @@ import {
 } from '@mdi/js'
 import {User} from '@sentry/vue'
 
-const props = defineProps<SubjectiveProps & {nested: boolean}>()
+const props = withDefaults(defineProps<SubjectiveProps & {nested?: boolean}>(), {nested: false})
 const open = ref(['Payment'])
 const {subjectHandler, subject} = useSubject(props)
 const inSupportedCountry = computed(() => {

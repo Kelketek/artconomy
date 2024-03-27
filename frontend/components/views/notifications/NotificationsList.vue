@@ -33,7 +33,12 @@
   </v-row>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
+import {artCall} from '@/lib/lib.ts'
+import {SingleController} from '@/store/singles/controller.ts'
+import AcNotification from '@/types/AcNotification.ts'
+import {computed, defineComponent, onUnmounted, ref} from 'vue'
+import {ObserveVisibility as vObserveVisibility} from 'vue-observe-visibility'
 import AcRefund from './events/AcRefund.vue'
 import AcDispute from './events/AcDispute.vue'
 import AcFavorite from './events/AcFavorite.vue'
@@ -53,61 +58,157 @@ import AcRenewalFixed from './events/AcRenewalFixed.vue'
 import AcRenewalFailure from './events/AcRenewalFailure.vue'
 import AcSubscriptionDeactivated from './events/AcSubscriptionDeactivated.vue'
 import AcNewJournal from './events/AcNewJournal.vue'
-import NotificationsListBase from './mixins/notifications-list-base.ts'
 import AcOrderTokenIssued from './events/AcOrderTokenIssued.vue'
 import AcWithdrawFailed from './events/AcWithdrawFailed.vue'
 import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
 import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
-import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcReferenceUploaded from '@/components/views/notifications/events/AcReferenceUploaded.vue'
 import AcSubmissionShared from '@/components/views/notifications/events/AcSubmissionShared.vue'
 import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlistUpdated.vue'
 import AcTipReceived from '@/components/views/notifications/events/AcTipReceived.vue'
 import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.vue'
 import AcRevisionApproved from '@/components/views/notifications/events/AcRevisionApproved.vue'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
+import {useList} from '@/store/lists/hooks.ts'
 
-@Component({
-  components: {
-    AcAutoClosed,
-    AcWaitlistUpdated,
-    AcSubmissionShared,
-    AcReferenceUploaded,
-    AcPaginated,
-    AcGrowSpinner,
-    AcSubmissionArtistTag,
-    AcLandscapeReferral,
-    AcWithdrawFailed,
-    AcOrderTokenIssued,
-    AcNewJournal,
-    AcSubscriptionDeactivated,
-    AcRenewalFailure,
-    AcRenewalFixed,
-    AcCommissionsOpen,
-    AcStreaming,
-    AcCharShared,
-    AcCommentNotification,
-    AcRevisionUploaded,
-    AcSubmissionCharTag,
-    AcCharTag,
-    AcSubmissionTag,
-    AcRefund,
-    AcDispute,
-    AcFavorite,
-    AcSaleUpdate,
-    AcOrderUpdate,
-    AcNewCharacter,
-    AcNewProduct,
-    AcTipReceived,
-    AcRevisionApproved,
-  },
-})
-class NotificationsList extends mixins(NotificationsListBase) {
-  error(x: any) {
-    console.error(x)
+const components = {
+  0: AcNewCharacter,
+  3: AcCharTag,
+  4: AcCommentNotification,
+  6: AcNewProduct,
+  7: AcCommissionsOpen,
+  10: AcSubmissionTag,
+  14: AcFavorite,
+  15: AcDispute,
+  16: AcRefund,
+  17: AcSubmissionCharTag,
+  18: AcOrderUpdate,
+  19: AcSaleUpdate,
+  21: AcSubmissionArtistTag,
+  22: AcRevisionUploaded,
+  23: AcSubmissionShared,
+  24: AcCharShared,
+  26: AcStreaming,
+  27: AcRenewalFailure,
+  28: AcSubscriptionDeactivated,
+  29: AcRenewalFixed,
+  30: AcNewJournal,
+  31: AcOrderTokenIssued,
+  32: AcWithdrawFailed,
+  34: AcLandscapeReferral,
+  35: AcReferenceUploaded,
+  36: AcWaitlistUpdated,
+  37: AcTipReceived,
+  38: AcAutoClosed,
+  39: AcRevisionApproved,
+}
+
+declare interface NotificationsListProps {
+  autoRead?: boolean,
+  subset: boolean,
+}
+
+const props = withDefaults(defineProps<NotificationsListProps>(), {autoRead: true})
+
+const error = (x: any) => {
+  console.error(x)
+}
+
+const dynamicComponent = (type: number): ReturnType<typeof defineComponent> => {
+  return components[type as keyof typeof components]
+}
+
+const readUrl = '/api/profiles/data/notifications/mark-read/'
+const notifications = useList<AcNotification<any, any>>(props.subset + 'Notifications')
+const toMark = ref<Array<Partial<AcNotification<any, any>>>>([])
+const marking = ref<Array<Partial<AcNotification<any, any>>>>([])
+const marked = ref<Array<Partial<AcNotification<any, any>>>>([])
+const store = useStore<ArtState>()
+
+const sendUpdateEvent = () => {
+  store.dispatch('notifications/runFetch').then()
+}
+
+const clickRead = (notification: SingleController<AcNotification<any, any>>) => {
+  if (props.autoRead) {
+    return
+  }
+  notification.updateX({read: true})
+  artCall({
+        url: '/api/profiles/data/notifications/mark-read/',
+        method: 'patch',
+        data: [{
+          id: (notification.x as AcNotification<any, any>).id,
+          read: true,
+        }],
+      },
+  ).then(sendUpdateEvent)
+}
+
+const toMarkIDs = computed(() => toMark.value.map((x) => x.id))
+
+const markedIDs = computed(() => marked.value.map((x) => x.id))
+
+
+const markRead = (value: boolean, controller: SingleController<AcNotification<any, any>>) => {
+  const notification = controller.x as AcNotification<any, any>
+  if (!props.autoRead) {
+    return
+  }
+  if (!value) {
+    return
+  }
+  if (notification.read) {
+    return
+  }
+  if (toMarkIDs.value.indexOf(notification.id) !== -1) {
+    return
+  }
+  if (markedIDs.value.indexOf(notification.id) !== -1) {
+    return
+  }
+  toMark.value.push({
+    id: notification.id,
+    read: true,
+  })
+}
+
+const clearMarking = () => {
+  // In case of failure, allow to try again.
+  marking.value = []
+}
+
+const postMark = () => {
+  for (const notification of marking.value) {
+    const index = toMark.value.indexOf(notification)
+    if (index > -1) {
+      toMark.value.splice(index, 1)
+      marked.value.push(notification)
+    }
+  }
+  clearMarking()
+  sendUpdateEvent()
+}
+
+const readMonitor = () => {
+  if (toMark.value.length && !marking.value.length) {
+    marking.value = toMark.value
+    artCall(
+        {
+          url: readUrl,
+          method: 'patch',
+          data: marking.value,
+        },
+    ).then(postMark).catch(clearMarking)
   }
 }
 
-export default toNative(NotificationsList)
+const loopId = ref(window.setInterval(readMonitor, 3000))
+
+onUnmounted(() => {
+  readMonitor()
+  window.clearInterval(loopId.value)
+})
 </script>

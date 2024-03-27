@@ -1,8 +1,7 @@
 import {BrowserTracing, Replay, vueRouterInstrumentation, init} from '@sentry/vue'
-import {createApp, defineAsyncComponent, h} from 'vue'
+import {createApp, h} from 'vue'
 import {createStore} from './store/index.ts'
 import App from './App.vue'
-import VueMask from '@devindex/vue-mask'
 import {configureHooks, router} from '@/router/index.ts'
 import {createForms} from '@/store/forms/registry.ts'
 import {Shortcuts} from './plugins/shortcuts.ts'
@@ -12,7 +11,6 @@ import {createLists} from '@/store/lists/registry.ts'
 import {createSingles} from '@/store/singles/registry.ts'
 import {createProfiles} from '@/store/profiles/registry.ts'
 import {createCharacters} from '@/store/characters/registry.ts'
-import VueObserveVisibility from 'vue-observe-visibility'
 import {createVueSocket} from '@/plugins/socket.ts'
 import {createVuetify} from '@/plugins/vuetify.ts'
 import {User} from '@/store/profiles/types/User.ts'
@@ -21,8 +19,6 @@ import {Stripe, StripeConstructor} from '@stripe/stripe-js'
 import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-const AcComment = defineAsyncComponent(() => import('@/components/comments/AcComment.vue'))
-const AcCommentSection = defineAsyncComponent(() => import('@/components/comments/AcCommentSection.vue'))
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
 
@@ -62,7 +58,6 @@ const store = createStore()
 
 app.use(router)
 app.use(store)
-app.use(VueMask)
 app.use(createVueSocket({endpoint: `wss://${window.location.host}/ws/events/`}))
 app.use(Shortcuts)
 app.use(createVuetify())
@@ -73,10 +68,6 @@ app.use(createCharacters(store))
 app.use(createProfiles(store))
 app.use(createRegistries())
 app.use(createTargetsPlugin(false))
-app.use(VueObserveVisibility)
-// Needed because these tags are inter-referential
-app.component('AcComment', AcComment)
-app.component('AcCommentSection', AcCommentSection)
 
 setViewer(store, window.USER_PRELOAD)
 

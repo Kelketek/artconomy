@@ -182,56 +182,6 @@ export interface TypeToValue {
   [key: number]: string,
 }
 
-export const NOTIFICATION_MAPPING: TypeToValue = {
-  0: 'ac-new-character',
-  3: 'ac-char-tag',
-  4: 'ac-comment-notification',
-  6: 'ac-new-product',
-  7: 'ac-commissions-open',
-  10: 'ac-submission-tag',
-  14: 'ac-favorite',
-  15: 'ac-dispute',
-  16: 'ac-refund',
-  17: 'ac-submission-char-tag',
-  18: 'ac-order-update',
-  19: 'ac-sale-update',
-  21: 'ac-submission-artist-tag',
-  22: 'ac-revision-uploaded',
-  23: 'ac-submission-shared',
-  24: 'ac-char-shared',
-  25: 'ac-new-pm',
-  26: 'ac-streaming',
-  27: 'ac-renewal-failure',
-  28: 'ac-subscription-deactivated',
-  29: 'ac-renewal-fixed',
-  30: 'ac-new-journal',
-  31: 'ac-order-token-issued',
-  32: 'ac-withdraw-failed',
-  34: 'ac-landscape-referral',
-  35: 'ac-reference-uploaded',
-  36: 'ac-waitlist-updated',
-  37: 'ac-tip-received',
-  38: 'ac-auto-closed',
-  39: 'ac-revision-approved',
-}
-
-export const ORDER_STATUSES: TypeToValue = {
-  1: 'has been placed, and needs your acceptance!',
-  2: 'requires payment to continue.',
-  3: 'has been added to your queue.',
-  4: 'is currently in progress!',
-  5: 'is waiting for your review.',
-  6: 'has been cancelled.',
-  7: 'has been placed under dispute.',
-  8: 'has been completed!',
-  9: 'has been refunded.',
-}
-
-export const ACCOUNT_TYPES: TypeToValue = {
-  0: 'Checking',
-  1: 'Savings',
-}
-
 export const INVOICE_TYPES: Record<InvoiceType, string> = {
   0: 'Sale',
   1: 'Subscription',

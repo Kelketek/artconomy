@@ -4,42 +4,30 @@
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcLoadingSpinner from './wrappers/AcLoadingSpinner.vue'
 import {ListController} from '@/store/lists/controller.ts'
+import {ref, watch} from 'vue'
+import {ObserveVisibility as vObserveVisibility} from 'vue-observe-visibility'
 
-@Component({
-  components: {AcLoadingSpinner},
-})
-class AcGrowSpinner extends Vue {
-  @Prop({default: '3rem'})
-  public minHeight!: string
-
-  @Prop({required: true})
-  public list!: ListController<any>
-
-  public visible = false
-
-  @Watch('list.fetching', {immediate: true})
-  public updateFetching(val: boolean) {
-    if (!val) {
-      this.grower(this.visible)
-    }
-  }
-
-  @Watch('list.moreAvailable', {immediate: true})
-  public updateMore(val: boolean) {
-    if (val) {
-      this.list.grower(this.visible)
-    }
-  }
-
-  public grower(val: boolean) {
-    this.visible = val
-    this.list.grower(val)
-  }
+declare interface AcGrowSpinnerProps {
+  minHeight?: string,
+  list: ListController<any>
 }
-
-export default toNative(AcGrowSpinner)
+const props = withDefaults(defineProps<AcGrowSpinnerProps>(), {minHeight: '3rem'})
+const visible = ref(false)
+const grower = (val: boolean) => {
+  visible.value = val
+  props.list.grower(val)
+}
+watch(() => props.list.fetching, (val: boolean) => {
+  if (!val) {
+    grower(visible.value)
+  }
+})
+watch(() => props.list.moreAvailable, (val: boolean) => {
+  if (val) {
+    props.list.grower(visible.value)
+  }
+}, {immediate: true})
 </script>

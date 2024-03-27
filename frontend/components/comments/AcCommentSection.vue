@@ -20,7 +20,7 @@
         <template v-for="(comment, index) in commentList.list" :key="comment.x.id">
           <ac-comment
               :comment="comment"
-              :username="comment.x!.user && comment.x!.user.username"
+              :username="(comment.x!.user && comment.x!.user.username) || ''"
               :commentList="commentList"
               :nesting="nesting"
               :toplevel="true"
@@ -44,11 +44,8 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
+<script setup lang="ts">
 import Comment from '@/types/Comment.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcComment from '@/components/comments/AcComment.vue'
@@ -57,79 +54,54 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {QueryParams} from '@/store/helpers/QueryParams.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {mdiEye, mdiEyeOff, mdiArrowExpandDown} from '@mdi/js'
+import {ref, watch} from 'vue'
+import {setError} from '@/mixins/ErrorHandling.ts'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcNewComment,
-    AcLoadingSpinner,
-  },
+declare interface AcCommentSectionProps {
+  nesting: boolean,
+  locked?: boolean,
+  guestOk?: boolean,
+  showHistory?: boolean,
+  inHistory?: boolean,
+  hardFail?: boolean,
+  extraData?: RawData,
+  commentList: ListController<Comment>,
+}
+
+const props = withDefaults(defineProps<AcCommentSectionProps>(), {
+  nesting: false,
+  locked: false,
+  guestOk: false,
+  showHistory: false,
+  inHistory: false,
+  hardFail: false,
+  extraData: () => ({}),
 })
-class AcCommentSection extends mixins(Viewer) {
-  @Prop({default: false})
-  public nesting!: boolean
 
-  @Prop()
-  public parent!: SingleController<Comment>
+const historyToggle = ref(false)
 
-  @Prop({default: false})
-  public locked!: boolean
-
-  @Prop({default: false})
-  public guestOk!: boolean
-
-  @Prop({default: false})
-  public showHistory!: boolean
-
-  @Prop({default: false})
-  public inHistory!: boolean
-
-  @Prop({default: false})
-  public hardFail!: boolean
-
-  @Prop({default: () => ({})})
-  public extraData!: RawData
-
-  @Prop({required: true})
-  public commentList!: ListController<Comment>
-
-  public historyToggle = false
-  public mdiArrowExpandDown = mdiArrowExpandDown
-  public mdiEye = mdiEye
-  public mdiEyeOff = mdiEyeOff
-
-  public adjustParams() {
-    if (this.historyToggle) {
-      /* istanbul ignore next */
-      this.commentList.params = {...this.commentList.params || {} as QueryParams, ...{history: '1'}}
-    } else {
-      /* istanbul ignore next */
-      const params = {...this.commentList.params || {} as QueryParams}
-      delete params.history
-      this.commentList.params = params
-    }
-    if ((this.commentList.ready || this.commentList.failed || this.commentList.fetching)) {
-      this.commentList.reset()
-    }
+const adjustParams = () => {
+  if (historyToggle.value) {
+    // eslint-disable-next-line vue/no-mutating-props
+    props.commentList.params = {...props.commentList.params || {} as QueryParams, ...{history: '1'}}
+  } else {
+    const params = {...props.commentList.params || {} as QueryParams}
+    delete params.history
+    // eslint-disable-next-line vue/no-mutating-props
+    props.commentList.params = params
   }
-
-  @Watch('historyToggle')
-  public updateHistory(newVal: boolean, oldVal: boolean | undefined) {
-    this.adjustParams()
-  }
-
-  public created() {
-    this.adjustParams()
-    const runPromise = this.commentList.firstRun()
-    /* istanbul ignore if */
-    if (this.hardFail) {
-      runPromise.catch(this.setError)
-    }
-    if (!this.commentList.reverse) {
-      throw Error('Comment lists should always be reversed!')
-    }
+  if (props.commentList.ready || props.commentList.failed || props.commentList.fetching) {
+    props.commentList.reset()
   }
 }
 
-export default toNative(AcCommentSection)
+watch(historyToggle, adjustParams)
+adjustParams()
+const runPromise = props.commentList.firstRun()
+if (props.hardFail) {
+  runPromise.catch(setError)
+}
+if (!props.commentList.reverse) {
+  throw Error('Comment lists should always be reversed!')
+}
 </script>
