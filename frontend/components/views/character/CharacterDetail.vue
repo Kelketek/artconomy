@@ -185,7 +185,7 @@ import {setMetaContent, updateTitle} from '@/lib/lib.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
-import {setError} from '@/mixins/ErrorHandling.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
@@ -194,6 +194,7 @@ import {mdiCheckCircle, mdiAlert, mdiUpload} from '@mdi/js'
 
 const props = defineProps<CharacterProps>()
 
+const {setError} = useErrorHandling()
 const {controls} = useSubject(props)
 const {editing} = useEditable(controls)
 const {ageCheck} = useViewer()

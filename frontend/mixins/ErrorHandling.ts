@@ -24,7 +24,10 @@ export const statusOk = (...statuses: number[]) => {
   }
 }
 
-export const setError = (error: Error) => {
+export const useErrorHandling = () => {
   const store = useStore()
-  store.commit('errors/setError', error)
+  const setError = (error: Error) => {
+    store.commit('errors/setError', error)
+  }
+  return {setError, statusOk}
 }

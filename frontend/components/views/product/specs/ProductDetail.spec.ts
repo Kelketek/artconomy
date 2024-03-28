@@ -310,7 +310,7 @@ describe('ProductDetail.vue', () => {
       name: 'Submission',
       params: {submissionId: '1337'},
     })
-    await vm.$router.replace({query: {editing: true}})
+    await router.replace({query: {editing: 'true'}})
     expect(vm.shownSubmissionLink).toBeNull()
   })
   test('Checks escrow availability', async() => {
@@ -459,10 +459,10 @@ describe('ProductDetail.vue', () => {
     })
     const vm = wrapper.vm as any
     vm.subjectHandler.user.makeReady(genUser())
-    expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
+    await waitFor(() => expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
       [LineTypes.TABLE_SERVICE]),
-    ).toEqual(new Decimal('5.54'))
+    ).toEqual(new Decimal('5.54')))
     expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
       [LineTypes.SHIELD, LineTypes.BONUS, LineTypes.DELIVERABLE_TRACKING]),
@@ -488,16 +488,14 @@ describe('ProductDetail.vue', () => {
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.setX(genArtistProfile())
     vm.subjectHandler.artistProfile.ready = true
-    await vm.$nextTick()
-    await vm.$nextTick()
+    await waitFor(() => expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
+        (x: SingleController<LineItem>) => x.x)),
+      [LineTypes.SHIELD]),
+    ).toEqual(new Decimal('4.05')))
     expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
       [LineTypes.TABLE_SERVICE]),
     ).toEqual(new Decimal('0'))
-    expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
-        (x: SingleController<LineItem>) => x.x)),
-      [LineTypes.SHIELD]),
-    ).toEqual(new Decimal('4.05'))
   })
   test('Shows the rating modal only when editing', async() => {
     prepData()

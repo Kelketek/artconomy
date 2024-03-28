@@ -18,4 +18,7 @@ export interface TerseUser {
   // Not actually here, but avoids issues with compatibility elsewhere.
   sfw_mode: boolean,
   verified_email: boolean,
+  service_plan: string,
+  landscape: boolean,
+  international: boolean,
 }

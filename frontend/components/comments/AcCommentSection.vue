@@ -55,7 +55,7 @@ import {QueryParams} from '@/store/helpers/QueryParams.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {mdiEye, mdiEyeOff, mdiArrowExpandDown} from '@mdi/js'
 import {ref, watch} from 'vue'
-import {setError} from '@/mixins/ErrorHandling.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 
 declare interface AcCommentSectionProps {
   nesting: boolean,
@@ -94,7 +94,7 @@ const adjustParams = () => {
     props.commentList.reset()
   }
 }
-
+const {setError} = useErrorHandling()
 watch(historyToggle, adjustParams)
 adjustParams()
 const runPromise = props.commentList.firstRun()

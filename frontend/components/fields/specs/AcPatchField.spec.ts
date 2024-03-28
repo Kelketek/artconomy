@@ -1,17 +1,21 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, flushPromises, mount, rq, rs, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, rq, rs, vueSetup, VuetifyWrapped, waitFor, waitForSelector} from '@/specs/helpers/index.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {nextTick} from 'vue'
+import flushPromises from 'flush-promises'
+import AcEditor from '@/components/fields/AcEditor.vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let single: SingleController<any>
 let empty: VueWrapper<any>
+
+const WrappedAcPatchField = VuetifyWrapped(AcPatchField)
 
 describe('AcPatchField.ts', () => {
   beforeEach(() => {
@@ -36,23 +40,22 @@ describe('AcPatchField.ts', () => {
     await wrapper.vm.$nextTick()
     expect(wrapper.find('#stuff-patch').exists()).toBe(true)
   })
-  // TODO: Fix this test. Seems to pass but breaks on cleanUp.
-  // test('Sends an update upon pressing enter when enterSave is true', async() => {
-  //   wrapper = mount(WrappedAcPatchField, {
-  //     ...vueSetup({store}),
-  //     props: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: true},
-  //   })
-  //   const field = wrapper.find('#stuff-patch')
-  //   await field.setValue('TEST')
-  //   await field.trigger('keydown.enter')
-  //   await wrapper.vm.$nextTick()
-  //   vi.runAllTimers()
-  //   expect(mockAxios.request).toHaveBeenCalledWith(
-  //     rq('/', 'patch', {test: 'TEST'}, {signal: expect.any(Object)}),
-  //   )
-  //   mockAxios.mockResponse(rs({test: 'TEST'}))
-  //   await flushPromises()
-  // })
+  test('Sends an update upon pressing enter when enterSave is true', async() => {
+    wrapper = mount(WrappedAcPatchField, {
+      ...vueSetup({store}),
+      props: {patcher: single.patchers.test, id: 'stuff-patch', enterSave: true},
+    })
+    const field = wrapper.find('#stuff-patch')
+    await field.setValue('TEST')
+    await field.trigger('keydown.enter')
+    await wrapper.vm.$nextTick()
+    vi.runAllTimers()
+    expect(mockAxios.request).toHaveBeenCalledWith(
+      rq('/', 'patch', {test: 'TEST'}, {signal: expect.any(Object)}),
+    )
+    mockAxios.mockResponse(rs({test: 'TEST'}))
+    await flushPromises()
+  })
   test('Does not patch on enter keydown when enterSave is false', async() => {
     wrapper = mount(AcPatchField, {
       ...vueSetup({store}),
@@ -70,24 +73,6 @@ describe('AcPatchField.ts', () => {
     vi.runAllTimers()
     expect(mockAxios.request).not.toHaveBeenCalled()
   })
-  test('Resets the saved value on failure if autoSave is false', async() => {
-    wrapper = mount(AcPatchField, {
-      ...vueSetup({store}),
-      props: {
-        patcher: single.patchers.test,
-        id: 'stuff-patch',
-        autoSave: false,
-      },
-    })
-    const field = wrapper.find('#stuff-patch')
-    await field.setValue('TEST')
-    await wrapper.vm.$nextTick()
-    vi.runAllTimers()
-    const vm = wrapper.vm as any
-    expect(vm.scratch).toBe('TEST')
-    single.patchers.test.errors.value = ['Boop.']
-    await waitFor(() => expect(vm.scratch).toBe('Things'))
-  })
   test('Recognizes disparate types as an indication that things are not saved', async() => {
     single.setX({test: null})
     wrapper = mount(AcPatchField, {
@@ -99,7 +84,7 @@ describe('AcPatchField.ts', () => {
       },
     })
     const field = wrapper.find('#stuff-patch')
-    field.setValue('STUFF')
+    await field.setValue('STUFF')
     await wrapper.vm.$nextTick()
     vi.runAllTimers()
     const vm = wrapper.vm as any

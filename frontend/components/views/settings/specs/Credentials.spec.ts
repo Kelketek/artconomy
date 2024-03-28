@@ -2,7 +2,7 @@ import {shallowMount, VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, mount, vueSetup} from '@/specs/helpers/index.ts'
 import Credentials from '../Credentials.vue'
 import Settings from '../Settings.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
@@ -10,23 +10,7 @@ import {setViewer} from '@/lib/lib.ts'
 
 vi.useFakeTimers()
 
-const settingRoutes = [{
-  path: '/profile/:username/settings/',
-  name: 'Settings',
-  component: Settings,
-  props: true,
-  meta: {
-    sideNav: true,
-  },
-  children: [
-    {
-      name: 'Login Details',
-      path: 'credentials',
-      component: Credentials,
-      props: true,
-    },
-  ],
-}]
+declare type EmailChangeTestArgs = {currentPassword: string, email: string, email2: string, disabled: boolean, result: boolean}
 
 describe('Credentials.vue', () => {
   let store: ArtStore
@@ -34,10 +18,7 @@ describe('Credentials.vue', () => {
   let router: Router
   beforeEach(() => {
     store = createStore()
-    router = createRouter({
-      history: createWebHistory(),
-      routes: settingRoutes,
-    })
+    router = createTestRouter(false)
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -61,7 +42,7 @@ describe('Credentials.vue', () => {
     })
     const vm = wrapper.vm as any
     expect(vm.url).toBe('/api/profiles/account/Fox/auth/credentials/')
-    wrapper.setProps({username: 'Vulpes'})
+    await wrapper.setProps({username: 'Vulpes'})
     vm.subjectHandler.user.updateX({username: 'Vulpes'})
     await wrapper.vm.$nextTick()
     const newUrl = '/api/profiles/account/Vulpes/auth/credentials/'
@@ -98,7 +79,7 @@ describe('Credentials.vue', () => {
     email2,
     disabled,
     result,
-  }) => {
+  }: EmailChangeTestArgs) => {
     setViewer(store, genUser())
     wrapper = shallowMount(Credentials, {
       ...vueSetup({store}),

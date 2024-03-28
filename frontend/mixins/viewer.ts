@@ -200,7 +200,6 @@ export default class Viewer extends mixins(ErrorHandling) {
   }
 
   public ageCheck({value, force}: {value: number, force?: boolean}) {
-    console.log('AGECHECK RAN!')
     ageCheck(this.$store, this.viewer!,{value, force})
   }
 

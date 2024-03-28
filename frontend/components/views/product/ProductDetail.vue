@@ -98,14 +98,14 @@
             </v-toolbar-title>
             <v-spacer/>
             <v-toolbar-items>
-              <v-menu offset-x left :close-on-content-click="false" :attach="$menuTarget" v-if="controls">
+              <v-menu offset-x left :close-on-content-click="false" :attach="menuTarget" v-if="controls">
                 <template v-slot:activator="{props}">
                   <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
                     <v-icon :icon="mdiDotsHorizontal"/>
                   </v-btn>
                 </template>
                 <v-list dense>
-                  <v-list-item @click.stop="editing = !editing">
+                  <v-list-item @click="editing = !editing">
                     <template v-slot:prepend>
                       <v-icon v-if="editing" :icon="mdiLock"/>
                       <v-icon v-else :icon="mdiPencil"/>
@@ -206,10 +206,10 @@
                       <v-row no-gutters v-if="subjectHandler.artistProfile.x">
                         <v-col cols="12" class="my-2">
                           <strong>Maximum Content Rating:</strong>
-                          <v-btn class="mx-2 rating-button" size="x-small" :color="ratingColor[product.x.max_rating]"
+                          <v-btn class="mx-2 rating-button" size="x-small" :color="RATING_COLOR[product.x.max_rating]"
                                  @click="showRating" :ripple="editing" :variant="editing ? 'elevated' : 'flat'">
                             <v-icon left v-if="editing" :icon="mdiPencil"/>
-                            {{ratingsShort[product.x.max_rating]}}
+                            {{RATINGS_SHORT[product.x.max_rating]}}
                           </v-btn>
                           <ac-expanded-property v-model="ratingDialog" v-if="controls" aria-label="Edit rating">
                             <ac-patch-field field-type="ac-rating-field" :patcher="product.patchers.max_rating"/>
@@ -325,7 +325,7 @@
                                 color="primary"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6" v-if="subject!.paypal_configured">
+                          <v-col cols="12" sm="6" v-if="fullSubject.paypal_configured">
                             <ac-patch-field
                                 :patcher="product.patchers.paypal"
                                 field-type="v-switch"
@@ -400,7 +400,7 @@
                     <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span>
                     included.
                   </p>
-                  <p>Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></p>
+                  <p v-if="deliveryDate">Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></p>
                 </v-col>
                 <v-col class="text-center" cols="12">
                   <ac-load-section :controller="subjectHandler.artistProfile">
@@ -509,7 +509,7 @@
                     <v-row>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.track_inventory" :persistent-hint="true"
-                                        v-if="isStaff || landscape"
+                                        v-if="isStaff || subject.landscape"
                                         field-type="ac-checkbox"
                                         label="Inventory"
                                         :disabled="product.patchers.wait_list.model"
@@ -558,7 +558,7 @@
                 <template v-slot:default>
                   <v-row no-gutters>
                     <v-col cols="6" sm="4" md="3" v-for="product in recommended.list" :key="product.x!.id" class="pa-1">
-                      <ac-product-preview :product="product.x"/>
+                      <ac-product-preview :product="product.x!"/>
                     </v-col>
                   </v-row>
                 </template>
@@ -574,8 +574,8 @@
 
 <style scoped>
 .submissionSelected {
-  -webkit-box-shadow: 0px 0px 5px 3px rgba(255, 210, 149, 0.62);
-  box-shadow: 0px 0px 5px 3px rgba(255, 210, 149, 0.62); }
+  -webkit-box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62);
+  box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62); }
 
 .edit-overlay {
   position: absolute;
@@ -599,436 +599,392 @@
 
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import Product from '@/types/Product.ts'
 import AcAsset from '@/components/AcAsset.vue'
-import Formatting from '@/mixins/formatting.ts'
-import Editable from '@/mixins/editable.ts'
+import {useEditable} from '@/mixins/editable.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import Submission from '@/types/Submission.ts'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcSampleEditor from '@/components/views/product/AcSampleEditor.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
-import {RouteLocationRaw} from 'vue-router'
+import {RouteLocationRaw, useRoute, useRouter} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission.ts'
-import ProductCentric from '@/components/views/product/mixins/ProductCentric.ts'
+import {useProduct} from '@/components/views/product/mixins/ProductCentric.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {RATING_COLOR, RATINGS_SHORT, setMetaContent, updateTitle} from '@/lib/lib.ts'
 import AcShareButton from '@/components/AcShareButton.vue'
-import Pricing from '@/types/Pricing.ts'
-import Inventory from '@/types/Inventory.ts'
-import Sharable from '@/mixins/sharable.ts'
+import {useSharable} from '@/mixins/sharable.ts'
 import {deliverableLines} from '@/lib/lineItemFunctions.ts'
-import {LineItemSetMap} from '@/types/LineItemSetMap.ts'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {RawLineItemSetMap} from '@/types/RawLineItemSetMap.ts'
 import LineItem from '@/types/LineItem.ts'
 import {mdiCog, mdiBasket, mdiPencil, mdiStar, mdiEye, mdiDelete, mdiLock, mdiDotsHorizontal, mdiCameraBurst} from '@mdi/js'
+import {computed, ComputedRef, ref, watch} from 'vue'
+import {useSubject} from '@/mixins/subjective.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import ProductProps from '@/types/ProductProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {usePricing} from '@/mixins/PricingAware.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {textualize} from '@/lib/markdown.ts'
+import {formatDateTerse, profileLink} from '@/lib/otherFormatters.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import Inventory from '@/types/Inventory.ts'
+import {listenForForm} from '@/store/forms/hooks.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {useTargets} from '@/plugins/targets.ts'
+import {ListController} from '@/store/lists/controller.ts'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcPriceComparison,
-    AcShareButton,
-    AcEscrowLabel,
-    AcProductPreview,
-    AcGalleryPreview,
-    AcSampleEditor,
-    AcPaginated,
-    AcTagDisplay,
-    AcPricePreview,
-    AcExpandedProperty,
-    AcRendered,
-    AcPatchField,
-    AcConfirmation,
-    AcProfileHeader,
-    AcLink,
-    AcAvatar,
-    AcAsset,
-    AcLoadSection,
-  },
+
+const props = defineProps<SubjectiveProps & ProductProps>()
+
+const showTerms = ref(false)
+const showWorkload = ref(false)
+const showChangePrimary = ref(false)
+const ratingDialog = ref(false)
+const shown = ref<Submission|null>(null)
+const {setError, statusOk} = useErrorHandling()
+
+const shownSubmissionLink = computed(() => {
+  if (!shown.value) {
+    return null
+  }
+  if (editing.value) {
+    return null
+  }
+  return {
+    name: 'Submission',
+    params: {submissionId: shown.value.id + ''},
+  }
 })
-class ProductDetail extends mixins(ProductCentric, Formatting, Editable, Sharable) {
-  public pricing: SingleController<Pricing> = null as unknown as SingleController<Pricing>
-  public inventory: SingleController<Inventory> = null as unknown as SingleController<Inventory>
-  public showTerms = false
-  public showWorkload = false
-  public showChangePrimary = false
-  public ratingDialog = false
-  public shown: null | Submission = null
-  public samples: ListController<LinkedSubmission> = null as unknown as ListController<LinkedSubmission>
-  public recommended: ListController<Product> = null as unknown as ListController<Product>
-  public ratingsShort = RATINGS_SHORT
-  public ratingColor = RATING_COLOR
-  public mdiCog = mdiCog
-  public mdiBasket = mdiBasket
-  public mdiPencil = mdiPencil
-  public mdiStar = mdiStar
-  public mdiEye = mdiEye
-  public mdiDelete = mdiDelete
-  public mdiLock = mdiLock
-  public mdiDotsHorizontal = mdiDotsHorizontal
-  public mdiCameraBurst = mdiCameraBurst
 
-  public get shownSubmissionLink(): RouteLocationRaw | null {
-    if (!this.shown) {
-      return null
-    }
-    if (this.editing) {
-      return null
-    }
+const {ageCheck, isStaff} = useViewer()
+const {subject, controls, isCurrent, subjectHandler} = useSubject(props)
+const {editing} = useEditable(controls)
+const {product, deliveryDate, url} = useProduct(props)
+const {pricing} = usePricing()
+const route = useRoute()
+const router = useRouter()
+const {menuTarget} = useTargets()
+const fullSubject = subject as ComputedRef<User>
+
+const assetAltText = (sample: Submission) => {
+  const title = sample.title
+  if (title) {
+    return `Sample submission entitled: ${title}`
+  }
+  return `Untitled sample submission for ${product.x?.name}`
+}
+
+const forceShield = computed(() => !!({...route.query}.forceShield))
+
+const showRating = () => {
+  if (editing.value) {
+    ratingDialog.value = true
+  }
+}
+
+const inventory = useSingle<Inventory>(
+  `product__${props.productId}__inventory`, {endpoint: `${url.value}inventory/`},
+)
+const samples = useList<LinkedSubmission>(`product__${props.productId}__samples`, {endpoint: `${url.value}samples/`})
+samples.firstRun().catch(statusOk(404))
+const recommended = useList<Product>(
+    `product__${props.productId}__recommendations`, {
+      endpoint: `${url.value}recommendations/`,
+      params: {size: 12},
+    },
+)
+recommended.firstRun().catch(statusOk(404))
+subjectHandler.artistProfile.get().catch(setError)
+listenForForm(`product${props.productId}__order`)
+
+const orderLink = computed(() => {
+  // eslint-disable-next-line camelcase
+  if (isCurrent.value && product.x?.over_order_limit) {
     return {
-      name: 'Submission',
-      params: {submissionId: this.shown.id + ''},
+      name: 'Upgrade',
+      params: {username: props.username},
     }
   }
-
-  public assetAltText(sample: Submission) {
-    const title = sample.title
-    if (title) {
-      return `Sample submission entitled: ${title}`
-    }
-    return `Untitled sample submission for ${this.product.x?.name}`
+  const path: RouteLocationRaw = {
+    name: 'NewOrder',
+    params: {
+      username: props.username,
+      productId: `${props.productId}`,
+    },
   }
-
-  public get forceShield() {
-    return !!({...this.$route.query}.forceShield)
+  path.query = {
+    ...route.query,
+    stepId: '1',
   }
-
-  public get orderLink(): RouteLocationRaw {
-    // eslint-disable-next-line camelcase
-    if (this.isCurrent && this.product.x?.over_order_limit) {
-      return {
-        name: 'Upgrade',
-        params: {username: this.username},
-      }
-    }
-    const path: RouteLocationRaw = {
-      name: 'NewOrder',
-      params: {
-        username: this.username,
-        productId: `${this.productId}`,
-      },
-    }
-    path.query = {
-      ...this.$route.query,
-      stepId: '1',
-    }
-    if (this.isCurrent) {
-      path.params!.invoiceMode = 'invoice'
-    }
-    return path
+  if (isCurrent.value) {
+    path.params!.invoiceMode = 'invoice'
   }
+  return path
+})
 
-  @Watch('product.x', {deep: true})
-  public updateMeta(product: Product | null, oldProduct: Product | null) {
-    if (!product) {
-      return
-    }
-    if (product && !oldProduct) {
-      this.shown = product.primary_submission
-    }
-    updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
-    let prefix: string
-    if (product.starting_price) {
-      prefix = `[Starts at $${product.starting_price.toFixed(2)}] - `
-    } else {
-      prefix = '[Starts at FREE] - '
-    }
-    const description = this.textualize(product.description).slice(0, 160 - prefix.length)
-    setMetaContent('description', prefix + description)
-  }
+const currentRoute = computed(() => route.name === 'Product')
 
-  public showRating() {
-    if (this.editing) {
-      this.ratingDialog = true
-    }
-  }
-
-  @Watch('product.x.track_inventory')
-  public getInventory(toggle: boolean, oldVal: boolean | undefined) {
-    if (!toggle) {
-      return
-    }
-    this.inventory.ready = false
-    this.inventory.setX(null)
-    this.inventory.get()
-  }
-
-  @Watch('showWorkload')
-  public updateAvailability(newVal: boolean, oldVal: boolean) {
-    if (oldVal && !newVal) {
-      this.product.refresh()
-    }
-  }
-
-  @Watch('product.x.primary_submission')
-  public updateShown(value: undefined | null | Submission) {
-    if (value === undefined) {
-      return
-    }
-    this.shown = value
-  }
-
-  public get currentRoute() {
-    return this.$route.name === 'Product'
-  }
-
-  public get limitAtOnce() {
-    return this.product.patchers.max_parallel.model !== 0
-  }
-
-  public set limitAtOnce(val: boolean) {
-    const field = this.product.patchers.max_parallel
+const limitAtOnce = computed({
+  get: () => product.patchers.max_parallel.model !== 0,
+  set: (val: boolean) => {
+    const field = product.patchers.max_parallel
     if (val) {
       field.model = field.model || 1
     } else {
       field.model = 0
     }
   }
+})
 
-  public get lineItemSetMaps(): LineItemSetMap[] {
-    const sets = []
-    for (const set of this.rawLineItemSetMaps) {
-      const controller = this.$getList(`product${this.product.x!.id}${set.name}`, {endpoint: '#', paginated: false})
-      sets.push({name: set.name, lineItems: controller, offer: set.offer})
-    }
-    return sets
+const shareMedia = computed(() => {
+  /* istanbul ignore if */
+  if (!product.x) {
+    return null
   }
-
-  @Watch('rawLineItemSetMaps')
-  public updateListControllers(rawLineItemSetMaps: RawLineItemSetMap[]) {
-    for (const set of rawLineItemSetMaps) {
-      const controller = this.$getList(`product${this.product.x!.id}${set.name}`, {endpoint: '#', paginated: false})
-      controller.makeReady(set.lineItems)
-    }
+  /* istanbul ignore if */
+  if (!product.x.primary_submission) {
+    return null
   }
+  return product.x.primary_submission
+})
 
-  public get rawLineItemSetMaps(): RawLineItemSetMap[] {
-    const sets = []
-    const product = this.product
-    if (!(product && product.x)) {
-      return []
+const {shareMediaUrl, shareMediaClean} = useSharable(shareMedia)
+
+const more = computed(() => {
+  let diff = 0
+  if (product.x?.primary_submission) {
+    diff = 1
+  }
+  return (prunedSubmissions.value.length < (samples.list.length - diff))
+})
+
+const showExtra = computed(() => prunedSubmissions.value.length)
+
+const basePriceLabel = computed(() => {
+  if (product.patchers.cascade_fees.model) {
+    return 'List Price'
+  } else {
+    return 'Take home amount'
+  }
+})
+
+const escrow = computed(() => {
+  const profile = subjectHandler.artistProfile.x
+  return !!(profile && profile.escrow_enabled)
+})
+
+const rawLineItemSetMaps = computed(() => {
+  const sets = []
+  if (!(product && product.x)) {
+    return []
+  }
+  const basePrice = product.x.base_price
+  // eslint-disable-next-line camelcase
+  const planName = subject.value?.service_plan
+  const international = subject.value?.international
+  const cascade = product.x.cascade_fees
+  const tableProduct = product.x.table_product
+  let preferredLines: LineItem[] = []
+  let appendPreferred = false
+  if (escrow.value && (product.x.escrow_enabled || product.x.escrow_upgradable)) {
+    const options = {
+      basePrice,
+      cascade: cascade && (product.x.escrow_enabled),
+      international,
+      pricing: pricing.x,
+      escrowEnabled: true,
+      tableProduct,
+      extraLines: [],
     }
-    const pricing = this.pricing.x
-    const basePrice = product.x.base_price
-    // eslint-disable-next-line camelcase
-    const planName = this.subject?.service_plan
-    const international = !!this.subject?.international
-    const cascade = product.x.cascade_fees
-    const tableProduct = product.x.table_product
-    let preferredLines: LineItem[] = []
-    let appendPreferred = false
-    if (this.escrow && (product.x.escrow_enabled || product.x.escrow_upgradable)) {
-      const options = {
-        basePrice,
-        cascade: cascade && (product.x.escrow_enabled),
-        international,
-        pricing,
-        escrowEnabled: true,
-        tableProduct,
-        extraLines: [],
-      }
-      const escrowLines = deliverableLines({
+    const escrowLines = deliverableLines({
+      ...options,
+      planName,
+    })
+    sets.push({
+      name: 'Shielded',
+      lineItems: escrowLines,
+      offer: false,
+    })
+    if (pricing.x && (planName !== pricing.x.preferred_plan)) {
+      preferredLines = deliverableLines({
         ...options,
-        planName,
+        planName: pricing.x.preferred_plan,
       })
-      sets.push({
-        name: 'Shielded',
-        lineItems: escrowLines,
-        offer: false,
-      })
-      if (pricing && (planName !== pricing.preferred_plan)) {
-        preferredLines = deliverableLines({
-          ...options,
-          planName: pricing.preferred_plan,
-        })
-        appendPreferred = true
-      }
-    }
-    if (!this.escrow || !product.x.escrow_enabled) {
-      const nonEscrowLines = deliverableLines({
-        basePrice,
-        cascade,
-        international,
-        planName,
-        pricing,
-        escrowEnabled: false,
-        tableProduct,
-        extraLines: [],
-      })
-      // This line causes an infinite recursion when this getter is run more than once in a test environment,
-      // or in production, but not dev. Why?
-      sets.push({
-        name: 'Unshielded',
-        lineItems: nonEscrowLines,
-        offer: false,
-      })
-    }
-    if (appendPreferred) {
-      // eslint-disable-next-line camelcase
-      sets.push({
-        name: pricing?.preferred_plan + '',
-        lineItems: preferredLines,
-        offer: true,
-      })
-    }
-    return sets
-  }
-
-  public get shareMedia() {
-    const product = this.product.x as Product
-    /* istanbul ignore if */
-    if (!product) {
-      return null
-    }
-    /* istanbul ignore if */
-    if (!product.primary_submission) {
-      return null
-    }
-    return product.primary_submission
-  }
-
-  public get more() {
-    let diff = 0
-    const product = this.product.x as Product
-    if (product.primary_submission) {
-      diff = 1
-    }
-    return (this.prunedSubmissions.length < (this.samples.list.length - diff))
-  }
-
-  public get showExtra() {
-    return this.prunedSubmissions.length
-  }
-
-  public get basePriceLabel() {
-    if (this.product.patchers.cascade_fees.model) {
-      return 'List Price'
-    } else {
-      return 'Take home amount'
+      appendPreferred = true
     }
   }
-
-  public get escrow() {
-    const profile = this.subjectHandler.artistProfile.x
-    return !!(profile && profile.escrow_enabled)
+  if (!escrow.value || !product.x.escrow_enabled) {
+    const nonEscrowLines = deliverableLines({
+      basePrice,
+      cascade,
+      international,
+      planName,
+      pricing: pricing.x,
+      escrowEnabled: false,
+      tableProduct,
+      extraLines: [],
+    })
+    // This line causes an infinite recursion when this getter is run more than once in a test environment,
+    // or in production, but not dev. Why?
+    sets.push({
+      name: 'Unshielded',
+      lineItems: nonEscrowLines,
+      offer: false,
+    })
   }
+  if (appendPreferred) {
+    // eslint-disable-next-line camelcase
+    sets.push({
+      name: pricing.x?.preferred_plan + '',
+      lineItems: preferredLines,
+      offer: true,
+    })
+  }
+  return sets
+})
 
-  public get priceHint() {
-    if (this.escrow) {
-      return `Enter the listing price you want to present to the user. We will calculate what
+const maxSampleRating = computed(() => {
+  const list = samples.list
+  const ratings = list.map((x) => {
+    const linkedSubmission = x.x as LinkedSubmission
+    return linkedSubmission.submission.rating
+  })
+  if (product.x && product.x.primary_submission) {
+    ratings.push(product.x.primary_submission.rating)
+  }
+  if (!ratings.length) {
+    return 0
+  }
+  return Math.max(...ratings)
+})
+
+const productAltText = computed(() => {
+  if (!product.x) {
+    return ''
+  }
+  if (!product.x.primary_submission) {
+    return ''
+  }
+  const title = product.x.primary_submission.title
+  if (!title) {
+    return `Untitled Showcase submission for ${product.x.name}`
+  }
+  return `Showcase submission for ${product.x.name} entitled `
+})
+
+const prunedSubmissions = computed(() => {
+  let submissions = [...samples.list]
+  if (product.x && product.x.primary_submission) {
+    const primary = product.x.primary_submission
+    submissions = submissions.filter(
+        (submission: SingleController<LinkedSubmission>) =>
+            submission.x && submission.x.submission.id !== primary.id,
+    )
+  }
+  return submissions.slice(0, 4)
+})
+
+const priceHint = computed(() => {
+  if (escrow.value) {
+    return `Enter the listing price you want to present to the user. We will calculate what
                   their fees will be for you. Adjust this number until you're happy with your cut and
                   the total price. You will be able to adjust this
                   price per-order if the client has special requests.`
-    }
-    return `Enter the listing price you want to present to the user. You will be able to adjust this
+  }
+  return `Enter the listing price you want to present to the user. You will be able to adjust this
                 price per-order if the client has special requests.`
-  }
+})
 
-  public get slides() {
-    const list = this.prunedSubmissions.map((x) => (x.x as LinkedSubmission).submission)
-    if (this.product.x && this.product.x.primary_submission) {
-      list.unshift(this.product.x.primary_submission)
-    }
-    return list
+const slides = computed(() => {
+  const list = prunedSubmissions.value.map((x) => (x.x as LinkedSubmission).submission)
+  if (product.x && product.x.primary_submission) {
+    list.unshift(product.x.primary_submission)
   }
+  return list
+})
 
-  @Watch('maxSampleRating', {immediate: true})
-  public triggerAgeCheck(value: number) {
-    console.log('Triggered-- is now', value)
-    this.ageCheck({value})
-  }
-
-  public get maxSampleRating() {
-    if (!this.samples) {
-      return 0
-    }
-    const list = this.samples.list
-    const ratings = list.map((x) => {
-      const linkedSubmission = x.x as LinkedSubmission
-      return linkedSubmission.submission.rating
+const deleteProduct = async () => {
+  product.delete().then(() => {
+    router.replace({
+      name: 'Profile',
+      params: {username: props.username},
     })
-    if (this.product.x && this.product.x.primary_submission) {
-      console.log('Adding primary submission', this.product.x.primary_submission.rating)
-      ratings.push(this.product.x.primary_submission.rating)
-    }
-    if (!ratings.length) {
-      return 0
-    }
-    return Math.max(...ratings)
-  }
-
-  public get productAltText() {
-    if (!this.product.x) {
-      return ''
-    }
-    if (!this.product.x.primary_submission) {
-      return ''
-    }
-    const title = this.product.x.primary_submission.title
-    if (!title) {
-      return `Untitled Showcase submission for ${this.product.x.name}`
-    }
-    return `Showcase submission for ${this.product.x.name} entitled `
-  }
-
-  public get prunedSubmissions() {
-    let submissions = [...this.samples.list]
-    if (this.product.x && this.product.x.primary_submission) {
-      const primary = this.product.x.primary_submission
-      submissions = submissions.filter(
-          (submission: SingleController<LinkedSubmission>) =>
-              submission.x && submission.x.submission.id !== primary.id,
-      )
-    }
-    return submissions.slice(0, 4)
-  }
-
-  public async deleteProduct() {
-    this.product.delete().then(() => {
-      this.$router.replace({
-        name: 'Profile',
-        params: {username: this.username},
-      })
-    })
-  }
-
-  public created() {
-    this.product.get()
-    this.pricing = this.$getSingle('pricing', {endpoint: '/api/sales/pricing-info/'})
-    this.pricing.get()
-    this.inventory = this.$getSingle(
-        `product__${this.productId}__inventory`, {endpoint: `${this.url}inventory/`},
-    )
-    this.pricing.get()
-    this.samples = this.$getList(`product__${this.productId}__samples`, {endpoint: `${this.url}samples/`})
-    this.samples.firstRun().catch(this.statusOk(404))
-    this.recommended = this.$getList(
-        `product__${this.productId}__recommendations`, {
-          endpoint: `${this.url}recommendations/`,
-          params: {size: 12},
-        },
-    )
-    this.recommended.firstRun().catch(this.statusOk(404))
-    this.subjectHandler.artistProfile.get().catch(this.setError)
-    this.$listenForForm(`product${this.productId}__order`)
-  }
+  })
 }
 
-export default toNative(ProductDetail)
+watch(() => product.x, (product: Product | null, oldProduct: Product | null) => {
+  if (!product) {
+    return
+  }
+  if (product && !oldProduct) {
+    shown.value = product.primary_submission
+  }
+  updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
+  let prefix: string
+  if (product.starting_price) {
+    prefix = `[Starts at $${product.starting_price.toFixed(2)}] - `
+  } else {
+    prefix = '[Starts at FREE] - '
+  }
+  const description = textualize(product.description).slice(0, 160 - prefix.length)
+  setMetaContent('description', prefix + description)
+}, {deep: true})
+
+watch(() => product.x?.track_inventory, (toggle: boolean|undefined) => {
+  if (!toggle) {
+    return
+  }
+  inventory.ready = false
+  inventory.setX(null)
+  inventory.get()
+})
+
+watch(showWorkload, (newVal: boolean, oldVal: boolean) => {
+  if (oldVal && !newVal) {
+    product.refresh()
+  }
+})
+
+watch(() => product.x?.primary_submission, (value: undefined | null | Submission) => {
+  if (value === undefined) {
+    return
+  }
+  shown.value = value
+})
+
+const listControllerMaps = new Map(['Shielded', 'Unshielded', '__preferred'].map((name) => [name, useList<LineItem>(`product${props.productId}${name}`, {endpoint: '#', paginated: false})]))
+
+const lineItemSetMaps = computed(() => {
+  const sets = []
+  for (const set of rawLineItemSetMaps.value) {
+    const name = listControllerMaps.has(set.name) ? set.name : '__preferred'
+    const controller = listControllerMaps.get(name)
+    sets.push({name: set.name, lineItems: controller, offer: set.offer})
+  }
+  return sets
+})
+
+watch(rawLineItemSetMaps, (rawLineItemSetMaps: RawLineItemSetMap[]) => {
+  for (const set of rawLineItemSetMaps) {
+    let name = listControllerMaps.has(set.name) ? set.name : '__preferred'
+    const controller = listControllerMaps.get(name) as ListController<LineItem>
+    controller.makeReady(set.lineItems)
+  }
+}, {deep: true})
+
+watch(maxSampleRating, (value: number) => {
+  ageCheck({value})
+})
 </script>

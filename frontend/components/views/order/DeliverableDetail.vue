@@ -443,7 +443,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {usePricing} from '@/mixins/PricingAware.ts'
 import {listenForSingle} from '@/store/singles/hooks.ts'
 import {listenForList, useList} from '@/store/lists/hooks.ts'
-import {setError, statusOk} from '@/mixins/ErrorHandling.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useStore} from 'vuex'
 import {useInvoicing} from '@/components/views/order/mixins/InvoicingMixin.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
@@ -743,6 +743,8 @@ watch(route, (route: RouteLocation) => {
 const {invoiceLineItems} = useInvoicing({
   newInvoice, invoiceEscrowEnabled, international, planName, sellerName,
 })
+
+const {setError, statusOk} = useErrorHandling()
 
 onMounted(() => {
   if (route.query.showAdd) {

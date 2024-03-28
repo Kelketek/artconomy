@@ -113,7 +113,6 @@
           </v-row>
         </v-col>
       </v-row>
-      <span>BEFORE SECTION!</span>
       <v-row no-gutters v-if="subCommentList.list.length || replying">
         <v-col cols="11" offset="1">
           <v-row no-gutters class="mt-4">
@@ -123,7 +122,6 @@
                 <v-icon right :icon="mdiArrowExpandDown"/>
               </v-btn>
             </v-col>
-            <span>THIS WOULD BE HERE!</span>
             <ac-load-section :controller="subCommentList">
               <template v-slot:default>
                 <div class="flex subcomments">

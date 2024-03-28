@@ -54,9 +54,9 @@ export const useEditable = (controls: ComputedRef<boolean>) => {
     },
     set: (val: boolean) => {
       if (val) {
-        lock().then()
-      } else {
         unlock().then()
+      } else {
+        lock().then()
       }
     }
   })

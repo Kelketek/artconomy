@@ -171,7 +171,7 @@ watch(scratch, () => {
 })
 
 watch(() => props.patcher.model, (val: any) => {
-  if (processInstantly.value) {
+  if (processInstantly()) {
     return
   }
   if (props.autoSave || handlesSaving.value) {
@@ -180,7 +180,7 @@ watch(() => props.patcher.model, (val: any) => {
 })
 
 watch(() => props.patcher.rawValue, (val: any) => {
-  if (!processInstantly.value) {
+  if (!processInstantly()) {
     return
   }
   scratch.value = val
@@ -190,14 +190,6 @@ watch(() => props.patcher.cached, (val: any) => {
   // A synced handler is modifying our value.
   scratch.value = val
 })
-
-watch(() => props.patcher.errors, (val: string[]) => {
-  // When we have an error, our cache will still have the new value. We need to reset it so that our child
-  // component knows we've still not saved what's upstream. Note: This is only for child components that handle
-  // their own save events, such as the editor. Doing this on other components runs the risk of wiping out
-  // the value the user set. To override this, set refresh to false.
-  scratch.value = props.patcher.rawValue
-}, {deep: true})
 
 watch(saved, (val: boolean) => {
   if (val) {
@@ -213,9 +205,8 @@ const enterHandler = () => {
   save()
 }
 
-const processInstantly = computed(() => {
-  // TODO: Pretty sure document.hasFocus() isn't reactive here, so need to find another means of handling it,
-  // if it's important.
+// document.hasFocus() isn't reactive, so this must be a function call.
+const processInstantly = () => {
   return props.instant || !document.hasFocus()
-})
+}
 </script>

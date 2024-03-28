@@ -1,7 +1,7 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {
-  cleanUp,
+  cleanUp, createTestRouter,
   mount,
   rq,
   vueSetup,
@@ -42,43 +42,7 @@ describe('CharacterDetail.vue', () => {
     vulpes.is_superuser = false
     vulpes.id = 2
     vulpes.artist_mode = false
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [
-        {
-          path: '/',
-          component: Empty,
-          name: 'Home',
-        },
-        {
-          path: '/profile/:username',
-          component: Empty,
-          props: true,
-          children: [{
-            path: 'about',
-            name: 'AboutUser',
-            component: Empty,
-            props: true,
-          }],
-        }, {
-          path: '/submissions/:submissionId',
-          name: 'Submission',
-          component: Empty,
-          props: true,
-        }, {
-          path: '/search/characters/',
-          name: 'SearchCharacters',
-          component: Empty,
-          props: true,
-        },
-        {
-          path: '/profile/:username/characters/:characterName',
-          name: 'Character',
-          component: Empty,
-          props: true,
-        },
-      ],
-    })
+    router = createTestRouter(false)
     empty = mount(Empty, vueSetup({store})).vm
     empty.$getForm('search', searchSchema())
   })
@@ -141,7 +105,7 @@ describe('CharacterDetail.vue', () => {
     const character = getCharacter()
     character.profile.makeReady(characterDef)
     await nextTick()
-    expect(wrapper.find('.primary-submission-container a').attributes()['href']).toEqual('/submissions/100')
+    expect(wrapper.find('.primary-submission-container a').attributes()['href']).toEqual('/submissions/100/')
     character.profile.updateX({primary_submission: null})
     await nextTick()
     expect(wrapper.find('.primary-submission-container a').exists()).toBe(false)
@@ -149,7 +113,7 @@ describe('CharacterDetail.vue', () => {
     submission.id = 101
     character.profile.updateX({primary_submission: submission})
     await nextTick()
-    expect(wrapper.find('.primary-submission-container a').attributes()['href']).toEqual('/submissions/101')
+    expect(wrapper.find('.primary-submission-container a').attributes()['href']).toEqual('/submissions/101/')
     await router.replace({query: {editing: 'true'}})
     await nextTick()
     expect(wrapper.find('.primary-submission-container a').exists()).toBe(false)
