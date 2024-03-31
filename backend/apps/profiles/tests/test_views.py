@@ -44,6 +44,7 @@ from ddt import data, ddt, unpack
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
+from django.test import override_settings
 from freezegun import freeze_time
 from hitcount.models import Hit, HitCount
 from rest_framework import status
@@ -717,6 +718,7 @@ class ValidatorChecks(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
+@override_settings(FORCE_THEOCRACY=False)
 class TestSubmissionSearch(APITestCase):
     def test_submission_rating_search(self):
         artist = UserFactory.create()

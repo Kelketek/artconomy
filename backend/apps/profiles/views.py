@@ -573,20 +573,17 @@ class UserInfo(APIView):
     # noinspection PyUnusedLocal
     def get(self, request, **kwargs):
         user = self.get_object()
-        if user:
-            serializer_class = self.get_serializer(user)
-            serializer = serializer_class(
-                instance=user, context=self.get_serializer_context()
+        serializer_class = self.get_serializer(user)
+        serializer = serializer_class(
+            instance=user, context=self.get_serializer_context()
+        )
+        data = serializer.data
+        if not user.is_registered:
+            patch_data = empty_user(
+                user=request.user, session=request.session, ip=request.ip
             )
-            data = serializer.data
-            if not request.user.is_registered:
-                patch_data = empty_user(
-                    user=request.user, session=request.session, ip=request.ip
-                )
-                del patch_data["username"]
-                data = {**data, **patch_data}
-        else:
-            data = empty_user(user=request.user, session=request.session, ip=request.ip)
+            del patch_data["username"]
+            data = {**data, **patch_data}
         return Response(data=data, status=status.HTTP_200_OK)
 
     # noinspection PyUnusedLocal

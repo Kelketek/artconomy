@@ -411,6 +411,7 @@ class TestPositionShifts(EnsurePlansMixin, TestCase):
         ]
     },
     BYPASS_THEOCRACIES=False,
+    FORCE_THEOCRACY=False,
 )
 @ddt.ddt
 class TestCheckTheocraticBan(TestCase):

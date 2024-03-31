@@ -792,7 +792,6 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                 "favorites_hidden",
                 "blacklist",
                 "biography",
-                "verified_adult",
                 "rating_count",
                 "birthday",
             ]
