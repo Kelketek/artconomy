@@ -12,15 +12,19 @@ from django.utils.safestring import mark_safe
 register = template.Library()
 
 
+def css_line(file_name):
+    return f"""<link rel="stylesheet" media="none" type="text/css" href="/static/dist/{file_name}" crossOrigin="anonymous" onload="if(media!='all')media='all'"/>"""
+
+
 def markup_from_entry(entry: dict) -> str:
-    file_name = entry['file']
+    file_name = entry["file"]
     string = ""
-    if file_name.lower().endswith('.js'):
+    if file_name.lower().endswith(".js"):
         string += f"""<script type="module" src="/static/dist/{entry['file']}" crossOrigin="anonymous" async></script>"""
-    elif file_name.lower().endswith('.css'):
-        string += f"""<link rel="stylesheet" type="text/css" href="/static/dist/{entry['file']}" crossOrigin="anonymous"/>"""
+    elif file_name.lower().endswith(".css"):
+        string += css_line(entry["file"])
     if "css" in entry:
-        string += f"""<link rel="stylesheet" type="text/css" href="/static/dist/{entry['css'][0]}" crossOrigin="anonymous"/>"""
+        string += css_line(entry["css"][0])
     return string
 
 
