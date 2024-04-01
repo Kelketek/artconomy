@@ -1,4 +1,5 @@
 import logging
+from datetime import date
 from unittest.mock import patch
 
 from apps.lib.abstract_models import ADULT, EXTREME, GENERAL, MATURE
@@ -509,6 +510,25 @@ class TestSettings(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["rating"], ADULT)
         self.assertEqual(response.data["birthday"], "1988-08-01")
+        user.refresh_from_db()
+        self.assertEqual(user.rating, ADULT)
+
+    def test_settings_post_sfw_mode(self):
+        user = UserFactory.create(
+            rating=ADULT, birthday=date(year=1988, month=8, day=1)
+        )
+        self.assertEqual(user.rating, ADULT)
+        self.login(user)
+        response = self.client.patch(
+            "/api/profiles/v1/account/{}/".format(user.username),
+            {
+                "sfw_mode": True,
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # self.assertEqual(response.data["rating"], ADULT)
+        # self.assertEqual(response.data["birthday"], "1988-08-01")
         user.refresh_from_db()
         self.assertEqual(user.rating, ADULT)
 

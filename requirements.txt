@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements.txt constraints.in requirements.in
 #
-adrf==0.1.4
+adrf==0.1.5
     # via -r requirements.in
 aiofile==3.8.8
     # via -r requirements.in
@@ -20,7 +20,7 @@ anyio==4.3.0
     # via
     #   httpx
     #   watchfiles
-asgiref==3.7.2
+asgiref==3.8.1
     # via
     #   channels
     #   channels-redis
@@ -86,7 +86,7 @@ click==8.1.7
     #   click-plugins
     #   click-repl
     #   uvicorn
-click-didyoumean==0.3.0
+click-didyoumean==0.3.1
     # via celery
 click-plugins==1.1.1
     # via celery
@@ -106,7 +106,7 @@ cssselect==1.2.0
     # via premailer
 cssselect2==0.7.0
     # via svglib
-cssutils==2.9.0
+cssutils==2.10.2
     # via premailer
 daphne==4.1.0
     # via channels
@@ -116,7 +116,7 @@ decorator==5.1.1
     # via ipython
 discord-py-interactions==5.11.0
     # via -r requirements.in
-discord-typings==0.7.0
+discord-typings==0.8.0
     # via discord-py-interactions
 django==4.2.11
     # via
@@ -178,7 +178,7 @@ django-static-sitemaps==5.0.0
     # via -r requirements.in
 django-vite==3.0.3
     # via -r requirements.in
-djangorestframework==3.15.0
+djangorestframework==3.15.1
     # via
     #   -r requirements.in
     #   adrf
@@ -196,13 +196,13 @@ dwollav2==2.2.1
     # via -r requirements.in
 easy-thumbnails==2.8.5
     # via -r requirements.in
-emoji==2.10.1
+emoji==2.11.0
     # via discord-py-interactions
 executing==2.0.1
     # via stack-data
 factory-boy==3.3.0
     # via -r requirements.in
-faker==24.3.0
+faker==24.4.0
     # via factory-boy
 freezegun==1.4.0
     # via -r requirements.in
@@ -216,7 +216,7 @@ geoip2==4.8.0
     # via -r requirements.in
 gitdb==4.0.11
     # via gitpython
-gitpython==3.1.42
+gitpython==3.1.43
     # via -r requirements.in
 h11==0.14.0
     # via
@@ -224,7 +224,7 @@ h11==0.14.0
     #   uvicorn
 html2text==2024.2.26
     # via -r requirements.in
-httpcore==1.0.4
+httpcore==1.0.5
     # via httpx
 httptools==0.6.1
     # via uvicorn
@@ -244,19 +244,19 @@ idna==3.6
     #   yarl
 incremental==22.10.0
     # via twisted
-ipython==8.22.2
+ipython==8.23.0
     # via -r requirements.in
 isort==5.13.2
     # via -r requirements.in
 jedi==0.19.1
     # via ipython
-kombu==5.3.5
+kombu==5.3.6
     # via celery
 lazy==1.6
     # via -r requirements.in
 luhn==0.2.0
     # via -r requirements.in
-lxml==5.1.0
+lxml==5.2.0
     # via
     #   -r requirements.in
     #   premailer
@@ -291,7 +291,7 @@ pathspec==0.12.1
     # via black
 pexpect==4.9.0
     # via ipython
-pillow==10.2.0
+pillow==10.3.0
     # via
     #   django-avatar
     #   easy-thumbnails
@@ -314,15 +314,15 @@ pure-eval==0.2.2
     # via stack-data
 py-moneyed==3.0
     # via django-money
-pyasn1==0.5.1
+pyasn1==0.6.0
     # via
     #   pyasn1-modules
     #   service-identity
-pyasn1-modules==0.3.0
+pyasn1-modules==0.4.0
     # via service-identity
 pycountry==23.12.11
     # via -r requirements.in
-pycparser==2.21
+pycparser==2.22
     # via cffi
 pygments==2.17.2
     # via ipython
@@ -370,7 +370,7 @@ requests==2.31.0
     #   mailchimp3
     #   premailer
     #   stripe
-ruff==0.3.3
+ruff==0.3.4
     # via -r requirements.in
 sendgrid==6.11.0
     # via django-sendgrid-v5
@@ -398,7 +398,7 @@ stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==8.7.0
+stripe==8.9.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
@@ -421,6 +421,7 @@ txaio==23.1.1
 typing-extensions==4.10.0
     # via
     #   discord-typings
+    #   ipython
     #   psycopg
     #   py-moneyed
     #   qrcode
@@ -432,7 +433,7 @@ tzdata==2024.1
     #   pandas
 urllib3==2.2.1
     # via requests
-uvicorn[standard]==0.28.1
+uvicorn[standard]==0.29.0
     # via -r requirements.in
 uvloop==0.19.0
     # via uvicorn
