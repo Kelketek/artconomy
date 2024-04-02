@@ -10,8 +10,6 @@ import {genId} from '@/lib/lib.ts'
 import {singles} from './singles/index.ts'
 import {characterModules} from '@/store/characters/index.ts'
 import {ContentRating} from '@/types/ContentRating.ts'
-import {InjectionKey} from 'vue'
-import {Store} from 'vuex/types/index.d.ts'
 
 export function storeDefaults(): StoreOptions<ArtState> {
   return {

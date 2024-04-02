@@ -28,6 +28,7 @@ import {
 } from '@/store/profiles/helpers.ts'
 import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
+import {ArtStore} from '@/store'
 
 // Needed for Matomo.
 declare global {
@@ -666,4 +667,22 @@ export const useLazyInitializer = <T>(initializer: WatchSource<T>) => {
     }
   })
   return reactive
+}
+
+export const loadErrorHandler = (store: ArtStore) => (event: PromiseRejectionEvent) => {
+  if (!event.reason || !(event.reason instanceof Error)) {
+    // Let the event fall through to propogation. No idea what's wrong here.
+    return
+  }
+  const reason = event.reason as Error
+  if (reason.name === 'TypeError') {
+    const message = reason.message + ''
+    if (message.startsWith('Importing a module script failed.') || message.startsWith('Failed to fetch dynamically imported module') || message.startsWith('error loading dynamically imported module')) {
+      store.commit('pushAlert', {message: 'We had an issue loading part of the page. Try clicking around a bit or refreshing.', category: 'error'})
+      event.preventDefault()
+      event.stopPropagation()
+      event.stopImmediatePropagation()
+      return false
+    }
+  }
 }

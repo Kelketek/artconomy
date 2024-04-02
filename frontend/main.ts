@@ -1,4 +1,8 @@
-import {BrowserTracing, Replay, vueRouterInstrumentation, init} from '@sentry/vue'
+import {
+  init,
+  browserTracingIntegration,
+  replayIntegration,
+} from '@sentry/vue'
 import {createApp, h} from 'vue'
 import {createStore} from './store/index.ts'
 import App from './App.vue'
@@ -6,7 +10,7 @@ import {configureHooks, router} from '@/router/index.ts'
 import {createForms} from '@/store/forms/registry.ts'
 import {Shortcuts} from './plugins/shortcuts.ts'
 import supportedBrowsers from './supportedBrowsers.ts'
-import {genId, setViewer} from './lib/lib.ts'
+import {genId, loadErrorHandler, setViewer} from './lib/lib.ts'
 import {createLists} from '@/store/lists/registry.ts'
 import {createSingles} from '@/store/singles/registry.ts'
 import {createProfiles} from '@/store/profiles/registry.ts'
@@ -55,6 +59,9 @@ const app = createApp({
   components: {App, VCol, VRow},
 })
 const store = createStore()
+const loadHandler = loadErrorHandler(store)
+router.onError(loadHandler)
+addEventListener("unhandledrejection", loadHandler)
 
 app.use(router)
 app.use(store)
@@ -105,12 +112,10 @@ if (productionMode && isValidBrowser) {
       'ResizeObserver loop limit exceeded', 'ResizeObserver loop completed with undelivered notifications.',
     ],
     integrations: [
-      new BrowserTracing({
-        routingInstrumentation: vueRouterInstrumentation(router),
-      }),
-      new Replay(),
+      browserTracingIntegration({ router }),
+      replayIntegration(),
     ],
-    replaysOnErrorSampleRate: 1.0,
+    replaysOnErrorSampleRate: .05,
     tracesSampleRate: .05,
   })
 } else if (process.env.NODE_ENV === 'production') {
