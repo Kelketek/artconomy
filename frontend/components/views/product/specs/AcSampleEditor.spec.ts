@@ -73,7 +73,7 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
@@ -81,7 +81,7 @@ describe('AcSampleEditor.vue', () => {
     await wrapper.vm.$nextTick()
     expect(product.patchers.primary_submission.model).not.toBeNull()
     mockAxios.reset()
-    await wrapper.find('.clear-showcased').trigger('click')
+    await wrapper.findComponent('.clear-showcased').trigger('click')
     await wrapper.vm.$nextTick()
     const newVersion = {...product.x as Product}
     newVersion.primary_submission = null
@@ -128,13 +128,13 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
     await nextTick()
     await waitForSelector(wrapper, '.remove-submission')
-    await wrapper.find('.remove-submission').trigger('click')
+    await wrapper.findComponent('.remove-submission').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/1/', 'delete', undefined))
     mockAxios.mockResponse(rs({}))
     await flushPromises()
@@ -178,13 +178,13 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
     await nextTick()
     await waitForSelector(wrapper, '.remove-submission')
-    await wrapper.find('.remove-submission').trigger('click')
+    await wrapper.findComponent('.remove-submission').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/1/', 'delete', undefined))
     mockAxios.mockResponse(rs({}))
     await flushPromises()
@@ -216,14 +216,13 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
     await wrapper.vm.$nextTick()
     mockAxios.reset()
-    const vm = wrapper.vm as any
-    await wrapper.find('.product-sample-option').trigger('click')
+    await wrapper.findComponent('.product-sample-option').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/', 'post', {submission_id: 5}))
     mockAxios.mockResponse(rs({
       id: 1,
@@ -258,13 +257,13 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
     await wrapper.vm.$nextTick()
     mockAxios.reset()
-    await wrapper.find('.product-sample-option').trigger('click')
+    await wrapper.findComponent('.product-sample-option').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/samples/', 'post', {submission_id: 5}))
     mockAxios.mockResponse(rs({
       id: 1,
@@ -289,7 +288,7 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
@@ -321,7 +320,7 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
@@ -358,12 +357,12 @@ describe('AcSampleEditor.vue', () => {
         product,
         productId: (product.x as Product).id,
         username: 'Fox',
-        value: true,
+        modelValue: true,
         samples: samplesList,
       },
     })
     await wrapper.vm.$nextTick()
-    await wrapper.find('.dialog-closer').trigger('click')
+    await wrapper.findComponent('.dialog-closer').trigger('click')
     await wrapper.vm.$nextTick()
     await flushPromises()
     expect(wrapper.emitted('update:modelValue')![0])

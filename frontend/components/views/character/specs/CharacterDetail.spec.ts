@@ -42,7 +42,7 @@ describe('CharacterDetail.vue', () => {
     vulpes.is_superuser = false
     vulpes.id = 2
     vulpes.artist_mode = false
-    router = createTestRouter(false)
+    router = createTestRouter()
     empty = mount(Empty, vueSetup({store})).vm
     empty.$getForm('search', searchSchema())
   })
@@ -54,7 +54,7 @@ describe('CharacterDetail.vue', () => {
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Vulpes',
@@ -86,7 +86,7 @@ describe('CharacterDetail.vue', () => {
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Vulpes',
@@ -123,7 +123,7 @@ describe('CharacterDetail.vue', () => {
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Vulpes',
@@ -141,7 +141,7 @@ describe('CharacterDetail.vue', () => {
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Vulpes',
@@ -170,7 +170,7 @@ describe('CharacterDetail.vue', () => {
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Vulpes',

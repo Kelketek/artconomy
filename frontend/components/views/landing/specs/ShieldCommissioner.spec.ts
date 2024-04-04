@@ -40,7 +40,7 @@ describe('Shield.vue', () => {
   test('Calls Search', async() => {
     const wrapper = mount(ShieldCommissioner, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     await wrapper.find('.commission-cta').trigger('click')
     await wrapper.vm.$nextTick()

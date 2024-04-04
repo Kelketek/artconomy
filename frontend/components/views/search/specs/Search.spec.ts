@@ -98,14 +98,14 @@ describe('Search.vue', () => {
   test('Mounts', () => {
     wrapper = mount(Search, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
   })
   test('Tabs through each search option', async() => {
     setViewer(store, genUser())
     wrapper = mount(Search, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     const routes = ['SearchProducts', 'SearchSubmissions', 'SearchCharacters', 'SearchProfiles']
     await Promise.all(wrapper.findAll('.v-item-group .v-btn').map(async (el, index) => {
@@ -120,7 +120,7 @@ describe('Search.vue', () => {
     searchForm.fields.featured.update(true)
     wrapper = mount(Search, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -148,7 +148,7 @@ describe('Search.vue', () => {
     setViewer(store, genAnon())
     wrapper = mount(Search, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -167,7 +167,7 @@ describe('Search.vue', () => {
     }))
     wrapper = mount(Search, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['v-badge'],
     }))
     const vm = wrapper.vm as any
@@ -179,7 +179,7 @@ describe('Search.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(SubmissionExtra, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['v-badge'],
     }))
     const vm = wrapper.vm as any
@@ -190,7 +190,7 @@ describe('Search.vue', () => {
   test('Synchronizes the value of the form page value and the list page value', async() => {
     wrapper = mount(SearchProducts, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     const vm = wrapper.vm as any
     vm.list.currentPage = 3

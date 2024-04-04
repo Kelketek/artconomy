@@ -101,7 +101,7 @@ describe('Profile.vue', () => {
     wrapper = mount(WrappedProfile, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+          router,
         }),
         props: {username: 'Fox'},
       },
@@ -132,7 +132,7 @@ describe('Profile.vue', () => {
     wrapper = mount(WrappedProfile, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {username: 'Fox'},
     })
@@ -163,7 +163,7 @@ describe('Profile.vue', () => {
     wrapper = mount(WrappedProfile, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {username: 'Fox'},
     })
@@ -173,7 +173,7 @@ describe('Profile.vue', () => {
     await wrapper.vm.$nextTick()
     await wrapper.find('.message-button').trigger('click')
     await wrapper.vm.$nextTick()
-    await wrapper.find('.dialog-submit').trigger('click')
+    await wrapper.findComponent('.dialog-submit').trigger('click')
     const response = genConversation()
     mockAxios.mockResponse(rs(response))
     await wrapper.vm.$nextTick()

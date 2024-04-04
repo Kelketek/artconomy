@@ -20,7 +20,6 @@ import {createVuetify} from '@/plugins/vuetify.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import '@stripe/stripe-js'
 import {Stripe, StripeConstructor} from '@stripe/stripe-js'
-import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
@@ -38,7 +37,6 @@ declare global {
     SANDBOX_APIS: boolean,
     RECAPTCHA_SITE_KEY: string,
     STRIPE_PUBLIC_KEY: string,
-    DEFAULT_CARD_PROCESSOR: PROCESSORS,
     THEOCRATIC_BAN: boolean,
     DEFAULT_SERVICE_PLAN_NAME: string,
     Stripe?: StripeConstructor,

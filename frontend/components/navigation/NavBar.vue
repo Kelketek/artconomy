@@ -29,7 +29,7 @@
                   >
                     <v-row no-gutters>
                       <v-col cols="12" class="text-center">
-                        <ac-icon size="default" :icon="siTwitter"/>
+                        <v-icon size="default" :icon="siTwitter.path"/>
                       </v-col>
                       <v-col cols="12" class="text-center">
                         <small>Twitter</small>
@@ -61,7 +61,7 @@
                   >
                     <v-row no-gutters>
                       <v-col cols="12" class="text-center">
-                        <ac-icon size="default" :icon="siDiscord"/>
+                        <v-icon size="default" :icon="siDiscord.path"/>
                       </v-col>
                       <v-col cols="12" class="text-center">
                         <small>Discord</small>
@@ -215,7 +215,6 @@ const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBo
 import {useNav} from '@/mixins/nav.ts'
 const AcNavLinks = defineAsyncComponent(() => import('@/components/navigation/AcNavLinks.vue'))
 import {siDiscord, siTwitter} from 'simple-icons'
-const AcIcon = defineAsyncComponent(() => import('@/components/AcIcon.vue'))
 import {computed, defineAsyncComponent, onUnmounted, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'

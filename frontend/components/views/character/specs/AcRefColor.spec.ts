@@ -2,10 +2,10 @@ import {VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import AcRefColor from '@/components/views/character/AcRefColor.vue'
-import {cleanUp, createTestRouter, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
-import {createRouter, Router} from 'vue-router'
+import {describe, beforeEach, afterEach, test} from 'vitest'
+import {Router} from 'vue-router'
 import {setViewer} from '@/lib/lib.ts'
 
 describe('AcRefColor.vue', () => {
@@ -23,14 +23,14 @@ describe('AcRefColor.vue', () => {
     setViewer(store, genUser())
     await router.push('/')
     await router.isReady()
-    const empty = mount(Empty, vueSetup({store, extraPlugins: [router]}))
+    const empty = mount(Empty, vueSetup({store, router}))
     const color = empty.vm.$getSingle('color', {endpoint: '/endpoint/'})
     color.setX({
       color: '#555555',
       note: 'This is a test color',
     })
     wrapper = mount(AcRefColor, {
-      ...vueSetup({store, extraPlugins: [router]}),
+      ...vueSetup({store, router}),
       props: {
         color,
         username: 'Fox',

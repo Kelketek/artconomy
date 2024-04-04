@@ -21,7 +21,7 @@ describe('Other.vue', () => {
     await router.push('/faq/other/')
     wrapper = mount(Other, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await wrapper.vm.$nextTick()
     await flushPromises()

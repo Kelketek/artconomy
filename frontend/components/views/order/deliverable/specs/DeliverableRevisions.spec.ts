@@ -31,7 +31,7 @@ describe('DeliverableRevisions.vue', () => {
       DeliverableRevisions, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
         }),
         props: {
           orderId: 1,
@@ -60,7 +60,7 @@ describe('DeliverableRevisions.vue', () => {
       DeliverableRevisions, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
         }),
         props: {
           orderId: 1,
@@ -90,7 +90,7 @@ describe('DeliverableRevisions.vue', () => {
       DeliverableRevisions, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {

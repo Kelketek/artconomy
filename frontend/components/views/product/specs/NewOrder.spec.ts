@@ -93,7 +93,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -109,7 +109,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -146,7 +146,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -191,7 +191,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -241,7 +241,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -335,7 +335,7 @@ describe('NewOrder.vue', () => {
       {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
         }),
         props: {
           productId: '1',
@@ -392,7 +392,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -412,7 +412,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -458,7 +458,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -507,7 +507,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -556,7 +556,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -585,7 +585,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -610,7 +610,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -635,7 +635,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',
@@ -659,7 +659,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         productId: '1',

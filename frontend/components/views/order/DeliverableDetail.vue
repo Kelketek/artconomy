@@ -305,10 +305,9 @@
                           :errors="addSubmission.errors"
                           :large="true"
                           :eager="true"
-                          class="add-submission-dialog"
                           :title="isSeller ? 'Add to Gallery' : 'Add to Collection'"
                       >
-                        <v-container class="pa-0">
+                        <v-container class="pa-0 add-submission-dialog">
                           <v-row no-gutters>
                             <v-col cols="12">
                               <ac-bound-field :field="addSubmission.fields.title" label="Title"/>

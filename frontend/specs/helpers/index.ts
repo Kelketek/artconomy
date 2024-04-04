@@ -5,7 +5,7 @@ import {expect, vi} from 'vitest'
 import VueMask from '@devindex/vue-mask'
 import {csrfSafeMethod, genId, getCookie, immediate} from '@/lib/lib.ts'
 import {mount as upstreamMount, VueWrapper} from '@vue/test-utils'
-import {ComponentPublicInstance, defineComponent} from 'vue'
+import {ComponentPublicInstance, defineComponent, ref, useAttrs} from 'vue'
 import {FieldController} from '@/store/forms/field-controller.ts'
 import {FieldBank} from '@/store/forms/form-controller.ts'
 import flushPromisesUpstream from 'flush-promises'
@@ -27,7 +27,7 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
-import {createRouter, createWebHistory, RouteRecordRaw} from 'vue-router'
+import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router'
 import {routes} from '@/router'
 
 export interface ExtraData {
@@ -74,7 +74,7 @@ export function dialogExpects(spec: { wrapper: any, formName: string, fields: st
   const wrapper = spec.wrapper
   const formName = spec.formName
   const fields = spec.fields
-  const dialogue = wrapper.find(`#form-${formName}`)
+  const dialogue = wrapper.findComponent(`#form-${formName}`)
   expect(dialogue.exists()).toBeTruthy()
   for (const field of fields) {
     expect(dialogue.find(`#field-${formName}__${field}`).exists()).toBeTruthy()
@@ -109,14 +109,18 @@ export const flushPromises = flushPromisesUpstream
 export async function confirmAction(wrapper: VueWrapper<any>, selectors: string[]) {
   for (const selector of selectors) {
     try {
-      await waitFor(() => wrapper.find(selector).trigger('click'))
+      await waitFor(() => wrapper.findComponent(selector).trigger('click'))
     } catch (e) {
-      console.log(`Could not find ${selector} in`, wrapper.html())
-      throw e
+      try {
+        await waitFor(() => wrapper.find(selector).trigger('click'))
+      } catch {
+        console.log(`Could not find ${selector} in`, wrapper.html())
+        throw e
+      }
     }
   }
   try {
-    await waitFor(() => wrapper.find('.v-overlay--active .confirmation-button').trigger('click'))
+    await waitFor(() => wrapper.findComponent('.v-overlay--active .confirmation-button').trigger('click'))
   } catch (e) {
     console.log(wrapper.html())
     throw e
@@ -139,10 +143,12 @@ export type VueMountOptions = {
     components?: Record<string, ReturnType<typeof defineComponent> | object>,
   },
   attachTo: string | HTMLElement,
+  props?: Record<string, any>,
 }
 
 export type MountOverrideOptions = {
   store?: ArtStore,
+  router?: Router,
   vuetify?: ReturnType<typeof createVuetify>
   socket?: ReturnType<typeof createVueSocket>
   extraPlugins?: any[],
@@ -171,6 +177,7 @@ export function vueSetup(overrides?: MountOverrideOptions): VueMountOptions {
         createRegistries(),
         VueMask,
         Shortcuts,
+        overrides.router || createTestRouter(),
         createTargetsPlugin(true),
         overrides.socket || createVueSocket({endpoint: `ws://localhost/test/url/${genId()}`}),
         overrides.vuetify || createVuetify({
@@ -199,6 +206,7 @@ export function cleanUp(wrapper?: VueWrapper<any>) {
   formRegistry.reset()
   characterRegistry.reset()
   localStorage.clear()
+  clearBody()
 }
 
 // The TS-ignores are here because there's no sane way to populate this wrapper
@@ -238,21 +246,23 @@ export const mount = <T>(component: ReturnType<typeof defineComponent>, options:
 export const mockCardMount = vi.fn()
 export const mockCardCreate = vi.fn()
 export const mockStripe = () => {
-  const stripeInstance = {
+  const stripeInstance: any = {
     elements: () => {
       return {
         create: mockCardCreate,
       }
     },
-    confirmCardPayment: async() => {
+    confirmCardPayment: vi.fn(async() => {
       return immediate(stripeInstance.paymentValue)
-    },
-    confirmCardSetup: async() => {
+    }),
+    confirmCardSetup: vi.fn(async() => {
       return immediate(stripeInstance.setupValue)
-    },
+    }),
     reset() {
       stripeInstance.setupValue = null
       stripeInstance.paymentValue = null
+      stripeInstance.confirmCardPayment.mockReset()
+      stripeInstance.confirmCardSetup.mockReset()
     },
     setupValue: null as any,
     // Set this to whatever you want confirmCardPayment to return.
@@ -265,14 +275,26 @@ export function VuetifyWrapped(component: ReturnType<typeof defineComponent>) {
   return defineComponent({
     components: {wrapped: component},
     inheritAttrs: false,
-    template: '<v-app><wrapped v-bind="{...$attrs, ...additional}" ref="vm"/><div id="modal-target" /><div id="snackbar-target" /><div id="menu-target" /></v-app>',
+    setup() {
+      return {vm: ref(null), attrs: useAttrs()}
+    },
+    template: '<v-app><wrapped v-bind="{...attrs, ...additional}" ref="vm"/><div id="modal-target" /><div id="snackbar-target" /><div id="menu-target" /></v-app>',
     props: ['id'],
     computed: {
+      $vm() {
+        return this.vm
+      },
       additional() {
         return this.id ? {id: this.id} : {}
       }
     }
   })
+}
+
+export const clearBody = () => {
+  const newBody = document.createElement('body')
+  newBody.innerHTML = '<div class="v-application"><div id="test-component" /><div id="modal-target" /><div id="snackbar-target" /><div id="menu-target" /><div id="status-target" /></div>'
+  document.body = newBody
 }
 
 export const realTimerScope = (): () => void => {
@@ -320,24 +342,20 @@ export const nullifyRoutes = (routeArray: RouteRecordRaw[]): RouteRecordRaw[] =>
 
 export const mockRoutes = nullifyRoutes(routes)
 
-export const createTestRouter = (quick = true) => {
-  let routes: RouteRecordRaw[]
-  if (quick) {
-    routes = [{name: 'Home', component: Empty, path: '/'}]
-  } else {
-    routes = mockRoutes
-  }
+export const createTestRouter = () => {
   return createRouter({
     history: createWebHistory(),
-    routes,
+    routes: mockRoutes,
   })
 }
 
 export const waitForSelector = async (wrapper: VueWrapper, selector: string) => {
-  return await waitFor(() => expect(wrapper.find(selector).exists()).toBe(true))
+  return await waitFor(() => expect(wrapper.find(selector).exists() || wrapper.findComponent(selector).exists()).toBe(true))
 }
 
 export const mockStripeInitializer = vi.fn()
-mockStripeInitializer.mockImplementation(mockStripe)
+const stripe = mockStripe()
+mockStripeInitializer.mockImplementation(() => stripe)
 mockCardCreate.mockImplementation(() => ({mount: mockCardMount}))
 window.Stripe = mockStripeInitializer
+clearBody()

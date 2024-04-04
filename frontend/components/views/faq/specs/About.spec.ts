@@ -21,7 +21,7 @@ describe('About.vue', () => {
     await router.push('/faq/about/')
     wrapper = mount(About, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await wrapper.vm.$nextTick()
     await flushPromises()
@@ -31,7 +31,7 @@ describe('About.vue', () => {
     await router.push('/faq/about/what-is-artconomy/')
     wrapper = mount(About, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await wrapper.vm.$nextTick()
     const header = wrapper.findAll('.v-expansion-panel-title').at(1)!

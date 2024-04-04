@@ -47,7 +47,7 @@ describe('AcPricePreview.vue', () => {
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         lineItems,
@@ -70,7 +70,7 @@ describe('AcPricePreview.vue', () => {
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         lineItems,
@@ -89,7 +89,7 @@ describe('AcPricePreview.vue', () => {
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         lineItems,

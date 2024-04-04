@@ -2,7 +2,7 @@ import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
-  confirmAction, createVuetify,
+  confirmAction,
   flushPromises,
   mount,
   rq,
@@ -12,7 +12,7 @@ import {
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {commentSet} from './fixtures.ts'
+import {commentSet as genCommentSet} from './fixtures.ts'
 import AcComment from '@/components/comments/AcComment.vue'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
@@ -24,6 +24,7 @@ import {nextTick} from 'vue'
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
+let commentSet: ReturnType<typeof genCommentSet>
 
 const WrappedAcComment = VuetifyWrapped(AcComment)
 
@@ -31,6 +32,7 @@ describe('AcComment.vue', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     store = createStore()
+    commentSet = genCommentSet()
     router = createRouter({
       history: createWebHistory(),
       routes: [{
@@ -62,7 +64,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -85,7 +87,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -110,7 +112,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -136,7 +138,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -160,7 +162,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -184,7 +186,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -221,7 +223,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -253,7 +255,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -277,7 +279,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -292,7 +294,7 @@ describe('AcComment.vue', () => {
     })
     await wrapper.find('.more-button').trigger('click')
     await wrapper.vm.$nextTick()
-    await wrapper.find('.edit-button').trigger('click')
+    await wrapper.findComponent('.edit-button').trigger('click')
     await wrapper.vm.$nextTick()
     await waitForSelector(wrapper, 'textarea')
     await wrapper.find('textarea').setValue('Edited message')
@@ -335,7 +337,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -372,7 +374,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -405,7 +407,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -439,7 +441,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -473,7 +475,7 @@ describe('AcComment.vue', () => {
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -490,7 +492,7 @@ describe('AcComment.vue', () => {
     mockAxios.reset()
     const vm = wrapper.findComponent(AcComment).vm as any
     await wrapper.find('.more-button').trigger('click')
-    await wrapper.find('.history-button').trigger('click')
+    await wrapper.findComponent('.history-button').trigger('click')
     await nextTick()
     await waitFor(() => expect(mockAxios.lastReqGet().url).toBe('/api/lib/comments/lib.Comment/13/history/'))
     vm.historyList.response = {...commentSet}
@@ -498,6 +500,6 @@ describe('AcComment.vue', () => {
     vm.historyList.fetching = false
     vm.historyList.ready = true
     await vm.$nextTick()
-    expect(wrapper.find('.v-dialog .comment').exists()).toBe(true)
+    expect(wrapper.findComponent('.comment-history').find('.comment').exists()).toBe(true)
   })
 })

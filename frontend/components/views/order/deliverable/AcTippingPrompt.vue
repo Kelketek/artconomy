@@ -65,7 +65,6 @@
                       ref="cardManager"
                       :payment="true"
                       :username="username"
-                      :processor="'stripe'"
                       :cc-form="paymentForm"
                       :field-mode="true"
                       :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"

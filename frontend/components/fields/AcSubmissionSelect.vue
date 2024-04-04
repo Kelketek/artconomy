@@ -52,7 +52,7 @@ import {mdiCheckCircle} from '@mdi/js'
 
 declare interface AcSubmissionSelectProps {
   list?: ListController<Submission>,
-  saveComparison: Submission | null,
+  saveComparison?: Submission | null,
   queryEndpoint?: string,
   related?: boolean,
   removable?: boolean,
@@ -62,6 +62,7 @@ declare interface AcSubmissionSelectProps {
 const props = withDefaults(defineProps<AcSubmissionSelectProps & Partial<ExtendedInputProps>>(), {
   related: false,
   removable: false,
+  saveComparison: null,
   queryEndpoint: '',
   label: '',
   errorMessages: () => [],

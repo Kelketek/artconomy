@@ -87,7 +87,13 @@ export function csrfSafeMethod(method: string) {
 }
 
 export function crossDomain(url: string) {
-  const urlAnchor = document.createElement('a')
+  let urlAnchor: HTMLAnchorElement
+  try {
+    urlAnchor = document.createElement('a')
+  } catch {
+    // Will only happen in a test environment.
+    return true
+  }
   urlAnchor.href = url
   const originAnchor = document.createElement('a')
   originAnchor.href = location.href

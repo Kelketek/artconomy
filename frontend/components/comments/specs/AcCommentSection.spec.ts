@@ -1,27 +1,26 @@
 import {Router, createRouter, createWebHistory} from 'vue-router'
-import {cleanUp, mount, rq, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, rq, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import mockAxios from '@/__mocks__/axios.ts'
-import {commentSet} from '@/components/comments/specs/fixtures.ts'
+import {commentSet as genCommentSet} from '@/components/comments/specs/fixtures.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import AcComment from '@/components/comments/AcComment.vue'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
-const localVue = vueSetup()
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
-const mockError = vi.spyOn(console, 'error')
+let commentSet: ReturnType<typeof genCommentSet>
 
-const WrappedCommentSection = VuetifyWrapped(AcCommentSection)
-
-describe('AcCommentSection', () => {
+describe('AcCommentSection.vue', () => {
   beforeEach(() => {
     store = createStore()
+    commentSet = genCommentSet()
     router = createRouter({
       history: createWebHistory(),
       routes: [{
@@ -48,7 +47,6 @@ describe('AcCommentSection', () => {
   })
   afterEach(() => {
     cleanUp(wrapper)
-    mockError.mockReset()
   })
   test('Fetches and renders a comment list', async() => {
     setViewer(store, genUser())
@@ -56,10 +54,10 @@ describe('AcCommentSection', () => {
       endpoint: '/api/comments/',
       reverse: true,
     })
-    wrapper = mount(WrappedCommentSection, {
+    wrapper = mount(AcCommentSection, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -67,11 +65,11 @@ describe('AcCommentSection', () => {
       }),
       props: {
         showHistory: false,
+        nesting: true,
         commentList,
       },
     })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/comments/', 'get', undefined, {
       params: {
         page: 1,
@@ -79,34 +77,32 @@ describe('AcCommentSection', () => {
       },
       signal: expect.any(Object),
     }))
+    commentList.makeReady(commentSet.results)
     commentList.response = commentSet
-    commentList.setList(commentSet.results)
-    commentList.fetching = false
-    commentList.ready = true
+    // This fails when running in the full test suite, but does not fail when run individually. Not sure why.
     await waitFor(() => expect(wrapper.findAll('.comment').length).toBe(7))
   })
   test('Throws an error if you try to load an unreversedlist', async() => {
-    mockError.mockImplementationOnce(() => {
-    })
     const commentList = mount(Empty, vueSetup({store})).vm.$getList('commentList', {
       endpoint: '/api/comments/',
     })
-    expect(() => {
-      wrapper = mount(WrappedCommentSection, {
-        ...vueSetup({
-          store,
-          extraPlugins: [router],
-          components: {
-            AcComment,
-            AcCommentSection,
-          },
-        }),
-        props: {
-          showHistory: true,
-          commentList,
+    const mockError = vi.spyOn(console, 'error')
+    mockError.mockImplementationOnce(() => {})
+    wrapper = mount(AcCommentSection, {
+      ...vueSetup({
+        store,
+        router,
+        components: {
+          AcComment,
+          AcCommentSection,
         },
-      })
-    }).toThrow('Comment lists should always be reversed!')
+      }),
+      props: {
+        showHistory: true,
+        commentList,
+      },
+    })
+    expect(mockError).toHaveBeenCalledWith('Comment lists should always be reversed!')
   })
   test('Toggle history mode', async() => {
     setViewer(store, genUser())
@@ -114,10 +110,10 @@ describe('AcCommentSection', () => {
       endpoint: '/api/comments/',
       reverse: true,
     })
-    wrapper = mount(WrappedCommentSection, {
+    wrapper = mount(AcCommentSection, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         components: {
           AcComment,
           AcCommentSection,
@@ -129,7 +125,7 @@ describe('AcCommentSection', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/api/comments/', 'get', undefined, {
       signal: expect.any(Object),
       params: {

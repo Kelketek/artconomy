@@ -21,7 +21,7 @@ describe('FAQ.vue', () => {
     await router.push('/faq/')
     wrapper = mount(FAQ, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await wrapper.vm.$nextTick()
     await flushPromises()

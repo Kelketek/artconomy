@@ -32,8 +32,9 @@
         v-model="showTokenPrompt"
         width="500"
         :attach="$modalTarget"
+        class="token-prompt-dialog"
     >
-      <span v-if="showTokenPrompt" class="token-prompt-loaded"/>
+      <v-col v-if="showTokenPrompt" class="token-prompt-loaded"/>
       <v-card>
         <ac-form @submit.prevent="sendLogin()">
           <v-card-text>

@@ -111,7 +111,7 @@ describe('Orders.vue', () => {
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Fox',
@@ -130,7 +130,7 @@ describe('Orders.vue', () => {
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Fox',
@@ -149,7 +149,7 @@ describe('Orders.vue', () => {
     const wrapper = mount(WrappedOrders, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Fox',
@@ -175,7 +175,7 @@ describe('Orders.vue', () => {
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Fox',
@@ -195,7 +195,7 @@ describe('Orders.vue', () => {
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Fox',

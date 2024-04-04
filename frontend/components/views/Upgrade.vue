@@ -113,7 +113,6 @@
                       :field-mode="true"
                       v-model="paymentForm.fields.card_id.model"
                       :show-save="false"
-                      :processor="processor"
                       @paymentSent="postPay"
                       @cardAdded="setPlan"
                       :save-only="!selectedPlan.monthly_charge"
@@ -213,10 +212,6 @@ class Upgrade extends mixins(Subjective, StripeHostMixin, Formatting) {
 
   public get loggedInViewer(): User {
     return this.viewer as User
-  }
-
-  public get processor() {
-    return window.DEFAULT_CARD_PROCESSOR
   }
 
   public get readerFormUrl() {

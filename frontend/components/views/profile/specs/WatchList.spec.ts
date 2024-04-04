@@ -45,7 +45,7 @@ describe('WatchList.vue', () => {
     wrapper = mount(WatchList, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         username: 'Fox',

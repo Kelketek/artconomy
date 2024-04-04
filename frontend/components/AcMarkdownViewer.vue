@@ -68,9 +68,6 @@ export default defineComponent({
     }
   },
   methods: {
-    mdiClose() {
-      return mdiClose
-    },
     loadFile(response) {
       this.response = response
     },

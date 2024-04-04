@@ -7,6 +7,7 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import DummyShare from '@/components/specs/DummyShare.vue'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
@@ -54,8 +55,8 @@ describe('AcShareButton.vue', () => {
     expect(vm.$refs.shareButton.referral).toBe(true)
     await wrapper.find('.share-button').trigger('click')
     await vm.$nextTick()
-    await wrapper.find('.referral-check input').trigger('click')
-    await wrapper.vm.$nextTick()
+    await wrapper.findComponent('.referral-check').find('input').trigger('click')
+    await nextTick()
     expect(vm.$refs.shareButton.referral).toBe(false)
     expect(mockResolve).toHaveBeenCalledWith({
       name: 'Profile',
@@ -91,7 +92,7 @@ describe('AcShareButton.vue', () => {
     await vm.$nextTick()
     expect(share.showModal).toBe(true)
     expect(share.showQr).toBe(false)
-    await wrapper.find('.qr-button').trigger('click')
+    await wrapper.findComponent('.qr-button').trigger('click')
     await vm.$nextTick()
     expect(share.showModal).toBe(true)
     expect(share.showQr).toBe(true)

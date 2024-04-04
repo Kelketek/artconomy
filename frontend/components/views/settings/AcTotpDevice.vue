@@ -1,4 +1,3 @@
-<!--suppress JSMethodCanBeStatic, JSUnusedLocalSymbols, HtmlUnknownTarget -->
 <template>
   <v-col v-if="device.x">
     <v-row>
@@ -186,6 +185,7 @@ import {vMaskToken as MaskToken} from '@/lib/vMask.ts'
     AcConfirmation,
     AcFormContainer,
   },
+  emits: ['removed'],
   directives: {
     MaskToken,
   }

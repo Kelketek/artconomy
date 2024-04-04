@@ -12,7 +12,7 @@ import {
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {commentSet} from './fixtures.ts'
+import {commentSet as genCommentSet} from './fixtures.ts'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
 import AcNewComment from '@/components/comments/AcNewComment.vue'
@@ -22,12 +22,14 @@ import {setViewer} from '@/lib/lib.ts'
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
+let commentSet: ReturnType<typeof genCommentSet>
 
 const WrappedNewComment = VuetifyWrapped(AcNewComment)
 
 describe('AcNewComment.vue', () => {
   beforeEach(() => {
     store = createStore()
+    commentSet = genCommentSet()
     router = createRouter({
       history: createWebHistory(),
       routes: [{
@@ -66,7 +68,7 @@ describe('AcNewComment.vue', () => {
     wrapper = mount(WrappedNewComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {
         commentList,
@@ -119,7 +121,7 @@ describe('AcNewComment.vue', () => {
     wrapper = mount(WrappedNewComment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {
         commentList,

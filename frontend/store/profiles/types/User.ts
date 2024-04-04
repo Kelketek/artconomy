@@ -1,5 +1,4 @@
 import {Ratings} from './Ratings.ts'
-import {PROCESSORS} from '@/types/PROCESSORS.ts'
 
 export interface User {
   landscape_paid_through: string | null,
@@ -31,7 +30,6 @@ export interface User {
   hits: number,
   watches: number,
   birthday: string|null,
-  processor: PROCESSORS,
   service_plan: string,
   next_service_plan: string,
   verified_email: boolean,

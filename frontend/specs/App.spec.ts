@@ -14,7 +14,8 @@ import {
   rq,
   rs,
   vueSetup,
-  waitFor, waitForSelector,
+  waitFor,
+  waitForSelector,
 } from './helpers/index.ts'
 import {WS} from 'vitest-websocket-mock'
 import {socketNameSpace} from '@/plugins/socket.ts'
@@ -34,7 +35,6 @@ describe('App.vue', () => {
   const OLD_ENV = process.env
   beforeEach(() => {
     store = createStore()
-    router = createTestRouter(false)
     process.env = {...OLD_ENV}
   })
   afterEach(() => {
@@ -44,7 +44,6 @@ describe('App.vue', () => {
   test('Opens and closes an age verification dialog', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/order/', params: {}, query: {}}},
       stubs: ['nav-bar', 'router-view', 'router-link'],
     }))
@@ -56,14 +55,13 @@ describe('App.vue', () => {
     expect(store.state.showAgeVerification).toBe(true)
     expect(vm.viewerHandler.user.x).toBeTruthy()
     await waitForSelector(wrapper, '.dialog-closer')
-    await wrapper.find('.dialog-closer').trigger('click')
+    await wrapper.findComponent('.dialog-closer').trigger('click')
     await nextTick()
-    expect(wrapper.find('dialog-closer').exists()).toBe(false)
+    expect(wrapper.findComponent('dialog-closer').exists()).toBe(false)
   })
   test('Submits the support request form', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
@@ -93,15 +91,14 @@ describe('App.vue', () => {
     await flushPromises()
     expect(state.showSupport).toBe(false)
     expect((wrapper.vm as any).showTicketSuccess).toBe(true)
-    const success = wrapper.find('#supportSuccess')
+    const success = wrapper.findComponent('#supportSuccess')
     expect(success.exists()).toBeTruthy()
-    success.find('button').trigger('click')
+    await success.find('button').trigger('click')
     expect((wrapper.vm as any).showTicketSuccess).toBe(false)
   })
   test('Updates the email field when the viewer\'s email is updated.', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}, $router: {push: vi.fn()}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
@@ -124,7 +121,6 @@ describe('App.vue', () => {
   test('Updates the email field when the viewer\'s guest email is updated.', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}, $router: {push: vi.fn()}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
@@ -144,9 +140,10 @@ describe('App.vue', () => {
     expect(supportForm.fields.email.value).toBe('')
   })
   test('Updates the referring_url field when the route has changed.', async() => {
+    const router = createTestRouter()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link', 'router-view', 'nav-bar']
     }))
     await nextTick()
@@ -160,14 +157,12 @@ describe('App.vue', () => {
   test('Shows an alert', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
     await nextTick()
     store.commit('pushAlert', {message: 'I am an alert!', category: 'error'})
-    await nextTick()
-    expect(wrapper.find('#alert-bar').exists()).toBe(true)
+    await waitFor(() => expect(wrapper.findComponent('.close-status-alert').exists()).toBe(true))
   })
   test('Removes an alert automatically', async() => {
     // NOTE: This test causes issues with timer cleanup, but there appears to be
@@ -177,7 +172,6 @@ describe('App.vue', () => {
     vi.useFakeTimers()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
@@ -195,7 +189,6 @@ describe('App.vue', () => {
     vi.useFakeTimers()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
@@ -210,7 +203,6 @@ describe('App.vue', () => {
   test('Manually resets alert dismissal, if needed', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
@@ -220,10 +212,10 @@ describe('App.vue', () => {
     expect((wrapper.vm as any).alertDismissed).toBe(false)
   })
   test('Loads up search form data', async() => {
+    const router = createTestRouter()
     await router.push('/?q=Stuff')
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
     await nextTick()
@@ -235,7 +227,6 @@ describe('App.vue', () => {
   test('Shows the markdown help section', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
@@ -243,20 +234,21 @@ describe('App.vue', () => {
     const vm = wrapper.vm as any
     await nextTick()
     expect(store.state.markdownHelp).toBe(false)
-    expect(wrapper.find('.markdown-rendered-help').exists()).toBe(false)
+    expect(wrapper.findComponent('.markdown-rendered-help').exists()).toBe(false)
     vm.showMarkdownHelp = true
     await nextTick()
-    await waitFor(() => expect(wrapper.find('.markdown-rendered-help').exists()).toBe(true))
+    await waitFor(() => expect(wrapper.findComponent('.markdown-rendered-help').exists()).toBe(true))
     expect(store.state.markdownHelp).toBe(true)
-    wrapper.find('#close-markdown-help').trigger('click')
+    await wrapper.findComponent('#close-markdown-help').trigger('click')
     await nextTick()
     expect(store.state.markdownHelp).toBe(false)
-    expect(wrapper.find('.markdown-rendered-help').exists()).toBe(true)
+    expect(wrapper.findComponent('.markdown-rendered-help').exists()).toBe(true)
   })
   test('Changes the route key', async() => {
+    const router = createTestRouter()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
     await nextTick()
@@ -273,7 +265,6 @@ describe('App.vue', () => {
   test('Determines whether or not we are in dev mode', async() => {
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
     }))
@@ -291,7 +282,6 @@ describe('App.vue', () => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar', 'ac-cookie-consent'],
     }))
@@ -302,13 +292,12 @@ describe('App.vue', () => {
     server.close()
     await server.closed
     await nextTick()
-    expect(wrapper.text()).toContain('Reconnecting...')
+    expect(wrapper.findComponent('#reconnection-status-bar').text()).toContain('Reconnecting...')
   })
   test('Resets the connection', async() => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
@@ -333,7 +322,6 @@ describe('App.vue', () => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
@@ -351,7 +339,6 @@ describe('App.vue', () => {
     vi.useRealTimers()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
       mocks: {$route: {fullPath: '/', params: {stuff: 'things'}, query: {}}},
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),
@@ -367,9 +354,10 @@ describe('App.vue', () => {
   })
   test('Emits a tracking event', async() => {
     vi.useRealTimers()
+    const router = createTestRouter()
     wrapper = mount(App, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       mocks: reactive({$route: {fullPath: '/', params: {stuff: 'things'}, name: 'Home', query: {}}}),
       stubs: ['router-link', 'router-view', 'nav-bar'],
       attachTo: docTarget(),

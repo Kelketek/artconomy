@@ -88,7 +88,7 @@ describe('AcTotpDevice.vue', () => {
     mockAxios.reset()
     await wrapper.find('.delete-phone-2fa').trigger('click')
     await wrapper.vm.$nextTick()
-    await wrapper.find('.confirmation-button').trigger('click')
+    await wrapper.findComponent('.confirmation-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/test/1/', 'delete'),
     )

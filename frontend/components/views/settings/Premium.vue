@@ -15,7 +15,7 @@
       </v-row>
       <v-row v-if="subject && subject.landscape">
         <v-col class="text-center" cols="2">
-          <ac-icon size="x-large" :icon="discordPath" />
+          <v-icon size="x-large" :icon="discordPath.path" />
         </v-col>
         <v-col class="text-center" cols="10">
           To get your special Discord role, <a href="https://discord.gg/4nWK9mf">join the Discord</a>, follow the
@@ -198,7 +198,6 @@ import {SingleController} from '@/store/singles/controller.ts'
 import {PaypalConfig} from '@/types/PaypalConfig.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller.ts'
-import AcIcon from '@/components/AcIcon.vue'
 
 @Component({
   components: {
@@ -212,7 +211,6 @@ import AcIcon from '@/components/AcIcon.vue'
     AcTagField,
     AcLoadingSpinner,
     AcPatchField,
-    AcIcon,
   },
 })
 class Premium extends mixins(Viewer, Subjective, Formatting) {

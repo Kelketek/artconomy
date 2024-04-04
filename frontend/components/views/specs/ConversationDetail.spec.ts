@@ -1,5 +1,14 @@
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import {cleanUp, confirmAction, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
+import {
+  cleanUp,
+  confirmAction,
+  createTestRouter,
+  flushPromises,
+  mount,
+  rs,
+  vueSetup,
+  waitFor,
+} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -17,35 +26,7 @@ let router: Router
 describe('ConversationDetail.vue', () => {
   beforeEach(() => {
     store = createStore()
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [{
-        name: 'Profile',
-        path: '/profiles/:username/',
-        component: Empty,
-        props: true,
-      }, {
-        name: 'AboutUser',
-        path: '/profiles/:username/products/',
-        component: Empty,
-        props: true,
-      }, {
-        name: 'BuyAndSell',
-        path: '/faq/buy-and-sell',
-        component: Empty,
-        props: true,
-      }, {
-        name: 'Conversations',
-        path: '/messages/:username/',
-        component: Empty,
-        props: true,
-      }, {
-        name: 'Home',
-        path: '/',
-        component: Empty,
-        props: true,
-      }],
-    })
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -57,7 +38,7 @@ describe('ConversationDetail.vue', () => {
     const wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {
         username: 'Fox',
@@ -77,7 +58,7 @@ describe('ConversationDetail.vue', () => {
     const wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {
         username: 'Fox',
@@ -97,7 +78,7 @@ describe('ConversationDetail.vue', () => {
     const wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {
         username: 'Fox',
@@ -115,6 +96,6 @@ describe('ConversationDetail.vue', () => {
     mockAxios.mockResponse(rs({}))
     await flushPromises()
     await vm.$nextTick()
-    expect(router.currentRoute.value.name).toBe('Conversations')
+    await waitFor(() => expect(router.currentRoute.value.name).toBe('Conversations'))
   })
 })

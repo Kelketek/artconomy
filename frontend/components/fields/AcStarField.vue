@@ -9,7 +9,7 @@
 </style>
 
 <script setup lang="ts">
-const props = defineProps<{modelValue: number}>()
+const props = defineProps<{modelValue: number|null}>()
 const emit = defineEmits<{'update:modelValue': [number]}>()
 
 const update = (val: number|string) => {

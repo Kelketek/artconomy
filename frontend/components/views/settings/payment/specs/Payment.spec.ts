@@ -62,7 +62,7 @@ describe('DeliverablePayment.vue', () => {
     wrapper = mount(Payment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {username: 'Fox'},
     })
@@ -79,7 +79,7 @@ describe('DeliverablePayment.vue', () => {
     wrapper = mount(Payment, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {username: 'Fox'},
     })

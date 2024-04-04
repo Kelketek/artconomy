@@ -23,7 +23,7 @@ import {computed} from 'vue'
 
 const route = useRoute()
 const router = useRouter()
-const props = withDefaults(defineProps<{label: string, items: TabNavSpec[], headingLevel: number}>(), {headingLevel: 0})
+const props = withDefaults(defineProps<{label: string, items: TabNavSpec[], headingLevel?: number}>(), {headingLevel: 0})
 
 const renderText = (item: TabNavSpec) => {
   if (item.count) {

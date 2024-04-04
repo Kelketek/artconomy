@@ -31,7 +31,7 @@ describe('DeliverableReferences.vue', () => {
       DeliverableReferences, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+          router,
         }),
         props: {
           orderId: 1,
@@ -60,7 +60,7 @@ describe('DeliverableReferences.vue', () => {
     await flushPromises()
     await vm.$nextTick()
     expect(spyPost).toHaveBeenCalledWith({reference_id: reference.id})
-    mockAxios.mockResponse(rs(reference))
+    mockAxios.mockResponse(rs({reference, deliverable_id: deliverable.id}))
     await flushPromises()
     await vm.$nextTick()
     expect(vm.references.list.length).toBe(1)

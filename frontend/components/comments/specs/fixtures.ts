@@ -1,4 +1,4 @@
-export const commentSet = {
+export const commentSet = () => ({
   links: {
     next: null,
     previous: null,
@@ -123,4 +123,4 @@ export const commentSet = {
     system: false,
   }],
   size: 5,
-}
+})

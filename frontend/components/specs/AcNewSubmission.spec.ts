@@ -99,7 +99,7 @@ describe('AcNewSubmission.vue', () => {
     const form = vm.$getForm('newUpload')
     form.step = 2
     await vm.$nextTick()
-    await wrapper.find('.submit-button').trigger('click')
+    await wrapper.findComponent('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalled()
     const submission = genSubmission()
     submission.id = 3
@@ -142,7 +142,7 @@ describe('AcNewSubmission.vue', () => {
     const form = vm.$getForm('newUpload')
     form.step = 2
     await vm.$nextTick()
-    await wrapper.find('.submit-button').trigger('click')
+    await wrapper.findComponent('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalled()
     const submission = genSubmission()
     mockAxios.mockResponse(rs(submission))
@@ -172,12 +172,12 @@ describe('AcNewSubmission.vue', () => {
       props: {username: 'Fox'},
     })
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-overlay--active').exists()).toBe(true)
+    expect(wrapper.findComponent('#form-newUpload').isVisible()).toBe(true)
     expect(store.state.uploadVisible).toBe(true)
-    await wrapper.find('.dialog-closer').trigger('click')
+    await wrapper.findComponent('.dialog-closer').trigger('click')
     await wrapper.vm.$nextTick()
     expect(store.state.uploadVisible).toBe(false)
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('.v-overlay--active').exists()).toBe(false)
+    expect(wrapper.findComponent('#form-newUpload').isVisible()).toBe(false)
   })
 })

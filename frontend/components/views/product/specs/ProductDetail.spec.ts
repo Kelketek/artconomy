@@ -2,7 +2,7 @@ import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
-  confirmAction,
+  confirmAction, createTestRouter,
   docTarget,
   flushPromises,
   mount,
@@ -27,13 +27,12 @@ import LineItem from '@/types/LineItem.ts'
 import {Decimal} from 'decimal.js'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let form: FormController
 let router: Router
-
-const WrappedProductDetail = VuetifyWrapped(ProductDetail)
 
 function prepData() {
   setViewer(store, genUser())
@@ -59,72 +58,10 @@ function prepData() {
   return data
 }
 
-const routes = [{
-  path: '/',
-  name: 'Home',
-  component: Empty,
-}, {
-  path: '/upgrade/',
-  name: 'Upgrade',
-  component: Empty,
-  props: true,
-}, {
-  path: '/submission/:submissionId/',
-  name: 'Submission',
-  component: Empty,
-  props: true,
-}, {
-  path: '/profiles/:username/ratings/',
-  name: 'Ratings',
-  component: Empty,
-  props: true,
-}, {
-  path: '/profiles/:username/',
-  name: 'Profile',
-  component: Empty,
-  props: true,
-  children: [{
-    name: 'AboutUser',
-    path: 'about/',
-    component: Empty,
-    props: true,
-  }],
-}, {
-  path: '/faq/',
-  name: 'FAQ',
-  component: Empty,
-  props: true,
-  children: [{
-    name: 'BuyAndSell',
-    path: '/buy-and-sell/:question/',
-    component: Empty,
-    props: true,
-  }, {
-    path: '/product/:productId/',
-    name: 'Product',
-    component: Empty,
-    props: true,
-    children: [{
-      name: 'NewOrder',
-      path: 'order/:invoiceMode(invoice)?',
-      component: Empty,
-      props: true,
-    }, {
-      name: 'ProductGallery',
-      path: 'gallery/',
-      component: Empty,
-      props: true,
-    }],
-  }],
-}]
-
 describe('ProductDetail.vue', () => {
   beforeEach(() => {
     store = createStore()
-    router = createRouter({
-      history: createWebHistory(),
-      routes,
-    })
+    router = createTestRouter()
     form = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
     setPricing(store)
   })
@@ -137,7 +74,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {
         username: 'Fox',
@@ -149,7 +86,7 @@ describe('ProductDetail.vue', () => {
     const submission = genSubmission()
     const product = genProduct({primary_submission: submission})
     vm.product.makeReady(product)
-    await vm.$nextTick()
+    await nextTick()
     expect(submission).toEqual(vm.slides[0])
     vm.product.updateX({primary_submission: null})
     expect(vm.slides).toEqual([])
@@ -160,7 +97,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {
         username: 'Fox',
@@ -169,9 +106,9 @@ describe('ProductDetail.vue', () => {
     })
     const vm = wrapper.vm as any
     vm.samples.setList([])
-    await vm.$nextTick()
+    await nextTick()
     vm.product.makeReady(genProduct({primary_submission: genSubmission({rating: Ratings.ADULT})}))
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.maxSampleRating).toBe(Ratings.ADULT)
     await flushPromises()
     await waitFor(() => expect(store.state.showAgeVerification).toBe(true))
@@ -183,12 +120,12 @@ describe('ProductDetail.vue', () => {
     // The following line breaks things.
     await router.push({
       name: 'Product',
-      params: {productId: '1'},
+      params: {productId: '1', username: 'Fox'},
     })
-    wrapper = mount(WrappedProductDetail, {
+    wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor'],
       }),
       props: {
@@ -196,14 +133,13 @@ describe('ProductDetail.vue', () => {
         productId: 1,
       },
     })
-    const vm = wrapper.vm.$refs.vm as any
     mockAxios.reset()
-    await vm.$nextTick()
+    await nextTick()
     await confirmAction(wrapper, ['.more-button', '.delete-button'])
     mockAxios.mockResponse(rs({}))
     await flushPromises()
-    await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$route.name).toBe('Profile')
+    await nextTick()
+    await waitFor(() => expect(router.currentRoute.value.name).toBe('Profile'))
     expect(data.productSingle.x).toBe(null)
     expect(data.productSingle.ready).toBe(false)
     expect(data.productSingle.deleted).toBe(true)
@@ -246,7 +182,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor'],
       }),
       props: {
@@ -255,7 +191,7 @@ describe('ProductDetail.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.more).toBe(false)
     const product = {...vm.product.x}
     product.primary_submission = null
@@ -267,7 +203,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -276,7 +212,7 @@ describe('ProductDetail.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.limitAtOnce).toBe(false)
     expect(vm.product.patchers.max_parallel.model).toBe(0)
     vm.limitAtOnce = true
@@ -291,7 +227,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -318,7 +254,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -327,19 +263,19 @@ describe('ProductDetail.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     // No profile loaded yet.
     expect(vm.escrow).toBe(false)
     // This property is checking whether the user has access to escrow, not whether the particular product is escrow
     // enabled. So this change shouldn't affect anythigng.
     vm.product.updateX({table_product: false})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.escrow).toBe(false)
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile({escrow_enabled: false}))
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.escrow).toBe(false)
     vm.subjectHandler.artistProfile.updateX({escrow_enabled: true})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.escrow).toBe(true)
   })
   test('Handles meta content', async() => {
@@ -347,7 +283,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -356,7 +292,7 @@ describe('ProductDetail.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     let description = document.querySelector('meta[name="description"]')
     expect(description).toBeTruthy()
     expect(description!.textContent).toBe('[Starts at $10.00] - This is a test product')
@@ -364,7 +300,7 @@ describe('ProductDetail.vue', () => {
       base_price: 0,
       starting_price: 0,
     })
-    await vm.$nextTick()
+    await nextTick()
     description = document.querySelector('meta[name="description"]')
     expect(description).toBeTruthy()
     expect(description!.textContent).toBe('[Starts at FREE] - This is a test product')
@@ -374,7 +310,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -384,11 +320,11 @@ describe('ProductDetail.vue', () => {
     })
     const vm = wrapper.vm as any
     vm.pricing.setX(null)
-    await vm.$nextTick()
+    await nextTick()
     const product = genProduct()
     vm.product.setX(product)
     vm.product.ready = true
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.lineItemSetMaps.length).toBe(1)
     expect(vm.lineItemSetMaps[0].lineItems.list).toMatchObject([])
   })
@@ -397,7 +333,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -407,16 +343,16 @@ describe('ProductDetail.vue', () => {
     })
     const vm = wrapper.vm as any
     const mockRefresh = vi.spyOn(vm.product, 'refresh')
-    await vm.$nextTick()
+    await nextTick()
     const product = genProduct()
     vm.product.setX(product)
     vm.product.ready = true
-    await vm.$nextTick()
+    await nextTick()
     vm.showWorkload = true
-    await vm.$nextTick()
+    await nextTick()
     expect(mockRefresh).not.toHaveBeenCalled()
     vm.showWorkload = false
-    await vm.$nextTick()
+    await nextTick()
     expect(mockRefresh).toHaveBeenCalled()
   })
   test('Clears inventory settings and refetches when inventory disabled.', async() => {
@@ -424,7 +360,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       attachTo: docTarget(),
@@ -437,10 +373,10 @@ describe('ProductDetail.vue', () => {
     vm.product.updateX({track_inventory: true})
     vm.inventory.setX({count: 20})
     expect(vm.inventory.x).toEqual({count: 20})
-    await vm.$nextTick()
+    await nextTick()
     vm.product.updateX({track_inventory: false})
     await flushPromises()
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.inventory.x).toBe(null)
   })
   test('Handles a table product', async() => {
@@ -449,7 +385,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -476,7 +412,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       props: {
@@ -502,7 +438,7 @@ describe('ProductDetail.vue', () => {
     wrapper = mount(ProductDetail, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-sample-editor', 'v-carousel', 'v-carousel-item'],
       }),
       attachTo: docTarget(),
@@ -514,7 +450,7 @@ describe('ProductDetail.vue', () => {
     const vm = wrapper.vm as any
     await router.replace({query: {}})
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.ratingDialog).toBe(false)
     vm.showRating()
     expect(vm.ratingDialog).toBe(false)

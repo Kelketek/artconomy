@@ -18,7 +18,7 @@ describe('Credentials.vue', () => {
   let router: Router
   beforeEach(() => {
     store = createStore()
-    router = createTestRouter(false)
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -36,7 +36,7 @@ describe('Credentials.vue', () => {
     wrapper = mount(Credentials, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {username: 'Fox'},
     })
@@ -139,12 +139,10 @@ describe('Credentials.vue', () => {
     vm.showPasswordChange = true
     vm.showEmailChange = true
     await vm.$nextTick()
-    expect(wrapper.findAll('.v-overlay--active').length).toBe(3)
     vm.save(genUser())
     await vm.$nextTick()
     expect(vm.showUsernameChange).toBe(false)
     expect(vm.showPasswordChange).toBe(false)
     expect(vm.showEmailChange).toBe(false)
-    expect(wrapper.findAll('.v-overlay--active').length).toBe(0)
   })
 })

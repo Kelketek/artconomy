@@ -2,13 +2,13 @@ import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
-  confirmAction,
+  confirmAction, createTestRouter,
   flushPromises,
   mount,
   rq,
   rs,
   vueSetup,
-  VuetifyWrapped,
+  VuetifyWrapped, waitFor,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -18,40 +18,17 @@ import Journal from '@/components/views/JournalDetail.vue'
 import {genJournal} from '@/components/views/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {VMenu} from 'vuetify/components'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
 
-const WrappedJournal = VuetifyWrapped(Journal)
 
 describe('Journal.vue', () => {
   beforeEach(() => {
     store = createStore()
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [{
-        path: '/',
-        name: 'Home',
-        component: Empty,
-      }, {
-        path: '/:username',
-        name: 'Profile',
-        component: Empty,
-        children: [
-          {
-            path: 'about',
-            name: 'AboutUser',
-            component: Empty,
-          },
-        ],
-      }, {
-        path: '/login/',
-        name: 'Login',
-        component: Empty,
-      },
-      ],
-    })
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -60,7 +37,6 @@ describe('Journal.vue', () => {
     wrapper = mount(Journal, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
           stubs: ['ac-comment-section'],
         }),
         props: {
@@ -76,10 +52,10 @@ describe('Journal.vue', () => {
   test('Deletes a journal', async() => {
     await router.push('/')
     setViewer(store, genUser({is_staff: true}))
-    wrapper = mount(WrappedJournal, {
+    wrapper = mount(Journal, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         stubs: ['ac-comment-section'],
       }),
       props: {
@@ -87,12 +63,12 @@ describe('Journal.vue', () => {
         username: 'Fox',
       },
     })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.vm
     vm.journal.makeReady(genJournal())
     mockAxios.reset()
     await wrapper.vm.$nextTick()
     await wrapper.find('.more-button').trigger('click')
-    const toggle = wrapper.find('.edit-toggle')
+    const toggle = await waitFor(() => wrapper.findComponent('.edit-toggle'))
     expect(toggle.exists()).toBe(true)
     await toggle.trigger('click')
     await wrapper.vm.$nextTick()
@@ -100,8 +76,6 @@ describe('Journal.vue', () => {
     const mockDelete = mockAxios.getReqByUrl('/api/profiles/account/Fox/journals/1/')
     expect(mockDelete.method).toBe('delete')
     mockAxios.mockResponse(rs(null), mockDelete)
-    await flushPromises()
-    await wrapper.vm.$nextTick()
-    expect(router.currentRoute.value.path).toBe('/Fox')
+    await waitFor(() => expect(router.currentRoute.value.path).toBe('/profile/Fox/'))
   })
 })

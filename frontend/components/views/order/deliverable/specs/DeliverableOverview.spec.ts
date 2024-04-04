@@ -19,7 +19,6 @@ let empty: VueWrapper<any>['vm']
 
 const WrappedDeliverableOverview = VuetifyWrapped(DeliverableOverview)
 
-
 describe('DeliverableOverview.vue', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -30,7 +29,8 @@ describe('DeliverableOverview.vue', () => {
   const getDeliverable = (orderId: number, deliverableId: number) => {
     return {
       order: empty.$getSingle(`order${orderId}`),
-      deliverable: empty.$getSingle(`order${orderId}__deliverable${deliverableId}`)}
+      deliverable: empty.$getSingle(`order${orderId}__deliverable${deliverableId}`),
+    }
   }
   afterEach(() => {
     cleanUp(wrapper)
@@ -43,7 +43,7 @@ describe('DeliverableOverview.vue', () => {
       WrappedDeliverableOverview, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -55,7 +55,10 @@ describe('DeliverableOverview.vue', () => {
       })
     const deliverableDef = genDeliverable()
     deliverableDef.product = null
-    const {order, deliverable} = getDeliverable(1, 5)
+    const {
+      order,
+      deliverable,
+    } = getDeliverable(1, 5)
     order.makeReady(deliverableDef.order)
     deliverable.makeReady(deliverableDef)
     await nextTick()
@@ -69,7 +72,7 @@ describe('DeliverableOverview.vue', () => {
       WrappedDeliverableOverview, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -83,7 +86,10 @@ describe('DeliverableOverview.vue', () => {
     deliverableDef.order.buyer = null
     deliverableDef.order.seller = user
     deliverableDef.order.customer_email = 'stuff@example.com'
-    const {order, deliverable} = getDeliverable(1, 5)
+    const {
+      order,
+      deliverable,
+    } = getDeliverable(1, 5)
     order.makeReady(deliverableDef.order)
     deliverable.makeReady(deliverableDef)
     await nextTick()
@@ -103,7 +109,7 @@ describe('DeliverableOverview.vue', () => {
       WrappedDeliverableOverview, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -114,11 +120,14 @@ describe('DeliverableOverview.vue', () => {
         },
       })
     const deliverableDef = genDeliverable()
-    const {order, deliverable} = getDeliverable(1, 5)
+    const {
+      order,
+      deliverable,
+    } = getDeliverable(1, 5)
     order.makeReady(deliverableDef.order)
     deliverable.makeReady(deliverableDef)
     await nextTick()
-    await waitFor(() => expect(wrapper.find('.order-confirmation').isVisible()).toBe(true))
+    await waitFor(() => expect(wrapper.findComponent('.order-confirmation').isVisible()).toBe(true))
   })
   test.each`
   mode                  | string
@@ -138,7 +147,7 @@ describe('DeliverableOverview.vue', () => {
         DeliverableOverview, {
           ...vueSetup({
             store,
-            extraPlugins: [router],
+            router,
             stubs: ['ac-revision-manager', 'ac-comment-section'],
           }),
           props: {

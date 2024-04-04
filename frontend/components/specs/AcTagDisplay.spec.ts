@@ -24,7 +24,7 @@ describe('AcTagDisplay.vue', () => {
     store = createStore()
     mockError.mockClear()
     form = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
-    router = createTestRouter(false)
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -38,7 +38,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -56,7 +56,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -81,7 +81,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -111,7 +111,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(WrappedTagDisplay, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -135,7 +135,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         patcher: single.patchers.tags,

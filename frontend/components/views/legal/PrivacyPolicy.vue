@@ -13,7 +13,7 @@
       <v-col cols="12">
         <h1>Privacy Policy</h1>
 
-        <p><strong>Last updated: November 29, 2019</strong></p>
+        <p><strong>Last updated: April 3, 2024</strong></p>
 
         <p>Artconomy ("us", "we", or "our") operates the https://artconomy.com/ website (the "Service").</p>
 
@@ -73,8 +73,7 @@
 
         <h4>Financial Data</h4>
         <p>
-          Credit card data is shared with our payment processor, and bank account and routing information
-          is shared with Dwolla to allow transfers to your account.
+          Credit card data and bank information is shared with our payment processor, Stripe.
         </p>
 
         <h2>Use of Data</h2>

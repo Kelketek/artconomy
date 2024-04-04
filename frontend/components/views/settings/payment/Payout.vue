@@ -87,7 +87,6 @@ import StripeAccount from '@/types/StripeAccount.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 
@@ -109,11 +108,7 @@ class Payout extends mixins(Subjective) {
   // Can't use the enum in import, or it will choke during testing. :/
   public IN_SUPPORTED_COUNTRY = BANK_STATUSES.IN_SUPPORTED_COUNTRY
 
-  public defaultProcessor = window.DEFAULT_CARD_PROCESSOR
   public defending = new URL('/static/images/defending.png', BASE_URL)
-
-  public AUTHORIZE = PROCESSORS.AUTHORIZE
-  public STRIPE = PROCESSORS.STRIPE
 
   public get inSupportedCountry() {
     // Should be synced this way.

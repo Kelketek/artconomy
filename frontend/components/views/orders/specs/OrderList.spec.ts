@@ -23,7 +23,7 @@ const WrappedOrderList = VuetifyWrapped(OrderList)
 
 describe('OrderList.vue', () => {
   beforeEach(() => {
-    router = createTestRouter(false)
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -31,7 +31,7 @@ describe('OrderList.vue', () => {
   test('Recognizes when it is on the waiting list page.', async() => {
     wrapper = mount(OrderList, {
       ...vueSetup({
-        extraPlugins: [router],
+router,
       }),
       props: {
         type: 'sales',
@@ -57,7 +57,7 @@ describe('OrderList.vue', () => {
     })
     wrapper = mount(OrderList, {
       ...vueSetup({
-        extraPlugins: [router],
+router,
       }),
       props: {
         type: 'sales',
@@ -107,7 +107,7 @@ describe('OrderList.vue', () => {
   test('Displays orders in a tabulated manner', async() => {
     wrapper = mount(OrderList, {
       ...vueSetup({
-        extraPlugins: [router],
+router,
       }),
       props: {
         type: 'sales',

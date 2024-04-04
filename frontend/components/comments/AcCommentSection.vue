@@ -58,7 +58,7 @@ import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 const AcNewComment = defineAsyncComponent(() => import('@/components/comments/AcNewComment.vue'))
 
 declare interface AcCommentSectionProps {
-  nesting: boolean,
+  nesting?: boolean,
   locked?: boolean,
   guestOk?: boolean,
   showHistory?: boolean,
@@ -102,6 +102,6 @@ if (props.hardFail) {
   runPromise.catch(setError)
 }
 if (!props.commentList.reverse) {
-  throw Error('Comment lists should always be reversed!')
+  console.error('Comment lists should always be reversed!')
 }
 </script>

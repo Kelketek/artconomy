@@ -2,19 +2,19 @@ import {VueWrapper} from '@vue/test-utils'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {cleanUp, flushPromises, mount, rq, rs, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import mockAxios from '@/__mocks__/axios.ts'
-import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {VCard} from 'vuetify/components'
+import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let generator: VueWrapper<any>
 let cardList: ListController<CreditCardToken>
-
-const WrappedCard = VuetifyWrapped(AcCard)
 
 describe('AcCard.vue', () => {
   beforeEach(() => {
@@ -27,10 +27,9 @@ describe('AcCard.vue', () => {
       primary: true,
       type: 1,
       cvv_verified: true,
-      processor: PROCESSORS.AUTHORIZE,
     }])
     wrapper = mount(
-      WrappedCard, {
+      AcCard, {
         ...vueSetup({store}),
         props: {
           cardList,
@@ -41,23 +40,25 @@ describe('AcCard.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Mounts and displays a card', () => {
-    expect(wrapper.find('.ac-icon-visa').exists()).toBe(true)
+  test('Mounts and displays a card', async () => {
+    await waitFor(() => expect(wrapper.find('.ac-Visa').exists()).toBe(true))
     expect(wrapper.find('.default-indicator').exists()).toBe(true)
   })
   test('Deletes a card', async() => {
     const mockGet = vi.spyOn(cardList, 'get')
+    const confirm = await waitFor(() => wrapper.getComponent(AcConfirmation))
     await wrapper.find('.delete-card').trigger('click')
     // Confirmation.
-    await wrapper.vm.$nextTick()
-    await wrapper.find('.delete-confirm .confirmation-button').trigger('click')
+    await nextTick()
+    const dialog = confirm.findComponent(VCard)
+    await dialog.find('.delete-confirm .confirmation-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/cards/1/', 'delete'))
     mockAxios.mockResponse({
       status: 204,
       data: {},
     })
     await flushPromises()
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(mockGet).toHaveBeenCalled()
   })
   test('Marks a card as primary', async() => {
@@ -68,7 +69,6 @@ describe('AcCard.vue', () => {
       last_four: '5432',
       primary: true,
       type: 2,
-      processor: PROCESSORS.AUTHORIZE,
     })
     cardList.push({
       id: 3,
@@ -76,10 +76,9 @@ describe('AcCard.vue', () => {
       last_four: '4563',
       primary: false,
       type: 3,
-      processor: PROCESSORS.AUTHORIZE,
     })
     cardList.list[2].setX(null)
-    await wrapper.vm.$nextTick()
+    await nextTick()
     await wrapper.find('.make-default').trigger('click')
     // Confirmation.
     expect(mockAxios.request).toHaveBeenCalledWith(
@@ -90,18 +89,17 @@ describe('AcCard.vue', () => {
     expect((cardList.list[1].x as CreditCardToken).primary).toBe(false)
   })
   test('Shows the correct icon for a card', async() => {
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.vm
     vm.card.updateX({type: 1})
-    await vm.$nextTick()
-    expect(wrapper.find('.ac-icon-visa').exists()).toBe(true)
+    await nextTick()
+    await waitFor(() => expect(wrapper.find('.ac-Visa').exists()).toBe(true))
     vm.card.updateX({type: 2})
     await flushPromises()
-    await vm.$nextTick()
-    expect(wrapper.find('.ac-icon-mastercard').exists()).toBe(true)
-    vm.card.setX(null)
-    await vm.$nextTick()
+    await nextTick()
+    expect(wrapper.find('.ac-MasterCard').exists()).toBe(true)
+    vm.card.updateX({type: 80})
+    await nextTick()
     // This will never actually be displayed, because a non-existent card shouldn't be rendered.
-    expect(wrapper.find('.mdi-credit-card').exists()).toBe(false)
-    expect(vm.cardIcon).toBe(null)
+    expect(wrapper.find('.ac-unknown-card').exists()).toBe(true)
   })
 })

@@ -36,7 +36,7 @@ describe('AcTab.vue', () => {
     wrapper = mount(AcTab, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         trackPages: true,
@@ -63,7 +63,7 @@ describe('AcTab.vue', () => {
     wrapper = mount(AcTab, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {
         trackPages: false,
@@ -77,7 +77,7 @@ describe('AcTab.vue', () => {
     wrapper = mount(AcTab, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+router,
       }),
       props: {},
     })

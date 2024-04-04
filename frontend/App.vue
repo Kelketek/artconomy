@@ -120,7 +120,6 @@
       <v-snackbar v-model="showAlert" v-if="store.getters.latestAlert"
                   :color="store.getters.latestAlert.category"
                   :timeout="store.getters.latestAlert.timeout"
-                  id="alert-bar"
                   :attach="snackbarTarget"
                   top
       >
@@ -128,6 +127,7 @@
         <v-btn
             dark
             variant="plain"
+            class="close-status-alert"
             @click="showAlert = false"
         >
           Close
@@ -159,9 +159,9 @@
           rounded="pill"
           :attach="statusTarget"
       >
-        <div class="text-center">
+        <v-col class="text-center" id="reconnection-status-bar">
           <strong>Reconnecting...</strong>
-        </div>
+        </v-col>
       </v-snackbar>
       <v-row no-gutters class="mb-4" v-if="contentReady">
         <v-col class="text-center">
@@ -175,10 +175,6 @@
     <div class="dev-mode-overlay text-center" v-if="devMode">
       <v-icon size="50vw" :icon="mdiHammerWrench" />
     </div>
-    <div id="modal-target" />
-    <div id="snackbar-target" />
-    <div id="status-target" />
-    <div id="menu-target" />
   </v-app>
 </template>
 

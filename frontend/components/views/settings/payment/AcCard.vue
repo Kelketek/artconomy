@@ -2,11 +2,10 @@
   <v-col class="saved-card-container" cols="12" v-if="card.x">
     <v-row no-gutters align="center">
       <v-col class="shrink px-2" v-if="fieldMode">
-        <v-radio :value="card.x.id" :disabled="wrongProcessor"></v-radio>
+        <v-radio :value="card.x.id"></v-radio>
       </v-col>
       <v-col class="text-center fill-height shrink px-2">
-        <ac-icon :icon="cardIcon" v-if="cardIcon"/>
-        <v-icon :icon="mdiCreditCard" v-else/>
+        <v-icon size="large" :icon="cardIcon" :class="`ac-${cardType}`"/>
       </v-col>
       <v-col class="text-center fill-height shrink px-2">
         <v-row no-gutters justify="center" align="center">
@@ -14,16 +13,6 @@
         </v-row>
       </v-col>
       <v-col class="text-right fill-height grow">
-        <v-tooltip v-if="wrongProcessor" top>
-          <template v-slot:activator="{props}">
-            <v-btn color="yellow" v-bind="props" icon size="x-small" class="default-indicator">
-              <v-icon :icon="mdiAlert" size="x-large"/>
-            </v-btn>
-          </template>
-          <span>
-            Artconomy is transitioning processors. You may need to re-enter your card information to use this card.
-          </span>
-        </v-tooltip>
         <v-tooltip v-if="card.x.primary" top>
           <template v-slot:activator="{props}">
             <v-btn color="green" v-bind="props" icon size="x-small" class="default-indicator">
@@ -60,74 +49,45 @@
 
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {SingleController} from '@/store/singles/controller.ts'
 import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {artCall} from '@/lib/lib.ts'
-import AcIcon from '@/components/AcIcon.vue'
 import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
-import {mdiCreditCard, mdiAlert, mdiStar, mdiStarOutline, mdiDelete} from '@mdi/js'
+import {mdiCreditCard, mdiStar, mdiStarOutline, mdiDelete} from '@mdi/js'
+import {computed, defineAsyncComponent} from 'vue'
+const AcConfirmation = defineAsyncComponent(() => import('@/components/wrappers/AcConfirmation.vue'))
 
-@Component({
-  components: {
-    AcConfirmation,
-    AcIcon,
-  },
-})
-class AcCard extends Vue {
-  @Prop({required: true})
-  public card!: SingleController<CreditCardToken>
+const props = withDefaults(defineProps<{
+  card: SingleController<CreditCardToken>,
+  cardList: ListController<CreditCardToken>,
+  fieldMode?: boolean,
+}>(), {fieldMode: false})
 
-  @Prop({required: true})
-  public cardList!: ListController<CreditCardToken>
-
-  @Prop({default: false})
-  public fieldMode!: boolean
-
-  @Prop({default: ''})
-  public processor!: string
-
-  public mdiCreditCard = mdiCreditCard
-  public mdiAlert = mdiAlert
-  public mdiStar = mdiStar
-  public mdiStarOutline = mdiStarOutline
-  public mdiDelete = mdiDelete
-
-  public async deleteCard() {
-    return this.card.delete().then(this.cardList.get)
-  }
-
-  public get wrongProcessor() {
-    if (!this.processor || !this.card.x) {
-      return false
-    }
-    return this.processor !== this.card.x.processor
-  }
-
-  public setPrimary() {
-    this.cardList.list.map((card) => { // eslint-disable-line array-callback-return
-      card.updateX({primary: false})
-    })
-    this.card.setX({...(this.card.x as CreditCardToken), ...{primary: true}})
-  }
-
-  public makePrimary() {
-    artCall({
-      url: `${this.card.endpoint}primary/`,
-      method: 'post',
-    }).then(this.setPrimary)
-  }
-
-  public get cardIcon() {
-    if (!this.card.x) {
-      return null
-    }
-    return ISSUERS[this.card.x.type].icon
-  }
+const deleteCard = async () => {
+  props.card.delete().then(props.cardList.get)
 }
 
-export default toNative(AcCard)
+const setPrimary = () => {
+  props.cardList.list.forEach((card) => {
+    card.updateX({primary: false})
+  })
+  props.card.setX({...(props.card.x as CreditCardToken), ...{primary: true}})
+}
+
+const makePrimary = () => {
+  artCall({
+    url: `${props.card.endpoint}primary/`,
+    method: 'post',
+  }).then(setPrimary)
+}
+
+const cardType = computed(() => {
+  return ISSUERS[props.card.x!.type]?.name || 'unknown-card'
+})
+
+const cardIcon = computed(() => {
+  return ISSUERS[props.card.x!.type]?.icon?.path || mdiCreditCard
+})
 </script>

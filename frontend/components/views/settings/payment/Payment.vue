@@ -6,26 +6,24 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
+<script setup lang="ts">
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {onMounted} from 'vue'
 
-@Component
-class Payment extends mixins(Subjective) {
-  public ccForm: FormController = null as unknown as FormController
+const props = defineProps<SubjectiveProps>()
 
-  public created() {
-    if (this.$route.name === 'Payment') {
-      this.$router.replace({
-        name: 'Purchase',
-        params: {username: this.username},
-      })
-    }
+const router = useRouter()
+const route = useRoute()
+
+onMounted(() => {
+  if (route.name === 'Payment') {
+    router.replace({
+      name: 'Purchase',
+      params: {username: props.username},
+    })
   }
-}
-
-export default toNative(Payment)
+})
 </script>
 
 <style scoped>

@@ -55,7 +55,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -82,7 +82,7 @@ describe('DeliverableDetail.vue', () => {
       WrappedDeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -98,11 +98,11 @@ describe('DeliverableDetail.vue', () => {
     deliverable.makeReady(deliverableDef)
     await nextTick()
     mockAxios.reset()
-    wrapper.find('.gallery-add').trigger('click')
+    await wrapper.find('.gallery-add').trigger('click')
     await nextTick()
     mockAxios.reset()
     await nextTick()
-    wrapper.find('.dialog-submit').trigger('click')
+    await wrapper.findComponent('.dialog-submit').trigger('click')
     const newSubmission = genSubmission()
     newSubmission.id = 101
     const newSubmissionRequest = mockAxios.lastReqGet()
@@ -121,7 +121,7 @@ describe('DeliverableDetail.vue', () => {
       WrappedDeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -148,7 +148,7 @@ describe('DeliverableDetail.vue', () => {
       WrappedDeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -176,7 +176,7 @@ describe('DeliverableDetail.vue', () => {
       WrappedDeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -193,9 +193,9 @@ describe('DeliverableDetail.vue', () => {
     const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
     deliverable.makeReady(deliverableDef)
     await nextTick()
-    wrapper.find('.collection-add').trigger('click')
+    await wrapper.find('.collection-add').trigger('click')
     await nextTick()
-    expect(wrapper.find('.add-submission-dialog').isVisible()).toBe(true)
+    expect(wrapper.findComponent('.add-submission-dialog').isVisible()).toBe(true)
   })
   test('Prompts to add revision to collection by registering if they are a guest', async() => {
     const user = genGuest()
@@ -205,7 +205,7 @@ describe('DeliverableDetail.vue', () => {
       WrappedDeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -239,7 +239,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -264,7 +264,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -279,7 +279,7 @@ describe('DeliverableDetail.vue', () => {
     deliverableDef.order.seller = user
     deliverable.makeReady(deliverableDef)
     await nextTick()
-    expect(wrapper.find('.add-submission-dialog').isVisible()).toBe(true)
+    expect(wrapper.findComponent('.add-submission-dialog').isVisible()).toBe(true)
   })
   test('Prompts to link a guest account', async() => {
     const user = genGuest()
@@ -290,7 +290,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -321,7 +321,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -357,7 +357,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['router-link'],
         }),
         props: {
@@ -374,7 +374,7 @@ describe('DeliverableDetail.vue', () => {
     viewSettings.patchers.showAddDeliverable.model = true
     await nextTick()
     mockAxios.reset()
-    await waitFor(() => wrapper.find('.add-deliverable-dialog .dialog-submit').trigger('click'))
+    await waitFor(() => wrapper.findComponent('.add-deliverable-dialog .dialog-submit').trigger('click'))
     mockAxios.mockResponse(rs(genDeliverable({id: 100})))
     await waitFor(() => expect(parentDeliverables.list.length).toBe(2))
     expect(parentDeliverables.list[1].x.id).toBe(100)
@@ -396,7 +396,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['router-link'],
         }),
         props: {
@@ -433,7 +433,7 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['router-link'],
         }),
         props: {

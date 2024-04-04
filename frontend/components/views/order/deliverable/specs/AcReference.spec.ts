@@ -7,13 +7,11 @@ import {Router} from 'vue-router'
 
 let wrapper: VueWrapper<any>
 let mockOpen: MockedFunction<any>
-let router: Router
 
 describe('AcReference.vue', () => {
   beforeAll(() => {
     mockOpen = vi.fn()
     window.open = mockOpen
-    router = createTestRouter(false)
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -26,7 +24,6 @@ describe('AcReference.vue', () => {
     wrapper = mount(AcReference, {
       ...vueSetup({
         stubs: ['router-link'],
-        extraPlugins: [router],
       }),
       props: {
         reference,

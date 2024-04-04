@@ -44,7 +44,7 @@ describe('ProductGallery', () => {
       ProductGallery, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
         }),
         props: {
           username: 'Fox',

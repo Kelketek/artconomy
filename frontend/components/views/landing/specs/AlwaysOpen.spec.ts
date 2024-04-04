@@ -40,7 +40,7 @@ describe('AlwaysOpen.vue', () => {
   test('Calls Search', async() => {
     const wrapper = mount(AlwaysOpen, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await router.isReady()
     await wrapper.find('.commission-cta').trigger('click')

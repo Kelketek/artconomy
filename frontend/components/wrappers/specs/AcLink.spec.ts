@@ -1,5 +1,5 @@
 import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router'
-import {cleanUp, createVuetify, docTarget, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -35,7 +35,7 @@ describe('AcLink.vue', () => {
     wrapper = mount(AcLink, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {to: {name: 'Test'}},
     })
@@ -50,7 +50,7 @@ describe('AcLink.vue', () => {
     wrapper = mount(AcLink, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {to: {name: 'Test'}},
     })

@@ -33,7 +33,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -74,7 +74,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -110,7 +110,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -162,7 +162,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -199,7 +199,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -238,7 +238,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -284,7 +284,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {

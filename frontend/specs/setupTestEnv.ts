@@ -1,4 +1,6 @@
 // Polyfills the CSS.escape function, needed for dynamic CSS class/identifier creation.
+import {clearBody} from '@/specs/helpers'
+
 require('css.escape')
 import {expect, vi} from 'vitest'
 
@@ -50,10 +52,4 @@ global.ResizeObserver = require('resize-observer-polyfill')
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
 document.hasFocus = () => true
-
-// @ts-ignore
-// window.ResizeObserver = window.ResizeObserver || vi.fn().mockImplementation(() => ({
-//   disconnect: vi.fn(),
-//   observe: vi.fn(),
-//   unobserve: vi.fn(),
-// }))
+clearBody()

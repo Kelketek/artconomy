@@ -4,7 +4,7 @@
       <div class="flex card-group-container">
         <v-radio-group :hide-details="true" :model-value="modelValue" @update:model-value="sendInput">
           <ac-card v-for="card in cards.list" :card="card" :key="card.x!.id" :card-list="cards" :value="modelValue"
-                   :field-mode="true" :processor="processor"/>
+                   :field-mode="true"/>
         </v-radio-group>
       </div>
     </template>
@@ -37,9 +37,6 @@ class AcSavedCards extends Vue {
 
   @Prop({default: null})
   public modelValue!: number
-
-  @Prop({default: ''})
-  public processor!: string
 
   public sendInput(value: number|null) {
     this.$emit('update:modelValue', value)

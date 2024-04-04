@@ -81,7 +81,7 @@ describe('AuthViews.vue', () => {
     await router.push({name: 'Login'})
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
   })
   test('Sends login info', async() => {
@@ -91,7 +91,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const fields = wrapper.vm.$getForm('login').fields
     expectFields(fields, ['email', 'password', 'token', 'order_claim'])
@@ -125,7 +125,7 @@ describe('AuthViews.vue', () => {
     wrapper = mount(AuthViews, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
     })
     const fields = wrapper.vm.$getForm('login').fields
@@ -139,7 +139,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link'],
     }))
     const fields = wrapper.vm.$getForm('register').fields
@@ -152,7 +152,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -172,7 +172,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const controller = wrapper.vm.$getForm('login')
     const submit = wrapper.find('#loginSubmit')
@@ -194,7 +194,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const controller = wrapper.vm.$getForm('login')
     await wrapper.vm.$nextTick()
@@ -215,7 +215,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -233,7 +233,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -250,7 +250,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const submit = wrapper.find('#loginSubmit')
     expect((wrapper.vm as any).viewer).toBe(null)
@@ -269,7 +269,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const controller = wrapper.vm.$getForm('login')
     mockAxios.reset()
@@ -288,7 +288,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(AuthViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -303,7 +303,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -314,7 +314,7 @@ describe('AuthViews.vue', () => {
     await submit.trigger('click')
     mockAxios.mockError!({response: {data: {token: ['Please provide your login token.']}}})
     await flushPromises()
-    expect(wrapper.find('.token-prompt-loaded').exists()).toBe(true)
+    expect(wrapper.findComponent('.token-prompt-loaded').exists()).toBe(true)
     // On the first failure, we don't want to show errors since they're part of the normal login process.
     expect(controller.fields.token.errors).toEqual([])
   })
@@ -325,7 +325,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -345,7 +345,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const controller = wrapper.vm.$getForm('login')
     controller.fields.email.update('test@example.com', false)
@@ -356,7 +356,7 @@ describe('AuthViews.vue', () => {
     await flushPromises()
     mockAxios.reset()
     controller.fields.token.update('086456', false)
-    const submitToken = wrapper.find('#tokenSubmit')
+    const submitToken = wrapper.findComponent('#tokenSubmit')
     await submitToken.trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/login/',
@@ -379,14 +379,14 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const fields = wrapper.vm.$getForm('login').fields
     const submit = wrapper.find('#loginSubmit')
     await submit.trigger('click')
     mockAxios.mockError!({response: {data: {token: ['Please provide your login token.']}}})
     await flushPromises()
-    const tokenSubmit = wrapper.find('#tokenSubmit')
+    const tokenSubmit = wrapper.findComponent('#tokenSubmit')
     mockAxios.reset()
     await tokenSubmit.trigger('click')
     mockAxios.mockError({response: {data: {token: ['Stuff!']}}})
@@ -400,7 +400,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     expect(wrapper.find('.registration-page').exists()).toBe(true)
     const fields = wrapper.vm.$getForm('register').fields
@@ -432,7 +432,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const fields = wrapper.vm.$getForm('register').fields
     fields.username.update('Goofball', false)
@@ -465,7 +465,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const form = wrapper.vm.$getForm('register')
     const fields = form.fields
@@ -493,7 +493,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const submit = wrapper.find('#registerSubmit')
     mockAxios.reset()
@@ -511,7 +511,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     await wrapper.vm.$nextTick()
     const fields = wrapper.vm.$getForm('forgot').fields
@@ -529,7 +529,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const fields = wrapper.vm.$getForm('forgot').fields
     fields.email.update('Test', false)
@@ -552,7 +552,7 @@ describe('AuthViews.vue', () => {
     })
     wrapper = mount(WrappedViews, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
     }))
     const submit = wrapper.find('#forgotSubmit')
     mockAxios.reset()

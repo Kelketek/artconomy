@@ -12,7 +12,6 @@ import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Deliverable from '@/types/Deliverable.ts'
 import Reference from '@/types/Reference.ts'
 import CommissionStats from '@/types/CommissionStats.ts'
-import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import Invoice from '@/types/Invoice.ts'
 import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
@@ -50,7 +49,6 @@ export function genUser(overrides?: Partial<User>): User {
     watches: 0,
     guest_email: '',
     birthday: '1988-08-01',
-    processor: PROCESSORS.AUTHORIZE,
     service_plan: 'Free',
     next_service_plan: 'Free',
     verified_email: false,
@@ -99,7 +97,6 @@ export function genCard(base?: Partial<CreditCardToken>): CreditCardToken {
       cvv_verified: true,
       type: 2,
       primary: false,
-      processor: PROCESSORS.AUTHORIZE,
     },
     ...base,
   }
@@ -204,7 +201,6 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
     revisions_hidden: false,
     final_uploaded: false,
     rating: 0,
-    processor: PROCESSORS.AUTHORIZE,
     read: true,
     arbitrator: null,
     cascade_fees: true,

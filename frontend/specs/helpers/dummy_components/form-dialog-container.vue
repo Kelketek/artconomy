@@ -1,7 +1,6 @@
 <template>
   <v-app>
     <ac-form-dialog v-model="expanded" ref="dialog"/>
-    <div id="modal-target" />
   </v-app>
 </template>
 

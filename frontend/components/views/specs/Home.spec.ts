@@ -20,7 +20,7 @@ describe('Home.vue', () => {
   beforeEach(() => {
     store = createStore()
     searchForm = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
-    router = createTestRouter(false)
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -29,7 +29,7 @@ describe('Home.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link'],
     }))
     await nextTick()
@@ -38,7 +38,7 @@ describe('Home.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
-      extraPlugins: [router],
+
       stubs: ['router-link'],
     }))
     await nextTick()
@@ -70,7 +70,7 @@ describe('Home.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link'],
     }))
     await nextTick()
@@ -92,7 +92,7 @@ describe('Home.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link'],
     }))
     await nextTick()
@@ -111,7 +111,7 @@ describe('Home.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link'],
     }))
     await nextTick()
@@ -131,7 +131,7 @@ describe('Home.vue', () => {
     setViewer(store, genAnon())
     wrapper = mount(Home, vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       stubs: ['router-link'],
     }))
     await nextTick()

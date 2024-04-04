@@ -116,7 +116,6 @@
                                     ref="cardManager"
                                     :payment="true"
                                     :username="invoice.x.bill_to.username"
-                                    processor="stripe"
                                     :cc-form="paymentForm"
                                     :field-mode="true"
                                     :show-save="false"

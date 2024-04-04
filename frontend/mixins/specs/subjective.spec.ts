@@ -3,7 +3,7 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
-import {cleanUp, docTarget, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, docTarget, vueSetup} from '@/specs/helpers/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
@@ -38,7 +38,7 @@ describe('Subjective.ts', () => {
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {username: 'Fox'},
     })
@@ -53,7 +53,7 @@ describe('Subjective.ts', () => {
       SubjectiveComponent, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
+          router,
         }),
         props: {username: 'Fox'},
         attachTo: docTarget(),
@@ -70,7 +70,7 @@ describe('Subjective.ts', () => {
     store.commit('profiles/setViewerUsername', 'Fox')
     wrapper = mount(SubjectiveComponent, {...vueSetup({
       store,
-      extraPlugins: [router],
+      router,
       mocks: {
         $route: {
           name: 'Place',
@@ -95,7 +95,7 @@ describe('Subjective.ts', () => {
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         mocks: {
           $route: {
             name: 'Place',
@@ -119,7 +119,7 @@ describe('Subjective.ts', () => {
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
         mocks: {
           $route: {
             name: 'Place',
@@ -145,6 +145,7 @@ describe('Subjective.ts', () => {
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
         store,
+        router,
         mocks: {
           $route: {name: 'Place', params: {}, query: {}, hash: '', fullPath: '/place'},
           $router: {replace}
@@ -168,7 +169,6 @@ describe('Subjective.ts', () => {
       wrapper = mount(SubjectiveComponent, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
           mocks: {
             $route: {
               name: 'Place',
@@ -196,7 +196,6 @@ describe('Subjective.ts', () => {
       wrapper = mount(SubjectiveComponent, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
           mocks: {
             $route: {
               name: 'Place',
@@ -227,7 +226,6 @@ describe('Subjective.ts', () => {
       wrapper = mount(SubjectiveComponent, {
         ...vueSetup({
           store,
-          extraPlugins: [router],
           mocks: {
             $route: {
               name: 'Place',

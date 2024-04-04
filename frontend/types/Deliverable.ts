@@ -5,7 +5,6 @@ import Submission from '@/types/Submission.ts'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import FileSpec from '@/types/FileSpec.ts'
 import Order from '@/types/Order.ts'
-import {PROCESSORS} from '@/types/PROCESSORS.ts'
 
 export default interface Deliverable {
   id: number,
@@ -38,7 +37,6 @@ export default interface Deliverable {
   international: boolean,
   final_uploaded: boolean,
   rating: Ratings,
-  processor: PROCESSORS,
   display: {file: FileSpec, preview: FileSpec|null}|null,
   order: Order,
   invoice: string | null,

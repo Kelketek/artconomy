@@ -16,28 +16,28 @@ describe('ac-uppy-file.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  const makeUppy = (props?: any) => {
+  const makeUppy = (props: any) => {
     return mount(AcUppyFile, {
       ...vueSetup({store}),
       props: {uppyId: 'uppyTest', ...props},
     })
   }
   test('Mounts and initializes the uppy object', async() => {
-    wrapper = makeUppy()
+    wrapper = makeUppy({modelValue: '', label: 'Boop'})
     await flushPromises()
     expect((wrapper.vm as any).uppy).toBeTruthy()
   })
   test('Resets uppy when the reset button is clicked.', async() => {
-    wrapper = makeUppy({modelValue: '123'})
+    wrapper = makeUppy({modelValue: '123', label: 'Boop'})
     await flushPromises()
-    const spyEmit = vi.spyOn(wrapper.vm, '$emit')
+    vi.spyOn(wrapper.vm, '$emit')
     const spyReset = vi.spyOn((wrapper.vm as any).uppy, 'cancelAll')
     await wrapper.find('.uppy-reset-button').trigger('click')
     expect(wrapper.emitted('update:modelValue')![0]).toEqual([''])
     expect(spyReset).toHaveBeenCalled()
   })
   test('Resets uppy when the modelValue is cleared.', async() => {
-    wrapper = makeUppy({modelValue: '123'})
+    wrapper = makeUppy({modelValue: '123', label: 'Beep'})
     await flushPromises()
     const spyReset = vi.spyOn((wrapper.vm as any).uppy, 'cancelAll')
     expect(wrapper.emitted('update:modelValue')).toBe(undefined)
@@ -46,7 +46,7 @@ describe('ac-uppy-file.vue', () => {
     expect(spyReset).toHaveBeenCalled()
   })
   test('Does not reset the modelValue when uppy is populated.', async() => {
-    wrapper = makeUppy({modelValue: ''})
+    wrapper = makeUppy({modelValue: '', label: 'Beep'})
     await flushPromises()
     const spyReset = vi.spyOn((wrapper.vm as any).uppy, 'cancelAll')
     expect(wrapper.emitted('update:modelValue')).toBe(undefined)
@@ -57,6 +57,7 @@ describe('ac-uppy-file.vue', () => {
   test('Clears the file when the clear button is clicked.', async() => {
     wrapper = makeUppy({
       modelValue: '123',
+      label: 'Beep',
       showClear: true,
     })
     await flushPromises()
@@ -64,7 +65,7 @@ describe('ac-uppy-file.vue', () => {
     expect(wrapper.emitted('update:modelValue')![0]).toEqual([null])
   })
   test('Handles a successfully uploaded file.', async() => {
-    wrapper = makeUppy()
+    wrapper = makeUppy({modelValue: '', label: 'Boop'})
     await wrapper.vm.$nextTick()
     const file = {
       data: new Blob(),
@@ -95,6 +96,7 @@ describe('ac-uppy-file.vue', () => {
     wrapper = makeUppy({
       maxNumberOfFiles: 3,
       modelValue: ['wat'],
+      label: 'Beep',
     })
     await wrapper.vm.$nextTick()
     const file: UppyFile = {
@@ -124,7 +126,7 @@ describe('ac-uppy-file.vue', () => {
   })
   test('Sets the proper label color when there are no errors.', async() => {
     const errorMessages: string[] = []
-    wrapper = makeUppy({errorMessages})
+    wrapper = makeUppy({errorMessages, modelValue: '', label: 'Beep'})
     await wrapper.vm.$nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('primary')
@@ -132,6 +134,8 @@ describe('ac-uppy-file.vue', () => {
   test('Sets the proper label color when there are errors.', async() => {
     const errorMessages: string[] = ['Stuff']
     wrapper = makeUppy({
+      label: 'Beep',
+      modelValue: '',
       errorMessages,
       uppyId: 'uppyTest',
     })

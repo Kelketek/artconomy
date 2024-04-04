@@ -56,7 +56,7 @@
                 :block="block"
                 variant="flat"
                 color="primary">
-              <ac-icon size="default" :icon="siDiscord"/>
+              <v-icon :icon="siDiscord.path"/>
               Join our Discord
             </v-btn>
           </v-col>
@@ -167,7 +167,6 @@
 import {siDiscord} from 'simple-icons'
 import {BASE_URL} from '@/lib/lib.ts'
 import {computed} from 'vue'
-import AcIcon from '@/components/AcIcon.vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {mdiClipboardText, mdiLock, mdiPalette, mdiPencil, mdiShieldHalfFull, mdiStore, mdiTools} from '@mdi/js'

@@ -31,14 +31,14 @@
                    :href="`https://www.pinterest.com/pin/create/button/?canonicalUrl=${location({mtm_campaign: 'Pinned'})}&description=${titleText}&media=${encodeURIComponent(mediaUrl)}`"
                    rel="nofollow noopener"
                    target="_blank">
-              <ac-icon :icon="siPinterest" size="large" />
+              <v-icon :icon="siPinterest.path" size="large" />
             </v-btn>
           </v-col>
           <v-col class="shrink">
             <v-btn color="red" icon small :href="`https://reddit.com/submit?url=${location()}&title=${titleText}`"
                    rel="nofollow noopener"
                    target="_blank">
-              <ac-icon :icon="siReddit" size="large" />
+              <v-icon :icon="siReddit.path" size="large" />
             </v-btn>
           </v-col>
           <v-col class="shrink">
@@ -46,7 +46,7 @@
                    target="_blank"
                    rel="nofollow noopener"
             >
-              <ac-icon :icon="siTelegram" size="large" />
+              <v-icon :icon="siTelegram.path" size="large" />
             </v-btn>
           </v-col>
           <v-col class="shrink">
@@ -54,7 +54,7 @@
                    :href="`https://twitter.com/share?text=${titleText}&url=${location()}&hashtags=Artconomy`"
                    target="_blank"
                    rel="nofollow noopener">
-              <ac-icon :icon="siX" size="large" />
+              <v-icon :icon="siX.path" size="large" />
             </v-btn>
           </v-col>
           <v-col class="shrink">
@@ -62,7 +62,7 @@
                    :href="`http://tumblr.com/widgets/share/tool?canonicalUrl=${location()}&title=${titleText}`"
                    target="_blank"
                    rel="nofollow noopener">
-              <ac-icon :icon="siTumblr" size="large" />
+              <v-icon :icon="siTumblr.path" size="large" />
             </v-btn>
           </v-col>
           <v-spacer/>
@@ -99,14 +99,13 @@ import Dialog from '../mixins/dialog.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import QRCode from 'qrcode'
 import {siPinterest, siReddit, siX, siTumblr, siTelegram} from 'simple-icons'
-import AcIcon from '@/components/AcIcon.vue'
 import {mdiShare, mdiQrcode} from '@mdi/js'
 
 declare interface ExtraReferred {
   [key: string]: string,
 }
 
-@Component({components: {AcExpandedProperty, AcIcon}})
+@Component({components: {AcExpandedProperty}})
 class AcShareButton extends mixins(Dialog, Viewer) {
   @Prop({default: true})
   public social!: boolean

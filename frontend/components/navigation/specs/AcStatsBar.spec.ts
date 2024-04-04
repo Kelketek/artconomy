@@ -11,13 +11,13 @@ let router: Router
 
 describe('AcStatsBar.vue', () => {
   beforeEach(() => {
-    router = createTestRouter(false)
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
   it('Shows stats', async () => {
-    const wrapper = mount(AcStatsBar, {...vueSetup({extraPlugins: [router]}), props: {username: 'Fox'}})
+    const wrapper = mount(AcStatsBar, {...vueSetup(), props: {username: 'Fox'}})
     await flushPromises()
     expect(wrapper.vm.stats.fetching).toBeTruthy()
     wrapper.vm.stats.setX({
@@ -29,7 +29,7 @@ describe('AcStatsBar.vue', () => {
     expect(wrapper.find('[role="status"]').text()).toEqual('3')
   })
   it('Does not show a badge when there are no new orders', async () => {
-    const wrapper = mount(AcStatsBar, {...vueSetup({extraPlugins: [router]}), props: {username: 'Fox'}})
+    const wrapper = mount(AcStatsBar, {...vueSetup(), props: {username: 'Fox'}})
     await flushPromises()
     expect(wrapper.vm.stats.fetching).toBeTruthy()
     wrapper.vm.stats.setX({

@@ -3,7 +3,7 @@ import Settings from '../Settings.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, flushPromises, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, flushPromises, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
 import Credentials from '../Credentials.vue'
 import Avatar from '../Avatar.vue'
 import Payment from '../payment/Payment.vue'
@@ -123,7 +123,7 @@ describe('Settings.vue', () => {
     wrapper = mount(WrappedSettings, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {username: 'Fox'},
     })
@@ -145,7 +145,7 @@ describe('Settings.vue', () => {
     wrapper = mount(WrappedSettings, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {username: 'Fox'},
     })
@@ -162,7 +162,7 @@ describe('Settings.vue', () => {
     wrapper = mount(WrappedSettings, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {username: 'Fox'},
     })

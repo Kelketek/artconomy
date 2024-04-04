@@ -179,7 +179,6 @@
                                         ref="cardManager"
                                         :payment="true"
                                         :username="buyer!.username"
-                                        :processor="deliverable.x.processor"
                                         :cc-form="paymentForm"
                                         :field-mode="true"
                                         :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
@@ -287,7 +286,6 @@ import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import ClientSecret from '@/types/ClientSecret.ts'
-import {PROCESSORS} from '@/types/PROCESSORS.ts'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
 import {SocketState} from '@/types/SocketState.ts'
 import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin.ts'
@@ -314,7 +312,6 @@ import {mdiCheckCircle} from '@mdi/js'
 })
 class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin, StripeMixin) {
   public clientSecret = null as unknown as SingleController<ClientSecret>
-  public PROCESSORS = PROCESSORS
   public socketState = null as unknown as SingleController<SocketState>
   public oldTotal: null | Decimal = null
   // Setting this false to avoid calling for the secret until we have the invoice ID.

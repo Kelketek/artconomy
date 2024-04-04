@@ -14,18 +14,12 @@ describe('AcTabNav.vue', () => {
       ...vueSetup(),
       props: {
         items: [{
-          value: {
-            name: 'Characters',
-            params: {username: 'Fox'},
-          },
+          value: 0,
           icon: 'mdi-people',
           title: 'Characters',
           count: 2,
         }, {
-          value: {
-            name: 'Gallery',
-            params: {username: 'Fox'},
-          },
+          value: 1,
           icon: 'mdi-image',
           title: 'Gallery',
         }],
@@ -42,18 +36,12 @@ describe('AcTabNav.vue', () => {
       ...vueSetup(),
       props: {
         items: [{
-          value: {
-            name: 'Characters',
-            params: {username: 'Fox'},
-          },
+          value: 0,
           icon: 'mdi-people',
           title: 'Characters',
           count: 2,
         }, {
-          value: {
-            name: 'Gallery',
-            params: {username: 'Fox'},
-          },
+          value: 1,
           icon: 'mdi-image',
           title: 'Gallery',
         }],

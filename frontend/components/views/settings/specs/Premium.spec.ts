@@ -62,7 +62,7 @@ describe('Premium.vue', () => {
     wrapper = mount(WrappedPremium, {
       ...vueSetup({
         store,
-        extraPlugins: [router],
+        router,
       }),
       props: {username: 'Fox'},
     })

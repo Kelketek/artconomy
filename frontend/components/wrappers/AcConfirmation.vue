@@ -84,6 +84,10 @@ class AcConfirmation extends ArtVue {
     this.sending = false
   }
 
+  public get cardClassLiteral() {
+    return `${this.cardClass} ${this.showModal ? 'confirmation-modal-active' : ''}`
+  }
+
   public show(event: Event) {
     event.stopPropagation()
     this.showModal = true

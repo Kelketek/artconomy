@@ -35,7 +35,7 @@ describe('NavBar.vue', () => {
       endpoint: '/',
       fields: {q: {value: ''}},
     })
-    router = createTestRouter(false)
+    router = createTestRouter()
     router.push('/')
   })
   afterEach(() => {
@@ -45,7 +45,7 @@ describe('NavBar.vue', () => {
     const dispatch = vi.spyOn(store, 'dispatch')
     wrapper = shallowMount(NavBar, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await router.isReady()
     const vm = wrapper.vm as any
@@ -58,7 +58,7 @@ describe('NavBar.vue', () => {
     const dispatch = vi.spyOn(store, 'dispatch')
     wrapper = shallowMount(NavBar, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -75,7 +75,7 @@ describe('NavBar.vue', () => {
     const dispatch = vi.spyOn(store, 'dispatch')
     wrapper = shallowMount(NavBar, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -93,7 +93,7 @@ describe('NavBar.vue', () => {
     setViewer(store, user)
     wrapper = shallowMount(NavBar, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -107,7 +107,7 @@ describe('NavBar.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await nextTick()
@@ -121,7 +121,7 @@ describe('NavBar.vue', () => {
     await router.push({name: 'FAQ'})
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await router.isReady()
     await nextTick()
@@ -138,7 +138,7 @@ describe('NavBar.vue', () => {
     setViewer(store, genUser({artist_mode: true}))
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -154,7 +154,7 @@ describe('NavBar.vue', () => {
     setViewer(store, genUser({artist_mode: false}))
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -170,7 +170,7 @@ describe('NavBar.vue', () => {
     setViewer(store, genAnon())
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
     }))
     await nextTick()
     const vm = wrapper.findComponent(NavBar)!.vm as any
@@ -181,7 +181,7 @@ describe('NavBar.vue', () => {
   test('Sends you to the search page', async() => {
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.push('/')
@@ -196,7 +196,7 @@ describe('NavBar.vue', () => {
     await router.isReady()
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.push('/')
@@ -209,7 +209,7 @@ describe('NavBar.vue', () => {
     setViewer(store, genUser())
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -220,7 +220,7 @@ describe('NavBar.vue', () => {
   test('Does not alter the route if we are already on a search page', async() => {
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-      extraPlugins: [router],
+router,
       stubs: ['router-link'],
     }))
     await router.push({name: 'SearchSubmissions'})

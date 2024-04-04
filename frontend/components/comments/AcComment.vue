@@ -169,7 +169,7 @@
       </v-row>
     </v-card-text>
     <ac-expanded-property v-model="historyDisplay">
-      <ac-comment-section :locked="true" :comment-list="historyList" v-if="renderHistory" :in-history="true"/>
+      <ac-comment-section :locked="true" :comment-list="historyList" v-if="renderHistory" :in-history="true" class="comment-history"/>
     </ac-expanded-property>
   </v-card>
 </template>
