@@ -11,10 +11,14 @@
       <ac-draggable-list :list="list">
         <template v-slot:default="{element, index}">
           <v-col cols="4" sm="3" lg="2" :key="index">
-            <ac-gallery-preview class="pa-1" @click.capture.stop.prevent="() => false"
-                                :linked="false"
-                                :key="index"
-                                :submission="element.x" :show-footer="true" />
+            <ac-gallery-preview
+                class="pa-1"
+                @click.capture.stop.prevent="() => false"
+                :linked="false"
+                :key="index"
+                :submission="element.x"
+                :show-footer="true"
+            />
           </v-col>
         </template>
       </ac-draggable-list>
@@ -40,54 +44,32 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import Submission from '@/types/Submission.ts'
+<script setup lang="ts">
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {flatten} from '@/lib/lib.ts'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
-import Editable from '@/mixins/editable.ts'
-import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcDraggableList from '@/components/AcDraggableList.vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {watch} from 'vue'
+import {useList} from '@/store/lists/hooks.ts'
+import LinkedSubmission from '@/types/LinkedSubmission'
 
-@Component({
-  components: {
-    AcDraggableList,
-    AcDraggableNavs,
-    AcPaginated,
-    AcGalleryPreview,
-    AcLoadSection,
-  },
-})
-class ManageSubmissionList extends mixins(Subjective, Editable) {
-  @Prop()
-  public listName!: string
+const props = defineProps<{listName: string, endpoint: string} & SubjectiveProps>()
 
-  @Prop()
-  public endpoint!: string
+const {rawRating} = useViewer()
 
-  @Watch('rawRating')
-  public refreshListing(newValue: Ratings, oldValue: Ratings | undefined) {
-    if (oldValue === undefined) {
-      return
-    }
-    this.list.get()
-  }
-
-  public list: ListController<Submission> = null as unknown as ListController<Submission>
-
-  public created() {
-    let listName = this.listName
-    if (this.username) {
-      listName = `${flatten(this.username)}-${listName}-management`
-    }
-    this.list = this.$getList(listName, {endpoint: this.endpoint})
-  }
+let listName = props.listName
+if (props.username) {
+  listName = `${flatten(props.username)}-${listName}-management`
 }
 
-export default toNative(ManageSubmissionList)
+const list = useList<LinkedSubmission>(listName, {endpoint: props.endpoint})
+
+watch(rawRating, (newValue: Ratings|undefined, oldValue: Ratings | undefined) => {
+  if (oldValue === undefined || newValue === undefined) {
+    return
+  }
+  list.get()
+})
 </script>

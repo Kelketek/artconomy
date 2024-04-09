@@ -4,7 +4,7 @@
 #
 #    pip-compile --output-file=requirements.txt constraints.in requirements.in
 #
-adrf==0.1.5
+adrf==0.1.6
     # via -r requirements.in
 aiofile==3.8.8
     # via -r requirements.in
@@ -68,7 +68,7 @@ certifi==2024.2.2
     #   requests
 cffi==1.16.0
     # via cryptography
-channels[daphne]==4.0.0
+channels[daphne]==4.1.0
     # via
     #   -r requirements.in
     #   channels-redis
@@ -158,9 +158,9 @@ django-hitcount @ git+https://github.com/thornomad/django-hitcount.git@fcf399698
     # via -r requirements.in
 django-markdown2==0.3.1
     # via -r requirements.in
-django-money==3.4.1
+django-money==3.2.0
     # via -r requirements.in
-django-otp==1.3.0
+django-otp==1.4.0
     # via -r requirements.in
 django-premailer==0.2.0
     # via -r requirements.in
@@ -176,7 +176,7 @@ django-signal-disabler==0.1.1
     # via -r requirements.in
 django-static-sitemaps==5.0.0
     # via -r requirements.in
-django-vite==3.0.3
+django-vite==3.0.4
     # via -r requirements.in
 djangorestframework==3.15.1
     # via
@@ -202,7 +202,7 @@ executing==2.0.1
     # via stack-data
 factory-boy==3.3.0
     # via -r requirements.in
-faker==24.4.0
+faker==24.8.0
     # via factory-boy
 freezegun==1.4.0
     # via -r requirements.in
@@ -256,7 +256,7 @@ lazy==1.6
     # via -r requirements.in
 luhn==0.2.0
     # via -r requirements.in
-lxml==5.2.0
+lxml==5.2.1
     # via
     #   -r requirements.in
     #   premailer
@@ -285,7 +285,7 @@ packaging==24.0
     # via black
 pandas==2.2.1
     # via -r requirements.in
-parso==0.8.3
+parso==0.8.4
     # via jedi
 pathspec==0.12.1
     # via black
@@ -370,7 +370,7 @@ requests==2.31.0
     #   mailchimp3
     #   premailer
     #   stripe
-ruff==0.3.4
+ruff==0.3.5
     # via -r requirements.in
 sendgrid==6.11.0
     # via django-sendgrid-v5
@@ -398,7 +398,7 @@ stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==8.9.0
+stripe==8.11.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
@@ -418,7 +418,7 @@ twisted[tls]==24.3.0
     # via daphne
 txaio==23.1.1
     # via autobahn
-typing-extensions==4.10.0
+typing-extensions==4.11.0
     # via
     #   discord-typings
     #   ipython

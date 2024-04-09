@@ -98,14 +98,17 @@ describe('AcSampleEditor.vue', () => {
     const submission = {
       id: 1,
       submission: genSubmission(),
+      display_position: 1,
     }
     const submission2 = {
       id: 2,
       submission: genSubmission(),
+      display_position: 2,
     }
     const submission3 = {
       id: 3,
       submission: genSubmission(),
+      display_position: 3,
     }
     submission.submission.id = 5
     submission2.submission.id = 6
@@ -147,14 +150,17 @@ describe('AcSampleEditor.vue', () => {
     const submission = {
       id: 1,
       submission: genSubmission(),
+      display_position: 1,
     }
     const submission2 = {
       id: 2,
       submission: genSubmission(),
+      display_position: 2,
     }
     const submission3 = {
       id: 3,
       submission: genSubmission(),
+      display_position: 3,
     }
     submission.submission.id = 5
     submission2.submission.id = 6

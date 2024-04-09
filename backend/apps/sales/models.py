@@ -256,7 +256,9 @@ class Product(ImageModel, HitsMixin):
         related_query_name="hit_counter",
     )
     task_weight = IntegerField(validators=[MinValueValidator(1)])
-    display_position = FloatField(db_index=True, default=get_next_product_position)
+    display_position = FloatField(
+        db_index=True, default=get_next_product_position, unique=True
+    )
 
     @property
     def preview_link(self):
@@ -351,7 +353,9 @@ class Sample(models.Model):
     id = ShortCodeField(default=gen_shortcode, db_index=True, primary_key=True)
     submission = ForeignKey("profiles.Submission", on_delete=CASCADE)
     product = ForeignKey("sales.Product", on_delete=CASCADE)
-    display_position = FloatField(db_index=True, default=get_next_sample_position)
+    display_position = FloatField(
+        db_index=True, default=get_next_sample_position, unique=True
+    )
 
 
 # noinspection PyUnusedLocal
@@ -728,11 +732,17 @@ class Order(Model):
     created_on = DateTimeField(db_index=True, default=timezone.now)
     private = BooleanField(default=False)
     hide_details = BooleanField(default=False)
-    order_display_position = FloatField(db_index=True, default=get_next_order_position)
-    sale_display_position = FloatField(db_index=True, default=get_next_sale_position)
+    order_display_position = FloatField(
+        db_index=True, default=get_next_order_position, unique=True
+    )
+    sale_display_position = FloatField(
+        db_index=True, default=get_next_sale_position, unique=True
+    )
     # Note: This will affect all arbitrators across all deliverables for this order.
     # This may result in strange behavior, but at least it won't be consumer-facing.
-    case_display_position = FloatField(db_index=True, default=get_next_case_position)
+    case_display_position = FloatField(
+        db_index=True, default=get_next_case_position, unique=True
+    )
 
     def __str__(self):
         return f"#{self.id} by {self.seller} for {self.buyer}"

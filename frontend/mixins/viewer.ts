@@ -52,7 +52,7 @@ const getRating = (viewer: User|AnonUser|null) => {
   return viewer.rating
 }
 
-const getRawRating = (viewer: User|AnonUser|null) => {
+const getRawRating = (viewer: User|AnonUser|null): Ratings|undefined => {
   // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
   // in and not currently using SFW settings. So, if we want to watch for this value's change, but we want to ignore
   // the default rating setting, we use this property instead.

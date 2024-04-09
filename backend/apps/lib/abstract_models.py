@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -247,10 +248,23 @@ class HitsMixin:
         return hit_counter.hits
 
 
+# This isn't thread safe. Eventually, we should probably create a proper Django
+# field for this with a PostgreSQL sequence.
+CACHED_MAXIMUMS = defaultdict(lambda: 0)
+
+
 def get_next_increment(model, field_name):
     results = model.objects.order_by(f"-{field_name}")[:1].values_list(
         field_name, flat=True
     )
     if not results:
-        return 0
-    return results[0] + 1
+        value = 0
+    else:
+        value = results[0] + 1
+    old_maximum = CACHED_MAXIMUMS[(model, field_name)]
+    if value > old_maximum:
+        CACHED_MAXIMUMS[(model, field_name)] = value + 1
+    else:
+        value = old_maximum
+        CACHED_MAXIMUMS[(model, field_name)] += 1
+    return value

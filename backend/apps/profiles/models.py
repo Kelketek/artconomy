@@ -659,7 +659,9 @@ class Submission(ImageModel, HitsMixin):
     )
     shared_with = ManyToManyField("User", related_name="shared_submissions", blank=True)
     shared_with__max = 150  # Dunbar limit
-    display_position = FloatField(db_index=True, default=get_next_submission_position)
+    display_position = FloatField(
+        db_index=True, default=get_next_submission_position, unique=True
+    )
 
     comment_view_permissions = [SubmissionViewPermission]
     watch_permissions = {"SubmissionSerializer": [SubmissionViewPermission]}
@@ -769,7 +771,9 @@ class ArtistTag(Model):
     id = ShortCodeField(default=gen_shortcode, db_index=True, primary_key=True)
     user = ForeignKey("User", on_delete=CASCADE)
     submission = ForeignKey("Submission", on_delete=CASCADE)
-    display_position = FloatField(db_index=True, default=get_next_artist_position)
+    display_position = FloatField(
+        db_index=True, default=get_next_artist_position, unique=True
+    )
     hidden = BooleanField(default=False, db_index=True)
 
     class Meta:
@@ -892,7 +896,9 @@ class CharacterTag(Model):
     id = ShortCodeField(default=gen_shortcode, db_index=True, primary_key=True)
     character = ForeignKey("Character", on_delete=CASCADE)
     submission = ForeignKey("Submission", on_delete=CASCADE)
-    display_position = FloatField(db_index=True, default=get_next_character_position)
+    display_position = FloatField(
+        db_index=True, default=get_next_character_position, unique=True
+    )
     hidden = BooleanField(default=False, db_index=True)
     reference = BooleanField(default=False, db_index=True)
 

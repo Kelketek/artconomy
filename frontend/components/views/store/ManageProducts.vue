@@ -10,8 +10,12 @@
     <v-col cols="12">
       <ac-draggable-list :list="list">
         <template v-slot:default="{element, index}">
-          <v-col cols="12" sm="3" md="4" lg="3" xl="2" class="draggable-item">
-            <ac-product-manager :product="element" :username="username" :key="index"/>
+          <v-col cols="12" sm="3" md="4" lg="3" xl="2" :key="index">
+            <ac-product-manager
+                :product="element"
+                :username="username"
+                :key="index"
+            />
           </v-col>
         </template>
       </ac-draggable-list>

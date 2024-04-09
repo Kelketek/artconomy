@@ -48,7 +48,8 @@ git+https://github.com/thornomad/django-hitcount.git@fcf399698455d656810a9456ccd
 django-markdown2
 # Adds model fields for tracking money, creating a composite field that has both a currency column and an amount colum
 # under the hood transparently.
-django-money
+# Currently pinned to 3.2 until this issue is resolved: https://github.com/django-money/django-money/issues/731
+django-money==3.2
 # Allows for some preprocessing of emails being sent out to do neat things like adjust URLs and CSS classes
 django-premailer
 # Library for providing One Time Passwords for 2FA apps

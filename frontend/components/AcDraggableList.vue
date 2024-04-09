@@ -30,7 +30,7 @@ import {Sortable} from 'sortablejs-vue3'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {ListController} from '@/store/lists/controller.ts'
-import diff, {DiffPatch} from 'list-diff.js'
+import diff, {DELETION, DiffPatch, INSERTION} from 'list-diff.js'
 import {artCall} from '@/lib/lib.ts'
 import {VCol} from 'vuetify/lib/components/VGrid/index.mjs'
 import {SortableEvent} from 'sortablejs'
@@ -45,7 +45,7 @@ declare interface AcDraggableListProps {
   failureMessage?: string,
   emptyMessage?: string,
   showPagination?: boolean,
-  list: ListController<T>
+  list: ListController<T>,
 }
 
 const props = withDefaults(defineProps<AcDraggableListProps>(), {
@@ -63,6 +63,7 @@ const listToSortable = (list: SingleController<T>[]): SortableItem<T>[] => {
 const sortableList = computed({
   get(): SortableItem<T>[] {
     const list = listToSortable(props.list.list)
+    // Mark this for forced reactivity. The sorting does not seem to be reacting deeply to the model values as expected.
     list.sort((a, b) => -(a.controller.patchers.display_position.model - b.controller.patchers.display_position.model))
     return list
   },
@@ -82,18 +83,18 @@ const sortableList = computed({
     let index: number
     let move: DiffPatch<T[keyof T]>
     const oldList = [...sortableList.value]
-    if (moves.length === 1 && moves[0].type === 0) {
+    if (moves.length === 1 && moves[0].type === DELETION) {
       move = moves[0]
       oldList[move.index].controller.deleted = true
       return
     }
     // This is the insertion move. It tells us the target index where our resulting item was inserted.
-    move = moves.filter((move) => move.type === 1)[0]
+    move = moves.filter((move) => move.type === INSERTION)[0]
     index = move.index
     // If we delete after the fact, it means that our target index will shift downward. The algorithm only deletes
     // afterward in cases where our index will shift down-- it doesn't do it when moving us toward the beginning,
     // but to the end.
-    if (moves[1].type === 0) {
+    if (moves[1].type === DELETION) {
       index -= 1
     }
     const setPosition = (response: T) => {
