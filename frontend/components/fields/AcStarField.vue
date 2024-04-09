@@ -1,5 +1,5 @@
 <template>
-  <v-rating :model-value="modelValue" @update:model-value="update"></v-rating>
+  <v-rating :model-value="value" @update:model-value="update"></v-rating>
 </template>
 
 <style>
@@ -9,8 +9,17 @@
 </style>
 
 <script setup lang="ts">
-const props = defineProps<{modelValue: number|null}>()
+import {computed} from 'vue'
+
+const props = defineProps<{modelValue?: number|null}>()
 const emit = defineEmits<{'update:modelValue': [number]}>()
+
+const value = computed(() => {
+  if (typeof props.modelValue === 'number') {
+    return props.modelValue
+  }
+  return undefined
+})
 
 const update = (val: number|string) => {
   let result: number
