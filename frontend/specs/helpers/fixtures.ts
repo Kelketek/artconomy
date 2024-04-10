@@ -42,7 +42,6 @@ export function genUser(overrides?: Partial<User>): User {
     landscape_enabled: false,
     landscape_paid_through: null,
     telegram_link: 'https://t.me/ArtconomyDevBot/?start=Fox_a0b1a06d-7f8d-4294-96d9-4e3713',
-    offered_mailchimp: true,
     artist_mode: true,
     international: false,
     hits: 1,

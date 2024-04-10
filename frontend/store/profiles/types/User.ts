@@ -25,7 +25,6 @@ export interface User {
   landscape: boolean,
   international: boolean,
   landscape_enabled: boolean,
-  offered_mailchimp: boolean,
   artist_mode: boolean,
   hits: number,
   watches: number,

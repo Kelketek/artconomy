@@ -248,8 +248,6 @@ class User(AbstractEmailUser, HitsMixin):
     registration_code = ForeignKey(
         "sales.Promo", null=True, blank=True, on_delete=SET_NULL
     )
-    # Whether the user's been offered the mailing list
-    offered_mailchimp = BooleanField(default=False)
     birthday = DateField(null=True, default=None, db_index=True)
     guest = BooleanField(default=False, db_index=True)
     referred_by = ForeignKey(
@@ -324,7 +322,6 @@ class User(AbstractEmailUser, HitsMixin):
         object_id_field="object_pk",
         related_query_name="hit_counter",
     )
-    mailchimp_id = models.CharField(max_length=32, db_index=True, default="")
     drip_id = models.CharField(max_length=32, db_index=True, default="")
     watch_permissions = {
         "UserSerializer": [UserControls],
@@ -520,9 +517,8 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
 @disable_on_load
 @post_commit_defer
 def mail_tag_tasks(sender, instance, **_kwargs):
-    from apps.profiles.tasks import drip_tag, mailchimp_tag
+    from apps.profiles.tasks import drip_tag
 
-    mailchimp_tag.delay(instance.id)
     drip_tag.delay(instance.id)
 
 

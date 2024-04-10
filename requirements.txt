@@ -160,7 +160,7 @@ django-markdown2==0.3.1
     # via -r requirements.in
 django-money==3.2.0
     # via -r requirements.in
-django-otp==1.4.0
+django-otp==1.4.1
     # via -r requirements.in
 django-premailer==0.2.0
     # via -r requirements.in
@@ -261,8 +261,6 @@ lxml==5.2.1
     #   -r requirements.in
     #   premailer
     #   svglib
-mailchimp3==3.0.21
-    # via -r requirements.in
 markdown==3.6
     # via -r requirements.in
 markdown2==2.4.13
@@ -367,7 +365,6 @@ requests==2.31.0
     #   -r requirements.in
     #   dwollav2
     #   geoip2
-    #   mailchimp3
     #   premailer
     #   stripe
 ruff==0.3.5

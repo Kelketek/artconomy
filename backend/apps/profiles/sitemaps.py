@@ -213,7 +213,7 @@ class RatingsSitemap(Sitemap):
     protocol = "https"
 
     def items(self):
-        return User.objects.filter(is_active=True, guest=False)
+        return User.objects.filter(is_active=True, guest=False).exclude(stars=None)
 
     def lastmod(self, item):
         rating = item.ratings_received.order_by("-created_on").first()

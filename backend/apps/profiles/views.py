@@ -116,7 +116,7 @@ from apps.profiles.serializers import (
     UsernameValidationSerializer,
     UserSerializer,
 )
-from apps.profiles.tasks import drip_subscribe, mailchimp_subscribe
+from apps.profiles.tasks import drip_subscribe
 from apps.profiles.utils import (
     UserClearException,
     available_chars,
@@ -221,7 +221,6 @@ class Register(CreateAPIView):
         # refresh the current object.
         instance.save(
             update_fields=[
-                "offered_mailchimp",
                 "rating",
                 "sfw_mode",
                 "birthday",
@@ -232,7 +231,6 @@ class Register(CreateAPIView):
         instance.artist_profile = ArtistProfile()
         instance.artist_profile.save()
         if add_to_newsletter:
-            mailchimp_subscribe.delay(instance.id)
             drip_subscribe.delay(instance.id)
         login(self.request, instance)
         order_claim = serializer.validated_data.get("order_claim", None)
@@ -1988,7 +1986,6 @@ class MailingListPref(APIView):
     def post(self, request):
         request.user.offered_mailchimp = True
         request.user.save()
-        mailchimp_subscribe.delay(request.user.id)
         drip_subscribe.delay(request.user.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
