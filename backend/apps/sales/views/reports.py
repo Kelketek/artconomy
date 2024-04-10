@@ -85,7 +85,12 @@ class DateConstrained:
     def end_date(self) -> Union[datetime, None]:
         end_date = None
         date_string = self.request.GET.get("end_date", "")
-        default_end = datetime.now(utc)
+        default_end = (utc_now() + relativedelta(days=1)).replace(
+            hour=0,
+            minute=0,
+            second=0,
+            microsecond=0,
+        )
         try:
             end_date = make_aware(parse(date_string), timezone=utc)
         except ParserError:
