@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from unittest.mock import patch
 
 from apps.lib.abstract_models import ADULT, MATURE
@@ -270,6 +270,30 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
                         "custom_fields": {
                             "character_no_ref": "Boop",
                         },
+                    }
+                ]
+            },
+        )
+
+    def test_nsfw_viewer(self, mock_drip):
+        user = UserFactory.create(
+            email="bork@bork.com",
+            username="Bork",
+            drip_id="blargh",
+            birthday=date(1988, 8, 1),
+            rating=ADULT,
+        )
+        drip_tag(user.id)
+        mock_drip.post.assert_called_with(
+            f"/v2/bork/subscribers",
+            json={
+                "subscribers": [
+                    {
+                        "id": "blargh",
+                        "email": "bork@bork.com",
+                        "tags": ["nsfw_viewer"],
+                        "first_name": "Bork",
+                        "custom_fields": {},
                     }
                 ]
             },

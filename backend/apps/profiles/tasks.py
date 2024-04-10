@@ -84,6 +84,11 @@ def drip_tag(self, user_id):
             tags.append("clean_artist")
     if user.buys.filter(deliverables__status__in=PURCHASED_STATUSES).exists():
         tags.append("has_bought")
+    if user.birthday and (
+        user.birthday < timezone.now().date() - relativedelta(years=18)
+    ):
+        if user.rating >= ADULT:
+            tags.append("nsfw_viewer")
     # We don't collect our users' real names. When sending personalized emails, we
     # use their username as their 'first_name' in templates.
     user_info = {
