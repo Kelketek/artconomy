@@ -105,8 +105,6 @@ lxml
 # A non-Django specific library for markdown processing. TODO: Investigate if we can remove this library since
 # django-markdown2 doubtless has a markdown processor inside of it.
 markdown
-# Library for contacting mailchimp and subscribing folks who want to follow our mailing list.
-mailchimp3
 # pandas-- data analysis and manipulation library. At the time of writing we're only using it to handle 'Business Day'
 # calendar calculations, but we're liable to use it for more in time.
 pandas

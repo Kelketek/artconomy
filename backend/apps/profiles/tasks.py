@@ -1,12 +1,10 @@
-import random
-
 from requests import HTTPError
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE
 from apps.profiles.models import Conversation, User, Character
 from apps.sales.constants import PURCHASED_STATUSES
-from apps.sales.mail_campaign import chimp, drip
+from apps.sales.mail_campaign import drip
 from apps.sales.stripe import stripe
 from conf.celery_config import celery_app
 from dateutil.relativedelta import relativedelta
@@ -14,33 +12,6 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
-
-
-def derive_tags(user: User):
-    return [{"name": "artist", "status": "active" if user.artist_mode else "inactive"}]
-
-
-@celery_app.task
-def mailchimp_tag(user_id):
-    user = (
-        User.objects.filter(id=user_id)
-        .exclude(mailchimp_id="")
-        .exclude(is_active=False)
-        .exclude(guest=True)
-        .first()
-    )
-    if not user:
-        return
-    chimp.lists.members.tags.update(
-        list_id=settings.MAILCHIMP_LIST_SECRET,
-        subscriber_hash=user.mailchimp_id,
-        data={"tags": derive_tags(user)},
-    )
-    chimp.lists.members.update(
-        list_id=settings.MAILCHIMP_LIST_SECRET,
-        subscriber_hash=user.mailchimp_id,
-        data={"email_address": user.email},
-    )
 
 
 # Celery rate limits are per-worker, not per-task across the cluster. We use two workers
@@ -128,23 +99,6 @@ def drip_tag(self, user_id):
         if status_code == status.HTTP_429_TOO_MANY_REQUESTS:
             self.retry(exc=err)
         raise
-
-
-@celery_app.task
-def mailchimp_subscribe(user_id):
-    if not settings.MAILCHIMP_LIST_SECRET:
-        return
-    user = User.objects.get(id=user_id)
-    user.mailchimp_id = chimp.lists.members.create(
-        settings.MAILCHIMP_LIST_SECRET,
-        {
-            "email_address": user.email,
-            "status": "subscribed",
-            "merge_fields": {},
-        },
-    )["id"]
-    user.save()
-    mailchimp_tag.delay(user_id)
 
 
 @celery_app.task

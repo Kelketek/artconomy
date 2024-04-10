@@ -380,7 +380,7 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import AcProductSlider from '@/components/AcProductSlider.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import {computed, ref} from 'vue'
+import {computed, onMounted, ref} from 'vue'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import {useRouter} from 'vue-router'
 import {useDisplay, useTheme} from 'vuetify'
@@ -392,7 +392,6 @@ const featured = useList<Product>('featured', {
   endpoint: '/api/sales/featured-products/',
   params: {size: 6},
 })
-featured.firstRun()
 
 const theme = useTheme()
 
@@ -433,7 +432,6 @@ const commissions = useList<Submission>(
       params: {size: 6},
     },
 )
-commissions.firstRun()
 
 const submissions = useList<Submission>(
     'submissions', {
@@ -441,7 +439,6 @@ const submissions = useList<Submission>(
       params: {size: 6},
     },
 )
-submissions.firstRun()
 
 const communitySubmissions = useList<Submission>(
     'communitySubmissions', {
@@ -449,13 +446,12 @@ const communitySubmissions = useList<Submission>(
       params: {size: 6},
     },
 )
-communitySubmissions.firstRun()
 
 const characters = useList('newCharacters', {
   endpoint: '/api/profiles/new-characters/',
   params: {size: 6},
 })
-characters.firstRun()
+
 
 const {rating, isRegistered} = useViewer()
 const router = useRouter()
@@ -723,4 +719,12 @@ const featuredOrder = computed(() => isRegistered.value ? 2 : 1)
 const randomBanner = banners[Math.floor(Math.random() * banners.length)]
 
 const {prerendering} = usePrerendering()
+
+onMounted(() => {
+  featured.firstRun()
+  commissions.firstRun()
+  submissions.firstRun()
+  communitySubmissions.firstRun()
+  characters.firstRun()
+})
 </script>
