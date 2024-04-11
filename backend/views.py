@@ -46,6 +46,7 @@ def base_template(request, extra=None, exception=None):
         "mastodon_profiles": mastodon_profiles_for_routes(request.path),
         "drip_account_id": settings.DRIP_ACCOUNT_ID,
         "ga_account_id": settings.GA_ACCOUNT_ID,
+        "fb_pixel_id": settings.FB_PIXEL_ID,
         "exception": exception,
         "theocratic_ban": theocratic_ban,
     }

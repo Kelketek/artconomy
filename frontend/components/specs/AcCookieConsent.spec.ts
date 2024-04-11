@@ -12,6 +12,7 @@ describe('AcCookieConsent.vue', () => {
   let wrapper: VueWrapper<any>
   window._drip = vi.fn()
   window._ga = vi.fn()
+  window._fb = vi.fn()
   beforeEach(() => {
     store = createStore()
   })

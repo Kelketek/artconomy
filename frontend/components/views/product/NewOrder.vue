@@ -460,6 +460,14 @@ const goToOrder = (order: Order) => {
     link.name = 'SaleDeliverablePayment'
     delete link.query.showConfirm
   }
+  if (!props.invoiceMode) {
+    window.fbq('track', 'Purchase', {
+      value: currentPrice.value,
+      currency: 'USD',
+      content_ids: [product.x!.id],
+      content_name: product.x!.name,
+    })
+  }
   router.push(link)
   orderForm.sending = false
 }

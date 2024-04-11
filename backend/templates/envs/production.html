@@ -1,46 +1,83 @@
 <!-- Matomo -->
 <script type="text/javascript">
-var _paq = window._paq || []
-// Don't track things that require cookies if the user has not consented.
-_paq.push(['requireCookieConsent'])
-/* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-_paq.push(['trackPageView'])
-_paq.push(['enableLinkTracking']);
-(function() {
-  var u = 'https://artconomy.matomo.cloud/'
-  _paq.push(['setTrackerUrl', u + 'matomo.php'])
-  _paq.push(['setSiteId', '1'])
-  var d = document; var g = d.createElement('script'); var s = d.getElementsByTagName('script')[0]
-  g.type = 'text/javascript'; g.async = true; g.defer = true; g.src = '//cdn.matomo.cloud/artconomy.matomo.cloud/matomo.js'; s.parentNode.insertBefore(g, s)
-})()
+  var _paq = window._paq || []
+  // Don't track things that require cookies if the user has not consented.
+  _paq.push(['requireCookieConsent'])
+  /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
+  _paq.push(['trackPageView'])
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u = 'https://artconomy.matomo.cloud/'
+    _paq.push(['setTrackerUrl', u + 'matomo.php'])
+    _paq.push(['setSiteId', '1'])
+    var d = document
+    var g = d.createElement('script')
+    var s = d.getElementsByTagName('script')[0]
+    g.type = 'text/javascript'
+    g.async = true
+    g.defer = true
+    g.src = '//cdn.matomo.cloud/artconomy.matomo.cloud/matomo.js'
+    s.parentNode.insertBefore(g, s)
+  })()
 </script>
 <!-- End Matomo Code -->
 <!-- Drip -->
 <script type="text/javascript">
-  var _dcq = _dcq || [];
-  var _dcs = _dcs || {};
-  _dcs.account = '{{ drip_account_id  }}';
+  var _dcq = _dcq || []
+  var _dcs = _dcs || {}
+  _dcs.account = '{{ drip_account_id  }}'
 
   // Only called if the cookie consent determines it should be.
   _drip = function() {
-    var dc = document.createElement('script');
-    dc.type = 'text/javascript'; dc.async = true;
-    dc.src = '//tag.getdrip.com/{{ drip_account_id  }}.js';
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(dc, s);
+    var dc = document.createElement('script')
+    dc.type = 'text/javascript'
+    dc.async = true
+    dc.src = '//tag.getdrip.com/{{ drip_account_id  }}.js'
+    var s = document.getElementsByTagName('script')[0]
+    s.parentNode.insertBefore(dc, s)
   }
 </script>
 <script type="text/javascript">
   _ga = function() {
     var dc = document.createElement('script')
-    dc.type = 'text/javascript'; dc.async = true;
-    dc.src = '//www.googletagmanager.com/gtag/js?id={{ ga_account_id  }}';
+    dc.type = 'text/javascript'
+    dc.async = true
+    dc.src = '//www.googletagmanager.com/gtag/js?id={{ ga_account_id  }}'
     var s = document.getElementsByTagName('script')[0]
-    s.parentNode.insertBefore(dc, s);
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', '{{ ga_account_id }}');
+    s.parentNode.insertBefore(dc, s)
+    window.dataLayer = window.dataLayer || []
+
+    function gtag() {
+      dataLayer.push(arguments)
+    }
+
+    gtag('js', new Date())
+    gtag('config', '{{ ga_account_id }}')
   }
 </script>
+<script type="text/javascript">
+  window.fbq = function() {
+    fbq.callMethod ?
+      fbq.callMethod.apply(n, arguments) : fbq.queue.push(arguments)
+  }
+  window.fbq.queue = []
+  _fb = function() {
+    !function(f, b, e, v, n, t, s) {
+      n = f.fbq
+      if (!f._fbq) f._fbq = n
+      n.push = n
+      n.loaded = !0
+      n.version = '2.0'
+      t = b.createElement(e)
+      t.async = !0
+      t.src = v
+      s = b.getElementsByTagName(e)[0]
+      s.parentNode.insertBefore(t, s)
+    }(window, document, 'script',
+      'https://connect.facebook.net/en_US/fbevents.js')
+    fbq('init', '{{ fb_pixel_id }}')
+    fbq('track', 'PageView')
+  }
+</script>
+<noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id={{ fb_pixel_id }}&ev=PageView&noscript=1"></noscript>
 <!-- end Drip -->

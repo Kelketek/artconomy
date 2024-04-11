@@ -459,6 +459,9 @@ REFUND_FEE = Decimal(get_env("REFUND_FEE", "2.00"))
 # Account ID for Drip
 DRIP_ACCOUNT_ID = get_env("DRIP_ACCOUNT_ID", "")
 
+# Facebook Pixel ID
+FB_PIXEL_ID = get_env("FB_PIXEL_ID", "")
+
 DRIP_API_KEY = get_env("DRIP_API_KEY", "")
 
 GA_ACCOUNT_ID = get_env("GA_ACCOUNT_ID", "")
@@ -724,6 +727,7 @@ CSP_IMG_SRC = tuple(
             "https://www.gravatar.com/",
             # Blog post images on the front page won't load without this.
             "https://artconomy.com/",
+            "https://www.facebook.com/",
         ),
         unpack=True,
     )
@@ -748,6 +752,7 @@ CSP_SCRIPT_SRC = tuple(
             "'unsafe-inline'",
             "data:",
             "blob:",
+            "https://*.facebook.net",
             "https://sentry.io",
             "https://www.googletagmanager.com",
             "https://static.cloudflareinsights.com",

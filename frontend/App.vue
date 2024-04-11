@@ -457,6 +457,7 @@ watch(() => route.fullPath, (newPath: string, oldPath?: string) => {
       return
     }
     window._paq.push(['trackPageView'])
+    window.fbq('track', 'PageView')
   })
 }, {immediate: true})
 

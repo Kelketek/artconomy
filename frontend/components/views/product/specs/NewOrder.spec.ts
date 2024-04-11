@@ -17,6 +17,7 @@ let router: Router
 
 describe('NewOrder.vue', () => {
   beforeEach(() => {
+    window.fbq = vi.fn()
     store = createStore()
     router = createRouter({
       history: createWebHistory(),
@@ -93,7 +94,7 @@ describe('NewOrder.vue', () => {
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -109,7 +110,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -146,7 +147,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -191,7 +192,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -241,7 +242,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -335,7 +336,7 @@ router,
       {
         ...vueSetup({
           store,
-router,
+          router,
         }),
         props: {
           productId: '1',
@@ -392,7 +393,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -412,7 +413,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -458,7 +459,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -507,7 +508,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -556,7 +557,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -585,7 +586,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -610,7 +611,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -635,7 +636,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',
@@ -659,7 +660,7 @@ router,
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         productId: '1',

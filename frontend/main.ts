@@ -43,6 +43,8 @@ declare global {
     StripeInstance: Stripe,
     _drip: () => void,
     _ga: () => void,
+    _fb: () => void,
+    fbq: (...args: any) => void,
   }
 }
 

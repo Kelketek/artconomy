@@ -50,6 +50,7 @@ Object.defineProperty(window, 'localStorage', {value: new LocalStorageMock()})
 global.ResizeObserver = require('resize-observer-polyfill')
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
+window.fbq = vi.fn();
 
 document.hasFocus = () => true
 clearBody()

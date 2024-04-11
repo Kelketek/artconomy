@@ -37,8 +37,8 @@
               least private cookie we use.
             </p>
             <p>
-              For the moment, we have also introduced Google Analytics on advice of a marketing advisor. We are
-              evaluating the possibility of removal pending determination of how our advisor uses the service.
+              For the moment, we have also introduced Google Analytics and Meta Pixel on advice of our marketing advisors.
+              We are evaluating the possibility of removal pending determination of how our advisors uses the service.
             </p>
           </v-col>
         </v-row>
@@ -177,10 +177,10 @@ class AcCookieConsent extends ArtVue {
     } else {
       window._paq.push(['forgetCookieConsentGiven'])
     }
-    // If and when we add Pinterest ads back in, we'll need to do something with the third party consent cookies.
     if (this.thirdParty) {
       window._drip()
       window._ga()
+      window._fb()
     }
   }
 
