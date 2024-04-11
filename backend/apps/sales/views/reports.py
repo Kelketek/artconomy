@@ -152,9 +152,9 @@ class CustomerHoldingsCSV(DateConstrained, ListAPIView):
 
     def finalize_response(self, request, response, *args, **kwargs):
         response = super().finalize_response(request, response, *args, **kwargs)
-        response[
-            "Content-Disposition"
-        ] = f"attachment; filename=holdings_before_{self.end_date.date()}.csv"
+        response["Content-Disposition"] = (
+            f"attachment; filename=holdings_before_{self.end_date.date()}.csv"
+        )
         return response
 
 

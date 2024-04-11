@@ -50,6 +50,7 @@ from apps.sales.tasks import (
     run_billing,
     stripe_transfer,
     withdraw_all,
+    drip_placed_order,
 )
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -1162,3 +1163,29 @@ class TestCancelAbandonedOrders(EnsurePlansMixin, TestCase):
         self.assertEqual(Notification.objects.all().count(), 0)
         self.assertFalse(payment_pending.order.seller.artist_profile.commissions_closed)
         self.assertEqual(len(mail.outbox), 0)
+
+
+@patch("apps.sales.tasks.drip")
+@override_settings(DRIP_ACCOUNT_ID="bork")
+class DripTaskTestCase(EnsurePlansMixin, TestCase):
+    def test_order_placed(self, mock_drip):
+        mock_drip.post.assert_not_called()
+        deliverable = DeliverableFactory.create(
+            order__buyer__email="beep@example.com", order__buyer__username="Dude"
+        )
+        drip_placed_order(deliverable.order.id)
+        mock_drip.post.assert_called_with(
+            f"/v3/bork/shopper_activity/order",
+            json={
+                "provider": "artconomy",
+                "email": "beep@example.com",
+                "order_public_id": str(deliverable.order.id),
+                "order_url": "https://artconomy.vulpinity.com/orders/Dude/order/"
+                f"{deliverable.order.id}/deliverables/{deliverable.id}/",
+                "action": "placed",
+                "grand_total": float(deliverable.invoice.total().amount),
+                "currency": "USD",
+                "product": str(deliverable.product.id),
+            },
+        )
+        self.assertEqual(mock_drip.post.call_count, 1)

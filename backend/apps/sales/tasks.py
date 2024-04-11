@@ -10,7 +10,7 @@ from apps.lib.models import (
     SUBSCRIPTION_DEACTIVATED,
     ref_for_instance,
 )
-from apps.lib.utils import notify, require_lock, send_transaction_email
+from apps.lib.utils import notify, require_lock, send_transaction_email, FakeRequest
 from apps.profiles.models import User
 from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
@@ -35,6 +35,7 @@ from apps.sales.constants import (
     VOID,
 )
 from apps.sales.line_item_funcs import divide_amount
+from apps.sales.mail_campaign import drip
 from apps.sales.models import (
     CreditCardToken,
     Deliverable,
@@ -42,6 +43,7 @@ from apps.sales.models import (
     ServicePlan,
     StripeAccount,
     TransactionRecord,
+    Order,
 )
 from apps.sales.stripe import money_to_stripe, stripe
 from apps.sales.utils import (
@@ -67,6 +69,8 @@ from django.utils.datetime_safe import datetime
 from moneyed import Money
 from pytz import UTC
 from stripe.error import CardError
+
+from shortcuts import make_url
 
 logger = logging.getLogger(__name__)
 
@@ -627,3 +631,45 @@ def destroy_expired_invoices():
     Invoice.objects.filter(
         status__in=[VOID, DRAFT, OPEN], expires_on__lte=timezone.now()
     ).delete()
+
+
+@celery_app.task(
+    bind=True,
+    rate_limit="10/h",
+    max_retries=50,
+    retry_jitter=True,
+)
+def drip_placed_order(self, order_id):
+    if not settings.DRIP_ACCOUNT_ID:
+        return
+    order = Order.objects.get(id=order_id)
+    buyer = order.buyer
+    if not buyer:
+        return
+    if buyer.buys.all().count() > 1:
+        return
+    deliverable = order.deliverables.last()
+    total = deliverable.invoice.total()
+    data = {
+        "provider": "artconomy",
+        "email": buyer.email,
+        "order_public_id": str(order.id),
+        "order_url": make_url(
+            f"/orders/{buyer.username}/order/{order.id}/deliverables/{deliverable.id}/",
+        ),
+        "action": "placed",
+        "grand_total": float(total.amount),
+        "currency": str(total.currency),
+    }
+    deliverable = order.deliverables.all().last()
+    if deliverable.product:
+        data["product"] = str(deliverable.product.id)
+    if buyer.drip_id:
+        data["person_id"] = buyer.drip_id
+    try:
+        drip.post(
+            f"/v3/{settings.DRIP_ACCOUNT_ID}/shopper_activity/order",
+            json=data,
+        )
+    except Exception as err:
+        self.retry(exc=err)

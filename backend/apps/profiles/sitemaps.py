@@ -89,7 +89,9 @@ class UserFavoritesListingSitemap(Sitemap):
     protocol = "https"
 
     def items(self):
-        return User.objects.filter(is_active=True, guest=False, favorites_hidden=False)
+        return User.objects.filter(
+            is_active=True, guest=False, favorites_hidden=False
+        ).exclude(favorites__isnull=True)
 
     def lastmod(self, item):
         return item.last_login or item.date_joined

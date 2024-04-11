@@ -229,6 +229,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.sales.views.webhooks import PAYPAL_WEBHOOK_ROUTES
+from apps.sales.tasks import drip_placed_order
 from shortcuts import make_url
 
 logger = logging.getLogger(__name__)
@@ -487,6 +488,7 @@ class PlaceOrder(CreateAPIView):
                     destination_user=deliverable.order.seller,
                 )
         if self.request.user == user:
+            drip_placed_order.delay(deliverable.order.id)
             for character in deliverable.characters.all():
                 character.shared_with.add(order.seller)
         elif user:
