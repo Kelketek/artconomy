@@ -10,7 +10,7 @@ from apps.lib.models import (
     SUBSCRIPTION_DEACTIVATED,
     ref_for_instance,
 )
-from apps.lib.utils import notify, require_lock, send_transaction_email, FakeRequest
+from apps.lib.utils import notify, require_lock, send_transaction_email
 from apps.profiles.models import User
 from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
@@ -636,13 +636,17 @@ def destroy_expired_invoices():
 @celery_app.task(
     bind=True,
     rate_limit="10/h",
-    max_retries=50,
+    max_retries=30,
     retry_jitter=True,
 )
 def drip_placed_order(self, order_id):
     if not settings.DRIP_ACCOUNT_ID:
         return
-    order = Order.objects.get(id=order_id)
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist as err:
+        # Could be mid-transaction
+        self.retry(exc=err)
     buyer = order.buyer
     if not buyer:
         return
