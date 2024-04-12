@@ -58,7 +58,7 @@
 <script type="text/javascript">
   window.fbq = function() {
     fbq.callMethod ?
-      fbq.callMethod.apply(n, arguments) : fbq.queue.push(arguments)
+      fbq.callMethod.apply(fbq, arguments) : fbq.queue.push(arguments)
   }
   window.fbq.queue = []
   _fb = function() {
