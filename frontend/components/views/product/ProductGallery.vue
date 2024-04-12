@@ -47,6 +47,6 @@ import LinkedSubmission from '@/types/LinkedSubmission.ts'
 
 const props = defineProps<SubjectiveProps & ProductProps>()
 const {product, url} = useProduct(props)
-const gallery = useList<LinkedSubmission>(`product__${props.productId}__gallery`, {endpoint: url.value})
+const gallery = useList<LinkedSubmission>(`product__${props.productId}__gallery`, {endpoint: `${url.value}samples/`})
 gallery.firstRun()
 </script>
