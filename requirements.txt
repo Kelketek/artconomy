@@ -30,8 +30,6 @@ asttokens==2.4.1
     # via stack-data
 async-property==0.2.2
     # via adrf
-async-timeout==4.0.3
-    # via redis
 attrs==23.2.0
     # via
     #   aiohttp
@@ -234,7 +232,7 @@ hyperlink==21.0.0
     # via
     #   autobahn
     #   twisted
-idna==3.6
+idna==3.7
     # via
     #   anyio
     #   httpx
