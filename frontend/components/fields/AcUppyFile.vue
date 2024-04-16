@@ -209,7 +209,7 @@ onMounted(() => {
     // @ts-ignore
     doneButtonHandler: null,
   })
-  const companionUrl = `${window.location.origin}/companion`
+  const companionUrl = `${window.location.origin}/companion/`
   if (window.chrome) {
     // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
     uppy.value.use(Url, {

@@ -729,6 +729,8 @@ CSP_IMG_SRC = tuple(
             "https://artconomy.com/",
             "https://www.facebook.com/",
             f"blob:https://{DEFAULT_DOMAIN}/*",
+            # Uppy freaks out without this :/
+            "data:",
         ),
         unpack=True,
     )
