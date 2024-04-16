@@ -10,6 +10,8 @@ def make_url(base_url, overrides=None):
         "domain": settings.DEFAULT_DOMAIN,
         **overrides,
     }
+    if base_url.startswith("http"):
+        return base_url
     return "{proto}://{domain}{base_url}".format(
         base_url=base_url,
         **context,

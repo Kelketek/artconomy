@@ -15,4 +15,5 @@ Environment={{key}}='{{value}}'
 {% for key, value in companion_settings_complex.items() %}
 Environment={{key}}='{{value|to_json}}'
 {% endfor %}
+# This has been known to occasionally change for some reason-- be on the lookout for it.
 ExecStart=/home/{{ env_prefix }}/artconomy/node_modules/@uppy/companion/bin/companion

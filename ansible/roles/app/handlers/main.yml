@@ -41,6 +41,9 @@
 - name: restart uwsgi
   service: name=uwsgi state=restarted
 
+- name: restart companion
+  service: name=artconomy-companion state=restarted
+
 - name: restart daphne
   service: name=artconomy-daphne state=restarted
 
