@@ -210,14 +210,12 @@ onMounted(() => {
     doneButtonHandler: null,
   })
   const companionUrl = `${window.location.origin}/companion/`
-  if (window.chrome) {
-    // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
-    uppy.value.use(Url, {
-      target: Dashboard,
-      companionUrl,
-      companionCookiesRule: 'include',
-    })
-  }
+  // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
+  uppy.value.use(Url, {
+    target: Dashboard,
+    companionUrl,
+    companionCookiesRule: 'include',
+  })
   uppy.value.on('upload-success', (file: UppyFile | undefined, response: any) => {
     if (props.maxNumberOfFiles > 1) {
       emit('update:modelValue', [...props.modelValue || [], response.body.id])
