@@ -728,6 +728,9 @@ CSP_IMG_SRC = tuple(
             # Blog post images on the front page won't load without this.
             "https://artconomy.com/",
             "https://www.facebook.com/",
+            # Uppy freaks out without these :/
+            "blob:",
+            "data:",
         ),
         unpack=True,
     )

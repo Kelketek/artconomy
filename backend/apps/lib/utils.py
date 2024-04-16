@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, List, Optional, Type, Union
 from uuid import uuid4
 
 import markdown
+import geoip2.errors as geoip_errors
 from django.contrib.gis.geoip2 import GeoIP2
 
 from apps.lib.models import (
@@ -1272,7 +1273,10 @@ def check_theocratic_ban(ip):
     if settings.BYPASS_THEOCRACIES:
         return False
     geo_ip = GeoIP2()
-    city_data = geo_ip.city(ip)
+    try:
+        city_data = geo_ip.city(ip)
+    except geoip_errors.AddressNotFoundError:
+        return False
     for check in settings.THEOCRACIES["blocked_regions"]:
         results = []
         for item in check:

@@ -12,7 +12,8 @@ WorkingDirectory=/home/{{ env_prefix }}/artconomy/
 {% for key, value in companion_settings.env.items() %}
 Environment={{key}}='{{value}}'
 {% endfor %}
-{% for key, value in companion_settings_complex.items() %}
+{% for key, value in companion_settings_complex.env.items() %}
 Environment={{key}}='{{value|to_json}}'
 {% endfor %}
-ExecStart=/home/{{ env_prefix }}/artconomy/node_modules/bin/companion
+# This has been known to occasionally change for some reason-- be on the lookout for it.
+ExecStart=/home/{{ env_prefix }}/artconomy/node_modules/@uppy/companion/bin/companion

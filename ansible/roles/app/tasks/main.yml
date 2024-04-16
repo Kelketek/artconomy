@@ -226,6 +226,7 @@
     dest: "/etc/systemd/system/artconomy-companion.service"
   notify:
     - reload systemd
+    - restart companion
 
 - name: Enable uwsgi service
   service: name=uwsgi enabled=true
