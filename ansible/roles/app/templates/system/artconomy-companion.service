@@ -15,4 +15,4 @@ Environment={{key}}='{{value}}'
 {% for key, value in companion_settings_complex.items() %}
 Environment={{key}}='{{value|to_json}}'
 {% endfor %}
-ExecStart=/home/{{ env_prefix }}/artconomy/node_modules/bin/companion
+ExecStart=/home/{{ env_prefix }}/artconomy/node_modules/@uppy/companion/bin/companion
