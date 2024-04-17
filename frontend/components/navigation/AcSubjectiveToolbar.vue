@@ -7,11 +7,11 @@
       </v-toolbar-title>
     </slot>
     <v-spacer/>
-    <v-toolbar-items v-if="!display.xs">
+    <v-toolbar-items v-if="!display.xs.value">
       <slot/>
     </v-toolbar-items>
   </v-toolbar>
-  <v-toolbar v-if="display.xs" dense class="subjective-mini-buttons" height="32px">
+  <v-toolbar v-if="display.xs.value" dense class="subjective-mini-buttons" height="32px">
     <slot/>
   </v-toolbar>
 </template>
@@ -38,4 +38,6 @@ import {profileLink} from '@/lib/otherFormatters.ts'
 const props = defineProps<SubjectiveProps>()
 const {subjectHandler, subject} = useSubject(props)
 const display = useDisplay()
+// @ts-ignore
+window.display = display
 </script>
