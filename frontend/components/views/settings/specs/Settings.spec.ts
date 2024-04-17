@@ -3,7 +3,7 @@ import Settings from '../Settings.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {Router, createRouter, createWebHistory} from 'vue-router'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, createTestRouter, flushPromises, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
 import Credentials from '../Credentials.vue'
 import Avatar from '../Avatar.vue'
 import Payment from '../payment/Payment.vue'
@@ -17,6 +17,7 @@ import Invoices from '../payment/Invoices.vue'
 import Email from '@/components/views/settings/Email.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 vi.useFakeTimers()
 
@@ -127,12 +128,12 @@ describe('Settings.vue', () => {
       }),
       props: {username: 'Fox'},
     })
-    expect((wrapper.vm.$refs.vm as any).drawer).toBe(false)
+    await waitFor(() => expect((wrapper.findComponent(Settings)!.vm as any).drawer).toBe(false))
     // Upstream Type is missing an annotation here.
     // @ts-ignore
     expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(-110%)')
     await wrapper.find('#more-settings-button').trigger('click')
-    await wrapper.vm.$nextTick()
+    await nextTick()
     // @ts-ignore
     expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(0%)')
   })
@@ -149,7 +150,7 @@ describe('Settings.vue', () => {
       }),
       props: {username: 'Fox'},
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('Options')
   })
@@ -166,13 +167,13 @@ describe('Settings.vue', () => {
       }),
       props: {username: 'Fox'},
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('#avatar-settings').exists()).toBe(false)
     await router.push({
       name: 'Avatar',
       params: {username: 'Fox'},
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('#avatar-settings').exists()).toBe(true)
   })
 })

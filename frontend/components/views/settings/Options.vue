@@ -47,6 +47,11 @@
                   <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
                 </v-alert>
               </v-col>
+              <v-col cols="12" v-else>
+                <v-alert type="error" :aria-hidden="patchers.sfw_mode.model ? undefined : true" :class="{invisible: !patchers.sfw_mode.model}">
+                  SFW Mode is enabled. Content settings are disabled while SFW mode is in use.
+                </v-alert>
+              </v-col>
               <v-col cols="12" offset-md="3" md="6" :class="{disabled: patchers.sfw_mode.model}">
                 <ac-patch-field
                     field-type="ac-birthday-field"
@@ -115,67 +120,57 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import Subjective from '@/mixins/subjective.ts'
-import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import Alerts from '@/mixins/alerts.ts'
-import AcTagField from '@/components/fields/AcTagField.vue'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {Patch} from '@/store/singles/patcher.ts'
 import {differenceInYears} from 'date-fns'
-import {ContentRating} from '@/types/ContentRating.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
+import {computed} from 'vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
 
-@Component({
-  components: {
-    AcTagField,
-    AcLoadingSpinner,
-    AcPatchField,
-  },
+const props = defineProps<SubjectiveProps>()
+
+const {theocraticBan} = useViewer()
+const {subjectHandler} = useSubject(props)
+
+const patchers = computed(() => {
+  return (subjectHandler.user as SingleController<User>).patchers
 })
-class Options extends mixins(Viewer, Subjective, Alerts) {
-  public ratingOptions = RATINGS_SHORT
 
-  public EXTREME = 3
-  public ratingLongDesc = RATING_LONG_DESC
-  public ratingColor = RATING_COLOR
+const unverifiedInTheocracy = computed(() => {
+  return theocraticBan.value && !patchers.value.verified_adult.model
+})
 
-  public get adultAllowed() {
-    if (this.patchers.sfw_mode.model || this.unverifiedInTheocracy) {
-      return false
-    }
-    // @ts-ignore
-    const birthday = this.patchers.birthday.model
-    if (birthday === null) {
-      return false
-    }
-    return differenceInYears(new Date(), parseISO(birthday)) >= 18
+const adultAllowed = computed(() => {
+  if (patchers.value.sfw_mode.model || unverifiedInTheocracy.value) {
+    return false
   }
-
-  public get unverifiedInTheocracy() {
-    return this.theocraticBan && !this.patchers.verified_adult.model
+  // @ts-ignore
+  const birthday = patchers.value.birthday.model
+  if (birthday === null) {
+    return false
   }
+  return differenceInYears(new Date(), parseISO(birthday)) >= 18
+})
 
-  public get patchers() {
-    return (this.subjectHandler.user as SingleController<User>).patchers
-  }
+const store = useStore<ArtState>()
 
-  public updateCookieSettings() {
-    this.$store.commit('setShowCookieDialog', true)
-  }
+const updateCookieSettings = () => {
+  store.commit('setShowCookieDialog', true)
 }
-
-export default toNative(Options)
 </script>
 
 <!--suppress CssUnusedSymbol -->
 <style scoped>
 .disabled {
   opacity: .5;
+}
+.invisible {
+  opacity: 0;
 }
 </style>

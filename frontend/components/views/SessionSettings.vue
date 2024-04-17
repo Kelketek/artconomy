@@ -12,6 +12,11 @@
                   <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
                 </v-alert>
               </v-col>
+              <v-col cols="12" v-else>
+                <v-alert type="error" :aria-hidden="patchers.sfw_mode.model ? undefined : true" :class="{invisible: !patchers.sfw_mode.model}">
+                  SFW Mode is enabled. Content settings are disabled while SFW mode is in use.
+                </v-alert>
+              </v-col>
               <v-col cols="12" md="6" lg="4" order="2" order-md="1">
                 <ac-patch-field
                     field-type="ac-birthday-field"
@@ -98,9 +103,17 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
+<style scoped>
+.disabled {
+  opacity: .5;
+}
+.invisible {
+  opacity: 0;
+}
+</style>
+
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {differenceInYears} from 'date-fns'
@@ -108,52 +121,50 @@ import {BASE_URL} from '@/lib/lib.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
+import {computed, onMounted} from 'vue'
+import {ArtState} from '@/store/artState.ts'
+import {useStore} from 'vuex'
+import {useRouter} from 'vue-router'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcPatchField,
-  },
+
+const {viewerHandler, theocraticBan, isRegistered, rawViewerName} = useViewer()
+const store = useStore<ArtState>()
+const router = useRouter()
+
+const laptop = new URL('/static/images/laptop.png', BASE_URL).href
+
+const patchers = computed(() => {
+  return (viewerHandler.user as SingleController<AnonUser>).patchers
 })
-class SessionSettings extends mixins(Viewer) {
-  public laptop = new URL('/static/images/laptop.png', BASE_URL).href
-  public EXTREME = 3
 
-  public get patchers() {
-    return (this.viewerHandler.user as SingleController<AnonUser>).patchers
-  }
+const unverifiedInTheocracy = computed(() => {
+  return theocraticBan.value && !patchers.value.verified_adult.model
+})
 
-  public get unverifiedInTheocracy() {
-    return this.theocraticBan && !this.patchers.verified_adult.model
-  }
-
-  public get adultAllowed() {
-    if (this.patchers.sfw_mode.model) {
-      return false
-    }
-    if (this.unverifiedInTheocracy) {
-      return false
-    }
-    const birthday = this.patchers.birthday.model
-    if (birthday === null) {
-      return false
-    }
-    return differenceInYears(new Date(), parseISO(birthday)) >= 18
-  }
-
-  public updateCookieSettings() {
-    this.$store.commit('setShowCookieDialog', true)
-  }
-
-  public created() {
-    if (this.isRegistered) {
-      this.$router.replace({
-        name: 'Settings',
-        params: {username: this.rawViewerName},
-      })
-    }
-  }
+const updateCookieSettings = () => {
+  store.commit('setShowCookieDialog', true)
 }
 
-export default toNative(SessionSettings)
+const adultAllowed = computed(() => {
+  if (patchers.value.sfw_mode.model) {
+    return false
+  }
+  if (unverifiedInTheocracy.value) {
+    return false
+  }
+  const birthday = patchers.value.birthday.model
+  if (birthday === null) {
+    return false
+  }
+  return differenceInYears(new Date(), parseISO(birthday)) >= 18
+})
+
+onMounted(() => {
+  if (isRegistered.value) {
+    router.replace({
+      name: 'Settings',
+      params: {username: rawViewerName.value},
+    })
+  }
+})
 </script>

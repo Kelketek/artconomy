@@ -21,7 +21,7 @@
         <ac-avatar :username="username" :show-name="false"/>
       </v-toolbar>
       <v-toolbar color="secondary" class="settings-nav-toolbar">
-        <v-toolbar-title>{{$route.name}}</v-toolbar-title>
+        <v-toolbar-title>{{route.name}}</v-toolbar-title>
         <v-spacer/>
         <v-toolbar-items>
           <v-btn color="primary" id="more-settings-button" @click="drawer=true" variant="flat">More Settings...</v-btn>
@@ -32,40 +32,31 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import SubjectiveProps from '@/types/SubjectiveProps'
+import {onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {profileLink} from '@/lib/otherFormatters.ts'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcLink,
-    AcAvatar,
-    AcLoadingSpinner,
-    AcSettingNav,
-  },
+const props = defineProps<SubjectiveProps>()
+
+const {subjectHandler, subject, isCurrent} = useSubject(props, true)
+
+const drawer = ref(false)
+
+const route = useRoute()
+const router = useRouter()
+
+onMounted(() => {
+   if (route.name === 'Settings') {
+     router.replace({name: 'Options', params: {username: props.username}})
+   }
 })
-class Settings extends mixins(Subjective, Formatting) {
-  public privateView = true
-  public drawer = false
-
-  public created() {
-    if (this.$route.name === 'Settings') {
-      this.$router.replace({
-        name: 'Options',
-        params: {username: this.username},
-      })
-    }
-  }
-}
-
-export default toNative(Settings)
 </script>
 
 <style scoped>

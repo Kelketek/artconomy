@@ -1,6 +1,6 @@
 <template>
   <div>
-    <ac-form-dialog v-model="showDialog" @submit="setCurrent" title="Cookie Settings">
+    <ac-form-dialog v-model="showDialog" @submit="setCurrent" :large="true" title="Cookie Settings">
       <template v-slot:default>
         <v-card-text>
           Cookies are special pieces of data that help websites keep track of information about a visitor. They can help
@@ -57,7 +57,7 @@
         :model-value="true"
         v-if="cookiesUnset && !showDialog"
         :vertical="true"
-        :attach="$snackbarTarget"
+        :attach="snackbarTarget"
     >
       Artconomy uses cookies to help improve our service.
       <template v-slot:actions>
@@ -93,101 +93,100 @@
   </div>
 </template>
 
-<script lang="ts">
-import {Component, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {ArtVue} from '@/lib/lib.ts'
+import {computed, onMounted, ref} from 'vue'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
+import {useTargets} from '@/plugins/targets.ts'
 
-@Component({
-  components: {AcFormDialog},
-})
-class AcCookieConsent extends ArtVue {
-  required = true
-  forceRecalculate = 0
+const forceRecalculate = ref(0)
+const required = ref(true)
+const store = useStore<ArtState>()
+const {snackbarTarget} = useTargets()
 
-  public acceptAll() {
-    this.firstParty = true
-    this.thirdParty = true
-    this.cookiesUnset = false
-    this.performActions()
-  }
 
-  public onlyEssential() {
-    this.firstParty = false
-    this.thirdParty = false
-    this.cookiesUnset = false
-    this.showDialog = false
-    this.performActions()
-  }
-
-  public setCurrent() {
-    this.firstParty = this.firstParty  // eslint-disable-line
-    this.thirdParty = this.thirdParty  // eslint-disable-line
-    this.cookiesUnset = false
-    this.showDialog = false
-    this.performActions()
-  }
-
-  public get cookiesUnset() {
+const cookiesUnset = computed({
+  get() {
     // Increase the V number when this menu changes so viewers have a chance to reconsider.
     // Also change it in the getter.
-    this.forceRecalculate // eslint-disable-line
+    forceRecalculate.value // eslint-disable-line
     return !parseInt(localStorage.getItem('cookieOptionsSetV1') || '0', 10)
-  }
-
-  public set cookiesUnset(value: boolean) {
-    /* istanbul ignore next */
+  },
+  set(value: boolean) {
     localStorage.setItem('cookieOptionsSetV1', value ? '0' : '1')
-  }
+  },
+})
 
-  public get showDialog() {
-    return this.$store.state.showCookieDialog
+const showDialog = computed({
+  get() {
+    return store.state.showCookieDialog
+  },
+  set(value: boolean) {
+    store.commit('setShowCookieDialog', value)
   }
+})
 
-  public set showDialog(value: boolean) {
-    this.$store.commit('setShowCookieDialog', value)
-  }
-
-  public get firstParty() {
-    this.forceRecalculate  // eslint-disable-line
+const firstParty = computed({
+  get() {
+    forceRecalculate.value  // eslint-disable-line
     return !!parseInt(localStorage.getItem('firstPartyAnalytics') || '1', 10)
-  }
-
-  public set firstParty(value: boolean) {
-    this.forceRecalculate += 1
+  },
+  set(value: boolean) {
+    forceRecalculate.value += 1
     localStorage.setItem('firstPartyAnalytics', value ? '1' : '0')
   }
+})
 
-  public get thirdParty() {
-    this.forceRecalculate  // eslint-disable-line
+const thirdParty = computed({
+  get() {
+    forceRecalculate.value  // eslint-disable-line
     return !!parseInt(localStorage.getItem('thirdPartyAnalytics') || '1', 10)
-  }
-
-  public set thirdParty(value: boolean) {
-    this.forceRecalculate += 1
+  },
+  set(value: boolean) {
+    forceRecalculate.value += 1
     localStorage.setItem('thirdPartyAnalytics', value ? '1' : '0')
-  }
+  },
+})
 
-  public performActions() {
-    if (this.cookiesUnset) {
-      return
-    }
-    if (this.firstParty) {
-      window._paq.push(['rememberCookieConsentGiven'])
-    } else {
-      window._paq.push(['forgetCookieConsentGiven'])
-    }
-    if (this.thirdParty) {
-      window._drip()
-      window._ga()
-      window._fb()
-    }
+const performActions = () => {
+  if (cookiesUnset.value) {
+    return
   }
-
-  public created() {
-    this.performActions()
+  if (firstParty.value) {
+    window._paq.push(['rememberCookieConsentGiven'])
+  } else {
+    window._paq.push(['forgetCookieConsentGiven'])
+  }
+  if (thirdParty.value) {
+    window._drip()
+    window._ga()
+    window._fb()
   }
 }
 
-export default toNative(AcCookieConsent)
+const acceptAll = () => {
+  firstParty.value = true
+  thirdParty.value = true
+  cookiesUnset.value = false
+  performActions()
+}
+
+const onlyEssential = () => {
+  firstParty.value = false
+  thirdParty.value = false
+  cookiesUnset.value = false
+  showDialog.value = false
+  performActions()
+}
+
+const setCurrent = () => {
+  firstParty.value = firstParty.value  // eslint-disable-line
+  thirdParty.value = thirdParty.value  // eslint-disable-line
+  cookiesUnset.value = false
+  showDialog.value = false
+  performActions()
+}
+
+onMounted(performActions)
 </script>

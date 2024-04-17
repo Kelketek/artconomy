@@ -1,17 +1,21 @@
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, mount, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import SessionSettings from '@/components/views/SessionSettings.vue'
 import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {Router} from 'vue-router'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
+let router: Router
 
 describe('SessionSettings.vue', () => {
   beforeEach(() => {
     store = createStore()
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -25,17 +29,14 @@ describe('SessionSettings.vue', () => {
   })
   test('Redirects a registered user', async() => {
     setViewer(store, genUser())
-    const replace = vi.fn()
+    await router.push('/')
+    await router.isReady()
     wrapper = mount(SessionSettings, vueSetup({
       store,
-      mocks: {$router: {replace}},
-      stubs: ['router-link'],
+      router,
     }))
-    await wrapper.vm.$nextTick()
-    expect(replace).toHaveBeenCalledWith({
-      name: 'Settings',
-      params: {username: 'Fox'},
-    })
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('Settings'))
+    expect(router.currentRoute.value.params).toEqual({username: 'Fox'})
   })
   test('Conditionally permits the rating to be adjusted per session', async() => {
     setViewer(store, genAnon({birthday: null}))
