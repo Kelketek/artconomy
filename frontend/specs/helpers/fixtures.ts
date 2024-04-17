@@ -298,6 +298,7 @@ export function genInvoice(overrides?: Partial<Invoice>): Invoice {
     id: genShortcode(),
     status: InvoiceStatus.OPEN,
     type: InvoiceType.SALE,
+    record_only: false,
     created_on: '2019-07-26T15:04:41.078424-05:00',
     bill_to: genUser({username: 'Fox'}),
     issued_by: genUser({username: 'Vulpes'}),

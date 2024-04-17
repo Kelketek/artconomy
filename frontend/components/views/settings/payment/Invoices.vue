@@ -4,24 +4,27 @@
       <template v-slot:default>
         <v-col cols="12" md="8" offset-md="2">
           <v-list>
-            <v-list-item v-for="invoice in invoices.list" :key="invoice.x!.id">
-              <v-list-item-title>
-                <ac-link :to="{name: 'Invoice', params: {username, invoiceId: invoice.x!.id}}">{{invoice.x!.id}}
-                </ac-link>
-                ({{INVOICE_TYPES[invoice.x!.type]}})
-              </v-list-item-title>
-              <v-list-item-subtitle>
-                {{formatDateTime(invoice.x!.created_on)}}
-                <span v-for="ref, index in invoice.x!.targets" :key="index">
+            <template v-for="invoice, invoiceIndex in invoices.list" :key="invoice.x!.id">
+              <v-list-item class="my-2">
+                <v-list-item-title>
+                  <ac-link :to="{name: 'Invoice', params: {username, invoiceId: invoice.x!.id}}">{{invoice.x!.id}}
+                  </ac-link>
+                  ({{INVOICE_TYPES[invoice.x!.type]}})
+                </v-list-item-title>
+                <v-list-item-subtitle>
+                  {{formatDateTime(invoice.x!.created_on)}}
+                  <span v-for="ref, index in invoice.x!.targets" :key="index">
                   <ac-link :to="ref.link"><span v-if="ref.display_name">{{ref.display_name}}</span><span v-else>{{ref.model}} #{{ref.id}}</span></ac-link><span
-                    v-if="index !== (invoice.x!.targets.length - 1)">,</span>
+                      v-if="index !== (invoice.x!.targets.length - 1)">,</span>
                 </span>
-              </v-list-item-subtitle>
-              <template v-slot:append>
-                {{invoice.x!.total}}
-                <ac-invoice-status :invoice="invoice.x"/>
-              </template>
-            </v-list-item>
+                </v-list-item-subtitle>
+                <template v-slot:append>
+                  {{invoice.x!.total}}
+                  <ac-invoice-status :invoice="invoice.x" class="ml-2"/>
+                </template>
+              </v-list-item>
+              <v-divider v-if="invoiceIndex !== (invoices.list.length - 1)"/>
+            </template>
           </v-list>
         </v-col>
       </template>
@@ -30,7 +33,7 @@
   <v-container class="pa-0" v-else>
     <v-toolbar class="invoice-toolbar">
       <v-toolbar-items>
-        <v-btn @click="goBack" color="secondary">
+        <v-btn @click="goBack" color="secondary" variant="flat">
           <v-icon left :icon="mdiArrowLeftBold"/>
           Back
         </v-btn>

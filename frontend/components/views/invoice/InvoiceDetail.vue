@@ -80,11 +80,19 @@
                         <v-col class="text-center" v-if="isStaff && (invoice.x.status === DRAFT)">
                           <v-btn color="primary" variant="flat" @click="() => statusEndpoint('finalize')">Finalize</v-btn>
                         </v-col>
-                        <v-col class="text-center" v-if="invoice.x.status === OPEN">
+                        <v-col class="text-center" v-if="invoice.x.status === OPEN && !invoice.x.record_only">
                           <v-btn color="green" variant="flat" @click="() => showPayment = true">Pay</v-btn>
                         </v-col>
                         <v-col class="text-center" v-if="isStaff && ([DRAFT, OPEN].includes(invoice.x.status))">
                           <v-btn color="danger" variant="flat" @click="() => statusEndpoint('void')">Void</v-btn>
+                        </v-col>
+                      </v-row>
+                      <v-row v-if="invoice.x.record_only && invoice.x.status === OPEN">
+                        <v-col>
+                          <v-alert type="info">
+                            This invoice is for record purposes only and cannot be paid through this site. You must
+                            contact your artist for information on how to pay the amount due.
+                          </v-alert>
                         </v-col>
                       </v-row>
                     </ac-form-container>
