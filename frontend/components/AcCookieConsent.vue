@@ -36,10 +36,6 @@
               actually being seen and followed. This helps us build a website more tailored to customer needs, but is the
               least private cookie we use.
             </p>
-            <p>
-              For the moment, we have also introduced Google Analytics and Meta Pixel on advice of our marketing advisors.
-              We are evaluating the possibility of removal pending determination of how our advisors uses the service.
-            </p>
           </v-col>
         </v-row>
       </template>
@@ -160,7 +156,6 @@ const performActions = () => {
   }
   if (thirdParty.value) {
     window._drip()
-    window._ga()
     window._fb()
   }
 }

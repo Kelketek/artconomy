@@ -464,8 +464,6 @@ FB_PIXEL_ID = get_env("FB_PIXEL_ID", "")
 
 DRIP_API_KEY = get_env("DRIP_API_KEY", "")
 
-GA_ACCOUNT_ID = get_env("GA_ACCOUNT_ID", "")
-
 COUNTRIES_NOT_SERVED = get_env(
     "COUNTRIES_NOT_SERVED",
     (
