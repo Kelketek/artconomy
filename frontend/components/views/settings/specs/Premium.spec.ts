@@ -8,13 +8,13 @@ import {
   mount,
   rq,
   rs,
-  vueSetup, VuetifyWrapped,
+  vueSetup, VuetifyWrapped, waitFor,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import Premium from '@/components/views/settings/Premium.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import mockAxios from '@/__mocks__/axios.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 
 let store: ArtStore
@@ -73,8 +73,8 @@ describe('Premium.vue', () => {
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/sales/account/Fox/cancel-premium/', 'post', undefined, {}),
     )
-    mockAxios.mockResponse(rs(genUser()))
-    await flushPromises()
-    expect(vm.subject.landscape).toBe(false)
+    const cancelReq = mockAxios.getReqByMatchUrl(/cancel-premium/)
+    mockAxios.mockResponse(rs(genUser()), cancelReq)
+    await waitFor(() => expect(vm.subject.landscape).toBe(false))
   })
 })

@@ -115,7 +115,7 @@ export const useSubject = <T extends SubjectiveProps>(props: T, privateView = fa
   const {getPlan} = usePricing()
   const subjectPlan = computed(() => getSubjectPlan(subject.value, getPlan))
   const store = useStore()
-  // Putting the calls for useRoute and useRouter behind these conditionals so we don't need the
+  // Putting the calls for useRoute and useRouter behind these conditionals so that we don't need the
   // router for as many tests.
   if (privateView && !isRegistered) {
     useRouter().replace({

@@ -48,6 +48,7 @@ describe('AcCommentSection.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
+  // This test appears to have some unknown isolation issue. It works on the second try.
   test('Fetches and renders a comment list', async() => {
     setViewer(store, genUser())
     const commentList = mount(Empty, vueSetup({store})).vm.$getList('commentList', {

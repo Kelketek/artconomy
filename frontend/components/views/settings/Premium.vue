@@ -15,7 +15,7 @@
       </v-row>
       <v-row v-if="subject && subject.landscape">
         <v-col class="text-center" cols="2">
-          <v-icon size="x-large" :icon="discordPath.path" />
+          <v-icon size="x-large" :icon="siDiscord.path" />
         </v-col>
         <v-col class="text-center" cols="10">
           To get your special Discord role, <a href="https://discord.gg/4nWK9mf">join the Discord</a>, follow the
@@ -151,12 +151,12 @@
       </ac-form-dialog>
       <v-row no-gutters v-if="(subject!.landscape)">
         <v-col class="text-center" cols="12">
-          <p>Your landscape subscription is paid through {{formatDate(subject!.landscape_paid_through || '')}}.</p>
+          <p>Your landscape subscription is paid through {{formatDate(userSubject.landscape_paid_through || '')}}.</p>
         </v-col>
         <v-col class="text-center" cols="12" sm="6" variant="flat">
           <v-btn :to="{name: 'Payment', params: {username}}" color="primary">Update Payment Settings</v-btn>
         </v-col>
-        <v-col class="text-center" cols="12" sm="6" v-if="subject!.landscape_enabled">
+        <v-col class="text-center" cols="12" sm="6" v-if="userSubject.landscape_enabled">
           <ac-confirmation :action="cancelSubscription">
             <template v-slot:default="{on}">
               <v-btn color="danger" class="cancel-subscription" v-on="on" variant="flat">Cancel Subscription</v-btn>
@@ -177,113 +177,96 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import Subjective from '@/mixins/subjective.ts'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import AcTagField from '@/components/fields/AcTagField.vue'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {artCall} from '@/lib/lib.ts'
 import {siDiscord} from 'simple-icons'
-import Formatting from '@/mixins/formatting.ts'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
-import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import {PaypalConfig} from '@/types/PaypalConfig.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller.ts'
+import {computed, ref, watch} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {statusOk} from '@/mixins/ErrorHandling.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {formatDate} from '@/lib/otherFormatters.ts'
+import {User} from '@/store/profiles/types/User.ts'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcBoundField,
-    AcFormDialog,
-    AcForm,
-    AcFormContainer,
-    AcConfirmation,
-    AcCardManager,
-    AcTagField,
-    AcLoadingSpinner,
-    AcPatchField,
+const showPaypal = ref(false)
+const paypalWarned = ref(false)
+
+const props = defineProps<SubjectiveProps>()
+
+const {subject, subjectHandler, subjectPlan} = useSubject(props)
+
+const userSubject = computed(() => subject.value as User)
+
+const paypal = useSingle<PaypalConfig>(
+    `paypal__${props.username}`,
+    {endpoint: `/api/sales/account/${props.username}/paypal/`},
+)
+
+paypal.get().catch(statusOk(404))
+
+const paypalTemplates = useList<{ name: string, id: string }>(
+    `paypalTemplates__${props.username}`,
+    {
+      endpoint: `/api/sales/account/${props.username}/paypal/templates/`,
+      paginated: false,
+    },
+)
+
+const paypalForm = useForm(`paypalForm__${props.username}`, {
+  endpoint: `/api/sales/account/${props.username}/paypal/`,
+  fields: {
+    key: {
+      value: '',
+      validators: [{name: 'required'}],
+    },
+    secret: {
+      value: '',
+      validators: [{name: 'required'}],
+    },
   },
 })
-class Premium extends mixins(Viewer, Subjective, Formatting) {
-  public discordPath = siDiscord
-  public paypalForm = null as unknown as FormController
-  public paypal = null as unknown as SingleController<PaypalConfig>
-  public paypalTemplates = null as unknown as ListController<{ name: string, id: string }>
-  public showPaypal = false
-  public paypalWarned = false
 
-  public async cancelSubscription() {
-    return artCall({
-      url: `/api/sales/account/${this.username}/cancel-premium/`,
-      method: 'post',
-    }).then(
-        this.subjectHandler.user.setX,
-    )
+const adminPath = computed(() => {
+  if (!subject.value) {
+    return ''
   }
+  return `${location.protocol}//${location.host}/admin/profiles/user/${subject.value.id}/`
+})
 
-  public async deletePaypal() {
-    return this.paypal.delete().catch(this.paypalForm.setErrors)
+const templateList = computed(() => {
+  if (!paypalTemplates.ready) {
+    return []
   }
+  return paypalTemplates.list.map((item) => item.x!)
+})
 
-  public get adminPath() {
-    if (!this.subject) {
-      return ''
-    }
-    return `${location.protocol}//${location.host}/admin/profiles/user/${this.subject.id}/`
-  }
-
-  public get templateList() {
-    if (!this.paypalTemplates.ready) {
-      return []
-    }
-    return this.paypalTemplates.list.map((item) => item.x as { name: string, id: string })
-  }
-
-  @Watch('paypal.x')
-  public configurePaypal(paypal: PaypalConfig | null) {
-    if (!paypal) {
-      return
-    }
-    this.paypalTemplates.firstRun()
-  }
-
-  public created() {
-    this.paypal = this.$getSingle(
-        `paypal__${this.username}`,
-        {endpoint: `/api/sales/account/${this.username}/paypal/`},
-    )
-    this.paypal.get().catch(this.statusOk(404))
-    this.paypalTemplates = this.$getList(
-        `paypalTemplates__${this.username}`,
-        {
-          endpoint: `/api/sales/account/${this.username}/paypal/templates/`,
-          paginated: false,
-        },
-    )
-    this.paypalForm = this.$getForm(`paypalForm__${this.username}`, {
-      endpoint: `/api/sales/account/${this.username}/paypal/`,
-      fields: {
-        key: {
-          value: '',
-          validators: [{name: 'required'}],
-        },
-        secret: {
-          value: '',
-          validators: [{name: 'required'}],
-        },
-      },
-    })
-  }
+const deletePaypal = async () => {
+  return paypal.delete().catch(paypalForm.setErrors)
 }
 
-export default toNative(Premium)
+const cancelSubscription = async () => {
+  return artCall({
+    url: `/api/sales/account/${props.username}/cancel-premium/`,
+    method: 'post',
+  }).then(
+      subjectHandler.user.setX,
+  )
+}
+
+watch(() => paypal.x, (paypal: PaypalConfig|null) => {
+  if (!paypal) {
+    return
+  }
+  paypalTemplates.firstRun()
+})
+
+defineExpose({subject})
 </script>

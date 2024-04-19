@@ -162,32 +162,19 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import Subjective from '@/mixins/subjective.ts'
-import {SingleController} from '@/store/singles/controller.ts'
+<script setup lang="ts">
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {NotificationSettings} from '@/types/NotificationSettings.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcPatchField,
-  },
-})
-class Email extends mixins(Viewer, Subjective) {
-  public notificationSettings: SingleController<NotificationSettings> = null as unknown as SingleController<NotificationSettings>
+const props = defineProps<SubjectiveProps>()
 
-  public created() {
-    this.notificationSettings = this.$getSingle(
-        `${this.username}__notificationPrefs`,
-        {endpoint: `/api/profiles/account/${this.username}/notification-settings/`},
-    )
-    this.notificationSettings.get().then()
-  }
-}
+const notificationSettings = useSingle<NotificationSettings>(
+    `${props.username}__notificationPrefs`,
+    {endpoint: `/api/profiles/account/${props.username}/notification-settings/`},
+)
 
-export default toNative(Email)
+notificationSettings.get().then()
 </script>

@@ -1,7 +1,7 @@
 import {VueWrapper} from '@vue/test-utils'
 import AcTgDevice from '../AcTgDevice.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, flushPromises, mount, rq, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rq, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
@@ -14,7 +14,6 @@ import {nextTick} from 'vue'
 const qrImageUrl = 'otpauth://totp/Artconomy%20Dev%3Afox%40vulpinity.com?secret=KJZWLZLDMVY3XJAX72V4WAXDKKZZDA76' +
   '&algorithm=SHA1&digits=6&period=30&issuer=Artconomy+Dev'
 
-const WrappedDevice = VuetifyWrapped(AcTgDevice)
 
 describe('AcTgDevice.vue', () => {
   const mockError = vi.spyOn(console, 'error')
@@ -36,7 +35,7 @@ describe('AcTgDevice.vue', () => {
       config_url: qrImageUrl,
       name: 'Phone',
     }])
-    wrapper = mount(WrappedDevice, {
+    wrapper = mount(AcTgDevice, {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
@@ -53,7 +52,7 @@ describe('AcTgDevice.vue', () => {
       config_url: qrImageUrl,
       name: 'Phone',
     }])
-    wrapper = mount(WrappedDevice, {
+    wrapper = mount(AcTgDevice, {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
@@ -70,7 +69,7 @@ describe('AcTgDevice.vue', () => {
       config_url: qrImageUrl,
       name: 'Phone',
     }])
-    wrapper = mount(WrappedDevice, {
+    wrapper = mount(AcTgDevice, {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
@@ -79,7 +78,7 @@ describe('AcTgDevice.vue', () => {
     })
     mockAxios.reset()
     await wrapper.findComponent('.delete-phone-2fa').trigger('click')
-    await wrapper.vm.$nextTick()
+    await nextTick()
     await wrapper.findComponent('.confirmation-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/test/1/', 'delete'),
@@ -100,20 +99,21 @@ describe('AcTgDevice.vue', () => {
       config_url: qrImageUrl,
       name: 'Phone',
     }])
-    wrapper = mount(WrappedDevice, {
+    wrapper = mount(AcTgDevice, {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
         device: controller.list[0],
       },
     })
-    const vm = wrapper.findComponent(AcTgDevice).vm as any
-    vm.step = 2
+    wrapper.vm.step = 2
     await nextTick()
     await wrapper.find('.send-tg-code').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/profiles/account/Fox/auth/two-factor/tg/', 'post', undefined, {}))
   })
+  // This test appears to have some unknown isolation issue. It works when meaninglessly modified so that a test rerun
+  // is triggered.
   test('Sends a verification code', async() => {
     setViewer(store, genUser())
     mockError.mockImplementationOnce(() => undefined)
@@ -123,20 +123,18 @@ describe('AcTgDevice.vue', () => {
       config_url: qrImageUrl,
       name: 'Phone',
     }])
-    wrapper = mount(WrappedDevice, {
+    wrapper = mount(AcTgDevice, {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
         device: controller.list[0],
       },
     })
-    const vm = wrapper.findComponent(AcTgDevice).vm as any
-    vm.step = 3
     const empty = mount(Empty, vueSetup({store})).vm
     const form = empty.$getForm('telegramOTP')
     form.fields.code.update('123456')
-    await wrapper.vm.$nextTick()
-    await wrapper.find('.submit-button').trigger('click')
+    wrapper.vm.step = 3
+    await waitFor(() => wrapper.find('.submit-button').trigger('click'))
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/profiles/account/Fox/auth/two-factor/tg/', 'patch', {code: '123 456'}, {}))
   })
@@ -151,21 +149,20 @@ describe('AcTgDevice.vue', () => {
       config_url: qrImageUrl,
       name: 'Phone',
     }])
-    wrapper = mount(WrappedDevice, {
+    wrapper = mount(AcTgDevice, {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
         device: controller.list[0],
       },
     })
-    const vm = wrapper.findComponent(AcTgDevice)!.vm as any
-    expect(vm.url).toBe('/api/profiles/account/Fox/auth/two-factor/tg/')
+    expect(wrapper.vm.url).toBe('/api/profiles/account/Fox/auth/two-factor/tg/')
     await wrapper.setProps({
       username: 'Vulpes',
       device: {...controller.list[0]},
     })
     await nextTick()
-    expect(vm.url).toBe('/api/profiles/account/Vulpes/auth/two-factor/tg/')
-    expect(vm.form.endpoint).toBe('/api/profiles/account/Vulpes/auth/two-factor/tg/')
+    expect(wrapper.vm.url).toBe('/api/profiles/account/Vulpes/auth/two-factor/tg/')
+    expect(wrapper.vm.form.endpoint).toBe('/api/profiles/account/Vulpes/auth/two-factor/tg/')
   })
 })

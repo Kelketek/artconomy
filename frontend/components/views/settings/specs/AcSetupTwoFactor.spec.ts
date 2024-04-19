@@ -1,5 +1,5 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, rq, rs, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import AcSetupTwoFactor from '../AcSetupTwoFactor.vue'
 import mockAxios from '@/__mocks__/axios.ts'
@@ -7,6 +7,7 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import {genPricing} from '@/lib/specs/helpers.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -49,16 +50,8 @@ describe('ac-setup-two-factor', () => {
       ...vueSetup({store}),
       props: {username: 'Fox'},
     })
-    // Have to respond to the other requests first.
-    mockAxios.mockResponse(rs(genPricing()))
-    mockAxios.mockResponse(rs({
-      results: [],
-      count: 0,
-      size: 0,
-    }))
-    vi.runAllTimers()
-    await flushPromises()
-    mockAxios.mockError({status: 404})
+    const tgReq = mockAxios.getReqByMatchUrl(/[/]tg[/]/)
+    mockAxios.mockError({status: 404}, tgReq)
     await flushPromises()
     const vm = wrapper.vm as any
     await vm.$nextTick()
@@ -74,7 +67,7 @@ describe('ac-setup-two-factor', () => {
     const vm = wrapper.vm as any
     expect(vm.url).toBe('/api/profiles/account/Fox/auth/two-factor/')
     await wrapper.setProps({username: 'Vulpes'})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.url).toBe('/api/profiles/account/Vulpes/auth/two-factor/')
   })
   test('Creates a Telegram Device', async() => {
@@ -86,16 +79,9 @@ describe('ac-setup-two-factor', () => {
         props: {username: 'Fox'},
       },
     )
-    mockAxios.mockResponse(rs(genPricing()))
-    mockAxios.mockResponse(rs({
-      results: [],
-      count: 0,
-      size: 0,
-    }))
-    mockAxios.mockError({status: 404})
-    await flushPromises()
-    await wrapper.vm.$nextTick()
-    await wrapper.find('.setup-telegram').trigger('click')
+    wrapper.vm.tgDevice.makeReady(null)
+    wrapper.vm.totpDevices.makeReady([])
+    await waitFor(async () => await wrapper.find('.setup-telegram').trigger('click'))
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/profiles/account/Fox/auth/two-factor/tg/', 'put'),
     )
@@ -109,16 +95,9 @@ describe('ac-setup-two-factor', () => {
         props: {username: 'Fox'},
       },
     )
-    mockAxios.mockResponse(rs(genPricing()))
-    mockAxios.mockResponse(rs({
-      results: [],
-      count: 0,
-      size: 0,
-    }))
-    mockAxios.mockError({status: 404})
-    await flushPromises()
-    await wrapper.vm.$nextTick()
-    await wrapper.find('.setup-totp').trigger('click')
+    wrapper.vm.tgDevice.makeReady(null)
+    wrapper.vm.totpDevices.makeReady([])
+    await waitFor(async () => await wrapper.find('.setup-totp').trigger('click'))
     expect(mockAxios.request).toHaveBeenCalledWith(
       rq('/api/profiles/account/Fox/auth/two-factor/totp/', 'post', {name: 'Phone'}),
     )

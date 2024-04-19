@@ -20,7 +20,7 @@
             </v-col>
             <v-col class="text-center" cols="12" sm="4" lg="4">
               <v-btn color="primary" @click="showEmailChange=true" variant="elevated">Change Email</v-btn>
-              <h3>Email: {{subject!.email}}</h3>
+              <h3>Email: {{userSubject.email}}</h3>
             </v-col>
           </v-row>
           <ac-form-dialog
@@ -200,190 +200,176 @@
   </v-card>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcSetupTwoFactor from './AcSetupTwoFactor.vue'
 import {User} from '@/store/profiles/types/User.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Alerts from '@/mixins/alerts.ts'
+import {useAlerts} from '@/mixins/alerts.ts'
 import {mdiAlert, mdiDeleteForever} from '@mdi/js'
+import {computed, ref, watch} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {AlertCategory} from '@/store/artState.ts'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcBoundField,
-    AcSetupTwoFactor,
-    AcFormDialog,
+const showUsernameChange = ref(false)
+const showPasswordChange = ref(false)
+const showEmailChange = ref(false)
+const showDeleteAccount = ref(false)
+
+const props = defineProps<SubjectiveProps>()
+
+const {subject, subjectHandler} = useSubject(props)
+
+const userSubject = computed(() => subject.value as User)
+
+const {sendAlert} = useAlerts()
+
+const url = computed(() => {
+  return `/api/profiles/account/${props.username}/auth/credentials/`
+})
+
+const deleteUrl = computed(() => {
+  return `/api/profiles/account/${props.username}/auth/delete-account/`
+})
+
+const passwordDisabled = computed(() => {
+  // This form is especially dangerous, so don't allow it to be sent without validation.
+  if (passwordForm.disabled) {
+    return true
+  }
+  if (!(passwordForm.fields.new_password.value && passwordForm.fields.current_password.value)) {
+    return true
+  }
+  return passwordForm.fields.new_password.value !== passwordForm.fields.new_password2.value
+})
+
+const emailDisabled = computed(() => {
+  // This form is especially dangerous, so don't allow it to be sent without validation.
+  if (emailForm.disabled) {
+    return true
+  }
+  if (!(emailForm.fields.email.value && emailForm.fields.current_password.value)) {
+    return true
+  }
+  return emailForm.fields.email.value !== emailForm.fields.email2.value
+})
+
+const usernameForm = useForm('usernameChange', {
+  endpoint: url.value,
+  fields: {
+    username: {
+      value: '',
+      validators: [{name: 'required'}, {
+        name: 'username',
+        async: true,
+      }],
+    },
+    current_password: {
+      value: '',
+      validators: [{name: 'required'}],
+    },
   },
 })
-class Credentials extends mixins(Subjective, Alerts) {
-  public showSuccess: boolean = false
-  public showUsernameChange: boolean = false
-  public showPasswordChange: boolean = false
-  public showEmailChange: boolean = false
-  public showDeleteAccount: boolean = false
-  public usernameForm: FormController = null as unknown as FormController
-  public passwordForm: FormController = null as unknown as FormController
-  public emailForm: FormController = null as unknown as FormController
-  public deleteUserForm: FormController = null as unknown as FormController
 
-  public mdiDeleteForever = mdiDeleteForever
-  public mdiAlert = mdiAlert
+const passwordForm = useForm('passwordChange', {
+  endpoint: url.value,
+  fields: {
+    new_password: {
+      value: '',
+      validators: [{name: 'required'}, {
+        name: 'password',
+        async: true,
+        args: ['password'],
+      }],
+    },
+    new_password2: {
+      value: '',
+      validators: [
+        {name: 'required'}, {
+          name: 'matches',
+          args: ['new_password', 'Passwords do not match.'],
+        },
+      ],
+    },
+    current_password: {
+      value: '',
+      validators: [{name: 'required'}],
+    },
+  },
+})
 
-  public created() {
-    this.usernameForm = this.$getForm('usernameChange', {
-      endpoint: this.url,
-      fields: {
-        username: {
-          value: '',
-          validators: [{name: 'required'}, {
-            name: 'username',
-            async: true,
-          }],
+const emailForm = useForm('emailChange', {
+  endpoint: url.value,
+  fields: {
+    email: {
+      value: '',
+      validators: [{name: 'email'}, {
+        name: 'email',
+        async: true,
+      }],
+    },
+    email2: {
+      value: '',
+      validators: [
+        {name: 'required'}, {
+          name: 'matches',
+          args: ['email', 'Emails do not match.'],
         },
-        current_password: {
-          value: '',
-          validators: [{name: 'required'}],
-        },
-      },
-    })
-    this.passwordForm = this.$getForm('passwordChange', {
-      endpoint: this.url,
-      fields: {
-        new_password: {
-          value: '',
-          validators: [{name: 'required'}, {
-            name: 'password',
-            async: true,
-            args: ['password'],
-          }],
-        },
-        new_password2: {
-          value: '',
-          validators: [
-            {name: 'required'}, {
-              name: 'matches',
-              args: ['new_password', 'Passwords do not match.'],
-            },
-          ],
-        },
-        current_password: {
-          value: '',
-          validators: [{name: 'required'}],
-        },
-      },
-    })
-    this.emailForm = this.$getForm('emailChange', {
-      endpoint: this.url,
-      fields: {
-        email: {
-          value: '',
-          validators: [{name: 'email'}, {
-            name: 'email',
-            async: true,
-          }],
-        },
-        email2: {
-          value: '',
-          validators: [
-            {name: 'required'}, {
-              name: 'matches',
-              args: ['email', 'Emails do not match.'],
-            },
-          ],
-        },
-        current_password: {
-          value: '',
-          validators: [{name: 'required'}],
-        },
-      },
-    })
-    this.deleteUserForm = this.$getForm('deleteUserAccount', {
-      endpoint: this.deleteUrl,
-      fields: {
-        username: {
-          value: '',
-        },
-        password: {
-          value: '',
-        },
-        email: {
-          value: '',
-          validators: [{name: 'email'}, {name: 'email'}],
-        },
-        verify: {
-          value: false,
-        },
-      },
-    })
-  }
+      ],
+    },
+    current_password: {
+      value: '',
+      validators: [{name: 'required'}],
+    },
+  },
+})
 
-  public save(response: User) {
-    this.subjectHandler.user.updateX(response)
-    this.showUsernameChange = false
-    this.showPasswordChange = false
-    this.showEmailChange = false
-    this.$alert({message: 'Account updated successfully!'})
-  }
+const deleteUserForm = useForm('deleteUserAccount', {
+  endpoint: deleteUrl.value,
+  fields: {
+    username: {
+      value: '',
+    },
+    password: {
+      value: '',
+    },
+    email: {
+      value: '',
+      validators: [{name: 'email'}, {name: 'email'}],
+    },
+    verify: {
+      value: false,
+    },
+  },
+})
 
-  @Watch('url')
-  public updateFormUrl(newVal: string) {
-    this.usernameForm.endpoint = newVal
-    this.passwordForm.endpoint = newVal
-    this.emailForm.endpoint = newVal
-  }
-
-  @Watch('deleteUrl')
-  public updateDeleteFormUrl(newVal: string) {
-    this.deleteUserForm.endpoint = newVal
-  }
-
-  @Watch('passwordForm.fields.new_password.value', {deep: true})
-  public validateSync() {
-    const passwordForm = this.passwordForm as FormController
-    if (passwordForm.fields.new_password.value) {
-      passwordForm.fields.new_password2.validate()
-    }
-  }
-
-  public get url() {
-    return `/api/profiles/account/${this.username}/auth/credentials/`
-  }
-
-  public get deleteUrl() {
-    return `/api/profiles/account/${this.username}/auth/delete-account/`
-  }
-
-  public get passwordDisabled() {
-    // This form is especially dangerous, so don't allow it to be sent without validation.
-    const passwordForm = this.passwordForm as FormController
-    if (passwordForm.disabled) {
-      return true
-    }
-    if (!(passwordForm.fields.new_password.value && passwordForm.fields.current_password.value)) {
-      return true
-    }
-    return passwordForm.fields.new_password.value !== passwordForm.fields.new_password2.value
-  }
-
-  public get emailDisabled() {
-    // This form is especially dangerous, so don't allow it to be sent without validation.
-    const emailForm = this.emailForm as FormController
-    if (emailForm.disabled) {
-      return true
-    }
-    if (!(emailForm.fields.email.value && emailForm.fields.current_password.value)) {
-      return true
-    }
-    return emailForm.fields.email.value !== emailForm.fields.email2.value
-  }
+const save = (response: User) => {
+  subjectHandler.user.updateX(response)
+  showUsernameChange.value = false
+  showPasswordChange.value = false
+  showEmailChange.value = false
+  sendAlert({message: 'Account updated successfully!', category: AlertCategory.SUCCESS})
 }
 
-export default toNative(Credentials)
+watch(url, (newVal: string) => {
+  usernameForm.endpoint = newVal
+  passwordForm.endpoint = newVal
+  emailForm.endpoint = newVal
+})
+
+watch(deleteUrl, (newVal: string) => {
+  deleteUserForm.endpoint = newVal
+})
+
+
+watch(() => passwordForm.fields.new_password.value, () => {
+  if (passwordForm.fields.new_password.value) {
+    passwordForm.fields.new_password2.validate()
+  }
+}, {deep: true})
 </script>
 
 <style scoped>

@@ -133,39 +133,16 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import Subjective from '@/mixins/subjective.ts'
-import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import Alerts from '@/mixins/alerts.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
-import AcEditor from '@/components/fields/AcEditor.vue'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import SubjectiveProps from '@/types/SubjectiveProps'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcPatchField,
-    AcEditor,
-    AcLoadingSpinner,
-  },
-})
-class Options extends mixins(Viewer, Subjective, Alerts) {
-  public ratingOptions = RATINGS_SHORT
-  public artistProfile: SingleController<ArtistProfile> = null as unknown as SingleController<ArtistProfile>
+const props = defineProps<SubjectiveProps>()
 
-  public ratingLongDesc = RATING_LONG_DESC
-  public ratingColor = RATING_COLOR
+const {subjectHandler} = useSubject(props)
 
-  public created() {
-    this.artistProfile = this.subjectHandler.artistProfile
-    this.artistProfile.get().then()
-  }
-}
-
-export default toNative(Options)
+const artistProfile = subjectHandler.artistProfile
+artistProfile.get().then()
 </script>

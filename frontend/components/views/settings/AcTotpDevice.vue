@@ -17,7 +17,7 @@
                   <p v-if="device.x.name !== 'Phone'"><strong>Device Name: {{ device.x.name }}</strong></p>
                 </v-col>
                 <v-col class="text-center" cols="12" order="3">
-                  <ac-confirmation :action="() => device.delete().then(() => $emit('removed'))">
+                  <ac-confirmation :action="() => device.delete().then(() => emit('removed'))">
                     <template v-slot:default="{on}">
                       <v-btn v-on="on" color="red" class="delete-phone-2fa" variant="elevated">Disable Phone 2FA</v-btn>
                     </template>
@@ -166,88 +166,62 @@
   </v-col>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import QRCode from 'qrcode'
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@//mixins/subjective.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {BASE_URL} from '@/lib/lib.ts'
-import {vMaskToken as MaskToken} from '@/lib/vMask.ts'
+import {vMaskToken} from '@/lib/vMask.ts'
+import {onMounted, ref, watch} from 'vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useForm} from '@/store/forms/hooks.ts'
 
-@Component({
-  components: {
-    AcForm,
-    AcConfirmation,
-    AcFormContainer,
-  },
-  emits: ['removed'],
-  directives: {
-    MaskToken,
+const props = defineProps<{device: SingleController<TOTPDevice>} & SubjectiveProps>()
+
+const step = ref(1)
+const image = ref('')
+
+const renderCode = () => {
+  const device = props.device.x as TOTPDevice
+  if (device.confirmed) {
+    image.value = ''
+    return
   }
-})
-class AcTotpDevice extends mixins(Subjective) {
-  @Prop({required: true})
-  public device!: SingleController<TOTPDevice>
-
-  public QRCode = QRCode
-  public image: string = ''
-  public totpForm: FormController = null as unknown as FormController
-  public step: number = 1
-
-  public appStore = new URL('/static/images/Appstore.svg', BASE_URL).href
-  public playStore = new URL('/static/images/Playstore.svg', BASE_URL).href
-  public authenticator = new URL('/static/images/authenticator.png', BASE_URL).href
-  public authy = new URL('/static/images/authy.png', BASE_URL).href
-  public iphone = new URL('/static/images/iphone.svg', BASE_URL).href
-
-  public created() {
-    const device = this.device.x as TOTPDevice
-    this.totpForm = this.$getForm(device.id + '_totpForm', {
-      method: 'patch',
-      endpoint: this.url,
-      fields: {
-        code: {
-          validators: [{name: 'required'}],
-          value: null,
-        },
-      },
-    })
-    this.renderCode()
-  }
-
-  public renderCode() {
-    const device = this.device.x as TOTPDevice
-    if (device.confirmed) {
-      this.image = ''
-      return
+  QRCode.toString(device.config_url, {}, (err: Error | null | undefined, str: string) => {
+    if (err) {
+      console.error(err)
     }
-    QRCode.toString(device.config_url, {}, (err: Error | null | undefined, str: string) => {
-      if (err) {
-        console.error(err)
-      }
-      this.image = str
-    })
-  }
-
-  @Watch('url')
-  public updateEndpoints(val: string) {
-    this.totpForm.endpoint = val
-  }
-
-  public get url() {
-    if (!this.device.x) {
-      return '#'
-    }
-    return `/api/profiles/account/${this.username}/auth/two-factor/totp/${this.device.x.id}/`
-  }
+    image.value = str
+  })
 }
 
-export default toNative(AcTotpDevice)
+const appStore = new URL('/static/images/Appstore.svg', BASE_URL).href
+const playStore = new URL('/static/images/Playstore.svg', BASE_URL).href
+const authenticator = new URL('/static/images/authenticator.png', BASE_URL).href
+const authy = new URL('/static/images/authy.png', BASE_URL).href
+const iphone = new URL('/static/images/iphone.svg', BASE_URL).href
+
+const emit = defineEmits<{removed: []}>()
+
+const totpForm = useForm(props.device.x!.id + '_totpForm', {
+  method: 'patch',
+  endpoint: props.device.endpoint,
+  fields: {
+    code: {
+      validators: [{name: 'required'}],
+      value: null,
+    },
+  },
+})
+
+watch(() => props.device.endpoint, (val: string) => {
+  totpForm.endpoint = val
+})
+
+onMounted(renderCode)
 </script>
 
 <style scoped>
