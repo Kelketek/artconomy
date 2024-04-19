@@ -72,84 +72,66 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import AcBankToggle from '@/components/fields/AcBankToggle.vue'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller.ts'
 import {Balance} from '@/types/Balance.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import {BASE_URL, flatten} from '@/lib/lib.ts'
 import StripeAccount from '@/types/StripeAccount.ts'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {computed, Ref} from 'vue'
 
-@Component({
-  components: {
-    AcConfirmation,
-    AcBoundField,
-    AcFormContainer,
-    AcFormDialog,
-    AcPatchField,
-    AcLoadSection,
-    AcBankToggle,
-  },
-})
-class Payout extends mixins(Subjective) {
-  public privateView = true
-  public balance: SingleController<Balance> = null as unknown as SingleController<Balance>
-  public stripeAccounts: ListController<StripeAccount> = null as unknown as ListController<StripeAccount>
-  // Can't use the enum in import, or it will choke during testing. :/
-  public IN_SUPPORTED_COUNTRY = BANK_STATUSES.IN_SUPPORTED_COUNTRY
+const props = defineProps<SubjectiveProps>()
 
-  public defending = new URL('/static/images/defending.png', BASE_URL)
+const {viewer} = useViewer()
+const userViewer = viewer as Ref<User>
+const {subjectHandler} = useSubject(props, true)
 
-  public get inSupportedCountry() {
-    // Should be synced this way.
-    const profile = this.subjectHandler.artistProfile
-    /* istanbul ignore next */
-    return profile.x && (profile.patchers.bank_account_status.model === this.IN_SUPPORTED_COUNTRY)
-  }
+const {setError} = useErrorHandling()
 
-  public get hasActiveStripe() {
-    return this.stripeAccounts.list.filter((controller) => controller.x!.active).length
-  }
+subjectHandler.artistProfile.get().catch(setError)
 
-  public created() {
-    // @ts-ignore
-    window.payout = this
-    this.subjectHandler.artistProfile.get().catch(this.setError)
-    const viewer = this.viewer as User
-    this.stripeAccounts = this.$getList(
-        `${flatten(this.username)}__stripeAccounts`, {
-          endpoint: `/api/sales/account/${this.username}/stripe-accounts/`,
-          paginated: false,
-          socketSettings: {
-            appLabel: 'sales',
-            modelName: 'StripeAccount',
-            serializer: 'StripeAccountSerializer',
-            list: {
-              appLabel: 'profiles',
-              modelName: 'User',
-              pk: `${viewer.id}`,
-              listName: 'stripe_accounts',
-            },
-          },
+
+const stripeAccounts = useList<StripeAccount>(
+    `${flatten(props.username)}__stripeAccounts`, {
+      endpoint: `/api/sales/account/${props.username}/stripe-accounts/`,
+      paginated: false,
+      socketSettings: {
+        appLabel: 'sales',
+        modelName: 'StripeAccount',
+        serializer: 'StripeAccountSerializer',
+        list: {
+          appLabel: 'profiles',
+          modelName: 'User',
+          pk: `${userViewer.value.id}`,
+          listName: 'stripe_accounts',
         },
-    )
-    this.stripeAccounts.firstRun()
-    this.balance = this.$getSingle(
-        `${flatten(this.username)}__balance`, {endpoint: `/api/sales/account/${this.username}/balance/`},
-    )
-    this.balance.get()
-  }
-}
+      },
+    },
+)
+stripeAccounts.firstRun()
+const balance = useSingle<Balance>(
+    `${flatten(props.username)}__balance`, {endpoint: `/api/sales/account/${props.username}/balance/`},
+)
+balance.get()
 
-export default toNative(Payout)
+const defending = new URL('/static/images/defending.png', BASE_URL)
+
+const inSupportedCountry = computed(() => {
+  // Should be synced this way.
+  const profile = subjectHandler.artistProfile
+  /* istanbul ignore next */
+  return profile.x && (profile.patchers.bank_account_status.model === BANK_STATUSES.IN_SUPPORTED_COUNTRY)
+})
+
+const hasActiveStripe = computed(() => {
+  return stripeAccounts.list.filter((controller) => controller.x!.active).length
+})
 </script>

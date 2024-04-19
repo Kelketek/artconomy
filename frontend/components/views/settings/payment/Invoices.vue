@@ -20,7 +20,7 @@
                 </v-list-item-subtitle>
                 <template v-slot:append>
                   {{invoice.x!.total}}
-                  <ac-invoice-status :invoice="invoice.x" class="ml-2"/>
+                  <ac-invoice-status :invoice="invoice.x!" class="ml-2"/>
                 </template>
               </v-list-item>
               <v-divider v-if="invoiceIndex !== (invoices.list.length - 1)"/>
@@ -55,7 +55,7 @@
 }
 </style>
 
-<script lang="ts">
+<script setup lang="ts">
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import Subjective from '@/mixins/subjective.ts'
 import {ListController} from '@/store/lists/controller.ts'
@@ -68,58 +68,49 @@ import {NavSettings} from '@/types/NavSettings.ts'
 import {initDrawerValue, INVOICE_TYPES} from '@/lib/lib.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import {mdiArrowLeftBold, mdiPrinter} from '@mdi/js'
+import {useDisplay} from 'vuetify'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {formatDateTime} from '@/lib/otherFormatters.ts'
+import {computed} from 'vue'
 
-@Component({
-  components: {
-    AcInvoiceStatus,
-    AcLink,
-    AcPaginated,
-  },
+const props = withDefaults(defineProps<{initialState: boolean|null} & SubjectiveProps>(), {initialState: initDrawerValue()})
+
+const display = useDisplay()
+const router = useRouter()
+const route = useRoute()
+
+let drawer: boolean | null
+if (display.mdAndDown.value) {
+  // Never begin with the drawer open on a small screen.
+  drawer = false
+} else {
+  drawer = props.initialState
+}
+const navSettings = useSingle('navSettings', {
+  endpoint: '#',
+  x: {drawer},
 })
-class Invoices extends mixins(Subjective, Formatting) {
-  public invoices = null as unknown as ListController<Invoice>
-  public navSettings = null as unknown as SingleController<NavSettings>
-  public INVOICE_TYPES = INVOICE_TYPES
-  public mdiArrowLeftBold = mdiArrowLeftBold
-  public mdiPrinter = mdiPrinter
+const invoices = useList<Invoice>(`${props.username}__invoices`, {endpoint: `/api/sales/account/${props.username}/invoices/`})
+invoices.firstRun()
 
-  @Prop({default: initDrawerValue})
-  public initialState!: null | boolean
-
-  public get currentRoute() {
-    return this.$route.name === 'Invoices'
-  }
-
-  public goBack() {
-    this.$router.replace({
-      name: 'Invoices',
-      params: {username: this.username},
-    })
-  }
-
-  public performPrint() {
-    this.navSettings.patchers.drawer.model = false
-    setTimeout(() => {
-      window.print()
-    }, 500)
-  }
-
-  public created() {
-    let drawer: boolean | null
-    if (this.$vuetify.display.mdAndDown) {
-      // Never begin with the drawer open on a small screen.
-      drawer = false
-    } else {
-      drawer = this.initialState
-    }
-    this.navSettings = this.$getSingle('navSettings', {
-      endpoint: '#',
-      x: {drawer},
-    })
-    this.invoices = this.$getList(`${this.username}__invoices`, {endpoint: `/api/sales/account/${this.username}/invoices/`})
-    this.invoices.firstRun()
-  }
+const performPrint = () => {
+  navSettings.patchers.drawer.model = false
+  setTimeout(() => {
+    window.print()
+  }, 500)
 }
 
-export default toNative(Invoices)
+const goBack = () => {
+  router.replace({
+    name: 'Invoices',
+    params: {username: props.username},
+  })
+}
+
+const currentRoute = computed(() => {
+  return route.name === 'Invoices'
+})
 </script>
