@@ -8,12 +8,12 @@
         <ac-load-section :controller="reference">
           <template v-slot:default>
             <ac-asset thumb-name="gallery" :asset="reference.x" :contain="true" alt="Reference for order. See comments below, if available."/>
-            <v-row v-if="reference.x!.owner === rawViewerName">
+            <v-row>
               <v-col class="text-center">
-                <ac-rating-button :controls="true" :patcher="reference.patchers.rating" :editing="true" class="mr-1" />
+                <ac-rating-button :controls="true" :patcher="reference.patchers.rating" :editing="true" :class="{'mr-1': reference.x!.owner === rawViewerName}" />
                 <ac-confirmation :action="performDelete">
                   <template v-slot:default="{on}">
-                    <v-btn color="red" v-on="on"  variant="flat" class="ml-1">
+                    <v-btn color="red" v-on="on"  variant="flat" class="ml-1" v-if="reference.x!.owner === rawViewerName">
                       <v-icon left :icon="mdiDelete"/>
                       Delete
                     </v-btn>
