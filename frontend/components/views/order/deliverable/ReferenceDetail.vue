@@ -11,9 +11,9 @@
             <v-row>
               <v-col class="text-center">
                 <ac-rating-button :controls="true" :patcher="reference.patchers.rating" :editing="true" :class="{'mr-1': reference.x!.owner === rawViewerName}" />
-                <ac-confirmation :action="performDelete">
+                <ac-confirmation :action="performDelete" v-if="reference.x!.owner === rawViewerName">
                   <template v-slot:default="{on}">
-                    <v-btn color="red" v-on="on"  variant="flat" class="ml-1" v-if="reference.x!.owner === rawViewerName">
+                    <v-btn color="red" v-on="on"  variant="flat" class="ml-1">
                       <v-icon left :icon="mdiDelete"/>
                       Delete
                     </v-btn>
