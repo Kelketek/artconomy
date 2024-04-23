@@ -1,7 +1,5 @@
 from collections import OrderedDict
-from uuid import uuid4, UUID
 
-from django.db import IntegrityError
 from django.urls import reverse
 
 from apps.lib.middleware import OlderThanPagination

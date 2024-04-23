@@ -64,6 +64,7 @@ from apps.sales.models import (
     StripeReader,
     TransactionRecord,
     PaypalConfig,
+    ShoppingCart,
 )
 from apps.sales.utils import (
     AVAILABLE,
@@ -2189,3 +2190,32 @@ class SalesStatsSerializer(serializers.ModelSerializer):
             "escrow_enabled",
         )
         read_only_fields = fields
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    named_price = MoneyToFloatField(required=False, allow_null=True)
+
+    def update(self, instance, validated_data):
+        for key, value in validated_data.items():
+            if key in ["characters", "references"]:
+                continue
+            setattr(instance, key, value)
+        if "characters" in validated_data:
+            instance.characters.set(validated_data["characters"])
+        if "references" in validated_data:
+            instance.references.set(validated_data["references"])
+        instance.save()
+        return instance
+
+    class Meta:
+        fields = (
+            "product",
+            "email",
+            "private",
+            "characters",
+            "rating",
+            "references",
+            "named_price",
+            "escrow_upgrade",
+        )
+        model = ShoppingCart

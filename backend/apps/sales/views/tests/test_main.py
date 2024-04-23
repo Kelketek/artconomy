@@ -52,7 +52,14 @@ from apps.sales.constants import (
     VOID,
     WAITING,
 )
-from apps.sales.models import Deliverable, Order, Product, Reference, PaypalConfig
+from apps.sales.models import (
+    Deliverable,
+    Order,
+    Product,
+    Reference,
+    PaypalConfig,
+    ShoppingCart,
+)
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
     DeliverableFactory,
@@ -3624,3 +3631,31 @@ class TestPaypalTemplates(APITestCase):
             resp.data,
             [{"id": "Beep", "name": "Beeper"}, {"id": "Herp", "name": "Beeper"}],
         )
+
+
+class TestShoppingCart(APITestCase):
+    def test_shopping_cart_logged_in(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create()
+        resp = self.client.patch(
+            f"/api/sales/cart/",
+            {"details": "", "product_id": product.id},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        cart = ShoppingCart.objects.all().get()
+        self.assertEqual(cart.user, user)
+
+    def test_shopping_cart_anon(self):
+        # Ensure session key is set.
+        self.client.get(
+            f"/",
+        )
+        resp = self.client.patch(
+            f"/api/sales/cart/",
+            {"details": ""},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        cart = ShoppingCart.objects.all().get()
+        self.assertIsNone(cart.user)
+        self.assertEqual(cart.session_key, self.client.session.session_key)

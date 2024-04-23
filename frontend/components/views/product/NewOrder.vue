@@ -285,7 +285,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {BASE_URL, prepopulateCharacters} from '@/lib/lib.ts'
+import {artCall, BASE_URL, prepopulateCharacters} from '@/lib/lib.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {useForm} from '@/store/forms/hooks.ts'
@@ -298,12 +298,15 @@ import {useSubject} from '@/mixins/subjective.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {formatDateTerse} from '@/lib/otherFormatters.ts'
 import {profileLink} from '@/lib/otherFormatters.ts'
+import {RawData} from '@/store/forms/types/RawData.ts'
+import debounce from 'lodash/debounce'
+import {statusOk} from '@/mixins/ErrorHandling.ts'
 
 declare interface NewOrderProps {
-  invoiceMode?: boolean,
+  invoiceMode: string,
 }
 
-const props = withDefaults(defineProps<NewOrderProps & SubjectiveProps & ProductProps>(), {invoiceMode: false})
+const props = defineProps<NewOrderProps & SubjectiveProps & ProductProps>()
 const {product, deliveryDate} = useProduct(props)
 const showCharacters = ref(false)
 const initCharacters = ref<Character[]>([])
@@ -330,7 +333,7 @@ const route = useRoute()
 const router = useRouter()
 
 const forceShield = computed(() => !!({...route.query}.forceShield))
-const invoicing = computed(() => isCurrent.value || (isStaff.value && props.invoiceMode))
+const invoicing = computed(() => isCurrent.value || (isStaff.value && !!props.invoiceMode))
 
 let step = parseInt(route.query.stepId + '') || 1
 if (step > 3) {
@@ -349,11 +352,14 @@ const orderForm = useForm('newOrder', {
   persistent: true,
   step,
   fields: {
-    // productId field not actually used in submission, but used as a way to track
+    // product_id field not actually used in submission, but used as a way to track
     // whether the user is revisiting this product after navigating away, or if this is the first time.
     // We start with zero to make sure we register a 'change' on the first product visited and copy over the
     // details template from the product, if it exists.
-    productId: {value: 0},
+    //
+    // It is also used to track the order for the purposes of someone returning to this 'cart'. The data in this form
+    // must be synchronizable to the data in backend/apps/sales/models.py, in the ShoppingCart model.
+    product_id: {value: route.params.productId},
     email: {
       value: ((viewer.value as User).guest_email || ''),
       step: 1,
@@ -410,10 +416,10 @@ watch(() => product.x, (newProduct) => {
     return
   }
   orderForm.fields.rating.model = Math.min(newProduct.max_rating, orderForm.fields.rating.value)
-  if ((orderForm.fields.productId.value !== newProduct.id) && newProduct.details_template.length) {
+  if ((orderForm.fields.product_id.value !== newProduct.id) && newProduct.details_template.length) {
     orderForm.fields.details.model = newProduct.details_template
   }
-  orderForm.fields.productId.model = newProduct.id
+  orderForm.fields.product_id.model = newProduct.id
 }, {deep: true, immediate: true})
 
 // Keep the order form's step as part of the URL.
@@ -541,6 +547,17 @@ const productSubmissionText = computed(() => {
 })
 
 const {prerendering} = usePrerendering()
+
+const rawUpdateCart = (rawData: RawData) => {
+  if (invoicing.value) {
+    return
+  }
+  artCall({url: '/api/sales/cart/', method: 'patch', data: rawData}).catch(statusOk(400))
+}
+
+const updateCart = debounce(rawUpdateCart, 250, {trailing: true})
+
+watch(() => orderForm.rawData, updateCart, {deep: true, immediate: true})
 
 subjectHandler.artistProfile.get().then()
 prepopulateCharacters(orderForm.fields.characters, showCharacters, initCharacters)

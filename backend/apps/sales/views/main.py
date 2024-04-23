@@ -24,7 +24,14 @@ from apps.lib.models import (
     note_for_text,
     ref_for_instance,
 )
-from apps.lib.permissions import All, Any, IsMethod, IsSafeMethod, IsStaff
+from apps.lib.permissions import (
+    All,
+    Any,
+    IsMethod,
+    IsSafeMethod,
+    IsStaff,
+    SessionKeySet,
+)
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import (
     count_hit,
@@ -166,6 +173,7 @@ from apps.sales.serializers import (
     NewPaypalConfigSerializer,
     PaypalConfigSerializer,
     SalesStatsSerializer,
+    ShoppingCartSerializer,
 )
 from apps.sales.utils import (
     PENDING,
@@ -185,6 +193,7 @@ from apps.sales.utils import (
     transfer_order,
     verify_total,
     mark_deliverable_paid,
+    cart_for_request,
 )
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -223,6 +232,7 @@ from rest_framework.generics import (
     RetrieveDestroyAPIView,
     RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -3365,3 +3375,11 @@ class PaypalTemplates(GenericAPIView):
             if template["template_info"]["detail"]["currency_code"] == "USD"
         ]
         return Response(data=templates)
+
+
+class UpdateCart(UpdateAPIView):
+    permission_classes = [SessionKeySet]
+    serializer_class = ShoppingCartSerializer
+
+    def get_object(self):
+        return cart_for_request(self.request, create=True)

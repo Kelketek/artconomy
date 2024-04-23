@@ -317,9 +317,7 @@ export const routes: RouteRecordRaw[] = [
             name: 'NewOrder',
             path: 'order/:invoiceMode(invoice)?/',
             component: NewOrder,
-            props(route: RouteLocation) {
-              return {...route.params, invoiceMode: !!route.params.invoiceMode}
-            },
+            props: true,
           },
           {
             name: 'ProductGallery',
