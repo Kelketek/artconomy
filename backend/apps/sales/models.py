@@ -1957,3 +1957,43 @@ class PaypalConfig(models.Model):
         else:
             self.active = False
         return super().save(*args, **kwargs)
+
+
+class ShoppingCart(models.Model):
+    """
+    Shopping cart model.
+
+    We don't actually *use* this model directly-- it exists more for the purposes
+    of integrating with upstream marketing systems like Drip, which assume a
+    'shopping-cart' like experience.
+
+    The trouble is that commissioning art doesn't follow this pattern-- we place an
+    order and then are later invited to pay once the artist has made any invoice
+    adjustments.
+
+    This model will track whatever the latest 'cart' is for a user. Basically it's a
+    mirror of the data that's in the form on the frontend. The user can be invited back
+    to complete the order they started. Eventually, this cart is purged.
+    """
+
+    id = ShortCodeField(primary_key=True, default=gen_shortcode)
+    session_key = models.CharField(max_length=50, db_index=True)
+    product = models.ForeignKey(Product, on_delete=CASCADE)
+    email = models.EmailField(blank=True, db_index=True)
+    user = models.ForeignKey("profiles.User", blank=True, null=True, on_delete=CASCADE)
+    created_on = models.DateTimeField(default=timezone.now, db_index=True)
+    edited_on = models.DateTimeField(default=timezone.now, db_index=True)
+    last_synced = models.DateTimeField(null=True, db_index=True)
+    private = models.BooleanField(default=False)
+    characters = models.ManyToManyField("profiles.Character", blank=True)
+    rating = models.IntegerField(choices=RATINGS, default=GENERAL)
+    references = models.ManyToManyField("lib.Asset", blank=True)
+    named_price = MoneyField(
+        max_digits=6,
+        decimal_places=2,
+        default_currency="USD",
+        blank=True,
+        null=True,
+    )
+    escrow_upgrade = models.BooleanField(default=False)
+    details = TextField(max_length=5000, blank=True)

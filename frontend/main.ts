@@ -24,6 +24,7 @@ import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
+import {ShoppingCart} from '@/types/ShoppingCart.ts'
 
 declare global {
   interface Window {
@@ -39,6 +40,7 @@ declare global {
     STRIPE_PUBLIC_KEY: string,
     THEOCRATIC_BAN: boolean,
     DEFAULT_SERVICE_PLAN_NAME: string,
+    CART?: ShoppingCart,
     Stripe?: StripeConstructor,
     StripeInstance: Stripe,
     _drip: () => void,

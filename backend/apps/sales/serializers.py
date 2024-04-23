@@ -5,6 +5,8 @@ from itertools import chain
 from typing import List
 from urllib.parse import urlparse
 
+from django.utils import timezone
+
 from apps.lib.abstract_models import EXTREME, GENERAL, RATINGS
 from apps.lib.consumers import register_serializer
 from apps.lib.models import Asset, ref_for_instance
@@ -64,6 +66,7 @@ from apps.sales.models import (
     StripeReader,
     TransactionRecord,
     PaypalConfig,
+    ShoppingCart,
 )
 from apps.sales.utils import (
     AVAILABLE,
@@ -2189,3 +2192,40 @@ class SalesStatsSerializer(serializers.ModelSerializer):
             "escrow_enabled",
         )
         read_only_fields = fields
+
+
+class ShoppingCartSerializer(serializers.ModelSerializer):
+    named_price = MoneyToFloatField(required=False, allow_null=True)
+
+    def update(self, instance, validated_data):
+        from apps.sales.tasks import drip_sync_cart
+
+        for key, value in validated_data.items():
+            if key in ["characters", "references"]:
+                continue
+            setattr(instance, key, value)
+        if "characters" in validated_data:
+            instance.characters.set(validated_data["characters"])
+        if "references" in validated_data:
+            instance.references.set(validated_data["references"])
+        instance.edited_on = timezone.now()
+        instance.save()
+        if instance.user or instance.email:
+            drip_sync_cart.apply_async(
+                (instance.id, instance.edited_on.isoformat()), countdown=120
+            )
+        return instance
+
+    class Meta:
+        fields = (
+            "product",
+            "email",
+            "private",
+            "characters",
+            "rating",
+            "details",
+            "references",
+            "named_price",
+            "escrow_upgrade",
+        )
+        model = ShoppingCart

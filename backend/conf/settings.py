@@ -631,6 +631,10 @@ CELERYBEAT_SCHEDULE = {
         "task": "apps.sales.tasks.cancel_abandoned_orders",
         "schedule": crontab(hour=2, minute=45),
     },
+    "clear_old_carts": {
+        "task": "apps.sales.tests.clear_old_carts",
+        "schedule": crontab(hour=3, minute=0),
+    },
 }
 
 ENV_NAME = get_env("ENV_NAME", "prod")

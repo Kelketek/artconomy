@@ -1,3 +1,4 @@
+import json
 import logging
 from decimal import Decimal
 from functools import lru_cache
@@ -6,6 +7,7 @@ from uuid import uuid4
 
 from authlib.integrations.base_client import MissingTokenError
 from django.urls import reverse
+from rest_framework.renderers import JSONRenderer
 from short_stuff import gen_shortcode
 
 from apps.lib.models import (
@@ -24,7 +26,14 @@ from apps.lib.models import (
     note_for_text,
     ref_for_instance,
 )
-from apps.lib.permissions import All, Any, IsMethod, IsSafeMethod, IsStaff
+from apps.lib.permissions import (
+    All,
+    Any,
+    IsMethod,
+    IsSafeMethod,
+    IsStaff,
+    SessionKeySet,
+)
 from apps.lib.serializers import CommentSerializer
 from apps.lib.utils import (
     count_hit,
@@ -108,6 +117,7 @@ from apps.sales.models import (
     TransactionRecord,
     inventory_change,
     PaypalConfig,
+    ShoppingCart,
 )
 from apps.sales.paypal import (
     paypal_api,
@@ -166,6 +176,7 @@ from apps.sales.serializers import (
     NewPaypalConfigSerializer,
     PaypalConfigSerializer,
     SalesStatsSerializer,
+    ShoppingCartSerializer,
 )
 from apps.sales.utils import (
     PENDING,
@@ -185,6 +196,7 @@ from apps.sales.utils import (
     transfer_order,
     verify_total,
     mark_deliverable_paid,
+    cart_for_request,
 )
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -223,6 +235,7 @@ from rest_framework.generics import (
     RetrieveDestroyAPIView,
     RetrieveUpdateAPIView,
     RetrieveUpdateDestroyAPIView,
+    UpdateAPIView,
 )
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -489,6 +502,9 @@ class PlaceOrder(CreateAPIView):
                 )
         if self.request.user == user:
             drip_placed_order.delay(deliverable.order.id)
+            cart = cart_for_request(self.request)
+            if cart:
+                cart.delete()
             for character in deliverable.characters.all():
                 character.shared_with.add(order.seller)
         elif user:
@@ -2425,6 +2441,18 @@ class ProductPreview(BasePreview):
         return data
 
 
+class PopulateCart(ProductPreview):
+    def context(self, username, product_id):
+        data = super().context(username, product_id)
+        cart = cart_for_request(self.request, create=False)
+        data["cart"] = (
+            JSONRenderer()
+            .render(ShoppingCartSerializer(instance=cart).data)
+            .decode("utf-8")
+        )
+        return data
+
+
 class CommissionStatusImage(View):
     # noinspection PyMethodMayBeStatic
     def get(self, request, username):
@@ -3367,3 +3395,12 @@ class PaypalTemplates(GenericAPIView):
             if template["template_info"]["detail"]["currency_code"] == "USD"
         ]
         return Response(data=templates)
+
+
+class UpdateCart(UpdateAPIView):
+    permission_classes = [SessionKeySet]
+    serializer_class = ShoppingCartSerializer
+    queryset = ShoppingCart.objects.all()
+
+    def get_object(self):
+        return cart_for_request(self.request, create=True)

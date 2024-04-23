@@ -27,6 +27,7 @@ urlpatterns = [
         main.ArtistsOfColor.as_view(),
         name="new_artist_products",
     ),
+    path("cart/", main.UpdateCart.as_view(), name="update_cart"),
     path("random/", main.RandomProducts.as_view(), name="new_artist_products"),
     path("who-is-open/", main.WhoIsOpen.as_view(), name="who_is_open"),
     path("pricing-info/", main.PricingInfo.as_view(), name="pricing_info"),

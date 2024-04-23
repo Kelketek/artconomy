@@ -3,6 +3,9 @@ from collections import defaultdict
 from decimal import ROUND_CEILING, localcontext
 from typing import Dict, Union
 
+from dateutil.parser import parse
+from django.urls import reverse
+
 from apps.lib.models import (
     AUTO_CLOSED,
     RENEWAL_FAILURE,
@@ -44,6 +47,7 @@ from apps.sales.models import (
     StripeAccount,
     TransactionRecord,
     Order,
+    ShoppingCart,
 )
 from apps.sales.stripe import money_to_stripe, stripe
 from apps.sales.utils import (
@@ -656,8 +660,8 @@ def drip_placed_order(self, order_id):
     total = deliverable.invoice.total()
     data = {
         "provider": "artconomy",
-        "email": buyer.email,
-        "order_public_id": str(order.id),
+        "email": buyer.guest_email or buyer.email,
+        "order_id": str(order.id),
         "order_url": make_url(
             f"/orders/{buyer.username}/order/{order.id}/deliverables/{deliverable.id}/",
         ),
@@ -671,9 +675,77 @@ def drip_placed_order(self, order_id):
     if buyer.drip_id:
         data["person_id"] = buyer.drip_id
     try:
-        drip.post(
+        response = drip.post(
             f"/v3/{settings.DRIP_ACCOUNT_ID}/shopper_activity/order",
             json=data,
         )
+        response.raise_for_status()
     except Exception as err:
         self.retry(exc=err)
+
+
+@celery_app.task(
+    bind=True,
+    max_retries=30,
+    retry_jitter=True,
+)
+def drip_sync_cart(self, cart_id: str, timestamp: str):
+    if not settings.DRIP_ACCOUNT_ID:
+        return
+    timestamp = parse(timestamp)
+    cart = (
+        ShoppingCart.objects.exclude(Q(user=None) & Q(email=""))
+        .filter(id=cart_id, edited_on=timestamp)
+        .first()
+    )
+    if not cart:
+        return
+    data = {
+        "provider": "artconomy",
+        "email": cart.email or cart.user.guest_email or cart.user.email,
+        "action": "updated" if cart.last_synced else "created",
+        "cart_id": cart_id,
+        "cart_url": make_url(
+            reverse(
+                "store:continue_cart",
+                kwargs={
+                    "username": cart.product.user.username,
+                    "product_id": cart.product.id,
+                },
+            )
+        )
+        + f"?cart_id={cart_id}",
+        "items": [
+            {
+                "product_id": str(cart.product.id),
+                "name": cart.product.name,
+                "brand": cart.product.user.username,
+                "product_url": make_url(
+                    reverse(
+                        "store:product_preview",
+                        kwargs={
+                            "username": cart.product.user.username,
+                            "product_id": cart.product.id,
+                        },
+                    )
+                ),
+            }
+        ],
+    }
+    try:
+        response = drip.post(
+            f"/v3/{settings.DRIP_ACCOUNT_ID}/shopper_activity/cart",
+            json=data,
+        )
+        response.raise_for_status()
+        cart.last_synced = timezone.now()
+        cart.save()
+    except Exception as err:
+        self.retry(exc=err)
+
+
+@celery_app.task()
+def clear_old_carts():
+    ShoppingCart.objects.filter(
+        edited_on__lte=timezone.now() - relativedelta(months=1)
+    ).delete()

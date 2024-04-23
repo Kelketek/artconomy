@@ -1903,3 +1903,42 @@ def mark_deliverable_paid(deliverable: "Deliverable"):
     deliverable.invoice.save()
     term_charge(deliverable)
     notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
+
+
+def cart_for_request(request, create=False):
+    """
+    Grabs the shopping cart for a particular request, or creates a new one if it
+    does not exist.
+    """
+    from apps.sales.models import ShoppingCart
+
+    cart = None
+    if request.GET.get("cart_id"):
+        try:
+            cart = ShoppingCart.objects.filter(id=request.GET.get("cart_id")).first()
+            # Whoever owned this cart before, it's ours now!
+            if request.user:
+                cart.user = request.user
+            else:
+                cart.session_key = request.session.session_key
+            cart.save()
+        except (TypeError, ValueError):
+            pass
+    elif request.user.is_registered:
+        cart = ShoppingCart.objects.filter(user=request.user).first()
+    else:
+        cart = ShoppingCart.objects.filter(
+            session_key=request.session.session_key
+        ).first()
+    if cart:
+        return cart
+    user = request.user if request.user.is_registered else None
+    session_key = request.session.session_key
+    if not create:
+        return None
+    product_id = request.data.get("product", None)
+    if create and not product_id:
+        raise ValidationError({"product": "This field is required."})
+    return ShoppingCart.objects.create(
+        user=user, session_key=session_key, product_id=product_id
+    )
