@@ -231,14 +231,7 @@
                         </router-link>
                       </v-col>
                       <v-col class="text-center" cols="12">
-                        <v-btn class="mx-0 rating-button" variant="flat" size="small" :color="ratingColor[submission.x!.rating]"
-                               @click="showRating" :ripple="editing">
-                          <v-icon left v-if="editing" :icon="mdiPencil"/>
-                          {{ratingsShort[submission.x!.rating]}}
-                        </v-btn>
-                        <ac-expanded-property v-model="ratingDialog" aria-label="Edit rating dialog" v-if="controls">
-                          <ac-patch-field field-type="ac-rating-field" :patcher="submission.patchers.rating"/>
-                        </ac-expanded-property>
+                        <ac-rating-button class="mx-0" :controls="controls" :patcher="submission.patchers.rating" variant="flat" size="small" :editing="editing" />
                       </v-col>
                     </v-row>
                   </v-col>
@@ -307,6 +300,7 @@ import {
 } from '@mdi/js'
 import {Ratings} from '@/store/profiles/types/Ratings.ts'
 import {posse} from '@/lib/otherFormatters.ts'
+import AcRatingButton from '@/components/AcRatingButton.vue'
 
 @Component({
   components: {
@@ -329,6 +323,7 @@ import {posse} from '@/lib/otherFormatters.ts'
     AcTagDisplay,
     AcAsset,
     AcLoadSection,
+    AcRatingButton,
   },
 })
 class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {

@@ -1986,7 +1986,7 @@ class ReferenceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Reference
-        fields = ("owner", "file", "rating", "id", "read")
+        fields = ("owner", "rating", "file", "rating", "id", "read")
 
 
 class DeliverableReferenceSerializer(serializers.ModelSerializer):

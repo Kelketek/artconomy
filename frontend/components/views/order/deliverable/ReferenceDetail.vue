@@ -10,9 +10,10 @@
             <ac-asset thumb-name="gallery" :asset="reference.x" :contain="true" alt="Reference for order. See comments below, if available."/>
             <v-row v-if="reference.x!.owner === rawViewerName">
               <v-col class="text-center">
+                <ac-rating-button :controls="true" :patcher="reference.patchers.rating" :editing="true" class="mr-1" />
                 <ac-confirmation :action="performDelete">
                   <template v-slot:default="{on}">
-                    <v-btn color="red" v-on="on"  variant="flat">
+                    <v-btn color="red" v-on="on"  variant="flat" class="ml-1">
                       <v-icon left :icon="mdiDelete"/>
                       Delete
                     </v-btn>
@@ -44,6 +45,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import AcRatingButton from '@/components/AcRatingButton.vue'
 import Reference from '@/types/Reference.ts'
 import {markRead, updateLinked} from '@/lib/lib.ts'
 import {mdiArrowLeft, mdiDelete} from '@mdi/js'
@@ -51,6 +53,7 @@ import {mdiArrowLeft, mdiDelete} from '@mdi/js'
 @Component({
   components: {
     AcConfirmation,
+    AcRatingButton,
     AcCommentSection,
     AcLoadSection,
     AcAsset,

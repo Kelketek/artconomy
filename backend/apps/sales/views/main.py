@@ -496,7 +496,9 @@ class PlaceOrder(CreateAPIView):
             order.save()
         for asset in serializer.validated_data.get("references", []):
             reference = Reference.objects.create(
-                file=asset, owner=user or self.request.user
+                file=asset,
+                owner=user or self.request.user,
+                rating=deliverable.rating,
             )
             reference.deliverables.add(deliverable)
         if product.wait_list:
@@ -1310,7 +1312,7 @@ class DeliverableReferences(ListCreateAPIView):
         return deliverable_reference
 
 
-class ReferenceManager(RetrieveDestroyAPIView):
+class ReferenceManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ReferenceSerializer
     permission_classes = [OrderViewPermission]
 

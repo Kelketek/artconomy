@@ -6,10 +6,10 @@ import {
   flushPromises,
   mount,
   rs,
-  vueSetup, VuetifyWrapped,
+  vueSetup,
 } from '@/specs/helpers/index.ts'
 import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
-import {createRouter, createWebHistory, Router} from 'vue-router'
+import {Router} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -139,9 +139,10 @@ describe('SubmissionDetail.vue', () => {
     await flushPromises()
     mockAxios.reset()
     await vm.$nextTick()
-    await wrapper.find('.rating-button').trigger('click')
+    const ratingButton = wrapper.findComponent('.rating-button')
+    await ratingButton.trigger('click')
     await nextTick()
-    expect(vm.ratingDialog).toBe(true)
+    expect(wrapper.findComponent('.rating-field').exists()).toBe(true)
   })
   test('Nudges the viewer to adjust their settings', async() => {
     setViewer(store, genAnon())
