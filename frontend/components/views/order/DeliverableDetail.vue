@@ -202,7 +202,7 @@
                         </v-col>
                       </v-col>
                       <v-col v-if="isSeller && (is(DeliverableStatus.QUEUED) || is(DeliverableStatus.IN_PROGRESS) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.DISPUTED))" cols="12">
-                        <v-alert :value="order.x.private">
+                        <v-alert v-if="order.x.private">
                           <strong>NOTE:</strong> This user has asked that this commission be private. Please do not use
                           a public streaming link!
                         </v-alert>
