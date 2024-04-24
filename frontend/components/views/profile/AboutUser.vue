@@ -136,6 +136,14 @@ class AboutUser extends mixins(Subjective, Editable) {
         light: true,
       })
     }
+    if (this.subject && this.subject.landscape) {
+      // TODO: Make this more dynamic per plan name and less hard coded.
+      badges.push({
+        label: 'Landscape Subscriber',
+        color: 'green',
+        light: true,
+      })
+    }
     return badges
   }
 
