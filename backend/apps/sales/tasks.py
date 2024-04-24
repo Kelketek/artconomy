@@ -683,40 +683,6 @@ def drip_placed_order(self, order_id):
         self.retry(exc=err)
 
 
-#   {
-#     "provider": "my_custom_platform",
-#     "email": "user@gmail.com",
-#     "initial_status": "active",
-#     "action": "created",
-#     "cart_id": "456445746",
-#     "occurred_at": "2019-01-17T20:50:00Z",
-#     "cart_public_id": "#5",
-#     "grand_total": 16.99,
-#     "total_discounts": 5.34,
-#     "currency": "USD",
-#     "cart_url": "https://mysuperstore.com/cart/456445746",
-#     "items": [
-#       {
-#         "product_id": "B01J4SWO1G",
-#         "product_variant_id": "B01J4SWO1G-CW-BOTT",
-#         "sku": "XHB-1234",
-#         "name": "The Coolest Water Bottle",
-#         "brand": "Drip",
-#         "categories": [
-#           "Accessories"
-#         ],
-#         "price": 11.16,
-#         "quantity": 2,
-#         "discounts": 5.34,
-#         "total": 16.99,
-#         "product_url": "https://mysuperstore.com/dp/B01J4SWO1G",
-#         "image_url": "https://www.getdrip.com/images/example_products/water_bottle.png",
-#         "product_tag": "Best Seller"
-#       }
-#     ]
-#   }
-
-
 @celery_app.task(
     bind=True,
     max_retries=30,
@@ -727,8 +693,8 @@ def drip_sync_cart(self, cart_id: str, timestamp: str):
         return
     timestamp = parse(timestamp)
     cart = (
-        ShoppingCart.objects.get(id=cart_id, edited_on=timestamp)
-        .exclude(Q(user=None) & Q(email=""))
+        ShoppingCart.objects.exclude(Q(user=None) & Q(email=""))
+        .filter(id=cart_id, edited_on=timestamp)
         .first()
     )
     if not cart:
@@ -736,11 +702,10 @@ def drip_sync_cart(self, cart_id: str, timestamp: str):
     data = {
         "provider": "artconomy",
         "email": cart.email or cart.user.guest_email or cart.user.email,
-        "initial_status": "active",
-        "action": "created" if cart.last_synced else "updated",
+        "action": "updated" if cart.last_synced else "created",
         "cart_url": make_url(
             reverse(
-                "sales:continue_cart",
+                "store:continue_cart",
                 kwargs={
                     "username": cart.product.user.username,
                     "product_id": cart.product.id,
@@ -755,7 +720,7 @@ def drip_sync_cart(self, cart_id: str, timestamp: str):
                 "brand": cart.product.user.username,
                 "product_url": make_url(
                     reverse(
-                        "sales:product_preview",
+                        "store:product_preview",
                         kwargs={
                             "username": cart.product.user.username,
                             "product_id": cart.product.id,
@@ -770,5 +735,7 @@ def drip_sync_cart(self, cart_id: str, timestamp: str):
             f"/v3/{settings.DRIP_ACCOUNT_ID}/shopper_activity/cart",
             json=data,
         )
+        cart.last_synced = timezone.now()
+        cart.save()
     except Exception as err:
         self.retry(exc=err)

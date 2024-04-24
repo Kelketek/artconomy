@@ -51,6 +51,7 @@ from apps.sales.tasks import (
     stripe_transfer,
     withdraw_all,
     drip_placed_order,
+    drip_sync_cart,
 )
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -60,6 +61,7 @@ from apps.sales.tests.factories import (
     ServicePlanFactory,
     StripeAccountFactory,
     TransactionRecordFactory,
+    ShoppingCartFactory,
 )
 from apps.sales.utils import add_service_plan_line, get_term_invoice
 from dateutil.relativedelta import relativedelta
@@ -1175,7 +1177,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         )
         drip_placed_order(deliverable.order.id)
         mock_drip.post.assert_called_with(
-            f"/v3/bork/shopper_activity/order",
+            "/v3/bork/shopper_activity/order",
             json={
                 "provider": "artconomy",
                 "email": "beep@example.com",
@@ -1189,3 +1191,59 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
             },
         )
         self.assertEqual(mock_drip.post.call_count, 1)
+
+    @override_settings()
+    def test_cart_created(self, mock_drip):
+        now = timezone.now()
+        cart = ShoppingCartFactory.create(edited_on=now)
+        mock_drip.post.reset_mock()
+        mock_drip.post.assert_called_with(
+            "/v3/bork/shopper_activity/cart",
+            json={
+                "action": "created",
+                "cart_url": f"https://artconomy.vulpinity.com/store/{cart.product.user.username}/product/{cart.product.id}/order/?cart_id={cart.id}",
+                "email": cart.user.email,
+                "items": [
+                    {
+                        "brand": cart.product.user.username,
+                        "name": cart.product.name,
+                        "product_id": cart.product.id,
+                        "product_url": f"https://artconomy.vulpinity.com/store/{cart.product.user.username}/product/{cart.product.id}/",
+                    }
+                ],
+                "provider": "artconomy",
+            },
+        )
+
+    @override_settings()
+    def test_cart_created(self, mock_drip):
+        now = timezone.now()
+        cart = ShoppingCartFactory.create(edited_on=now, last_synced=now)
+        drip_sync_cart(cart.id, now.isoformat())
+        test_data = {
+            "action": "updated",
+            "cart_url": f"https://artconomy.vulpinity.com/store/{cart.product.user.username}/product/{cart.product.id}/order/?cart_id={cart.id}",
+            "email": cart.user.email,
+            "items": [
+                {
+                    "brand": cart.product.user.username,
+                    "name": cart.product.name,
+                    "product_id": cart.product.id,
+                    "product_url": f"https://artconomy.vulpinity.com/store/{cart.product.user.username}/product/{cart.product.id}/",
+                }
+            ],
+            "provider": "artconomy",
+        }
+        mock_drip.post.assert_called_with(
+            "/v3/bork/shopper_activity/cart",
+            json=test_data,
+        )
+
+    @override_settings()
+    def test_cart_skips_unassigned(self, mock_drip):
+        now = timezone.now()
+        cart = ShoppingCartFactory.create(
+            edited_on=now, last_synced=now, user=None, email=""
+        )
+        drip_sync_cart(cart.id, now.isoformat())
+        mock_drip.post.assert_not_called()

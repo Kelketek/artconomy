@@ -3396,6 +3396,4 @@ class UpdateCart(UpdateAPIView):
     serializer_class = ShoppingCartSerializer
 
     def get_object(self):
-        cart = cart_for_request(self.request, create=True)
-        print(cart.id)
-        return cart
+        return cart_for_request(self.request, create=True)

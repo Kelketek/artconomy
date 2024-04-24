@@ -22,6 +22,7 @@ from apps.sales.models import (
     TransactionRecord,
     WebhookRecord,
     PaypalConfig,
+    ShoppingCart,
 )
 from factory import SelfAttribute, Sequence, SubFactory
 from factory.django import DjangoModelFactory
@@ -208,3 +209,12 @@ def add_adjustment(deliverable, amount: Money):
         amount=amount,
         type=ADD_ON,
     )
+
+
+class ShoppingCartFactory(DjangoModelFactory):
+    id = Sequence(lambda _: gen_shortcode())
+    user = SubFactory(UserFactory)
+    product = SubFactory(ProductFactory)
+
+    class Meta:
+        model = ShoppingCart

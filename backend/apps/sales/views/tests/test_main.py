@@ -3642,6 +3642,9 @@ class TestShoppingCart(APITestCase):
             f"/api/sales/cart/",
             {"details": "", "product_id": product.id},
         )
+        from pprint import pprint
+
+        pprint(resp.data)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         cart = ShoppingCart.objects.all().get()
         self.assertEqual(cart.user, user)
@@ -3654,6 +3657,9 @@ class TestShoppingCart(APITestCase):
             f"/api/sales/cart/",
             {"details": "", "product_id": product.id},
         )
+        from pprint import pprint
+
+        pprint(resp.data)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         cart = ShoppingCart.objects.all().get()
         self.assertIsNone(cart.user)
@@ -3674,6 +3680,9 @@ class TestShoppingCart(APITestCase):
                 "references": [asset.id],
             },
         )
+        from pprint import pprint
+
+        pprint(resp.data)
         self.assertEqual(resp.data["characters"], [character.id])
         self.assertEqual(resp.data["references"], [asset.id])
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -3689,6 +3698,9 @@ class TestShoppingCart(APITestCase):
             f"/api/sales/cart/",
             {"details": "", "product_id": product.id},
         )
+        from pprint import pprint
+
+        pprint(resp.data)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         first_id = ShoppingCart.objects.get().id
         resp = self.client.patch(
@@ -3709,6 +3721,9 @@ class TestShoppingCart(APITestCase):
             f"/api/sales/cart/",
             {"details": "", "product_id": product.id},
         )
+        from pprint import pprint
+
+        pprint(resp.data)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         first_id = ShoppingCart.objects.get().id
         resp = self.client.patch(

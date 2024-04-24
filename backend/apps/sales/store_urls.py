@@ -9,7 +9,7 @@ from apps.sales.views.main import (
 )
 from django.urls import path
 
-app_name = "sales"
+app_name = "store"
 
 # These URLs/views are for the purpose of getting Meta tag preview information.
 # Trailing slashes are not added because the frontend does not use them.

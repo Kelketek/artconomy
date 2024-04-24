@@ -2198,6 +2198,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     named_price = MoneyToFloatField(required=False, allow_null=True)
 
     def update(self, instance, validated_data):
+        from apps.sales.tasks import drip_sync_cart
+
         for key, value in validated_data.items():
             if key in ["characters", "references"]:
                 continue
@@ -2208,6 +2210,10 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             instance.references.set(validated_data["references"])
         instance.edited_on = timezone.now()
         instance.save()
+        if instance.user or instance.email:
+            drip_sync_cart.apply_async(
+                (instance.id, instance.edited_on.isoformat()), countdown=120
+            )
         return instance
 
     class Meta:
