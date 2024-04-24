@@ -1,3 +1,4 @@
+import json
 import logging
 from decimal import Decimal
 from functools import lru_cache
@@ -6,6 +7,7 @@ from uuid import uuid4
 
 from authlib.integrations.base_client import MissingTokenError
 from django.urls import reverse
+from rest_framework.renderers import JSONRenderer
 from short_stuff import gen_shortcode
 
 from apps.lib.models import (
@@ -2433,6 +2435,18 @@ class ProductPreview(BasePreview):
         return data
 
 
+class PopulateCart(ProductPreview):
+    def context(self, username, product_id):
+        data = super().context(username, product_id)
+        cart = cart_for_request(self.request, create=False)
+        data["cart"] = (
+            JSONRenderer()
+            .render(ShoppingCartSerializer(instance=cart).data)
+            .decode("utf-8")
+        )
+        return data
+
+
 class CommissionStatusImage(View):
     # noinspection PyMethodMayBeStatic
     def get(self, request, username):
@@ -3382,4 +3396,6 @@ class UpdateCart(UpdateAPIView):
     serializer_class = ShoppingCartSerializer
 
     def get_object(self):
-        return cart_for_request(self.request, create=True)
+        cart = cart_for_request(self.request, create=True)
+        print(cart.id)
+        return cart

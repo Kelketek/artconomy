@@ -156,6 +156,9 @@
   DEFAULT_SERVICE_PLAN_NAME = "{{ settings.DEFAULT_SERVICE_PLAN_NAME }}";
   SANDBOX_APIS = JSON.parse(document.getElementById('card-test-flag').textContent);
   {% if theocratic_ban %}THEOCRATIC_BAN = 1;{% else %}THEOCRATIC_BAN = 0;{% endif %}
+  {% if cart %}
+  CART={{cart|safe}};
+  {% endif %}
 </script>
 <div id="app">
   <div class="lds-dual-ring"></div>

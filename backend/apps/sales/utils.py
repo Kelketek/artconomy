@@ -1916,6 +1916,12 @@ def cart_for_request(request, create=False):
     if request.GET.get("cart_id"):
         try:
             cart = ShoppingCart.objects.filter(id=request.GET.get("cart_id")).first()
+            # Whoever owned this cart before, it's ours now!
+            if request.user:
+                cart.user = request.user
+            else:
+                cart.session_key = request.session.session_key
+            cart.save()
         except (TypeError, ValueError):
             pass
     elif request.user.is_registered:

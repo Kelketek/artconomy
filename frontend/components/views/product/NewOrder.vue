@@ -301,6 +301,7 @@ import {profileLink} from '@/lib/otherFormatters.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import debounce from 'lodash/debounce'
 import {statusOk} from '@/mixins/ErrorHandling.ts'
+import {ShoppingCart} from '@/types/ShoppingCart.ts'
 
 declare interface NewOrderProps {
   invoiceMode: string,
@@ -347,42 +348,68 @@ if (props.invoiceMode) {
   validators.pop()
 }
 
+const cartDefaults: ShoppingCart = {
+  product: parseInt(route.params.productId as string, 10),
+  email: ((viewer.value as User).guest_email || ''),
+  private: false,
+  characters: [],
+  rating: 0,
+  details: '',
+  references: [],
+  named_price: null,
+  escrow_upgrade: forceShield.value,
+}
+
+if (window.CART) {
+  // Rehydrate the shopping cart.
+  if (!cartDefaults.email) {
+    cartDefaults.email = window.CART.email
+  }
+  cartDefaults.private = window.CART.private
+  cartDefaults.characters = window.CART.characters
+  cartDefaults.rating = window.CART.rating
+  cartDefaults.details = window.CART.details
+  cartDefaults.references = window.CART.references
+  cartDefaults.named_price = window.CART.named_price
+  cartDefaults.escrow_upgrade = window.CART.escrow_upgrade
+}
+
 const orderForm = useForm('newOrder', {
   endpoint: product.endpoint + 'order/',
   persistent: true,
   step,
   fields: {
-    // product_id field not actually used in submission, but used as a way to track
+    // product field not actually used in submission, but used as a way to track
     // whether the user is revisiting this product after navigating away, or if this is the first time.
     // We start with zero to make sure we register a 'change' on the first product visited and copy over the
     // details template from the product, if it exists.
     //
     // It is also used to track the order for the purposes of someone returning to this 'cart'. The data in this form
     // must be synchronizable to the data in backend/apps/sales/models.py, in the ShoppingCart model.
-    product_id: {value: route.params.productId},
+    product: {value: cartDefaults.product},
     email: {
-      value: ((viewer.value as User).guest_email || ''),
+      value: cartDefaults.email,
       step: 1,
       validators: validators,
     },
     private: {
-      value: false,
+      value: cartDefaults.private,
       step: 1,
     },
     characters: {
-      value: [],
+      value: cartDefaults.characters,
       step: 2,
     },
     rating: {
-      value: 0,
+      value: cartDefaults.rating,
       step: 2,
     },
     details: {
-      value: '',
+      value: cartDefaults.details,
       step: 2,
     },
     references: {
-      value: [],
+      value: cartDefaults.references,
       step: 2,
     },
     invoicing: {
@@ -390,13 +417,13 @@ const orderForm = useForm('newOrder', {
       step: 3,
     },
     named_price: {
-      value: null,
+      value: cartDefaults.named_price,
       step: 1,
     },
     // Note: There are agreements and warnings to display on step 3 even if there aren't fields,
     // so if this field gets moved to a lower step, a dummy field should be created for step 3 to persist.
     escrow_upgrade: {
-      value: forceShield.value,
+      value: cartDefaults.escrow_upgrade,
       step: 3,
     },
   },
@@ -416,10 +443,10 @@ watch(() => product.x, (newProduct) => {
     return
   }
   orderForm.fields.rating.model = Math.min(newProduct.max_rating, orderForm.fields.rating.value)
-  if ((orderForm.fields.product_id.value !== newProduct.id) && newProduct.details_template.length) {
+  if ((orderForm.fields.product.value !== newProduct.id) && newProduct.details_template.length) {
     orderForm.fields.details.model = newProduct.details_template
   }
-  orderForm.fields.product_id.model = newProduct.id
+  orderForm.fields.product.model = newProduct.id
 }, {deep: true, immediate: true})
 
 // Keep the order form's step as part of the URL.

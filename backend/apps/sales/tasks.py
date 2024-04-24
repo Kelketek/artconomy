@@ -3,6 +3,9 @@ from collections import defaultdict
 from decimal import ROUND_CEILING, localcontext
 from typing import Dict, Union
 
+from dateutil.parser import parse
+from django.urls import reverse
+
 from apps.lib.models import (
     AUTO_CLOSED,
     RENEWAL_FAILURE,
@@ -44,6 +47,7 @@ from apps.sales.models import (
     StripeAccount,
     TransactionRecord,
     Order,
+    ShoppingCart,
 )
 from apps.sales.stripe import money_to_stripe, stripe
 from apps.sales.utils import (
@@ -673,6 +677,97 @@ def drip_placed_order(self, order_id):
     try:
         drip.post(
             f"/v3/{settings.DRIP_ACCOUNT_ID}/shopper_activity/order",
+            json=data,
+        )
+    except Exception as err:
+        self.retry(exc=err)
+
+
+#   {
+#     "provider": "my_custom_platform",
+#     "email": "user@gmail.com",
+#     "initial_status": "active",
+#     "action": "created",
+#     "cart_id": "456445746",
+#     "occurred_at": "2019-01-17T20:50:00Z",
+#     "cart_public_id": "#5",
+#     "grand_total": 16.99,
+#     "total_discounts": 5.34,
+#     "currency": "USD",
+#     "cart_url": "https://mysuperstore.com/cart/456445746",
+#     "items": [
+#       {
+#         "product_id": "B01J4SWO1G",
+#         "product_variant_id": "B01J4SWO1G-CW-BOTT",
+#         "sku": "XHB-1234",
+#         "name": "The Coolest Water Bottle",
+#         "brand": "Drip",
+#         "categories": [
+#           "Accessories"
+#         ],
+#         "price": 11.16,
+#         "quantity": 2,
+#         "discounts": 5.34,
+#         "total": 16.99,
+#         "product_url": "https://mysuperstore.com/dp/B01J4SWO1G",
+#         "image_url": "https://www.getdrip.com/images/example_products/water_bottle.png",
+#         "product_tag": "Best Seller"
+#       }
+#     ]
+#   }
+
+
+@celery_app.task(
+    bind=True,
+    max_retries=30,
+    retry_jitter=True,
+)
+def drip_sync_cart(self, cart_id: str, timestamp: str):
+    if not settings.DRIP_ACCOUNT_ID:
+        return
+    timestamp = parse(timestamp)
+    cart = (
+        ShoppingCart.objects.get(id=cart_id, edited_on=timestamp)
+        .exclude(Q(user=None) & Q(email=""))
+        .first()
+    )
+    if not cart:
+        return
+    data = {
+        "provider": "artconomy",
+        "email": cart.email or cart.user.guest_email or cart.user.email,
+        "initial_status": "active",
+        "action": "created" if cart.last_synced else "updated",
+        "cart_url": make_url(
+            reverse(
+                "sales:continue_cart",
+                kwargs={
+                    "username": cart.product.user.username,
+                    "product_id": cart.product.id,
+                },
+            )
+        )
+        + f"?cart_id={cart_id}",
+        "items": [
+            {
+                "product_id": cart.product.id,
+                "name": cart.product.name,
+                "brand": cart.product.user.username,
+                "product_url": make_url(
+                    reverse(
+                        "sales:product_preview",
+                        kwargs={
+                            "username": cart.product.user.username,
+                            "product_id": cart.product.id,
+                        },
+                    )
+                ),
+            }
+        ],
+    }
+    try:
+        drip.post(
+            f"/v3/{settings.DRIP_ACCOUNT_ID}/shopper_activity/cart",
             json=data,
         )
     except Exception as err:

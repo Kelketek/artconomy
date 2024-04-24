@@ -5,6 +5,8 @@ from itertools import chain
 from typing import List
 from urllib.parse import urlparse
 
+from django.utils import timezone
+
 from apps.lib.abstract_models import EXTREME, GENERAL, RATINGS
 from apps.lib.consumers import register_serializer
 from apps.lib.models import Asset, ref_for_instance
@@ -2204,6 +2206,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             instance.characters.set(validated_data["characters"])
         if "references" in validated_data:
             instance.references.set(validated_data["references"])
+        instance.edited_on = timezone.now()
         instance.save()
         return instance
 
@@ -2214,6 +2217,7 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             "private",
             "characters",
             "rating",
+            "details",
             "references",
             "named_price",
             "escrow_upgrade",

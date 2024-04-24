@@ -1981,8 +1981,8 @@ class ShoppingCart(models.Model):
     product = models.ForeignKey(Product, on_delete=CASCADE)
     email = models.EmailField(blank=True, db_index=True)
     user = models.ForeignKey("profiles.User", blank=True, null=True, on_delete=CASCADE)
-    created_on = models.DateTimeField(default=timezone.now)
-    edited_on = models.DateTimeField(auto_now=True)
+    created_on = models.DateTimeField(default=timezone.now, db_index=True)
+    edited_on = models.DateTimeField(default=timezone.now, db_index=True)
     private = models.BooleanField(default=False)
     characters = models.ManyToManyField("profiles.Character", blank=True)
     rating = models.IntegerField(choices=RATINGS, default=GENERAL)
@@ -1996,3 +1996,13 @@ class ShoppingCart(models.Model):
     )
     escrow_upgrade = models.BooleanField(default=False)
     details = TextField(max_length=5000)
+
+
+@receiver(post_save, sender=ShoppingCart)
+def update_drip(sender, instance, **kwargs):
+    from apps.sales.tasks import drip_sync_cart
+    if not (instance.user or instance.email):
+        return
+    drip_sync_cart.apply_async(
+        (instance.id, instance.edited_on.isoformat()), countdown=120
+    )
