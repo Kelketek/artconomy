@@ -463,12 +463,12 @@ const display = useDisplay()
 
 const blogEntries = [
   {
-    link: 'https://artconomy.com/blog/posts/2020/04/29/7-tips-on-pricing-your-artwork/',
+    link: 'https://artconomy.com/blog/pricing-your-artwork/',
     title: '7 Tips on Pricing your Artwork',
     image: 'https://artconomy.com/blog/wp-content/uploads/2020/04/alvaro-reyes-MEldcHumbu8-unsplash.jpg',
   },
   {
-    link: 'https://artconomy.com/blog/posts/2020/01/13/5-tips-for-growing-your-audience-as-an-artist/',
+    link: 'https://artconomy.com/blog/tips-for-growing-your-audience/',
     title: '5 Tips for Growing your Audience as an Artist',
     image: 'https://artconomy.com/blog/wp-content/uploads/2020/01/dragon.jpg',
   },
@@ -478,27 +478,27 @@ const blogEntries = [
     image: 'https://artconomy.com/blog/wp-content/uploads/2019/07/pirate.jpg',
   },
   {
-    link: 'https://artconomy.com/blog/posts/2019/05/17/staying-safe-how-to-prevent-getting-scammed-when-selling-commissions/',
+    link: 'https://artconomy.com/blog/selling-art-commissions/',
     title: '5 Ways to Protect Yourself When Selling Art Commissions',
     image: 'https://artconomy.com/blog/wp-content/uploads/2019/05/piggybank.jpg',
   },
   {
-    link: 'https://artconomy.com/blog/posts/2019/05/01/the-transition-process-making-art-your-side-hustle/',
+    link: 'https://artconomy.com/blog/making-art-your-side-hustle/',
     title: '7 Tips on Making Art your Side Hustle',
     image: 'https://artconomy.com/blog/wp-content/uploads/2018/01/cover-web.jpeg',
   },
   {
-    link: 'https://artconomy.com/blog/posts/2018/11/15/how-to-describe-what-you-need-to-an-artist/',
+    link: 'https://artconomy.com/blog/what-you-need-to-an-artist/',
     title: 'How to Describe What you Need to an Artist',
     image: 'https://artconomy.com/blog/wp-content/uploads/2019/06/wrong-question.png',
   },
   {
-    link: 'https://artconomy.com/blog/posts/2022/11/16/escrow-for-art-commissions/',
+    link: 'https://artconomy.com/blog/escrow-for-art-commissions/',
     title: 'Escrow For Art Commissions: 5 Reasons we use it',
     image: 'https://artconomy.com/blog/wp-content/uploads/2022/11/defending-1885x2048.png',
   },
   {
-    link: 'https://artconomy.com/blog/posts/2020/11/18/5-things-to-know-about-art-commissions/',
+    link: 'https://artconomy.com/blog/art-commissions/',
     title: '5 Things to Know about Art Commissions',
     image: 'https://artconomy.com/blog/wp-content/uploads/2020/11/kelly-sikkema-o2TRWThve_I-unsplash.jpg',
   },
@@ -506,12 +506,12 @@ const blogEntries = [
 
 const nsfwBlogEntries = [
   {
-    link: 'https://artconomy.com/blog/posts/2020/08/04/nsfw-commissions-5-tips-for-buyers/',
+    link: 'https://artconomy.com/blog/nsfw-commissions-tips-for-buyers/',
     title: 'NSFW Commissions: 5 Tips for Buyers',
     image: 'https://artconomy.com/blog/wp-content/uploads/2020/08/halcy0n-phoex-JasAra02-1536x1075.png',
   },
   {
-    link: 'https://artconomy.com/blog/posts/2022/08/16/nsfw-furry-artists-4-tips-to-find/',
+    link: 'https://artconomy.com/blog/nsfw-furry-artists/',
     title: 'NSFW Furry Artists: 4 Tips to Find the Right One for You!',
     image: 'https://artconomy.com/blog/wp-content/uploads/2022/08/blog1transparent-3.png',
   },
