@@ -654,8 +654,6 @@ def drip_placed_order(self, order_id):
     buyer = order.buyer
     if not buyer:
         return
-    if buyer.buys.all().count() > 1:
-        return
     deliverable = order.deliverables.last()
     total = deliverable.invoice.total()
     data = {
