@@ -26,6 +26,7 @@ import {computed, nextTick, watch} from 'vue'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
 import Comment from '@/types/Comment.ts'
+import Product from '@/types/Product.ts'
 
 /*
 
@@ -750,6 +751,27 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     return deliverable.x.product
   })
 
+  const revisionCount = computed(() => {
+    /* istanbul ignore if */
+    if (!order.x) {
+      return NaN
+    }
+    if (!deliverable.x) {
+      return NaN
+    }
+    if (!product.value) {
+      return deliverable.x.revisions + deliverable.x.adjustment_revisions
+    }
+    if (is(DeliverableStatus.NEW) || is(DeliverableStatus.PAYMENT_PENDING)) {
+      return product.value.revisions + deliverable.x.adjustment_revisions
+    }
+    return deliverable.x.revisions + deliverable.x.adjustment_revisions
+  })
+
+  const archived = computed(() => {
+    return is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED) || is(DeliverableStatus.CANCELLED)
+  })
+
   const name = computed(() => {
     if (!product.value) {
       return '(Custom Project)'
@@ -808,6 +830,8 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     isSeller,
     isArbitrator,
     isInvolved,
+    revisionCount,
+    archived,
     arbitratorHandler,
     sellerHandler,
     buyerHandler,

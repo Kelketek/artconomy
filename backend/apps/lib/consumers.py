@@ -4,7 +4,6 @@ from pprint import pprint
 from typing import Any, DefaultDict, Dict, Optional, Type
 
 from aiofile import async_open
-from django import dispatch
 
 from apps.lib.consumer_serializers import (
     EmptySerializer,

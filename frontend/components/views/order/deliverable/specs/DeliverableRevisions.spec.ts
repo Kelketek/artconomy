@@ -31,7 +31,7 @@ describe('DeliverableRevisions.vue', () => {
       DeliverableRevisions, {
         ...vueSetup({
           store,
-router,
+          router,
         }),
         props: {
           orderId: 1,
@@ -42,7 +42,6 @@ router,
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     vm.revisions.setList([genRevision()])
     vm.revisions.ready = true
@@ -60,7 +59,7 @@ router,
       DeliverableRevisions, {
         ...vueSetup({
           store,
-router,
+          router,
         }),
         props: {
           orderId: 1,
@@ -71,7 +70,6 @@ router,
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     vm.revisions.setList([])
     vm.revisions.ready = true
@@ -90,7 +88,7 @@ router,
       DeliverableRevisions, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -106,7 +104,6 @@ router,
     deliverable.product = null
     deliverable.status = DeliverableStatus.PAYMENT_PENDING
     deliverable.revisions_hidden = true
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
     const mockGet = vi.spyOn(vm.revisions, 'get')

@@ -113,7 +113,7 @@
           </v-row>
         </v-container>
         <v-row>
-          <v-col cols="12" v-if="isBuyer && is(REVIEW)">
+          <v-col cols="12" v-if="isBuyer && is(DeliverableStatus.REVIEW)">
             <v-row class="text-center">
               <v-col cols="12" sm="6" md="3" offset-md="3" class="text-center">
                 <v-btn color="primary" @click="statusEndpoint('approve')()" variant="flat">Approve Final</v-btn>
@@ -123,7 +123,7 @@
               </v-col>
             </v-row>
           </v-col>
-          <v-col class="text-center" cols="12" v-if="isBuyer && is(DISPUTED)">
+          <v-col class="text-center" cols="12" v-if="isBuyer && is(DeliverableStatus.DISPUTED)">
             <p><strong>Your dispute has been filed.</strong> Please stand by for further instructions.
               If you are able to work out your disagreement with the artist, please approve the order using the
               button below.</p>
@@ -139,106 +139,88 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
+<script setup lang="ts">
+import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcDeliverableRating from '@/components/views/order/AcDeliverableRating.vue'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcAsset from '@/components/AcAsset.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import Revision from '@/types/Revision.ts'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {mdiHeart, mdiPlus, mdiStar} from '@mdi/js'
+import {useForm} from '@/store/forms/hooks.ts'
+import {computed, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {
-    AcUnreadMarker,
-    AcAsset,
-    AcBoundField,
-    AcFormContainer,
-    AcForm,
-    AcDeliverableRating,
-    AcConfirmation,
-    AcLoadSection,
-    AcFormDialog,
-  },
+const props = defineProps<DeliverableProps>()
+
+const {isRegistered} = useViewer()
+
+const {deliverable, revisions, revisionCount, statusEndpoint, isBuyer, is, isSeller, archived} = useDeliverable(props)
+
+const showNew = ref(false)
+
+const route = useRoute()
+const router = useRouter()
+
+const isPath = computed(() => {
+  return route.name === `${props.baseName}DeliverableRevisions`
 })
-class DeliverableRevisions extends mixins(DeliverableMixin) {
-  public newRevision: FormController = null as unknown as FormController
-  public showNew = false
-  public mdiHeart = mdiHeart
-  public mdiPlus = mdiPlus
-  public mdiStar = mdiStar
 
-  public get isPath() {
-    return this.$route.name === `${this.baseName}DeliverableRevisions`
-  }
-
-  public get remainingRevisions() {
-    /* istanbul ignore if */
-    if (!this.revisions.ready) {
-      return 0
-    }
-    return this.revisionCount - this.revisions.list.length
-  }
-
-  public get final() {
-    const deliverable = this.deliverable.x
-    /* istanbul ignore if */
-    if (!deliverable) {
-      return null
-    }
-    if (!deliverable.final_uploaded) {
-      return null
-    }
-    return this.revisions.list[this.revisions.list.length - 1]
-  }
-
-  public postSubmit(response: Revision) {
-    this.revisions.uniquePush(response)
-    this.$router.push({
-      name: `${this.baseName}DeliverableRevision`,
-      params: {
-        ...this.$route.params,
-        revisionId: response.id + '',
+const newRevision = useForm(
+    'newRevision', {
+      endpoint: revisions.endpoint,
+      fields: {
+        file: {value: ''},
+        final: {value: false},
+        text: {value: ''}
       },
-    })
-    this.deliverable.refresh()
-  }
+    },
+)
 
-  @Watch('revisions.list.length')
-  public refreshDeliverable(newVal: number, oldVal: number | null | undefined) {
-    if ([undefined, null].indexOf(oldVal as null) !== -1) {
-      return
-    }
-    this.deliverable.refresh()
+const remainingRevisions = computed(() => {
+  /* istanbul ignore if */
+  if (!revisions.ready) {
+    return 0
   }
+  return revisionCount.value - revisions.list.length
+})
 
-  @Watch('deliverable.x.revisions_hidden')
-  public fetchRevisions(newVal: boolean | undefined, oldVal: boolean | undefined) {
-    if ((oldVal === true) && (newVal === false)) {
-      this.revisions.get()
-    }
+const final = computed(() => {
+  /* istanbul ignore if */
+  if (!deliverable.x) {
+    return null
   }
+  if (!deliverable.x.final_uploaded) {
+    return null
+  }
+  return revisions.list[revisions.list.length - 1]
+})
 
-  public created() {
-    this.newRevision = this.$getForm(
-        'newRevision', {
-          endpoint: this.revisions.endpoint,
-          fields: {
-            file: {value: ''},
-            final: {value: false},
-            text: {value: ''}
-          },
-        },
-    )
-  }
+const postSubmit = (response: Revision) => {
+  revisions.uniquePush(response)
+  router.push({
+    name: `${props.baseName}DeliverableRevision`,
+    params: {
+      ...route.params,
+      revisionId: response.id + '',
+    },
+  })
 }
 
-export default toNative(DeliverableRevisions)
+watch(() => revisions.list.length, (newVal: number, oldVal: number | null | undefined) => {
+  if ([undefined, null].indexOf(oldVal as null) !== -1) {
+    return
+  }
+  deliverable.refresh()
+})
+
+watch(() => deliverable.x?.revisions_hidden, (newVal: boolean | undefined, oldVal: boolean | undefined) => {
+  if ((oldVal === true) && (newVal === false)) {
+    revisions.get()
+  }}
+)
 </script>

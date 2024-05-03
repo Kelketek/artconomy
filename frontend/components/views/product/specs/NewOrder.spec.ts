@@ -1,5 +1,5 @@
-import {cleanUp, flushPromises, mount, rs, vueSetup, waitFor} from '@/specs/helpers/index.ts'
-import {createRouter, createWebHistory, Router} from 'vue-router'
+import {cleanUp, createTestRouter, flushPromises, mount, rs, vueSetup, waitFor} from '@/specs/helpers/index.ts'
+import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {genAnon, genArtistProfile, genOrder, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
@@ -19,67 +19,13 @@ describe('NewOrder.vue', () => {
   beforeEach(() => {
     window.fbq = vi.fn()
     store = createStore()
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [
-        {
-          path: '/',
-          name: 'Home',
-          component: Empty,
-        },
-        {
-          path: '/test/',
-          name: 'Test',
-          component: Empty,
-        },
-        {
-          path: '/commission-agreement/',
-          name: 'CommissionAgreement',
-          component: Empty,
-        },
-        {
-          path: '/user/:username/about/',
-          name: 'AboutUser',
-          component: Empty,
-        },
-        {
-          path: '/orders/:username/order/:orderId',
-          name: 'Order',
-          component: Empty,
-        },
-        {
-          path: '/auth/login/',
-          name: 'Login',
-          component: Empty,
-        },
-        {
-          path: '/faq/buy-and-sell/:question',
-          name: 'BuyAndSell',
-          component: Empty,
-        },
-        {
-          path: '/orders/:username/order/:orderId/:deliverableId',
-          name: 'Deliverable',
-          component: Empty,
-        },
-        {
-          path: '/orders/:username/order/:orderId/:deliverableId/payment',
-          name: 'SaleDeliverablePayment',
-          component: Empty,
-        },
-        {
-          path: '/store/:username/products/:productId/order/:stepId?/',
-          name: 'NewOrder',
-          component: Empty,
-        },
-      ],
-    })
+    router = createTestRouter()
     router.push({
       name: 'NewOrder',
       params: {
         productId: '1',
         username: 'Fox',
-        stepId: '1',
+        invoiceMode: '',
       },
     })
     const mockScrollTo = vi.spyOn(window, 'scrollTo')
@@ -99,6 +45,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     await nextTick()
@@ -115,6 +62,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     const vm = wrapper.vm as any
@@ -152,6 +100,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: 'invoice',
       },
     })
     const vm = wrapper.vm as any
@@ -197,6 +146,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: 'invoice',
       },
     })
     const vm = wrapper.vm as any
@@ -247,10 +197,11 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     const vm = wrapper.vm as any
-    await router.replace({name: 'Test'})
+    await router.replace('/')
     vm.subjectHandler.user.makeReady(genUser())
     vm.subjectHandler.artistProfile.makeReady(genArtistProfile())
     vm.product.makeReady(genProduct({id: 1}))
@@ -286,7 +237,7 @@ describe('NewOrder.vue', () => {
       persistent: true,
       step: 1,
       fields: {
-        productId: {value: 0},
+        product: {value: 0},
         email: {
           value: '',
           step: 1,
@@ -341,6 +292,7 @@ describe('NewOrder.vue', () => {
         props: {
           productId: '1',
           username: 'Fox',
+          invoiceMode: '',
         },
       })
     const vm = wrapper.vm as any
@@ -366,7 +318,7 @@ describe('NewOrder.vue', () => {
       endpoint: '/boop/',
       persistent: true,
       fields: {
-        productId: {value: 0},
+        product: {value: 0},
         email: {value: ('')},
         private: {value: false},
         characters: {value: [23, 50]},
@@ -398,6 +350,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     const vm = wrapper.vm as any
@@ -418,6 +371,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     const vm = wrapper.vm as any
@@ -430,7 +384,7 @@ describe('NewOrder.vue', () => {
       endpoint: '/boop/',
       persistent: true,
       fields: {
-        productId: {value: 5},
+        product: {value: 5},
         email: {value: ('')},
         private: {value: false},
         characters: {value: [23, 50]},
@@ -464,6 +418,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     const vm = wrapper.vm as any
@@ -479,7 +434,7 @@ describe('NewOrder.vue', () => {
       endpoint: '/boop/',
       persistent: true,
       fields: {
-        productId: {value: 1},
+        product: {value: 1},
         email: {value: ('')},
         private: {value: false},
         characters: {value: [23, 50]},
@@ -513,6 +468,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     const vm = wrapper.vm as any
@@ -528,7 +484,7 @@ describe('NewOrder.vue', () => {
       endpoint: '/boop/',
       persistent: true,
       fields: {
-        productId: {value: 1},
+        product: {value: 1},
         email: {value: ('')},
         private: {value: false},
         characters: {value: [23, 50]},
@@ -562,6 +518,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     const vm = wrapper.vm as any
@@ -591,6 +548,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     await nextTick()
@@ -616,9 +574,9 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
-    const vm = wrapper.vm as any
     await nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '1'}})
   })
@@ -630,6 +588,7 @@ describe('NewOrder.vue', () => {
       params: {
         username: 'Fox',
         productId: '1',
+        invoiceMode: '',
       },
       query: {stepId: '4'},
     })
@@ -641,6 +600,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     await waitFor(() => expect(router.currentRoute.value.query.stepId).toEqual('3'))
@@ -653,6 +613,7 @@ describe('NewOrder.vue', () => {
       params: {
         username: 'Fox',
         productId: '1',
+        invoiceMode: '',
       },
       query: {stepId: '2'},
     })
@@ -665,6 +626,7 @@ describe('NewOrder.vue', () => {
       props: {
         productId: '1',
         username: 'Fox',
+        invoiceMode: '',
       },
     })
     await nextTick()

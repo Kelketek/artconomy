@@ -645,7 +645,7 @@ export const transformComponentName = (componentName: string) => {
 
 export const setViewer = (store: Store<any>, user: User | AnonUser | TerseUser) => {
   const username = user.username
-  store.registerModule(pathFor(username), new ProfileModule({viewer: true}))
+  store.registerModule(pathFor(username), new ProfileModule({viewer: true, persistent: true}))
   store.registerModule(
     userPathFor(username),
     new SingleModule<User | AnonUser | TerseUser>({

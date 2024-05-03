@@ -5,9 +5,8 @@ import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {SinglePatchers} from '@/store/singles/types/SinglePatchers.ts'
 import {Patch} from '@/store/singles/patcher.ts'
-import {Watch} from 'vue-facing-decorator'
 import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
-import {ref, Ref} from 'vue'
+import {ref, Ref, watch} from 'vue'
 import {ComputedGetters} from '@/lib/lib.ts'
 
 @ComputedGetters
@@ -28,6 +27,13 @@ export class SingleController<T extends object> extends BaseController<SingleMod
       this.forceRecomputeCounter = ref(0)
     })
     this.register()
+    this.scope.run(() => {
+      watch(() => this.ready, (currentValue: boolean) => {
+        if (currentValue) {
+          this.socketOpened()
+        }
+      }, {immediate: true})
+    })
   }
 
   public get = () => {
@@ -55,13 +61,6 @@ export class SingleController<T extends object> extends BaseController<SingleMod
 
   public put = (data?: any) => {
     return this.dispatch('put', data)
-  }
-
-  @Watch('ready', {immediate: true})
-  public startWatcher = (currentValue: boolean) => {
-    if (currentValue) {
-      this.socketOpened()
-    }
   }
 
   public setX = (x: T | null) => {

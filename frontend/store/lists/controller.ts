@@ -1,4 +1,3 @@
-import {Watch} from 'vue-facing-decorator'
 import {ListModuleOpts} from './types/ListModuleOpts.ts'
 import {SingleController} from '../singles/controller.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
@@ -11,7 +10,7 @@ import {ComputedGetters} from '@/lib/lib.ts'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
-import {effectScope} from 'vue'
+import {effectScope, watch} from 'vue'
 
 @ComputedGetters
 export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
@@ -26,6 +25,13 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   constructor(args: ControllerArgs<ListModuleOpts>) {
     super(args)
     this.register()
+    this.scope.run(() => {
+      watch(() => this.ready, (currentValue: boolean) => {
+        if (currentValue) {
+          this.socketOpened()
+        }
+      }, {immediate: true})
+    })
   }
 
   public get = () => {
@@ -224,13 +230,6 @@ export class ListController<T extends object> extends BaseController<ListModuleO
 
   public get keyProp() {
     return this.attr('keyProp')
-  }
-
-  @Watch('ready', {immediate: true})
-  public startWatcher(currentValue: boolean) {
-    if (currentValue) {
-      this.socketOpened()
-    }
   }
 
   public get socketSettings(): ListSocketSettings | null {

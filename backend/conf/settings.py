@@ -764,7 +764,7 @@ CSP_SCRIPT_SRC = tuple(
             "https://artconomy.matomo.cloud",
             "https://cdn.matomo.cloud",
             "https://hcaptcha.com",
-            "https://*.stripe.com/",
+            "https://*.stripe.com",
             "https://*.hcaptcha.com",
         ),
         unpack=True,

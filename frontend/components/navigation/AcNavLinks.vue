@@ -224,7 +224,7 @@
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {artCall, makeQueryParams} from '@/lib/lib.ts'
+import {artCall, makeQueryParams, setViewer} from '@/lib/lib.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
@@ -243,6 +243,7 @@ import {
   mdiStar,
   mdiStore, mdiStoreCogOutline, mdiStorefront,
 } from '@mdi/js'
+import {useViewer} from '@/mixins/viewer.ts'
 
 declare interface AcNavLinksProps {
   modelValue: boolean|null,
@@ -256,6 +257,7 @@ declare interface AcNavLinksProps {
 
 const props = withDefaults(defineProps<AcNavLinksProps>(), {embedded: false})
 const router = useRouter()
+const {viewerHandler} = useViewer()
 
 const openFirst = ref(['Openings', 'Art'])
 const openSecond = ref(['Reports'])
@@ -297,7 +299,7 @@ const logout = () => {
     url: '/api/profiles/logout/',
     method: 'post',
   }).then((newUser: AnonUser) => {
-    props.subjectHandler.user.setX(newUser)
+    viewerHandler.user.setX(newUser)
     router.push({name: 'Home'})
     emit('update:modelValue', null)
   })

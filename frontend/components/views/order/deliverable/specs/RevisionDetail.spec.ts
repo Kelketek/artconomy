@@ -33,7 +33,7 @@ describe('DeliverableOverview.vue', () => {
       RevisionDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -46,7 +46,6 @@ router,
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
     expect(vm.isLast).toBe(false)
@@ -74,7 +73,7 @@ router,
       RevisionDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -87,7 +86,6 @@ router,
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
     expect(vm.isLast).toBe(false)
@@ -110,7 +108,7 @@ router,
       RevisionDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -123,7 +121,6 @@ router,
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
     expect(vm.isLast).toBe(false)
@@ -162,7 +159,7 @@ router,
       RevisionDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -175,7 +172,6 @@ router,
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
     expect(vm.isLast).toBe(false)
@@ -199,7 +195,7 @@ router,
       RevisionDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -212,7 +208,6 @@ router,
       })
     const vm = wrapper.vm as any
     const deliverable = genDeliverable({status: DeliverableStatus.COMPLETED})
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
     expect(vm.isLast).toBe(false)
@@ -238,7 +233,7 @@ router,
       RevisionDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -252,7 +247,6 @@ router,
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     deliverable.status = DeliverableStatus.IN_PROGRESS
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     await vm.$nextTick()
     expect(vm.isLast).toBe(false)
@@ -284,7 +278,7 @@ router,
       RevisionDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager', 'ac-comment-section'],
         }),
         props: {
@@ -300,7 +294,6 @@ router,
     deliverable.status = DeliverableStatus.IN_PROGRESS
     deliverable.order.seller = user
     deliverable.order.buyer = genUser({username: 'Vulpes'})
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     const revision = genRevision({id: 1})
     vm.revision.makeReady(revision)

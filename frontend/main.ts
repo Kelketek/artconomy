@@ -48,6 +48,8 @@ declare global {
     fbq: (...args: any) => void,
   }
 }
+// Uncomment to enable debug logger.
+// window.__LOG_LEVEL__ = 0
 
 const productionMode = process.env.NODE_ENV === 'production'
 if (!productionMode) {
