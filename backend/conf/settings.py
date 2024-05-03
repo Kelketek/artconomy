@@ -464,6 +464,11 @@ FB_PIXEL_ID = get_env("FB_PIXEL_ID", "")
 
 DRIP_API_KEY = get_env("DRIP_API_KEY", "")
 
+if TESTING:
+    # Avoid racking up our user count. Oy!
+    DRIP_ACCOUNT_ID = ""
+    DRIP_API_KEY = ""
+
 COUNTRIES_NOT_SERVED = get_env(
     "COUNTRIES_NOT_SERVED",
     (
