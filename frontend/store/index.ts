@@ -9,7 +9,7 @@ import {notifications} from './notifications/index.ts'
 import {genId} from '@/lib/lib.ts'
 import {singles} from './singles/index.ts'
 import {characterModules} from '@/store/characters/index.ts'
-import {ContentRating} from '@/types/ContentRating.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
 export function storeDefaults(): StoreOptions<ArtState> {
   return {
@@ -57,7 +57,7 @@ export function storeDefaults(): StoreOptions<ArtState> {
       setAgeAsked(state, value: boolean) {
         state.ageAsked = value
       },
-      setContentRating(state, value: ContentRating) {
+      setContentRating(state, value: Ratings) {
         state.contentRating = value
       },
       setShowAgeVerification(state, value: boolean) {

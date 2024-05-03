@@ -38,7 +38,7 @@
               </v-row>
             </v-col>
             <v-col cols="12">
-              <ac-bound-field :field="newUpload.fields.rating" label="Content Rating" field-type="ac-rating-field"/>
+              <ac-bound-field :field="newUpload.fields.rating" label="Content Ratings" field-type="ac-rating-field"/>
             </v-col>
             <v-col cols="12">
               <ac-bound-field :field="newUpload.fields.tags" field-type="ac-tag-field" label="Tags"

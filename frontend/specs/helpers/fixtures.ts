@@ -16,7 +16,7 @@ import Invoice from '@/types/Invoice.ts'
 import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
 export function genUser(overrides?: Partial<User>): User {
   return {

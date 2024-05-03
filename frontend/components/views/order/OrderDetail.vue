@@ -19,53 +19,38 @@
   <router-view v-else></router-view>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import Formatting from '@/mixins/formatting.ts'
-import Ratings from '@/mixins/ratings.ts'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
 import Deliverable from '@/types/Deliverable.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import Order from '@/types/Order.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcDeliverablePreview from '@/components/AcDeliverablePreview.vue'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
+import {computed} from 'vue'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {OrderProps} from '@/types/OrderProps.ts'
+import {useRoute} from 'vue-router'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {useList} from '@/store/lists/hooks.ts'
 
-@Component({
-  components: {
-    AcUnreadMarker,
-    AcDeliverablePreview,
-    AcPaginated,
-    AcLoadSection,
-  },
+
+const props = defineProps<OrderProps>()
+const route = useRoute()
+
+const isCurrentRoute = computed(() => {
+  return ['Order', 'Sale', 'Case'].indexOf(String(route.name)) !== -1
 })
-class DeliverableListing extends mixins(Viewer, Formatting, Ratings) {
-  @Prop({required: true})
-  public orderId!: number
 
-  public deliverables: ListController<Deliverable> = null as unknown as ListController<Deliverable>
-  public order: SingleController<Order> = null as unknown as SingleController<Order>
+const url = computed(() => {
+  return `/api/sales/order/${props.orderId}/`
+})
 
-  public get url() {
-    return `/api/sales/order/${this.orderId}/`
-  }
+const {setError} = useErrorHandling()
 
-  public get isCurrentRoute() {
-    return ['Order', 'Sale', 'Case'].indexOf(String(this.$route.name)) !== -1
-  }
-
-  public created() {
-    this.order = this.$getSingle(`order${this.orderId}`, {endpoint: this.url})
-    this.order.get().catch(this.setError)
-    this.deliverables = this.$getList(
-        `order${this.orderId}__deliverables`, {endpoint: `${this.url}deliverables/`},
-    )
-    this.order.get().catch(this.setError)
-    this.deliverables.firstRun()
-  }
-}
-
-export default toNative(DeliverableListing)
+const order = useSingle<Order>(`order${props.orderId}`, {endpoint: url.value})
+order.get().catch(setError)
+const deliverables = useList<Deliverable>(
+    `order${props.orderId}__deliverables`, {endpoint: `${url.value}deliverables/`},
+)
+deliverables.firstRun()
 </script>

@@ -4,7 +4,7 @@ import {FormState} from '@/store/forms/types/FormState.ts'
 import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {NotificationsState} from '@/store/notifications/types/NotificationsState.ts'
 import {ErrorState} from '@/store/errors/types.ts'
-import {ContentRating} from '@/types/ContentRating.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
 export enum AlertCategory {
   SUCCESS = 'success',
@@ -29,7 +29,7 @@ export interface ArtState {
   searchInitialized: boolean,
   alerts: Alert[],
   ageAsked: boolean,
-  contentRating: ContentRating,
+  contentRating: Ratings,
   showAgeVerification: boolean,
   showCookieDialog: boolean,
   notifications?: NotificationsState,

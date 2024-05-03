@@ -14,7 +14,7 @@ import {ref, useAttrs} from 'vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {mdiPencil} from '@mdi/js'
 import {RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
-import {ContentRating} from '@/types/ContentRating.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import {Patch} from '@/store/singles/patcher.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 
@@ -22,7 +22,7 @@ const ratingDialog = ref(false)
 
 const props = defineProps<{
   editing: boolean,
-  patcher: Patch<ContentRating>,
+  patcher: Patch<Ratings>,
   controls: boolean,
   variant?: "flat" | "text" | "elevated" | "tonal" | "outlined" | "plain",
   size?: string|number,

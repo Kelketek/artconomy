@@ -124,7 +124,7 @@
                   <ac-bound-field
                       :field="searchForm.fields.minimum_content_rating"
                       field-type="v-select"
-                      label="Minimum Content Rating"
+                      label="Minimum Content Ratings"
                       :persistent-hint="true"
                       :items="ratingItems"
                       outlined
@@ -159,7 +159,7 @@
 <script setup lang="ts">
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import type {ContentRating} from '@/types/ContentRating.ts'
+import type {Ratings} from '@/types/Ratings.ts'
 import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'
@@ -170,8 +170,8 @@ const searchForm = useForm('search')
 const {showRatings, ratingItems} = useContentRatingSearch(searchForm)
 const {isRegistered, rating, ageCheck} = useViewer()
 const panel = ref<number|null>(null)
-const ratingKey = computed(() => searchForm.fields.minimum_content_rating.value as ContentRating)
-watch(() => searchForm.fields.minimum_content_rating.value, (value: ContentRating) => {
+const ratingKey = computed(() => searchForm.fields.minimum_content_rating.value as Ratings)
+watch(() => searchForm.fields.minimum_content_rating.value, (value: Ratings) => {
   if (value) {
     ageCheck({value})
   }

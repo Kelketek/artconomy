@@ -47,71 +47,56 @@
   <router-view v-else></router-view>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
+<script setup lang="ts">
+import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import Reference from '@/types/Reference.ts'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcReference from '@/components/views/order/deliverable/AcReference.vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {computed, watch} from 'vue'
+import {useRoute} from 'vue-router'
+import {Ratings} from '@/types/Ratings.ts'
 
-@Component({
-  components: {
-    AcReference,
-    AcUnreadMarker,
-    AcLink,
-    AcBoundField,
-    AcFormContainer,
-    AcForm,
-    AcCharacterDisplay,
-    AcLoadSection,
-  },
+const props = defineProps<DeliverableProps>()
+const route = useRoute()
+const {deliverable, references, characters, isBuyer, isSeller} = useDeliverable(props)
+references.firstRun()
+
+const isRoute = computed(() => {
+  return route.name === `${props.baseName}DeliverableReferences`
 })
-class DeliverableReferences extends mixins(DeliverableMixin) {
-  public newReference: FormController = null as unknown as FormController
 
-  public get isRoute() {
-    return this.$route.name === `${this.baseName}DeliverableReferences`
-  }
+/* istanbul ignore next */
+const deliverableRating = deliverable.x && deliverable.x.rating
+const newReference = useForm(
+    'newReference', {
+      endpoint: '/api/sales/references/',
+      fields: {
+        file: {value: ''},
+        rating: {value: deliverableRating},
+      },
+    },
+)
 
-  public addReference(reference: Reference) {
-    this.references.post({reference_id: reference.id}).then(this.references.uniquePush)
-  }
-
-  @Watch('deliverable.x.rating')
-  public setRating(val: number) {
-    this.newReference.fields.rating.update(val)
-  }
-
-  @Watch('newReference.fields.file.value')
-  public autoSubmit(val: string) {
-    if (!val) {
-      return
-    }
-    this.newReference.submitThen(this.addReference)
-  }
-
-  public created() {
-    this.references.firstRun()
-    /* istanbul ignore next */
-    const deliverableRating = this.deliverable.x && this.deliverable.x.rating
-    this.newReference = this.$getForm(
-        'newReference', {
-          endpoint: '/api/sales/references/',
-          fields: {
-            file: {value: ''},
-            rating: {value: deliverableRating},
-          },
-        },
-    )
-  }
+const addReference = (reference: Reference) => {
+  references.post({reference_id: reference.id}).then(references.uniquePush)
 }
 
-export default toNative(DeliverableReferences)
+watch(() => deliverable.x?.rating, (val: Ratings|undefined) => {
+  if (val === undefined) {
+    return
+  }
+  newReference.fields.rating.update(val)
+})
+
+watch(() => newReference.fields.file.value, (val: string) => {
+  if (!val) {
+    return
+  }
+  newReference.submitThen(addReference)
+})
 </script>

@@ -45,7 +45,6 @@ describe('DeliverableReferences.vue', () => {
     const spyPost = vi.spyOn(vm.references, 'post')
     const deliverable = genDeliverable()
     expect(vm.references.list.length).toBe(0)
-    vm.order.makeReady(deliverable.order)
     vm.deliverable.makeReady(deliverable)
     vm.references.makeReady([])
     vm.references.ready = true

@@ -2,7 +2,7 @@ import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
 import Product from '@/types/Product.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import Submission from '@/types/Submission.ts'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import FileSpec from '@/types/FileSpec.ts'
 import Order from '@/types/Order.ts'
 

@@ -1,6 +1,6 @@
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 import Submission from '@/types/Submission.ts'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
 export default interface Product {
   id: number,

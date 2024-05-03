@@ -27,6 +27,7 @@ import {useProfile} from '@/store/profiles/hooks.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
 import Comment from '@/types/Comment.ts'
 import Product from '@/types/Product.ts'
+import {OrderProps} from '@/types/OrderProps.ts'
 
 /*
 
@@ -462,10 +463,8 @@ export default class BaseDeliverableMixin extends mixins(Viewer) {
 }
 
 
-export interface DeliverableProps {
-  orderId: string|number,
+export interface DeliverableProps extends OrderProps {
   deliverableId: string|number,
-  baseName: 'Order' | 'Sale' | 'Case'
 }
 
 export const ensureHandler = (handler: ProfileController, user: User, loadProfile?: boolean) => {

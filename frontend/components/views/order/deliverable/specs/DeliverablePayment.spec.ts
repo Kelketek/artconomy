@@ -62,7 +62,7 @@ describe('DeliverablePayment.vue', () => {
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
         }),
         props: {
           orderId: 1,
@@ -95,7 +95,7 @@ router,
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -134,7 +134,7 @@ router,
       WrappedDeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -180,7 +180,7 @@ router,
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -219,7 +219,7 @@ router,
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -250,7 +250,7 @@ router,
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -284,7 +284,7 @@ router,
       WrappedDeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -324,7 +324,7 @@ router,
       WrappedDeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -367,7 +367,7 @@ router,
       WrappedDeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -435,7 +435,7 @@ router,
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -474,7 +474,7 @@ router,
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -503,7 +503,7 @@ router,
       DeliverablePayment, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
@@ -536,7 +536,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
     vi.setSystemTime(parseISO('2020-08-01'))
     const options = vueSetup({
       store,
-router,
+      router,
       stubs: ['ac-revision-manager'],
     })
     mount(Empty, vueSetup({

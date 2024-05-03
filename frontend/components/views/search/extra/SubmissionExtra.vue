@@ -89,7 +89,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {useContentRatingSearch,} from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {ref, watch} from 'vue'
-import {ContentRating} from '@/types/ContentRating.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'
 import {mdiCog} from '@mdi/js'
 
@@ -97,7 +97,7 @@ const panel = ref<null|number>(null)
 const searchForm = useForm('search')
 const {ageCheck, isRegistered, rating} = useViewer()
 const {maxSelected, contentRatings, showRatings, ratingItems} = useContentRatingSearch(searchForm)
-watch(maxSelected, (value: ContentRating) => {
+watch(maxSelected, (value: Ratings) => {
   ageCheck({value})
 })
 </script>

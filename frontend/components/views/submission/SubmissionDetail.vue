@@ -298,7 +298,7 @@ import {
   mdiPalette,
   mdiPencil,
 } from '@mdi/js'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import {posse} from '@/lib/otherFormatters.ts'
 import AcRatingButton from '@/components/AcRatingButton.vue'
 

@@ -23,7 +23,7 @@ import Submission from '@/types/Submission.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {flatten} from '@/lib/lib.ts'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import Editable from '@/mixins/editable.ts'
 import ArtistTag from '@/types/ArtistTag.ts'
 

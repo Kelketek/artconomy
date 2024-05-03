@@ -205,7 +205,7 @@
                     <template v-slot:default>
                       <v-row no-gutters v-if="subjectHandler.artistProfile.x">
                         <v-col cols="12" class="my-2">
-                          <strong>Maximum Content Rating:</strong>
+                          <strong>Maximum Content Ratings:</strong>
                           <v-btn class="mx-2 rating-button" size="x-small" :color="RATING_COLOR[product.x.max_rating]"
                                  @click="showRating" :ripple="editing" :variant="editing ? 'elevated' : 'flat'">
                             <v-icon left v-if="editing" :icon="mdiPencil"/>

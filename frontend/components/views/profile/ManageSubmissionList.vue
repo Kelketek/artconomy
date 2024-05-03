@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {flatten} from '@/lib/lib.ts'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useViewer} from '@/mixins/viewer.ts'

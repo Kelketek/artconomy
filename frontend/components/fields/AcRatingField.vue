@@ -11,7 +11,7 @@
               <v-btn
                   :value="index"
                   :key="label"
-                  :color="ratingColor[index as ContentRating]"
+                  :color="ratingColor[index as Ratings]"
                   :disabled="disabled"
                   v-if="index <= max"
                   variant="flat"
@@ -65,7 +65,7 @@
 import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
 import ExtendedInput from '@/components/fields/mixins/extended_input.ts'
-import {ContentRating} from '@/types/ContentRating.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
 @Component({
   emits: ['update:modelValue'],
@@ -75,7 +75,7 @@ class AcRatingField extends mixins(ExtendedInput) {
   public disabled!: boolean
 
   @Prop({required: true})
-  public modelValue!: ContentRating
+  public modelValue!: Ratings
 
   @Prop({default: 3})
   public max!: number
@@ -89,11 +89,11 @@ class AcRatingField extends mixins(ExtendedInput) {
   public ratingOptions = RATINGS_SHORT
   public EXTREME = 3
 
-  public get scratch(): ContentRating {
+  public get scratch(): Ratings {
     return this.modelValue
   }
 
-  public set scratch(val: ContentRating) {
+  public set scratch(val: Ratings) {
     this.$emit('update:modelValue', val)
   }
 }

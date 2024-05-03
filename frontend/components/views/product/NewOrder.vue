@@ -58,7 +58,7 @@
                       <v-row v-if="product.x.max_rating > 0">
                         <v-col cols="12">
                           <ac-bound-field
-                              label="Content Rating of Piece"
+                              label="Content Ratings of Piece"
                               field-type="ac-rating-field" :field="orderForm.fields.rating"
                               :persistent-hint="true"
                               :max="product.x.max_rating"

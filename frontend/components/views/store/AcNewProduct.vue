@@ -194,7 +194,7 @@
                     />
                   </v-col>
                   <v-col cols="12">
-                    <ac-bound-field :field="newProduct.fields.max_rating" label="Maximum Content Rating"
+                    <ac-bound-field :field="newProduct.fields.max_rating" label="Maximum Content Ratings"
                                     field-type="ac-rating-field"/>
                   </v-col>
                 </v-row>
@@ -287,7 +287,7 @@ import Product from '@/types/Product.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import Pricing from '@/types/Pricing.ts'
 import {flatten} from '@/lib/lib.ts'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import {deliverableLines} from '@/lib/lineItemFunctions.ts'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
 import {LineItemSetMap} from '@/types/LineItemSetMap.ts'

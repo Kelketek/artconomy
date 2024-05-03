@@ -28,7 +28,7 @@
     <ac-comment-section
         :commentList="referenceComments"
         :nesting="false"
-        :locked="!isInvolved || is(MISSED) || is(LIMBO)"
+        :locked="!isInvolved || is(DeliverableStatus.MISSED) || is(DeliverableStatus.LIMBO)"
         :guest-ok="true"
         :show-history="isArbitrator"
         :extra-data="{deliverable: deliverableId}"
@@ -36,76 +36,62 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcAsset from '@/components/AcAsset.vue'
-import {SingleController} from '@/store/singles/controller.ts'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
+import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcRatingButton from '@/components/AcRatingButton.vue'
 import Reference from '@/types/Reference.ts'
+import Comment from '@/types/Comment.ts'
 import {markRead, updateLinked} from '@/lib/lib.ts'
 import {mdiArrowLeft, mdiDelete} from '@mdi/js'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {computed} from 'vue'
+import {useRouter} from 'vue-router'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {
-    AcConfirmation,
-    AcRatingButton,
-    AcCommentSection,
-    AcLoadSection,
-    AcAsset,
-  },
+const props = defineProps<DeliverableProps & {referenceId: string}>()
+const router = useRouter()
+const {rawViewerName} = useViewer()
+const {references, prefix, url, is, isInvolved, isArbitrator} = useDeliverable(props)
+
+const reference = useSingle<Reference>(`${prefix.value}__reference${props.referenceId}`, {
+  endpoint: `${url.value}references/${props.referenceId}/`,
 })
-class referenceDetail extends mixins(DeliverableMixin) {
-  @Prop()
-  public referenceId!: string
+reference.get().then(
+    () => markRead(reference, 'sales.Reference')).then(
+    () => updateLinked({
+      list: references,
+      key: 'reference',
+      newValue: reference.x,
+    }),
+)
+const referenceComments = useList<Comment>(`${prefix.value}__reference${props.referenceId}__comments`, {
+  endpoint: `/api/lib/comments/sales.Reference/${props.referenceId}/`,
+  reverse: true,
+  grow: true,
+  params: {size: 5},
+})
+referenceComments.firstRun()
 
-  public reference!: SingleController<Reference>
-  public referenceComments!: ListController<Comment>
-  public mdiArrowLeft = mdiArrowLeft
-  public mdiDelete = mdiDelete
-
-  public get backUrl() {
-    return {
-      name: `${this.baseName}DeliverableReferences`,
-      params: {
-        deliverableId: this.deliverableId,
-        orderId: this.orderId,
-      },
-    }
+const backUrl = computed(() => {
+  return {
+    name: `${props.baseName}DeliverableReferences`,
+    params: {
+      deliverableId: props.deliverableId,
+      orderId: props.orderId,
+    },
   }
+})
 
-  public async performDelete() {
-    return this.reference.delete().then(() => {
-      this.references.reset()
-      this.$router.replace(this.backUrl)
-    })
-  }
-
-  created() {
-    this.reference = this.$getSingle(`${this.prefix}__reference${this.referenceId}`, {
-      endpoint: `${this.url}references/${this.referenceId}/`,
-    })
-    this.reference.get().then(
-        () => markRead(this.reference, 'sales.Reference')).then(
-        () => updateLinked({
-          list: this.references,
-          key: 'reference',
-          newValue: this.reference.x,
-        }),
-    )
-    this.referenceComments = this.$getList(`${this.prefix}__reference${this.referenceId}__comments`, {
-      endpoint: `/api/lib/comments/sales.Reference/${this.referenceId}/`,
-      reverse: true,
-      grow: true,
-      params: {size: 5},
-    })
-    this.referenceComments.firstRun()
-  }
+const performDelete = async () => {
+  return reference.delete().then(() => {
+    references.reset()
+    router.replace(backUrl.value)
+  })
 }
-
-export default toNative(referenceDetail)
 </script>

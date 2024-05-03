@@ -3,8 +3,8 @@ import {RATINGS} from '@/lib/lib.ts'
 import {useViewer} from './viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {computed, defineAsyncComponent} from 'vue'
-import {ContentRating} from '@/types/ContentRating.ts'
+import {computed} from 'vue'
+import {Ratings} from '@/types/Ratings.ts'
 import FileSpec from '@/types/FileSpec.ts'
 
 const getRatingText = (asset: Asset|null) => {
@@ -90,7 +90,7 @@ const getBlackListed = (asset: Asset|null, tags: string[], viewer: User|AnonUser
   return tags.filter((n) => viewer.blacklist.includes(n))
 }
 
-const getNsfwBlacklisted = (asset: Asset|null, tags: string[], assetRating: ContentRating, viewer: User|AnonUser) => {
+const getNsfwBlacklisted = (asset: Asset|null, tags: string[], assetRating: Ratings, viewer: User|AnonUser) => {
   if (!asset) {
     return []
   }
@@ -100,21 +100,21 @@ const getNsfwBlacklisted = (asset: Asset|null, tags: string[], assetRating: Cont
   return tags.filter((n) => viewer.nsfw_blacklist.includes(n))
 }
 
-const getAssetRating = (asset: Asset|null): ContentRating => {
+const getAssetRating = (asset: Asset|null): Ratings => {
   if (!asset) {
     return 0
   }
   return asset.rating
 }
 
-const getPermittedRating = (asset: Asset|null, viewerRating: ContentRating) => {
+const getPermittedRating = (asset: Asset|null, viewerRating: Ratings) => {
   if (!asset) {
     return true
   }
   return asset.rating <= viewerRating
 }
 
-const getNerfed = (rating: ContentRating, viewer: User|AnonUser) => {
+const getNerfed = (rating: Ratings, viewer: User|AnonUser) => {
   return viewer.rating && (rating < viewer.rating)
 }
 

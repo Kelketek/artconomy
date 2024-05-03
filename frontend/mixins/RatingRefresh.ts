@@ -1,5 +1,5 @@
 import {Component, Watch} from 'vue-facing-decorator'
-import {Ratings} from '@/store/profiles/types/Ratings.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import {ArtVue, dotTraverse} from '@/lib/lib.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {useViewer} from '@/mixins/viewer.ts'

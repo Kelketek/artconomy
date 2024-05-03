@@ -14,7 +14,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import {LogLevels} from '@/types/LogLevels.ts'
 import {Vue} from 'vue-facing-decorator'
 import {ArtVueClassInterface} from '@/types/ArtVueClassInterface.ts'
-import {ContentRating} from '@/types/ContentRating.ts'
+import {Ratings} from '@/types/Ratings.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
 import {FieldController} from '@/store/forms/field-controller.ts'
 import {Character} from '@/store/characters/types/Character.ts'
@@ -148,14 +148,14 @@ export function artCall(options: ArtCallOptions): Promise<any> {
   return axios.request(config).then(preSuccess)
 }
 
-export const RATINGS: Record<ContentRating, string> = {
+export const RATINGS: Record<Ratings, string> = {
   0: 'Clean/Safe for work',
   1: 'Risque/mature, not adult content but not safe for work',
   2: 'Adult content, not safe for work',
   3: 'Offensive/Disturbing to most viewers, not safe for work',
 }
 
-export const RATINGS_SHORT: Record<ContentRating, string> = {
+export const RATINGS_SHORT: Record<Ratings, string> = {
   0: 'Clean/Safe',
   1: 'Risque',
   2: 'Adult content',
@@ -241,7 +241,7 @@ export function genId() {
   return text
 }
 
-export const RATING_LONG_DESC: Record<ContentRating, string> = {
+export const RATING_LONG_DESC: Record<Ratings, string> = {
   0: `Content which can be safely viewed in most workplaces. Pieces with nudity
                     or especially suggestive clothing do not belong in this category. Pieces with violence or
                     offensive messages do not belong in this category, either.`,
@@ -254,7 +254,7 @@ export const RATING_LONG_DESC: Record<ContentRating, string> = {
                     that most viewers would find 'squicky' or disturbing or portrayals of extreme violence.`,
 }
 
-export const RATING_COLOR: Record<ContentRating, string> = {
+export const RATING_COLOR: Record<Ratings, string> = {
   0: 'green',
   1: 'blue',
   2: 'red',
@@ -326,7 +326,7 @@ export function searchSchema() {
       commissions: {value: false, omitIf: false},
       artists_of_color: {value: false, omitIf: false},
       content_ratings: {value: '', omitIf: ''},
-      minimum_content_rating: {value: 0 as ContentRating, omitIf: 0},
+      minimum_content_rating: {value: 0 as Ratings, omitIf: 0},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
       max_turnaround: {value: '', omitIf: ''},
