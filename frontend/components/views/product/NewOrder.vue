@@ -304,7 +304,7 @@ import {statusOk} from '@/mixins/ErrorHandling.ts'
 import {ShoppingCart} from '@/types/ShoppingCart.ts'
 
 declare interface NewOrderProps {
-  invoiceMode: string,
+  invoiceMode?: string,
 }
 
 const props = defineProps<NewOrderProps & SubjectiveProps & ProductProps>()
@@ -374,8 +374,10 @@ if (window.CART) {
   cartDefaults.escrow_upgrade = window.CART.escrow_upgrade
 }
 
+const orderUrl = computed(() => `${product.endpoint}order/`)
+
 const orderForm = useForm('newOrder', {
-  endpoint: product.endpoint + 'order/',
+  endpoint: orderUrl.value,
   persistent: true,
   step,
   fields: {
@@ -428,6 +430,8 @@ const orderForm = useForm('newOrder', {
     },
   },
 })
+
+watch(orderUrl, (newURL) => {orderForm.endpoint = newURL}, {immediate: true})
 
 orderForm.fields.invoicing.update(invoicing.value)
 
