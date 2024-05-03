@@ -776,6 +776,32 @@ class ArtistTag(Model):
         ordering = ("-display_position", "id")
 
 
+@receiver(post_save, sender=ArtistTag)
+def subscribe_for_favorites(sender, instance, created=False, *args, **kwargs):
+    if not created:
+        return
+    image_type = ContentType.objects.get_for_model(model=instance.submission)
+    Subscription.objects.get_or_create(
+        subscriber=instance.user,
+        content_type=image_type,
+        object_id=instance.submission.id,
+        type=FAVORITE,
+    )
+
+
+@receiver(post_delete, sender=ArtistTag)
+def unsubscribe_for_favorites(sender, instance, *args, **kwargs):
+    image_type = ContentType.objects.get_for_model(model=instance.submission)
+    if instance.user == instance.submission.owner:
+        return
+    Subscription.objects.filter(
+        subscriber=instance.user,
+        content_type=image_type,
+        object_id=instance.submission.id,
+        type=FAVORITE,
+    ).delete()
+
+
 def get_next_character_position():
     """
     Must be defined in root for migrations.
@@ -1266,7 +1292,13 @@ def favorite_notification(sender, instance, **kwargs):
         if action == "post_add":
             if instance.favorites_hidden:
                 continue
-            notify(FAVORITE, submission, {"user_id": instance.id}, unique_data=True)
+            notify(
+                FAVORITE,
+                submission,
+                {"user_id": instance.id},
+                unique_data=True,
+                exclude=[instance],
+            )
         elif action == "post_remove":
             recall_notification(
                 FAVORITE, submission, {"user_id": instance.id}, unique_data=True

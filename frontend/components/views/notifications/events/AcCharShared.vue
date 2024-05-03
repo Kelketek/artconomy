@@ -1,30 +1,24 @@
 <template>
-  <v-list-item>
-    <router-link :to="characterLink">
-      <v-badge left overlap :model-value="!notification.read" color="primary">
-        <template v-slot:badge>*</template>
-        <template v-slot:prepend>
-          <img :src="$img(event.data.display, 'notification', true)" alt="">
-        </template>
-      </v-badge>
-    </router-link>
-    <v-list-item-title>
-      <router-link :to="characterLink">
+  <ac-base-notification :notification="notification" :asset-link="characterLink">
+    <template v-slot:title>
+      <ac-link :to="characterLink">
         A character was shared with you
-      </router-link>
-    </v-list-item-title>
-    <v-list-item-subtitle>
-      <router-link :to="characterLink">"{{event.data.character.name}}" was shared by {{event.data.user.username}}
-      </router-link>
-    </v-list-item-subtitle>
-  </v-list-item>
+      </ac-link>
+    </template>
+    <template v-slot:subtitle>
+      <ac-link :to="characterLink">"{{event.data.character.name}}" was shared by {{event.data.user.username}}</ac-link>
+    </template>
+  </ac-base-notification>
 </template>
 
 <script>
 import Notification from '../mixins/notification.ts'
+import AcLink from '@/components/wrappers/AcLink.vue'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 
 export default {
   name: 'ac-char-shared',
+  components: {AcBaseNotification, AcLink},
   mixins: [Notification],
   data() {
     return {}
