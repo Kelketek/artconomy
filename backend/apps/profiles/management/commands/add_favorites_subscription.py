@@ -3,8 +3,7 @@ from typing import Dict, List
 
 from django.contrib.contenttypes.models import ContentType
 
-from apps.lib.models import Asset, Subscription, FAVORITE
-from apps.lib.utils import dedup_asset, digest_for_file
+from apps.lib.models import Subscription, FAVORITE
 from django.core.management.base import BaseCommand
 
 from apps.profiles.models import ArtistTag, Submission
