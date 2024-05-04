@@ -14,7 +14,7 @@
                   <span class="title">New Commission Order</span>
                 </v-card-title>
                 <v-toolbar v-if="isRegistered" dense color="black">
-                  <ac-avatar :user="viewer" :show-name="false" class="ml-3"/>
+                  <ac-avatar :user="viewer as User" :show-name="false" class="ml-3"/>
                   <v-toolbar-title class="ml-1">{{viewerName}}</v-toolbar-title>
                 </v-toolbar>
                 <v-stepper v-model="orderForm.step" class="submission-stepper" non-linear>

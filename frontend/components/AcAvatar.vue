@@ -62,6 +62,7 @@ import {useSocket} from '@/plugins/socket.ts'
 import {useRouter} from 'vue-router'
 import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
+import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 
 // The logic for this module is a bit complex because we don't necessarily want to store the user in Vuex for
 // all the cases we'll use this. For example, when searching for users, it would be wasteful or incomplete to
@@ -69,7 +70,7 @@ import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
 export interface AcAvatarProps {
   noLink?: boolean,
   username?: string,
-  user?: TerseUser,
+  user?: null|TerseUser|User|RelatedUser,
   userId?: number,
   showName?: boolean,
   showRating?: boolean,
