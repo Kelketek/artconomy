@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <ac-load-section :controller="subjectHandler.user">
       <template v-slot:default>
         <ac-profile-header :username="username" :show-edit="$route.name === 'AboutUser'" :dense="true"/>

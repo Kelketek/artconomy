@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <ac-subjective-product-list :username="username"/>
   </v-container>
 </template>

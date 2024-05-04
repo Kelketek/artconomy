@@ -1,7 +1,7 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
     <template v-slot:default>
-      <v-container v-if="subject">
+      <v-container fluid v-if="subject">
         <v-row dense class="fill-height">
           <v-col cols="12" :md="subject.artist_mode ? 4 : 8" order="1">
             <v-card>
