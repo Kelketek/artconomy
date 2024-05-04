@@ -7,7 +7,7 @@ export interface TerseUser {
   favorites_hidden: boolean,
   watching: boolean,
   blocked: boolean,
-  stars: string|null,
+  stars: number|null,
   is_staff: boolean,
   is_superuser: boolean,
   artist_mode: boolean|null,

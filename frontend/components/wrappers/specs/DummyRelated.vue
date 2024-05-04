@@ -5,7 +5,7 @@
       <template v-slot:preview="{item}">
         <v-col cols="4" sm="3" md="2" lg="1">
           <ac-avatar :user="item.x.user"
-                     removable="true" @remove="item.delete().catch(userForm.setErrors)"/>
+                     :removable="true" @remove="item.delete().catch(userForm.setErrors)"/>
         </v-col>
       </template>
       <template v-slot:default="{filter}">

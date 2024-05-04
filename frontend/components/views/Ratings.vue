@@ -13,7 +13,7 @@
                       <ac-avatar :user="rating.x!.rater"/>
                     </v-col>
                     <v-col class="text-center text-sm-left" cols="12" sm="4" md="2">
-                      <v-rating :readonly="true" density="compact" :model-value="rating.x!.stars"></v-rating>
+                      <v-rating :readonly="true" density="compact" :model-value="starRound(rating.x!.stars)"></v-rating>
                     </v-col>
                     <v-col class="text-center text-sm-left" cols="12" sm="6" md="9" v-if="rating.x!.comments">
                       <ac-rendered :value="rating.x!.comments"/>
@@ -29,37 +29,21 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import {ListController} from '@/store/lists/controller.ts'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import Rating from '@/types/Rating.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
-import {flatten} from '@/lib/lib.ts'
+import {flatten, starRound} from '@/lib/lib.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
 
-@Component({
-  components: {
-    AcProfileHeader,
-    AcRendered,
-    AcAvatar,
-    AcPaginated,
-    AcLoadSection,
-  },
-})
-class Ratings extends mixins(Subjective) {
-  public ratings: ListController<Rating> = null as unknown as ListController<Rating>
 
-  public created() {
-    this.ratings = this.$getList(
-        `ratings__${flatten(this.username)}`, {endpoint: `/api/sales/account/${this.username}/ratings/`},
-    )
-    this.ratings.firstRun()
-  }
-}
-
-export default toNative(Ratings)
+const props = defineProps<SubjectiveProps>()
+const {subject} = useSubject(props)
+const ratings = useList<Rating>(`ratings__${flatten(props.username)}`, {endpoint: `/api/sales/account/${props.username}/ratings/`})
+ratings.firstRun()
 </script>

@@ -153,7 +153,7 @@
                                    itemscope itemtype="http://schema.org/AggregateRating" v-if="product.x.user.stars">
                         <span itemprop="ratingValue" :content="product.x.user.stars"></span>
                         <span itemprop="ratingCount" :content="product.x.user.rating_count"></span>
-                        <v-rating :model-value="product.x.user.stars" density="compact" size="small" half-increments readonly
+                        <v-rating :model-value="starRound(product.x.user.stars)" density="compact" size="small" half-increments readonly
                                   color="primary"
                                   v-if="product.x.user.stars"/>
                       </router-link>
@@ -620,7 +620,7 @@ import {RouteLocationRaw, useRoute, useRouter} from 'vue-router'
 import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import {useProduct} from '@/components/views/product/mixins/ProductCentric.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {RATING_COLOR, RATINGS_SHORT, setMetaContent, updateTitle} from '@/lib/lib.ts'
+import {RATING_COLOR, RATINGS_SHORT, setMetaContent, starRound, updateTitle} from '@/lib/lib.ts'
 import AcShareButton from '@/components/AcShareButton.vue'
 import {useSharable} from '@/mixins/sharable.ts'
 import {deliverableLines} from '@/lib/lineItemFunctions.ts'

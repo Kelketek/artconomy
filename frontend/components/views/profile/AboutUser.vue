@@ -10,7 +10,7 @@
                 <v-row v-if="badges" dense>
                   <v-col v-if="subject.stars">
                     <router-link :to="{name: 'Ratings', params: {username}}" v-if="subject.stars">
-                      <v-rating :model-value="subject.stars" density="compact" size="small" half-increments color="primary" readonly v-if="subject.stars"/>
+                      <v-rating :model-value="starRound(subject.stars)" density="compact" size="small" half-increments color="primary" readonly v-if="subject.stars"/>
                     </router-link>
                   </v-col>
                   <v-col cols="12">
@@ -75,24 +75,21 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import AcJournals from '@/components/AcJournals.vue'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
-import Editable from '@/mixins/editable.ts'
+import AcJournals from '@/components/AcJournals.vue'
+import {useEditable} from '@/mixins/editable.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
-import AcProductList from '@/components/views/store/AcProductList.vue'
-import {flatten} from '@/lib/lib.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import Product from '@/types/Product.ts'
-import Submission from '@/types/Submission.ts'
+import {starRound} from '@/lib/lib.ts'
 import SubmissionList from '@/components/views/profile/SubmissionList.vue'
 import {User} from '@/store/profiles/types/User.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {mdiTrayFull} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed} from 'vue'
 
 declare interface ProfileBadge {
   label: string,
@@ -100,107 +97,85 @@ declare interface ProfileBadge {
   light: boolean
 }
 
-@Component({
-  components: {
-    SubmissionList,
-    AcProductList,
-    AcSubjectiveProductList,
-    AcLoadSection,
-    AcRendered,
-    AcPatchField,
-    AcJournals,
-  },
-})
-class AboutUser extends mixins(Subjective, Editable) {
-  public products = null as unknown as ListController<Product>
-  public art = null as unknown as ListController<Submission>
-  public collection = null as unknown as ListController<Submission>
-  public mdiTrayFull = mdiTrayFull
+const props = defineProps<SubjectiveProps>()
+const {subject, subjectHandler, controls, isCurrent} = useSubject(props)
+const {editing} = useEditable(controls)
 
-  public get badges(): ProfileBadge[] {
-    const badges: ProfileBadge[] = []
-    if (!this.subjectHandler.artistProfile.x) {
-      return badges
-    }
-    if (this.subjectHandler.artistProfile.x.lgbt) {
-      badges.push({
-        label: 'LGBTQ+',
-        color: 'purple',
-        light: false,
-      })
-    }
-    if (this.subjectHandler.artistProfile.x.artist_of_color) {
-      badges.push({
-        label: 'Artist of Color',
-        color: 'orange',
-        light: true,
-      })
-    }
-    if (this.subject && this.subject.landscape) {
-      // TODO: Make this more dynamic per plan name and less hard coded.
-      badges.push({
-        label: 'Landscape Subscriber',
-        color: 'green',
-        light: true,
-      })
-    }
+const productUrl = computed(() => {
+  return `/api/sales/account/${props.username}/products/`
+})
+
+const badges = computed(() => {
+  const badges: ProfileBadge[] = []
+  if (!subjectHandler.artistProfile.x) {
     return badges
   }
-
-  public get userHandler() {
-    return this.subjectHandler.user as SingleController<User>
+  if (subjectHandler.artistProfile.x.lgbt) {
+    badges.push({
+      label: 'LGBTQ+',
+      color: 'purple',
+      light: false,
+    })
   }
-
-  public get productUrl() {
-    return `/api/sales/account/${this.username}/products/`
+  if (subjectHandler.artistProfile.x.artist_of_color) {
+    badges.push({
+      label: 'Artist of Color',
+      color: 'orange',
+      light: true,
+    })
   }
+  if (subject.value && subject.value.landscape) {
+    // TODO: Make this more dynamic per plan name and less hard coded.
+    badges.push({
+      label: 'Landscape Subscriber',
+      color: 'green',
+      light: true,
+    })
+  }
+  return badges
+})
 
-  public get artList() {
-    let buttonText: string
-    // eslint-disable-next-line camelcase
-    if (this.subject?.artist_mode) {
-      if (this.isCurrent) {
-        buttonText = 'Manage my art'
-      } else {
-        buttonText = 'View full gallery'
-      }
-      return {
-        listName: 'art',
-        label: 'Art',
-        endpoint: `/api/profiles/account/${this.username}/submissions/art/`,
-        emptyMessage: 'You have not yet uploaded any art where you are tagged as the artist.',
-        buttonText: buttonText,
-        buttonDest: {
-          name: 'Gallery',
-          params: {username: this.username},
-        },
-      }
-    }
-    if (this.isCurrent) {
-      buttonText = 'Manage my collection'
+const userHandler = computed(() => {
+  return subjectHandler.user as SingleController<User>
+})
+
+const artList = computed(() => {
+  let buttonText: string
+  // eslint-disable-next-line camelcase
+  if (subject.value?.artist_mode) {
+    if (isCurrent.value) {
+      buttonText = 'Manage my art'
     } else {
-      buttonText = 'View full collection'
+      buttonText = 'View full gallery'
     }
     return {
-      listName: 'collection',
-      label: 'Collection',
-      endpoint: `/api/profiles/account/${this.username}/submissions/collection/`,
-      emptyMessage: 'You have not uploaded any art to your collection. Your collection ' +
-          'holds all art artists have made for you.',
+      listName: 'art',
+      label: 'Art',
+      endpoint: `/api/profiles/account/${props.username}/submissions/art/`,
+      emptyMessage: 'You have not yet uploaded any art where you are tagged as the artist.',
       buttonText: buttonText,
       buttonDest: {
-        name: 'Collection',
-        params: {username: this.username},
+        name: 'Gallery',
+        params: {username: props.username},
       },
     }
   }
-
-  public created() {
-    this.products = this.$getList(`${flatten(this.username)}-products`, {endpoint: this.productUrl})
-    // @ts-ignore
-    window.about = this
+  if (isCurrent.value) {
+    buttonText = 'Manage my collection'
+  } else {
+    buttonText = 'View full collection'
   }
-}
-
-export default toNative(AboutUser)
+  return {
+    listName: 'collection',
+    label: 'Collection',
+    endpoint: `/api/profiles/account/${props.username}/submissions/collection/`,
+    emptyMessage: 'You have not uploaded any art to your collection. Your collection ' +
+        'holds all art artists have made for you.',
+    buttonText: buttonText,
+    buttonDest: {
+      name: 'Collection',
+      params: {username: props.username},
+    },
+  }
+})
 </script>

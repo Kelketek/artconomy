@@ -25,13 +25,13 @@
         <ac-link :to="profileLink">{{ displayName }}</ac-link>
       </div>
       <div v-if="person && removable" class="flex">
-        <v-btn size="x-small" icon color="danger" @click="$emit('remove')">
+        <v-btn size="x-small" icon color="danger" @click="emit('remove')">
           <v-icon size="large" :icon="mdiClose"/>
         </v-btn>
       </div>
       <router-link :to="{name: 'Ratings', params: {username: person.username}}"
                    v-if="showRating && person && person.stars">
-        <v-rating density="compact" size="small" half-increments :model-value="person.stars" color="primary"/>
+        <v-rating density="compact" size="small" half-increments :model-value="starRound(person.stars)" color="primary"/>
       </router-link>
     </div>
   </div>
@@ -44,132 +44,151 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {ProfileController} from '@/store/profiles/controller.ts'
-import {userHandle} from '@/store/profiles/handles.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {artCall, ArtVue} from '@/lib/lib.ts'
+import {artCall, starRound, useForceRecompute} from '@/lib/lib.ts'
 import {profileRegistry} from '@/store/profiles/registry.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {mdiAccount, mdiClose, mdiStarCircle} from '@mdi/js'
-import {profileLink} from '@/lib/otherFormatters.ts'
+import {profileLink as getProfileLink} from '@/lib/otherFormatters.ts'
+import {computed, watch, onUnmounted} from 'vue'
+import {ArtState} from '@/store/artState.ts'
+import {useStore} from 'vuex'
+import {getUid, useRegistries} from '@/store/hooks.ts'
+import {getController, performUnhook} from '@/store/registry-base.ts'
+import {useSocket} from '@/plugins/socket.ts'
+import {useRouter} from 'vue-router'
+import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
+import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
 
-@Component({
-  components: {AcLink},
-  emits: ['remove'],
-})
-class AcAvatar extends ArtVue {
-  // The logic for this module is a bit complex because we don't necessarily want to store the user in Vuex for
-  // all of the cases we'll use this. For example, when searching for users, it would be wasteful or incomplete to
-  // store the user in Vuex.
-  @Prop({default: false})
-  public noLink!: boolean
+// The logic for this module is a bit complex because we don't necessarily want to store the user in Vuex for
+// all the cases we'll use this. For example, when searching for users, it would be wasteful or incomplete to
+// store the user in Vuex.
+export interface AcAvatarProps {
+  noLink?: boolean,
+  username?: string,
+  user?: TerseUser,
+  userId?: number,
+  showName?: boolean,
+  showRating?: boolean,
+  removable?: boolean,
+  inline?: boolean,
+}
 
-  @Prop({default: ''})
-  public username!: string
+const props = withDefaults(
+    defineProps<AcAvatarProps>(),
+    {
+      noLink: false,
+      username: '',
+      showName: true,
+      showRating: false,
+      removable: false,
+      inline: false,
+    },
+)
 
-  @Prop()
-  public user!: TerseUser
+const emit = defineEmits<{remove: []}>()
 
-  @Prop()
-  public userId!: number
+const store = useStore<ArtState>()
 
-  @Prop({default: true})
-  public showName!: boolean
+let subjectHandler: ProfileController|undefined = undefined
+const {check, recalculate} = useForceRecompute()
 
-  @Prop({default: false})
-  public showRating!: boolean
+const setUser = (response: User) => {
+  subjectHandler = useProfile(response.username)
+  subjectHandler.user.setX(response)
+  recalculate()
+}
 
-  @Prop({default: false})
-  public removable!: boolean
-
-  @Prop({default: () => undefined})
-  public remove!: () => void
-
-  @Prop({default: false})
-  public inline!: boolean
-
-  @userHandle('subjectHandler')
-  public subject!: User | null
-
-  public subjectHandler: ProfileController = null as unknown as ProfileController
-
-  public mdiAccount = mdiAccount
-  public mdiStarCircle = mdiStarCircle
-  public mdiClose = mdiClose
-
-  public setUser(response: User) {
-    this.subjectHandler = this.$getProfile(response.username, {})
-    this.subjectHandler.user.setX(response)
+const buildHandler = (username: string) => {
+  if (username) {
+    subjectHandler = useProfile(username)
+    subjectHandler.user.get().then().catch(() => {})
+    recalculate()
+    return
   }
-
-  @Watch('username')
-  public usernameUpdater(value: string) {
-    if (!value) {
-      // Can happen on destruction
-      return
-    }
-    profileRegistry.unhook((this as any)._uid, this.subjectHandler)
-    this.buildHandler(value)
+  if (!props.userId) {
+    throw Error('No username, no ID. We cannot load an avatar.')
   }
-
-  public buildHandler(username: string) {
-    if (username) {
-      this.subjectHandler = this.$getProfile(username, {})
-      this.subjectHandler.user.get().then().catch(() => {
-      })
-      return
-    }
-    if (!this.userId) {
-      throw Error('No username, no ID. We cannot load an avatar.')
-    }
-    if (this.$store.getters.idMap[this.userId]) {
-      username = this.$store.getters.idMap[this.userId]
-      this.subjectHandler = this.$getProfile(username, {})
-    } else {
-      artCall({
-        url: `/api/profiles/data/user/id/${this.userId}/`,
-        method: 'get',
-      }).then(this.setUser).catch(
-          () => {
-          },
-      )
-    }
-  }
-
-  public get profileLink() {
-    if (this.noLink) {
-      return null
-    }
-    return profileLink(this.person)
-  }
-
-  public get displayName() {
-    if (this.person) {
-      return this.person.username
-    }
-    if (this.username) {
-      return this.username
-    }
-    if (this.userId) {
-      return `(User ID #${this.userId})`
-    }
-    return '(Loading)'
-  }
-
-  public get person() {
-    return this.user || this.subject
-  }
-
-  public created() {
-    if (this.user) {
-      return
-    }
-    this.buildHandler(this.username)
+  if (store.getters.idMap[props.userId]) {
+    username = store.getters.idMap[props.userId]
+    subjectHandler = useProfile(username)
+    recalculate()
+  } else {
+    artCall({
+      url: `/api/profiles/data/user/id/${props.userId}/`,
+      method: 'get',
+    }).then(setUser).catch(() => {})
   }
 }
 
-export default toNative(AcAvatar)
+const subject = computed(() => {
+  check()
+  return subjectHandler?.user.x as TerseUser
+})
+
+const person = computed(() => {
+  return props.user || subject.value || null
+})
+
+const uid = getUid()
+const socket = useSocket()
+const router = useRouter()
+const registries = useRegistries()
+
+// Custom version of useProfile since we have to fetch it out of band.
+const useProfile = (username: string) => {
+  return getController<ProfileState, ProfileModuleOpts, ProfileController>({
+    name: username,
+    schema: {},
+    uid,
+    socket,
+    typeName: 'Profile',
+    store,
+    router,
+    registries,
+    ControllerClass: ProfileController,
+})}
+
+// Due to the custom mounting, we have to do the custom unmounting as well.
+onUnmounted(() => performUnhook<ProfileState, ProfileModuleOpts, ProfileController>(uid, registries['Profile']))
+
+
+watch(() => props.username, (value: string) => {
+  if (!value) {
+    // Can happen on destruction
+    return
+  }
+  if (!subjectHandler) {
+    return
+  }
+  profileRegistry.unhook(uid, subjectHandler)
+  buildHandler(value)
+})
+
+const displayName = computed(() => {
+  if (person.value) {
+    return person.value.username
+  }
+  if (props.username) {
+    return props.username
+  }
+  if (props.userId) {
+    return `(User ID #${props.userId})`
+  }
+  return '(Loading)'
+})
+
+const profileLink = computed(() => {
+  if (props.noLink) {
+    return null
+  }
+  return getProfileLink(person.value)
+})
+
+if (!props.user) {
+  buildHandler(props.username)
+}
 </script>

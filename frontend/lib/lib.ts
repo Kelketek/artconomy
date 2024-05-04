@@ -692,3 +692,31 @@ export const loadErrorHandler = (store: ArtStore) => (event: PromiseRejectionEve
     }
   }
 }
+
+export const useForceRecompute = () => {
+  // Creates a watchable ref that can be used to force recomputation in cases where it needs to be manually triggered.
+  const checkTarget = ref(0)
+  const recalculate = () => {
+    checkTarget.value = checkTarget.value ? 0 : 1
+  }
+  const check = () => {checkTarget.value}
+  return {check, recalculate}
+}
+
+export const starRound = (val: number|null) => {
+  // Given a user's 'stars' rating, round the number of displayed stars
+  // to the most intuitive value. If we didn't do this, then 4.9 would
+  // render as 4.5, and 4.1 would render as 4.5.
+  // We round instead the conceptually closest star.
+  if (val === null) {
+    return undefined
+  }
+  let base = Math.floor(val)
+  const remainder = base % 1
+  if (remainder >= .75) {
+    base += 1
+  } else if (remainder <= .25) {
+    return base
+  }
+  return base + remainder
+}
