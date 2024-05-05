@@ -11,11 +11,13 @@
                   <span v-if="revisionCount">
                     <strong>{{ revisionCount }}</strong> revision<span v-if="revisionCount > 1">s</span> included.
                 </span><br/>
-                  <span v-if="deliveryDate">Estimated completion: <strong>{{ formatDateTerse(deliveryDate.toISOString()) }}</strong></span><br/>
+                  <span v-if="deliveryDate">Estimated completion: <strong>{{
+                      formatDateTerse(deliveryDate.toISOString())
+                    }}</strong></span><br/>
                   <span v-if="isSeller">Slots taken: <strong>{{ taskWeight }}</strong></span>
                 </div>
               </v-col>
-              <v-col cols="12" v-if="is(NEW) && isBuyer">
+              <v-col cols="12" v-if="is(DeliverableStatus.NEW) && isBuyer">
                 <v-alert type="info">
                   This order is pending approval. The artist may adjust pricing depending on the piece's requirements.
                   You can send payment once the order is approved.
@@ -99,7 +101,7 @@
                         Paid on {{ formatDate(deliverable.x.paid_on) }}
                       </v-col>
                     </v-row>
-                    <v-row v-if="isBuyer && is(NEW)">
+                    <v-row v-if="isBuyer && is(DeliverableStatus.NEW)">
                       <v-col class="text-center">
                         <p><strong>Note:</strong> The artist may adjust the above price based on the requirements you
                           have given before accepting it.</p>
@@ -108,14 +110,16 @@
                     <ac-escrow-label :escrow="escrow" name="order"/>
                     <v-col class="text-center" cols="12" v-if="paypalUrl">
                       <v-btn color="primary" target="_blank" rel="noopener" variant="elevated" :href="paypalUrl">
-                        <span v-if="is(PAYMENT_PENDING) && isBuyer">Pay with PayPal</span>
+                        <span v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer">Pay with PayPal</span>
                         <span v-else>View Invoice on PayPal</span>
                       </v-btn>
                     </v-col>
                     <v-col class="text-center" cols="12" v-if="isSeller && editable">
-                      <ac-confirmation :action="statusEndpoint('accept')" v-if="(is(NEW) || is(WAITING)) && isSeller">
+                      <ac-confirmation :action="statusEndpoint('accept')"
+                                       v-if="is(DeliverableStatus.NEW, DeliverableStatus.WAITING) && isSeller">
                         <template v-slot:default="{on}">
-                          <v-btn v-on="on" color="green" class="accept-order" variant="elevated" :disabled="stateChange.sending">Accept
+                          <v-btn v-on="on" color="green" class="accept-order" variant="elevated"
+                                 :disabled="stateChange.sending">Accept
                             Order
                           </v-btn>
                         </template>
@@ -135,12 +139,13 @@
                       </ac-confirmation>
                       <v-btn color="green" class="accept-order" :disabled="stateChange.sending"
                              variant="flat"
-                             @click="statusEndpoint('accept')()" v-else-if="(is(NEW) || is(WAITING)) && isStaff">
+                             @click="statusEndpoint('accept')()"
+                             v-else-if="is(DeliverableStatus.NEW, DeliverableStatus.WAITING) && isStaff">
                         Accept Order
                       </v-btn>
                     </v-col>
                     <v-col class="text-center"
-                           v-if="(isSeller || isArbitrator) && (is(QUEUED) || is(IN_PROGRESS) || is(REVIEW) || is(DISPUTED)) && !paypalUrl"
+                           v-if="(isSeller || isArbitrator) && (is(DeliverableStatus.QUEUED, DeliverableStatus.IN_PROGRESS, DeliverableStatus.REVIEW, DeliverableStatus.DISPUTED)) && !paypalUrl"
                            cols="12">
                       <ac-confirmation :action="statusEndpoint('refund')">
                         <template v-slot:default="{on}">
@@ -152,7 +157,8 @@
                       </ac-confirmation>
                     </v-col>
                     <v-col class="text-center payment-section"
-                           v-if="is(PAYMENT_PENDING) && (isBuyer || isStaff) && deliverable.x.escrow_enabled" cols="12">
+                           v-if="is(DeliverableStatus.PAYMENT_PENDING) && (isBuyer || isStaff) && deliverable.x.escrow_enabled"
+                           cols="12">
                       <v-btn color="green" @click="viewSettings.patchers.showPayment.model = true"
                              variant="flat"
                              class="payment-button">Send Payment
@@ -264,14 +270,12 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import LineItem from '@/types/LineItem.ts'
-import DeliverableMixin from '@/components/views/order/mixins/DeliverableMixin.ts'
+import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
 import {Decimal} from 'decimal.js'
 import LineAccumulator from '@/types/LineAccumulator.ts'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
@@ -279,203 +283,206 @@ import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcForm from '@/components/wrappers/AcForm.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import Formatting from '@/mixins/formatting.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import ClientSecret from '@/types/ClientSecret.ts'
-import AcStripeCharge from '@/components/AcStripeCharge.vue'
-import {SocketState} from '@/types/SocketState.ts'
-import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin.ts'
-import StripeMixin from '../mixins/StripeMixin.ts'
+import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {mdiCheckCircle} from '@mdi/js'
+import {computed, ref, Ref, watch} from 'vue'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {formatDate, formatDateTime, formatDateTerse} from '@/lib/otherFormatters.ts'
 
-@Component({
-  components: {
-    AcPaginated,
-    AcStripeCharge,
-    AcBoundField,
-    AcPatchField,
-    AcForm,
-    AcFormContainer,
-    AcCardManager,
-    AcFormDialog,
-    AcConfirmation,
-    AcEscrowLabel,
-    AcPricePreview,
-    AcLoadSection,
-    AcRendered,
-  },
+const props = defineProps<DeliverableProps>()
+const {
+  isStaff,
+  viewerHandler,
+} = useViewer()
+
+const canUpdate = ref(false)
+const {
+  buyer,
+  seller,
+  deliveryDate,
+  paypalUrl,
+  paymentForm,
+  prefix,
+  url,
+  deliverable,
+  is,
+  isBuyer,
+  isSeller,
+  isArbitrator,
+  lineItems,
+  viewSettings,
+  sellerHandler,
+  expectedTurnaround,
+  outputs,
+  buyerSubmission,
+  sellerSubmission,
+  escrow,
+  revisions,
+  characters,
+  statusEndpoint,
+  stateChange,
+  editable,
+  revisionCount,
+  taskWeight,
+  updateDeliverable,
+  product,
+  order,
+} = useDeliverable(props)
+const cardTabs = ref(0)
+
+const showSubmit = computed(() => {
+  return cardTabs.value !== 1
 })
-class DeliverablePayment extends mixins(DeliverableMixin, Formatting, StripeHostMixin, StripeMixin) {
-  public clientSecret = null as unknown as SingleController<ClientSecret>
-  public socketState = null as unknown as SingleController<SocketState>
-  public oldTotal: null | Decimal = null
-  // Setting this false to avoid calling for the secret until we have the invoice ID.
-  public canUpdateStorage = false
-  public cardTabs = 0
-  public destroyed = false
-  public mdiCheckCircle = mdiCheckCircle
 
-  @Watch('cardTabs')
-  public clearManualTransactionSettings(tabValue: number) {
-    if (tabValue === 2) {
-      this.paymentForm.fields.cash.update(true)
-    } else {
-      this.paymentForm.fields.cash.update(false)
-    }
-    if (tabValue === 1) {
-      this.paymentForm.fields.use_reader.update(true)
-      if (this.readers.list.length && !this.readerForm.fields.reader.value) {
-        this.readerForm.fields.reader.update(this.readers.list[0].x!.id)
-      }
-    } else {
-      this.paymentForm.fields.use_reader.update(false)
-    }
-    this.updateIntent()
-  }
+const oldTotal: Ref<null | Decimal> = ref(null)
 
-  @Watch('proxyTotalCharge')
-  public updateAmount() {
-    this.paymentForm.fields.amount.update(this.totalCharge)
-  }
+const clientSecret = useSingle<ClientSecret>(
+    `${prefix.value}__clientSecret`, {
+      endpoint: `${url.value}payment-intent/`,
+    })
 
-  public get canUpdate() {
-    return this.canUpdateStorage
-  }
+const cardManager = ref<typeof AcCardManager | null>(null)
 
-  public get showSubmit() {
-    return this.cardTabs !== 1
-  }
+const invoiceUrl = computed(() => {
+  return `/api/sales/invoice/${deliverable.x?.invoice}/`
+})
 
-  @Watch('deliverable.x.invoice')
-  public updateSecretEndpoint(val: string | undefined) {
-    if (!val) {
-      return
-    }
-    this.clientSecret.endpoint = `${this.invoiceUrl}payment-intent/`
-    this.readerForm.endpoint = this.readerFormUrl
-    this.canUpdateStorage = true
-    this.updateIntent()
-  }
+const readerFormUrl = computed(() => {
+  return `${invoiceUrl.value}stripe-process-present-card/`
+})
 
-  public hideForm() {
-    this.viewSettings.patchers.showPayment.model = false
-    this.paymentForm.sending = false
-  }
+const {
+  readers,
+  updateIntent,
+  readerForm,
+  debouncedUpdateIntent,
+} = useStripeHost({
+  clientSecret,
+  readerFormUrl,
+  paymentForm,
+  canUpdate,
+})
 
-  public get invoiceUrl() {
-    return `/api/sales/invoice/${this.deliverable.x?.invoice}/`
+watch(() => deliverable.x?.invoice, (val: string | null | undefined) => {
+  if (!val) {
+    return
   }
+  clientSecret.endpoint = `${invoiceUrl.value}payment-intent/`
+  canUpdate.value = true
+  updateIntent()
+})
 
-  public get readerFormUrl() {
-    return `${this.invoiceUrl}stripe-process-present-card/`
-  }
+const bareLines = computed(() => {
+  return lineItems.list.map((x) => (x.x as LineItem))
+})
 
-  @Watch('readers.ready')
-  public setTab(val: boolean) {
-    if (val && this.isStaff && this.readers.list.length) {
-      this.cardTabs = 1
-    }
-  }
+const priceData = computed((): LineAccumulator => {
+  /* istanbul ignore if */
+  return getTotals(bareLines.value)
+})
 
-  @Watch('isBuyer', {immediate: false})
-  public fetchSecret(isBuyer: boolean) {
-    if (!isBuyer) {
-      return
-    }
-    this.updateIntent()
-  }
+const totalCharge = computed(() => {
+  return priceData.value.total
+})
 
-  @Watch('isStaff')
-  public setNonStaffTab(isStaff: boolean, oldVal: boolean) {
-    if (!isStaff) {
-      this.cardTabs = 0
-      this.paymentForm.fields.use_reader.update(false)
-      this.paymentForm.fields.cash.update(false)
-      this.updateIntent()
-    }
-  }
+watch(totalCharge, (value: Decimal) => {
+  paymentForm.fields.amount.update(value)
+})
 
-  public get priceData(): LineAccumulator {
-    /* istanbul ignore if */
-    if (!this.lineItems) {
-      return {
-        total: new Decimal(0),
-        subtotals: new Map(),
-        discount: new Decimal(0),
-      }
-    }
-    return getTotals(this.bareLines)
-  }
-
-  public get proxyTotalCharge(): Decimal | undefined {
-    // We return zero on the normal priceData if lineItems is null, but this causes the
-    // watcher to trigger when it shouldn't.
-    if (this.lineItems === null) {
-      return undefined
-    }
-    return this.totalCharge
-  }
-
-  public paymentSubmit() {
-    const cardManager = this.$refs.cardManager as any
-    cardManager.stripeSubmit()
-  }
-
-  public get commissionInfo() {
-    if (!this.sellerHandler) {
-      return ''
-    }
-    if (this.is(this.NEW) || this.is(this.PAYMENT_PENDING)) {
-      if (!this.sellerHandler.artistProfile.x) {
-        return ''
-      }
-      return this.sellerHandler.artistProfile.x.commission_info
-    }
-    /* istanbul ignore if */
-    if (!this.deliverable.x) {
-      return ''
-    }
-    return this.deliverable.x.commission_info
-  }
-
-  public get bareLines() {
-    return this.lineItems.list.map((x) => (x.x as LineItem))
-  }
-
-  public get totalCharge() {
-    return this.priceData.total
-  }
-
-  @Watch('totalCharge')
-  public forceRefetch(val: undefined | Decimal) {
-    if (val === undefined || !this.isBuyer) {
-      return
-    }
-    if (this.oldTotal && !this.oldTotal.eq(val)) {
-      this.updateIntent()
-    }
-    this.oldTotal = val
-  }
-
-  public get sansOutsiders() {
-    return this.bareLines.filter((x) => [
-      LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
-    ].includes(x.type))
-  }
-
-  public created() {
-    this.socketState = this.$getSingle('socketState')
-    this.clientSecret = this.$getSingle(
-        `${this.prefix}__clientSecret`, {
-          endpoint: `${this.url}payment-intent/`,
-        })
-  }
+const hideForm = () => {
+  viewSettings.patchers.showPayment.model = false
+  paymentForm.sending = false
 }
 
-export default toNative(DeliverablePayment)
+const paymentSubmit = () => {
+  cardManager.value?.stripeSubmit()
+}
+
+const commissionInfo = computed(() => {
+  if (!sellerHandler) {
+    return ''
+  }
+  if (is(DeliverableStatus.NEW, DeliverableStatus.PAYMENT_PENDING)) {
+    if (!sellerHandler.artistProfile.x) {
+      return ''
+    }
+    return sellerHandler.artistProfile.x.commission_info
+  }
+  /* istanbul ignore if */
+  if (!deliverable.x) {
+    return ''
+  }
+  return deliverable.x.commission_info
+})
+
+watch(totalCharge, (val: Decimal | undefined) => {
+  if (val === undefined || !isBuyer.value) {
+    return
+  }
+  if (oldTotal.value && !oldTotal.value.eq(val)) {
+    updateIntent()
+  }
+  oldTotal.value = val
+})
+
+watch(isStaff, (newVal: boolean) => {
+  if (newVal) {
+    return
+  }
+  cardTabs.value = 0
+  paymentForm.fields.use_reader.update(false)
+  paymentForm.fields.cash.update(false)
+  updateIntent()
+})
+
+watch(isBuyer, (val: boolean | null) => {
+  if (!val) {
+    return
+  }
+  updateIntent()
+}, {immediate: false})
+
+watch(() => readers.ready, (val: boolean) => {
+  if (val && isStaff.value && readers.list.length) {
+    cardTabs.value = 1
+  }
+})
+
+watch(cardTabs, (tabValue: number) => {
+  if (tabValue === 2) {
+    paymentForm.fields.cash.update(true)
+  } else {
+    paymentForm.fields.cash.update(false)
+  }
+  if (tabValue === 1) {
+    paymentForm.fields.use_reader.update(true)
+    if (readers.list.length && !readerForm.fields.reader.value) {
+      readerForm.fields.reader.update(readers.list[0].x!.id)
+    }
+  } else {
+    paymentForm.fields.use_reader.update(false)
+  }
+  updateIntent()
+})
+
+// Several tests depend on setting these to make sure content loads. They're a holdover from Vue 2 object inheritance,
+// and they need rewriting.
+defineExpose({
+  expectedTurnaround,
+  revisions,
+  characters,
+  viewerHandler,
+  debouncedUpdateIntent,
+  buyerSubmission,
+  sellerSubmission,
+  deliveryDate,
+  outputs,
+})
 </script>

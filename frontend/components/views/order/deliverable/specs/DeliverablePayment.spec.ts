@@ -31,7 +31,6 @@ let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
 
-const WrappedDeliverablePayment = VuetifyWrapped(DeliverablePayment)
 
 describe('DeliverablePayment.vue', () => {
   beforeEach(() => {
@@ -131,7 +130,7 @@ describe('DeliverablePayment.vue', () => {
     setViewer(store, vulpes)
     await router.push('/sales/Vulpes/sale/1/deliverables/5/payment')
     wrapper = mount(
-      WrappedDeliverablePayment, {
+      DeliverablePayment, {
         ...vueSetup({
           store,
           router,
@@ -144,7 +143,7 @@ describe('DeliverablePayment.vue', () => {
           username: 'Vulpes',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.vm
     const deliverable = genDeliverable()
     deliverable.order.seller.landscape = true
     deliverable.order.buyer!.landscape = false
@@ -281,7 +280,7 @@ describe('DeliverablePayment.vue', () => {
     setViewer(store, fox)
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
-      WrappedDeliverablePayment, {
+      DeliverablePayment, {
         ...vueSetup({
           store,
           router,
@@ -294,7 +293,7 @@ describe('DeliverablePayment.vue', () => {
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.vm
     const deliverable = genDeliverable({
       status: DeliverableStatus.PAYMENT_PENDING,
     })
@@ -321,7 +320,7 @@ describe('DeliverablePayment.vue', () => {
     setViewer(store, fox)
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
-      WrappedDeliverablePayment, {
+      DeliverablePayment, {
         ...vueSetup({
           store,
           router,
@@ -334,7 +333,7 @@ describe('DeliverablePayment.vue', () => {
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.vm
     const deliverable = genDeliverable({
       status: DeliverableStatus.PAYMENT_PENDING,
     })
@@ -364,7 +363,7 @@ describe('DeliverablePayment.vue', () => {
     setViewer(store, fox)
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
-      WrappedDeliverablePayment, {
+      DeliverablePayment, {
         ...vueSetup({
           store,
           router,
@@ -377,7 +376,7 @@ describe('DeliverablePayment.vue', () => {
           username: 'Fox',
         },
       })
-    const vm = wrapper.vm.$refs.vm as any
+    const vm = wrapper.vm as any
     const deliverable = genDeliverable({
       status: DeliverableStatus.PAYMENT_PENDING,
     })
@@ -520,8 +519,7 @@ describe('DeliverablePayment.vue', () => {
       adjustment_revisions: 3,
     })
     vm.deliverable.makeReady(deliverable)
-    await nextTick()
-    expect(vm.revisionCount).toBe(5)
+    await waitFor(() => expect(vm.revisionCount).toBe(5))
   })
 })
 
@@ -552,7 +550,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
       },
     })
     wrapper = mount(
-      WrappedDeliverablePayment, {
+      DeliverablePayment, {
         ...options,
         props: {
           orderId: 1,
@@ -562,7 +560,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
         },
         attachTo: docTarget(),
       })
-    vm = wrapper.vm.$refs.vm
+    vm = wrapper.vm
     deliverable = genDeliverable({
       status: DeliverableStatus.PAYMENT_PENDING,
     })

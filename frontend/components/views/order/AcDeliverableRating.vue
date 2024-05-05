@@ -21,42 +21,18 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller.ts'
+<script setup lang="ts">
 import Rating from '@/types/Rating.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
-import {ArtVue} from '@/lib/lib.ts'
+import {DeliverableProps} from '@/components/views/order/mixins/DeliverableMixin.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
 
-@Component({
-  components: {
-    AcProfileHeader,
-    AcPatchField,
-    AcLoadSection,
-  },
-})
-class AcDeliverableRating extends ArtVue {
-  @Prop({required: true})
-  public orderId!: number
+const props = defineProps<Omit<DeliverableProps, "baseName"> & {end: 'buyer' | 'seller'}>()
 
-  @Prop({required: true})
-  public deliverableId!: number
-
-  @Prop({required: true})
-  public end!: 'buyer' | 'seller'
-
-  public rating: SingleController<Rating> = null as unknown as SingleController<Rating>
-
-  public created() {
-    this.rating = this.$getSingle(
-        `${this.orderId}__rate__${this.end}`,
-        {endpoint: `/api/sales/order/${this.orderId}/deliverables/${this.deliverableId}/rate/${this.end}/`},
-    )
-    this.rating.get()
-  }
-}
-
-export default toNative(AcDeliverableRating)
+const rating = useSingle<Rating>(
+    `${props.orderId}__rate__${props.end}`,
+    {endpoint: `/api/sales/order/${props.orderId}/deliverables/${props.deliverableId}/rate/${props.end}/`},
+)
+rating.get()
 </script>

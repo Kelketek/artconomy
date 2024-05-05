@@ -84,16 +84,15 @@ describe('AcAvatar', () => {
       'https://www.gravatar.com/avatar/d3e61c0076b54b4cf19751e2cf8e17ed.jpg?s=80',
     )
   })
-  test('Throws an error if it has insufficient information', async() => {
+  test('Logs an error if it has insufficient information', async() => {
     mockError.mockImplementation(() => undefined)
-    expect(() => {
-      mount(AcAvatar, {
-        ...vueSetup({
-          store,
-          stubs: {RouterLink: RouterLinkStub},
-        }),
-      })
-    }).toThrow(Error('No username, no ID. We cannot load an avatar.'))
+    wrapper = mount(AcAvatar, {
+    ...vueSetup({
+        store,
+        stubs: {RouterLink: RouterLinkStub},
+      }),
+    })
+    expect(mockError).toBeCalledWith('No username, no ID. We cannot load an avatar.')
   })
   test('Ignores a username update if the value is false', async() => {
     setViewer(store, genUser())

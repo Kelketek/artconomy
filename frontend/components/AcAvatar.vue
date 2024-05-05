@@ -111,7 +111,8 @@ const buildHandler = (username: string) => {
     return
   }
   if (!props.userId) {
-    throw Error('No username, no ID. We cannot load an avatar.')
+    console.error('No username, no ID. We cannot load an avatar.')
+    return
   }
   if (store.getters.idMap[props.userId]) {
     username = store.getters.idMap[props.userId]
