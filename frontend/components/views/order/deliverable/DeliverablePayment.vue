@@ -346,7 +346,8 @@ const oldTotal: Ref<null | Decimal> = ref(null)
 const clientSecret = useSingle<ClientSecret>(
     `${prefix.value}__clientSecret`, {
       endpoint: `${url.value}payment-intent/`,
-    })
+    },
+)
 
 const cardManager = ref<typeof AcCardManager | null>(null)
 
@@ -377,7 +378,7 @@ watch(() => deliverable.x?.invoice, (val: string | null | undefined) => {
   clientSecret.endpoint = `${invoiceUrl.value}payment-intent/`
   canUpdate.value = true
   updateIntent()
-})
+}, {immediate: true})
 
 const bareLines = computed(() => {
   return lineItems.list.map((x) => (x.x as LineItem))
