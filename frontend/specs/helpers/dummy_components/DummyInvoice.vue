@@ -1,46 +1,39 @@
 <template>
-  <ac-invoice-form :new-invoice="newInvoice" :username="username" :line-items="invoiceLineItems" :escrow-enabled="invoiceEscrowEnabled" :show-buyer="showBuyer" />
+  <ac-invoice-form :new-invoice="newInvoice" :username="username" :line-items="invoiceLineItems"
+                   :escrow-enabled="invoiceEscrowEnabled" :show-buyer="showBuyer"/>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import {baseInvoiceSchema} from '@/lib/lib.ts'
-import InvoicingMixin from '@/components/views/order/mixins/InvoicingMixin.ts'
+import {useInvoicing} from '@/components/views/order/mixins/InvoicingMixin.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {computed} from 'vue'
 
-@Component({
-  components: {AcInvoiceForm},
+const props = defineProps<{ username: string, invoiceEscrowEnabled: boolean, showBuyer: boolean }>()
+
+const newInvoice = useForm('invoice', baseInvoiceSchema('/test/'))
+
+const sellerName = computed(() => {
+  return props.username
 })
-class DummyInvoice extends mixins(InvoicingMixin) {
-  public newInvoice = null as unknown as FormController
-  @Prop({required: true})
-  public username!: string
 
-  @Prop({required: true})
-  // @ts-ignore
-  public invoiceEscrowEnabled!: boolean
+const international = computed(() => {
+  return false
+})
 
-  @Prop({required: true})
-  public showBuyer!: boolean
+const planName = computed(() => {
+  return 'Basic'
+})
 
-  // @ts-ignore
-  public get sellerName() {
-    return this.username
-  }
+const computedInvoiceEscrowEnabled = computed(() => props.invoiceEscrowEnabled)
 
-  // @ts-ignore
-  public get international() {
-    return false
-  }
-
-  public get planName() {
-    return 'Basic'
-  }
-
-  public created() {
-    this.newInvoice = this.$getForm('invoice', baseInvoiceSchema('/test/'))
-  }
-}
-export default toNative(DummyInvoice)
+// invoiceProduct and goToOrder used in tests.
+const {invoiceLineItems, invoiceProduct, goToOrder} = useInvoicing({
+  newInvoice,
+  sellerName,
+  planName,
+  international,
+  invoiceEscrowEnabled: computedInvoiceEscrowEnabled,
+})
 </script>

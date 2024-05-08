@@ -447,7 +447,8 @@ watch(() => product.x, (newProduct) => {
     return
   }
   orderForm.fields.rating.model = Math.min(newProduct.max_rating, orderForm.fields.rating.value)
-  if ((orderForm.fields.product.value !== newProduct.id) && newProduct.details_template.length) {
+  const newTemplate = (orderForm.fields.product.value !== newProduct.id) && newProduct.details_template.length
+  if (newTemplate || !orderForm.fields.details.value.length) {
     orderForm.fields.details.model = newProduct.details_template
   }
   orderForm.fields.product.model = newProduct.id

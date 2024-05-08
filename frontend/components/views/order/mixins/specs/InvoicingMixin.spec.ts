@@ -1,4 +1,4 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, mount, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import DummyInvoice from '@/specs/helpers/dummy_components/DummyInvoice.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -61,11 +61,11 @@ describe('InvoicingMixin.ts', () => {
     expect(vm.invoiceProduct.endpoint).toBe('/api/sales/account/Fox/products/255/')
   })
   test('Goes to the new deliverable', async() => {
-    const push = vi.fn()
+    const router = createTestRouter()
     wrapper = mount(DummyInvoice, {
       ...vueSetup({
         store,
-        mocks: {$router: {push}},
+        router,
       }),
       props: {
         invoiceEscrowEnabled: true,
@@ -75,19 +75,15 @@ describe('InvoicingMixin.ts', () => {
       },
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
     vm.goToOrder(genDeliverable({
       id: 120,
       order: genOrder({id: 100}),
     }))
-    expect(push).toHaveBeenCalledWith(
-      {
-        name: 'SaleDeliverableOverview',
-        params: {
-          deliverableId: '120',
-          orderId: '100',
-          username: 'Fox',
-        },
-      })
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('SaleDeliverableOverview'))
+    expect(router.currentRoute.value.params).toEqual({
+      deliverableId: '120',
+      orderId: '100',
+      username: 'Fox',
+    })
   })
 })

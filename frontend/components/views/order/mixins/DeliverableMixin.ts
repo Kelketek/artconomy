@@ -404,7 +404,6 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
 
   const buyerSubmission = computed(() => getOutput(buyer.value, outputs))
   const sellerSubmission = computed(() => getOutput(seller.value, outputs))
-
   return {
     viewSettings,
     order,
