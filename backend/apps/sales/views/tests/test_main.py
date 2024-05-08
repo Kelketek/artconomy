@@ -12,6 +12,7 @@ from apps.lib.test_resources import (
     PermissionsTestCase,
 )
 from apps.lib.tests.factories import AssetFactory, TagFactory
+from apps.lib.utils import set_tags
 from apps.profiles.models import (
     IN_SUPPORTED_COUNTRY,
     NO_SUPPORTED_COUNTRY,
@@ -3311,15 +3312,20 @@ class TestTableOrders(APITestCase):
 class TestProductRecommendations(APITestCase):
     def test_product_recommendations(self):
         product = ProductFactory.create()
-        for i in range(3):
-            ProductFactory.create(user=product.user)
-        other_user_product = ProductFactory.create()
+        set_tags(product, "tags", ["beep", "boop", "bap", "bloop"])
+        unrelated = ProductFactory.create()
+        most_related = ProductFactory.create()
+        set_tags(most_related, "tags", ["beep", "bap", "bloop", "blargh"])
+        least_related = ProductFactory.create()
+        set_tags(least_related, "tags", ["boop", "boggle"])
+        mid_related = ProductFactory.create()
+        mid_related.tags.set(["beep", "boop"])
         response = self.client.get(
             f"/api/sales/account/{product.user.username}/products/"
             f"{product.id}/recommendations/",
         )
-        id_list = [result["user"]["id"] for result in response.data["results"]]
-        self.assertEqual([product.user.id] * 3 + [other_user_product.user.id], id_list)
+        id_list = [result["id"] for result in response.data["results"]]
+        self.assertEqual([most_related.id, mid_related.id, least_related.id], id_list)
 
 
 class TestUserInvoices(APITestCase):

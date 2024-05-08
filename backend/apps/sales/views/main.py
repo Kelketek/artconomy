@@ -2736,13 +2736,16 @@ class ProductRecommendations(ListAPIView):
         qs = available_products(self.request.user, ordering=False).exclude(
             id=product.id
         )
+        qs = qs.annotate(n=Count("pk"))
+        qs = qs.filter(tags__in=product.tags.all())
         qs = qs.annotate(
             same_artist=Case(
-                When(user=product.user, then=0 - F("id")),
+                When(user=product.user, then=1),
                 default=0,
                 output_field=IntegerField(),
             ),
-        ).order_by("same_artist", "?")
+        )
+        qs = qs.order_by("-n", "same_artist", "user__stars", "edited_on", "id")
         return qs
 
 
