@@ -2745,7 +2745,9 @@ class ProductRecommendations(ListAPIView):
                 output_field=IntegerField(),
             ),
         )
-        qs = qs.order_by("-n", "same_artist", "user__stars", "edited_on", "id")
+        qs = qs.order_by(
+            "-n", "same_artist", "user__stars", "edited_on", "id"
+        ).distinct()
         return qs
 
 
