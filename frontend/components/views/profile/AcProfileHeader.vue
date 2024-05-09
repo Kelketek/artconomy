@@ -2,10 +2,10 @@
   <v-toolbar :density="dense ? 'compact' : 'default'" color="black">
     <ac-avatar :username="username" :show-name="false" class="ml-3"/>
     <v-toolbar-title class="ml-1">
-      <ac-link :to="subject && profileLink(subject)">{{subjectHandler.displayName}}</ac-link>
+      <ac-link :to="subject && profileLink(subject)">{{ subjectHandler.displayName }}</ac-link>
     </v-toolbar-title>
     <v-spacer/>
-    <v-toolbar-items v-if="subject && isRegistered && $vuetify.display.smAndUp">
+    <v-toolbar-items v-if="subject && isRegistered && display.smAndUp">
       <v-btn color="secondary" variant="flat" @click="editing = !editing" v-if="showEdit && controls">
         <v-icon v-if="editing" :icon="mdiLock"/>
         <v-icon v-else :icon="mdiPencil"/>
@@ -20,7 +20,8 @@
         <v-icon left :icon="mdiMessage"/>
         Message
       </v-btn>
-      <v-btn color="grey-darken-2" @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent" variant="flat">
+      <v-btn color="grey-darken-2" @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent"
+             variant="flat">
         <v-icon left v-if="subject.watching" :icon="mdiEyeOff"/>
         <v-icon left v-else :icon="mdiEye"/>
         <span v-if="subject.watching">Unwatch</span>
@@ -32,14 +33,14 @@
           <v-col>
             <v-col v-if="subject!.blocking">
               <p>
-                Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you,
+                Are you sure you wish to unblock {{ subjectHandler.displayName }}? They will be able to message you,
                 comment, and
                 perform other interactive actions with your account.
               </p>
             </v-col>
             <v-col v-else>
               <p>
-                Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you,
+                Are you sure you wish to block {{ subjectHandler.displayName }}? They will not be able to message you,
                 comment on your
                 items, or perform other interactive actions with your account.
               </p>
@@ -98,14 +99,14 @@
             <v-col>
               <v-col v-if="subject!.blocking">
                 <p>
-                  Are you sure you wish to unblock {{subjectHandler.displayName}}? They will be able to message you,
+                  Are you sure you wish to unblock {{ subjectHandler.displayName }}? They will be able to message you,
                   comment, and
                   perform other interactive actions with your account.
                 </p>
               </v-col>
               <v-col v-else>
                 <p>
-                  Are you sure you wish to block {{subjectHandler.displayName}}? They will not be able to message you,
+                  Are you sure you wish to block {{ subjectHandler.displayName }}? They will not be able to message you,
                   comment on your
                   items, or perform other interactive actions with your account.
                 </p>
@@ -127,7 +128,8 @@
         </ac-confirmation>
       </v-list>
     </v-menu>
-    <v-navigation-drawer v-model="showMenu" v-if="isStaff && subject" fixed clipped :disable-resize-watcher="true" temporary>
+    <v-navigation-drawer v-model="showMenu" v-if="isStaff && subject" fixed clipped :disable-resize-watcher="true"
+                         temporary>
       <ac-nav-links
           :subject-handler="subjectHandler"
           :is-staff="subject.is_staff"
@@ -160,89 +162,67 @@
   </v-toolbar>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcConfirmation from '../../wrappers/AcConfirmation.vue'
 import AcAvatar from '../../AcAvatar.vue'
-import Subjective from '@/mixins/subjective.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 import {Conversation} from '@/types/Conversation.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting.ts'
-import Editable from '@/mixins/editable.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
+import {useEditable} from '@/mixins/editable.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {mdiLock, mdiPencil, mdiMenu, mdiMessage, mdiEyeOff, mdiEye, mdiCancel, mdiDotsHorizontal} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {ref, watch} from 'vue'
+import {useRouter} from 'vue-router'
+import {useViewer} from '@/mixins/viewer.ts'
+import {profileLink} from '@/lib/otherFormatters.ts'
+import {useDisplay} from 'vuetify'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcFormDialog,
-    AcLink,
-    AcExpandedProperty,
-    AcNavLinks,
-    AcAvatar,
-    AcConfirmation,
-  },
+const props = withDefaults(defineProps<SubjectiveProps & { dense?: boolean, showEdit?: boolean }>(), {
+  dense: false,
+  showEdit: false,
 })
-class AcProfileHeader extends mixins(Subjective, Formatting, Editable) {
-  @Prop({default: false})
-  public dense!: boolean
+const {rawViewerName, isStaff, isRegistered} = useViewer()
+const {subject, subjectHandler, isCurrent, controls} = useSubject(props)
+const {editing} = useEditable(controls)
+const router = useRouter()
 
-  @Prop({default: false})
-  public showEdit!: boolean
+const newConversation = useForm('new-conversation', {
+  fields: {
+    participants: {value: []},
+    captcha: {value: ''},
+  },
+  endpoint: `/api/profiles/account/${rawViewerName.value}/conversations/`,
+})
 
-  public showNew = false
+const showNew = ref(false)
+const showMenu = ref(false)
+const display = useDisplay()
 
-  public newConversation = null as unknown as FormController
-
-  public showMenu = false
-  public mdiLock = mdiLock
-  public mdiPencil = mdiPencil
-  public mdiMenu = mdiMenu
-  public mdiMessage = mdiMessage
-  public mdiEyeOff = mdiEyeOff
-  public mdiCancel = mdiCancel
-  public mdiDotsHorizontal = mdiDotsHorizontal
-  public mdiEye = mdiEye
-
-  public blockToggle() {
-    (this.subjectHandler.user as SingleController<User>).patch({blocking: this.subject!.blocking})
-  }
-
-  public visitConversation(response: Conversation) {
-    this.$router.push({
-      name: 'Conversation',
-      params: {
-        username: this.rawViewerName,
-        conversationId: response.id + '',
-      },
-    })
-  }
-
-  @Watch('subject')
-  public populateRecipient(value: User) {
-    /* istanbul ignore if */
-    if (!value) {
-      return
-    }
-    this.newConversation.fields.participants.model = [value.id]
-  }
-
-  public created() {
-    this.newConversation = this.$getForm('new-conversation', {
-      fields: {
-        participants: {value: []},
-        captcha: {value: ''},
-      },
-      endpoint: `/api/profiles/account/${this.rawViewerName}/conversations/`,
-    })
-  }
+const blockToggle = () => {
+  (subjectHandler.user as SingleController<User>).patch({blocking: subject.value!.blocking})
 }
 
-export default toNative(AcProfileHeader)
+const visitConversation = (response: Conversation) => {
+  router.push({
+    name: 'Conversation',
+    params: {
+      username: rawViewerName.value,
+      conversationId: response.id + '',
+    },
+  })
+}
+
+watch(subject, (value) => {
+  /* istanbul ignore if */
+  if (!value) {
+    return
+  }
+  newConversation.fields.participants.model = [value.id]
+})
 </script>

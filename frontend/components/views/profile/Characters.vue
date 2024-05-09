@@ -52,64 +52,54 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
 import {Character} from '@/store/characters/types/Character.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {flatten} from '@/lib/lib.ts'
 import {mdiPlus} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {computed, ref} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRouter} from 'vue-router'
+import {useSubject} from '@/mixins/subjective.ts'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcFormDialog,
-    AcPaginated,
-    AcCharacterPreview,
+const props = defineProps<SubjectiveProps>()
+const {controls} = useSubject(props)
+const router = useRouter()
+const showNew = ref(false)
+
+const url = computed(() => {
+  return `/api/profiles/account/${props.username}/characters/`
+})
+
+const characters = useList<Character>(`${flatten(props.username)}-characters`, {
+  endpoint: url.value,
+  keyProp: 'name',
+})
+
+const form = useForm(`${flatten(props.username)}-newCharacter`, {
+  endpoint: url.value,
+  fields: {
+    name: {value: ''},
+    private: {value: false},
+    nsfw: {value: false},
   },
 })
-class Characters extends mixins(Subjective) {
-  public characters: ListController<Character> = null as unknown as ListController<Character>
-  public form: FormController = null as unknown as FormController
-  public showNew = false
-  public mdiPlus = mdiPlus
 
-  public get url() {
-    return `/api/profiles/account/${this.username}/characters/`
-  }
+characters.firstRun().then()
 
-  public visitCharacter(character: Character) {
-    this.$router.push({
-      name: 'Character',
-      params: {
-        username: this.username,
-        characterName: character.name,
-      },
-      query: {editing: 'true'},
-    })
-  }
-
-  public created() {
-    this.characters = this.$getList(`${flatten(this.username)}-characters`, {
-      endpoint: this.url,
-      keyProp: 'name',
-    })
-    this.form = this.$getForm(`${flatten(this.username)}-newCharacter`, {
-      endpoint: this.url,
-      fields: {
-        name: {value: ''},
-        private: {value: false},
-        nsfw: {value: false},
-      },
-    })
-    this.characters.firstRun().then()
-  }
+const visitCharacter = (character: Character) => {
+  router.push({
+    name: 'Character',
+    params: {
+      username: props.username,
+      characterName: character.name,
+    },
+    query: {editing: 'true'},
+  })
 }
-
-export default toNative(Characters)
 </script>

@@ -99,14 +99,19 @@
     </v-stepper>
     <template v-slot:bottom-buttons>
       <v-card-actions row wrap>
-        <v-spacer />
+        <v-spacer/>
         <div class="d-flex flex-shrink-1 justify-end align-end">
-          <v-checkbox v-model="multiple" label="Keep uploading" v-if="allowMultiple" class="px-2 flex-shrink-1" :hide-details="true"/>
+          <v-checkbox v-model="multiple" label="Keep uploading" v-if="allowMultiple" class="px-2 flex-shrink-1"
+                      :hide-details="true"/>
         </div>
         <v-btn @click.prevent="toggle(false)" variant="flat">Cancel</v-btn>
-        <v-btn @click.prevent="newUpload.step -= 1" v-if="newUpload.step > 1" color="secondary" variant="flat">Previous</v-btn>
-        <v-btn @click.prevent="newUpload.step += 1" v-if="newUpload.step < 2" color="primary" variant="flat">Next</v-btn>
-        <v-btn type="submit" v-if="newUpload.step === 2" color="primary" class="submit-button" variant="flat">Submit</v-btn>
+        <v-btn @click.prevent="newUpload.step -= 1" v-if="newUpload.step > 1" color="secondary" variant="flat">
+          Previous
+        </v-btn>
+        <v-btn @click.prevent="newUpload.step += 1" v-if="newUpload.step < 2" color="primary" variant="flat">Next
+        </v-btn>
+        <v-btn type="submit" v-if="newUpload.step === 2" color="primary" class="submit-button" variant="flat">Submit
+        </v-btn>
       </v-card-actions>
     </template>
   </ac-form-dialog>
@@ -118,119 +123,114 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcFormDialog from './wrappers/AcFormDialog.vue'
 import AcBoundField from './fields/AcBoundField.ts'
-import Subjective from '../mixins/subjective.ts'
+import {useSubject} from '../mixins/subjective.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import Submission from '@/types/Submission.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import Upload from '@/mixins/upload.ts'
+import {useUpload} from '@/mixins/upload.ts'
 import {newUploadSchema} from '@/lib/lib.ts'
-import submissionDetail from '@/components/views/submission/SubmissionDetail.vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed, nextTick, ref} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {listenForSingle} from '@/store/singles/hooks.ts'
+import {useRouter} from 'vue-router'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcFormDialog,
-  },
-  emits: ['update:modelValue', 'success'],
+declare interface AcNewSubmissionsProps extends SubjectiveProps {
+  showCharacters?: boolean,
+  title?: string,
+  modelValue: boolean,
+  visit?: boolean,
+  allowMultiple?: boolean,
+  characterInitItems?: Character[],
+}
+
+const emit = defineEmits<{'update:modelValue': [boolean], success: [Submission]}>()
+
+const props = withDefaults(defineProps<AcNewSubmissionsProps>(), {
+  showCharacters: true,
+  title: '',
+  visit: true,
+  allowMultiple: false,
+  characterInitItems: () => [],
 })
-class AcNewSubmission extends mixins(Subjective, Upload) {
-  // For certain views, we want to control when the characters field is rendered so Vuetify's upstream item cache can
-  // be prepopulated. There may be a better way to do this, but it should work for now.
-  @Prop({default: true})
-  public showCharacters!: boolean
 
-  @Prop({default: () => []})
-  public characterInitItems!: Character[]
+const {isRegistered} = useViewer()
+const {subject, subjectHandler} = useSubject(props)
+const {showUpload} = useUpload()
+const router = useRouter()
 
-  @Prop({default: ''})
-  public title!: string
+const addThumbnail = ref(false)
+const multiple = ref(false)
 
-  @Prop({required: true})
-  public modelValue!: boolean
+const newUpload = useForm('newUpload', newUploadSchema(subjectHandler.user))
 
-  @Prop({default: false})
-  public allowMultiple!: boolean
+const preloadedUser = computed(() => {
+  return [subject.value]
+})
 
-  @Prop({default: true})
-  public visit!: boolean
-
-  public newUpload: FormController = null as unknown as FormController
-
-  public addThumbnail = false
-
-  public multiple = false
-
-  public get success() {
-    if (this.allowMultiple && this.multiple) {
-      return (submission: Submission) => {
-        const isArtist = this.isArtist
-        this.newUpload.reset()
-        this.$emit('success', submission)
-        this.$nextTick(() => {
-          this.isArtist = isArtist
-        })
-      }
-    }
-    return (submission: Submission) => {
-      this.$emit('success', submission)
-      this.newUpload.reset()
-      if (this.visit) {
-        this.goToSubmission(submission)
-      }
-    }
-  }
-
-  public get isArtist() {
+const isArtist = computed({
+  get() {
     /* istanbul ignore if */
-    if (!this.subject) {
+    if (!subject.value) {
       return false
     }
-    return this.newUpload.fields.artists.model.indexOf(this.subject.id) !== -1
-  }
-
-  public set isArtist(val: boolean) {
+    return newUpload.fields.artists.model.indexOf(subject.value.id) !== -1
+  },
+  set(val: boolean) {
     /* istanbul ignore if */
-    if (!this.subject) {
+    if (!subject.value) {
       return
     }
-    const artists = this.newUpload.fields.artists
-    if (val && !artists.model.includes(this.subject.id)) {
-      artists.model.push(this.subject.id)
+    const artists = newUpload.fields.artists
+    if (val && !artists.model.includes(subject.value.id)) {
+      artists.model.push(subject.value.id)
     } else if (!val) {
       artists.model = artists.model.filter((artistId: number) => {
-        return artistId !== (this.subject as User).id
+        return artistId !== (subject.value as User).id
       })
     }
   }
+})
 
-  public toggle(value: boolean) {
-    this.$emit('update:modelValue', value)
-  }
-
-  public goToSubmission(submission: Submission) {
-    this.showUpload = false
-    this.$router.push({
-      name: 'Submission',
-      params: {submissionId: submission.id + ''},
-      query: {editing: 'true'},
-    })
-  }
-
-  public get preloadedUser() {
-    return [this.subject]
-  }
-
-  public created() {
-    this.newUpload = this.$getForm('newUpload', newUploadSchema(this.subjectHandler.user))
-    this.$listenForSingle('new-submission-file')
-    this.$listenForSingle('new-submission-file-preview')
-  }
+const toggle = (value: boolean) => {
+  emit('update:modelValue', value)
 }
 
-export default toNative(AcNewSubmission)
+const success = computed(() => {
+  if (props.allowMultiple && multiple.value) {
+    return (submission: Submission) => {
+      const newValue = isArtist.value
+      newUpload.reset()
+      emit('success', submission)
+      nextTick(() => {
+        isArtist.value = newValue
+      })
+    }
+  }
+  return (submission: Submission) => {
+    emit('success', submission)
+    newUpload.reset()
+    if (props.visit) {
+      goToSubmission(submission)
+    }
+  }
+})
+
+const goToSubmission = (submission: Submission) => {
+  showUpload.value = false
+  router.push({
+    name: 'Submission',
+    params: {submissionId: submission.id + ''},
+    query: {editing: 'true'},
+  })
+}
+
+listenForSingle('new-submission-file')
+listenForSingle('new-submission-file-preview')
+
+defineExpose({isArtist, newUpload})
 </script>

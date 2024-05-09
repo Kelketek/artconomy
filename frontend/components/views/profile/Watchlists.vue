@@ -8,24 +8,21 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, toNative, mixins} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
 import {flatten} from '@/lib/lib.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {listenForList} from '@/store/lists/hooks.ts'
+import {useRoute, useRouter} from 'vue-router'
 
-@Component
-class Watchlists extends mixins(Subjective) {
-  public created() {
-    this.$listenForList(`${flatten(this.username)}__watching`)
-    this.$listenForList(`${flatten(this.username)}__watchers`)
-    if (this.$route.name === 'Watchlists') {
-      this.$router.push({
-        name: 'Watching',
-        params: {username: this.username},
-      })
-    }
-  }
+const props = defineProps<SubjectiveProps>()
+const router = useRouter()
+const route = useRoute()
+listenForList(`${flatten(props.username)}__watching`)
+listenForList(`${flatten(props.username)}__watchers`)
+if (route.name === 'Watchlists') {
+  router.push({
+    name: 'Watching',
+    params: {username: props.username},
+  })
 }
-
-export default toNative(Watchlists)
 </script>

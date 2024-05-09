@@ -1,5 +1,14 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, flushPromises, mount, rs, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {
+  cleanUp,
+  createTestRouter,
+  flushPromises,
+  mount,
+  rs,
+  vueSetup,
+  VuetifyWrapped,
+  waitFor,
+} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import DummySubmit from '@/components/specs/DummySubmit.vue'
@@ -8,6 +17,9 @@ import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 import {setViewer} from '@/lib/lib.ts'
+import {router} from '@/router'
+import {useForm} from '@/store/forms/hooks.ts'
+import Empty from '@/specs/helpers/dummy_components/empty.ts'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
@@ -78,39 +90,29 @@ describe('AcNewSubmission.vue', () => {
     const user = genUser()
     user.id = 1
     setViewer(store, user)
-    const mockPush = vi.fn()
+    const router = createTestRouter()
+    await router.push({name: 'Profile', params: {username: 'Fox'}, query: {editing: 'false'}})
     wrapper = mount(WrappedDummySubmit, {
       ...vueSetup({
         store,
-        mocks: {
-          $route: {
-            name: 'Profile',
-            params: {username: 'Fox'},
-            query: {editing: false},
-          },
-          $router: {push: mockPush},
-        },
+        router,
       }),
       props: {username: 'Fox'},
     })
-    const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     mockAxios.reset()
-    const form = vm.$getForm('newUpload')
+    const empty = mount(Empty, vueSetup({store})).vm
+    const form = empty.$getForm('newUpload')
     form.step = 2
-    await vm.$nextTick()
+    await nextTick()
     await wrapper.findComponent('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalled()
     const submission = genSubmission()
     submission.id = 3
     mockAxios.mockResponse(rs(submission))
-    await flushPromises()
-    await vm.$nextTick()
-    expect(mockPush).toHaveBeenCalledWith({
-      name: 'Submission',
-      params: {submissionId: '3'},
-      query: {editing: 'true'},
-    })
+    await waitFor(() => expect(router.currentRoute.value.name).toBe('Submission'))
+    expect(router.currentRoute.value.params).toEqual({submissionId: '3'})
+    expect(router.currentRoute.value.query).toEqual({editing: 'true'})
   })
   test('Submits and resets if multi-upload is enabled', async() => {
     const user = genUser()
@@ -124,7 +126,7 @@ describe('AcNewSubmission.vue', () => {
           $route: {
             name: 'Profile',
             params: {username: 'Fox'},
-            query: {editing: false},
+            query: {editing: 'false'},
           },
           $router: {push: mockPush},
         },

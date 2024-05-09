@@ -8,34 +8,15 @@
   </ac-paginated>
 </template>
 
-<script lang="ts">
-import Subjective from '@/mixins/subjective.ts'
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {flatten} from '@/lib/lib.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
-@Component({
-  components: {
-    AcAvatar,
-    AcPaginated,
-  },
-})
-class WatchList extends mixins(Subjective) {
-  public watch: ListController<User> = null as unknown as ListController<User>
-  @Prop({required: true})
-  public endpoint!: string
-
-  @Prop({required: true})
-  public nameSpace!: string
-
-  public created() {
-    this.watch = this.$getList(`${flatten(this.username)}__${this.nameSpace}`, {endpoint: this.endpoint})
-    this.watch.firstRun()
-  }
-}
-
-export default toNative(WatchList)
+const props = defineProps<SubjectiveProps & {endpoint: string, nameSpace: string}>()
+const watch = useList<TerseUser>(`${flatten(props.username)}__${props.nameSpace}`, {endpoint: props.endpoint})
+watch.firstRun()
 </script>

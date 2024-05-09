@@ -101,10 +101,6 @@ const props = defineProps<SubjectiveProps>()
 const {subject, subjectHandler, controls, isCurrent} = useSubject(props)
 const {editing} = useEditable(controls)
 
-const productUrl = computed(() => {
-  return `/api/sales/account/${props.username}/products/`
-})
-
 const badges = computed(() => {
   const badges: ProfileBadge[] = []
   if (!subjectHandler.artistProfile.x) {

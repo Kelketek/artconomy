@@ -41,48 +41,19 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
+<script setup lang="ts">
 import {flatten} from '@/lib/lib.ts'
-import Editable from '@/mixins/editable.ts'
-import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 import ArtistTag from '@/types/ArtistTag.ts'
 import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
 
-@Component({
-  components: {
-    ArtistTagManager,
-    AcDraggableList,
-    AcDraggableNavs,
-    AcPaginated,
-    AcGalleryPreview,
-    AcLoadSection,
-  },
-})
-class ManageSubmissionList extends mixins(Subjective, Editable) {
-  @Prop()
-  public listName!: string
-
-  @Prop()
-  public endpoint!: string
-
-  public list: ListController<ArtistTag> = null as unknown as ListController<ArtistTag>
-
-  public created() {
-    let listName = this.listName
-    if (this.username) {
-      listName = `${flatten(this.username)}-${listName}-management`
-    }
-    this.list = this.$getList(listName, {endpoint: this.endpoint})
-    this.list.firstRun()
-  }
+const props = defineProps<SubjectiveProps & {listName: string, endpoint: string}>()
+let listName = props.listName
+if (props.username) {
+  listName = `${flatten(props.username)}-${listName}-management`
 }
-
-export default toNative(ManageSubmissionList)
+const list = useList<ArtistTag>(listName, {endpoint: props.endpoint})
+list.firstRun()
 </script>

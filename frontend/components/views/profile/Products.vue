@@ -4,20 +4,9 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import Subjective from '../../../mixins/subjective.ts'
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import AcProductList from '@/components/views/store/AcProductList.vue'
+<script setup lang="ts">
 import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
-@Component({
-  components: {
-    AcSubjectiveProductList,
-    AcProductList,
-  },
-})
-class Products extends mixins(Subjective) {
-}
-
-export default toNative(Products)
+const props = defineProps<SubjectiveProps>()
 </script>

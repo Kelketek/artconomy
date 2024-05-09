@@ -16,7 +16,7 @@
         </v-btn>
       </v-col>
     </v-row>
-    <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${String($route.name)}`"></router-view>
+    <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${String(route.name)}`"></router-view>
     <ac-new-submission
         ref="newSubmissionForm"
         :username="username"
@@ -33,132 +33,133 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
 import Submission from '@/types/Submission.ts'
 import {flatten, genId} from '@/lib/lib.ts'
-import AcTab from '@/components/AcTab.vue'
-import Upload from '@/mixins/upload.ts'
+import {useUpload} from '@/mixins/upload.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import ArtistTag from '@/types/ArtistTag.ts'
-import {defineAsyncComponent} from 'vue'
+import {computed, ref, watch} from 'vue'
 import {mdiCog, mdiImageMultiple, mdiPalette, mdiPlus} from '@mdi/js'
-const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {useSubject} from '@/mixins/subjective.ts'
+import AcNewSubmission from '@/components/AcNewSubmission.vue'
+import {TabNavSpec} from '@/types/TabNavSpec.ts'
 
-@Component({
-  components: {
-    AcTabNav,
-    AcNewSubmission,
-    AcTab,
-  },
+const props = defineProps<SubjectiveProps>()
+const {subject, controls} = useSubject(props)
+const route = useRoute()
+const router = useRouter()
+const id = ref(genId())
+const newSubmissionForm = ref<null|typeof AcNewSubmission>(null)
+
+const art = useList<ArtistTag>(`${props.username}-art`, {
+  endpoint: `/api/profiles/account/${props.username}/submissions/art/`,
 })
-class Gallery extends mixins(Subjective, Upload) {
-  public art = null as unknown as ListController<ArtistTag>
-  public collection = null as unknown as ListController<Submission>
-  public id = genId()
-  public mdiCog = mdiCog
-  public mdiPlus = mdiPlus
+const collection = useList<Submission>(`${flatten(props.username)}-collection`, {
+  endpoint: `/api/profiles/account/${props.username}/submissions/collection/`,
+})
+// Conditionally fetch. If we're on these pages, we want to give the paginator a chance to set the page before
+// fetching. Otherwise we want to prefetch in case the user switches tabs.
 
-  @Watch('showUpload')
-  public setOwnership() {
-    (this.$refs.newSubmissionForm as any).isArtist = this.artPage
+const artPage = computed(() => {
+  return route.name === 'Art'
+})
+
+const collectionPage = computed(() => {
+  return route.name === 'Collection'
+})
+
+if (!artPage.value) {
+  art.firstRun().then()
+}
+if (!collectionPage.value) {
+  collection.firstRun().then()
+}
+if (route.name === 'Gallery') {
+  router.push({
+    name: 'Art',
+    params: {username: props.username},
+  })
+}
+
+const num = (val: number|null) => typeof val === 'number' ? val : undefined
+
+const items = computed<TabNavSpec[]>(() => {
+  return [{
+    value: {
+      name: 'Art',
+      params: {username: props.username},
+    },
+    count: num(art.count),
+    icon: mdiPalette,
+    title: `${possessive.value} Art`,
+  }, {
+    value: {
+      name: 'Collection',
+      params: {username: props.username},
+    },
+    count: num(collection.count),
+    icon: mdiImageMultiple,
+    title: `${possessive.value} Collection`,
+  }]
+})
+
+const possessive = computed(() => {
+  if (props.username.endsWith('s')) {
+    return `${props.username}'`
+  } else {
+    return `${props.username}'s`
   }
+})
 
-  public get managing() {
-    return String(this.$route.name).includes('Manage')
+const {showUpload} = useUpload()
+
+watch(showUpload, () => {
+  if (newSubmissionForm.value) {
+    newSubmissionForm.value.isArtist = artPage.value
   }
+})
 
-  public postAdd(submission: Submission) {
-    const routeName = String(this.$route.name) + ''
-    for (const group of (['collection', 'art'] as Array<keyof Gallery & string>)) {
-      if (routeName.toLowerCase().includes(group) && this[group].currentPage === 1) {
-        this[group].unshift(submission)
-      }
+const groups = {
+  collection,
+  art,
+} as const
+
+const managing = computed({
+  get() {
+    return String(route.name).includes('Manage')
+  },
+  set(val: boolean) {
+    const newRoute = {
+      name: String(route.name) + '',
+      params: route.params,
+      query: route.query,
     }
-  }
-
-  public set managing(val) {
-    const route = {
-      name: String(this.$route.name) + '',
-      params: this.$route.params,
-      query: this.$route.query,
-    }
-    if (val && !this.managing) {
-      route.name = `Manage${route.name}`
-    } else if (!val && this.managing) {
-      for (const group of (['collection', 'art'] as Array<keyof Gallery & string>)) {
-        if (route.name.toLowerCase().includes(group)) {
-          this[group].get()
+    if (val && !managing.value) {
+      newRoute.name = 'Manage' + String(route.name)
+    } else if (!val && managing.value) {
+      for (const group of ['collection', 'art'] as Array<keyof typeof groups>) {
+        if (newRoute.name.toLowerCase().includes(group)) {
+          groups[group].get()
         }
       }
-      this.collection.get()
-      this.art.get()
-      route.name = route.name.replace('Manage', '')
+      collection.get()
+      art.get()
+      newRoute.name = newRoute.name.replace('Manage', '')
     }
-    this.$router.replace(route)
+    router.replace(newRoute)
   }
+})
 
-  public get items() {
-    return [{
-      value: {
-        name: 'Art',
-        params: {username: this.username},
-      },
-      count: this.art.count,
-      icon: mdiPalette,
-      title: `${this.possessive} Art`,
-    }, {
-      value: {
-        name: 'Collection',
-        params: {username: this.username},
-      },
-      count: this.collection.count,
-      icon: mdiImageMultiple,
-      title: `${this.possessive} Collection`,
-    }]
-  }
-
-  public get artPage() {
-    return this.$route.name === 'Art'
-  }
-
-  public get collectionPage() {
-    return this.$route.name === 'Collection'
-  }
-
-  public get possessive() {
-    if (this.username.endsWith('s')) {
-      return `${this.username}'`
-    } else {
-      return `${this.username}'s`
-    }
-  }
-
-  public created() {
-    this.art = this.$getList(`${this.username}-art`, {
-      endpoint: `/api/profiles/account/${this.username}/submissions/art/`,
-    })
-    this.collection = this.$getList(`${flatten(this.username)}-collection`, {
-      endpoint: `/api/profiles/account/${this.username}/submissions/collection/`,
-    })
-    // Conditionally fetch. If we're on these pages, we want to give the paginator a chance to set the page before
-    // fetching. Otherwise we want to prefetch in case the user switches tabs.
-    if (!this.artPage) {
-      this.art.firstRun().then()
-    }
-    if (!this.collectionPage) {
-      this.collection.firstRun().then()
-    }
-    if (this.$route.name === 'Gallery') {
-      this.$router.push({
-        name: 'Art',
-        params: {username: this.username},
-      })
+const postAdd = (submission: Submission | ArtistTag) => {
+  const routeName = String(route.name) + ''
+  for (const group of ['collection', 'art'] as Array<keyof typeof groups>) {
+    if (routeName.toLowerCase().includes(group) && groups[group].currentPage === 1) {
+      groups[group].unshift(submission as Submission & ArtistTag)
     }
   }
 }
-
-export default toNative(Gallery)
 </script>

@@ -2,7 +2,7 @@
   <v-container fluid>
     <ac-load-section :controller="subjectHandler.user">
       <template v-slot:default>
-        <ac-profile-header :username="username" :show-edit="$route.name === 'AboutUser'" :dense="true"/>
+        <ac-profile-header :username="username" :show-edit="route.name === 'AboutUser'" :dense="true"/>
         <v-card>
           <ac-tab-nav :items="items" label="See more"/>
         </v-card>
@@ -12,116 +12,110 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import Subjective from '@/mixins/subjective.ts'
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {flatten} from '@/lib/lib.ts'
 import {mdiAccount, mdiAccountMultiple, mdiBasket, mdiEye, mdiHeart, mdiImageAlbum} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {listenForList} from '@/store/lists/hooks.ts'
+import {listenForProfile} from '@/store/profiles/hooks.ts'
+import {listenForForm} from '@/store/forms/hooks.ts'
+import {computed, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 
-@Component({
-  components: {
-    AcTabNav,
-    AcLoadSection,
-    AcProfileHeader,
-    AcLoadingSpinner,
-  },
-})
-class Profile extends mixins(Subjective) {
-  @Watch('subject.artist_mode', {immediate: true})
-  public setDefaultRoute() {
-    if (!this.subject) {
-      return
-    }
-    if (this.$route.name === 'Profile') {
-      this.$router.replace({
+const props = defineProps<SubjectiveProps>()
+const {subjectHandler, subject} = useSubject(props)
+const {setError} = useErrorHandling()
+const route = useRoute()
+const router = useRouter()
+
+subjectHandler.artistProfile.get().catch(setError)
+listenForList(`${flatten(props.username)}-products`)
+listenForList(`${flatten(props.username)}-art`)
+listenForList(`${flatten(props.username)}-collection`)
+listenForList(`${flatten(props.username)}-characters`)
+listenForList(`${flatten(props.username)}-journals`)
+listenForForm(`${flatten(props.username)}-newJournal`)
+listenForForm('newUpload')
+listenForProfile('.*')
+
+const items = computed(() => {
+  const itemEntries = [
+    {
+      value: {
         name: 'AboutUser',
-        params: {username: this.username},
-      })
-    }
-  }
-
-  @Watch('$route.name')
-  public routeNameCheck() {
-    this.setDefaultRoute()
-  }
-
-  public get needsSpace() {
-    return [
-      'Gallery', 'Art', 'ManageArt', 'Collection', 'ManageCollection', 'Watchers', 'Watching', 'Watchlists',
-    ].indexOf(String(this.$route.name) + '') === -1
-  }
-
-  public get items() {
-    const items = [
-      {
-        value: {
-          name: 'AboutUser',
-          params: {username: this.username},
-        },
-        icon: mdiAccount,
-        title: 'About',
+        params: {username: props.username},
       },
-    ]
-    if (this.subject && this.subject.artist_mode) {
-      items.push(
-          {
-            value: {
-              name: 'Products',
-              params: {username: this.username},
-            },
-            icon: mdiBasket,
-            title: 'Products',
+      icon: mdiAccount,
+      title: 'About',
+    },
+  ]
+  if (subject.value && subject.value.artist_mode) {
+    itemEntries.push(
+        {
+          value: {
+            name: 'Products',
+            params: {username: props.username},
           },
-      )
-    }
-    items.push({
-      value: {
-        name: 'Characters',
-        params: {username: this.username},
-      },
-      icon: mdiAccountMultiple,
-      title: 'Characters',
-    }, {
-      value: {
-        name: 'Gallery',
-        params: {username: this.username},
-      },
-      icon: mdiImageAlbum,
-      title: 'Gallery',
-    }, {
-      value: {
-        name: 'Favorites',
-        params: {username: this.username},
-      },
-      icon: mdiHeart,
-      title: 'Favorites',
-    }, {
-      value: {
-        name: 'Watchlists',
-        params: {username: this.username},
-      },
-      icon: mdiEye,
-      title: 'Watchlists',
-    })
-    return items
+          icon: mdiBasket,
+          title: 'Products',
+        },
+    )
   }
+  itemEntries.push({
+    value: {
+      name: 'Characters',
+      params: {username: props.username},
+    },
+    icon: mdiAccountMultiple,
+    title: 'Characters',
+  }, {
+    value: {
+      name: 'Gallery',
+      params: {username: props.username},
+    },
+    icon: mdiImageAlbum,
+    title: 'Gallery',
+  }, {
+    value: {
+      name: 'Favorites',
+      params: {username: props.username},
+    },
+    icon: mdiHeart,
+    title: 'Favorites',
+  }, {
+    value: {
+      name: 'Watchlists',
+      params: {username: props.username},
+    },
+    icon: mdiEye,
+    title: 'Watchlists',
+  })
+  return itemEntries
+})
 
-  public created() {
-    this.subjectHandler.artistProfile.get().catch(this.setError)
-    this.$listenForList(`${flatten(this.username)}-products`)
-    this.$listenForList(`${flatten(this.username)}-art`)
-    this.$listenForList(`${flatten(this.username)}-collection`)
-    this.$listenForList(`${flatten(this.username)}-characters`)
-    this.$listenForList(`${flatten(this.username)}-journals`)
-    this.$listenForForm(`${flatten(this.username)}-newJournal`)
-    this.$listenForForm('newUpload')
-    this.$listenForProfile('.*')
+const needsSpace = computed(() => {
+  return [
+    'Gallery', 'Art', 'ManageArt', 'Collection', 'ManageCollection', 'Watchers', 'Watching', 'Watchlists',
+  ].indexOf(String(route.name) + '') === -1
+})
+
+const setDefaultRoute = () => {
+  if (!subject.value) {
+    return
+  }
+  if (route.name === 'Profile') {
+    router.replace({
+      name: 'AboutUser',
+      params: {username: props.username},
+    })
   }
 }
 
-export default toNative(Profile)
+watch(() => subject.value?.artist_mode, setDefaultRoute)
+watch(() => route.name, setDefaultRoute)
 </script>

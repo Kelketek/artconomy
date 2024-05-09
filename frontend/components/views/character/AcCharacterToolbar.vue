@@ -21,7 +21,7 @@
           <v-icon left :icon="mdiUpload"/>
           Upload
         </v-btn>
-        <ac-new-submission :show-characters="character.profile.x"
+        <ac-new-submission :show-characters="!!character.profile.x"
                            :character-init-items="preloadedCharacter"
                            v-model="showUpload"
                            :username="username"

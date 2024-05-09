@@ -6,7 +6,7 @@ export interface TerseUser {
   has_products: boolean,
   favorites_hidden: boolean,
   watching: boolean,
-  blocked: boolean,
+  blocking: boolean,
   stars: number|null,
   is_staff: boolean,
   is_superuser: boolean,

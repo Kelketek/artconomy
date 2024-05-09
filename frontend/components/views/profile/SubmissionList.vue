@@ -6,85 +6,66 @@
       </ac-gallery-preview>
     </v-col>
     <template v-slot:failure>
-      <v-col class="text-center" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
+      <v-col class="text-center" v-if="okStatuses"><p>{{ failureMessage }}</p></v-col>
     </template>
     <template v-slot:empty>
-      <v-col class="text-center" v-if="emptyMessage"><p>{{emptyMessage}}</p></v-col>
+      <v-col class="text-center" v-if="emptyMessage"><p>{{ emptyMessage }}</p></v-col>
     </template>
   </ac-paginated>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
 import Submission from '@/types/Submission.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {flatten} from '@/lib/lib.ts'
 import {Ratings} from '@/types/Ratings.ts'
-import Editable from '@/mixins/editable.ts'
 import ArtistTag from '@/types/ArtistTag.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {computed, watch} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {
-    AcPaginated,
-    AcGalleryPreview,
-    AcLoadSection,
-  },
-})
-class SubmissionList extends mixins(Subjective, Editable) {
-  @Prop()
-  public listName!: string
-
-  @Prop()
-  public endpoint!: string
-
-  @Prop({default: false})
-  public trackPages!: false
-
-  @Prop({default: () => []})
-  public okStatuses!: number[]
-
-  @Prop({default: 'This content is disabled or unavailable.'})
-  public failureMessage!: string
-
-  @Prop({default: ''})
-  public emptyMessage!: string
-
-  @Prop({default: true})
-  public showPagination!: boolean
-
-  @Watch('rawRating')
-  public refreshListing(newValue: Ratings, oldValue: Ratings | undefined) {
-    if (oldValue === undefined) {
-      return
-    }
-    this.list.get()
-  }
-
-  public get derivedList(): Submission[] {
-    return this.list.list.map((single) => {
-      // @ts-ignore
-      if (single.x?.submission !== undefined) {
-        // @ts-ignore
-        return single.x.submission as Submission
-      }
-      return single.x as Submission
-    })
-  }
-
-  public list = null as unknown as ListController<Submission | ArtistTag>
-
-  public created() {
-    let listName = this.listName
-    if (this.username) {
-      listName = `${flatten(this.username)}-${listName}`
-    }
-    this.list = this.$getList(listName, {endpoint: this.endpoint})
-  }
+declare interface SubmissionListProps extends SubjectiveProps {
+  listName: string,
+  endpoint: string,
+  emptyMessage?: string,
+  failureMessage?: string,
+  trackPages?: boolean,
+  showPagination?: boolean,
+  okStatuses?: number[],
 }
 
-export default toNative(SubmissionList)
+const props = withDefaults(defineProps<SubmissionListProps>(), {
+  okStatuses: () => [],
+  failureMessage: 'This content is disabled or unavailable.',
+  emptyMessage: '',
+  showPagination: true,
+})
+
+let listName = props.listName
+if (props.username) {
+  listName = `${flatten(props.username)}-${listName}`
+}
+const list = useList<Submission | ArtistTag>(listName, {endpoint: props.endpoint})
+
+const derivedList = computed((): Submission[] => {
+  return list.list.map((single) => {
+    // @ts-expect-error
+    if (single.x?.submission !== undefined) {
+      // @ts-expect-error
+      return single.x.submission as Submission
+    }
+    return single.x as Submission
+  })
+})
+
+const {rawRating} = useViewer()
+
+watch(rawRating, (newValue, oldValue) => {
+  if (oldValue === undefined) {
+    return
+  }
+  list.get()
+})
 </script>
