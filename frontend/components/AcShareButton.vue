@@ -23,7 +23,7 @@
           <v-spacer/>
           <v-col class="shrink">
             <v-btn color="purple" icon small @click="showQr = true" class="qr-button">
-              <v-icon :icon="mdiQrcode" size="large" />
+              <v-icon :icon="mdiQrcode" size="large"/>
             </v-btn>
           </v-col>
           <v-col class="shrink" v-if="clean">
@@ -31,14 +31,14 @@
                    :href="`https://www.pinterest.com/pin/create/button/?canonicalUrl=${location({mtm_campaign: 'Pinned'})}&description=${titleText}&media=${encodeURIComponent(mediaUrl)}`"
                    rel="nofollow noopener"
                    target="_blank">
-              <v-icon :icon="siPinterest.path" size="large" />
+              <v-icon :icon="siPinterest.path" size="large"/>
             </v-btn>
           </v-col>
           <v-col class="shrink">
             <v-btn color="red" icon small :href="`https://reddit.com/submit?url=${location()}&title=${titleText}`"
                    rel="nofollow noopener"
                    target="_blank">
-              <v-icon :icon="siReddit.path" size="large" />
+              <v-icon :icon="siReddit.path" size="large"/>
             </v-btn>
           </v-col>
           <v-col class="shrink">
@@ -46,7 +46,7 @@
                    target="_blank"
                    rel="nofollow noopener"
             >
-              <v-icon :icon="siTelegram.path" size="large" />
+              <v-icon :icon="siTelegram.path" size="large"/>
             </v-btn>
           </v-col>
           <v-col class="shrink">
@@ -54,7 +54,7 @@
                    :href="`https://twitter.com/share?text=${titleText}&url=${location()}&hashtags=Artconomy`"
                    target="_blank"
                    rel="nofollow noopener">
-              <v-icon :icon="siX.path" size="large" />
+              <v-icon :icon="siX.path" size="large"/>
             </v-btn>
           </v-col>
           <v-col class="shrink">
@@ -62,7 +62,7 @@
                    :href="`http://tumblr.com/widgets/share/tool?canonicalUrl=${location()}&title=${titleText}`"
                    target="_blank"
                    rel="nofollow noopener">
-              <v-icon :icon="siTumblr.path" size="large" />
+              <v-icon :icon="siTumblr.path" size="large"/>
             </v-btn>
           </v-col>
           <v-spacer/>
@@ -79,7 +79,7 @@
         </v-col>
       </v-row>
     </ac-expanded-property>
-    <slot name="footer" />
+    <slot name="footer"/>
   </ac-expanded-property>
 </template>
 
@@ -92,99 +92,83 @@
 }
 </style>
 
-<script lang="ts">
-import Viewer from '../mixins/viewer.ts'
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Dialog from '../mixins/dialog.ts'
+<script setup lang="ts">
+import {useViewer} from '../mixins/viewer.ts'
+import {defaultDialogProps, DialogProps} from '../mixins/dialog.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import QRCode from 'qrcode'
 import {siPinterest, siReddit, siX, siTumblr, siTelegram} from 'simple-icons'
 import {mdiShare, mdiQrcode} from '@mdi/js'
+import {computed, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 
 declare interface ExtraReferred {
   [key: string]: string,
 }
 
-@Component({components: {AcExpandedProperty}})
-class AcShareButton extends mixins(Dialog, Viewer) {
-  @Prop({default: true})
-  public social!: boolean
-
-  @Prop({required: true})
-  public title!: string
-
-  public showModal = false
-  public referral = true
-  public showQr = false
-  public image = ''
-  @Prop()
-  public block!: boolean
-
-  public mdiShare = mdiShare
-  public mdiQrcode = mdiQrcode
-  public siPinterest = siPinterest
-  public siTumblr = siTumblr
-  public siReddit = siReddit
-  public siX = siX
-  public siTelegram = siTelegram
-
-  // "Clean" art suitable for general audiences. Useful for social networks with restrictions.
-  @Prop({required: true})
-  public clean!: boolean
-
-  @Prop({required: true})
-  public mediaUrl!: string
-
-  @Watch('showQr')
-  public syncClose(newVal: boolean, oldVal: boolean) {
-    if (oldVal && !newVal) {
-      this.showModal = false
-    }
-  }
-
-  @Watch('location', {immediate: true})
-  public renderCode() {
-    QRCode.toString(this.rawLocation(), {}, (err: Error | null | undefined, str: string) => {
-      /* istanbul ignore if */
-      if (err) {
-        console.error(err)
-      }
-      this.image = str
-    })
-  }
-
-  public get titleText() {
-    return encodeURIComponent(this.title)
-  }
-
-  public rawLocation(extraReferred?: ExtraReferred) {
-    /* istanbul ignore next */
-    const route = {
-      ...this.$route,
-      name: this.$route.name || undefined,
-    }
-    route.name = route.name || undefined
-    const query = {...this.$route.query}
-    if (this.referral && this.isRegistered) {
-      query.referred_by = this.rawViewerName
-      Object.assign(query, extraReferred || {})
-    } else {
-      delete query.referred_by
-    }
-    route.query = query
-    return window.location.protocol + '//' + window.location.host + this.$router.resolve(route).href
-  }
-
-  public location(extraReferred?: ExtraReferred) {
-    return encodeURIComponent(
-        this.rawLocation(extraReferred),
-    )
-  }
+declare interface AcShareButtonProps extends DialogProps {
+  social?: boolean,
+  title: string,
+  block?: boolean,
+  mediaUrl: string,
+  clean: boolean|null,
 }
 
-export default toNative(AcShareButton)
+const props = withDefaults(
+  defineProps<AcShareButtonProps>(),
+  {...defaultDialogProps(), block: false, social: true},
+)
+
+const showModal = ref(false)
+const referral = ref(true)
+const showQr = ref(false)
+const image = ref('')
+
+const {isRegistered, rawViewerName} = useViewer()
+const router = useRouter()
+const route = useRoute()
+
+watch(showQr, (newVal, oldVal) => {
+  if (oldVal && !newVal) {
+    showModal.value = false
+  }
+})
+
+const titleText = computed(() => encodeURIComponent(props.title))
+
+const rawLocation = (extraReferred?: ExtraReferred) => {
+  /* istanbul ignore next */
+  const newRoute = {
+    ...route,
+    name: route.name || undefined,
+  }
+  newRoute.name = newRoute.name || undefined
+  const query = {...route.query}
+  if (referral.value && isRegistered.value) {
+    query.referred_by = rawViewerName.value
+    Object.assign(query, extraReferred || {})
+  } else {
+    delete query.referred_by
+  }
+  newRoute.query = query
+  return window.location.protocol + '//' + window.location.host + router.resolve(newRoute).href
+}
+
+const location = (extraReferred?: ExtraReferred) => encodeURIComponent(rawLocation(extraReferred))
+
+const baseRawLocation = computed(() => rawLocation())
+
+const renderCode = () => {
+  QRCode.toString(rawLocation(), {}, (err: Error | null | undefined, str: string) => {
+    /* istanbul ignore if */
+    if (err) {
+      console.error(err)
+    }
+    image.value = str
+  })
+}
+watch(baseRawLocation, renderCode, {immediate: true})
+
+// Used in tests.
+defineExpose({referral, showModal, baseRawLocation, showQr})
 </script>
-
-<style scoped>
-
-</style>

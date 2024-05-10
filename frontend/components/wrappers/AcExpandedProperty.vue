@@ -1,8 +1,8 @@
 <template>
   <v-dialog v-model="toggle" :width="width" :transition="transition" :fullscreen="fullscreen" :eager="eager"
-            :attach="$modalTarget">
+            :attach="modalTarget">
     <v-card tile>
-      <v-toolbar flat dark color="secondary" :dense="$vuetify.display.mdAndUp">
+      <v-toolbar flat dark color="secondary" :dense="display.mdAndUp.value">
         <v-toolbar-title>
           <slot name="title"/>
         </v-toolbar-title>
@@ -28,20 +28,17 @@
   </v-dialog>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Dialog from '@/mixins/dialog.ts'
+<script setup lang="ts">
+import {defaultDialogProps, DialogProps, useDialog} from '@/mixins/dialog.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {mdiClose} from '@mdi/js'
+import {useTargets} from '@/plugins/targets.ts'
+import {useDisplay} from 'vuetify'
 
-@Component({
-  components: {AcForm},
-})
-class AcExpandedProperty extends mixins(Dialog) {
-  @Prop({default: true})
-  public eager!: boolean
-  public mdiClose = mdiClose
-}
 
-export default toNative(AcExpandedProperty)
+const props = withDefaults(defineProps<DialogProps>(), defaultDialogProps())
+const emit = defineEmits<{'update:modelValue': [boolean]}>()
+const display = useDisplay()
+const {modalTarget} = useTargets()
+const {toggle, width, transition, fullscreen} = useDialog(props, emit)
 </script>

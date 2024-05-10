@@ -1,47 +1,49 @@
-import {Component, Prop} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib.ts'
+import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
 
-@Component({emits: ['update:modelValue']})
-export default class Dialog extends ArtVue {
-  @Prop({default: false})
-  public modelValue!: boolean
 
-  @Prop({default: false})
-  public large!: boolean
+declare interface DialogPropsResolved {
+  modelValue: boolean,
+  large: boolean,
+  persistent: boolean,
+  eager: boolean,
+}
 
-  @Prop({default: true})
-  public persistent!: boolean
+export type DialogProps = Partial<DialogPropsResolved>
 
-  /* istanbul ignore next */
-  public get width() {
-    switch (this.$vuetify.display.name) {
-      // These top two should be ignored due to the fullscreen directive, but...
-      case 'xs': return '100vw'
-      case 'sm': return '100vw'
-      case 'md': return '80vw'
-      case 'lg': return this.large ? '80vw' : '60vw'
-      case 'xl': return this.large ? '60vw' : '40vw'
+export const defaultDialogProps = () => ({modelValue: false, large: false, persistent: true, eager: false})
+
+export const useDialog = (props: DialogPropsResolved, emit: (evt: 'update:modelValue', args_0: boolean) => void) => {
+  const toggle = computed({
+    get: () => props.modelValue,
+    set: (value: boolean) => {
+      emit('update:modelValue', value)
     }
-  }
-
-  /* istanbul ignore next */
-  public get transition() {
-    if (this.$vuetify.display.smAndDown) {
+  })
+  const display = useDisplay()
+  const fullscreen = computed(() => display.smAndDown.value)
+  const transition = computed(() => {
+    if (display.smAndDown.value) {
       return 'dialog-bottom-transition'
     } else {
       return 'fade-transition'
     }
-  }
-
-  public get fullscreen() {
-    return this.$vuetify.display.smAndDown
-  }
-
-  public get toggle() {
-    return this.modelValue
-  }
-
-  public set toggle(value) {
-    this.$emit('update:modelValue', value)
+  })
+  const width = computed(() => {
+    switch (display.name.value) {
+      // These top two should be ignored due to the fullscreen directive, but...
+      case 'xs': return '100vw'
+      case 'sm': return '100vw'
+      case 'md': return '80vw'
+      case 'lg': return props.large ? '80vw' : '60vw'
+      case 'xl': return props.large ? '60vw' : '40vw'
+    }
+  })
+  return {
+    emit,
+    toggle,
+    width,
+    fullscreen,
+    transition,
   }
 }

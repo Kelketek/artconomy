@@ -6,7 +6,7 @@ import {
   flushPromises,
   mount,
   rs,
-  vueSetup,
+  vueSetup, waitFor,
 } from '@/specs/helpers/index.ts'
 import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {Router} from 'vue-router'
@@ -142,7 +142,7 @@ describe('SubmissionDetail.vue', () => {
     const ratingButton = wrapper.findComponent('.rating-button')
     await ratingButton.trigger('click')
     await nextTick()
-    expect(wrapper.findComponent('.rating-field').exists()).toBe(true)
+    await waitFor(() => expect(wrapper.findComponent('.rating-field').exists()).toBe(true))
   })
   test('Nudges the viewer to adjust their settings', async() => {
     setViewer(store, genAnon())

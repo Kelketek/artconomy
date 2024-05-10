@@ -374,10 +374,7 @@ class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {
     if (!this.submission.x) {
       return false
     }
-    if (this.theocraticBan && this.submission.x.rating > Ratings.GENERAL) {
-      return true
-    }
-    return false
+    return (this.theocraticBan && !this.viewer?.verified_adult) && this.submission.x.rating > Ratings.GENERAL;
   }
 
   public get controls() {

@@ -1,5 +1,5 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, mount, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
@@ -25,44 +25,38 @@ describe('AcShareButton.vue', () => {
   test('Mounts a share button and resolves a URL', async() => {
     setViewer(store, genUser())
     const submission = genSubmission()
+    const router = createTestRouter()
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
-    const mockResolve = vi.fn()
     single.setX(submission)
-    mockResolve.mockImplementation(() => ({href: '/stuff/'}))
+    await router.push({
+      name: 'Profile',
+      params: {username: 'Fox'},
+      query: {editing: 'false'},
+    })
     wrapper = mount(DummyShare, {
       ...vueSetup({
         store,
-        mocks: {
-          $route: {
-            name: 'Profile',
-            params: {username: 'Fox'},
-            query: {editing: false},
-          },
-          $router: {resolve: mockResolve},
-        },
+        router,
       }),
       props: {title: 'Sharable thing!'},
     })
-    expect(mockResolve).toHaveBeenCalledWith({
-      name: 'Profile',
-      params: {username: 'Fox'},
-      query: {
-        editing: false,
-        referred_by: 'Fox',
-      },
-    })
-    const vm = wrapper.vm as any
-    expect(vm.$refs.shareButton.referral).toBe(true)
+    // expect(mockResolve).toHaveBeenCalledWith({
+    //   name: 'Profile',
+    //   params: {username: 'Fox'},
+    //   query: {
+    //     editing: false,
+    //     referred_by: 'Fox',
+    //   },
+    // })
+    await waitFor(() => expect(wrapper.vm.$refs.shareButton).toBeTruthy())
+    const vm = wrapper.vm.$refs.shareButton
+    expect(vm.referral).toBe(true)
+    expect(vm.baseRawLocation).toBe('http://localhost:3000/profile/Fox/?editing=false&referred_by=Fox')
     await wrapper.find('.share-button').trigger('click')
     await vm.$nextTick()
     await wrapper.findComponent('.referral-check').find('input').trigger('click')
     await nextTick()
-    expect(vm.$refs.shareButton.referral).toBe(false)
-    expect(mockResolve).toHaveBeenCalledWith({
-      name: 'Profile',
-      params: {username: 'Fox'},
-      query: {editing: false},
-    })
+    expect(vm.referral).toBe(false)
   })
   test('Closes out of the whole menu when the QR menu is closed', async() => {
     setViewer(store, genUser())

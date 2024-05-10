@@ -8,15 +8,15 @@
       :scrollable="true"
       :eager="eager"
       :width="width"
-      :attach="$modalTarget"
+      :attach="modalTarget"
   >
     <v-card :id="id">
-      <div v-if="$vuetify.display.smAndDown">
+      <div v-if="display.smAndDown.value">
         <v-toolbar dark color="secondary">
           <v-btn variant="plain" @click="toggle = false" dark class="dialog-closer">
             <v-icon :icon="mdiClose"/>
           </v-btn>
-          <v-toolbar-title>{{title}}</v-toolbar-title>
+          <v-toolbar-title>{{ title }}</v-toolbar-title>
           <v-spacer/>
           <slot name="top-buttons">
             <v-toolbar-items v-if="$vuetify.display.smAndDown">
@@ -26,7 +26,7 @@
         </v-toolbar>
       </div>
       <v-toolbar flat dark color="secondary" dense v-else>
-        <v-toolbar-title>{{title}}</v-toolbar-title>
+        <v-toolbar-title>{{ title }}</v-toolbar-title>
         <v-spacer/>
         <v-btn icon @click="toggle = false" dark class="dialog-closer">
           <v-icon :icon="mdiClose"/>
@@ -48,8 +48,10 @@
             <v-card-actions row wrap class="hidden-sm-and-down">
               <v-spacer></v-spacer>
               <v-btn variant="flat" @click="toggle=false">{{ cancelText }}</v-btn>
-              <v-btn variant="flat" color="primary" type="submit" :disabled="disabled" class="dialog-submit" v-if="showSubmit">{{
-                submitText }}
+              <v-btn variant="flat" color="primary" type="submit" :disabled="disabled" class="dialog-submit"
+                     v-if="showSubmit">{{
+                  submitText
+                }}
               </v-btn>
             </v-card-actions>
           </slot>
@@ -65,77 +67,68 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcFormContainer from './AcFormContainer.vue'
-import Dialog from '@/mixins/dialog.ts'
+import {defaultDialogProps, DialogProps, useDialog} from '@/mixins/dialog.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {mdiClose} from '@mdi/js'
+import {nextTick, watch} from 'vue'
+import {useTargets} from '@/plugins/targets.ts'
+import {useDisplay} from 'vuetify'
+import {genId} from '@/lib/lib.ts'
 
-@Component({
-  name: 'ac-form-dialog',
-  components: {
-    AcForm,
-    AcFormContainer,
-  },
-  emits: ['update:modelValue', 'submit'],
-})
-class AcFormDialog extends mixins(Dialog) {
-  @Prop()
-  public sending!: boolean
-
-  @Prop()
-  public disabled!: boolean
-
-  @Prop()
-  public errors!: string[]
-
-  @Prop({default: 'Submit'})
-  public submitText!: string
-
-  @Prop({default: 'Cancel'})
-  public cancelText!: string
-
-  @Prop({default: ''})
-  public title!: string
-
-  @Prop()
-  public submit!: () => void
-
-  @Prop()
-  public id!: string
-
-  @Prop({default: false})
-  public fluid!: boolean
-
-  @Prop({default: false})
-  public eager!: boolean
-
-  @Prop({default: true})
-  public showSubmit!: boolean
-
-  public mdiClose = mdiClose
-
-  public reSend(event: Event) {
-    // Re-emit form so that we can use semantic Vue @event directives without the browser
-    // refreshing the page on submission.
-    this.$emit('submit', event)
-  }
-
-  /* istanbul ignore next */
-  @Watch('modelValue')
-  public autofocus(val: boolean) {
-    if (val) {
-      this.$nextTick(() => {
-        const element = document.querySelector(`#${this.id} input[autofocus]`) as HTMLElement
-        if (!element) {
-          return
-        }
-        element.focus()
-      })
-    }
-  }
+declare interface AcFormDialogProps {
+  sending?: boolean,
+  disabled?: boolean,
+  errors?: string[],
+  submitText?: string,
+  cancelText?: string,
+  title?: string,
+  id?: string,
+  fluid?: boolean,
+  eager?: boolean,
+  showSubmit?: boolean,
 }
 
-export default toNative(AcFormDialog)
+const props = withDefaults(
+  defineProps<DialogProps & AcFormDialogProps>(),
+  {
+    ...defaultDialogProps(),
+    submitText: 'Submit',
+    cancelText: 'Cancel',
+    title: '',
+    fluid: false,
+    eager: false,
+    showSubmit: true,
+    disabled: false,
+    sending: false,
+    id: () => genId(),
+    errors: () => [],
+  },
+)
+
+const {modalTarget} = useTargets()
+
+const display = useDisplay()
+
+const emit = defineEmits<{'submit': [SubmitEvent], 'update:modelValue': [boolean]}>()
+
+const {toggle, width, fullscreen, transition} = useDialog(props, emit)
+
+const reSend = (event: SubmitEvent) => {
+  emit('submit', event)
+}
+
+watch(() => props.modelValue, (value: boolean) => {
+  if (!value) {
+    return
+  }
+  nextTick(() => {
+    const element = document.querySelector(`#${props.id} input[autofocus]`) as HTMLElement
+    if (!element) {
+      return
+    }
+    element.focus()
+  })
+})
 </script>
