@@ -2091,3 +2091,16 @@ class TestProfilePreview(APITestCase):
         response = self.client.get(f"/profile/{user.username}/about")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn(b"Beep boop", response.content)
+
+
+class TestProfileInfo(APITestCase):
+    def test_profile_info(self):
+        user = UserFactory.create(username="Doot", biography="Beep")
+        response = self.client.get(f"/api/profiles/account/{user.username}/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["username"], "Doot")
+        self.assertEqual(response.data["biography"], "Beep")
+
+    def test_handles_non_existent(self):
+        response = self.client.get("/api/profiles/account/user/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)

@@ -25,7 +25,7 @@ def mastodon_profiles_for_routes(path: str) -> List[str]:
 def base_template(request, extra=None, exception=None):
     if request.method != "GET":
         return bad_endpoint(request)
-    if request.content_type == "application/json":
+    if request.content_type == "application/json" or request.path.startswith("/api/"):
         return bad_endpoint(request)
     theocratic_ban = check_theocratic_ban(request.ip)
     if request.user.is_authenticated:
