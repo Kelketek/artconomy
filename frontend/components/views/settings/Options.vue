@@ -17,7 +17,8 @@
           <v-col cols="12" sm="6" md="4">
             <ac-patch-field label="Taggable"
                             field-type="v-switch"
-                            hint="When off, prevents others from tagging you or your characters in submissions."
+                            hint="When off, prevents others from modifying your submissions' and characters' tags,
+                            or tagging your characters in submissions."
                             :patcher="patchers.taggable"
                             :persistent-hint="true"
                             color="primary"

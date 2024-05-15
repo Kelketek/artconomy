@@ -306,7 +306,6 @@ class AttributeSerializer(serializers.ModelSerializer):
 class CharacterSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
-    taggable = serializers.BooleanField(default=True)
     tags = TagListField(
         required=False,
         min=4,
@@ -325,7 +324,6 @@ class CharacterSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "user",
             "primary_submission",
             "tags",
-            "taggable",
             "nsfw",
             "hits",
         )

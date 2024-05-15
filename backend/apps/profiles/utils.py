@@ -93,7 +93,7 @@ def available_chars(
     else:
         qs = q.exclude(exclude)
     if tagging:
-        qs = qs.exclude(Q(taggable=False) & ~Q(user=requester))
+        qs = qs.exclude(Q(user__taggable=False) & ~Q(user=requester))
     return qs.distinct()
 
 

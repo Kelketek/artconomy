@@ -159,10 +159,9 @@ describe('SubmissionDetail.vue', () => {
       props: {submissionId: '123'},
     })
     const vm = wrapper.vm
-    const mockAgeCheck = vi.spyOn(vm, 'ageCheck')
     vm.submission.makeReady(submission)
     await nextTick()
-    expect(mockAgeCheck).toHaveBeenCalledWith({value: 2})
+    expect(store.state.showAgeVerification).toBe(true)
   })
   test('Does not show a rating edit dialog if not in editing mode', async() => {
     setViewer(store, vulpes)

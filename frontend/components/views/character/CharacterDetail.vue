@@ -23,7 +23,8 @@
                 </v-card-title>
                 <ac-attributes :username="username" :character-name="characterName"/>
                 <ac-tag-display
-                    :patcher="character.profile.patchers.tags" :editable="character.profile.x.taggable"
+                    :patcher="character.profile.patchers.tags"
+                    :editable="tagControls"
                     :username="username"
                     scope="Characters"
                 />
@@ -197,7 +198,7 @@ const props = defineProps<CharacterProps>()
 const {setError} = useErrorHandling()
 const {controls} = useSubject(props)
 const {editing} = useEditable(controls)
-const {ageCheck} = useViewer()
+const {ageCheck, isRegistered} = useViewer()
 const toolbar = ref(null)
 
 const character = useCharacter(props)
@@ -207,6 +208,10 @@ character.colors.firstRun()
 character.sharedWith.firstRun()
 character.recommended.firstRun()
 const submissionList = useList('characterSubmissions', {endpoint: character.submissions.endpoint})
+
+const tagControls = computed(() => {
+  return (controls.value || character.profile.x?.user.taggable) && isRegistered.value
+})
 
 const primarySubmissionLink = computed(() => {
   if (editing.value) {

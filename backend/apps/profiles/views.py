@@ -691,7 +691,7 @@ class CharacterSearch(ListAPIView):
             Character.objects.filter(q)
             .filter(nsfw_filter)
             .exclude(private=True)
-            .exclude(taggable=False)
+            .exclude(user__taggable=False)
             .distinct()
             .order_by(
                 "-created_on",

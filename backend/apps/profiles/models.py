@@ -847,7 +847,6 @@ class Character(Model, HitsMixin):
     primary_submission = ForeignKey(
         "profiles.Submission", null=True, on_delete=SET_NULL, blank=True
     )
-    taggable = BooleanField(default=True, db_index=True)
     user = ForeignKey("User", related_name="characters", on_delete=CASCADE)
     created_on = DateTimeField(auto_now_add=True)
     tags = ManyToManyField("lib.Tag", related_name="characters", blank=True)

@@ -132,7 +132,6 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
         char = Character.objects.get(name="Fern")
         self.assertEqual(char.description, "The best of both worlds")
         self.assertEqual(char.open_requests_restrictions, "Must be foxy.")
-        self.assertEqual(char.taggable, True)
 
         # Should work for staffer.
         staffer = UserFactory.create(is_staff=True)
@@ -145,7 +144,6 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
                 "private": True,
                 "open_requests": False,
                 "open_requests_restrictions": "Must be really foxy.",
-                "taggable": False,
                 "tags": ["a", "b", "c", "d"],
             },
             format="json",
@@ -156,7 +154,6 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
         self.assertEqual(char2.description, "Heart breaker")
         self.assertEqual(char2.private, True)
         self.assertEqual(char2.open_requests, False)
-        self.assertEqual(char2.taggable, False)
         self.assertEqual(char2.open_requests_restrictions, "Must be really foxy.")
 
     def test_edit_character(self):
@@ -793,7 +790,7 @@ class TestCharacterSearch(APITestCase):
         CharacterFactory.create(name="Terrence", private=True)
         CharacterFactory.create(name="wutwut")
         CharacterFactory.create(name="Stuff")
-        CharacterFactory.create(name="Terrifying", taggable=False)
+        CharacterFactory.create(name="Terrifying", user__taggable=False)
         response = self.client.get(
             "/api/profiles/v1/search/character/?q=terr&tagging=true"
         )
@@ -812,23 +809,19 @@ class TestCharacterSearch(APITestCase):
             name="Terrence", private=True, user=user
         )
         CharacterFactory.create(name="Terryvix", private=True, user=user2)
-        visible_non_taggable = CharacterFactory.create(
-            name="Terrifying", taggable=False, user=user
-        )
         blocked_character = CharacterFactory.create(name="Terrific")
         blocked_character.user.blocking.add(user)
         CharacterFactory.create(name="Stuff")
-        CharacterFactory.create(name="Terrible", taggable=False, user=user2)
+        CharacterFactory.create(name="Terrible", user__taggable=False)
         self.login(user)
         response = self.client.get(
             "/api/profiles/v1/search/character/?q=terr&tagging=true"
         )
-        self.assertEqual(len(response.data["results"]), 4)
+        self.assertEqual(len(response.data["results"]), 3)
         self.assertIDInList(visible, response.data["results"])
         self.assertIDInList(visible2, response.data["results"])
-        self.assertIDInList(visible_non_taggable, response.data["results"])
         self.assertIDInList(visible_private, response.data["results"])
-        self.assertEqual(visible2.id, response.data["results"][3]["id"])
+        self.assertEqual(visible2.id, response.data["results"][2]["id"])
 
     def test_query_logged_in_commission(self):
         user = UserFactory.create()
@@ -840,7 +833,7 @@ class TestCharacterSearch(APITestCase):
             name="Terrencia", open_requests=True, user=user2
         )
         visible3 = CharacterFactory.create(
-            name="Terrifying", taggable=False, open_requests=True, user=user2
+            name="Terrifying", user__taggable=False, open_requests=True, user=user2
         )
         visible_private = CharacterFactory.create(
             name="Terrence", private=True, open_requests=True, user=user
@@ -850,7 +843,7 @@ class TestCharacterSearch(APITestCase):
         )
         CharacterFactory.create(name="Terrible", open_requests=False, user=user2)
         CharacterFactory.create(
-            name="Terrp", taggable=True, open_requests=False, user=user2
+            name="Terrp", user__taggable=True, open_requests=False, user=user2
         )
         CharacterFactory.create(name="Stuff", open_requests=True)
         self.login(user)
@@ -898,7 +891,7 @@ class TestCharacterSearch(APITestCase):
             name="Terrence", private=True, user=user
         )
         visible_non_taggable = CharacterFactory.create(
-            name="Terrifying", taggable=False, user=user
+            name="Terrifying", user__taggable=False, user=user
         )
         CharacterFactory.create(
             name="Terryvix", open_requests=True, private=True, user=user2
@@ -2104,3 +2097,119 @@ class TestProfileInfo(APITestCase):
     def test_handles_non_existent(self):
         response = self.client.get("/api/profiles/account/user/")
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+test = [
+    {
+        "id": 23,
+        "name": "Terrence",
+        "description": "Fox with FOXSIS id 6",
+        "private": True,
+        "open_requests": False,
+        "open_requests_restrictions": "",
+        "user": {
+            "id": 604,
+            "username": "user7",
+            "avatar_url": "https://www.gravatar.com/avatar/0ad658a38a9eaecb3c9976d25ea51c75.jpg?s=80",
+            "stars": None,
+            "is_staff": False,
+            "is_superuser": False,
+            "guest": False,
+            "artist_mode": False,
+            "taggable": True,
+            "landscape": False,
+            "rating_count": 0,
+            "service_plan": "Free",
+            "international": False,
+            "verified_email": False,
+        },
+        "primary_submission": None,
+        "tags": [],
+        "nsfw": False,
+        "hits": 0,
+    },
+    {
+        "id": 21,
+        "name": "Terrybutt",
+        "description": "Fox with FOXSIS id 4",
+        "private": False,
+        "open_requests": False,
+        "open_requests_restrictions": "",
+        "user": {
+            "id": 604,
+            "username": "user7",
+            "avatar_url": "https://www.gravatar.com/avatar/0ad658a38a9eaecb3c9976d25ea51c75.jpg?s=80",
+            "stars": None,
+            "is_staff": False,
+            "is_superuser": False,
+            "guest": False,
+            "artist_mode": False,
+            "taggable": True,
+            "landscape": False,
+            "rating_count": 0,
+            "service_plan": "Free",
+            "international": False,
+            "verified_email": False,
+        },
+        "primary_submission": None,
+        "tags": [],
+        "nsfw": False,
+        "hits": 0,
+    },
+    {
+        "id": 22,
+        "name": "Terrencia",
+        "description": "Fox with FOXSIS id 5",
+        "private": False,
+        "open_requests": False,
+        "open_requests_restrictions": "",
+        "user": {
+            "id": 605,
+            "username": "user8",
+            "avatar_url": "https://www.gravatar.com/avatar/bfab5000d1c812cbf35423b0e0379e70.jpg?s=80",
+            "stars": None,
+            "is_staff": False,
+            "is_superuser": False,
+            "guest": False,
+            "artist_mode": False,
+            "taggable": True,
+            "landscape": False,
+            "rating_count": 0,
+            "service_plan": "Free",
+            "international": False,
+            "verified_email": False,
+        },
+        "primary_submission": None,
+        "tags": [],
+        "nsfw": False,
+        "hits": 0,
+    },
+    {
+        "id": 27,
+        "name": "Terrible",
+        "description": "Fox with FOXSIS id 10",
+        "private": False,
+        "open_requests": False,
+        "open_requests_restrictions": "",
+        "user": {
+            "id": 605,
+            "username": "user8",
+            "avatar_url": "https://www.gravatar.com/avatar/bfab5000d1c812cbf35423b0e0379e70.jpg?s=80",
+            "stars": None,
+            "is_staff": False,
+            "is_superuser": False,
+            "guest": False,
+            "artist_mode": False,
+            "taggable": True,
+            "landscape": False,
+            "rating_count": 0,
+            "service_plan": "Free",
+            "international": False,
+            "verified_email": False,
+        },
+        "primary_submission": None,
+        "tags": [],
+        "nsfw": False,
+        "hits": 0,
+    },
+]

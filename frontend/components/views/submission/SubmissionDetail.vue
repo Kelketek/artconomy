@@ -30,7 +30,7 @@
                             <v-col>
                               <ac-patch-field
                                   field-type="ac-uppy-file"
-                                  :patcher="submission.patchers.preview"
+                                  :patcher="submission.patchers.preview!"
                                   label="Preview Image"
                                   :uppy-id="`submission-${submissionId}-update-preview`"
                                   :show-reset="false" :show-clear="true"
@@ -137,7 +137,7 @@
                     <ac-link :to="profileLink(submission.x!.owner)">{{submission.x!.owner.username}}</ac-link>
                   </v-toolbar-title>
                 </v-col>
-                <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="$menuTarget">
+                <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="menuTarget">
                   <template v-slot:activator="{props}">
                     <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
                       <v-icon :icon="mdiDotsHorizontal"/>
@@ -254,39 +254,30 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {SingleController} from '@/store/singles/controller.ts'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
 import Submission from '@/types/Submission.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
-import Formatting from '@/mixins/formatting.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import {Journal} from '@/types/Journal.ts'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {RATING_COLOR, RATINGS_SHORT, setMetaContent, updateTitle} from '@/lib/lib.ts'
+import Comment from '@/types/Comment.ts'
+import {setMetaContent, updateTitle} from '@/lib/lib.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import Editable from '@/mixins/editable.ts'
+import {useEditable} from '@/mixins/editable.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcRelatedManager from '@/components/wrappers/AcRelatedManager.vue'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcArtistDisplay from './AcArtistDisplay.vue'
 import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcShareButton from '@/components/AcShareButton.vue'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Sharable from '@/mixins/sharable.ts'
+import {useSharable} from '@/mixins/sharable.ts'
 import {
   mdiContentSaveOutline,
   mdiDelete,
@@ -299,240 +290,202 @@ import {
   mdiPencil,
 } from '@mdi/js'
 import {Ratings} from '@/types/Ratings.ts'
-import {posse} from '@/lib/otherFormatters.ts'
+import {formatDateTime, posse, profileLink} from '@/lib/otherFormatters.ts'
 import AcRatingButton from '@/components/AcRatingButton.vue'
+import {computed, ref, watch} from 'vue'
+import {listenForSingle, useSingle} from '@/store/singles/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {useRouter} from 'vue-router'
+import {textualize} from '@/lib/markdown.ts'
+import {useTargets} from '@/plugins/targets.ts'
 
-@Component({
-  components: {
-    AcLink,
-    AcShareManager,
-    AcShareButton,
-    AcGalleryPreview,
-    AcFormContainer,
-    AcBoundField,
-    AcFormDialog,
-    AcConfirmation,
-    AcExpandedProperty,
-    AcCharacterDisplay,
-    AcArtistDisplay,
-    AcRelatedManager,
-    AcPatchField,
-    AcRendered,
-    AcAvatar,
-    AcCommentSection,
-    AcTagDisplay,
-    AcAsset,
-    AcLoadSection,
-    AcRatingButton,
-  },
+const props = defineProps<{submissionId: string}>()
+
+const ratingDialog = ref(false)
+const showEditAsset = ref(false)
+const editAssetTab = ref(0)
+const {viewer, theocraticBan, rawViewerName, isStaff, isRegistered, ageCheck} = useViewer()
+const {menuTarget} = useTargets()
+const router = useRouter()
+
+const url = computed(() => {
+  return `/api/profiles/submission/${props.submissionId}/`
 })
-class SubmissionDetail extends mixins(Viewer, Formatting, Editable, Sharable) {
-  @Prop({required: true})
-  public submissionId!: number
 
-  public submission: SingleController<Submission> = null as unknown as SingleController<Submission>
-  public comments: ListController<Journal> = null as unknown as ListController<Journal>
-  public artists: ListController<TerseUser> = null as unknown as ListController<TerseUser>
-  public sharedWith: ListController<TerseUser> = null as unknown as ListController<TerseUser>
-  public characters: ListController<Character> = null as unknown as ListController<Character>
-  public recommended: ListController<Submission> = null as unknown as ListController<Submission>
-  public editAsset: FormController = null as unknown as FormController
-  public ratingsShort = RATINGS_SHORT
-  public ratingColor = RATING_COLOR
-  public ratingDialog = false
-  public showEditAsset = false
-  public editAssetTab = 0
-  public mdiPencil = mdiPencil
-  public mdiDelete = mdiDelete
-  public mdiLock = mdiLock
-  public mdiDotsHorizontal = mdiDotsHorizontal
-  public mdiPalette = mdiPalette
-  public mdiEye = mdiEye
-  public mdiContentSaveOutline = mdiContentSaveOutline
-  public mdiHeartOutline = mdiHeartOutline
-  public mdiHeart = mdiHeart
-
-  public get url() {
-    return `/api/profiles/submission/${this.submissionId}/`
-  }
-
-  public get submissionAltText() {
-    if (!this.submission.x) {
-      return ''
-    }
-    if (!this.submission.x.title) {
-      return 'Untitled Submission'
-    }
-    return `Submission entitled: ${this.submission.x.title}`
-  }
-
-  public get favorite() {
-    return this.submission.x && this.submission.x.favorites
-  }
-
-  public get restrictedDownload() {
-    if (!this.submission.x) {
-      return false
-    }
-    return (this.theocraticBan && !this.viewer?.verified_adult) && this.submission.x.rating > Ratings.GENERAL;
-  }
-
-  public get controls() {
-    // istanbul ignore if
-    if (!this.submission.x) {
-      return false
-    }
-    return this.isStaff || (this.submission.x.owner.username === this.rawViewerName)
-  }
-
-  public get title() {
-    // istanbul ignore if
-    if (!this.submission.x) {
-      return ''
-    }
-    let title = this.submission.x.title
-    if (title) {
-      title += ' -- '
-    }
-    if (this.artists.list.length) {
-      if (title) {
-        title += 'by '
-      } else {
-        title += 'By '
-      }
-      // @ts-ignore
-      const artistNames = this.artists.list.map((user) => (user.x.user as TerseUser).username)
-      const firstNames = artistNames.slice(0, 4)
-      title += posse(firstNames, artistNames.length - firstNames.length)
-    } else {
-      title += `Submitted by ${this.submission.x.owner.username}`
-    }
-    return title
-  }
-
-  public get windowTitle() {
-    let title = this.title
-    title += ' - (Artconomy.com)'
-    return title
-  }
-
-  public get tagControls() {
-    const submission = this.submission.x as Submission
-    return (this.controls || submission.owner.taggable) && this.isRegistered
-  }
-
-  @Watch('submission.x.rating')
-  public runAgeCheck(value: number) {
-    if (value) {
-      this.ageCheck({value})
-    }
-  }
-
-  public get commissionLink() {
-    /* istanbul ignore if */
-    if (!this.submission.x) {
-      return null
-    }
-    return this.submission.x.commission_link
-  }
-
-  public get locked() {
-    return !(this.submission.x) || this.submission.x.comments_disabled
-  }
-
-  public get shareMedia() {
-    return this.submission.x as Submission
-  }
-
-  public setMeta(submission: Submission | null | false) {
-    if (!submission) {
-      return
-    }
-    updateTitle(this.windowTitle)
-    setMetaContent('description', this.textualize(submission.caption).slice(0, 160))
-  }
-
-  @Watch('submission.x')
-  public submissionMeta(submission: Submission | null) {
-    this.setMeta(submission)
-  }
-
-  @Watch('submission.x')
-  public artistMeta(submission: Submission | null) {
-    this.setMeta(this.submission.x)
-  }
-
-  public showRating() {
-    if (this.editing) {
-      this.ratingDialog = true
-    }
-  }
-
-  public async deleteSubmission() {
-    const submission = this.submission.x as Submission
-    return this.submission.delete().then(() => {
-      this.$router.replace({
-        name: 'Profile',
-        params: {username: submission.owner.username},
-      })
+const submission = useSingle<Submission>(
+    `submission__${props.submissionId}`, {
+      endpoint: url.value,
+      params: {view: 'true'},
+      socketSettings: {
+        appLabel: 'profiles',
+        modelName: 'Submission',
+        serializer: 'SubmissionSerializer',
+      },
+    },
+)
+const artists = useList<TerseUser>(`submission__${props.submissionId}__artists`, {
+  endpoint: `${url.value}artists/`,
+  paginated: false,
+})
+const characters = useList<Character>(`submission__${props.submissionId}__characters`, {
+  endpoint: `${url.value}characters/`,
+  paginated: false,
+})
+const sharedWith = useList<TerseUser>(`submission__${props.submissionId}__share`, {
+  endpoint: `${url.value}share/`,
+  paginated: false,
+})
+const comments = useList<Comment>(
+    `submission-${props.submissionId}-comments`, {
+      endpoint: `/api/lib/comments/profiles.Submission/${props.submissionId}/`,
+      reverse: true,
+      grow: true,
+      params: {size: 5},
     })
-  }
+const recommended = useList<Submission>(
+    `submission-${props.submissionId}-recommended`, {
+      endpoint: `${url.value}recommended/`,
+      params: {size: 6},
+    })
+const editAsset = useForm(
+    `submission__${props.submissionId}`, {
+      endpoint: url.value,
+      fields: {
+        file: {value: ''},
+        preview: {value: ''},
+      },
+      method: 'patch',
+    },
+)
 
-  public created() {
-    this.submission = this.$getSingle(
-        `submission__${this.submissionId}`, {
-          endpoint: this.url,
-          params: {view: 'true'},
-          socketSettings: {
-            appLabel: 'profiles',
-            modelName: 'Submission',
-            serializer: 'SubmissionSerializer',
-          },
-        },
-    )
-    this.artists = this.$getList(`submission__${this.submissionId}__artists`, {
-      endpoint: `${this.url}artists/`,
-      paginated: false,
-    })
-    this.characters = this.$getList(`submission__${this.submissionId}__characters`, {
-      endpoint: `${this.url}characters/`,
-      paginated: false,
-    })
-    this.sharedWith = this.$getList(`submission__${this.submissionId}__share`, {
-      endpoint: `${this.url}share/`,
-      paginated: false,
-    })
-    this.comments = this.$getList(
-        `submission-${this.submissionId}-comments`, {
-          endpoint: `/api/lib/comments/profiles.Submission/${this.submissionId}/`,
-          reverse: true,
-          grow: true,
-          params: {size: 5},
-        })
-    this.recommended = this.$getList(
-        `submission-${this.submissionId}-recommended`, {
-          endpoint: `${this.url}recommended/`,
-          params: {size: 6},
-        })
-    this.editAsset = this.$getForm(
-        `submission__${this.submissionId}`, {
-          endpoint: this.url,
-          fields: {
-            file: {value: ''},
-            preview: {value: ''},
-          },
-          method: 'patch',
-        },
-    )
-    this.submission.get().catch(this.setError)
-    this.artists.firstRun()
-    this.characters.firstRun()
-    this.sharedWith.firstRun().catch(this.statusOk(403))
-    this.recommended.firstRun()
-    this.$listenForSingle(`submission-${this.submissionId}-update-preview`)
-    this.$listenForSingle(`submission-${this.submissionId}-update`)
+const {setError, statusOk} = useErrorHandling()
+
+submission.get().catch(setError)
+artists.firstRun()
+characters.firstRun()
+sharedWith.firstRun().catch(statusOk(403))
+recommended.firstRun()
+listenForSingle(`submission-${props.submissionId}-update-preview`)
+listenForSingle(`submission-${props.submissionId}-update`)
+
+
+const submissionAltText = computed(() => {
+  if (!submission.x) {
+    return ''
+  }
+  if (!submission.x.title) {
+    return 'Untitled Submission'
+  }
+  return `Submission entitled: ${submission.x.title}`
+})
+
+const favorite = computed(() => {
+  return submission.x && submission.x.favorites
+})
+
+const restrictedDownload = computed(() => {
+  if (!submission.x) {
+    return false
+  }
+  return (theocraticBan.value && !viewer.value?.verified_adult) && submission.x.rating > Ratings.GENERAL;
+})
+
+const controls = computed(() => {
+  // istanbul ignore if
+  if (!submission.x) {
+    return false
+  }
+  return isStaff.value || (submission.x.owner.username === rawViewerName.value)
+})
+
+const {editing} = useEditable(controls)
+
+const showRating = () => {
+  if (editing.value) {
+    ratingDialog.value = true
   }
 }
 
-export default toNative(SubmissionDetail)
+const deleteSubmission = async () => {
+  const username = submission.x!.owner.username
+  return submission.delete().then(() => {
+    router.replace({
+      name: 'Profile',
+      params: {username},
+    })
+  })
+}
+
+const title = computed(() => {
+  // istanbul ignore if
+  if (!submission.x) {
+    return ''
+  }
+  let title = submission.x.title
+  if (title) {
+    title += ' -- '
+  }
+  if (artists.list.length) {
+    if (title) {
+      title += 'by '
+    } else {
+      title += 'By '
+    }
+    // @ts-ignore
+    const artistNames = artists.list.map((user) => (user.x.user as TerseUser).username)
+    const firstNames = artistNames.slice(0, 4)
+    title += posse(firstNames, artistNames.length - firstNames.length)
+  } else {
+    title += `Submitted by ${submission.x.owner.username}`
+  }
+  return title
+})
+
+const windowTitle = computed(() => {
+  let derivedTitle = title.value
+  derivedTitle += ' - (Artconomy.com)'
+  return derivedTitle
+})
+
+const tagControls = computed(() => {
+  return (controls.value || submission.x?.owner.taggable) && isRegistered.value
+})
+
+const commissionLink = computed(() => {
+  /* istanbul ignore if */
+  if (!submission.x) {
+    return null
+  }
+  return submission.x.commission_link
+})
+
+const locked = computed(() => {
+  return !(submission.x) || submission.x.comments_disabled
+})
+
+const shareMedia = computed(() => {
+  return submission.x as Submission
+})
+
+const {shareMediaUrl, shareMediaClean} = useSharable(shareMedia)
+
+const setMeta = (submissionData: Submission | null | false) => {
+  if (!submissionData) {
+    return
+  }
+  updateTitle(windowTitle.value)
+  setMetaContent('description', textualize(submissionData.caption).slice(0, 160))
+}
+
+watch(() => submission.x?.rating, (value?: Ratings|null) => {
+  if (value) {
+    ageCheck({value})
+  }
+})
+
+watch(() => submission.x, (submissionData: Submission|null) => {
+  setMeta(submissionData)
+})
 </script>
