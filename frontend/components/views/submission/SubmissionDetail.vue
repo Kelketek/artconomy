@@ -295,7 +295,6 @@ import AcRatingButton from '@/components/AcRatingButton.vue'
 import {computed, ref, watch} from 'vue'
 import {listenForSingle, useSingle} from '@/store/singles/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import {useForm} from '@/store/forms/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useRouter} from 'vue-router'
 import {textualize} from '@/lib/markdown.ts'
@@ -303,7 +302,6 @@ import {useTargets} from '@/plugins/targets.ts'
 
 const props = defineProps<{submissionId: string}>()
 
-const ratingDialog = ref(false)
 const showEditAsset = ref(false)
 const editAssetTab = ref(0)
 const {viewer, theocraticBan, rawViewerName, isStaff, isRegistered, ageCheck} = useViewer()
@@ -349,16 +347,6 @@ const recommended = useList<Submission>(
       endpoint: `${url.value}recommended/`,
       params: {size: 6},
     })
-const editAsset = useForm(
-    `submission__${props.submissionId}`, {
-      endpoint: url.value,
-      fields: {
-        file: {value: ''},
-        preview: {value: ''},
-      },
-      method: 'patch',
-    },
-)
 
 const {setError, statusOk} = useErrorHandling()
 
@@ -401,12 +389,6 @@ const controls = computed(() => {
 })
 
 const {editing} = useEditable(controls)
-
-const showRating = () => {
-  if (editing.value) {
-    ratingDialog.value = true
-  }
-}
 
 const deleteSubmission = async () => {
   const username = submission.x!.owner.username

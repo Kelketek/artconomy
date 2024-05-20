@@ -195,7 +195,7 @@ class ImageModel(AssetThumbnailMixin, models.Model):
         related_name="preview_%(app_label)s_%(class)s",
         blank=True,
     )
-    created_on = DateTimeField(default=timezone.now)
+    created_on = DateTimeField(default=timezone.now, db_index=True)
     owner = ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name="owned_%(app_label)s_%(class)s",

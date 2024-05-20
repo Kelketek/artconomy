@@ -231,7 +231,7 @@ FILE_UPLOAD_PERMISSIONS = 0o644
 THUMBNAIL_ALIASES = {
     "profiles.Submission.file": {
         "thumbnail": {"size": (300, 300), "crop": ",0"},
-        "gallery": {"size": (1000, 700)},
+        "gallery": {"size": (3000, 1000)},
         "notification": {"size": (80, 80)},
     },
     "profiles.Submission.preview": {

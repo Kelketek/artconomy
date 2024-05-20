@@ -15,7 +15,7 @@ class Command(BaseCommand):
     help = "Forces regeneration of all thumbnails"
 
     def handle(self, *args: List, **options: Dict):
-        for item in Asset.objects.all():
+        for item in Asset.objects.all().order_by("-created_on"):
             # Some thumbnails are generated directly...
             try:
                 item.save()
@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 print(item, err)
         for model in [Product, Revision, Reference, Submission]:
             # ...while others are per-spec for models.
-            for item in model.objects.all():
+            for item in model.objects.all().order_by("-created_on"):
                 try:
                     thumbnail_hook(model, item, force=True)
                 except Exception as err:

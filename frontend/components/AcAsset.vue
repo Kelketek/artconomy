@@ -18,11 +18,12 @@
         </v-container>
         <div class="backdrop"></div>
       </div>
-      <v-col cols="12" v-if="renderImage && isImage">
+      <v-col cols="12" v-if="renderImage && isImage" class="d-flex justify-center">
         <v-img :src="displayImage" :aspect-ratio="ratio || undefined" :contain="contain"
-               max-height="90vh" max-width="100%" class="asset-image"
+               :max-height="maxHeight" :max-width="maxWidth" class="asset-image align-center"
                itemprop="image" :alt="alt" :eager="immediate"
                :transition="immediate ? false : transition"
+               ref="imageContainer"
         />
       </v-col>
       <v-col class="text-center icon-image" v-else-if="renderImage && !isImage" cols="12">
@@ -129,6 +130,8 @@ import {computed, defineAsyncComponent, onMounted, ref} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {mdiCancel, mdiPencil} from '@mdi/js'
+import {VImg} from 'vuetify/components'
+import {useDisplay} from 'vuetify'
 
 const AcVideoPlayer = defineAsyncComponent(() => import('@/components/AcVideoPlayer.vue'))
 const AcMarkdownViewer = defineAsyncComponent(() => import('@/components/AcMarkdownViewer.vue'))
@@ -177,6 +180,8 @@ const {
   canDisplay,
 } = useAssetHelpers(props)
 
+const imageContainer = ref<null|typeof VImg>(null)
+
 const el = ref<HTMLElement | null>(null)
 
 onMounted(() => window._paq.push(['MediaAnalytics::scanForMedia', el.value]))
@@ -206,5 +211,22 @@ const ratio = computed(() => {
     return 1
   }
   return props.aspectRatio
+})
+
+const display = useDisplay()
+
+const maxHeight = computed(() => {
+  const defaultHeight = '90vh'
+  if (!displayImage.value || props.thumbName === 'thumbnail') {
+    return defaultHeight
+  }
+  return Math.min(imageContainer.value?.naturalHeight || defaultHeight, .9 * display.height.value)
+})
+const maxWidth = computed(() => {
+  const defaultWidth = '100%'
+  if (!displayImage.value || props.thumbName === 'thumbnail') {
+    return defaultWidth
+  }
+  return imageContainer.value?.naturalWidth || defaultWidth
 })
 </script>

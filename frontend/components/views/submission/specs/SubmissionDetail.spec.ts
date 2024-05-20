@@ -163,35 +163,6 @@ describe('SubmissionDetail.vue', () => {
     await nextTick()
     expect(store.state.showAgeVerification).toBe(true)
   })
-  test('Does not show a rating edit dialog if not in editing mode', async() => {
-    setViewer(store, vulpes)
-    const submission = genSubmission()
-    submission.title = ''
-    submission.owner = vulpes as RelatedUser
-    await router.push({
-      name: 'Submission',
-      params: {submissionId: submission.id},
-      query: {editing: 'true'},
-    })
-    wrapper = mount(SubmissionDetail, {
-      ...vueSetup({
-        store,
-        router,
-        stubs: ['ac-comment'],
-      }),
-      props: {submissionId: '123'},
-    })
-    const vm = wrapper.vm
-    vm.submission.makeReady(submission)
-    vm.editing = false
-    await flushPromises()
-    mockAxios.reset()
-    await vm.$nextTick()
-    expect(vm.editing).toBe(false)
-    await wrapper.find('.rating-button').trigger('click')
-    await nextTick()
-    expect(vm.ratingDialog).toBe(false)
-  })
   test('Reports that the viewer tag-controls the piece if the owner is taggable', async() => {
     setViewer(store, vulpes)
     const submission = genSubmission()
