@@ -1,7 +1,7 @@
 import logging
 from collections import defaultdict
 from decimal import ROUND_CEILING, localcontext
-from typing import Dict, Union
+from typing import Dict, Union, Optional
 
 from dateutil.parser import parse
 from django.urls import reverse
@@ -13,7 +13,7 @@ from apps.lib.models import (
     SUBSCRIPTION_DEACTIVATED,
     ref_for_instance,
 )
-from apps.lib.utils import notify, require_lock, send_transaction_email
+from apps.lib.utils import notify, require_lock, send_transaction_email, utc_now
 from apps.profiles.models import User
 from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
@@ -36,6 +36,8 @@ from apps.sales.constants import (
     THIRD_PARTY_FEE,
     UNPROCESSED_EARNINGS,
     VOID,
+    WEIGHTED_STATUSES,
+    COMPLETED,
 )
 from apps.sales.line_item_funcs import divide_amount
 from apps.sales.mail_campaign import drip
@@ -48,6 +50,7 @@ from apps.sales.models import (
     TransactionRecord,
     Order,
     ShoppingCart,
+    Product,
 )
 from apps.sales.stripe import money_to_stripe, stripe
 from apps.sales.utils import (
@@ -67,7 +70,7 @@ from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
 from django.db import transaction
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 from django.utils.datetime_safe import datetime
 from moneyed import Money
@@ -747,3 +750,30 @@ def clear_old_carts():
     ShoppingCart.objects.filter(
         edited_on__lte=timezone.now() - relativedelta(months=1)
     ).delete()
+
+
+@celery_app.task()
+def promote_top_sellers(reference_date: Optional[str] = None):
+    end_date = parse(reference_date or utc_now().isoformat())
+    end_date = end_date.replace(day=1, second=0, microsecond=0)
+    start_date = end_date - relativedelta(months=1)
+    users = (
+        User.objects.filter(stars__gte=4.5)
+        .exclude(stars=None)
+        .annotate(
+            month_sales=Count(
+                "sales",
+                filter=Q(
+                    deliverable__created_on__gte=start_date,
+                    deliverable__created_on__lte=end_date,
+                    deliverable__status__in=[COMPLETED, *WEIGHTED_STATUSES],
+                ),
+            )
+        )
+        .order_by("-month_sales")
+        .distinct()
+    )[:2]
+    User.objects.filter(featured=True).update(featured=False)
+    for user in users:
+        user.featured = True
+        user.save(update_fields=["featured"])

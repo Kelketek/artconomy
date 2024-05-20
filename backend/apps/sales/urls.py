@@ -14,6 +14,7 @@ register_converter(ShortCodeConverter, "short_code")
 urlpatterns = [
     path("new-products/", main.NewProducts.as_view(), name="new_products"),
     path("featured-products/", main.FeaturedProducts.as_view(), name="new_products"),
+    path("random-top-seller/", main.RandomTopSeller.as_view(), name="top_sellers"),
     path("highly-rated/", main.HighlyRatedProducts.as_view(), name="highly_rated"),
     path("low-price/", main.LowPriceProducts.as_view(), name="low_price_products"),
     path(

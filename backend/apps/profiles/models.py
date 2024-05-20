@@ -283,6 +283,13 @@ class User(AbstractEmailUser, HitsMixin):
         help_text="Enabled when a user's account is in arrears beyond the grace "
         "period.",
     )
+    featured = BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Enabling features all of a user's products and puts them in the "
+        "featured users listing. This is mostly managed by a scheduled task, "
+        "but it can be manually triggered here, too.",
+    )
     blacklist = ManyToManyField(
         "lib.Tag", blank=True, related_name="blacklisting_users"
     )

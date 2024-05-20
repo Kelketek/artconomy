@@ -37,6 +37,7 @@ class ArtconomyUserAdmin(EmailUserAdmin):
             },
         ),
         ("Preferences", {"fields": ("primary_card", "processor_override")}),
+        ("Other details", {"fields": ("stars", "featured")}),
     )
     list_display = ("username", "email", "is_staff", "is_superuser")
     list_filter = ["guest", "artist_mode", "is_staff", "is_superuser"]

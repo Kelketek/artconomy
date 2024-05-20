@@ -34,7 +34,7 @@ from apps.lib.permissions import (
     IsStaff,
     SessionKeySet,
 )
-from apps.lib.serializers import CommentSerializer
+from apps.lib.serializers import CommentSerializer, UserInfoSerializer
 from apps.lib.utils import (
     count_hit,
     create_comment,
@@ -65,7 +65,12 @@ from apps.profiles.permissions import (
     UserControls,
 )
 from apps.profiles.serializers import SubmissionSerializer, UserSerializer
-from apps.profiles.utils import create_guest_user, empty_user, get_anonymous_user
+from apps.profiles.utils import (
+    create_guest_user,
+    empty_user,
+    get_anonymous_user,
+    available_submissions,
+)
 from apps.sales.constants import (
     ADD_ON,
     BASE_PRICE,
@@ -2126,7 +2131,7 @@ class ProductSearch(ListAPIView):
                 | Q(escrow_enabled=False, escrow_upgradable=True),
             )
         if featured:
-            products = products.filter(featured=True)
+            products = products.filter(Q(featured=True) | Q(user__featured=True))
         if artists_of_color:
             products = products.filter(user__artist_profile__artist_of_color=True)
         if lgbt:
@@ -2492,9 +2497,40 @@ class FeaturedProducts(ListAPIView):
     def get_queryset(self):
         return (
             available_products(self.request.user, ordering=False)
-            .filter(featured=True)
+            .filter(Q(featured=True) | Q(user__featured=True))
             .order_by("?")
+            .distinct()
         )
+
+
+class RandomTopSeller(RetrieveAPIView):
+    def get_object(self):
+        return User.objects.filter(featured=True).order_by("?").first()
+
+    def get(self, request):
+        context = self.get_serializer_context()
+        user = self.get_object()
+        if not user:
+            return Response(
+                status=status.HTTP_404_NOT_FOUND,
+                data={"detail": "No top sellers currently calculated."},
+            )
+        user_data = UserInfoSerializer(context=context, instance=user).data
+        user_data["products"] = ProductSerializer(
+            instance=available_products(self.request.user, ordering=False).filter(
+                user=user
+            )[:3],
+            context=context,
+            many=True,
+        ).data
+        user_data["submissions"] = SubmissionSerializer(
+            instance=available_submissions(request, self.request.user)
+            .filter(owner=user)
+            .order_by("-display_position")[:5],
+            context=context,
+            many=True,
+        ).data
+        return Response(data=user_data)
 
 
 class LowPriceProducts(ListAPIView):

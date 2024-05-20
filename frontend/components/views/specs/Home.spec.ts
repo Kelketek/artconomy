@@ -2,7 +2,7 @@ import {cleanUp, createTestRouter, mount, vueSetup} from '@/specs/helpers/index.
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import Home from '@/components/views/Home.vue'
-import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
+import {genAnon, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import searchSchema from '@/components/views/search/specs/fixtures.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -10,6 +10,7 @@ import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {Router} from 'vue-router'
 import {nextTick} from 'vue'
 import {setViewer} from '@/lib/lib.ts'
+import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
@@ -34,7 +35,7 @@ describe('Home.vue', () => {
     }))
     await nextTick()
   })
-  test('Handles several lists', async() => {
+  test('Handles several data sources', async() => {
     setViewer(store, genUser())
     wrapper = mount(Home, vueSetup({
       store,
@@ -43,7 +44,7 @@ describe('Home.vue', () => {
     }))
     await nextTick()
     const vm = wrapper.vm as any
-    vm.featured.setList([])
+    vm.featured.setX({...genUser(), submissions: [genSubmission()], products: [genProduct()]})
     vm.featured.ready = true
     vm.featured.fetching = false
     vm.rated.setList([])

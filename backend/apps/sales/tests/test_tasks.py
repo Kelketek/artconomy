@@ -6,6 +6,7 @@ from unittest.mock import Mock, call, patch
 
 from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, ref_for_instance
 from apps.lib.test_resources import EnsurePlansMixin
+from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
@@ -32,6 +33,7 @@ from apps.sales.constants import (
     SUCCESS,
     UNPROCESSED_EARNINGS,
     VOID,
+    QUEUED,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.tasks import (
@@ -52,6 +54,7 @@ from apps.sales.tasks import (
     withdraw_all,
     drip_placed_order,
     drip_sync_cart,
+    promote_top_sellers,
 )
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -62,6 +65,7 @@ from apps.sales.tests.factories import (
     StripeAccountFactory,
     TransactionRecordFactory,
     ShoppingCartFactory,
+    ProductFactory,
 )
 from apps.sales.utils import add_service_plan_line, get_term_invoice
 from dateutil.relativedelta import relativedelta
@@ -1249,3 +1253,71 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         )
         drip_sync_cart(cart.id, now.isoformat())
         mock_drip.post.assert_not_called()
+
+
+class TestPromoteTopProducts(EnsurePlansMixin, TestCase):
+    def test_promote_top_sellers(self):
+        to_unmark = ProductFactory.create(
+            user__featured=True, user__username="ToUnmark"
+        )
+        to_mark = ProductFactory.create(user__stars=4.75, user__username="ToMark")
+        also_to_mark = ProductFactory.create(
+            user__stars=4.8, user__username="AlsoToMark"
+        )
+        unrated = ProductFactory.create(user__stars=None, user__username="Unrated")
+        not_in_the_running = ProductFactory.create(
+            user__stars=5, user__username="NotInTheRunning"
+        )
+        created_on = utc_now() - relativedelta(months=1)
+        # One less factory creation per order.
+        buyer = UserFactory.create()
+        DeliverableFactory.create(
+            order__buyer=buyer,
+            order__seller=to_mark.user,
+            status=IN_PROGRESS,
+            created_on=created_on,
+        )
+        DeliverableFactory.create(
+            order__buyer=buyer,
+            order__seller=to_mark.user,
+            status=QUEUED,
+            created_on=created_on,
+        )
+        DeliverableFactory.create(
+            order__buyer=buyer,
+            order__seller=also_to_mark.user,
+            status=COMPLETED,
+            created_on=created_on,
+        )
+        DeliverableFactory.create(
+            order__buyer=buyer,
+            order__seller=not_in_the_running.user,
+            status=QUEUED,
+            created_on=utc_now(),
+        )
+        DeliverableFactory.create(
+            order__buyer=buyer,
+            order__seller=not_in_the_running.user,
+            status=QUEUED,
+            created_on=utc_now(),
+        )
+        promote_top_sellers()
+        for label, user in [
+            ("to_mark", to_mark.user),
+            ("also_to_work", also_to_mark.user),
+        ]:
+            user.refresh_from_db()
+            try:
+                self.assertTrue(user.featured)
+            except AssertionError as err:
+                raise AssertionError(f"FAILED ON {label}") from err
+        for label, user in [
+            ("unrated", unrated.user),
+            ("not_in_the_running", not_in_the_running.user),
+            ("to_unmark", to_unmark.user),
+        ]:
+            user.refresh_from_db()
+            try:
+                self.assertFalse(user.featured)
+            except AssertionError as err:
+                raise AssertionError(f"FAILED ON {label}") from err

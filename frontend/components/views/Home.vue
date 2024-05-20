@@ -117,9 +117,45 @@
           </v-card>
           <v-window v-model="mainSection">
             <v-window-item :value="0">
-              <v-card-text>High quality products by artists who have been vetted by our team.</v-card-text>
-              <ac-product-slider :list="featured" :eager="true"/>
-              <v-btn block color="primary" @click="search({featured: true})" variant="flat">See All Featured</v-btn>
+              <div>
+                <v-row v-if="featured.x">
+                  <v-col class="text-left align-content-center align-left justify-start d-flex pt-5 pl-5">
+                    <ac-avatar :user="featured.x" :inline="true" :show-name="false" class="d-inline-block"/><div class="text-h4 d-inline-block pl-3">{{featured.x.username}}</div>
+                  </v-col>
+                </v-row>
+                <v-card-text v-else>Artists featured for quality and performance!</v-card-text>
+              </div>
+              <v-row>
+                <v-col cols="12" md="3" v-if="featured.x && display.mdAndUp.value && featured.x.submissions[0]">
+                  <ac-gallery-preview :submission="featured.x.submissions[0]" :show-footer="false"/>
+                </v-col>
+                <v-col cols="12" md="9">
+                  <v-row v-if="featured.x" justify="center">
+                    <v-spacer />
+                    <template v-if="featured.x.products.length">
+                      <v-col cols="6" md="3" v-for="product in featured.x.products" :key="product.id">
+                        <ac-product-preview :product="product"/>
+                      </v-col>
+                    </template>
+                    <template v-else-if="slicedFeaturedSubmissions">
+                      <v-col cols="6" md="3" v-for="submission in slicedFeaturedSubmissions" :key="submission.id">
+                        <ac-gallery-preview :submission="submission" :show-footer="false"/>
+                      </v-col>
+                    </template>
+                    <v-spacer />
+                    <v-col cols="12">
+                      <v-row>
+                        <v-col cols="6">
+                          <v-btn block color="secondary" @click="search({featured: true})" variant="flat">See All Featured</v-btn>
+                        </v-col>
+                        <v-col cols="6">
+                          <v-btn block color="primary" :to="profileLink(featured.x) as RouteLocationRaw">Full Profile</v-btn>
+                        </v-col>
+                      </v-row>
+                    </v-col>
+                  </v-row>
+                </v-col>
+              </v-row>
             </v-window-item>
             <v-window-item :value="1">
               <v-card-text>Products by artists given high ratings by previous commissioners</v-card-text>
@@ -382,17 +418,28 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref} from 'vue'
 import {Ratings} from '@/types/Ratings.ts'
-import {useRouter} from 'vue-router'
+import {RouteLocationRaw, useRouter} from 'vue-router'
 import {useDisplay, useTheme} from 'vuetify'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {mdiPalette, mdiShieldHalfFull, mdiMagnify, mdiStar, mdiEmoticonOutline, mdiTag, mdiDice5} from '@mdi/js'
+import {User} from '@/store/profiles/types/User.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import AcProductPreview from '@/components/AcProductPreview.vue'
+import AcAvatar from '@/components/AcAvatar.vue'
+import {profileLink} from '@/lib/otherFormatters.ts'
 
 const searchForm = useForm('search')
-const featured = useList<Product>('featured', {
-  endpoint: '/api/sales/featured-products/',
-  params: {size: 6},
+const featured = useSingle<User & {products: Product[], submissions: Submission[]}>('featured', {
+  endpoint: '/api/sales/random-top-seller/',
 })
-featured.firstRun()
+featured.get()
+
+const slicedFeaturedSubmissions = computed(() => {
+  if (!featured.x) {
+    return []
+  }
+  return featured.x.submissions.slice(1)
+})
 
 const theme = useTheme()
 
