@@ -1258,7 +1258,9 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
 class TestPromoteTopProducts(EnsurePlansMixin, TestCase):
     def test_promote_top_sellers(self):
         to_unmark = ProductFactory.create(
-            user__featured=True, user__username="ToUnmark"
+            user__featured=True,
+            user__username="ToUnmark",
+            user__stars=4.7,
         )
         to_mark = ProductFactory.create(user__stars=4.75, user__username="ToMark")
         also_to_mark = ProductFactory.create(
@@ -1274,33 +1276,45 @@ class TestPromoteTopProducts(EnsurePlansMixin, TestCase):
         DeliverableFactory.create(
             order__buyer=buyer,
             order__seller=to_mark.user,
+            product=to_mark,
             status=IN_PROGRESS,
             created_on=created_on,
         )
         DeliverableFactory.create(
             order__buyer=buyer,
+            product=to_mark,
             order__seller=to_mark.user,
             status=QUEUED,
             created_on=created_on,
         )
         DeliverableFactory.create(
             order__buyer=buyer,
+            product=also_to_mark,
             order__seller=also_to_mark.user,
             status=COMPLETED,
             created_on=created_on,
         )
         DeliverableFactory.create(
             order__buyer=buyer,
+            product=not_in_the_running,
             order__seller=not_in_the_running.user,
             status=QUEUED,
             created_on=utc_now(),
         )
         DeliverableFactory.create(
             order__buyer=buyer,
+            product=not_in_the_running,
             order__seller=not_in_the_running.user,
             status=QUEUED,
             created_on=utc_now(),
         )
+        for i in range(4):
+            DeliverableFactory.create(
+                order__buyer=buyer,
+                product=to_unmark,
+                status=QUEUED,
+                created_on=utc_now() - relativedelta(months=2),
+            )
         promote_top_sellers()
         for label, user in [
             ("to_mark", to_mark.user),

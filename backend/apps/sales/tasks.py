@@ -755,7 +755,7 @@ def clear_old_carts():
 @celery_app.task()
 def promote_top_sellers(reference_date: Optional[str] = None):
     end_date = parse(reference_date or utc_now().isoformat())
-    end_date = end_date.replace(day=1, second=0, microsecond=0)
+    end_date = end_date.replace(day=1, second=0, minute=0, hour=0, microsecond=0)
     start_date = end_date - relativedelta(months=1)
     users = (
         User.objects.filter(stars__gte=4.5)
@@ -764,9 +764,9 @@ def promote_top_sellers(reference_date: Optional[str] = None):
             month_sales=Count(
                 "sales",
                 filter=Q(
-                    deliverable__created_on__gte=start_date,
-                    deliverable__created_on__lte=end_date,
-                    deliverable__status__in=[COMPLETED, *WEIGHTED_STATUSES],
+                    sales__deliverables__created_on__gte=start_date,
+                    sales__deliverables__created_on__lte=end_date,
+                    sales__deliverables__status__in=[COMPLETED, *WEIGHTED_STATUSES],
                 ),
             )
         )
