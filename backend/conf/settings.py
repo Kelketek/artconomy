@@ -753,6 +753,7 @@ CSP_STYLE_SRC = tuple(
         (
             "'self'",
             "'unsafe-inline'",
+            "sha256-0hAheEzaMe6uXIKV4EehS9pu1am1lj/KnnzrOYqckXk=",
         ),
         unpack=True,
     )
@@ -774,6 +775,7 @@ CSP_SCRIPT_SRC = tuple(
             "https://cdn.matomo.cloud",
             "https://hcaptcha.com",
             "https://*.stripe.com",
+            "https://maps.googleapis.com",
             "https://*.hcaptcha.com",
         ),
         unpack=True,
@@ -785,7 +787,10 @@ CSP_CONNECT_SRC = tuple(
         "CSP_CONNECT_SRC",
         (
             "'self'",
+            "https://api.stripe.com",
+            "https://maps.googleapis.com",
             "https://www.google-analytics.com",
+            "https://checkout.stripe.com",
             "https://*.cloudflareinsights.com",
             "https://sentry.io",
             "https://artconomy.matomo.cloud",
@@ -801,6 +806,8 @@ CSP_FRAME_SRC = tuple(
             "'self'",
             "https://connect-js.stripe.com",
             "https://js.stripe.com",
+            "https://hooks.stripe.com",
+            "https://checkout.stripe.com",
             "https://hcaptcha.com",
             "https://*.hcaptcha.com",
             "https://www.youtube-nocookie.com",
