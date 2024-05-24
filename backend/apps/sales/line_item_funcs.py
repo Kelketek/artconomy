@@ -68,6 +68,8 @@ def distribute_reduction(
             multiplier = Decimal("1.00") / len(line_values)
         else:
             multiplier = original_value / total
+        print(distributed_amount.amount, multiplier)
+        print(distributed_amount.amount * multiplier)
         reductions[line] = Money(distributed_amount.amount * multiplier, total.currency)
     return reductions
 
@@ -75,7 +77,7 @@ def distribute_reduction(
 @half_even_context
 def priority_total(
     current: (Money, Money, "LineMoneyMap"), priority_set: List["Line"]
-) -> (Money, "LineMoneyMap"):
+) -> (Money, Money, "LineMoneyMap"):
     """
     Get the effect on the total of a priority set. First runs any percentage increase,
     then adds in the static amount. Calculates the difference of each separately to make
@@ -197,6 +199,7 @@ def distribute_difference(
         ),
     )
     current_values = [*sorted_values]
+    print(current_values)
     remaining = difference
     if remaining > Money("0", remaining.currency):
         amount = Money("0.01", remaining.currency)

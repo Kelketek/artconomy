@@ -1,9 +1,7 @@
-from apps.profiles.models import ArtistProfile, User
+from apps.profiles.models import User
 from apps.sales.constants import REFUNDED, COMPLETED, QUEUED, REVIEW, PAID
-from apps.sales.models import StripeAccount, Order, Invoice, Deliverable
-from apps.sales.utils import update_availability
+from apps.sales.models import Invoice, Deliverable
 from django.core.management.base import BaseCommand
-from django.db import transaction
 
 
 class Command(BaseCommand):
