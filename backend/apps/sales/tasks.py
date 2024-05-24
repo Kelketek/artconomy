@@ -1,5 +1,6 @@
 import logging
 from collections import defaultdict
+from datetime import datetime
 from decimal import ROUND_CEILING, localcontext
 from typing import Dict, Union, Optional
 
@@ -50,7 +51,6 @@ from apps.sales.models import (
     TransactionRecord,
     Order,
     ShoppingCart,
-    Product,
 )
 from apps.sales.stripe import money_to_stripe, stripe
 from apps.sales.utils import (
@@ -72,10 +72,9 @@ from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q, Count
 from django.utils import timezone
-from django.utils.datetime_safe import datetime
 from moneyed import Money
 from pytz import UTC
-from stripe.error import CardError
+from stripe import CardError
 
 from shortcuts import make_url
 
@@ -455,7 +454,7 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
     separately and consolidate afterward.
 
     This function may need to be optimized depending on how many transactions we end up
-    dealing with. However I'm optimizing for clarity of writing for now.
+    dealing with. However, I'm optimizing for clarity of writing for now.
 
     Stripe calculates its timezones on UTC.
     """
@@ -469,7 +468,7 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
         microsecond=0,
         tzinfo=UTC,
     )
-    end_datetime = min(datetime.now(tz=UTC), start_datetime + relativedelta(months=1))
+    end_datetime = start_datetime + relativedelta(months=1)
     target_transactions = list(
         TransactionRecord.objects.filter(
             finalized_on__gte=start_datetime,

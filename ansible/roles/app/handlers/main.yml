@@ -27,6 +27,13 @@
     executable: "/bin/bash"
   when: create_webhooks
 
+- name: Build rust extensions
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy/rust/line_items  && cargo build"
+  args:
+    executable: "/bin/bash"
+
 - name: collect static assets
   become: yes
   become_user: "{{ env_prefix }}"

@@ -106,7 +106,6 @@ from django.db.models import (
 from django.db.models.signals import post_delete, post_save, pre_delete, pre_save
 from django.dispatch import receiver
 from django.utils import timezone
-from django.utils.datetime_safe import date
 from django.utils.encoding import force_bytes
 from short_stuff import gen_shortcode
 from short_stuff.django.models import ShortCodeField
@@ -342,7 +341,7 @@ class User(AbstractEmailUser, HitsMixin):
             self.service_plan
             and self.service_plan.name == "Landscape"
             and self.service_plan_paid_through
-            and self.service_plan_paid_through >= date.today()
+            and self.service_plan_paid_through >= timezone.now().date()
         )
 
     @property

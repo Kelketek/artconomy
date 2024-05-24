@@ -120,7 +120,7 @@
 </template>
 
 <script setup lang="ts">
-import {getTotals, quantize, reckonLines, totalForTypes} from '@/lib/lineItemFunctions.ts'
+import {getTotals, reckonLines, totalForTypes} from '@/lib/lineItemFunctions.ts'
 import {LineTypes} from '@/types/LineTypes.ts'
 import LineItem from '@/types/LineItem.ts'
 import {ListController} from '@/store/lists/controller.ts'
@@ -273,8 +273,8 @@ const setTip = (multiplier: number) => {
   const subTotal = totalForTypes(getTotals(sansOutsiders.value), [
     LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
   ])
-  const tipAmount = quantize(subTotal.times(multiplier))
-  tip.value.patchers.amount.model = parseFloat(tipAmount.toFixed(2))
+  const tipAmount = parseFloat(subTotal) * multiplier
+  tip.value.patchers.amount.model = tipAmount.toFixed(2)
 }
 
 const statusEndpoint = (append: string) => {

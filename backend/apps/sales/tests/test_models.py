@@ -828,7 +828,7 @@ class TestInvoice(EnsurePlansMixin, TestCase):
             # Not sure why the money library adds this weird padding, but it's their
             # bug, not mine.
             f"Invoice {invoice.id} [Sale] for {invoice.bill_to.username} in the amount "
-            f"of $\xa00.00",
+            f"of $0.00",
         )
 
     def test_string_deliverable(self):

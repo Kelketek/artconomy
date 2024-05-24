@@ -13,16 +13,16 @@
         <ac-paginated :list="journals">
           <v-col cols="12">
             <v-list two-line>
-              <template v-for="item in journals.list" :key="item.x.id">
+              <template v-for="item in journals.list" :key="item.x!.id">
                 <v-list-item
-                    :to="{name: 'Journal', params: {username, journalId: item.x.id}}"
-                    v-if="item.x"
+                    :to="{name: 'Journal', params: {username, journalId: item.x!.id}}"
+                    v-if="item.x!"
                 >
                   <template v-slot:prepend>
                     <v-icon :icon="mdiPencil"/>
                   </template>
-                  <v-list-item-title>{{item.x.subject}}</v-list-item-title>
-                  <v-list-item-subtitle>{{formatDate(item.x.created_on)}}</v-list-item-subtitle>
+                  <v-list-item-title>{{item.x!.subject}}</v-list-item-title>
+                  <v-list-item-subtitle>{{formatDate(item.x!.created_on)}}</v-list-item-subtitle>
                 </v-list-item>
               </template>
             </v-list>

@@ -10,35 +10,35 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
     endpoint: props.lineItems.endpoint,
     fields: {
       amount: {
-        value: 0,
+        value: '0.00',
         validators: [{name: 'numeric'}],
       },
       description: {value: ''},
       type: {value: LineTypes.ADD_ON},
-      percentage: {value: 0},
+      percentage: {value: '0'},
     },
   })
   const extraForm = useForm(`${props.lineItems.name.value}_extra`, {
     endpoint: props.lineItems.endpoint,
     fields: {
       amount: {
-        value: 0,
+        value: '0.00',
         validators: [{name: 'numeric'}],
       },
       description: {value: ''},
       type: {value: LineTypes.EXTRA},
-      percentage: {value: 0},
+      percentage: {value: '0'},
     },
   })
   const addOnFormItem = computed((): LineItem => {
     return {
       id: -105,
-      amount: parseFloat(addOnForm.fields.amount.value),
+      amount: addOnForm.fields.amount.value,
       frozen_value: null,
       cascade_amount: false,
       cascade_percentage: false,
       back_into_percentage: false,
-      percentage: parseFloat(addOnForm.fields.percentage.value),
+      percentage: addOnForm.fields.percentage.value,
       type: addOnForm.fields.type.value,
       priority: 100,
       description: addOnForm.fields.description.value,
@@ -48,12 +48,12 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
   const extraFormItem = computed((): LineItem => {
     return {
       id: -106,
-      amount: parseFloat(extraForm.fields.amount.value),
+      amount: extraForm.fields.amount.value,
       frozen_value: null,
       cascade_amount: false,
       cascade_percentage: false,
       back_into_percentage: false,
-      percentage: parseFloat(extraForm.fields.percentage.value),
+      percentage: extraForm.fields.percentage.value,
       type: extraForm.fields.type.value,
       priority: 400,
       description: extraForm.fields.description.value,

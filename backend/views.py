@@ -2,6 +2,8 @@ import json
 from hashlib import sha256
 from typing import List
 
+from django.views.decorators.csrf import csrf_exempt
+
 from apps.lib.utils import default_context, check_theocratic_ban
 from apps.profiles.serializers import UserSerializer
 from apps.profiles.utils import empty_user
@@ -71,10 +73,12 @@ def index(request):
     return base_template(request)
 
 
+@csrf_exempt
 def error(request, exception):
     return base_template(request, exception=exception)
 
 
+@csrf_exempt
 @api_view(("GET", "POST", "PATCH", "PUT", "HEAD", "DELETE", "OPTIONS"))
 def bad_endpoint(request, *_args, **_kwargs):
     return Response(
@@ -83,6 +87,7 @@ def bad_endpoint(request, *_args, **_kwargs):
     )
 
 
+@csrf_exempt
 @api_view(("GET", "POST", "PATCH", "PUT", "HEAD", "DELETE", "OPTIONS"))
 def bad_request(request, *_args, **_kwargs):
     return Response(

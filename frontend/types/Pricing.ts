@@ -2,10 +2,10 @@ import {ServicePlan} from '@/types/ServicePlan.ts'
 
 export default interface Pricing {
   plans: ServicePlan[],
-  minimum_price: number,
-  table_percentage: number,
-  table_static: number,
-  table_tax: number,
-  international_conversion_percentage: number,
+  minimum_price: string,
+  table_percentage: string,
+  table_static: string,
+  table_tax: string,
+  international_conversion_percentage: string,
   preferred_plan: string,
 }

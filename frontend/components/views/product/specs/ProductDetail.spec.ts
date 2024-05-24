@@ -24,7 +24,6 @@ import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
 import {LineTypes} from '@/types/LineTypes.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import LineItem from '@/types/LineItem.ts'
-import {Decimal} from 'decimal.js'
 import {Ratings} from '@/types/Ratings.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
@@ -398,14 +397,14 @@ describe('ProductDetail.vue', () => {
     await waitFor(() => expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
       [LineTypes.TABLE_SERVICE]),
-    ).toEqual(new Decimal('5.54')))
+    ).toEqual('5.54'))
     expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
       [LineTypes.SHIELD, LineTypes.BONUS, LineTypes.DELIVERABLE_TRACKING]),
-    ).toEqual(new Decimal('0'))
+    ).toEqual('0.00')
     expect(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)).total,
-    ).toEqual(new Decimal('15'))
+    ).toEqual('15.00')
   })
   test('Handles a shield product', async() => {
     prepData()
@@ -427,11 +426,11 @@ describe('ProductDetail.vue', () => {
     await waitFor(() => expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
       [LineTypes.SHIELD]),
-    ).toEqual(new Decimal('4.05')))
+    ).toEqual('4.05'))
     expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
       [LineTypes.TABLE_SERVICE]),
-    ).toEqual(new Decimal('0'))
+    ).toEqual('0.00')
   })
   test('Shows the rating modal only when editing', async() => {
     prepData()

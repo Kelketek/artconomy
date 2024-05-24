@@ -108,12 +108,37 @@
   become_user: "{{ env_prefix }}"
   git: repo="git@github.com:Kelketek/artconomy.git" version="{{ app_version }}" dest="{{ home }}/artconomy" accept_hostkey=yes key_file="{{ home }}/.ssh/id_rsa" force=yes update=yes
   notify:
+    - Build rust extensions
     - collect static assets
     - restart uwsgi
     - restart daphne
     - restart celery
     - restart celerybeat
     - stripe webhooks
+  register: source_clone
+
+- name: Install Rustup
+  community.general.snap:
+    classic: true
+    name:
+      - rustup
+  register: rust_installed_status
+
+- name: Install Rust
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && rustup default stable"
+  args:
+    executable: "/bin/bash"
+  when: rust_installed_status.changed
+
+- name: Install WASM compiler
+  become: yes
+  become_user: "{{ env_prefix }}"
+  shell: "source ~/.profile && cargo install wasm-pack"
+  args:
+    executable: "/bin/bash"
+  when: rust_installed_status.changed
 
 - name: Copy Robots.txt
   copy: src="keys/{{ env_prefix }}/robots.txt" dest="{{ home }}/artconomy/" owner="{{ env_prefix }}" group=www-data mode=0644 directory_mode=0700 force=yes
@@ -148,10 +173,30 @@
   become_user: "{{ env_prefix }}"
   pip: name=pip state=latest virtualenv="{{ home }}"
 
+- name: Install the initial version of maturin.
+  become: yes
+  become_user: "{{ env_prefix }}"
+  # Will install latest version the first time, and then will not intervene so long as any version is installed
+  # on subsequent runs.
+  pip: name=maturin state=present virtualenv="{{ home }}"
+
+- name: Build rust line_items module for Python
+  become: yes
+  become_user: "{{ env_prefix }}"
+  when: source_clone.before != source_clone.after
+  # This might fail if the generated wheel filename ever changes. If that happens, we'll need to upgrade
+  # the requirements.txt.
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy/rust/line_items && maturin build --features python --release"
+  args:
+    executable: "/bin/bash"
+
+# Have to use a shell command instead of the pip directive because of the relative path to the line items module.
 - name: Install app requirements by calling pip on requirements.txt
   become: yes
   become_user: "{{ env_prefix }}"
-  pip: requirements="{{ home }}/artconomy/requirements.txt" virtualenv="{{ home }}"
+  shell: "source ~/.profile && source ~/bin/activate && cd {{home}}/artconomy/ && pip install -r requirements.txt"
+  args:
+    executable: "/bin/bash"
   notify:
     - collect static assets
     - restart uwsgi

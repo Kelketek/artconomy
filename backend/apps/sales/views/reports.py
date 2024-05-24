@@ -189,7 +189,7 @@ class OrderValues(CSVReport, ListAPIView, DateConstrained):
             .exclude(
                 status__in=[CANCELLED, NEW, PAYMENT_PENDING, WAITING],
             )
-            .order_by("paid_on")
+            .order_by("paid_on", "created_on")
         )
 
     def get_renderer_context(self):

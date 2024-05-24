@@ -297,10 +297,10 @@ class TestFreezeLineItems(EnsurePlansMixin, TestCase):
             line_item.refresh_from_db()
         self.assertEqual(source[0].frozen_value, Money("0.00", "USD"))
         self.assertEqual(source[1].frozen_value, Money("0.00", "USD"))
-        self.assertEqual(source[2].frozen_value, Money("0.01", "USD"))
+        self.assertEqual(source[2].frozen_value, Money("0.00", "USD"))
         self.assertEqual(source[3].frozen_value, Money("-5.00", "USD"))
         self.assertEqual(source[4].frozen_value, Money("8.86", "USD"))
-        self.assertEqual(source[5].frozen_value, Money("1.16", "USD"))
+        self.assertEqual(source[5].frozen_value, Money("1.17", "USD"))
 
 
 class TransactionCheckMixin:

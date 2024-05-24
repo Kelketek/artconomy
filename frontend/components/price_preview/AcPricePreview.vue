@@ -70,8 +70,8 @@
                 <strong v-else>Total Price:</strong>
               </v-col>
               <v-col class="text-left pl-1" cols="6">
-                <v-chip color="blue" variant="flat" v-if="isSeller">${{rawPrice.toFixed(2)}}</v-chip>
-                <span v-else>${{rawPrice.toFixed(2)}}</span>
+                <v-chip color="blue" variant="flat" v-if="isSeller">${{rawPrice}}</v-chip>
+                <span v-else>${{rawPrice}}</span>
               </v-col>
             </v-row>
             <v-row>
@@ -79,7 +79,7 @@
                 <strong>Your Payout:</strong>
               </v-col>
               <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow">
-                <v-chip color="green" variant="flat"><strong>${{payout.toFixed(2)}}</strong></v-chip>
+                <v-chip color="green" variant="flat"><strong>${{payout}}</strong></v-chip>
               </v-col>
               <v-col cols="12" md="6" v-if="isSeller && !hideHourlyForm">
                 <ac-bound-field :field="hourlyForm.fields.hours" type="number"
@@ -114,7 +114,6 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import {Decimal} from 'decimal.js'
 import AcNewLineSkeleton from '@/components/price_preview/AcNewLineSkeleton.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
@@ -174,7 +173,7 @@ const hourly = computed(() => {
     currentPrice = payout.value
   }
   try {
-    return currentPrice.div(new Decimal(hours)).toDP(2, Decimal.ROUND_DOWN) + ''
+    return (parseFloat(currentPrice) / hours).toFixed(2)
   } catch {
     return ''
   }

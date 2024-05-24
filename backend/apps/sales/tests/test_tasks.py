@@ -75,7 +75,7 @@ from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 from djmoney.money import Money
 from freezegun import freeze_time
-from stripe.error import CardError
+from stripe import CardError
 
 
 @patch("apps.sales.tasks.stripe")
@@ -134,8 +134,8 @@ class TestRenewStripeCard(EnsurePlansMixin, TestCase):
         )
         mock_stripe.__enter__.return_value.PaymentIntent.create.side_effect = CardError(
             "Borked!",
-            code="Boink",
-            param="number",
+            "number",
+            "Boink",
         )
         self.assertEqual(len(mail.outbox), 0)
         renew_stripe_card(card=card, invoice=invoice, user=user, price=amount)

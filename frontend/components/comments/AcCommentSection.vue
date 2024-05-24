@@ -17,7 +17,7 @@
     </v-row>
     <ac-load-section min-height="10rem" :controller="commentList">
       <template v-slot:default>
-        <template v-for="(comment, index) in commentList.list" :key="comment.x.id">
+        <template v-for="(comment, index) in commentList.list" :key="comment.x!.id">
           <ac-comment
               :comment="comment"
               :username="(comment.x!.user && comment.x!.user.username) || ''"

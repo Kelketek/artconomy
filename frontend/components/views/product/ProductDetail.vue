@@ -279,11 +279,11 @@
                     <span itemprop="offers" itemscope itemtype="http://schema.org/Offer"
                           v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable">
                       <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price"
-                                                                                 :content="product.x.shield_price.toFixed(2)">{{product.x.shield_price.toFixed(2)}}</span>
+                                                                                 :content="product.x.shield_price">{{product.x.shield_price}}</span>
                     </span>
                     <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-else>
                       <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price"
-                                                                                 :content="product.x.starting_price.toFixed(2)">{{product.x.starting_price.toFixed(2)}}</span>
+                                                                                 :content="product.x.starting_price">{{product.x.starting_price}}</span>
                     </span>
                   </template>
                   <v-btn v-show="editing" icon variant="plain" color="primary" @click="showTerms = true">
@@ -391,10 +391,10 @@
                 </v-col>
                 <v-col>
                   <p v-if="forceShield && product.x.escrow_upgradable && !product.x.escrow_enabled">
-                    <strong>${{product.x.starting_price.toFixed(2)}}</strong> without Artconomy Shield
+                    <strong>${{product.x.starting_price}}</strong> without Artconomy Shield
                   </p>
                   <p v-else-if="product.x.escrow_upgradable && !product.x.escrow_enabled">
-                    <strong>${{product.x.shield_price.toFixed(2)}}</strong> with Artconomy Shield
+                    <strong>${{product.x.shield_price}}</strong> with Artconomy Shield
                   </p>
                   <p v-if="product.x.revisions">
                     <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span>
@@ -937,7 +937,7 @@ watch(() => product.x, (product: Product | null, oldProduct: Product | null) => 
   updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
   let prefix: string
   if (product.starting_price) {
-    prefix = `[Starts at $${product.starting_price.toFixed(2)}] - `
+    prefix = `[Starts at $${product.starting_price}] - `
   } else {
     prefix = '[Starts at FREE] - '
   }

@@ -2378,12 +2378,12 @@ class PricingInfo(APIView):
                 "plans": ServicePlanSerializer(
                     instance=plans, many=True, context={}
                 ).data,
-                "minimum_price": settings.MINIMUM_PRICE.amount,
-                "table_percentage": settings.TABLE_PERCENTAGE_FEE,
-                "table_static": settings.TABLE_STATIC_FEE.amount,
-                "table_tax": settings.TABLE_TAX,
+                "minimum_price": str(settings.MINIMUM_PRICE.amount),
+                "table_percentage": str(settings.TABLE_PERCENTAGE_FEE),
+                "table_static": str(settings.TABLE_STATIC_FEE.amount),
+                "table_tax": str(settings.TABLE_TAX),
                 "international_conversion_percentage": (
-                    settings.INTERNATIONAL_CONVERSION_PERCENTAGE
+                    str(settings.INTERNATIONAL_CONVERSION_PERCENTAGE)
                 ),
                 "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
             },

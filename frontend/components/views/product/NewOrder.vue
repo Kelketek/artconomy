@@ -90,7 +90,7 @@
                           <ac-bound-field
                               field-type="ac-price-field" :field="orderForm.fields.named_price" label="Price"
                               :persistent-hint="true"
-                              :hint="`Enter the price you'd like to pay for this work.${currentPrice && ` Must be at least ${currentPrice.toFixed(2)} to cover the artist's costs.`}`"
+                              :hint="`Enter the price you'd like to pay for this work.${currentPrice && ` Must be at least ${currentPrice} to cover the artist's costs.`}`"
                           />
                         </v-col>
                       </v-row>
@@ -251,9 +251,9 @@
                   Name your price!
                 </v-col>
                 <v-col class="subtitle-1" cols="12" v-else>
-                  Starts at ${{currentPrice.toFixed(2)}}
+                  Starts at ${{currentPrice}}
                   <p v-if="shielded">
-                    <small>(${{product.x.starting_price.toFixed(2)}} + ${{shieldCost.toFixed(2)}} shield fee)</small>
+                    <small>(${{product.x.starting_price}} + ${{shieldCost}} shield fee)</small>
                   </p>
                 </v-col>
                 <v-col>
@@ -543,9 +543,9 @@ const currentPrice = computed(() => {
 
 const shieldCost = computed(() => {
   if (!product.x) {
-    return 0
+    return '0'
   }
-  return product.x.shield_price - product.x.starting_price
+  return (parseFloat(product.x.shield_price) - parseFloat(product.x.starting_price)).toFixed(2)
 })
 
 const shieldUpgradeLabel = computed(() => {
@@ -553,7 +553,7 @@ const shieldUpgradeLabel = computed(() => {
     return 'Add Shield Protection'
   }
   const text = 'Add Shield Protection for '
-  return text + `$${shieldCost.value.toFixed(2)}`
+  return text + `$${shieldCost.value}`
 })
 
 const privateHint = computed(() => {

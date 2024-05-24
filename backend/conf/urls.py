@@ -80,4 +80,3 @@ urlpatterns += [re_path(r"^", views.index)]
 handler400 = views.error
 handler403 = views.error
 handler404 = views.error
-handler500 = views.index

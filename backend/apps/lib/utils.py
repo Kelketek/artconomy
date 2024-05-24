@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, date
 from datetime import timezone
 from functools import partial
 from hashlib import sha256
@@ -45,7 +45,6 @@ from django.http import HttpRequest
 from django.template import Context, Template
 from django.template.loader import get_template
 from django.utils import timezone as current_timezone
-from django.utils.datetime_safe import date
 from django.utils.deconstruct import deconstructible
 from django.utils.text import slugify
 from hitcount.models import HitCount
@@ -169,7 +168,7 @@ def get_matching_subscriptions(event_type, object_id, content_type, exclude=None
             Q(type=event_type, removed=False) & target_params(object_id, content_type)
         )
         .exclude(subscriber__in=exclude)
-        .filter(Q(until__isnull=True) | Q(until__gte=date.today()))
+        .filter(Q(until__isnull=True) | Q(until__gte=current_timezone.now().date()))
     )
 
 

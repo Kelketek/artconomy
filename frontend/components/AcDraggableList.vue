@@ -29,7 +29,6 @@
 import {Sortable} from 'sortablejs-vue3'
 import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import diff, {DELETION, DiffPatch, INSERTION} from 'list-diff.js'
 import {artCall} from '@/lib/lib.ts'
 import {VCol} from 'vuetify/lib/components/VGrid/index.mjs'
@@ -38,17 +37,9 @@ import {computed} from 'vue'
 import {SortableModel} from '@/types/SortableModel.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {SortableItem} from '@/types/SortableItem.ts'
+import {AcDraggableListProps} from '@/types/AcDraggableListProps.ts'
 
-declare interface AcDraggableListProps {
-  trackPages?: boolean,
-  okStatuses?: number[],
-  failureMessage?: string,
-  emptyMessage?: string,
-  showPagination?: boolean,
-  list: ListController<T>,
-}
-
-const props = withDefaults(defineProps<AcDraggableListProps>(), {
+const props = withDefaults(defineProps<AcDraggableListProps<T>>(), {
   trackPages: false,
   okStatuses: () => [],
   failureMessage: '',

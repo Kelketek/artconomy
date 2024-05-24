@@ -170,7 +170,7 @@
                       >
                         <v-row>
                           <v-col class="text-center" cols="12">Total Charge:
-                            <strong>${{ totalCharge.toFixed(2) }}</strong></v-col>
+                            <strong>${{ totalCharge }}</strong></v-col>
                           <v-col cols="12">
                             <ac-load-section :controller="deliverable">
                               <template v-slot:default>
@@ -273,7 +273,6 @@
 <script setup lang="ts">
 import LineItem from '@/types/LineItem.ts'
 import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
-import {Decimal} from 'decimal.js'
 import LineAccumulator from '@/types/LineAccumulator.ts'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -341,7 +340,7 @@ const showSubmit = computed(() => {
   return cardTabs.value !== 1
 })
 
-const oldTotal: Ref<null | Decimal> = ref(null)
+const oldTotal: Ref<null | string> = ref(null)
 
 const clientSecret = useSingle<ClientSecret>(
     `${prefix.value}__clientSecret`, {
@@ -393,7 +392,7 @@ const totalCharge = computed(() => {
   return priceData.value.total
 })
 
-watch(totalCharge, (value: Decimal) => {
+watch(totalCharge, (value: string) => {
   paymentForm.fields.amount.update(value)
 })
 
@@ -423,11 +422,11 @@ const commissionInfo = computed(() => {
   return deliverable.x.commission_info
 })
 
-watch(totalCharge, (val: Decimal | undefined) => {
+watch(totalCharge, (val: string | undefined) => {
   if (val === undefined || !isBuyer.value) {
     return
   }
-  if (oldTotal.value && !oldTotal.value.eq(val)) {
+  if (oldTotal.value && !(oldTotal.value === val)) {
     updateIntent()
   }
   oldTotal.value = val

@@ -407,7 +407,7 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
     return []
   }
   const sets = []
-  const basePrice = parseFloat(newProduct.fields.base_price.value)
+  const basePrice = newProduct.fields.base_price.value
   // eslint-disable-next-line camelcase
   const planName = subject.value?.service_plan
   const international = !!subject.value?.international

@@ -2,7 +2,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from decimal import Decimal
 from math import ceil
-from typing import List, Union
+from typing import List, Union, Optional
 
 from apps.lib.abstract_models import (
     GENERAL,
@@ -1349,9 +1349,10 @@ class Invoice(models.Model):
         return self.line_items.filter(targets=ref_for_instance(target))
 
     def __str__(self):
+        total = str(self.total()).replace(" ", "")
         result = (
             f"Invoice {self.id} [{self.get_type_display()}] for {self.bill_to} in the "
-            f"amount of {self.total()}"
+            f"amount of {total}"
         )
         deliverable = self.deliverables.first()
         if deliverable:
@@ -1452,8 +1453,9 @@ class LineItem(Model):
 class LineItemSim:
     id: int
     priority: int
-    amount: Money = Money("0", "USD")
+    amount: Money = Money("0.00", "USD")
     percentage: Decimal = Decimal(0)
+    frozen_value: Optional[Money] = Money("0.00", "USD")
     cascade_percentage: bool = False
     cascade_amount: bool = False
     back_into_percentage: bool = False

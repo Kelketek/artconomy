@@ -765,8 +765,12 @@ CSP_SCRIPT_SRC = tuple(
         (
             "'self'",
             "'unsafe-inline'",
+            # Required for wasm, for some reason.
+            "'unsafe-eval'",
             "data:",
             "blob:",
+            # This should have allowed wasm, but doesn't yet? :/
+            "'wasm-unsafe-eval'",
             "https://*.facebook.net",
             "https://sentry.io",
             "https://www.googletagmanager.com",

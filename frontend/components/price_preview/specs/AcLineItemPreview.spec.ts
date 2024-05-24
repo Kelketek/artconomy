@@ -65,7 +65,7 @@ describe('AcLineItemPreview.vue', () => {
       id: -500,
       priority: 100,
       type: LineTypes.ADD_ON,
-      amount: -2,
+      amount: '-2',
     })
     lineItems.push(line)
     wrapper = mount(AcLineItemPreview, {
@@ -86,7 +86,7 @@ describe('AcLineItemPreview.vue', () => {
       id: -500,
       priority: 100,
       type: LineTypes.ADD_ON,
-      amount: 2,
+      amount: '2',
     })
     lineItems.push(line)
     wrapper = mount(AcLineItemPreview, {

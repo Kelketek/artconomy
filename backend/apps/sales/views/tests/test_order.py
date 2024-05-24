@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from unittest.mock import patch
 from uuid import uuid4
@@ -54,7 +55,6 @@ from django.core import mail
 from django.core.cache import cache
 from django.test import override_settings
 from django.utils import timezone
-from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status

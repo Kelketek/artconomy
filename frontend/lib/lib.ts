@@ -376,7 +376,7 @@ export function baseInvoiceSchema(endpoint: string): NamelessFormSchema {
     method: 'post',
     endpoint,
     fields: {
-      price: {value: 25},
+      price: {value: "25.00"},
       completed: {value: false},
       task_weight: {value: 0},
       revisions: {value: 1},

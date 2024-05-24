@@ -199,21 +199,21 @@ class TestUnaffiliatedSales(APITestCase):
         # Card
         self.assertEqual(lines[0]["id"], card_line_item.invoice.id)
         self.assertEqual(lines[0]["remote_ids"], "1234, 5678")
-        self.assertEqual(lines[0]["total"], "15.0")
+        self.assertEqual(lines[0]["total"], "15.00")
         self.assertEqual(lines[0]["tax"], "2.00")
         self.assertEqual(lines[0]["card_fees"], "2.00")
         self.assertEqual(lines[0]["source"], "Card")
         # Cash
         self.assertEqual(lines[1]["id"], cash_line_item.invoice.id)
         self.assertEqual(lines[1]["remote_ids"], "")
-        self.assertEqual(lines[1]["total"], "10.0")
+        self.assertEqual(lines[1]["total"], "10.00")
         self.assertEqual(lines[1]["tax"], "3.00")
         self.assertEqual(lines[1]["card_fees"], "0.00")
         self.assertEqual(lines[1]["source"], "Cash")
         # Unknown
         self.assertEqual(lines[2]["id"], unknown_main_transaction.invoice.id)
         self.assertEqual(lines[2]["remote_ids"], "")
-        self.assertEqual(lines[2]["total"], "25.0")
+        self.assertEqual(lines[2]["total"], "25.00")
         self.assertEqual(lines[2]["tax"], "0.00")
         self.assertEqual(lines[2]["card_fees"], "0.00")
         self.assertEqual(lines[2]["source"], "????")
@@ -276,7 +276,7 @@ class TestPayoutReport(APITestCase):
         lines = [line for line in reader]
         self.assertEqual(len(lines), 1)
         self.assertEqual(lines[0]["id"], transaction.id)
-        self.assertEqual(lines[0]["amount"], "20.0")
+        self.assertEqual(lines[0]["amount"], "20.00")
         self.assertEqual(lines[0]["status"], "Successful")
         self.assertEqual(
             lines[0]["targets"],
@@ -782,9 +782,9 @@ class TestOrderValues(APITestCase):
             "amount": deliverable.invoice.total(),
             "card_id": None,
             "cash": source == CASH_DEPOSIT,
-            "stripe_event": self.stripe_payment_event(deliverable)
-            if source == CARD
-            else None,
+            "stripe_event": (
+                self.stripe_payment_event(deliverable) if source == CARD else None
+            ),
             "remote_ids": ["pi_12345"] if source == CARD else "",
         }
         records = invoice_post_payment(

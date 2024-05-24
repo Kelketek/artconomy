@@ -1048,14 +1048,14 @@ class IdWritable:
         return self.Meta.model.objects.filter(id=data).first()
 
 
-class MoneyToFloatField(serializers.FloatField):
+class MoneyToString(serializers.FloatField):
     """
-    We're not as worried about the front-end getting these numbers right. We'll clean
-    them up on the back.
+    String values are unable to be misinterpreted by approximations and can be turned
+    into fixed point values on the other end.
     """
 
     def to_representation(self, value):
-        return float(value.amount)
+        return str(value.amount)
 
 
 class CookieConsent(serializers.Serializer):

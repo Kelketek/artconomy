@@ -19,7 +19,7 @@
         </v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-card-text>
-            <template v-for="(color, index) in colors.list" :key="color.id">
+            <template v-for="(color, index) in colors.list" :key="color.x!.id">
               <ac-ref-color :color="color" :username="username"/>
               <v-divider v-if="index + 1 < colors.list.length" :key="`color-${index}-divider`"/>
             </template>

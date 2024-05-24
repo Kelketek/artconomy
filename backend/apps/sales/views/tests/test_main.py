@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
@@ -95,7 +96,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.test import TestCase, override_settings
 from django.utils import timezone
-from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
@@ -638,7 +638,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 2.50,
+                "base_price": "2.50",
                 "tags": ["a", "b", "c", "d"],
             },
             format="json",
@@ -665,7 +665,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 0,
+                "base_price": "0",
                 "tags": ["a", "b", "c", "d"],
             },
         )
@@ -675,7 +675,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result["revisions"], 2)
         self.assertEqual(result["task_weight"], 2)
         self.assertEqual(result["expected_turnaround"], 3.00)
-        self.assertEqual(result["base_price"], 0.00)
+        self.assertEqual(result["base_price"], "0.0")
         self.assertCountEqual(result["tags"], ["a", "b", "c", "d"])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -697,7 +697,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 0.50,
+                "base_price": "0.50",
                 "escrow_enabled": True,
                 "cascade_fees": True,
                 "tags": ["a", "b", "c", "d"],
@@ -731,7 +731,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": -0.50,
+                "base_price": "-0.50",
                 "escrow_enabled": True,
                 "cascade_fees": True,
             },
@@ -760,7 +760,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 1,
+                "base_price": "1",
                 "escrow_enabled": False,
                 "escrow_upgradable": True,
                 "cascade_fees": True,
@@ -798,12 +798,12 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 0.50,
+                "base_price": "0.50",
                 "tags": ["a", "b", "c", "d"],
             },
         )
         result = response.data
-        self.assertEqual(result["base_price"], 0.50)
+        self.assertEqual(result["base_price"], "0.5")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_product_not_logged_in(self):
@@ -818,7 +818,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 2.50,
+                "base_price": "2.50",
             },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -837,7 +837,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 2.50,
+                "base_price": "2.50",
             },
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -856,7 +856,7 @@ class TestProduct(APITestCase):
                 "revisions": 2,
                 "task_weight": 2,
                 "expected_turnaround": 3,
-                "base_price": 2.50,
+                "base_price": "2.50",
                 "tags": ["a", "b", "c", "d"],
             },
         )
@@ -866,7 +866,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result["revisions"], 2)
         self.assertEqual(result["task_weight"], 2)
         self.assertEqual(result["expected_turnaround"], 3.00)
-        self.assertEqual(result["base_price"], 2.50)
+        self.assertEqual(result["base_price"], "2.5")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_product_listing_not_logged_in(self):
@@ -1769,7 +1769,7 @@ class TestPricingInfo(APITestCase):
     def test_pricing_info(self):
         response = self.client.get("/api/sales/pricing-info/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data["table_percentage"], Decimal("69"))
+        self.assertEqual(response.data["table_percentage"], "69")
 
 
 class TestOrderAuth(APITestCase):
@@ -2750,7 +2750,7 @@ class TestInvoiceLineItems(APITestCase):
             f"/api/sales/invoice/{deliverable.invoice.id}/line-items/"
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data[0]["amount"], 10.0)
+        self.assertEqual(response.data[0]["amount"], "10.00")
 
     def test_create_line_item(self):
         staff = UserFactory.create(is_staff=True)
@@ -2762,7 +2762,7 @@ class TestInvoiceLineItems(APITestCase):
             f"/api/sales/invoice/{deliverable.invoice.id}/line-items/",
             {"description": "Stuff", "amount": 5, "percentage": 0, "type": EXTRA},
         )
-        self.assertEqual(response.data["amount"], 5)
+        self.assertEqual(response.data["amount"], "5.0")
 
     def test_modify_base_line_item(self):
         staff = UserFactory.create(is_staff=True)
@@ -2774,7 +2774,7 @@ class TestInvoiceLineItems(APITestCase):
         response = self.client.patch(
             f"/api/sales/invoice/{deliverable.invoice.id}/line-items/"
             f"{line_item.id}/",
-            {"amount": 5, "percentage": 5},
+            {"amount": "5", "percentage": 5},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         line_item.refresh_from_db()

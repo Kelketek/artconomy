@@ -47,6 +47,6 @@ const formatName = (item: Product|number|unknown[]) => {
     // Don't have the definition, just the ID.
     return `Product #${item}`
   }
-  return `${item.name} starting at $${item.starting_price.toFixed(2)}`
+  return `${item.name} starting at $${item.starting_price}`
 }
 </script>

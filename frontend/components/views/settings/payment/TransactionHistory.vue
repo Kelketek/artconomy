@@ -16,7 +16,7 @@
 
             </v-col>
             <v-list three-line>
-              <template v-for="transaction, index in transactions.list" :key="transaction.x.id">
+              <template v-for="transaction, index in transactions.list" :key="transaction.x!.id">
                 <ac-transaction :transaction="transaction.x!" :username="username"
                                 :current-account="transactionFilter.fields.account.value"/>
                 <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>

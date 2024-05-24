@@ -18,7 +18,7 @@ fi
 
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ] ; then
-    PATH="$HOME/bin:$PATH"
+    PATH="$HOME/.cargo/bin:$HOME/bin:$PATH"
 fi
 
 {% for key, value in app_settings.items() %}

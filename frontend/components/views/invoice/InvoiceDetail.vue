@@ -105,7 +105,7 @@
                 :large="true" v-bind="paymentForm.bind"
             >
               <v-row>
-                <v-col class="text-center" cols="12">Total Charge: <strong>${{ totalCharge.toFixed(2) }}</strong>
+                <v-col class="text-center" cols="12">Total Charge: <strong>${{ totalCharge }}</strong>
                 </v-col>
                 <v-col cols="12">
                   <ac-load-section :controller="invoice">
@@ -199,7 +199,7 @@
                 <v-row>
                   <v-col cols="12">
                     <v-list three-line>
-                      <template v-for="transaction, index in transactions.list" :key="transaction.x.id">
+                      <template v-for="transaction, index in transactions.list" :key="transaction.x!.id">
                         <ac-transaction :transaction="transaction.x!" :username="username" :current-account="300"/>
                         <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
                       </template>
@@ -218,7 +218,6 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
-import {Decimal} from 'decimal.js'
 import Invoice from '@/types/Invoice.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import LineItem from '@/types/LineItem.ts'
@@ -337,7 +336,7 @@ const paymentSubmit = () => {
 
 const totalCharge = computed(() => {
   if (lineItems.list.length === 0) {
-    return new Decimal('0.00')
+    return '0.00'
   }
   return reckonLines(lineItems.list.map((item) => item.x as LineItem))
 })
@@ -360,9 +359,9 @@ watch(cardTabs, (tabValue) => {
   updateIntent()
 })
 
-watch(totalCharge, (newVal: Decimal, oldVal: Decimal) => {
+watch(totalCharge, (newVal: string, oldVal: string) => {
   paymentForm.fields.amount.model = newVal.toString()
-  if (newVal.eq(oldVal)) {
+  if (parseFloat(newVal) === parseFloat(oldVal)) {
     return
   }
   updateIntent()

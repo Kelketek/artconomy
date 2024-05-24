@@ -50,19 +50,13 @@ Make sure any draggable item has the .draggable-item class or it won't be proper
 </style>
 
 <script setup lang="ts" generic="T extends SortableModel">
-import { Sortable } from "sortablejs-vue3"
+import {Sortable} from 'sortablejs-vue3'
 import {artCall} from '@/lib/lib.ts'
-import {ListController} from '@/store/lists/controller.ts'
 import {SortableModel} from '@/types/SortableModel.ts'
 import {ref} from 'vue'
-import {SortableItem} from '@/types/SortableItem.ts'
+import {AcDraggableNavsProps} from '@/types/AcDraggableNavsProps.ts'
 
-declare interface AcDraggableNavsProps {
-  sortableList: SortableItem<T>[],
-  list: ListController<T>,
-}
-
-const props = defineProps<AcDraggableNavsProps>()
+const props = defineProps<AcDraggableNavsProps<T>>()
 
 const previousList = ref([])
 const nextList = ref([])

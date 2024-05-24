@@ -14,19 +14,20 @@ import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPromp
 import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import {beforeEach, describe, expect, test, vi} from 'vitest'
 import {parseISO} from '@/lib/otherFormatters.ts'
+import LineItem from '@/types/LineItem.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
 let empty: VueWrapper<any>
 
-const tipLines = () => {
+const tipLines = (): LineItem[] => {
   return [
     {
       id: 21,
       priority: 300,
-      percentage: 4,
-      amount: 0.5,
+      percentage: "4",
+      amount: "0.50",
       frozen_value: null,
       type: LineTypes.PROCESSING,
       destination_account: null,
@@ -38,16 +39,16 @@ const tipLines = () => {
     },
     {
       id: 22,
-      priority: 300,
-      percentage: 4,
-      amount: 0.5,
+      priority: 200,
+      percentage: "0",
+      amount: "7.00",
       frozen_value: null,
       type: LineTypes.TIP,
       destination_account: 304,
       destination_user: null,
       description: '',
-      cascade_percentage: true,
-      cascade_amount: true,
+      cascade_percentage: false,
+      cascade_amount: false,
       back_into_percentage: false,
     },
   ]
@@ -111,7 +112,7 @@ describe('AcTippingPrompt', () => {
     await vm.$nextTick()
     await wrapper.find('.preset10').trigger('click')
     await vm.$nextTick()
-    expect(vm.tip.patchers.amount.model).toEqual(8)
+    expect(vm.tip.patchers.amount.model).toEqual('8.00')
   })
   test('Updates an existing tip line item', async() => {
     const fox = genUser()
@@ -152,6 +153,6 @@ describe('AcTippingPrompt', () => {
     mockAxios.reset()
     vm.setTip(0.25)
     await vm.$nextTick()
-    expect(vm.tip.patchers.amount.model).toEqual(20)
+    expect(vm.tip.patchers.amount.model).toEqual('20.00')
   })
 })

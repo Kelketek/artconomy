@@ -15,7 +15,7 @@ bs4
 celery[redis]
 # Channels handles async connections to Django that can be subscribed and published to.
 # This is used for managing websockets.
-channels>=4.0.0,<5.0.0
+channels>=4.1.0,<5.0.0
 # Uses Redis as the backend for Channels
 channels-redis
 # Checks how many lines are run during tests
@@ -29,7 +29,7 @@ discord-py-interactions
 # A class type that allows you to access keys in a dictionary as though they're props. Useful for duck-typing tricks.
 dotted-dict
 # The Django web framework is Artconomy's base web framework.
-Django>=4.1.7,<4.3
+Django>=5.0.7,<5.1
 # Application which handles avatars for users, including default avatars.
 django-avatar>=7.0.0,<8.0.0
 # Allows emails to be sent asynchronously via celery
@@ -97,6 +97,8 @@ isort
 ipython
 # Utilities for lazy evaluation of properties on an object.
 lazy
+# Rust-based line item calculation library. Used for totaling up invoices.
+rust/line_items/target/wheels/line_items-0.1.0-cp311-cp311-manylinux_2_34_x86_64.whl
 # The Luhn algorithm is used to check that a credit card number is technically valid. This is no longer used,
 # but code depending on it has not been removed.
 luhn
@@ -105,6 +107,8 @@ lxml
 # A non-Django specific library for markdown processing. TODO: Investigate if we can remove this library since
 # django-markdown2 doubtless has a markdown processor inside of it.
 markdown
+# Builds Python modules from Rust code.
+maturin
 # pandas-- data analysis and manipulation library. At the time of writing we're only using it to handle 'Business Day'
 # calendar calculations, but we're liable to use it for more in time.
 pandas

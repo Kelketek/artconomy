@@ -57,9 +57,9 @@
                             </div>
                             <div>Shield fee: {{plan.shield_percentage_price}}%<sup
                                 v-if="pricing.x!.international_conversion_percentage">*</sup> <span
-                                v-if="plan.shield_static_price">+ ${{plan.shield_static_price.toFixed(2)}}</span></div>
+                                v-if="plan.shield_static_price">+ ${{plan.shield_static_price}}</span></div>
                             <div v-if="plan.per_deliverable_price">Non-shield order tracking fee:
-                              ${{plan.per_deliverable_price.toFixed(2)}}
+                              ${{plan.per_deliverable_price}}
                             </div>
                             <div>
                               <div v-if="plan.max_simultaneous_orders">
@@ -123,7 +123,7 @@
                   <strong>Monthly charge: ${{selectedPlan.monthly_charge}}</strong> <br/>
                   <div v-if="selectedPlan.per_deliverable_price">
                     Any orders tracked which aren't covered by shield protection will be billed at
-                    ${{selectedPlan.per_deliverable_price.toFixed(2)}} at the end of your billing cycle.
+                    ${{selectedPlan.per_deliverable_price}} at the end of your billing cycle.
                   </div>
                   <div class="mt-2 text-center">
                     <v-btn @click="selection=null" class="mx-1" variant="flat">Go back</v-btn>

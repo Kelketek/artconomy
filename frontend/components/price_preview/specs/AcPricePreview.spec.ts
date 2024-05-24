@@ -9,9 +9,9 @@ import {dummyLineItems} from '@/lib/specs/helpers.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import LineItem from '@/types/LineItem.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {Decimal} from 'decimal.js'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -47,7 +47,7 @@ describe('AcPricePreview.vue', () => {
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         lineItems,
@@ -57,20 +57,20 @@ router,
       },
     })
     const vm = wrapper.vm as any
-    expect(vm.rawPrice).toEqual(new Decimal('80'))
-    vm.addOnForm.fields.amount.update(new Decimal('5'))
-    await vm.$nextTick()
-    expect(vm.rawPrice).toEqual(new Decimal('85'))
-    vm.extraForm.fields.amount.update(new Decimal('10'))
-    await vm.$nextTick()
-    expect(vm.rawPrice).toEqual(new Decimal('95'))
+    expect(vm.rawPrice).toEqual('80.00')
+    vm.addOnForm.fields.amount.update('5.00')
+    await nextTick()
+    expect(vm.rawPrice).toEqual('85.00')
+    vm.extraForm.fields.amount.update('10.00')
+    await nextTick()
+    expect(vm.rawPrice).toEqual('95.00')
   })
   test('Calculates hourly rate for escrow', async() => {
     setViewer(store, user)
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         lineItems,
@@ -89,7 +89,7 @@ router,
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         lineItems,
@@ -101,7 +101,7 @@ router,
     const vm = wrapper.vm as any
     vm.hourlyForm.fields.hours.model = 2
     await vm.$nextTick()
-    expect(vm.hourly).toEqual('40')
+    expect(vm.hourly).toEqual('40.00')
   })
   afterEach(() => {
     cleanUp(wrapper)

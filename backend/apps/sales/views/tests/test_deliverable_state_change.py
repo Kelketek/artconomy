@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from unittest.mock import call, patch
 
@@ -12,6 +13,7 @@ from apps.lib.models import (
     ref_for_instance,
 )
 from apps.lib.test_resources import APITestCase
+from apps.lib.utils import utc
 from apps.profiles.tests.factories import (
     CharacterFactory,
     SubmissionFactory,
@@ -59,7 +61,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.core import mail
 from django.test import override_settings
 from django.utils import timezone
-from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
@@ -692,7 +693,11 @@ class TestDeliverableStatusChange(APITestCase):
 
     @freeze_time("2019-02-01 12:00:00")
     def test_file_dispute_buyer_enough_time(self, _mock_notify):
-        self.deliverable.dispute_available_on = date(year=2019, month=1, day=1)
+        self.deliverable.dispute_available_on = date(
+            year=2019,
+            month=1,
+            day=1,
+        )
         self.deliverable.save()
         self.state_assertion(
             "buyer", "dispute/", status.HTTP_200_OK, initial_status=IN_PROGRESS

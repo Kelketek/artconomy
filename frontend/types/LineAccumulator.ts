@@ -1,8 +1,7 @@
 import {LineMoneyMap} from '@/types/LineMoneyMap.ts'
-import {Decimal} from 'decimal.js'
 
 export default interface LineAccumulator {
-  total: Decimal,
+  total: string,
   subtotals: LineMoneyMap,
-  discount: Decimal,
+  discount: string,
 }

@@ -34,7 +34,7 @@
                   <v-row no-gutters>
                     <v-col class="shrink" align-self="start">
                       <span v-if="product.name_your_price">Name your price!</span>
-                      <span v-else>From ${{product.starting_price.toFixed(2)}}</span>
+                      <span v-else>From ${{product.starting_price}}</span>
                     </v-col>
                     <v-spacer></v-spacer>
                     <v-col class="shrink" align-self="end">
@@ -73,7 +73,7 @@
                   <v-col cols="12" class="no-underline" v-if="!product.name_your_price">
                     <ac-link :to="productLink">
                       <span class="currency-notation" v-if="product.starting_price">$</span>
-                      <span class="price-display">{{product.starting_price.toFixed(2)}}</span>
+                      <span class="price-display">{{product.starting_price}}</span>
                     </ac-link>
                   </v-col>
                 </v-col>
@@ -110,7 +110,7 @@
           <v-col cols="12">
             <v-row no-gutters>
               <v-col class="grow" v-if="product.name_your_price"><small>Name Your Price!</small></v-col>
-              <v-col class="grow" v-else><small>From</small> ${{product.starting_price.toFixed(2)}}</v-col>
+              <v-col class="grow" v-else><small>From</small> ${{product.starting_price}}</v-col>
               <v-col class="no-underline shrink">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                   <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable" aria-label="Tooltip for shield status indicator">
@@ -260,9 +260,9 @@ const {smAndDown} = useDisplay()
 
 const startingPrice = computed(() => {
   if (props.forceShield) {
-    return props.product.shield_price.toFixed(2)
+    return props.product.shield_price
   }
-  return props.product.starting_price.toFixed(2)
+  return props.product.starting_price
 })
 
 const shieldColor = computed(() => {

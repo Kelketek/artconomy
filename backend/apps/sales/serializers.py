@@ -12,7 +12,7 @@ from apps.lib.consumers import register_serializer
 from apps.lib.models import Asset, ref_for_instance
 from apps.lib.serializers import (
     EventTargetRelatedField,
-    MoneyToFloatField,
+    MoneyToString,
     RelatedAssetField,
     RelatedAtomicMixin,
     RelatedUserSerializer,
@@ -112,9 +112,9 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     user = RelatedUserSerializer(read_only=True)
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
     tags = TagListField(min=3, hints=PRODUCT_HINTS)
-    base_price = MoneyToFloatField()
-    starting_price = MoneyToFloatField(read_only=True)
-    shield_price = MoneyToFloatField(read_only=True)
+    base_price = MoneyToString()
+    starting_price = MoneyToString(read_only=True)
+    shield_price = MoneyToString(read_only=True)
     expected_turnaround = FloatField()
     over_order_limit = serializers.SerializerMethodField()
     name_your_price = serializers.BooleanField(default=False)
@@ -333,7 +333,7 @@ class ProductNewOrderSerializer(
     buyer = RelatedUserSerializer(read_only=True)
     characters = ListField(child=IntegerField(), required=False)
     # Field will be entirely deleted if product is not a name your price commission.
-    named_price = MoneyToFloatField(required=False, allow_null=True)
+    named_price = MoneyToString(required=False, allow_null=True)
     references = ListField(
         child=serializers.CharField(),
         required=False,
@@ -795,11 +795,32 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         }
 
 
+# Used for handing over to the Rust code.
+class LineItemCalculationSerializer(serializers.ModelSerializer):
+    percentage = serializers.CharField()
+    amount = MoneyToString()
+    frozen_value = MoneyToString()
+
+    class Meta:
+        model = LineItem
+        fields = (
+            "id",
+            "priority",
+            "percentage",
+            "amount",
+            "frozen_value",
+            "cascade_percentage",
+            "cascade_amount",
+            "back_into_percentage",
+        )
+        read_only_fields = fields
+
+
 @register_serializer
 class LineItemSerializer(serializers.ModelSerializer):
-    percentage = serializers.FloatField()
-    amount = MoneyToFloatField()
-    frozen_value = MoneyToFloatField(read_only=True)
+    percentage = serializers.CharField()
+    amount = MoneyToString()
+    frozen_value = MoneyToString(read_only=True)
     targets = EventTargetRelatedField(read_only=True, many=True)
 
     class Meta:
@@ -829,7 +850,9 @@ class LineItemSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if getattr(self, "instance") and not isinstance(self.instance, QuerySet):
+        if getattr(self, "instance") and not isinstance(
+            self.instance, (QuerySet, list)
+        ):
             if self.instance.type in [BASE_PRICE, TIP]:
                 self.fields["percentage"].read_only = True
             if self.instance.id:
@@ -1115,7 +1138,7 @@ class TransactionRecordSerializer(serializers.ModelSerializer):
     payee = RelatedUserSerializer(read_only=True)
     targets = EventTargetRelatedField(read_only=True, many=True)
     card = CardSerializer(read_only=True)
-    amount = MoneyToFloatField()
+    amount = MoneyToString()
 
     def to_representation(self, instance):
         result = super().to_representation(instance)
@@ -1491,9 +1514,9 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             if target.content_type == invoice_type:
                 invoices.append(target.target)
         lines = {}
-        for invoice in invoices:
+        for index, invoice in enumerate(invoices):
             lines[invoice] = LineItemSim(
-                id=invoice.id,
+                id=index,
                 amount=Money(
                     multi_filter(
                         TransactionRecord.objects.filter(
@@ -1677,9 +1700,9 @@ class TipValuesSerializer(serializers.ModelSerializer):
             if target.content_type == invoice_type:
                 invoices.append(target.target)
         lines = {}
-        for invoice in invoices:
+        for index, invoice in enumerate(invoices):
             lines[invoice] = LineItemSim(
-                id=invoice.id,
+                id=index,
                 amount=Money(
                     TransactionRecord.objects.filter(
                         destination=HOLDINGS,
@@ -1689,7 +1712,7 @@ class TipValuesSerializer(serializers.ModelSerializer):
                 ),
                 priority=0,
             )
-        lines[None] = LineItemSim(
+        lines[-1] = LineItemSim(
             id=-1, amount=fee.amount, cascade_amount=True, priority=1
         )
         _total, _discount, subtotals = get_totals(lines.values())
@@ -1733,7 +1756,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     payee = serializers.StringRelatedField(read_only=True)
     status = serializers.SerializerMethodField()
-    amount = MoneyToFloatField()
+    amount = MoneyToString()
     fees = serializers.SerializerMethodField()
     total_drafted = serializers.SerializerMethodField()
     targets = serializers.SerializerMethodField()
@@ -1846,7 +1869,7 @@ class SubscriptionInvoiceSerializer(serializers.ModelSerializer):
     status = serializers.SerializerMethodField()
     bill_to = serializers.CharField(read_only=True, source="bill_to.username")
     source = serializers.SerializerMethodField()
-    total = MoneyToFloatField()
+    total = MoneyToString()
     remote_ids = serializers.SerializerMethodField()
 
     def get_type(self, obj):
@@ -1894,7 +1917,7 @@ class UnaffiliatedInvoiceSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     source = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    total = MoneyToFloatField()
+    total = MoneyToString()
     tax = serializers.SerializerMethodField()
     card_fees = serializers.SerializerMethodField()
     net = serializers.SerializerMethodField()
@@ -2099,10 +2122,10 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
 
 class ServicePlanSerializer(serializers.ModelSerializer):
-    monthly_charge = MoneyToFloatField()
-    per_deliverable_price = MoneyToFloatField()
-    shield_static_price = MoneyToFloatField()
-    shield_percentage_price = serializers.FloatField()
+    monthly_charge = MoneyToString()
+    per_deliverable_price = MoneyToString()
+    shield_static_price = MoneyToString()
+    shield_percentage_price = serializers.CharField()
 
     class Meta:
         fields = (
@@ -2189,7 +2212,7 @@ class SalesStatsSerializer(serializers.ModelSerializer):
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
-    named_price = MoneyToFloatField(required=False, allow_null=True)
+    named_price = MoneyToString(required=False, allow_null=True)
 
     def update(self, instance, validated_data):
         from apps.sales.tasks import drip_sync_cart

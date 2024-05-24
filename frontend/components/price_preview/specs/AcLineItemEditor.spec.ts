@@ -38,7 +38,7 @@ describe('AcLineItemEditor.vue', () => {
     const lineItems = dummyLineItems()
     const discount = genLineItem({
       type: LineTypes.ADD_ON,
-      amount: -2,
+      amount: '-2',
       id: -500,
       priority: 100,
     })
@@ -62,7 +62,7 @@ describe('AcLineItemEditor.vue', () => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
       type: LineTypes.ADD_ON,
-      amount: 2,
+      amount: '2',
       id: -500,
       priority: 100,
     })
@@ -86,7 +86,7 @@ describe('AcLineItemEditor.vue', () => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
       type: LineTypes.BASE_PRICE,
-      amount: 2,
+      amount: '2',
       id: -500,
       priority: 100,
     })
@@ -110,7 +110,7 @@ describe('AcLineItemEditor.vue', () => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
       type: LineTypes.EXTRA,
-      amount: 2,
+      amount: '2',
       id: -500,
       priority: 400,
     })
@@ -134,7 +134,7 @@ describe('AcLineItemEditor.vue', () => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
       type: 1234,
-      amount: 2,
+      amount: '2',
       id: -500,
       priority: 400,
     })

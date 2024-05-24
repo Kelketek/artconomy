@@ -7,7 +7,7 @@
   "author": "Fox Piacenti <fox@vulpinity.com>",
   "scripts": {
     "serve": "vite --host",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "wasm-pack build --out-dir=../../frontend/lib/lines rust/line_items --features=wasm && vue-tsc --noEmit && vite build",
     "supportedBrowsers": "echo \"export default $(browserslist-useragent-regexp --allowHigherVersions);\" > frontend/supportedBrowsers.js",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --fix --ignore-path .gitignore",
@@ -20,7 +20,7 @@
     "@mdi/js": "^7.4.47",
     "@sentry/vite-plugin": "^2.16.0",
     "@sentry/vue": "^7.109.0",
-    "@stripe/stripe-js": "^3.3.0",
+    "@stripe/stripe-js": "^4.1.0",
     "@tato30/vue-pdf": "^1.10.0",
     "@uppy/core": "^3.10.1",
     "@uppy/dashboard": "^3.8.1",
@@ -75,9 +75,10 @@
     "vite-plugin-checker": "^0.6.4",
     "vite-plugin-top-level-await": "^1.4.1",
     "vite-plugin-vuetify": "^2.0.3",
+    "vite-plugin-wasm": "^3.3.0",
     "vitest": "^1.4.0",
     "vitest-mock-axios": "^0.1.0",
     "vitest-websocket-mock": "^0.3.0",
-    "vue-tsc": "^1.8.25"
+    "vue-tsc": "^2.0.29"
   }
 }

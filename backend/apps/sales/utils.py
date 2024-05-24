@@ -27,6 +27,8 @@ from typing import (
 )
 from urllib.parse import quote
 
+from pytz import UTC
+
 from apps.lib.models import (
     COMMENT,
     COMMISSIONS_OPEN,
@@ -44,7 +46,7 @@ from apps.lib.models import (
     ref_for_instance,
 )
 from apps.lib.signals import broadcast_update
-from apps.lib.utils import multi_filter, notify, recall_notification
+from apps.lib.utils import multi_filter, notify, recall_notification, utc
 from apps.profiles.models import User
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.sales.constants import (
@@ -108,8 +110,6 @@ from apps.sales.line_item_funcs import (
     ceiling_context,
     down_context,
     get_totals,
-    lines_by_priority,
-    normalized_lines,
 )
 from apps.sales.paypal import clear_existing_invoice, paypal_api
 from apps.sales.stripe import refund_payment_intent, remote_ids_from_charge, stripe
@@ -122,7 +122,7 @@ from django.db.models import Case, F, IntegerField, Model, Q, Sum, When
 from django.db.transaction import atomic
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from django.utils.datetime_safe import date
+from datetime import date, datetime
 from django.utils.module_loading import import_string
 from moneyed import Money
 from rest_framework.exceptions import ValidationError
@@ -689,8 +689,7 @@ def lines_to_transaction_specs(lines: Iterator["LineItem"]) -> "TransactionSpecM
         PREMIUM_SUBSCRIPTION: SUBSCRIPTION_DUES,
         DELIVERABLE_TRACKING: SUBSCRIPTION_DUES,
     }
-    priority_sets = lines_by_priority(lines)
-    total, __, subtotals = normalized_lines(priority_sets)
+    total, __, subtotals = get_totals(lines)
     transaction_specs = defaultdict(lambda: Money("0.00", "USD"))
     for line_item, subtotal in subtotals.items():
         transaction_specs[
@@ -1518,7 +1517,7 @@ def invoice_post_payment(
                 "loss!"
             )
     if context["successful"]:
-        invoice.paid_on = timezone.now()
+        invoice.paid_on = datetime.now(tz=UTC)
         invoice.status = PAID
         invoice.save()
         freeze_line_items(invoice)
@@ -1530,7 +1529,7 @@ def invoice_post_payment(
     outstanding = Invoice.objects.filter(
         bill_to=invoice.bill_to,
         due_date__isnull=False,
-        due_date__lte=timezone.now(),
+        due_date__lte=datetime.now(tz=UTC),
         status=OPEN,
     ).count()
     if not outstanding:

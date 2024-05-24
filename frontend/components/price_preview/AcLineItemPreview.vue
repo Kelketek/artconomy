@@ -16,14 +16,14 @@
     <v-col v-if="editing" cols="4">
       <span v-if="line.back_into_percentage && line.percentage">(*)</span>
       <span v-if="line.cascade_percentage && line.percentage">(</span>
-      <span v-if="line.percentage">{{line.percentage.toFixed(2)}}%</span>
+      <span v-if="line.percentage">{{line.percentage}}%</span>
       <span v-if="line.cascade_percentage && line.percentage">)</span>
       <span v-if="line.percentage && line.amount">&nbsp;+&nbsp;</span>
       <span v-if="line.cascade_amount && line.amount">(</span>
-      <span v-if="line.amount">${{line.amount.toFixed(2)}}</span>
+      <span v-if="line.amount">${{line.amount}}</span>
       <span v-if="line.cascade_amount && line.amount">)</span>
     </v-col>
-    <v-col class="text-left pl-1" :cols="priceCols">${{price.toFixed(2)}}</v-col>
+    <v-col class="text-left pl-1" :cols="priceCols">${{price}}</v-col>
   </v-row>
 </template>
 
@@ -31,7 +31,6 @@
 import LineItem from '@/types/LineItem.ts'
 import LineAccumulator from '@/types/LineAccumulator.ts'
 import {LineTypes} from '@/types/LineTypes.ts'
-import {Decimal} from 'decimal.js'
 import {computed} from 'vue'
 
 declare interface AcLineItemPreviewProps {
@@ -51,9 +50,9 @@ const priceCols = computed(() => props.editing ? 4 : 6)
 
 const price = computed(() => {
   if (props.line.frozen_value !== null) {
-    return new Decimal(props.line.frozen_value)
+    return props.line.frozen_value
   }
-  return props.priceData.subtotals.get(props.line) as Decimal
+  return props.priceData.subtotals.get(props.line) as string
 })
 
 const BASIC_TYPES: { [key: number]: string } = {
@@ -76,7 +75,7 @@ const label = computed(() => {
     return props.line.description
   }
   if (props.line.type === LineTypes.ADD_ON) {
-    if (price.value.lt(0)) {
+    if (parseFloat(price.value) < 0) {
       return 'Discount'
     } else {
       return 'Additional requirements'

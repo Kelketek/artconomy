@@ -20,7 +20,7 @@
       />
     </v-col>
     <v-col class="text-left" cols="4" md="5">
-      <v-text-field :disabled="true" :value="'$' + price.toFixed(2)" density="compact"/>
+      <v-text-field :disabled="true" :value="'$' + price" density="compact"/>
     </v-col>
     <v-col cols="2" sm="1" class="text-center d-flex justify-center pl-1">
       <v-btn size="x-small" icon color="red" @click.prevent="line.delete" v-if="deletable" :disabled="disabled" class="align-self-start mt-1">
@@ -34,7 +34,6 @@
 import LineItem from '@/types/LineItem.ts'
 import LineAccumulator from '@/types/LineAccumulator.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {Decimal} from 'decimal.js'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {LineTypes} from '@/types/LineTypes.ts'
 import {mdiDelete} from '@mdi/js'
@@ -53,7 +52,7 @@ const emit = defineEmits<{'new-line': []}>()
 
 const deletable = computed(()  => props.line.x?.type !== LineTypes.BASE_PRICE)
 
-const price = computed(() => props.priceData.subtotals.get(props.line.x as LineItem) as Decimal)
+const price = computed(() => props.priceData.subtotals.get(props.line.x as LineItem)!)
 
 const newLineFunc = () => {
   if (props.enableNewLine) {
@@ -66,7 +65,7 @@ const placeholder = computed(() => {
     return 'Base price'
   }
   if ((props.line.x as LineItem).type === 1) {
-    if (price.value.lt(0)) {
+    if (parseFloat(price.value) < 0) {
       return 'Discount'
     } else {
       return 'Additional requirements'

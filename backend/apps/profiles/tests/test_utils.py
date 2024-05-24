@@ -1,5 +1,8 @@
+from datetime import date
 from unittest.mock import patch
 from uuid import UUID
+
+from django.utils import timezone
 
 from apps.lib.abstract_models import ADULT, GENERAL
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin
@@ -38,7 +41,6 @@ from apps.sales.tests.factories import (
 )
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
-from django.utils.datetime_safe import date
 from freezegun import freeze_time
 from moneyed import Money
 
@@ -63,7 +65,8 @@ class ExtendPremiumTest(EnsurePlansMixin, TestCase):
     @freeze_time("2018-08-01")
     def test_extend_landscape_from_future(self):
         user = UserFactory.create(
-            service_plan=self.landscape, service_plan_paid_through=date(2018, 9, 5)
+            service_plan=self.landscape,
+            service_plan_paid_through=date(2018, 9, 5),
         )
         extend_landscape(user, months=1)
         self.assertEqual(user.landscape_paid_through, date(2018, 10, 5))
