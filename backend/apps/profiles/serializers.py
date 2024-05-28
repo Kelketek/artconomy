@@ -1,6 +1,8 @@
 from datetime import date
 from urllib.parse import quote_plus
 
+from django.db.models import Q
+
 from apps.lib.abstract_models import RATINGS
 from apps.lib.consumers import register_serializer
 from apps.lib.serializers import (
@@ -446,7 +448,9 @@ class SubmissionCharacterTagSerializer(serializers.ModelSerializer):
         )
         if self.context["request"].user.blocked_by.filter(id=val):
             raise ValidationError(error)
-        if not Character.objects.filter(id=val, user__taggable=True):
+        if not Character.objects.filter(id=val).filter(
+            Q(user__taggable=True) | Q(user=self.context["request"].user)
+        ):
             raise ValidationError(error)
         return val
 
