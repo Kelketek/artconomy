@@ -244,7 +244,10 @@ const loginLink = computed(() => {
   }
 })
 
-const runSearch = () => {
+const runSearch = (event: KeyboardEvent) => {
+  if (event.key === 'Tab') {
+    return
+  }
   if (route.name && (String(route.name).indexOf('Search') !== -1)) {
     return
   }
