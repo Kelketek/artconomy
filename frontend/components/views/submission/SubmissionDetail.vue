@@ -299,6 +299,8 @@ import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useRouter} from 'vue-router'
 import {textualize} from '@/lib/markdown.ts'
 import {useTargets} from '@/plugins/targets.ts'
+import ArtistTag from '@/types/ArtistTag.ts'
+import LinkedCharacter from '@/types/LinkedCharacter.ts'
 
 const props = defineProps<{submissionId: string}>()
 
@@ -323,11 +325,11 @@ const submission = useSingle<Submission>(
       },
     },
 )
-const artists = useList<TerseUser>(`submission__${props.submissionId}__artists`, {
+const artists = useList<ArtistTag>(`submission__${props.submissionId}__artists`, {
   endpoint: `${url.value}artists/`,
   paginated: false,
 })
-const characters = useList<Character>(`submission__${props.submissionId}__characters`, {
+const characters = useList<LinkedCharacter>(`submission__${props.submissionId}__characters`, {
   endpoint: `${url.value}characters/`,
   paginated: false,
 })
@@ -432,7 +434,7 @@ const windowTitle = computed(() => {
 })
 
 const tagControls = computed(() => {
-  return (controls.value || submission.x?.owner.taggable) && isRegistered.value
+  return !!((controls.value || submission.x?.owner.taggable) && isRegistered.value)
 })
 
 const commissionLink = computed(() => {

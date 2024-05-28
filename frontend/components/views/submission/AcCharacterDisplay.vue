@@ -62,7 +62,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 
 const props = defineProps<{controller: ListController<LinkedCharacter>, editable: boolean}>()
 const toggle = ref(false)
-const tagCharacter = useForm(props.controller.name + '__tagCharacter', {
+const tagCharacter = useForm(props.controller.name.value + '__tagCharacter', {
   fields: {character_id: {value: null}},
   endpoint: props.controller.endpoint,
 })

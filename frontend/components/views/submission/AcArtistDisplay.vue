@@ -58,11 +58,11 @@ import {mdiPalette} from '@mdi/js'
 import {ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 
-const props = defineProps<{controller: ListController<ArtistTag>, submissionId: number, editable: boolean}>()
+const props = defineProps<{controller: ListController<ArtistTag>, submissionId: number|string, editable: boolean}>()
 
 const toggle = ref(false)
 
-const tagArtist = useForm(props.controller.name + '__tagArtist', {
+const tagArtist = useForm(props.controller.name.value + '__tagArtist', {
   fields: {user_id: {value: null}},
   endpoint: props.controller.endpoint,
 })
