@@ -34,7 +34,7 @@
         </template>
         <v-row>
           <v-col cols="12" v-if="editing && controls">
-            <ac-patch-field field-type="ac-tag-field" :patcher="patcher"/>
+            <ac-patch-field field-type="ac-tag-field" :patcher="patcher" :autofocus="true"/>
           </v-col>
           <v-col cols="12" v-show="!editing">
             <v-chip v-for="tag in patcher.rawValue" :key="tag" class="mx-1" :color="$vuetify.theme.current.colors['well-darken-4']">

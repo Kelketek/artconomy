@@ -33,6 +33,7 @@
               <v-col cols="12">
                 <ac-bound-field
                     label="Tag Artist"
+                    :autofocus="true"
                     hint="Enter the username of another Artconomy user to tag them as an artist."
                     :field="tagArtist.fields.user_id" field-type="ac-user-select" :multiple="false" :filter="filter"
                     :tagging="true"/>
@@ -45,50 +46,24 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import AcLoadSection from '../../wrappers/AcLoadSection.vue'
 import AcRelatedManager from '../../wrappers/AcRelatedManager.vue'
 import AcAvatar from '../../AcAvatar.vue'
 import {ListController} from '@/store/lists/controller.ts'
-import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import ArtistTag from '@/types/ArtistTag.ts'
-import {ArtVue} from '@/lib/lib.ts'
 import {mdiPalette} from '@mdi/js'
+import {ref} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcExpandedProperty,
-    AcAvatar,
-    AcRelatedManager,
-    AcLoadSection,
-  },
+const props = defineProps<{controller: ListController<ArtistTag>, submissionId: number, editable: boolean}>()
+
+const toggle = ref(false)
+
+const tagArtist = useForm(props.controller.name + '__tagArtist', {
+  fields: {user_id: {value: null}},
+  endpoint: props.controller.endpoint,
 })
-class AcArtistDisplay extends ArtVue {
-  @Prop({required: true})
-  public controller!: ListController<ArtistTag>
-
-  public tagArtist: FormController = null as unknown as FormController
-  @Prop({required: true})
-  public submissionId!: number
-
-  public toggle = false
-  @Prop({required: true})
-  public editable!: boolean
-
-  public mdiPalette = mdiPalette
-
-  public created() {
-    this.tagArtist = this.$getForm(
-        this.controller.name + '__tagArtist', {
-          fields: {user_id: {value: null}},
-          endpoint: this.controller.endpoint,
-        })
-  }
-}
-
-export default toNative(AcArtistDisplay)
 </script>
