@@ -21,7 +21,7 @@
     "@sentry/vite-plugin": "^2.16.0",
     "@sentry/vue": "^7.109.0",
     "@stripe/stripe-js": "^3.3.0",
-    "@tato30/vue-pdf": "^1.9.4",
+    "@tato30/vue-pdf": "^1.10.0",
     "@uppy/core": "^3.10.1",
     "@uppy/dashboard": "^3.8.1",
     "@uppy/url": "^3.6.0",
@@ -73,10 +73,11 @@
     "typescript": "^5.0.0",
     "unplugin-fonts": "^1.0.3",
     "vite": "^5.2.6",
-    "vitest-mock-axios": "^0.1.0",
     "vite-plugin-checker": "^0.6.4",
+    "vite-plugin-top-level-await": "^1.4.1",
     "vite-plugin-vuetify": "^2.0.3",
     "vitest": "^1.4.0",
+    "vitest-mock-axios": "^0.1.0",
     "vitest-websocket-mock": "^0.3.0",
     "vue-tsc": "^1.8.25"
   }

@@ -6,6 +6,7 @@ import ProductGallery from '@/components/views/product/ProductGallery.vue'
 import {genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import {beforeEach, describe, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let router: Router
@@ -44,7 +45,7 @@ describe('ProductGallery', () => {
       ProductGallery, {
         ...vueSetup({
           store,
-router,
+          router,
         }),
         props: {
           username: 'Fox',
@@ -53,6 +54,6 @@ router,
       })
     const vm = wrapper.vm as any
     vm.product.makeReady(genProduct())
-    await wrapper.vm.$nextTick()
+    await nextTick()
   })
 })

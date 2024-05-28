@@ -136,7 +136,7 @@ import {useDisplay} from 'vuetify'
 const AcVideoPlayer = defineAsyncComponent(() => import('@/components/AcVideoPlayer.vue'))
 const AcMarkdownViewer = defineAsyncComponent(() => import('@/components/AcMarkdownViewer.vue'))
 const AcAudioPlayer = defineAsyncComponent(() => import('@/components/AcAudioPlayer.vue'))
-// const AcPdfViewer = defineAsyncComponent(() => import('@/components/AcPdfViewer.vue'))
+const AcPdfViewer = defineAsyncComponent(() => import('@/components/AcPdfViewer.vue'))
 const COMPONENT_EXTENSIONS = {
   MP4: AcVideoPlayer,
   WEBM: AcVideoPlayer,
@@ -146,7 +146,7 @@ const COMPONENT_EXTENSIONS = {
   MP3: AcAudioPlayer,
   WAV: AcAudioPlayer,
   OGG: AcAudioPlayer,
-  // PDF: AcPdfViewer,
+  PDF: AcPdfViewer,
 }
 
 declare interface AcAssetProps extends AssetProps {
