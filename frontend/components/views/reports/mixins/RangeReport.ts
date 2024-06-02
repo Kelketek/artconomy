@@ -1,27 +1,30 @@
-import {Component, Vue} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib.ts'
+import {computed, ref} from 'vue'
+import {format} from 'date-fns'
 
-@Component
-export default class RangeReport extends ArtVue {
-  public startDate = ''
-  public endDate = ''
-
-  public get rangeKwargs() {
+export const useRangeReport = () => {
+  const startDate = ref<null|Date>(null)
+  const endDate = ref<null|Date>(null)
+  const rangeKwargs = computed(() => {
     const kwargs: { [key: string]: string } = {}
-    if (this.startDate) {
-      kwargs.start_date = this.startDate
+    if (startDate.value) {
+      kwargs.start_date = format(startDate.value, 'yyyy-MM-dd')
     }
-    if (this.endDate) {
-      kwargs.end_date = this.endDate
+    if (endDate.value) {
+      kwargs.end_date = format(endDate.value, 'yyyy-MM-dd')
     }
     return kwargs
-  }
-
-  public get rangeString() {
-    const str = Object.keys(this.rangeKwargs).map(key => key + '=' + this.rangeKwargs[key]).join('&')
+  })
+  const rangeString = computed(() => {
+    const str = Object.keys(rangeKwargs.value).map(key => key + '=' + rangeKwargs.value[key]).join('&')
     if (str) {
       return `?${str}`
     }
     return ''
+  })
+  return {
+    startDate,
+    endDate,
+    rangeKwargs,
+    rangeString,
   }
 }

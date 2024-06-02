@@ -1,9 +1,10 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import AcBirthdayField from '@/components/fields/AcBirthdayField.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {parseISO} from 'date-fns'
+import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -17,17 +18,16 @@ describe('AcBirthdayField.vue', () => {
     cleanUp(wrapper)
   })
   test('Creates a datepicker in year mode by default.', async() => {
-    wrapper = mount(VuetifyWrapped(AcBirthdayField), {
+    wrapper = mount(AcBirthdayField, {
       ...vueSetup({store}),
       props: {modelValue: null},
     })
-    const vm = wrapper.vm.$refs.vm as any
-    await vm.$nextTick()
-    vm.menu = true
-    await vm.$nextTick()
+    await nextTick()
+    wrapper.vm.menu = true
+    await nextTick()
     vi.runAllTimers()
-    await vm.$nextTick()
-    expect(vm.$refs.picker.viewMode).toBe('year')
+    await nextTick()
+    expect(wrapper.vm.activePicker).toBe('year')
   })
   test('Sends an updated value.', async() => {
     wrapper = mount(AcBirthdayField, {
@@ -35,9 +35,9 @@ describe('AcBirthdayField.vue', () => {
       props: {modelValue: null},
     })
     const vm = wrapper.vm as any
-    await vm.$nextTick()
+    await nextTick()
     vm.converted = parseISO('1988-08-01')
-    await vm.$nextTick()
+    await nextTick()
     expect(wrapper.emitted('update:modelValue')).toHaveLength(1)
     expect(wrapper.emitted('update:modelValue')![0]).toEqual(['1988-08-01'])
   })

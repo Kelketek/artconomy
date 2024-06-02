@@ -37,16 +37,9 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import RangeReport from '@/components/views/reports/mixins/RangeReport.ts'
-import Subjective from '@/mixins/subjective.ts'
-
-@Component
-class AcTaxReports extends mixins(Subjective, RangeReport) {
-  public startDate = ''
-  public endDate = ''
-}
-
-export default toNative(AcTaxReports)
+<script setup lang="ts">
+import {useRangeReport} from '@/components/views/reports/mixins/RangeReport.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+const props = defineProps<SubjectiveProps>()
+const {startDate, endDate, rangeString} = useRangeReport()
 </script>
