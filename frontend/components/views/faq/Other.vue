@@ -304,7 +304,7 @@
               all browsers, but whatever you upload can be downloaded. You're advised to set the preview icon of
               any piece that doesn't have previewing, such as .PSD files.
             </li>
-            <li>The file size limit is currently <strong>~100MB</strong> (slightly under due to transfer overhead).
+            <li>The file size limit is currently <strong>~50MB</strong> (slightly under due to transfer overhead).
             </li>
             <li>.TXT files will be previewed with Markdown.</li>
             <li>
