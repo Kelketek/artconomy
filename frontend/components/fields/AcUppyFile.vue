@@ -39,6 +39,10 @@
 .ac-uppy-file .uppy-Url-input {
   margin-bottom: 1rem;
 }
+
+.ac-uppy-file .uppy-StatusBar-actionBtn--done {
+  display: none;
+}
 </style>
 
 <script setup lang="ts">
