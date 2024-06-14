@@ -152,7 +152,7 @@
                     <v-row no-gutters>
                       <v-col cols="6" sm="4" md="3" lg="2" v-for="char in character.recommended.list" :key="char.x!.id"
                              class="pa-1">
-                        <ac-character-preview :character="char.x" :mini="true"/>
+                        <ac-character-preview :character="char.x!" :mini="true"/>
                       </v-col>
                     </v-row>
                   </template>

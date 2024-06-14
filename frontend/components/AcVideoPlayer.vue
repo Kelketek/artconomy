@@ -8,11 +8,11 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {Asset} from '@/types/Asset.ts'
 
 import {getExt} from '@/mixins/asset_base.ts'
+import {computed} from 'vue'
 
 const VID_TYPES = {
   MP4: 'video/mp4',
@@ -20,20 +20,8 @@ const VID_TYPES = {
   WEBM: 'video/webm',
 }
 
-@Component
-class AcVideoPlayer extends Vue {
-  @Prop()
-  public asset!: Asset
-
-  public get type() {
-    // @ts-ignore
-    return VID_TYPES[getExt(this.asset.file.full)] || 'type/unknown'
-  }
-
-  public get width() {
-    return 800
-  }
-}
-
-export default toNative(AcVideoPlayer)
+const props = defineProps<{asset: Asset}>()
+// @ts-expect-error
+const type = computed(() => VID_TYPES[getExt(props.asset.file.full)] || 'type/unknown')
+const width = 800
 </script>

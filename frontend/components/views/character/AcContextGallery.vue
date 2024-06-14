@@ -8,7 +8,7 @@
           <div :class="featuredClasses">
             <v-col cols="12">
               <ac-gallery-preview
-                  :submission="featured"
+                  :submission="featured!"
                   thumb-name="gallery"
                   :contain="true"
                   :compact="true"
@@ -26,7 +26,7 @@
             <v-row>
               <v-col cols="6" lg="12" v-for="submission in prunedSubmissions" :key="submission.x!.id">
                 <ac-gallery-preview
-                    :submission="submission.x"
+                    :submission="submission.x!"
                     thumb-name="thumbnail"
                     :contain="true"
                     :show-footer="false"
@@ -47,13 +47,10 @@
 
 <script setup lang="ts">
 import AcGalleryPreview from '../../AcGalleryPreview.vue'
-import {Component, mixins, toNative} from 'vue-facing-decorator'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {Character} from '@/store/characters/types/Character.ts'
-import CharacterCentric from '@/components/views/character/mixins/CharacterCentric.ts'
 import Submission from '@/types/Submission.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import RatingRefresh, {useRatingRefresh} from '@/mixins/RatingRefresh.ts'
+import {useRatingRefresh} from '@/mixins/RatingRefresh.ts'
 import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
 import {computed} from 'vue'

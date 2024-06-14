@@ -2,7 +2,7 @@
   <ac-paginated :list="list" :track-pages="true" :auto-run="false">
     <v-row no-gutters>
       <v-col cols="4" sm="3" lg="2" v-for="submission in list.list" :key="submission.x!.id">
-        <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
+        <ac-gallery-preview :submission="submission.x!" :show-footer="false"/>
       </v-col>
     </v-row>
     <template v-slot:empty>

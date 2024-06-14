@@ -10,7 +10,7 @@
     </v-row>
     <ac-paginated :list="characters">
       <v-col class="pa-1" lg="2" md="3" cols="6" v-for="character in characters.list" :key="character.x!.id">
-        <ac-character-preview :character="character.x" :key="character.x!.id"></ac-character-preview>
+        <ac-character-preview :character="character.x!" :key="character.x!.id"></ac-character-preview>
       </v-col>
     </ac-paginated>
     <ac-form-dialog

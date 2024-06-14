@@ -7,7 +7,7 @@
             <v-row>
               <v-col cols="12" sm="6" md="4" lg="3" v-for="deliverable in deliverables.list" :key="deliverable.x!.id">
                 <ac-unread-marker :read="deliverable.x!.read">
-                  <ac-deliverable-preview :scope="$route.name" :order="order.x" :deliverable="deliverable.x"/>
+                  <ac-deliverable-preview :scope="String(route.name)" :order="order.x!" :deliverable="deliverable.x!"/>
                 </ac-unread-marker>
               </v-col>
             </v-row>

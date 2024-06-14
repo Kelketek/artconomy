@@ -5,6 +5,7 @@ import Submission from '@/types/Submission.ts'
 import {Ratings} from '@/types/Ratings.ts'
 import FileSpec from '@/types/FileSpec.ts'
 import Order from '@/types/Order.ts'
+import {Asset} from '@/types/Asset.ts'
 
 export default interface Deliverable {
   id: number,
@@ -37,7 +38,7 @@ export default interface Deliverable {
   international: boolean,
   final_uploaded: boolean,
   rating: Ratings,
-  display: {file: FileSpec, preview: FileSpec|null}|null,
+  display: Asset|null,
   order: Order,
   invoice: string | null,
   tip_invoice: string | null,

@@ -57,52 +57,32 @@
 }
 </style>
 
-<script>
+<script setup lang="ts">
 import AcAsset from './AcAsset.vue'
-import Viewer from '../mixins/viewer.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import {Character} from '@/store/characters/types/Character.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-character-preview',
-  components: {
-    AcLink,
-    AcAsset,
-  },
-  mixins: [Viewer],
-  computed: {
-    characterLink() {
-      return {name: 'Character',
-        params: {
-          username: this.character.user.username,
-          characterName: this.character.name,
-        },
-      }
-    },
-    characterAltText() {
-      if (this.character.primary_submission) {
-        const title = this.character.primary_submission.title
-        if (!title) {
-          return `Untitled Focus Submission for ${this.character.name}`
-        }
-        return `Focus Submission for ${this.character.name} titled: ${title}`
-      }
-      return ''
-    },
-    unavailable() {
-      return this.character.hidden
-    },
-  },
-  props: {
-    character: {},
-    contain: {
-      default: false,
-    },
-    mini: {
-      default: false,
-    },
-    showFooter: {
-      default: true,
-    },
-  },
+declare interface AcCharacterPreviewProps {
+  character: Character,
+  mini?: boolean,
+  showFooter?: boolean,
 }
+
+const props = withDefaults(defineProps<AcCharacterPreviewProps>(), {showFooter: true, mini: false})
+const characterLink = computed(() => ({
+  name: 'Character',
+  params: {username: props.character.user.username, characterName: props.character.name},
+}))
+const characterAltText = computed(() => {
+  if (props.character.primary_submission) {
+    const title = props.character.primary_submission.title
+    if (!title) {
+      return `Untitled Focus Submission for ${props.character.name}`
+    }
+    return `Focus Submission for ${props.character.name} titled: ${title}`
+  }
+  return ''
+})
+const unavailable = computed(() => props.character.private)
 </script>

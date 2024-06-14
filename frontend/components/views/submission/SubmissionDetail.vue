@@ -39,7 +39,7 @@
                           </v-row>
                         </v-col>
                         <v-col cols="12" sm="6">
-                          <ac-gallery-preview :submission="submission.x"/>
+                          <ac-gallery-preview :submission="submission.x!"/>
                         </v-col>
                       </v-row>
                     </v-window-item>
@@ -115,7 +115,7 @@
               <v-row no-gutters>
                 <v-col cols="4" sm="2" lg="6" xl="4" v-for="submission in recommended.list" :key="submission.x!.id">
                   <ac-gallery-preview
-                      :submission="submission.x"
+                      :submission="submission.x!"
                       :show-footer="false"
                       :text="false"
                   />

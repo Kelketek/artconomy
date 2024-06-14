@@ -11,18 +11,11 @@
   </v-row>
 </template>
 
-<script>
-
-
+<script setup lang="ts">
 import {getExt} from '@/mixins/asset_base.ts'
+import {Asset} from '@/types/Asset.ts'
+import {computed} from 'vue'
 
-export default {
-  props: ['asset', 'alt'],
-  name: 'ac-audio-player',
-  computed: {
-    type() {
-      return 'audio/' + getExt(this.asset.file.full).toLowerCase()
-    },
-  },
-}
+const props = defineProps<{asset: Asset, alt: string}>()
+const type = computed(() =>  'audio/' + getExt(props.asset.file.full).toLowerCase())
 </script>

@@ -3,9 +3,9 @@
     <v-card>
       <ac-link :to="deliverableLink">
         <ac-asset
-            :asset="deliverable.display"
+            :asset="deliverable.display || null"
             thumb-name="thumbnail"
-            aspect-ratio="1"
+            :aspect-ratio="1"
             :allow-preview="false"
             :alt="`Current progress image for deliverable #${deliverable.id}`"
         />
@@ -29,43 +29,28 @@
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import Deliverable from '@/types/Deliverable.ts'
 import Order from '@/types/Order.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import Formatting from '@/mixins/formatting.ts'
+import {formatDateTime} from '@/lib/otherFormatters.ts'
+import {computed} from 'vue'
 
-@Component({
-  components: {
-    AcDeliverableStatus,
-    AcOrderStatus: AcDeliverableStatus,
-    AcAsset,
-    AcLink,
-  },
-})
-class AcDeliverablePreview extends mixins(Formatting) {
-  @Prop({required: true})
-  public deliverable!: Deliverable
-
-  @Prop({required: true})
-  public order!: Order
-
-  @Prop({required: true})
-  public scope!: string
-
-  public get deliverableLink() {
-    return {
-      name: `${this.scope}Deliverable`,
-      params: {
-        orderId: this.order.id,
-        deliverableId: this.deliverable.id,
-      },
-    }
-  }
+declare interface AcDeliverablePreviewProps {
+  deliverable: Deliverable,
+  order: Order,
+  scope: string,
 }
 
-export default toNative(AcDeliverablePreview)
+const props = defineProps<AcDeliverablePreviewProps>()
+
+const deliverableLink = computed(() => ({
+  name: `${props.scope}Deliverable`,
+  params: {
+    orderId: props.order.id,
+    deliverableId: props.deliverable.id,
+  }
+}))
 </script>

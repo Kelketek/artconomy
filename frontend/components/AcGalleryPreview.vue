@@ -7,6 +7,7 @@
           <v-col cols="8" offset="2">
             <ac-link :to="submissionLink">
               <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" :allow-preview="false"
+                        :alt="altText"
                         :aspect-ratio="1"
                         :class="{fade: unavailable}"/>
             </ac-link>
@@ -37,7 +38,7 @@
           :terse="true"
           :aspect-ratio="aspectRatio"
           :allow-preview="allowPreview"
-          :alt="showFooter ? '' : submission.title || 'Untitled Submission.'"
+          :alt="showFooter ? '' : altText"
       />
     </ac-link>
     <ac-link :to="submissionLink" v-if="showFooter">
@@ -66,64 +67,48 @@
 }
 </style>
 
-<script>
+<script setup lang="ts">
 import AcAsset from './AcAsset.vue'
-import Viewer from '../mixins/viewer.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import Submission from '@/types/Submission.ts'
+import {computed} from 'vue'
 
-export default {
-  components: {
-    AcLink,
-    AcAsset,
-  },
-  name: 'ac-gallery-preview',
-  mixins: [Viewer],
-  props: {
-    submission: {},
-    thumbName: {
-      default: 'thumbnail',
-    },
-    compact: {
-      default: false,
-    },
-    contain: {
-      default: false,
-    },
-    showFooter: {
-      default: true,
-    },
-    aspectRatio: {
-      default: 1,
-    },
-    mini: {
-      default: false,
-    },
-    text: {
-      default: true,
-    },
-    linked: {
-      default: true,
-    },
-    allowPreview: {
-      default: false,
-    },
-    forceHidden: {
-      default: false,
-    },
-  },
-  computed: {
-    submissionLink() {
-      if (!this.linked) {
-        return null
-      }
-      return {
-        name: 'Submission',
-        params: {submissionId: this.submission.id},
-      }
-    },
-    unavailable() {
-      return this.submission.private || this.forceHidden
-    },
-  },
+declare interface AcGalleryPreviewProps {
+  submission: Submission,
+  thumbName?: string,
+  compact?: boolean,
+  contain?: boolean,
+  showFooter?: boolean,
+  aspectRatio?: number|null,
+  mini?: boolean,
+  text?: boolean,
+  linked?: boolean,
+  allowPreview?: boolean,
+  forceHidden?: boolean,
 }
+
+const props = withDefaults(defineProps<AcGalleryPreviewProps>(), {
+  thumbName: 'thumbnail',
+  compact: false,
+  contain: false,
+  showFooter: true,
+  aspectRatio: 1,
+  mini: false,
+  text: true,
+  linked: true,
+  allowPreview: false,
+  forceHidden: false,
+})
+
+const submissionLink = computed(() => {
+  if (!props.linked) {
+    return null
+  }
+  return {
+    name: 'Submission',
+    params: {submissionId: props.submission.id}
+  }
+})
+const altText = computed(() => props.submission.title || 'Untitled Submission.')
+const unavailable = computed(() => props.submission.private || props.forceHidden)
 </script>

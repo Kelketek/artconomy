@@ -3,7 +3,7 @@
     <v-col cols="12">
       <ac-gallery-preview class="pa-1"
                           :linked="false"
-                          :submission="submission.x" :show-footer="true"
+                          :submission="submission.x!" :show-footer="true"
                           :force-hidden="tag.x!.hidden"
       />
     </v-col>

@@ -213,6 +213,7 @@ export function genDeliverable(overrides?: Partial<Deliverable>): Deliverable {
         full: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png',
         __type__: 'data:image',
       },
+      rating: 0,
       preview: null,
     },
     invoice: '234gsdgsdfg4',
