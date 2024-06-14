@@ -6,6 +6,12 @@
 //!
 
 #![warn(missing_docs)]
+extern crate serde_json;
+extern crate wasm_bindgen;
+use wasm_bindgen::prelude::*;
+
+#[macro_use]
+extern crate serde_derive;
 
 /// Data structures used in line item calculations.
 pub mod data;
@@ -20,6 +26,7 @@ pub mod funcs {
     use rust_decimal_macros::dec;
     use std::cmp::Ordering;
     use std::collections::HashMap;
+    use wasm_bindgen::prelude::wasm_bindgen;
 
     /// Takes a list of line items, and builds them into lists of equal priority.
     pub fn lines_by_priority(lines: Vec<&LineItem>) -> Vec<Vec<&LineItem>> {
@@ -80,16 +87,18 @@ pub mod funcs {
         let mut working_subtotals: LineMoneyMap = HashMap::new();
         let mut summable_totals: LineMoneyMap = HashMap::new();
         let mut reductions: Vec<LineMoneyMap> = Vec::new();
-        let zero = current_total.currency().zero();
-        let one = current_total.currency().to_money(dec!(1));
+        let currency = current_total.currency();
+        let zero = currency.zero();
+        let one = currency.to_money(dec!(1));
         for line in priority_set.iter() {
+            let line_amount = currency.to_money(line.amount);
             let mut cascaded_amount = current_total.currency().zero();
             let mut added_amount = current_total.currency().zero();
             let mut working_amount: Money;
             if line.cascade_amount {
-                cascaded_amount = cascaded_amount + line.amount;
+                cascaded_amount = cascaded_amount + line_amount;
             } else {
-                added_amount = added_amount + line.amount;
+                added_amount = added_amount + line_amount;
             }
             let multiplier = Money::new(dec!(0.01) * line.percentage, *current_total.currency());
             if line.back_into_percentage {
@@ -100,7 +109,7 @@ pub mod funcs {
                     let factor = one / (one - multiplier);
                     let mut additional = zero;
                     if !line.cascade_amount {
-                        additional = line.amount
+                        additional = line_amount;
                     }
                     let initial_amount = current_total + additional;
                     working_amount = (initial_amount * factor) - initial_amount;
@@ -113,7 +122,7 @@ pub mod funcs {
             } else {
                 added_amount = added_amount + working_amount;
             }
-            working_amount = working_amount + line.amount;
+            working_amount = working_amount + line_amount;
             if cascaded_amount != zero {
                 let mut line_values: LineMoneyMap = HashMap::new();
                 for key in subtotals.keys() {
@@ -259,6 +268,7 @@ pub mod funcs {
 
     /// Get the total, discounted amount, and full LineMoneyMap with resultant amount for
     /// each line item. If you just need the total, use reckon_lines instead.
+    #[wasm_bindgen]
     pub fn get_totals(lines: Vec<&LineItem>, currency: Currency) -> (Money, Money, LineMoneyMap) {
         let priority_sets = lines_by_priority(lines);
         return normalized_lines(priority_sets, currency);
@@ -321,37 +331,37 @@ mod func_tests {
     fn test_line_sort() {
         let source = vec![
             LineItem {
-                amount: money!(5, USD),
+                amount: dec!(5),
                 priority: 1,
                 id: 0,
                 ..Default::default()
             },
             LineItem {
-                amount: money!(6, USD),
+                amount: dec!(6),
                 priority: 2,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: money!(7, USD),
+                amount: dec!(7),
                 priority: 3,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: money!(8, USD),
+                amount: dec!(8),
                 priority: 3,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                amount: money!(9, USD),
+                amount: dec!(9),
                 priority: 2,
                 id: 4,
                 ..Default::default()
             },
             LineItem {
-                amount: money!(10, USD),
+                amount: dec!(10),
                 priority: 0,
                 id: 5,
                 ..Default::default()

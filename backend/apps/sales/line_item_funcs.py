@@ -199,7 +199,6 @@ def distribute_difference(
         ),
     )
     current_values = [*sorted_values]
-    print(current_values)
     remaining = difference
     if remaining > Money("0", remaining.currency):
         amount = Money("0.01", remaining.currency)

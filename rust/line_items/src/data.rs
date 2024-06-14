@@ -6,13 +6,14 @@ use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::ops::{Add, Div, Mul, Neg, Sub};
+use serde::Serialize;
 
 /// Currency definition struct. Currency definitions determine how currencies are displayed
 /// and how they are quantized.
-#[derive(Copy, Clone, Hash, Getters)]
+#[derive(Copy, Clone, Hash, Getters, Serialize, Deserialize)]
 pub struct Currency {
     code: &'static str,
-    prefix: Option<&'static char>,
+    prefix: Option<&'static str>,
     quantization: u32,
 }
 
@@ -21,7 +22,7 @@ impl Currency {
     /// instantiated with static lifetime values for their codes and prefixes. We may eventually
     /// require Currency structs themselves to be in the static lifetime, since they are unchanging
     /// and frequently referenced.
-    pub fn new(code: &'static str, prefix: Option<&'static char>, quantization: u32) -> Currency {
+    pub fn new(code: &'static str, prefix: Option<&'static str>, quantization: u32) -> Currency {
         Currency {
             code,
             prefix,
@@ -63,7 +64,7 @@ impl Currency {
 /// tests.
 pub const USD: Currency = Currency {
     code: "USD",
-    prefix: Some(&'$'),
+    prefix: Some("$"),
     quantization: 2,
 };
 
@@ -76,23 +77,9 @@ pub struct Money {
     amount: Decimal,
 }
 
-/// IDs used in TargetRefs.
-#[derive(Hash, Eq, PartialEq, Debug)]
-enum RefId {
-    Number(u32),
-    ShortCode(String),
-}
-
-/// TargetRefs are listings of items on a LineItem. Useful for keeping track of what database
-/// entries a line item relates to.
-#[derive(Hash, Eq, PartialEq, Debug)]
-pub struct TargetRef {
-    model: String,
-    id: RefId,
-}
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
-#[derive(Hash, Eq, PartialEq, Debug)]
+#[derive(Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
     pub id: u32,
@@ -101,11 +88,11 @@ pub struct LineItem {
     /// value of lower-priority lines.
     pub priority: i16,
     /// A static amount this line item represents.
-    pub amount: Money,
+    pub amount: Decimal,
     /// A previous version of the line item calculations may have already run. If this happens,
     /// we will perform all operations with this frozen value. All line items should have this set
     /// if any do.
-    pub frozen_value: Option<Money>,
+    pub frozen_value: Option<Decimal>,
     /// Used for percentage-based line items, such as proportional fees/discounts. Can be used in
     /// conjunction with amount to add a static amount on top of the percentage.
     pub percentage: Decimal,
@@ -125,22 +112,6 @@ pub struct LineItem {
     /// top of it, as opposed to the other method where the percentage is deducted from whatever
     /// the total ended up being.
     pub back_into_percentage: bool,
-    /// This is mostly for internal reference and display information by the backend and frontend
-    /// as for what kind of line item this is. This doesn't affect calculations directly, but is
-    /// useful when constructing line items to make sure all relevant line items are present and how
-    /// to display them to the user.
-    pub item_type: u16,
-    /// A text description of the line item's purpose.
-    pub description: String,
-    /// The ID of the account type this line item goes to. See backend/apps/sales/constants.py to
-    /// see the relevant types.
-    pub destination_account: u16,
-    /// The ID of the destination user this line item will be debited to. Set to None in order to
-    /// debit to the system account.
-    pub destination_user: Option<u32>,
-    /// A set of targets this line items is for. Not used for calculation, but helpful for
-    /// annotation.
-    pub targets: Vec<TargetRef>,
     /// Whether the amount is to be pulled out of lower priority line items rather than added on
     /// top.
     pub cascade_amount: bool,
@@ -156,16 +127,11 @@ impl Default for LineItem {
             LineItem {
                 id: COUNTER,
                 priority: 0,
-                amount: Money::new(dec!(0), USD),
+                amount: dec!(0),
                 frozen_value: None,
                 percentage: dec!(0),
                 cascade_percentage: false,
                 back_into_percentage: false,
-                item_type: 0,
-                description: "".to_string(),
-                destination_account: 0,
-                destination_user: None,
-                targets: vec![],
                 cascade_amount: false,
             }
         }
