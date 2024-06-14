@@ -1,32 +1,6 @@
 # Artconomy
 
-Artconomy is a platform for making art commissions safer and easier. We provide escrow services as well as a custom workflow to make managing commissions simpler.
-
-Artconomy's values include transparency and freedom. To that effect, we are open sourcing our platform.
-
-## Why Open Source
-
-Open source software allows communities to better trust the behavior of software by making it auditable by members of the community. It also keeps its developers honest-- if they abuse their constituents, those constituents have the ability to start a new project with the code.
-
-This leads into the primary reason why somoene might object to open sourcing their project: Fear that someone else will 'steal their idea'. After working on this project (and other open source projects) for a few years, I have come to the conclusion that the software written for this business is the easiest part of it. The relationships and community one builds around the platform are much more challenging, and they are what allow your company to survive long-term.
-
-Furthermore, we've invested a lot of work into making a great deal of automation that we HOPE someone will steal for unrelated projects down the line. This is one of the best ways we'd suggest someone contribute-- find the code we've used to automate much of the CRUD operations we do, and break it into a library for others to use.
-
-Over time we intend to improve documentation to make the codebase more accessible (and documentation is a great way to contribute!)
-
-## Why AGPLv3?
-
-We dislike intellectual property, for many reasons. Generally we think it creates the wrong incentives, and aside from this, enforcement is out of reach for small-time artists trying to make it on their own. In practice the handful of times it's used to help small artists pales in comparison to the destructive capacity it gives large corporations. You can learn more about why intellectual property should be viewed with intense skepticism by [watching this video](https://www.youtube.com/watch?v=jIM6dN3ogbk) and [this follow-up video](https://www.youtube.com/watch?v=mnnYCJNhw7w). The site itself, of course, lets artists set what terms they like in their commission info. We're not forcing artists to join us on this mindset, but we are proving the sincerity of our belief by putting our code out there for anyone to take and use.
-
-Initially we considered using a license like WTFPL, which allows you to 'Just do what the fuck you want.' However in context of the legal system of intellectual property, it became apparent that 'what the fuck you want' might have unexpected consequences. The software could, for instance, be used in a larger context to build software patents. Those patents could then be weaponized.
-
-There does not appear to be a well known proven legal license that can effectively prevent this while still allowing private use and non-distribution. At least, not in our judgement. As a result, we feel the AGPLv3 creates the least harm and best benefit to the community given the legal frameworks in which we live. Until such a time as intellectual property is abolished, the AGPLv3 appears the best license for the job. It nullifies (or, at least, greatly disincentivizes) the capacity to weaponize the code against others in almost any case we could expect this to be done.
-
-## Content warning
-
-Expect some swear words in the code. I wrote this platform because the options for commissioning pornography were abysmal and fraught with danger. Since the code was going to be used to facilitate porn creation, I saw little reason to censor myself in comments, tests, and constants.
-
-That's not to say that Artconomy is only for adult work. In practice we've had just as many (maybe more) clean commissions made through the site, just that it was the case I had directly in mind when building the platform, and so that's reflected in my comments.
+Artconomy is a platform for making art commissions safer and easier. We provide escrow services as well as a custom workflow to make managing commissions simpler. You can visit us at [Artconomy.com](https://artconomy.com/)!
 
 ## How to run this code
 
