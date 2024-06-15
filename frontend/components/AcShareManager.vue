@@ -21,40 +21,21 @@
   </v-row>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import AcAvatar from './AcAvatar.vue'
 import AcRelatedManager from './wrappers/AcRelatedManager.vue'
-import AcLoadSection from './wrappers/AcLoadSection.vue'
 import AcBoundField from './fields/AcBoundField.ts'
-import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {ArtVue, genId} from '@/lib/lib.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
+import {genId} from '@/lib/lib.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import {useForm} from '@/store/forms/hooks.ts'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcLoadSection,
-    AcRelatedManager,
-    AcAvatar,
-  },
+const props = defineProps<{controller: ListController<TerseUser>}>()
+
+const newShare = useForm('share_' + genId(), {
+  endpoint: props.controller.endpoint,
+  fields: {user_id: {value: null}},
 })
-class AcShareManager extends ArtVue {
-  @Prop({required: true})
-  public controller!: ListController<TerseUser>
-
-  public newShare: FormController = null as unknown as FormController
-
-  public created() {
-    this.newShare = this.$getForm('share_' + genId(), {
-      endpoint: this.controller.endpoint,
-      fields: {user_id: {value: null}},
-    })
-  }
-}
-
-export default toNative(AcShareManager)
 </script>
 
 <style scoped>

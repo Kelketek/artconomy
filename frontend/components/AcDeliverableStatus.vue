@@ -6,7 +6,6 @@
 </template>
 
 <script setup lang="ts">
-import Deliverable from '@/types/Deliverable.ts'
 import {
   mdiCancel,
   mdiCheckCircle,
@@ -20,8 +19,9 @@ import {
   mdiPencil,
   mdiStar,
 } from '@mdi/js'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
 
-const props = defineProps<{deliverable: Deliverable}>()
+const props = defineProps<{deliverable: {status: DeliverableStatus}}>()
 const STATUSES = {
   0: {
     text: 'Waiting',

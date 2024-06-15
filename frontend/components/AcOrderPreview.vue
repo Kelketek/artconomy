@@ -4,7 +4,7 @@
       <ac-link :to="order.x.default_path">
         <ac-hidden-flag :value="order.x.private || order.x.hide_details"/>
         <ac-asset
-            :asset="order.x.display"
+            :asset="order.x!.display"
             thumb-name="thumbnail"
             :aspect-ratio="1"
             :terse="true"
@@ -44,7 +44,7 @@
   </v-col>
   <v-col v-else>
     <v-card>
-      <ac-asset :asset="null" thumb-name="thumbnail"/>
+      <ac-asset :asset="null" thumb-name="thumbnail" alt=""/>
       <v-card-text>
         <strong>Private Order</strong>
         <p>This order is private. No details or previews, sorry!</p>
@@ -53,45 +53,21 @@
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '../mixins/formatting.ts'
+<script setup lang="ts">
 import AcAsset from './AcAsset.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import Order from '@/types/Order.ts'
-import Subjective from '@/mixins/subjective.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
+import {deriveDisplayName, formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
 
-@Component({
-  components: {
-    AcHiddenFlag,
-    AcDeliverableStatus,
-    AcLink,
-    AcAsset,
-  },
-})
-class AcOrderPreview extends mixins(Subjective, Formatting) {
-  @Prop({required: true})
-  public type!: string
 
-  @Prop({required: true})
-  public order!: SingleController<Order>
-
-  public get name() {
-    /* istanbul ignore if */
-    if (!this.order.x) {
-      return ''
-    }
-    return this.order.x.product_name
-  }
-
-  public get isBuyer() {
-    const order = this.order.x as Order
-    return order.buyer && order.buyer.username === this.rawViewerName
-  }
-}
-
-export default toNative(AcOrderPreview)
+const props = defineProps<{type: string, order: SingleController<Order>} & SubjectiveProps>()
+const {rawViewerName} = useViewer()
+const name = computed(() => `${props.order.x!.product_name}`)
+const isBuyer = computed(() => props.order.x!.buyer && props.order.x!.buyer.username === rawViewerName.value)
 </script>

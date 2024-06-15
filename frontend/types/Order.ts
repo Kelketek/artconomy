@@ -2,6 +2,7 @@ import {User} from '@/store/profiles/types/User.ts'
 import FileSpec from '@/types/FileSpec.ts'
 import {RouteLocationNamedRaw} from 'vue-router'
 import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {Asset} from '@/types/Asset.ts'
 
 export default interface Order {
   id: number,
@@ -15,7 +16,7 @@ export default interface Order {
   hide_details: boolean,
   claim_token: string|null,
   product_name: string,
-  display: {file: FileSpec, preview: FileSpec|null}|null,
+  display: Asset|null,
   default_path: RouteLocationNamedRaw,
   deliverable_count: number,
   status: DeliverableStatus,

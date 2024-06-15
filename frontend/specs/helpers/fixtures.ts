@@ -273,6 +273,7 @@ export function genOrder(overrides?: Partial<Order>): Order {
         full: 'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png',
         __type__: 'data:image',
       },
+      rating: 0,
       preview: null,
     },
     ...overrides,
