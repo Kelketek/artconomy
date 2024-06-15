@@ -56,15 +56,9 @@
 </style>
 
 <script setup lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import {ListController} from '@/store/lists/controller.ts'
 import Invoice from '@/types/Invoice.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {NavSettings} from '@/types/NavSettings.ts'
 import {initDrawerValue, INVOICE_TYPES} from '@/lib/lib.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import {mdiArrowLeftBold, mdiPrinter} from '@mdi/js'

@@ -7,10 +7,9 @@
  * file users must download. It has now been augmented with a series of manual rendering hacks to make it no longer
  * necessary to include the full template compiler.
  */
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Formatting from '@/mixins/formatting.ts'
-import {h} from 'vue'
-import {genId} from '@/lib/lib.ts'
+import {computed, defineComponent, h, PropType, ref, useSlots} from 'vue'
+import {md} from '@/lib/markdown.ts'
+import {truncateText} from '@/lib/otherFormatters.ts'
 
 function fromHTML(html: string, inline: boolean) {
   // Adapted from: https://stackoverflow.com/a/35385518/927224
@@ -28,100 +27,80 @@ function fromHTML(html: string, inline: boolean) {
   return Array.from(template.content.children)
 }
 
-@Component
-class AcRendered extends mixins(Formatting) {
-  @Prop({default: ''})
-  public value!: string
-
-  @Prop({default: 'div'})
-  public tag!: string
-
-  @Prop({default: () => ({'v-col': true})})
-  public classes!: { [key: string]: boolean }
-
-  @Prop({default: false})
-  public inline!: boolean
-
-  @Prop({default: false})
-  public truncate!: boolean | number
-
-  @Prop({default: true})
-  public showMore!: boolean
-
-  public more = false
-
-  public refId = genId()
-
-  public get rendered() {
-    let content: string
-    if (this.inline) {
-      content = this.mdRenderInline(this.availableText)
-    } else {
-      content = this.mdRender(this.availableText)
-    }
-    const elements = fromHTML(content, this.inline)
-    if (this.inline) {
-      const renderedTag = elements[0]
-      return [h(renderedTag.tagName, {innerHTML: renderedTag.innerHTML})]
-    }
-    return elements.map((element) => h(element.tagName, {
-      ...element.attributes,
-      innerHTML: element.innerHTML,
-    }))
-  }
-
-  public render() {
-    if (!this.availableText && this.$slots.empty) {
-      return this.$slots.empty()
-    }
-    const rendered = this.rendered
-    if (this.inline) {
-      return rendered[0]
-    }
-    return h(this.tag, {class: this.classes}, [...rendered, ...this.readMore])
-  }
-
-  public get availableText(): string {
-    if (this.more) {
-      return this.value
-    }
-    let value = this.value || ''
-    let truncateLength: number | undefined
-    if (this.truncate) {
-      if (typeof this.truncate === 'number') {
-        truncateLength = this.truncate
-      } else {
-        truncateLength = 1000
+export default defineComponent({
+  props: {
+    value: {default: '', type: String},
+    tag: {default: 'div', type: String},
+    classes: {default: () => ({'v-col': true}), type: Object as PropType<{[key: string]: boolean}>},
+    inline: {default: false, type: Boolean},
+    truncate: {default: false, type: [Number, Boolean]},
+    showMore: {default: true, type: Boolean},
+  },
+  setup: (props) => {
+    const more = ref(false)
+    const slots = useSlots()
+    const availableText = computed(() => {
+      if (more.value) {
+        return props.value
       }
-      value = this.truncateText(value, truncateLength)
-    }
-    return value
-  }
-
-  public get truncated() {
-    return !(this.availableText === (this.value || ''))
-  }
-
-  public get readMore() {
-    if ((!this.truncated) || !this.showMore) {
-      return []
-    }
-    return [
-      h('header', {
-        class: 'read-more-bar v-toolbar v-toolbar--density-compact bg-black v-theme--dark v-locale--is-ltr',
-        onClick: () => this.more = true,
-      }, [
-        h('div', {
-          class: 'v-toolbar__content',
-          style: 'height: 48px;',
+      let value = props.value || ''
+      let truncateLength: number | undefined
+      if (props.truncate) {
+        if (typeof props.truncate === 'number') {
+          truncateLength = props.truncate
+        } else {
+          truncateLength = 1000
+        }
+        value = truncateText(value, truncateLength)
+      }
+      return value
+    })
+    const truncated = computed(() => !(availableText.value === (props.value || '')))
+    const rendered = computed(() => {
+      let content: string
+      if (props.inline) {
+        content = md.renderInline(availableText.value)
+      } else {
+        content = md.render(availableText.value)
+      }
+      const elements = fromHTML(content, props.inline)
+      if (props.inline) {
+        const renderedTag = elements[0]
+        return [h(renderedTag.tagName, {innerHTML: renderedTag.innerHTML})]
+      }
+      return elements.map((element) => h(element.tagName, {
+        ...element.attributes,
+        innerHTML: element.innerHTML,
+      }))
+    })
+    const readMore = computed(() => {
+      if ((!truncated.value) || !props.showMore) {
+        return []
+      }
+      return [
+        h('header', {
+          class: 'read-more-bar v-toolbar v-toolbar--density-compact bg-black v-theme--dark v-locale--is-ltr',
+          onClick: () => more.value = true,
         }, [
-          h('div', {class: 'v-col text-center'}, [
-            h('strong', ['Read More']),
+          h('div', {
+            class: 'v-toolbar__content',
+            style: 'height: 48px;',
+          }, [
+            h('div', {class: 'v-col text-center'}, [
+              h('strong', ['Read More']),
+            ]),
           ]),
         ]),
-      ]),
-    ]
+      ]
+    })
+    return () => {
+      if (!availableText.value && slots.empty) {
+        return slots.empty()
+      }
+      if (props.inline) {
+        return rendered.value[0]
+      }
+      return h(props.tag, {class: props.classes}, [...rendered.value, ...readMore.value])
+    }
   }
-}
-
-export default toNative(AcRendered)
+})
