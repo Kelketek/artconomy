@@ -1,7 +1,7 @@
 <template>
   <v-card :class="{comment: true, 'elevation-3': alternate}" class="new-comment" :color="color">
     <v-toolbar dense color="black" v-if="isRegistered || (isLoggedIn && guestOk)">
-      <ac-avatar :user="viewer" :show-name="false" class="ml-3"/>
+      <ac-avatar :user="viewerUser" :show-name="false" class="ml-3"/>
       <v-toolbar-title class="ml-1">
         <ac-link :to="profileLink(viewerUser)">{{viewerName}}</ac-link>
       </v-toolbar-title>
@@ -67,88 +67,75 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import AcEditor from '../fields/AcEditor.vue'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {mdiCancel, mdiSend} from '@mdi/js'
 import {User} from '@/store/profiles/types/User.ts'
+import Comment from '@/types/Comment.ts'
+import {computed, Ref, watch} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {profileLink} from '@/lib/otherFormatters.ts'
+import {useTheme} from 'vuetify'
 
-@Component({
-  components: {
-    AcLink,
-    AcForm,
-    AcBoundField,
-    AcFormContainer,
-    AcAvatar,
-    AcEditor,
-  },
-  emits: ['update:modelValue'],
-})
-class AcNewComment extends mixins(Viewer, Formatting) {
-  @Prop({required: true})
-  public commentList!: ListController<Comment>
 
-  @Prop({default: false})
-  public alternate!: boolean
-
-  @Prop({default: false})
-  public modelValue!: boolean
-
-  @Prop({default: false})
-  public guestOk!: boolean
-
-  @Prop({default: () => ({})})
-  public extraData!: RawData
-
-  public newCommentForm: FormController = null as unknown as FormController
-  public mdiCancel = mdiCancel
-  public mdiSend = mdiSend
-
-  public get viewerUser() {
-    return this.viewer as User
-  }
-  public get color() {
-    if (this.alternate) {
-      // @ts-ignore
-      return this.$vuetify.theme.current.colors['well-darken-4']
-    }
-    return ''
-  }
-
-  // Used for when we're nested under a comment thread.
-  public cancel() {
-    this.$emit('update:modelValue', false)
-  }
-
-  @Watch('extraData', {deep: true})
-  public updateData() {
-    this.newCommentForm.fields.extra_data.update(this.extraData)
-  }
-
-  public publish() {
-    this.newCommentForm.submit().then(this.commentList.push).then(this.cancel).catch(this.newCommentForm.setErrors)
-  }
-
-  public created() {
-    this.newCommentForm = this.$getForm(this.commentList.name + '_new', {
-      endpoint: this.commentList.endpoint,
-      fields: {
-        text: {value: ''},
-        extra_data: {value: this.extraData},
-      },
-    })
-  }
+// Used for when we're nested under a comment thread.
+const cancel = () => {
+  emit('update:modelValue', false)
 }
 
-export default toNative(AcNewComment)
+declare interface AcNewCommentProps {
+  commentList: ListController<Comment>
+  alternate?: boolean,
+  modelValue?: boolean,
+  guestOk?: boolean,
+  extraData?: RawData,
+}
+
+const props = withDefaults(
+    defineProps<AcNewCommentProps>(),
+    {
+      alternate: false,
+      modelValue: false,
+      guestOk: false,
+      extraData: () => ({}),
+    }
+)
+
+const theme = useTheme()
+
+const color = computed(() => {
+  if (props.alternate) {
+    // @ts-ignore
+    return theme.current.value.colors['well-darken-4']
+  }
+  return ''
+})
+
+const emit = defineEmits<{'update:modelValue': [false]}>()
+const {viewer, isLoggedIn, isRegistered, viewerName} = useViewer()
+
+const viewerUser =  viewer as Ref<User>
+
+const newCommentForm = useForm(props.commentList.name + '_new', {
+  endpoint: props.commentList.endpoint,
+  fields: {
+    text: {value: ''},
+    extra_data: {value: props.extraData},
+  },
+})
+
+const publish = () => {
+  newCommentForm.submit().then(props.commentList.push).then(cancel).catch(newCommentForm.setErrors)
+}
+
+watch(() => props.extraData, () => {
+  newCommentForm.fields.extra_data.update(props.extraData)
+}, {deep: true})
 </script>
