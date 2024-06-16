@@ -7,36 +7,32 @@
   </v-text-field>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'
+import {computed, nextTick, useSlots} from 'vue'
 
-@Component({emits: ['update:modelValue']})
-class AcPriceField extends Vue {
-  @Prop({required: true})
-  public modelValue!: string
+const emit = defineEmits<{'update:modelValue': [string]}>()
+const props = defineProps<{modelValue: string}>()
+const slots = useSlots()
 
-  public update(value: string) {
-    this.$emit('update:modelValue', value)
-  }
-
-  public get slotNames(): Array<keyof VTextField['$slots']> {
-    // @ts-expect-error
-    return [...Object.keys(this.$slots)]
-  }
-
-  public blur() {
-    this.$nextTick(() => {
-      const rawValue = this.modelValue
-      const newVal = parseFloat(rawValue)
-      /* istanbul ignore if */
-      if (isNaN(newVal)) {
-        return
-      }
-      this.update(newVal.toFixed(2))
-    })
-  }
+const update = (value: string) => {
+  emit('update:modelValue', value)
 }
 
-export default toNative(AcPriceField)
+const blur = () => {
+  nextTick(() => {
+    const rawValue = props.modelValue
+    const newVal = parseFloat(rawValue)
+    /* istanbul ignore if */
+    if (isNaN(newVal)) {
+      return
+    }
+    update(newVal.toFixed(2))
+  })
+}
+
+const slotNames = computed((): Array<keyof VTextField['$slots']> => {
+  // @ts-expect-error
+  return [...Object.keys(slots)]
+})
 </script>
