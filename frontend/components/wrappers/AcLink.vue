@@ -8,31 +8,28 @@
   <slot v-else/>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
-import {RouteLocationRaw} from 'vue-router'
-import {ArtVue} from '@/lib/lib.ts'
+<script setup lang="ts">
+import {RouteLocationRaw, useRouter} from 'vue-router'
+import {ArtState} from '@/store/artState.ts'
+import {useStore} from 'vuex'
 
-@Component
-class AcLink extends ArtVue {
-  @Prop()
-  public to!: RouteLocationRaw
+const props = withDefaults(defineProps<{
+  to?: RouteLocationRaw|null,
+  // Must be used only with string location
+  newTab?: boolean
+}>(), {newTab: false})
 
-  // Must be used with string location
-  @Prop({default: false})
-  public newTab!: boolean
+const router = useRouter()
+const store = useStore<ArtState>()
 
-  public navigate(event: Event) {
-    event.preventDefault()
-    if (this.$store.state.iFrame) {
-      event.stopPropagation()
-      const routeData = this.$router.resolve(this.to)
-      window.open(routeData.href, '_blank')
-      return
-    }
-    this.$router.push(this.to)
+const navigate = (event: Event) => {
+  event.preventDefault()
+  if (store.state.iFrame) {
+    event.stopPropagation()
+    const routeData = router.resolve(props.to!)
+    window.open(routeData.href, '_blank')
+    return
   }
+  router.push(props.to!)
 }
-
-export default toNative(AcLink)
 </script>

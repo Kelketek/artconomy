@@ -6,7 +6,7 @@
                       :class="{prerendering}" v-bind="extraParams"/>
       </v-col>
       <v-col cols="12">
-        <ac-load-section :controller="list" class="load-section" :force-render="list.grow && list.list.length"
+        <ac-load-section :controller="list" class="load-section" :force-render="list.grow && !!list.list.length"
                          :load-on-grow="false">
           <template v-slot:default>
             <v-row no-gutters v-if="list.list.length">
@@ -47,72 +47,67 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {ListController} from '@/store/lists/controller.ts'
-import ErrorHandling from '@/mixins/ErrorHandling.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
+import {usePrerendering} from '@/mixins/prerendering.ts'
+import {computed, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 
-@Component({
-  components: {
-    AcGrowSpinner,
-    AcLoadSection,
-  },
+declare interface AcPaginatedProps {
+  autoRun?: boolean,
+  trackPages?: boolean,
+  pageVariable?: string,
+  list: ListController<any>,
+  okStatuses?: number[],
+  showPagination?: boolean,
+}
+const props = withDefaults(
+    defineProps<AcPaginatedProps>(),
+    {
+      autoRun: true,
+      trackPages: false,
+      pageVariable: 'page',
+      okStatuses: () => [],
+      showPagination: true,
+    },
+)
+const {prerendering} = usePrerendering()
+const route = useRoute()
+const router = useRouter()
+const {statusOk} = useErrorHandling()
+
+const extraParams = computed(() => {
+  /* istanbul ignore if */
+  if (prerendering.value) {
+    return {'total-visible': 5}
+  }
+  return undefined
 })
-class AcPaginated extends mixins(ErrorHandling) {
-  @Prop({default: true})
-  public autoRun!: boolean
 
-  @Prop({default: false})
-  public trackPages!: boolean
+const list = props.list
 
-  @Prop({default: 'page'})
-  public pageVariable!: string
-
-  @Prop({required: true})
-  public list!: ListController<any>
-
-  @Prop({default: () => []})
-  public okStatuses!: number[]
-
-  @Prop({default: true})
-  public showPagination!: boolean
-
-  public prerendering = window.PRERENDERING || 0
-
-  @Watch('list.currentPage')
-  public updateRoute(val: number | undefined) {
-    // istanbul ignore if
-    if (!val) {
-      return
-    }
-    if (!this.trackPages) {
-      return
-    }
-    const route = {...this.$route.query}
-    route[this.pageVariable] = val + ''
-    this.$router.replace({query: route})
+watch(() => list.currentPage, (val) => {
+  // istanbul ignore if
+  if (!val) {
+    return
   }
-
-  public get extraParams() {
-    /* istanbul ignore if */
-    if (this.prerendering) {
-      return {'total-visible': 5}
-    }
+  if (!props.trackPages) {
+    return
   }
+  const query = {...route.query}
+  query[props.pageVariable] = val + ''
+  router.replace({query})
+})
 
-  public created() {
-    if (this.trackPages) {
-      if (this.$route.query[this.pageVariable]) {
-        this.list.currentPage = parseInt(this.$route.query[this.pageVariable] + '', 10)
-      }
-    }
-    if (this.autoRun) {
-      this.list.firstRun().catch(this.statusOk(...this.okStatuses))
-    }
+if (props.trackPages) {
+  if (route.query[props.pageVariable]) {
+    list.currentPage = parseInt(route.query[props.pageVariable] + '', 10)
   }
 }
-
-export default toNative(AcPaginated)
+if (props.autoRun) {
+  list.firstRun().catch(statusOk(...props.okStatuses))
+}
 </script>

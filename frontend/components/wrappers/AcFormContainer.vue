@@ -1,5 +1,5 @@
 <template>
-  <v-row class="form-container" no-gutters>
+  <v-row class="form-container" no-gutters ref="root">
     <div v-if="sending" class="loading-overlay">
       <v-progress-circular
           indeterminate
@@ -52,43 +52,42 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {nextTick, onMounted, ref, watch} from 'vue'
 
-@Component
-class AcFormContainer extends Vue {
-  @Prop({default: false})
-  public sending!: boolean
-
-  @Prop({default: () => []})
-  public errors!: string[]
-
-  @Prop({default: true})
-  public showSpinner!: boolean
-
-  public savedErrors: string[] = []
-
-  public toggleError(val: boolean, index: number) {
-    /* istanbul ignore if */
-    if (val) {
-      return
+const props = withDefaults(
+    defineProps<{sending?: boolean, errors?: string[], showSpinner?: boolean}>(),
+    {
+      sending: false,
+      errors: () => [],
+      showSpinner: true,
     }
-    this.savedErrors.splice(index, 1)
-  }
+)
 
-  public mounted() {
-    window._paq.push(['FormAnalytics::scanForForms', this.$el])
-  }
+const savedErrors = ref<string[]>([])
 
-  @Watch('errors', {deep: true})
-  public saveErrors(val: string[]) {
-    /* istanbul ignore if */
-    if (!Array.isArray(val)) {
-      return
-    }
-    this.savedErrors = [...val]
+const toggleError = (val: boolean, index: number) => {
+  if (val) {
+    return
   }
+  savedErrors.value.splice(index, 1)
 }
 
-export default toNative(AcFormContainer)
+watch(() => props.errors, (val: string[]) => {
+  if (!Array.isArray(val)) {
+    return
+  }
+  savedErrors.value = [...val]
+})
+
+const root = ref<Element|null>(null)
+
+// Needed for tests.
+defineExpose(props)
+
+onMounted(() => {
+  nextTick(() => {
+    window._paq.push(['FormAnalytics::scanForForms', root.value!.outerHTML])
+  })
+})
 </script>

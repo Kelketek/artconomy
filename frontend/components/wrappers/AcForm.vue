@@ -1,21 +1,16 @@
 <template>
-  <v-form v-bind="$attrs">
+  <v-form v-bind="attrs" ref="root">
     <slot/>
   </v-form>
 </template>
 
-<script lang="ts">
-import {Component, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {nextTick, onMounted, ref, useAttrs} from 'vue'
+import {VForm} from 'vuetify/components'
 
-@Component({inheritAttrs: false})
-class AcForm extends Vue {
-  public mounted() {
-    this.$nextTick(() => {
-      // @ts-ignore
-      window._paq.push(['FormAnalytics::scanForForms', this.$el])
-    })
-  }
-}
+defineOptions({inheritAttrs: false})
+const attrs = useAttrs()
+const root = ref<null|typeof VForm>(null)
 
-export default toNative(AcForm)
+onMounted(() => nextTick(() => window._paq.push(['FormAnalytics::scanForForms', root.value!.outerHTML])))
 </script>

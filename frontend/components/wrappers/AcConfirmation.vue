@@ -3,7 +3,7 @@
   <slot :on="on">
     <v-btn class="confirm-launch" variant="flat" @click="show">Submit</v-btn>
   </slot>
-  <v-dialog v-model="showModal" max-width="500px" :persistent="sending" :attach="$modalTarget">
+  <v-dialog v-model="showModal" max-width="500px" :persistent="sending" :attach="modalTarget">
     <v-card :class="cardClass">
       <v-toolbar flat dark color="secondary">
         <v-toolbar-title>
@@ -62,46 +62,30 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib.ts'
+<script setup lang="ts">
 import {mdiClose} from '@mdi/js'
+import {computed, ref} from 'vue'
+import {useTargets} from '@/plugins/targets.ts'
 
-@Component
-class AcConfirmation extends ArtVue {
-  @Prop({required: true})
-  public action!: () => Promise<any>
+const props = defineProps<{action: () => Promise<unknown>, cardClass?: string}>()
+const showModal = ref(false)
+const sending = ref(false)
+const {modalTarget} = useTargets()
 
-  @Prop()
-  public cardClass!: string
-
-  public showModal: boolean = false
-  public sending: boolean = false
-  public mdiClose = mdiClose
-
-  public dismiss() {
-    this.showModal = false
-    this.sending = false
-  }
-
-  public get cardClassLiteral() {
-    return `${this.cardClass} ${this.showModal ? 'confirmation-modal-active' : ''}`
-  }
-
-  public show(event: Event) {
-    event.stopPropagation()
-    this.showModal = true
-  }
-
-  public submit() {
-    this.sending = true
-    this.action().finally(this.dismiss)
-  }
-
-  public get on() {
-    return {click: this.show}
-  }
+const dismiss = () => {
+  showModal.value = false
+  sending.value = false
 }
 
-export default toNative(AcConfirmation)
+const show = (event: Event) => {
+  event.stopPropagation()
+  showModal.value = true
+}
+
+const submit = () => {
+  sending.value = true
+  props.action().finally(dismiss)
+}
+
+const on = computed(() => ({click: show}))
 </script>

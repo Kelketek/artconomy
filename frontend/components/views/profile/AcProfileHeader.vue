@@ -94,7 +94,7 @@
           <v-list-item-title v-if="editing">Lock</v-list-item-title>
           <v-list-item-title v-else>Edit</v-list-item-title>
         </v-list-item>
-        <ac-confirmation :action="() => blockToggle" v-if="!isCurrent">
+        <ac-confirmation :action="async () => blockToggle" v-if="!isCurrent">
           <template v-slot:confirmation-text>
             <v-col>
               <v-col v-if="subject!.blocking">

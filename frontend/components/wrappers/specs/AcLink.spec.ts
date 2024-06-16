@@ -1,5 +1,5 @@
 import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -32,6 +32,7 @@ describe('AcLink.vue', () => {
     cleanUp(wrapper)
   })
   test('Navigates', async() => {
+    await router.push('/')
     wrapper = mount(AcLink, {
       ...vueSetup({
         store,
@@ -39,9 +40,8 @@ describe('AcLink.vue', () => {
       }),
       props: {to: {name: 'Test'}},
     })
-    const mockPush = vi.spyOn(wrapper.vm.$router, 'push')
     await wrapper.find('a').trigger('click')
-    expect(mockPush).toHaveBeenCalledWith({name: 'Test'})
+    await waitFor(() => expect(router.currentRoute.value.name).toEqual('Test'))
   })
   test('Makes links do new windows', async() => {
     const mockOpen = vi.spyOn(window, 'open')

@@ -1,26 +1,22 @@
 import {VueWrapper} from '@vue/test-utils'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, mount, sleep, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {RouteLocationRaw} from 'vue-router'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {RouteLocationRaw, Router} from 'vue-router'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
+import {nextTick} from 'vue'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
-let router: any
+let router: Router
 let route: Partial<RouteLocationRaw>
 
 describe('AcPaginated.vue', () => {
   beforeEach(() => {
     store = createStore()
-    route = {
-      query: {stuff: 'things'},
-    }
-    router = {
-      replace: vi.fn(),
-    }
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -52,6 +48,7 @@ describe('AcPaginated.vue', () => {
     wrapper = mount(AcPaginated, {
       ...vueSetup({
         store,
+        router,
       }),
       props: {
         list: paginatedList,
@@ -61,6 +58,7 @@ describe('AcPaginated.vue', () => {
     expect(paginatedList.fetching).toBe(false)
   })
   test('Updates the router when changing pages', async() => {
+    await router.push('/?stuff=things')
     const paginatedList = mount(
       Empty, vueSetup({store}),
     ).vm.$getList('stuff', {endpoint: '/wat/'})
@@ -78,10 +76,7 @@ describe('AcPaginated.vue', () => {
     wrapper = mount(AcPaginated, {
       ...vueSetup({
         store,
-        mocks: {
-          $router: router,
-          $route: route,
-        },
+        router,
       }),
       props: {
         list: paginatedList,
@@ -89,15 +84,11 @@ describe('AcPaginated.vue', () => {
       },
     })
     paginatedList.currentPage = 2
-    await wrapper.vm.$nextTick()
-    expect(router.replace).toHaveBeenCalledWith({
-      query: {
-        page: '2',
-        stuff: 'things',
-      },
-    })
+    await waitFor(() => expect(router.currentRoute.value.query.page).toEqual('2'))
+    expect(router.currentRoute.value.query.stuff).toEqual('things')
   })
   test('Does not update the router if told not to', async() => {
+    await router.push('/')
     const paginatedList = mount(
       Empty, vueSetup({store}),
     ).vm.$getList('stuff', {endpoint: '/wat/'})
@@ -115,37 +106,31 @@ describe('AcPaginated.vue', () => {
     wrapper = mount(AcPaginated, {
       ...vueSetup({
         store,
-        mocks: {
-          $router: router,
-          $route: route,
-        },
+        router,
       }),
       props: {list: paginatedList},
     })
     paginatedList.currentPage = 2
-    await wrapper.vm.$nextTick()
-    expect(router.replace).not.toHaveBeenCalled()
+    await nextTick()
+    await sleep(1000)
+    expect(router.currentRoute.value.query).toEqual({})
   })
   test('Loads the right page to start', async() => {
+    await router.push('/?page=2')
     const paginatedList = mount(
       Empty, vueSetup({store}),
     ).vm.$getList('stuff', {endpoint: '/wat/'})
-    // @ts-ignore
-    route.query.page = '2'
     wrapper = mount(AcPaginated, {
       ...vueSetup({
         store,
-        mocks: {
-          $router: router,
-          $route: route,
-        },
+        router,
       }),
       props: {
         list: paginatedList,
         trackPages: true,
       },
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(paginatedList.currentPage).toBe(2)
   })
 })

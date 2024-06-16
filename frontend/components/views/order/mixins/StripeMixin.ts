@@ -1,12 +1,3 @@
-import {Component, Vue} from 'vue-facing-decorator'
-
-@Component
-export default class StripeMixin extends Vue {
-  public stripe() {
-    return getStripe()
-  }
-}
-
 export const getStripe = () => {
   if (window.StripeInstance) {
     return window.StripeInstance
