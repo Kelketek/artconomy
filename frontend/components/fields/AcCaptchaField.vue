@@ -1,5 +1,5 @@
 <template>
-  <v-input v-bind="$props" class="mt-4">
+  <v-input v-bind="attributes" class="mt-4">
     <v-col class="text-center">
       <div style="display: inline-block">
         <vue-hcaptcha
@@ -14,28 +14,20 @@
   </v-input>
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
-import {Component, toNative, Vue} from 'vue-facing-decorator'
+import {computed, useAttrs} from 'vue'
 
-@Component({
-  components: {VueHcaptcha},
-  emits: ['update:modelValue'],
-})
-class AcCaptchaField extends Vue {
-  public change(val: string) {
-    this.$emit('update:modelValue', val)
-  }
+const attributes = useAttrs()
+const emit = defineEmits<{'update:modelValue': [string]}>()
 
-  public reset() {
-    this.change('')
-  }
-
-  // noinspection JSUnusedLocalSymbols,JSMethodCanBeStatic
-  public get siteKey() {
-    return window.RECAPTCHA_SITE_KEY || 'undefined'
-  }
+const change = (val: string) => {
+  emit('update:modelValue', val)
 }
 
-export default toNative(AcCaptchaField)
+const reset = () => {
+  change('')
+}
+
+const siteKey = computed(() => window.RECAPTCHA_SITE_KEY || 'undefined')
 </script>

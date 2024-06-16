@@ -7,36 +7,27 @@
   </v-checkbox>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
+import {computed, ref, useSlots, watch} from 'vue'
 
-@Component({emits: ['update:modelValue']})
-class AcCheckbox extends Vue {
-  @Prop({required: true})
-  public modelValue!: boolean
+const emit = defineEmits<{'update:modelValue': [boolean]}>()
+const props = defineProps<{modelValue: boolean}>()
 
-  public scratch = false
+const scratch = ref(props.modelValue)
 
-  public get slotNames(): Array<keyof VCheckbox['$slots']> {
-    // @ts-expect-error
-    return [...Object.keys(this.$slots)]
-  }
+watch(() => props.modelValue, (val: boolean) => {
+  scratch.value = val
+})
 
-  @Watch('modelValue')
-  public updateScratch(val: boolean) {
-    this.scratch = val
-  }
+watch(scratch, (val: boolean | null) => {
+  emit('update:modelValue', !!val)
+})
 
-  @Watch('scratch')
-  public fixFalse(val: boolean | null) {
-    this.$emit('update:modelValue', !!val)
-  }
+const slots = useSlots()
 
-  created() {
-    this.scratch = this.modelValue
-  }
-}
-
-export default toNative(AcCheckbox)
+const slotNames = computed((): Array<keyof VCheckbox['$slots']> => {
+  // @ts-expect-error
+  return [...Object.keys(slots)]
+})
 </script>
