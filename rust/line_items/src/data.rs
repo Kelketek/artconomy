@@ -4,8 +4,9 @@ use std::cmp::{Ordering, PartialOrd};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
+use std::hash::Hash;
 use std::ops::{Add, Div, Mul, Neg, Sub};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Currency definition struct. Currency definitions determine how currencies are displayed
@@ -79,8 +80,13 @@ pub const USD: Currency = Currency {
 /// Money struct. Represents an amount of a specific currency. This amount will not be automatically
 /// quantized, allowing you to perform mathematical operations with more precision until it is time
 /// to resolve them.
-#[derive(Copy, Clone, Hash, Getters, Serialize)]
-#[wasm_bindgen]
+/// 
+/// The money construct makes some things in the code more semantically intuitive (and some other
+/// things semantically less.) It might be better to replace it with just using a currency object
+/// as an additional argument to functions and then working with the decimal object directly,
+/// but the code this is sourced from had support for 'Money' objects and transcribing it was
+/// easier to follow.
+#[derive(Copy, Clone, Hash, Getters)]
 pub struct Money {
     currency: Currency,
     amount: Decimal,
@@ -88,7 +94,7 @@ pub struct Money {
 
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
-#[derive(Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
 #[wasm_bindgen]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
@@ -156,7 +162,22 @@ impl fmt::Display for LineItem {
 
 /// LineMoneyMaps are hashes that relate LineItem references to the Money values they've resolved to
 /// via the functions in this library.
-pub type LineMoneyMap<'a> = HashMap<&'a LineItem, Money>;
+pub type LineMoneyMap = HashMap<LineItem, Money>;
+
+/// Intermediate map used for serializing to the frontend.
+pub type IdToMoneyVal = HashMap<u32, String>;
+
+/// 'Calculation' structure used as the basis of the return value for JS-based calls to the line
+/// item functions.
+#[derive(Serialize, Deserialize)]
+pub struct Calculation {
+    /// Total value of the reckoned line items
+    pub total: String,
+    /// Total value of all applied discounts
+    pub discount: String,
+    /// Map of line item IDs to string values representing the amount each line item reckons to.
+    pub map: IdToMoneyVal,
+}
 
 impl Money {
     /// Creates a new Money struct. Does not quantize the decimal amount.
@@ -170,6 +191,9 @@ impl Money {
             currency: self.currency,
             amount: self.currency.quantize(&self.amount),
         }
+    }
+    pub fn value_string(&self) -> String {
+        self.quantized().amount().to_string()
     }
 }
 

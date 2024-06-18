@@ -20,22 +20,27 @@ mod test;
 
 /// Line item calculation functions used for determining amounts on invoices.
 pub mod funcs {
-    use crate::data::{Currency, LineItem, LineMoneyMap, Money};
+    use crate::data::{Calculation, Currency, LineItem, LineMoneyMap, Money};
     use rust_decimal::prelude::ToPrimitive;
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
     use std::cmp::Ordering;
     use std::collections::HashMap;
+    use std::env::remove_var;
+    use std::thread::current;
+    use serde::de::Unexpected::Str;
+    use serde::Serialize;
+    use wasm_bindgen::JsValue;
     use wasm_bindgen::prelude::wasm_bindgen;
 
     /// Takes a list of line items, and builds them into lists of equal priority.
-    pub fn lines_by_priority(lines: Vec<&LineItem>) -> Vec<Vec<&LineItem>> {
-        let mut priority_sets: HashMap<i16, Vec<&LineItem>> = HashMap::new();
-        for line in lines.iter() {
-            let priority = line.priority;
+    pub fn lines_by_priority(mut lines: Vec<LineItem>) -> Vec<Vec<LineItem>> {
+        let mut priority_sets: HashMap<i16, Vec<LineItem>> = HashMap::new();
+        for line in lines.drain(..) {
+            let priority: i16 = line.priority;
             priority_sets.entry(priority).or_default().push(line);
-        }
-        let mut prioritized_lines: Vec<Vec<&LineItem>> = Vec::new();
+        };
+        let mut prioritized_lines: Vec<Vec<LineItem>> = Vec::new();
         for (_, set) in priority_sets.drain() {
             prioritized_lines.push(set);
         }
@@ -65,7 +70,7 @@ pub mod funcs {
             } else {
                 *original_value / total
             };
-            reductions.insert(line, distributed_amount * multiplier);
+            reductions.insert(*line, distributed_amount * multiplier);
         }
         reductions
     }
@@ -75,9 +80,9 @@ pub mod funcs {
     /// priority by the 'lines_by_priority' function. They are then folded using this function to
     /// produce a final LineMoneyMap that has resolved all monetary values for all lines.
     fn priority_total<'a>(
-        current: (Money, Money, LineMoneyMap<'a>),
-        priority_set: &Vec<&'a LineItem>,
-    ) -> (Money, Money, LineMoneyMap<'a>) {
+        current: (Money, Money, LineMoneyMap),
+        priority_set: &Vec<LineItem>,
+    ) -> (Money, Money, LineMoneyMap) {
         /*
         Get the effect on the total of a priority set. First runs any percentage increase,
         then adds in the static amount. Calculates the difference of each separately to make
@@ -127,7 +132,7 @@ pub mod funcs {
                 let mut line_values: LineMoneyMap = HashMap::new();
                 for key in subtotals.keys() {
                     if key.priority < line.priority {
-                        line_values.insert(key, subtotals[key]);
+                        line_values.insert(*key, subtotals[key]);
                     }
                 }
                 let output =
@@ -135,9 +140,9 @@ pub mod funcs {
                 reductions.push(output)
             }
             if added_amount != zero {
-                summable_totals.insert(line, added_amount);
+                summable_totals.insert(*line, added_amount);
             }
-            working_subtotals.insert(line, working_amount);
+            working_subtotals.insert(*line, working_amount);
             if working_amount < zero {
                 discount = discount + working_amount;
             }
@@ -145,7 +150,7 @@ pub mod funcs {
         let mut new_subtotals = subtotals.clone();
         for reduction_set in reductions.iter() {
             for (line, reduction) in reduction_set.iter() {
-                new_subtotals.insert(line, new_subtotals[line] - *reduction);
+                new_subtotals.insert(*line, new_subtotals[line] - *reduction);
             }
         }
         let mut add_on: Money = zero;
@@ -154,15 +159,15 @@ pub mod funcs {
         }
         let mut new_totals = new_subtotals.clone();
         for (key, value) in working_subtotals.iter() {
-            new_totals.insert(key, *value);
+            new_totals.insert(*key, *value);
         }
         (current_total + add_on.quantized(), discount, new_totals)
     }
 
     fn redistribution_priority(
         ascending_priority: bool,
-        item: (&LineItem, Money),
-        item2: (&LineItem, Money),
+        item: (LineItem, Money),
+        item2: (LineItem, Money),
     ) -> f64 {
         let (item_line, item_amount) = item;
         let (item2_line, item2_amount) = item2;
@@ -198,7 +203,7 @@ pub mod funcs {
     ///
     fn distribute_difference(difference: Money, mut money_map: LineMoneyMap) -> LineMoneyMap {
         let zero = difference.currency().zero();
-        let mut sorted_values: Vec<(&LineItem, Money)> = money_map
+        let mut sorted_values: Vec<(LineItem, Money)> = money_map
             .iter()
             .map(|(line, amount)| (*line, *amount))
             // Only add to the values when the values are already signed positive, or subtract
@@ -227,7 +232,7 @@ pub mod funcs {
                 current_values.clone_from(&sorted_values)
             }
             let key = current_values.pop().unwrap().0;
-            money_map.insert(key, money_map[key] + amount);
+            money_map.insert(key, money_map[&key] + amount);
             remaining = remaining - amount;
         }
         money_map
@@ -248,7 +253,7 @@ pub mod funcs {
     /// Given a vector of LineItem vectors sorted by priority, fold them using the priority_total
     /// function, then quantize them, and distribute any leftover quanta.
     fn normalized_lines(
-        priority_sets: Vec<Vec<&LineItem>>,
+        priority_sets: Vec<Vec<LineItem>>,
         currency: Currency,
     ) -> (Money, Money, LineMoneyMap) {
         let zero = currency.zero();
@@ -270,14 +275,25 @@ pub mod funcs {
     /// each line item. If you just need the total, use reckon_lines instead.
     pub fn get_totals(lines: Vec<LineItem>, currency: Currency) -> (Money, Money, LineMoneyMap) {
         let priority_sets = lines_by_priority(lines);
-        return normalized_lines(priority_sets, currency);
+        normalized_lines(priority_sets, currency)
     }
 
-    /// Given a set of line items, get the total amount. 
-    #[wasm_bindgen]
+    /// Given a set of line items, get the total amount.
     pub fn reckon_lines(lines: Vec<LineItem>, currency: Currency) -> Money {
         let (value, _discount, _subtotals) = get_totals(lines, currency);
         value
+    }
+    
+    /// Javascript-callable function binding for get_totals.
+    #[wasm_bindgen]
+    pub fn js_get_totals(lines: Vec<LineItem>, currency: Currency) -> JsValue {
+        let (total, discount, mut source_map) = get_totals(lines, currency);
+        let mut map = HashMap::<u32, String>::new();
+        for (key, value) in source_map.drain() {
+            map.insert(key.id, value.to_string());
+        }
+        let result = Calculation {total: total.value_string(), discount: discount.value_string(), map};
+        serde_wasm_bindgen::to_value(&result).unwrap()
     }
 
     /// Splits an amount into a number of equal amounts, or as close as possible
@@ -322,14 +338,12 @@ pub mod funcs {
 
 #[cfg(test)]
 mod func_tests {
-    use crate::data::{LineItem, Money, USD};
+    use crate::data::{LineItem};
     use crate::funcs::lines_by_priority;
-    use crate::money;
-    use rust_decimal_macros::dec;
 
     #[test]
     fn test_line_sort() {
-        let source = vec![
+        let input = vec![
             LineItem {
                 amount: "5",
                 priority: 1,
@@ -367,10 +381,10 @@ mod func_tests {
                 ..Default::default()
             },
         ];
-        let priority_set = lines_by_priority(source.iter().collect());
-        assert_eq!(priority_set[0], vec![&source[5]],);
-        assert_eq!(priority_set[1], vec![&source[0]]);
-        assert_eq!(priority_set[2], vec![&source[1], &source[4]],);
-        assert_eq!(priority_set[3], vec![&source[2], &source[3]],);
+        let priority_set = lines_by_priority(input.clone());
+        assert_eq!(priority_set[0], vec![input[5]]);
+        assert_eq!(priority_set[1], vec![input[0]]);
+        assert_eq!(priority_set[2], vec![input[1], input[4]]);
+        assert_eq!(priority_set[3], vec![input[2], input[3]]);
     }
 }

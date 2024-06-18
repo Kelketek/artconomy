@@ -4,19 +4,18 @@ mod interface_tests {
     use crate::funcs::{get_totals, reckon_lines};
     use crate::money;
     use ntest::timeout;
-    use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
 
     #[test]
     #[timeout(100)]
     fn test_single_line() {
-        let input = [LineItem {
+        let input = vec![LineItem {
             amount: "10.00",
             priority: 0,
             id: 1,
             ..Default::default()
         }];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(10.00, USD));
@@ -25,7 +24,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_percentage_line() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -39,7 +38,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(11.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(10.00, USD));
@@ -49,7 +48,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_percentage_cascade() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -64,7 +63,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(9.00, USD));
@@ -74,7 +73,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_percentage_backed_in_cascade() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -90,7 +89,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(9.09, USD));
@@ -105,7 +104,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_percentage_with_static() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -120,7 +119,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(11.25, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(10.00, USD));
@@ -135,7 +134,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_percentage_with_static_cascade() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -152,7 +151,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(8.75, USD));
@@ -167,7 +166,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_percentage_no_cascade_amount() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -184,7 +183,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10.25, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(9.00, USD));
@@ -199,7 +198,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_concurrent_priorities() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -219,7 +218,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(11.50, USD));
         assert_eq!(discount, money!(0, USD));
         assert_eq!(map[&input[0]], money!(10.00, USD));
@@ -235,7 +234,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_concurrent_priorities_cascade() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "10.00",
                 priority: 0,
@@ -257,7 +256,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10, USD));
         assert_eq!(discount, money!(0, USD));
         assert_eq!(map[&input[0]], money!(8.50, USD));
@@ -273,7 +272,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_get_totals_multi_priority_cascade_on_concurrent_priority() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "2",
                 priority: 0,
@@ -301,7 +300,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10, USD));
         assert_eq!(discount, money!(0, USD));
         assert_eq!(map[&input[0]], money!(1.44, USD));
@@ -323,7 +322,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_fixed_point_decisions() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "100",
                 priority: 0,
@@ -352,7 +351,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(110.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(82.57, USD));
@@ -369,7 +368,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_fixed_point_decisions_2() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "20",
                 priority: 0,
@@ -398,7 +397,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(35.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(16.51, USD));
@@ -415,7 +414,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_fixed_point_calculations_3() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "20",
                 priority: 0,
@@ -444,7 +443,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(30.00, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(16.51, USD));
@@ -461,7 +460,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_zero_total() {
-        let input = [
+        let input = vec![
             LineItem {
                 id: 1,
                 amount: "0.00",
@@ -477,7 +476,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         let zero = money!(0, USD);
         assert_eq!(total, zero);
         assert_eq!(discount, zero);
@@ -493,7 +492,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_zero_line() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "19.56",
                 priority: 0,
@@ -522,7 +521,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(539.92, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(18.33, USD));
@@ -539,7 +538,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_complex_discount() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "0.01",
                 priority: 0,
@@ -580,7 +579,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(5.03, USD));
         assert_eq!(discount, money!(-5.00, USD));
         assert_eq!(map[&input[0]], money!(0.00, USD));
@@ -599,7 +598,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_reckon_lines() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "1",
                 priority: 0,
@@ -620,7 +619,7 @@ mod interface_tests {
             },
         ];
         assert_eq!(
-            reckon_lines(input.iter().collect(), USD),
+            reckon_lines(input.clone(), USD),
             money!(10.00, USD)
         );
     }
@@ -628,7 +627,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_non_cascading_percentage() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "5",
                 priority: 0,
@@ -655,7 +654,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(10.52, USD));
         assert_eq!(discount, money!(0.00, USD));
         assert_eq!(map[&input[0]], money!(5.00, USD));
@@ -667,7 +666,7 @@ mod interface_tests {
     #[test]
     #[timeout(100)]
     fn test_handles_many_transactions_divvied_up_for_fees() {
-        let input = [
+        let input = vec![
             LineItem {
                 amount: "25.00",
                 priority: 0,
@@ -781,7 +780,7 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let (total, discount, map) = get_totals(input.iter().collect(), USD);
+        let (total, discount, map) = get_totals(input.clone(), USD);
         assert_eq!(total, money!(315, USD));
         assert_eq!(discount, money!(0, USD));
         assert_eq!(map[&input[0]], money!(24.20, USD));
