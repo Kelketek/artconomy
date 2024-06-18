@@ -11,7 +11,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Currency definition struct. Currency definitions determine how currencies are displayed
 /// and how they are quantized.
-#[derive(Copy, Clone, Hash, Getters, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Getters, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct Currency {
     code: &'static str,
@@ -86,7 +86,7 @@ pub const USD: Currency = Currency {
 /// as an additional argument to functions and then working with the decimal object directly,
 /// but the code this is sourced from had support for 'Money' objects and transcribing it was
 /// easier to follow.
-#[derive(Copy, Clone, Hash, Getters)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Getters)]
 pub struct Money {
     currency: Currency,
     amount: Decimal,
@@ -94,7 +94,7 @@ pub struct Money {
 
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
-#[derive(Hash, Eq, PartialEq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 #[wasm_bindgen]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
@@ -192,6 +192,8 @@ impl Money {
             amount: self.currency.quantize(&self.amount),
         }
     }
+    /// Returns a string with the quantized decimal value of the money object for precise
+    /// reconstruction.
     pub fn value_string(&self) -> String {
         self.quantized().amount().to_string()
     }
@@ -288,12 +290,6 @@ impl_math_ops!(Sub, sub);
 // but operator overloading seemed easier to read.
 impl_math_ops!(Mul, mul);
 impl_math_ops!(Div, div);
-
-impl PartialEq for Money {
-    impl_cmp_op!(eq);
-}
-
-impl Eq for Money {}
 
 impl PartialOrd for Money {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

@@ -863,24 +863,6 @@ mod comparison_tests {
     #[should_panic(
         expected = "Attempted mathematical operation between disparate currencies: USD and CAD"
     )]
-    fn test_panic_comparison_eq() {
-        let cad = Currency::new("CAD", None, 2);
-        let _ = money!(0, USD) == money!(0, cad);
-    }
-
-    #[test]
-    #[should_panic(
-        expected = "Attempted mathematical operation between disparate currencies: USD and CAD"
-    )]
-    fn test_panic_comparison_neq() {
-        let cad = Currency::new("CAD", None, 2);
-        let _ = money!(0, USD) != money!(0, cad);
-    }
-
-    #[test]
-    #[should_panic(
-        expected = "Attempted mathematical operation between disparate currencies: USD and CAD"
-    )]
     fn test_panic_comparison_gt() {
         let cad = Currency::new("CAD", None, 2);
         let _ = money!(0, USD) > money!(0, cad);

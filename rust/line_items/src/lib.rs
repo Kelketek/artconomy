@@ -8,10 +8,7 @@
 #![warn(missing_docs)]
 extern crate serde_json;
 extern crate wasm_bindgen;
-use wasm_bindgen::prelude::*;
 
-#[macro_use]
-extern crate serde_derive;
 
 /// Data structures used in line item calculations.
 pub mod data;
@@ -26,10 +23,6 @@ pub mod funcs {
     use rust_decimal_macros::dec;
     use std::cmp::Ordering;
     use std::collections::HashMap;
-    use std::env::remove_var;
-    use std::thread::current;
-    use serde::de::Unexpected::Str;
-    use serde::Serialize;
     use wasm_bindgen::JsValue;
     use wasm_bindgen::prelude::wasm_bindgen;
 
@@ -79,7 +72,7 @@ pub mod funcs {
     /// Line items are arranged in a vector of vectors. The outer vector is sorted according to
     /// priority by the 'lines_by_priority' function. They are then folded using this function to
     /// produce a final LineMoneyMap that has resolved all monetary values for all lines.
-    fn priority_total<'a>(
+    fn priority_total(
         current: (Money, Money, LineMoneyMap),
         priority_set: &Vec<LineItem>,
     ) -> (Money, Money, LineMoneyMap) {
@@ -283,7 +276,7 @@ pub mod funcs {
         let (value, _discount, _subtotals) = get_totals(lines, currency);
         value
     }
-    
+
     /// Javascript-callable function binding for get_totals.
     #[wasm_bindgen]
     pub fn js_get_totals(lines: Vec<LineItem>, currency: Currency) -> JsValue {
