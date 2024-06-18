@@ -72,6 +72,7 @@ pub mod funcs {
     /// Line items are arranged in a vector of vectors. The outer vector is sorted according to
     /// priority by the 'lines_by_priority' function. They are then folded using this function to
     /// produce a final LineMoneyMap that has resolved all monetary values for all lines.
+    #[allow(clippy::ptr_arg)]
     fn priority_total(
         current: (Money, Money, LineMoneyMap),
         priority_set: &Vec<LineItem>,
