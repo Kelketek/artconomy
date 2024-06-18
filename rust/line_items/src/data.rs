@@ -1,16 +1,17 @@
 use derive_getters::Getters;
 use rust_decimal::Decimal;
-use rust_decimal_macros::dec;
 use std::cmp::{Ordering, PartialOrd};
 use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::ops::{Add, Div, Mul, Neg, Sub};
 use serde::Serialize;
+use wasm_bindgen::prelude::wasm_bindgen;
 
 /// Currency definition struct. Currency definitions determine how currencies are displayed
 /// and how they are quantized.
 #[derive(Copy, Clone, Hash, Getters, Serialize, Deserialize)]
+#[wasm_bindgen]
 pub struct Currency {
     code: &'static str,
     prefix: Option<&'static str>,
@@ -44,9 +45,16 @@ impl Currency {
         }
     }
     /// Convert a decimal amount into a Money struct based on this currency. Does not quantize.
-    pub fn to_money(&self, amount: Decimal) -> Money {
+    pub fn money_from_dec(&self, amount: Decimal) -> Money {
         Money {
             amount,
+            currency: *self,
+        }
+    }
+    /// Convert a string value amount into a Money struct based on this currency. Does not quantize.
+    pub fn money_from_string(&self, amount: &str) -> Money {
+        Money {
+            amount: Decimal::from_str_exact(amount).unwrap(),
             currency: *self,
         }
     }
@@ -71,7 +79,8 @@ pub const USD: Currency = Currency {
 /// Money struct. Represents an amount of a specific currency. This amount will not be automatically
 /// quantized, allowing you to perform mathematical operations with more precision until it is time
 /// to resolve them.
-#[derive(Copy, Clone, Hash, Getters)]
+#[derive(Copy, Clone, Hash, Getters, Serialize)]
+#[wasm_bindgen]
 pub struct Money {
     currency: Currency,
     amount: Decimal,
@@ -80,6 +89,7 @@ pub struct Money {
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
 #[derive(Hash, Eq, PartialEq, Debug, Serialize, Deserialize)]
+#[wasm_bindgen]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
     pub id: u32,
@@ -87,15 +97,15 @@ pub struct LineItem {
     /// item's value effects. For instance, high priority percentages are calculated based on the
     /// value of lower-priority lines.
     pub priority: i16,
-    /// A static amount this line item represents.
-    pub amount: Decimal,
+    /// A static amount this line item represents. Starts as a float to be converted into decimal.
+    pub amount: &'static str,
     /// A previous version of the line item calculations may have already run. If this happens,
     /// we will perform all operations with this frozen value. All line items should have this set
     /// if any do.
-    pub frozen_value: Option<Decimal>,
+    pub frozen_value: Option<&'static str>,
     /// Used for percentage-based line items, such as proportional fees/discounts. Can be used in
     /// conjunction with amount to add a static amount on top of the percentage.
-    pub percentage: Decimal,
+    pub percentage: &'static str,
     /// Whether the percentage calculated should be based on a target amount rather than added on
     /// top. That is, calculate all lower priority items to get their total, then find out the line
     /// item's percentage of that amount. Once found, remove that amount proportionally from all
@@ -127,9 +137,9 @@ impl Default for LineItem {
             LineItem {
                 id: COUNTER,
                 priority: 0,
-                amount: dec!(0),
+                amount: "0",
                 frozen_value: None,
-                percentage: dec!(0),
+                percentage: "0",
                 cascade_percentage: false,
                 back_into_percentage: false,
                 cascade_amount: false,

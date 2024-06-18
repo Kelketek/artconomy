@@ -61,7 +61,7 @@ pub mod funcs {
             let multiplier = if total == zero {
                 total
                     .currency()
-                    .to_money(dec!(1) / Decimal::new(line_values.len().to_i64().unwrap(), 0))
+                    .money_from_dec(dec!(1) / Decimal::new(line_values.len().to_i64().unwrap(), 0))
             } else {
                 *original_value / total
             };
@@ -89,9 +89,9 @@ pub mod funcs {
         let mut reductions: Vec<LineMoneyMap> = Vec::new();
         let currency = current_total.currency();
         let zero = currency.zero();
-        let one = currency.to_money(dec!(1));
+        let one = currency.money_from_dec(dec!(1));
         for line in priority_set.iter() {
-            let line_amount = currency.to_money(line.amount);
+            let line_amount = currency.money_from_string(line.amount);
             let mut cascaded_amount = current_total.currency().zero();
             let mut added_amount = current_total.currency().zero();
             let mut working_amount: Money;
@@ -100,7 +100,7 @@ pub mod funcs {
             } else {
                 added_amount = added_amount + line_amount;
             }
-            let multiplier = Money::new(dec!(0.01) * line.percentage, *current_total.currency());
+            let multiplier = Money::new(dec!(0.01) * Decimal::from_str_exact(line.percentage).unwrap(), *current_total.currency());
             if line.back_into_percentage {
                 let divisor = multiplier + one;
                 if line.cascade_percentage {
@@ -268,14 +268,14 @@ pub mod funcs {
 
     /// Get the total, discounted amount, and full LineMoneyMap with resultant amount for
     /// each line item. If you just need the total, use reckon_lines instead.
-    #[wasm_bindgen]
-    pub fn get_totals(lines: Vec<&LineItem>, currency: Currency) -> (Money, Money, LineMoneyMap) {
+    pub fn get_totals(lines: Vec<LineItem>, currency: Currency) -> (Money, Money, LineMoneyMap) {
         let priority_sets = lines_by_priority(lines);
         return normalized_lines(priority_sets, currency);
     }
 
-    /// Given a set of line items, get the total amount.
-    pub fn reckon_lines(lines: Vec<&LineItem>, currency: Currency) -> Money {
+    /// Given a set of line items, get the total amount. 
+    #[wasm_bindgen]
+    pub fn reckon_lines(lines: Vec<LineItem>, currency: Currency) -> Money {
         let (value, _discount, _subtotals) = get_totals(lines, currency);
         value
     }
@@ -285,7 +285,7 @@ pub mod funcs {
     pub fn divide_amount(amount: Money, divisor: u16) -> Vec<Money> {
         assert_eq!(amount, amount.quantized());
         let currency = amount.currency();
-        let factor = currency.to_money(Decimal::from(divisor));
+        let factor = currency.money_from_dec(Decimal::from(divisor));
         let target_amount = (amount / factor).quantized();
         let mut difference = amount - (target_amount * factor).quantized();
         let step = if difference.amount().is_sign_positive() {
@@ -331,37 +331,37 @@ mod func_tests {
     fn test_line_sort() {
         let source = vec![
             LineItem {
-                amount: dec!(5),
+                amount: "5",
                 priority: 1,
                 id: 0,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(6),
+                amount: "6",
                 priority: 2,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(7),
+                amount: "7",
                 priority: 3,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(8),
+                amount: "8",
                 priority: 3,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(9),
+                amount: "9",
                 priority: 2,
                 id: 4,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(10),
+                amount: "10",
                 priority: 0,
                 id: 5,
                 ..Default::default()

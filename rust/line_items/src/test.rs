@@ -11,7 +11,7 @@ mod interface_tests {
     #[timeout(100)]
     fn test_single_line() {
         let input = [LineItem {
-            amount: dec!(10.00),
+            amount: "10.00",
             priority: 0,
             id: 1,
             ..Default::default()
@@ -27,13 +27,13 @@ mod interface_tests {
     fn test_get_totals_percentage_line() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10.00),
+                percentage: "10.00",
                 priority: 1,
                 id: 2,
                 ..Default::default()
@@ -51,13 +51,13 @@ mod interface_tests {
     fn test_get_totals_percentage_cascade() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10),
+                percentage: "10",
                 priority: 1,
                 cascade_percentage: true,
                 id: 2,
@@ -76,13 +76,13 @@ mod interface_tests {
     fn test_get_totals_percentage_backed_in_cascade() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10.00),
+                percentage: "10.00",
                 priority: 1,
                 cascade_percentage: true,
                 back_into_percentage: true,
@@ -107,14 +107,14 @@ mod interface_tests {
     fn test_get_totals_percentage_with_static() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10),
-                amount: dec!(0.25),
+                percentage: "10",
+                amount: "0.25",
                 priority: 1,
                 id: 2,
                 ..Default::default()
@@ -137,14 +137,14 @@ mod interface_tests {
     fn test_get_totals_percentage_with_static_cascade() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10),
-                amount: dec!(0.25),
+                percentage: "10",
+                amount: "0.25",
                 cascade_percentage: true,
                 cascade_amount: true,
                 priority: 1,
@@ -169,14 +169,14 @@ mod interface_tests {
     fn test_get_totals_percentage_no_cascade_amount() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10),
-                amount: dec!(0.25),
+                percentage: "10",
+                amount: "0.25",
                 priority: 1,
                 id: 2,
                 cascade_amount: false,
@@ -201,19 +201,19 @@ mod interface_tests {
     fn test_get_totals_concurrent_priorities() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10),
+                percentage: "10",
                 priority: 1,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(5),
+                percentage: "5",
                 priority: 1,
                 id: 3,
                 ..Default::default()
@@ -237,20 +237,20 @@ mod interface_tests {
     fn test_get_totals_concurrent_priorities_cascade() {
         let input = [
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10),
+                percentage: "10",
                 priority: 1,
                 cascade_percentage: true,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(5),
+                percentage: "5",
                 priority: 1,
                 cascade_percentage: true,
                 id: 3,
@@ -275,26 +275,26 @@ mod interface_tests {
     fn test_get_totals_multi_priority_cascade_on_concurrent_priority() {
         let input = [
             LineItem {
-                amount: dec!(2),
+                amount: "2",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(8),
+                amount: "8",
                 priority: 0,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(20),
+                percentage: "20",
                 priority: 1,
                 cascade_percentage: true,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(10),
+                percentage: "10",
                 priority: 2,
                 cascade_percentage: true,
                 id: 4,
@@ -325,27 +325,27 @@ mod interface_tests {
     fn test_fixed_point_decisions() {
         let input = [
             LineItem {
-                amount: dec!(100),
+                amount: "100",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5.00),
+                amount: "5.00",
                 priority: 100,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5.00),
-                percentage: dec!(10),
+                amount: "5.00",
+                percentage: "10",
                 priority: 300,
                 cascade_percentage: true,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(8.25),
+                percentage: "8.25",
                 cascade_percentage: true,
                 priority: 600,
                 id: 4,
@@ -371,27 +371,27 @@ mod interface_tests {
     fn test_fixed_point_decisions_2() {
         let input = [
             LineItem {
-                amount: dec!(20),
+                amount: "20",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 100,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5.00),
-                percentage: dec!(10),
+                amount: "5.00",
+                percentage: "10",
                 cascade_percentage: true,
                 priority: 300,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(8.25),
+                percentage: "8.25",
                 cascade_percentage: true,
                 priority: 600,
                 id: 4,
@@ -417,27 +417,27 @@ mod interface_tests {
     fn test_fixed_point_calculations_3() {
         let input = [
             LineItem {
-                amount: dec!(20),
+                amount: "20",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5),
+                amount: "5",
                 priority: 100,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5),
-                percentage: dec!(10),
+                amount: "5",
+                percentage: "10",
                 cascade_percentage: true,
                 priority: 300,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(8.25),
+                percentage: "8.25",
                 cascade_percentage: true,
                 priority: 600,
                 id: 4,
@@ -464,14 +464,14 @@ mod interface_tests {
         let input = [
             LineItem {
                 id: 1,
-                amount: dec!(0.00),
+                amount: "0.00",
                 priority: 0,
                 ..Default::default()
             },
             LineItem {
                 id: 2,
                 priority: 100,
-                amount: dec!(8.00),
+                amount: "8.00",
                 cascade_percentage: true,
                 cascade_amount: true,
                 ..Default::default()
@@ -495,14 +495,14 @@ mod interface_tests {
     fn test_zero_line() {
         let input = [
             LineItem {
-                amount: dec!(19.56),
+                amount: "19.56",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(2.75),
-                percentage: dec!(5.75),
+                amount: "2.75",
+                percentage: "5.75",
                 cascade_percentage: true,
                 cascade_amount: true,
                 priority: 300,
@@ -510,13 +510,13 @@ mod interface_tests {
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(520.36),
+                amount: "520.36",
                 priority: 100,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(0.00),
+                amount: "0.00",
                 priority: 100,
                 id: 4,
                 ..Default::default()
@@ -541,38 +541,38 @@ mod interface_tests {
     fn test_complex_discount() {
         let input = [
             LineItem {
-                amount: dec!(0.01),
+                amount: "0.01",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(0.01),
+                amount: "0.01",
                 priority: 100,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(0.01),
+                amount: "0.01",
                 priority: 100,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(-5.00),
+                amount: "-5.00",
                 priority: 100,
                 id: 4,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 100,
                 id: 5,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(0.75),
-                percentage: dec!(8),
+                amount: "0.75",
+                percentage: "8",
                 cascade_percentage: true,
                 cascade_amount: true,
                 priority: 300,
@@ -601,19 +601,19 @@ mod interface_tests {
     fn test_reckon_lines() {
         let input = [
             LineItem {
-                amount: dec!(1),
+                amount: "1",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5),
+                amount: "5",
                 priority: 1,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(4),
+                amount: "4",
                 priority: 2,
                 id: 3,
                 ..Default::default()
@@ -630,25 +630,25 @@ mod interface_tests {
     fn test_non_cascading_percentage() {
         let input = [
             LineItem {
-                amount: dec!(5),
+                amount: "5",
                 priority: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(1),
+                amount: "1",
                 priority: 1,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(4),
+                amount: "4",
                 priority: 1,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                percentage: dec!(5),
+                percentage: "5",
                 back_into_percentage: true,
                 priority: 100,
                 id: 4,
@@ -669,112 +669,112 @@ mod interface_tests {
     fn test_handles_many_transactions_divvied_up_for_fees() {
         let input = [
             LineItem {
-                amount: dec!(25.00),
+                amount: "25.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(25.00),
+                amount: "25.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(35.00),
+                amount: "35.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(55.00),
+                amount: "55.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 4,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(10.00),
+                amount: "10.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 5,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5.00),
+                amount: "5.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 6,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(30.00),
+                amount: "30.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 7,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(55.00),
+                amount: "55.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 8,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(25.00),
+                amount: "25.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 9,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5.00),
+                amount: "5.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 10,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(6.00),
+                amount: "6.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 11,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(25.00),
+                amount: "25.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 12,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(6.00),
+                amount: "6.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 13,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(3.00),
+                amount: "3.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 14,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(5.00),
+                amount: "5.00",
                 priority: 0,
                 cascade_amount: false,
                 id: 15,
                 ..Default::default()
             },
             LineItem {
-                amount: dec!(10.06),
+                amount: "10.06",
                 priority: 1,
                 cascade_amount: true,
                 id: 16,
