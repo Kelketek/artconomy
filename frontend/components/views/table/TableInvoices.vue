@@ -68,92 +68,75 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
 import Invoice from '@/types/Invoice.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Formatting from '@/mixins/formatting.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import {NavSettings} from '@/types/NavSettings.ts'
 import {initDrawerValue} from '@/lib/lib.ts'
 import {mdiArrowLeftThick, mdiPrinter, mdiReceiptText} from '@mdi/js'
+import {useRoute, useRouter} from 'vue-router'
+import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {formatDateTime} from '@/lib/otherFormatters.ts'
 
-@Component({
-  components: {
-    AcLink,
-    AcForm,
-    AcFormContainer,
-    AcPaginated,
-  },
-})
-class TableInvoices extends mixins(Viewer, Formatting) {
-  invoices = null as unknown as ListController<Invoice>
-  invoiceForm = null as unknown as FormController
-  navSettings = null as unknown as SingleController<NavSettings>
-  mdiArrowLeftThick = mdiArrowLeftThick
-  mdiPrinter = mdiPrinter
-  mdiReceiptText = mdiReceiptText
+const props = withDefaults(defineProps<{initialState?: null|boolean}>(), {initialState: initDrawerValue()})
 
-  @Prop({default: initDrawerValue})
-  public initialState!: null | boolean
+const route = useRoute()
+const router = useRouter()
+const display = useDisplay()
+const {viewer} = useViewer()
 
-  public get currentRoute() {
-    return this.$route.name === 'TableInvoices'
-  }
+const currentRoute = computed(() => route.name === 'TableInvoices')
 
-  public usernameFor(invoice: Invoice) {
-    return (invoice.bill_to && invoice.bill_to.username) || this.viewer!.username
-  }
+const usernameFor = (invoice: Invoice) => {
+  return (invoice.bill_to && invoice.bill_to.username) || viewer.value!.username
+}
 
-  public goToInvoice(invoice: Invoice) {
-    this.invoices.push(invoice)
-    this.$router.push(this.linkFor(invoice))
-  }
+const goToInvoice = (invoice: Invoice) => {
+  invoices.push(invoice)
+  router.push(linkFor(invoice))
+}
 
-  public performPrint() {
-    this.navSettings.patchers.drawer.model = false
-    setTimeout(() => {
-      window.print()
-    }, 500)
-  }
-
-  public linkFor(invoice: Invoice) {
-    return {
-      name: 'TableInvoice',
-      params: {
-        username: this.usernameFor(invoice),
-        invoiceId: invoice.id,
-      },
-    }
-  }
-
-  public created() {
-    let drawer: boolean | null
-    if (this.$vuetify.display.mdAndDown) {
-      // Never begin with the drawer open on a small screen.
-      drawer = false
-    } else {
-      drawer = this.initialState
-    }
-    this.navSettings = this.$getSingle('navSettings', {
-      endpoint: '#',
-      x: {drawer},
-    })
-    this.navSettings = this.$getSingle('navSettings')
-    this.invoiceForm = this.$getForm('new_invoice_button', {
-      endpoint: '/api/sales/create-anonymous-invoice/',
-      fields: {},
-    })
-    this.invoices = this.$getList('table_invoices', {endpoint: '/api/sales/recent-invoices/'})
-    this.invoices.firstRun()
+const linkFor = (invoice: Invoice) => {
+  return {
+    name: 'TableInvoice',
+    params: {
+      username: usernameFor(invoice),
+      invoiceId: invoice.id,
+    },
   }
 }
 
-export default toNative(TableInvoices)
+const performPrint = () => {
+  navSettings.patchers.drawer.model = false
+  setTimeout(() => {
+    window.print()
+  }, 500)
+}
+
+let drawer: boolean | null
+if (display.mdAndDown.value) {
+  // Never begin with the drawer open on a small screen.
+  drawer = false
+} else {
+  drawer = props.initialState
+}
+
+const navSettings = useSingle<NavSettings>('navSettings', {
+  endpoint: '#',
+  x: {drawer},
+})
+const invoiceForm = useForm('new_invoice_button', {
+  endpoint: '/api/sales/create-anonymous-invoice/',
+  fields: {},
+})
+const invoices = useList<Invoice>('table_invoices', {endpoint: '/api/sales/recent-invoices/'})
+invoices.firstRun()
 </script>

@@ -5,54 +5,38 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcAvatar from '@/components/AcAvatar.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import AcProductPreview from '@/components/AcProductPreview.vue'
+<script setup lang="ts">
 import {TabNavSpec} from '@/types/TabNavSpec.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {mdiReceipt, mdiShopping, mdiStorefront} from '@mdi/js'
+import {listenForList} from '@/store/lists/hooks.ts'
+import {useRoute, useRouter} from 'vue-router'
 
-@Component({
-  components: {
-    AcTabNav,
-    AcProductPreview,
-    AcLink,
-    AcAvatar,
-    AcLoadSection,
+const route = useRoute()
+const router = useRouter()
+
+const tabSpecs: TabNavSpec[] = [
+  {
+    value: {name: 'TableProducts'},
+    title: 'Products',
+    icon: mdiStorefront,
   },
-})
-class TableDashboard extends mixins(Viewer) {
-  public tabSpecs: TabNavSpec[] = [
-    {
-      value: {name: 'TableProducts'},
-      title: 'Products',
-      icon: mdiStorefront,
-    },
-    {
-      value: {name: 'TableOrders'},
-      title: 'Orders',
-      icon: mdiShopping,
-    },
-    {
-      value: {name: 'TableInvoices'},
-      title: 'Invoices',
-      icon: mdiReceipt,
-    },
-  ]
+  {
+    value: {name: 'TableOrders'},
+    title: 'Orders',
+    icon: mdiShopping,
+  },
+  {
+    value: {name: 'TableInvoices'},
+    title: 'Invoices',
+    icon: mdiReceipt,
+  },
+]
 
-  created() {
-    this.$listenForList('table_products')
-    this.$listenForList('table_orders')
-    this.$listenForList('table_invoices')
-    if (this.$route.name === 'TableDashboard') {
-      this.$router.replace({name: 'TableProducts'})
-    }
-  }
+listenForList('table_products')
+listenForList('table_orders')
+listenForList('table_invoices')
+if (route.name === 'TableDashboard') {
+  router.replace({name: 'TableProducts'})
 }
-
-export default toNative(TableDashboard)
 </script>

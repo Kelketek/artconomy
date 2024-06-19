@@ -16,49 +16,31 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import AcProductPreview from '@/components/AcProductPreview.vue'
+<script setup lang="ts">
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import Order from '@/types/Order.ts'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
+import {computed} from 'vue'
+import {useList} from '@/store/lists/hooks.ts'
 
-@Component({
-  components: {
-    AcOrderPreview,
-    AcProductPreview,
-    AcLink,
-    AcAvatar,
-    AcLoadSection,
-  },
-})
-class TableOrders extends mixins(Viewer) {
-  public orderList = null as unknown as ListController<Order>
 
-  public get ordersByUser() {
-    const result = new Map()
-    for (const order of this.orderList.list) {
-      const username = order.x!.seller.username
-      if (!result.has(username)) {
-        result.set(username, [])
-      }
-      result.get(username).push(order)
+const ordersByUser = computed(() => {
+  const result = new Map()
+  for (const order of orderList.list) {
+    const username = order.x!.seller.username
+    if (!result.has(username)) {
+      result.set(username, [])
     }
-    return result
+    result.get(username).push(order)
   }
+  return result
+})
 
-  public created() {
-    this.orderList = this.$getList('table_orders', {
-      endpoint: '/api/sales/table/orders/',
-      paginated: false,
-    })
-    this.orderList.firstRun()
-  }
-}
-
-export default toNative(TableOrders)
+const orderList = useList<Order>('table_orders', {
+  endpoint: '/api/sales/table/orders/',
+  paginated: false,
+})
+orderList.firstRun()
 </script>

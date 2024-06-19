@@ -23,47 +23,30 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
 import Product from '@/types/Product.ts'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import {computed} from 'vue'
+import {useList} from '@/store/lists/hooks.ts'
 
-@Component({
-  components: {
-    AcProductPreview,
-    AcLink,
-    AcAvatar,
-    AcLoadSection,
-  },
-})
-class TableProducts extends mixins(Viewer) {
-  public productList = null as unknown as ListController<Product>
-
-  public get productsByUser() {
-    const result = new Map()
-    for (const product of this.productList.list) {
-      const username = product.x!.user.username
-      if (!result.has(username)) {
-        result.set(username, [])
-      }
-      result.get(username).push(product.x!)
+const productsByUser = computed(() => {
+  const result = new Map()
+  for (const product of productList.list) {
+    const username = product.x!.user.username
+    if (!result.has(username)) {
+      result.set(username, [])
     }
-    return result
+    result.get(username).push(product.x!)
   }
+  return result
+})
 
-  public created() {
-    this.productList = this.$getList('table_products', {
-      endpoint: '/api/sales/table/products/',
-      paginated: false,
-    })
-    this.productList.firstRun()
-  }
-}
-
-export default toNative(TableProducts)
+const productList = useList<Product>('table_products', {
+  endpoint: '/api/sales/table/products/',
+  paginated: false,
+})
+productList.firstRun()
 </script>
