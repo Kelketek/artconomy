@@ -30,6 +30,9 @@ shell:
 
 test: test_frontend test_backend
 
+rust:
+	${APP_COMMAND} wasm-bindgen --target=bundler rust/line_items
+
 test_frontend:
 	${APP_COMMAND} "npm run test"
 

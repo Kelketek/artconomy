@@ -94,7 +94,7 @@ pub struct Money {
 
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy, Serialize, Deserialize)]
 #[wasm_bindgen]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.

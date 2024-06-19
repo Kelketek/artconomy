@@ -1,4 +1,5 @@
 import {sentryVitePlugin} from '@sentry/vite-plugin'
+import wasm from "vite-plugin-wasm"
 /// <reference types="vitest" />
 
 // Plugins
@@ -37,9 +38,7 @@ const plugins = [
       }],
     },
   }),
-  checker({
-    typescript: true,
-  }),
+  wasm(),
 ]
 
 if (productionMode) {
@@ -55,6 +54,12 @@ if (productionMode) {
       promiseImportName: i => `__tla_${i}`
     })
   )
+} else {
+  plugins.push(
+    checker({
+      typescript: true,
+    }
+  ))
 }
 
 // https://vitejs.dev/config/
