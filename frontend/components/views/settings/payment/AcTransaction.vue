@@ -67,10 +67,8 @@
 </template>
 
 <script setup lang="ts">
-import Subjective, {useSubject} from '@/mixins/subjective.ts'
-import {mixins, Prop} from 'vue-facing-decorator'
+import {useSubject} from '@/mixins/subjective.ts'
 import Transaction from '@/types/Transaction.ts'
-import Formatting from '@/mixins/formatting.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 import {TransactionCategory} from '@/types/TransactionCategory.ts'

@@ -51,9 +51,9 @@ const card = elements.create('card', {
   iconStyle: 'solid',
   classes,
 })
-emit('card', card)
 
 onMounted(() => {
   card.mount(`#${id}-card-number`)
+  emit('card', card)
 })
 </script>

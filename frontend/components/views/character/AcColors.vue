@@ -73,7 +73,7 @@ const randomColor = () => exampleLines[Math.floor(Math.random() * exampleLines.l
 
 const exampleLine = randomColor()
 
-const newColor = useForm(`${character.colors.name}__newColor`, {
+const newColor = useForm(`${character.colors.name.value}__newColor`, {
   endpoint: colors.endpoint,
   fields: {
     note: {

@@ -123,7 +123,7 @@ const {viewer, isLoggedIn, isRegistered, viewerName} = useViewer()
 
 const viewerUser =  viewer as Ref<User>
 
-const newCommentForm = useForm(props.commentList.name + '_new', {
+const newCommentForm = useForm(props.commentList.name.value + '_new', {
   endpoint: props.commentList.endpoint,
   fields: {
     text: {value: ''},
