@@ -767,7 +767,7 @@ CSP_SCRIPT_SRC = tuple(
             "'unsafe-inline'",
             "data:",
             "blob:",
-            "https://*.facebook.net",
+            "'webassembly-unsafe-eval" "https://*.facebook.net",
             "https://sentry.io",
             "https://www.googletagmanager.com",
             "https://static.cloudflareinsights.com",

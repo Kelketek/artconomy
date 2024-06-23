@@ -94,8 +94,7 @@ pub struct Money {
 
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
-#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy, Serialize, Deserialize)]
-#[wasm_bindgen]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Debug, Clone)]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
     pub id: u32,
@@ -104,14 +103,14 @@ pub struct LineItem {
     /// value of lower-priority lines.
     pub priority: i16,
     /// A static amount this line item represents. Starts as a float to be converted into decimal.
-    pub amount: &'static str,
+    pub amount: String,
     /// A previous version of the line item calculations may have already run. If this happens,
     /// we will perform all operations with this frozen value. All line items should have this set
     /// if any do.
-    pub frozen_value: Option<&'static str>,
+    pub frozen_value: Option<String>,
     /// Used for percentage-based line items, such as proportional fees/discounts. Can be used in
     /// conjunction with amount to add a static amount on top of the percentage.
-    pub percentage: &'static str,
+    pub percentage: String,
     /// Whether the percentage calculated should be based on a target amount rather than added on
     /// top. That is, calculate all lower priority items to get their total, then find out the line
     /// item's percentage of that amount. Once found, remove that amount proportionally from all
@@ -143,9 +142,9 @@ impl Default for LineItem {
             LineItem {
                 id: COUNTER,
                 priority: 0,
-                amount: "0",
+                amount: String::from("0"),
                 frozen_value: None,
-                percentage: "0",
+                percentage: String::from("0"),
                 cascade_percentage: false,
                 back_into_percentage: false,
                 cascade_amount: false,
@@ -153,6 +152,8 @@ impl Default for LineItem {
         }
     }
 }
+
+
 
 impl fmt::Display for LineItem {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
@@ -166,6 +167,7 @@ pub type LineMoneyMap = HashMap<LineItem, Money>;
 
 /// Intermediate map used for serializing to the frontend.
 pub type IdToMoneyVal = HashMap<u32, String>;
+
 
 /// 'Calculation' structure used as the basis of the return value for JS-based calls to the line
 /// item functions.
@@ -281,6 +283,14 @@ macro_rules! money {
     ($amount:expr, $currency:ident) => {
         Money::new(dec!($amount), $currency)
     };
+}
+
+/// Shorthand for String::from, which is used often in tests, especially.
+#[macro_export]
+macro_rules! s {
+    ($str: expr) => {
+        String::from($str)
+    }
 }
 
 impl_math_ops!(Add, add);

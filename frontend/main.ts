@@ -25,6 +25,7 @@ import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
 import {ShoppingCart} from '@/types/ShoppingCart.ts'
+import {generate_line} from '@/lib/lines'
 
 declare global {
   interface Window {
@@ -126,3 +127,5 @@ if (productionMode && isValidBrowser) {
 }
 
 window.artconomy = app.mount('#app')
+
+console.log(generate_line())
