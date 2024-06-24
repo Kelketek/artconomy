@@ -28,15 +28,15 @@
               <template v-slot:default>
                 <v-col>
                   <v-list three-line>
-                    <template v-for="(conversation, index) in conversations.list" :key="conversation.x.id">
-                      <v-list-item :to="{name: 'Conversation', params: {username, conversationId: conversation.x.id}}" v-if="conversation.x">
+                    <template v-for="(conversation, index) in conversations.list" :key="conversation.x!.id">
+                      <v-list-item :to="{name: 'Conversation', params: {username, conversationId: conversation.x!.id}}" v-if="conversation.x">
                         <template v-slot:prepend>
-                          <img :src="avatarImage(conversation.x)" alt=""/>
+                          <img :src="avatarImage(conversation.x!)" alt=""/>
                         </template>
-                        <v-list-item-title>{{conversationTitle(conversation.x)}}</v-list-item-title>
-                        <v-list-item-subtitle v-if="conversation.x.last_comment">
-                          <span v-if="conversation.x.last_comment.user">{{conversation.x.last_comment.user.username}}:</span>
-                          {{textualize(conversation.x.last_comment.text)}}
+                        <v-list-item-title>{{conversationTitle(conversation.x!)}}</v-list-item-title>
+                        <v-list-item-subtitle v-if="conversation.x!.last_comment">
+                          <span v-if="conversation.x!.last_comment.user">{{conversation.x!.last_comment.user.username}}:</span>
+                          {{textualize(conversation.x!.last_comment.text)}}
                         </v-list-item-subtitle>
                       </v-list-item>
                       <v-divider :key="'divider' + conversation.x!.id"
@@ -76,96 +76,82 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '../../mixins/subjective.ts'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import {Conversation} from '@/types/Conversation.ts'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import AcAvatar from '@/components/AcAvatar.vue'
-import Formatting from '@/mixins/formatting.ts'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {mdiPlus} from '@mdi/js'
 import {posse} from '@/lib/otherFormatters.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {textualize} from '@/lib/markdown.ts'
 
-@Component({
-  components: {
-    AcPaginated,
-    AcFormDialog,
-    AcBoundField,
-    AcLoadingSpinner,
-    AcAvatar,
-  },
+
+const props = defineProps<SubjectiveProps>()
+const router = useRouter()
+const {rawViewerName} = useViewer()
+const {setError} = useErrorHandling()
+const {isCurrent} = useSubject(props, true, true)
+const showNew = ref(false)
+
+const conversations = useList<Conversation>('conversations-' + props.username, {
+  endpoint: `/api/profiles/account/${props.username}/conversations/`,
 })
-class ConversationsList extends mixins(Subjective, Formatting) {
-  public conversations: ListController<Conversation> = null as unknown as ListController<Conversation>
-  public newConversation: FormController = null as unknown as FormController
-  public showNew = false
-  public privateView = true
-  public protectedView = true
-  public mdiPlus = mdiPlus
+const newConversation = useForm('new-conversation', {
+  fields: {
+    participants: {value: []},
+    captcha: {value: ''},
+  },
+  endpoint: `/api/profiles/account/${rawViewerName.value}/conversations/`,
+})
+conversations.firstRun().catch(setError)
 
-  public otherParticipants(participants: TerseUser[]) {
-    return participants.filter(
-        (participant) => participant.username !== this.username,
-    )
-  }
-
-  public avatarImage(conversation: Conversation) {
-    const participants = this.otherParticipants(conversation.participants)
-    if (!participants.length) {
-      return conversation.participants[0].avatar_url
-    }
-    return participants[0].avatar_url
-  }
-
-  // noinspection JSMethodCanBeStatic
-  public conversationTitle(conversation: Conversation) {
-    const participants = this.otherParticipants(conversation.participants)
-    if (!participants.length) {
-      return '(Abandoned Conversation)'
-    }
-    return posse(participants.map((participant) => participant.username), this.participantsCount(participants))
-  }
-
-  // noinspection JSMethodCanBeStatic
-  public participantsCount(participants: TerseUser[]) {
-    let participantsCount = participants.length
-    participantsCount -= 3
-    if (participantsCount < 0) {
-      participantsCount = 0
-    }
-    return participantsCount
-  }
-
-  public visitConversation(conversation: Conversation) {
-    this.$router.push({
-      name: 'Conversation',
-      params: {
-        username: this.username,
-        conversationId: conversation.id + '',
-      },
-    })
-  }
-
-  public created() {
-    this.conversations = this.$getList('conversations-' + this.username, {
-      endpoint: `/api/profiles/account/${this.username}/conversations/`,
-    })
-    this.newConversation = this.$getForm('new-conversation', {
-      fields: {
-        participants: {value: []},
-        captcha: {value: ''},
-      },
-      endpoint: `/api/profiles/account/${this.rawViewerName}/conversations/`,
-    })
-    this.conversations.firstRun().catch(this.setError)
-  }
+const otherParticipants = (participants: TerseUser[]) => {
+  return participants.filter(
+      (participant) => participant.username !== props.username,
+  )
 }
 
-export default toNative(ConversationsList)
+const avatarImage = (conversation: Conversation) => {
+  const participants = otherParticipants(conversation.participants)
+  if (!participants.length) {
+    return conversation.participants[0].avatar_url
+  }
+  return participants[0].avatar_url
+}
+
+const conversationTitle = (conversation: Conversation) => {
+  const participants = otherParticipants(conversation.participants)
+  if (!participants.length) {
+    return '(Abandoned Conversation)'
+  }
+  return posse(participants.map((participant) => participant.username), participantsCount(participants))
+}
+
+const participantsCount = (participants: TerseUser[]) => {
+  let participantsCount = participants.length
+  participantsCount -= 3
+  if (participantsCount < 0) {
+    participantsCount = 0
+  }
+  return participantsCount
+}
+
+const visitConversation = (conversation: Conversation) => {
+  router.push({
+    name: 'Conversation',
+    params: {
+      username: props.username,
+      conversationId: conversation.id + '',
+    },
+  })
+}
 </script>
