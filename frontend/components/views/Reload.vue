@@ -1,12 +1,12 @@
 <template>
   <div></div>
 </template>
-<script>
-export default {
-  beforeCreate() {
-    const path = this.$route.params.path
-    this.$router.replace('/')
-    this.$router.replace(path)
-  },
-}
+<script setup lang="ts">
+import {useRoute, useRouter} from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
+const path = route.params.path + ''
+router.replace('/')
+router.replace(path)
 </script>
