@@ -46,69 +46,52 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcLoadSection from '../wrappers/AcLoadSection.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {User} from '@/store/profiles/types/User.ts'
-import Viewer from '@/mixins/viewer.ts'
+import {useViewer} from '@/mixins/viewer.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRouter} from 'vue-router'
 
-@Component({
-  components: {
-    AcForm,
-    AcBoundField,
-    AcFormContainer,
-    AcLoadSection,
-  },
-})
-class PasswordReset extends mixins(Viewer) {
-  public resetForm: FormController = null as unknown as FormController
-  public validator: SingleController<any> = null as unknown as SingleController<any>
-  @Prop({required: true})
-  public resetToken!: string
 
-  @Prop({required: true})
-  public username!: string
+const props = defineProps<{resetToken: string, username: string}>()
+const router = useRouter()
+const {viewer, viewerHandler} = useViewer()
 
-  public postReset(response: User) {
-    this.viewerHandler.user.x = response
-    this.$router.push(
-        {
-          name: 'Profile',
-          params: {username: (this.viewer as User).username},
-          query: {editing: 'true'},
+const validator = useSingle<any>(
+    'passwordToken', {
+      endpoint: `/api/profiles/forgot-password/token-check/${props.username}/${props.resetToken}/`,
+    },
+)
+validator.get()
+const resetForm = useForm(
+    'passwordReset', {
+      endpoint: `/api/profiles/forgot-password/perform-reset/${props.username}/${props.resetToken}/`,
+      fields: {
+        new_password: {value: ''},
+        new_password2: {
+          value: '',
+          validators: [{
+            name: 'matches',
+            args: ['new_password', 'Passwords do not match.'],
+          }],
         },
-    )
-  }
+      },
+    },
+)
 
-  public created() {
-    this.validator = this.$getSingle(
-        'passwordToken', {
-          endpoint: `/api/profiles/forgot-password/token-check/${this.username}/${this.resetToken}/`,
-        },
-    )
-    this.validator.get()
-    this.resetForm = this.$getForm(
-        'passwordReset', {
-          endpoint: `/api/profiles/forgot-password/perform-reset/${this.username}/${this.resetToken}/`,
-          fields: {
-            new_password: {value: ''},
-            new_password2: {
-              value: '',
-              validators: [{
-                name: 'matches',
-                args: ['new_password', 'Passwords do not match.'],
-              }],
-            },
-          },
-        },
-    )
-  }
+const postReset = (response: User) => {
+  viewerHandler.user.x = response
+  router.push(
+      {
+        name: 'Profile',
+        params: {username: (viewer.value as User).username},
+        query: {editing: 'true'},
+      },
+  )
 }
-
-export default toNative(PasswordReset)
 </script>
