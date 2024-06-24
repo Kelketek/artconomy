@@ -127,5 +127,3 @@ if (productionMode && isValidBrowser) {
 }
 
 window.artconomy = app.mount('#app')
-
-console.log(generate_line())
