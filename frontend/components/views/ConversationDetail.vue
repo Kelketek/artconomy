@@ -77,77 +77,62 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
-import Formatting from '@/mixins/formatting.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import {Conversation} from '@/types/Conversation.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import Comment from '@/types/Comment.ts'
 import {mdiLock, mdiDelete, mdiLockOpen} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed, ref} from 'vue'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useRouter} from 'vue-router'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {
-    AcConfirmation,
-    AcLoadingSpinner,
-    AcCommentSection,
-    AcAvatar,
-  },
+
+const props = defineProps<SubjectiveProps & {conversationId: number}>()
+const router = useRouter()
+const {rawViewerName} = useViewer()
+const {setError} = useErrorHandling()
+const locked = ref(true)
+
+const url = computed(() => {
+  return `/api/profiles/account/${props.username}/conversations/${props.conversationId}/`
 })
-class ConversationDetail extends mixins(Subjective, Formatting) {
-  @Prop()
-  public conversationId!: string
+const conversation = useSingle<Conversation>('conversation-' + props.conversationId, {endpoint: url.value})
+conversation.get().catch(setError)
+const conversationComments = useList<Comment>(
+    'conversation-' + props.conversationId + '-comments',
+    {
+      endpoint: `/api/lib/comments/profiles.Conversation/${props.conversationId}/`,
+      reverse: true,
+      grow: true,
+      params: {size: 5},
+    },
+)
 
-  public conversation: SingleController<Conversation> = null as unknown as SingleController<Conversation>
-  public conversationComments: ListController<Comment> = null as unknown as ListController<Comment>
-  public locked = true
-  public mdiLock = mdiLock
-  public mdiDelete = mdiDelete
-  public mdiLockOpen = mdiLockOpen
-
-  public goBack() {
-    this.$router.push({
-      name: 'Conversations',
-      params: {username: this.username},
-    })
-  }
-
-  public get inConversation() {
-    /* istanbul ignore next */
-    if (!this.conversation.x) {
-      return
-    }
-    return this.conversation.x.participants.map((user) => user.username).indexOf(this.rawViewerName) !== -1
-  }
-
-  public created() {
-    this.conversation = this.$getSingle('conversation-' + this.conversationId, {endpoint: this.url})
-    this.conversation.get().catch(this.setError)
-    this.conversationComments = this.$getList(
-        'conversation-' + this.conversationId + '-comments',
-        {
-          endpoint: `/api/lib/comments/profiles.Conversation/${this.conversationId}/`,
-          reverse: true,
-          grow: true,
-          params: {size: 5},
-        },
-    )
-  }
-
-  public get url(): string {
-    return `/api/profiles/account/${this.username}/conversations/${this.conversationId}/`
-  }
-
-  public leaveConversation() {
-    return this.conversation.delete().then(this.goBack)
-  }
+const goBack = () => {
+  router.push({
+    name: 'Conversations',
+    params: {username: props.username},
+  })
 }
 
-export default toNative(ConversationDetail)
+const leaveConversation = () => {
+  return conversation.delete().then(goBack)
+}
+
+const inConversation = computed(() => {
+  /* istanbul ignore next */
+  if (!conversation.x) {
+    return
+  }
+  return conversation.x.participants.map((user) => user.username).indexOf(rawViewerName.value) !== -1
+})
 </script>
 
 <style scoped>
