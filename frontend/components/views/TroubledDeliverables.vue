@@ -22,7 +22,7 @@
               <td>{{deliverable.x!.id}}</td>
               <td>{{deliverable.x!.order.id}}</td>
               <td>
-                <ac-deliverable-status :deliverable="deliverable.x"/>
+                <ac-deliverable-status :deliverable="deliverable.x!"/>
               </td>
               <td>{{formatDateTime(deliverable.x!.created_on)}}</td>
               <td>{{deliverable.x!.paid_on && formatDateTime(deliverable.x!.paid_on)}}</td>
@@ -49,43 +49,24 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {ListController} from '@/store/lists/controller.ts'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
 import Deliverable from '@/types/Deliverable.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcDeliverablePreview from '@/components/AcDeliverablePreview.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import Formatting from '@/mixins/formatting.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {artCall} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
+import {useList} from '@/store/lists/hooks.ts'
+import {formatDateTime} from '@/lib/otherFormatters.ts'
 
-@Component({
-  components: {
-    AcAvatar,
-    AcLink,
-    AcDeliverableStatus,
-    AcDeliverablePreview,
-    AcPaginated,
-  },
-})
-class TroubledDeliverables extends mixins(Viewer, Formatting) {
-  public troubledDeliverables = null as unknown as ListController<Deliverable>
-
-  public claimDeliverable(deliverable: SingleController<Deliverable>) {
-    return artCall({
-      url: `/api/sales/order/${deliverable.x!.order.id}/deliverables/${deliverable.x!.id}/claim/`,
-      method: 'post',
-    }).then(deliverable.updateX)
-  }
-
-  public created() {
-    this.troubledDeliverables = this.$getList('troubledDeliverables', {endpoint: '/api/sales/reports/troubled-deliverables/'})
-  }
+const {viewer} = useViewer()
+const troubledDeliverables = useList<Deliverable>('troubledDeliverables', {endpoint: '/api/sales/reports/troubled-deliverables/'})
+const claimDeliverable = async (deliverable: SingleController<Deliverable>) => {
+  return artCall({
+    url: `/api/sales/order/${deliverable.x!.order.id}/deliverables/${deliverable.x!.id}/claim/`,
+    method: 'post',
+  }).then(deliverable.updateX)
 }
-
-export default toNative(TroubledDeliverables)
 </script>
