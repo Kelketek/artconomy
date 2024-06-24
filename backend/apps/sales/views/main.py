@@ -701,6 +701,9 @@ class DeliverableInvite(GenericAPIView):
                 f"You have a new invoice from {deliverable.order.seller.username}!"
             )
             template = "invoice_issued.html"
+        if not deliverable.order.claim_token:
+            deliverable.order.claim_token = gen_shortcode()
+            deliverable.order.save()
         send_transaction_email(
             subject,
             template,

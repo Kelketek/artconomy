@@ -28,113 +28,90 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import {RouteLocationRaw} from 'vue-router'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
+import {RouteLocationRaw, useRouter} from 'vue-router'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {BASE_URL} from '@/lib/lib.ts'
+import {useSocket} from '@/plugins/socket.ts'
+import {useForm} from '@/store/forms/hooks.ts'
 
-@Component({
-  components: {
-    AcFormContainer,
-    AcLoadingSpinner,
+const cheering = new URL('static/images/cheering.png', BASE_URL).href
+const props = defineProps<{username?: string, orderId?: string, token?: string, deliverableId?: string, next?: string}>()
+const router = useRouter()
+const {rawViewerName, viewerName, viewerHandler, isRegistered} = useViewer()
+const socket = useSocket()
+
+const claimForm = useForm('orderClaim', {
+  endpoint: '/api/sales/order-auth/',
+  reset: false,
+  fields: {
+    id: {value: props.orderId},
+    claim_token: {value: props.token},
+    chown: {value: false},
   },
 })
-class ClaimOrder extends mixins(Viewer) {
-  @Prop()
-  public username!: string
 
-  @Prop()
-  public orderId!: string
-
-  @Prop()
-  public token!: string
-
-  @Prop()
-  public deliverableId!: string
-
-  @Prop()
-  public next!: string
-
-  public claimForm: FormController = null as unknown as FormController
-  public failed = false
-
-  public cheering = new URL('static/images/cheering.png', BASE_URL).href
-
-  public visitOrder(user: User) {
-    this.$sock.socket?.reconnect()
-    const route: RouteLocationRaw = {}
-    if (this.next) {
-      Object.assign(route, JSON.parse(this.next) as RouteLocationRaw)
-      if (route.query === undefined) {
-        route.query = {}
-      }
-    } else {
-      Object.assign(route, {
-        name: 'Order',
-        params: {
-          orderId: this.orderId,
-          username: this.rawViewerName,
-        },
-      })
-      if (this.deliverableId) {
-        Object.assign(route, {
-          name: 'OrderDeliverableOverview',
-          params: {
-            orderId: this.orderId,
-            deliverableId: this.deliverableId,
-            username: this.rawViewerName,
-          },
-        })
-      }
+const visitOrder = (user: User) => {
+  socket.socket?.reconnect()
+  const route: RouteLocationRaw = {}
+  if (props.next) {
+    Object.assign(route, JSON.parse(props.next) as RouteLocationRaw)
+    if (route.query === undefined) {
+      route.query = {}
     }
-    const commentId = this.$route.query.commentId
-    if (commentId) {
-      route.query!.commentId = commentId
-    }
-    this.viewerHandler.user.setX(user)
-    if (user.guest) {
-      this.viewerHandler.artistProfile.kill()
-      this.viewerHandler.artistProfile.setX(null)
-      this.viewerHandler.artistProfile.ready = false
-      this.viewerHandler.artistProfile.fetching = false
-    }
-    this.$router.replace(route)
-  }
-
-  public claimAsUser() {
-    this.claimForm.fields.chown.update(true)
-    this.claimForm.submitThen(this.visitOrder)
-  }
-
-  public becomeGuest() {
-    this.claimForm.fields.chown.update(false)
-    this.claimForm.submitThen(this.visitOrder)
-  }
-
-  public sendForm() {
-    if (!this.isRegistered) {
-      this.claimForm.submitThen(this.visitOrder)
-    }
-  }
-
-  public created() {
-    this.claimForm = this.$getForm('orderClaim', {
-      endpoint: '/api/sales/order-auth/',
-      reset: false,
-      fields: {
-        id: {value: this.orderId},
-        claim_token: {value: this.token},
-        chown: {value: false},
+  } else {
+    Object.assign(route, {
+      name: 'Order',
+      params: {
+        orderId: props.orderId,
+        username: rawViewerName.value,
       },
     })
-    this.$sock.connectListeners.ClaimOrder = this.sendForm
+    if (props.deliverableId) {
+      Object.assign(route, {
+        name: 'OrderDeliverableOverview',
+        params: {
+          orderId: props.orderId,
+          deliverableId: props.deliverableId,
+          username: rawViewerName.value,
+        },
+      })
+    }
   }
+  const commentId = route.query?.commentId
+  if (commentId) {
+    route.query!.commentId = commentId
+  }
+  viewerHandler.user.setX(user)
+  if (user.guest) {
+    viewerHandler.artistProfile.kill()
+    viewerHandler.artistProfile.setX(null)
+    viewerHandler.artistProfile.ready = false
+    viewerHandler.artistProfile.fetching = false
+  }
+  router.replace(route)
 }
 
-export default toNative(ClaimOrder)
+const sendForm = () => {
+  if (!isRegistered.value) {
+    claimForm.submitThen(visitOrder)
+  }
+}
+if (socket.socket?.readyState) {
+  sendForm()
+} else {
+  socket.connectListeners.ClaimOrder = sendForm
+}
+
+const claimAsUser = () => {
+  claimForm.fields.chown.update(true)
+  claimForm.submitThen(visitOrder)
+}
+
+const becomeGuest = () => {
+  claimForm.fields.chown.update(false)
+  claimForm.submitThen(visitOrder)
+}
 </script>
