@@ -2,19 +2,14 @@
   <div></div>
 </template>
 
-<script lang="ts">
-import {Component, toNative} from 'vue-facing-decorator'
-import {ArtVue} from '@/lib/lib.ts'
+<script setup lang="ts">
+import {onMounted} from 'vue'
+import {ArtStore} from '@/store'
+import {useStore} from 'vuex'
 
-@Component
-class NotFound extends ArtVue {
+const store = useStore<ArtStore>()
 
-  public mounted() {
-    this.$store.commit('errors/setError', {response: {status: 404}})
-  }
-}
-
-export default toNative(NotFound)
+onMounted(() => store.commit('errors/setError', {response: {status: 404}}))
 </script>
 
 <style scoped>
