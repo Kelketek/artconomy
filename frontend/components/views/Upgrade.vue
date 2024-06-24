@@ -168,189 +168,175 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
 import {artCall, baseCardSchema} from '@/lib/lib.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin.ts'
-import Formatting from '@/mixins/formatting.ts'
-import Subjective from '@/mixins/subjective.ts'
+import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import Pricing from '@/types/Pricing.ts'
 import {mdiCheckCircle} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed, ref, watch} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRoute, useRouter} from 'vue-router'
+import ClientSecret from '@/types/ClientSecret.ts'
 
-@Component({
-  components: {
-    AcForm,
-    AcFormContainer,
-    AcCardManager,
-    AcLoadSection,
-  },
+const props = defineProps<SubjectiveProps>()
+const {viewer} = useViewer()
+const {subject} = useSubject(props, true)
+const route = useRoute()
+const router = useRouter()
+const selection = ref<null|string>(null)
+const paid = ref(false)
+const cardManager = ref<null | typeof AcCardManager>(null)
+
+const tab = computed(() => {
+  if (selection.value === null) {
+    return 'selection'
+  } else if (paid.value) {
+    return 'completed'
+  } else {
+    return 'payment'
+  }
 })
-class Upgrade extends mixins(Subjective, StripeHostMixin, Formatting) {
-  public privateView = true
-  public pricing = null as unknown as SingleController<Pricing>
-  public paymentForm = null as unknown as FormController
-  public selection: null | string = null
-  public paid = false
-  public mdiCheckCircle = mdiCheckCircle
 
-  public get tab() {
-    if (this.selection === null) {
-      return 'selection'
-    } else if (this.paid) {
-      return 'completed'
-    } else {
-      return 'payment'
-    }
+const loggedInViewer = computed(() => viewer.value as User)
+
+const pricing = useSingle<Pricing>('pricing', {
+  endpoint: '/api/sales/pricing-info/',
+  persist: true,
+})
+
+pricing.get()
+
+const schema = baseCardSchema('/api/sales/premium/')
+schema.fields = {
+  ...schema.fields,
+  card_id: {value: null},
+  service: {value: null},
+}
+const paymentForm = useForm('serviceUpgrade', schema)
+
+const clientSecret = useSingle<ClientSecret>(
+  'upgrade__clientSecret', {
+    endpoint: '/api/sales/premium/intent/',
+    params: {service: selection.value},
+})
+
+// In the future, we should refactor this to allow in-person subscriptions.
+const readerFormUrl = computed(() => '#')
+const canUpdate = computed(() => true)
+const {updateIntent} = useStripeHost({clientSecret, readerFormUrl, canUpdate, paymentForm})
+
+const plans = computed(() => {
+  if (!(pricing.x)) {
+    return []
   }
+  return pricing.x.plans
+})
 
-  public get loggedInViewer(): User {
-    return this.viewer as User
+const selectedPlan = computed(() => {
+  if (!plans.value) {
+    return null
   }
+  return plans.value.filter((plan) => plan.name === selection.value)[0]
+})
 
-  public get readerFormUrl() {
-    // TODO: Refactor to use standard invoices so we can return a URL here and subscribe someone in person,
-    //  if we wanted.
-    return '#'
-  }
-
-  public get selectedPlan() {
-    if (!this.plans) {
-      return null
-    }
-    return this.plans.filter((plan) => plan.name === this.selection)[0]
-  }
-
-  public get plans() {
-    if (!(this.pricing && this.pricing.x)) {
-      return []
-    }
-    return this.pricing.x.plans
-  }
-
-  public get features() {
-    const featureMap: { [key: number]: string[] } = {}
-    const existingFeatures: { [key: string]: boolean } = {}
-    for (const plan of this.plans) {
-      const planFeatures = []
-      for (const feature of plan.features) {
-        if (!existingFeatures[feature]) {
-          planFeatures.push(feature)
-          existingFeatures[feature] = true
-        }
+const features = computed(() => {
+  const featureMap: { [key: number]: string[] } = {}
+  const existingFeatures: { [key: string]: boolean } = {}
+  for (const plan of plans.value) {
+    const planFeatures = []
+    for (const feature of plan.features) {
+      if (!existingFeatures[feature]) {
+        planFeatures.push(feature)
+        existingFeatures[feature] = true
       }
-      featureMap[plan.id] = planFeatures
     }
-    return featureMap
+    featureMap[plan.id] = planFeatures
   }
+  return featureMap
+})
 
-  public setPlan() {
-    return artCall({
-      url: `/api/sales/account/${this.username}/set-plan/`,
-      data: {service: this.selection},
-      method: 'post',
-    })
+const setPlan = () => {
+  return artCall({
+    url: `/api/sales/account/${props.username}/set-plan/`,
+    data: {service: selection.value},
+    method: 'post',
+  })
+}
+
+const nonFree = computed(() => {
+  return selectedPlan.value && (selectedPlan.value.monthly_charge || selectedPlan.value.per_deliverable_price)
+})
+
+const nextUrl = computed(() => {
+  const query = route.query
+  if (!(query && query.next && !Array.isArray(query.next))) {
+    return false
   }
-
-  public get nonFree() {
-    return this.selectedPlan && (this.selectedPlan.monthly_charge || this.selectedPlan.per_deliverable_price)
+  const resolved = router.resolve(query.next)
+  if (resolved.name === 'NotFound') {
+    return false
   }
+  return resolved
+})
 
-  @Watch('selectedPlan.monthly_charge')
-  public setEndpoint(value: undefined | number) {
-    if (value === undefined) {
-      return
-    }
-    if (!value) {
-      this.clientSecret.endpoint = `/api/sales/account/${this.username}/cards/setup-intent/`
-    } else {
-      this.clientSecret.endpoint = `/api/sales/account/${this.username}/premium/intent/`
-    }
+const switchIsFree = computed(() => {
+  if (!selectedPlan.value) {
+    return false
   }
-
-  public get nextUrl() {
-    const query = this.$route.query
-    if (!(query && query.next && !Array.isArray(query.next))) {
-      return false
-    }
-    const resolved = this.$router.resolve(query.next)
-    if (resolved.name === 'NotFound') {
-      return false
-    }
-    return resolved
+  if (selectedPlan.value.name === loggedInViewer.value.service_plan) {
+    return true
   }
+  return !selectedPlan.value.monthly_charge && !selectedPlan.value.per_deliverable_price
+})
 
-  public get switchIsFree() {
-    if (!this.selectedPlan) {
-      return false
-    }
-    if (this.selectedPlan.name === (this.viewer as User).service_plan) {
-      return true
-    }
-    return !this.selectedPlan.monthly_charge && !this.selectedPlan.per_deliverable_price
-  }
-
-  @Watch('selection')
-  public setSelection(value: string) {
-    if (!value) {
-      return
-    }
-    this.paymentForm.fields.service.update(value)
-    this.clientSecret.params = {
-      ...this.clientSecret.params,
-      service: value,
-    }
-    this.updateIntent()
-    if (this.switchIsFree) {
-      this.paymentForm.sending = true
-      this.setPlan().then(this.postPay)
-    }
-  }
-
-  public paymentSubmit() {
-    const cardManager = this.$refs.cardManager as any
-    if (!this.selectedPlan!.monthly_charge && this.paymentForm.fields.card_id.value) {
-      this.setPlan().then(this.postPay)
-    } else {
-      cardManager.stripeSubmit()
-    }
-  }
-
-  public postPay() {
-    this.paymentForm.sending = false
-    this.paid = true
-  }
-
-  public created() {
-    // @ts-ignore
-    window.payment = this
-    this.pricing = this.$getSingle('pricing', {
-      endpoint: '/api/sales/pricing-info/',
-      persist: true,
-    })
-    this.pricing.get()
-    const schema = baseCardSchema('/api/sales/premium/')
-    schema.fields = {
-      ...schema.fields,
-      card_id: {value: null},
-      service: {value: null},
-    }
-    this.paymentForm = this.$getForm('serviceUpgrade', schema)
-    this.clientSecret = this.$getSingle(
-        'upgrade__clientSecret', {
-          endpoint: '/api/sales/premium/intent/',
-          params: {service: this.selection},
-        })
+const paymentSubmit = () => {
+  if (!selectedPlan.value!.monthly_charge && paymentForm.fields.card_id.value) {
+    setPlan().then(postPay)
+  } else {
+    cardManager.value!.stripeSubmit()
   }
 }
 
-export default toNative(Upgrade)
+const postPay = () => {
+  paymentForm.sending = false
+  paid.value = true
+}
+
+watch(() => selectedPlan.value?.monthly_charge, (value) => {
+  if (value === undefined) {
+    return
+  }
+  if (!value) {
+    clientSecret.endpoint = `/api/sales/account/${props.username}/cards/setup-intent/`
+  } else {
+    clientSecret.endpoint = `/api/sales/account/${props.username}/premium/intent/`
+  }
+})
+
+watch(selection, (value) => {
+  if (!value) {
+    return
+  }
+  paymentForm.fields.service.update(value)
+  clientSecret.params = {
+    ...clientSecret.params,
+    service: value,
+  }
+  updateIntent()
+  if (switchIsFree.value) {
+    paymentForm.sending = true
+    setPlan().then(postPay)
+  }
+})
 </script>
 
 <style scoped>
