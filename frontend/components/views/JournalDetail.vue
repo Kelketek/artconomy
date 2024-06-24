@@ -18,7 +18,7 @@
                   {{formatDateTime(journal.x.created_on)}}
                   <span v-if="journal.x.edited"><br/>Edited: {{formatDateTime(journal.x.edited_on)}}</span>
                 </v-tooltip>
-                <v-menu offset-x left :close-on-content-click="false" :attach="$menuTarget">
+                <v-menu offset-x left :close-on-content-click="false" :attach="menuTarget">
                   <template v-slot:activator="{props}">
                     <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
                       <v-icon :icon="mdiDotsHorizontal"/>
@@ -106,83 +106,59 @@
     </template>
   </ac-load-section>
 </template>
-<script lang="ts">
-import Editable from '@/mixins/editable.ts'
+<script setup lang="ts">
+import {useEditable} from '@/mixins/editable.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import {SingleController} from '@/store/singles/controller.ts'
-import Subjective from '@/mixins/subjective.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 import {Journal} from '@/types/Journal.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
-import AcEditor from '@/components/fields/AcEditor.vue'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {ListController} from '@/store/lists/controller.ts'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import Formatting from '@/mixins/formatting.ts'
+import Comment from '@/types/Comment.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {mdiLock, mdiPencil, mdiVolumeHigh, mdiVolumeOff, mdiDelete, mdiDotsHorizontal, mdiInformation} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useRouter} from 'vue-router'
+import {computed} from 'vue'
+import {formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
+import {useTargets} from '@/plugins/targets.ts'
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcLink,
-    AcPatchField,
-    AcCommentSection,
-    AcConfirmation,
-    AcLoadingSpinner,
-    AcEditor,
-    AcRendered,
-    AcAvatar,
-  },
-})
-class JournalDetail extends mixins(Subjective, Editable, Formatting) {
-  @Prop({required: true})
-  public journalId!: number
+const props = defineProps<SubjectiveProps & {journalId: number}>()
+const {controls, subject} = useSubject(props)
+const router = useRouter()
+const {editing} = useEditable(controls)
+const {menuTarget} = useTargets()
 
-  public journal = null as unknown as SingleController<Journal>
-  public journalComments = null as unknown as ListController<Journal>
-  public mdiInformation = mdiInformation
-  public mdiDotsHorizontal = mdiDotsHorizontal
-  public mdiLock = mdiLock
-  public mdiPencil = mdiPencil
-  public mdiVolumeHigh = mdiVolumeHigh
-  public mdiVolumeOff = mdiVolumeOff
-  public mdiDelete = mdiDelete
-
-  public created() {
-    this.journal = this.$getSingle(
-        `journal-${this.journalId}`, {
-          endpoint: `/api/profiles/account/${this.username}/journals/${this.journalId}/`,
-        })
-    this.journal.get().catch(this.setError)
-    this.journalComments = this.$getList(
-        `journal-${this.journalId}-comments`, {
-          endpoint: `/api/lib/comments/profiles.Journal/${this.journalId}/`,
-          reverse: true,
-          grow: true,
-          params: {size: 5},
-        })
-    this.journalComments.firstRun()
-  }
-
-  public async deleteJournal() {
-    return this.journal.delete().then(this.goBack)
-  }
-
-  public get locked() {
-    return !this.journal.x || this.journal.x!.comments_disabled
-  }
-
-  public goBack() {
-    this.$router.push({
-      name: 'Profile',
-      params: {username: this.username},
+const {setError} = useErrorHandling()
+const journal = useSingle<Journal>(
+    `journal-${props.journalId}`, {
+      endpoint: `/api/profiles/account/${props.username}/journals/${props.journalId}/`,
     })
-  }
+journal.get().catch(setError)
+const journalComments = useList<Comment>(
+    `journal-${props.journalId}-comments`, {
+      endpoint: `/api/lib/comments/profiles.Journal/${props.journalId}/`,
+      reverse: true,
+      grow: true,
+      params: {size: 5},
+    })
+journalComments.firstRun()
+
+const goBack = () => {
+  router.push({
+    name: 'Profile',
+    params: {username: props.username},
+  })
 }
 
-export default toNative(JournalDetail)
+const deleteJournal = async () => {
+  return journal.delete().then(goBack)
+}
+
+const locked = computed(() => (!journal.x || journal.x!.comments_disabled))
 </script>
