@@ -2,29 +2,24 @@
   <div></div>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Viewer from '../../mixins/viewer.ts'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {User} from '@/store/profiles/types/User.ts'
 
-@Component({})
-class RedirectToViewer extends mixins(Viewer) {
-  @Prop({required: true})
-  public viewName!: string
-
-  public created() {
-    if (!this.isLoggedIn) {
-      this.$router.replace({
-        name: 'Login',
-        query: {next: this.$route.fullPath},
-      })
-      return
-    }
-    this.$router.push({
-      name: this.viewName,
-      params: {username: this.viewer!.username},
-    })
-  }
+const props = defineProps<{viewName: string}>()
+const router = useRouter()
+const route = useRoute()
+const {isLoggedIn, viewer} = useViewer()
+if (!isLoggedIn.value) {
+  router.replace({
+    name: 'Login',
+    query: {next: route.fullPath},
+  })
+} else {
+  router.push({
+    name: props.viewName,
+    params: {username: (viewer.value as User).username},
+  })
 }
-
-export default toNative(RedirectToViewer)
 </script>
