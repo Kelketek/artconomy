@@ -30,7 +30,6 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
 import Rating from '@/types/Rating.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -43,7 +42,6 @@ import {useList} from '@/store/lists/hooks.ts'
 
 
 const props = defineProps<SubjectiveProps>()
-const {subject} = useSubject(props)
 const ratings = useList<Rating>(`ratings__${flatten(props.username)}`, {endpoint: `/api/sales/account/${props.username}/ratings/`})
 ratings.firstRun()
 </script>
