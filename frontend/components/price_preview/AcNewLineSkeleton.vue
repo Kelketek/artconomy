@@ -13,12 +13,5 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, toNative, Vue} from 'vue-facing-decorator'
-
-@Component
-class AcNewLineSkeleton extends Vue {
-}
-
-export default toNative(AcNewLineSkeleton)
+<script setup lang="ts">
 </script>
