@@ -28,7 +28,6 @@
 </template>
 
 <script setup lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
 import LineItem from '@/types/LineItem.ts'
 import LineAccumulator from '@/types/LineAccumulator.ts'
 import {LineTypes} from '@/types/LineTypes.ts'
