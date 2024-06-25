@@ -1,6 +1,6 @@
 <template>
   <ac-load-section :controller="products">
-    <v-row class="d-flex" v-if="controls && !$store.state.iFrame && !firstProduct && !hideNewButton">
+    <v-row class="d-flex" v-if="controls && !store.state.iFrame && !firstProduct && !hideNewButton">
       <v-col class="text-md-right text-center">
         <v-btn variant="flat" color="green" @click="showNew = true" class="mx-2 d-inline-block" v-if="!managing">
           <v-icon left :icon="mdiPlus"/>
@@ -21,7 +21,7 @@
       </template>
     </ac-product-list>
     <ac-new-product :username="username" v-model="showNew"
-                    v-if="!managing && controls && !$store.state.iFrame"></ac-new-product>
+                    v-if="!managing && controls && !store.state.iFrame" />
     <v-row no-gutters v-if="firstProduct">
       <v-col cols="12" class="text-md-right text-center">
         <v-btn @click="managing = !managing" color="primary" variant="flat">
@@ -54,87 +54,68 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import Subjective from '@/mixins/subjective.ts'
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcProductList from '@/components/views/store/AcProductList.vue'
 import AcNewProduct from '@/components/views/store/AcNewProduct.vue'
 import {flatten} from '@/lib/lib.ts'
-import {ListController} from '@/store/lists/controller.ts'
 import Product from '@/types/Product.ts'
 import {mdiCog, mdiPlus} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {computed} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
 
-@Component({
-  components: {
-    AcNewProduct,
-    AcProductList,
-    AcLoadSection,
-  },
-})
-class AcSubjectiveProductList extends mixins(Subjective) {
-  public products: ListController<Product> = null as unknown as ListController<Product>
-  public manageProducts: ListController<Product> = null as unknown as ListController<Product>
-  @Prop({default: false})
-  public mini!: boolean
 
-  @Prop({default: false})
-  public hideNewButton!: boolean
+const props = withDefaults(
+  defineProps<SubjectiveProps & {mini?: boolean, hideNewButton?: boolean}>(),
+  {mini: false, hideNewButton: false},
+)
+const router = useRouter()
+const route = useRoute()
+const store = useStore<ArtState>()
 
-  public mdiCog = mdiCog
-  public mdiPlus = mdiPlus
+const {subjectHandler, isCurrent, controls} = useSubject(props)
+subjectHandler.artistProfile.get()
 
-  public get showNew(): boolean {
-    return this.$route.query.new === 'true'
-  }
+const url = computed(() => `/api/sales/account/${props.username}/products/`)
 
-  public set showNew(value: boolean) {
-    const query = {...this.$route.query}
+const products = useList<Product>(`${flatten(props.username)}-products`, {endpoint: url.value})
+products.firstRun()
+
+const showNew = computed({
+  get: () => route.query.new === 'true',
+  set: (value: boolean) => {
+    const query = {...route.query}
     if (value) {
       query.new = 'true'
     } else {
       delete query.new
     }
-    this.$router.replace({query})
+    router.replace({query})
   }
+})
 
-  public get managing() {
-    return String(this.$route.name).includes('Manage')
-  }
-
-  public set managing(val) {
-    const route = {
-      name: String(this.$route.name) + '',
-      params: this.$route.params,
-      query: this.$route.query,
+const managing = computed({
+  get: () => String(route.name).includes('Manage'),
+  set: (val: boolean) => {
+    const newRoute = {
+      name: String(route.name) + '',
+      params: route.params,
+      query: route.query,
     }
-    if (val && !this.managing) {
-      route.name = 'ManageProducts'
-    } else if (!val && this.managing) {
-      this.products.get()
-      route.name = route.name.replace('Manage', '')
+    if (val && !managing.value) {
+      newRoute.name = 'ManageProducts'
+    } else if (!val && managing.value) {
+      products.get()
+      newRoute.name = newRoute.name.replace('Manage', '')
     }
-    this.$router.replace(route)
+    router.replace(newRoute)
   }
+})
 
-  public get firstProduct() {
-    return (
-        this.isCurrent &&
-        this.products.empty
-    )
-  }
-
-  public get url() {
-    return `/api/sales/account/${this.username}/products/`
-  }
-
-  public created() {
-    this.products = this.$getList(`${flatten(this.username)}-products`, {endpoint: this.url})
-    this.products.firstRun()
-    this.manageProducts = this.$getList(`${flatten(this.username)}-products-manage`, {endpoint: `${this.url}manage/`})
-    this.subjectHandler.artistProfile.get()
-  }
-}
-
-export default toNative(AcSubjectiveProductList)
+const firstProduct = computed(() => isCurrent.value && products.empty)
 </script>
