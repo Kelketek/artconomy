@@ -67,28 +67,17 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller.ts'
 import ReferralStats from '@/types/ReferralStats.ts'
 import {flatten} from '@/lib/lib.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
-@Component({
-  components: {AcLoadSection},
-})
-class Referrals extends mixins(Subjective) {
-  public stats: SingleController<ReferralStats> = null as unknown as SingleController<ReferralStats>
-  public privateView = true
+const props = defineProps<SubjectiveProps>()
+useSubject(props, true)
 
-  public created() {
-    this.stats = this.$getSingle(
-        `ReferralStats__${flatten(this.username)}`, {endpoint: `/api/profiles/account/${this.username}/referral_stats/`},
-    )
-    this.stats.get()
-  }
-}
-
-export default toNative(Referrals)
+const stats = useSingle<ReferralStats>(`ReferralStats__${flatten(props.username)}`, {endpoint: `/api/profiles/account/${props.username}/referral_stats/`})
+stats.get()
 </script>
