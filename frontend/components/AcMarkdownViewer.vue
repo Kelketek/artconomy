@@ -8,7 +8,7 @@
         <v-expansion-panel-title><strong>Click to Read</strong></v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-card>
-            <v-card-text v-html="mdRender(response)" v-if="response !== null" class="text-left">
+            <v-card-text v-html="md.render(response)" v-if="response !== null" class="text-left">
             </v-card-text>
           </v-card>
         </v-expansion-panel-text>
@@ -22,7 +22,7 @@
             transition="dialog-bottom-transition"
             :overlay="false"
             scrollable
-            :attach="$modalTarget"
+            :attach="modalTarget"
         >
           <v-card tile>
             <v-toolbar flat dark color="primary">
@@ -35,14 +35,14 @@
                 <v-btn dark variant="text" @click.prevent="toggle = false">Close</v-btn>
               </v-toolbar-items>
             </v-toolbar>
-            <v-card-text v-html="mdRender(response)">
+            <v-card-text v-html="md.render(response)" v-if="response !== null">
             </v-card-text>
           </v-card>
         </v-dialog>
       </div>
       <v-col v-else-if="response">
         <v-card-text>
-          <v-col v-html="mdRender(response)" class="text-left"></v-col>
+          <v-col v-html="md.render(response)" class="text-left"></v-col>
         </v-card-text>
       </v-col>
       <v-progress-circular indeterminate color="primary" v-if="!response" class="mb-2"></v-progress-circular>
@@ -50,33 +50,25 @@
   </v-row>
 </template>
 
-<script>
-import {defineComponent} from 'vue'
-import {toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {ref} from 'vue'
 import {artCall} from '../lib/lib.ts'
-import Formatting from '../mixins/formatting.ts'
 import {mdiClose} from '@mdi/js'
+import {Asset} from '@/types/Asset.ts'
+import {md} from '@/lib/markdown.ts'
+import {useTargets} from '@/plugins/targets.ts'
 
-export default defineComponent({
-  props: ['asset', 'compact', 'popOut'],
-  mixins: [toNative(Formatting)],
-  data() {
-    return {
-      response: null,
-      toggle: false,
-      mdiClose,
-    }
-  },
-  methods: {
-    loadFile(response) {
-      this.response = response
-    },
-  },
-  created() {
-    artCall({
-      url: this.asset.file.full,
-      method: 'get',
-    }).then(this.loadFile)
-  },
-})
+const props = defineProps<{asset: Asset, compact: boolean, popOut: boolean}>()
+const response = ref<string|null>(null)
+const toggle = ref(false)
+const {modalTarget} = useTargets()
+
+const loadFile = (responseText: string) => {
+  response.value = responseText
+}
+
+artCall({
+  url: props.asset.file.full,
+  method: 'get',
+}).then(loadFile)
 </script>
