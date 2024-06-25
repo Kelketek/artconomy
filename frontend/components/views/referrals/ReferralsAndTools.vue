@@ -8,21 +8,18 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import Subjective from '@/mixins/subjective.ts'
-import {Component, mixins, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
+import {useRoute, useRouter} from 'vue-router'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
-@Component
-class ReferralsAndTools extends mixins(Subjective) {
-  public created() {
-    if (this.$route.name === 'ReferralsAndTools') {
-      this.$router.replace({
-        name: 'LinksAndStats',
-        params: {username: this.username},
-      })
-    }
-  }
+const props = defineProps<SubjectiveProps>()
+const route = useRoute()
+const router = useRouter()
+
+if (route.name === 'ReferralsAndTools') {
+  router.replace({
+    name: 'LinksAndStats',
+    params: {username: props.username},
+  })
 }
-
-export default toNative(ReferralsAndTools)
 </script>
