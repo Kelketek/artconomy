@@ -36,20 +36,11 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {computed} from 'vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
-@Component
-class Tools extends mixins(Subjective) {
-  public get host() {
-    return window.location.hostname
-  }
-
-  public get protocol() {
-    return window.location.protocol
-  }
-}
-
-export default toNative(Tools)
+const props = defineProps<SubjectiveProps>()
+const host = computed(() => window.location.hostname)
+const protocol = computed(() => window.location.protocol)
 </script>
