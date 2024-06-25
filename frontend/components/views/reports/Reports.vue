@@ -7,23 +7,14 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcSiteFinancials from '@/components/views/reports/AcSiteFinancials.vue'
 import AcTaxReports from '@/components/views/reports/AcTaxReports.vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
-@Component({
-  components: {
-    AcTaxReports,
-    AcSiteFinancials,
-    AcLoadSection,
-  },
-})
-class Reports extends mixins(Subjective) {
-  public privateView = true
-}
 
-export default toNative(Reports)
+const props = defineProps<SubjectiveProps>()
+const {subject, subjectHandler} = useSubject(props, true)
 </script>
