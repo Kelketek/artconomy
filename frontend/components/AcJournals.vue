@@ -58,82 +58,53 @@
   </div>
 </template>
 
-<script lang="ts">
-import Formatting from '@/mixins/formatting.ts'
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {Journal} from '@/types/Journal.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {truncateText} from '@/lib/otherFormatters.ts'
 import {mdiPencil, mdiPlus} from '@mdi/js'
+import {computed, ref} from 'vue'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useRouter} from 'vue-router'
+import {useSubject} from '@/mixins/subjective.ts'
+import {formatDate} from '@/lib/otherFormatters.ts'
 
-@Component({
-  components: {
-    AcPaginated,
-    AcGrowSpinner,
-    AcLoadingSpinner,
-    AcBoundField,
-    AcFormDialog,
+const props = defineProps<SubjectiveProps>()
+const {isCurrent} = useSubject(props)
+const router = useRouter()
+const showNew = ref(false)
+const url = computed(() => `/api/profiles/account/${props.username}/journals/`)
+
+const newJournal = useForm(props.username + '-newJournal', {
+  endpoint: url.value,
+  fields: {
+    subject: {
+      value: '',
+      validators: [{name: 'required'}],
+    },
+    body: {
+      value: '',
+      validators: [{name: 'required'}],
+    },
+    comments_disabled: {value: false},
   },
 })
-class AcJournals extends mixins(Subjective, Formatting) {
-  public firstRun: boolean = true
-  public currentJournal: null | Journal = null
-  public showNew = false
-  public journals: ListController<Journal> = null as unknown as ListController<Journal>
-  public newJournal: FormController = null as unknown as FormController
-  public mdiPencil = mdiPencil
-  public mdiPlus = mdiPlus
+const journals = useList<Journal>(props.username + '-journals', {
+  endpoint: url.value,
+  params: {size: 3},
+})
+journals.firstRun().then()
 
-  public created() {
-    this.newJournal = this.$getForm(this.username + '-newJournal', {
-      endpoint: this.url,
-      fields: {
-        subject: {
-          value: '',
-          validators: [{name: 'required'}],
-        },
-        body: {
-          value: '',
-          validators: [{name: 'required'}],
-        },
-        comments_disabled: {value: false},
-      },
-    })
-    this.journals = this.$getList(this.username + '-journals', {
-      endpoint: this.url,
-      params: {size: 3},
-    })
-    this.journals.firstRun().then()
-  }
-
-  public visitJournal(response: Journal) {
-    this.$router.push({
-      name: 'Journal',
-      params: {
-        username: this.username,
-        journalId: response.id + '',
-      },
-    })
-  }
-
-  public get url() {
-    return `/api/profiles/account/${this.username}/journals/`
-  }
-
-  public get preview() {
-    if (!this.currentJournal) {
-      return ''
-    }
-    return truncateText(this.currentJournal.body, 1000)
-  }
+const visitJournal = (response: Journal) => {
+  router.push({
+    name: 'Journal',
+    params: {
+      username: props.username,
+      journalId: response.id + '',
+    },
+  })
 }
-
-export default toNative(AcJournals)
 </script>
