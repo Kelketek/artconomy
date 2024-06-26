@@ -9,26 +9,23 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {NotificationProps, useEvent} from '../mixins/notification.ts'
+import {computed} from 'vue'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
-export default {
-  name: 'ac-commissions-open',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      return {
-        name: 'Profile',
-        params: {
-          username: this.event.target.username,
-          tabName: 'products',
-        },
-      }
-    },
+
+const props = defineProps<NotificationProps<TerseUser, null>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => ({
+  name: 'Profile',
+  params: {
+    username: event.value.target.username,
+    tabName: 'products',
   },
-}
+}))
 </script>
 
 <style scoped>
