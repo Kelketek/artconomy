@@ -16,38 +16,27 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import AcNotification from '@/types/AcNotification.ts'
+<script setup lang="ts">
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {computed} from 'vue'
+import {useStore} from 'vuex'
+import {ArtState} from '@/store/artState.ts'
 
-@Component({})
-class NotificationsCenter extends mixins(Viewer) {
 
-  public community: ListController<
-      AcNotification<any, any>> = null as unknown as ListController<AcNotification<any, any>>
+const store = useStore<ArtState>()
+const community = useList('communityNotifications', {
+  grow: true,
+  endpoint: '/api/profiles/data/notifications/community/',
+})
+const sales = useList('salesNotifications', {
+  grow: true,
+  endpoint: '/api/profiles/data/notifications/sales/',
+})
 
-  public sales: ListController<
-      AcNotification<any, any>> = null as unknown as ListController<AcNotification<any, any>>
+const {setError} = useErrorHandling()
+community.firstRun().catch(setError)
+sales.firstRun().catch(setError)
 
-  public created() {
-    this.community = this.$getList('communityNotifications', {
-      grow: true,
-      endpoint: '/api/profiles/data/notifications/community/',
-    })
-    this.sales = this.$getList('salesNotifications', {
-      grow: true,
-      endpoint: '/api/profiles/data/notifications/sales/',
-    })
-    this.community.firstRun().catch(this.setError)
-    this.sales.firstRun().catch(this.setError)
-  }
-
-  public get counts() {
-    return this.$store.state.notifications!.stats
-  }
-}
-
-export default toNative(NotificationsCenter)
+const counts = computed(() => store.state.notifications!.stats)
 </script>
