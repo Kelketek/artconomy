@@ -98,30 +98,12 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import Subjective from '@/mixins/subjective.ts'
 import AcPricePreview from '../../price_preview/AcPricePreview.vue'
 import LineItem from '@/types/LineItem.ts'
+import {ListController} from '@/store/lists/controller.ts'
 
-@Component({
-  components: {
-    AcPricePreview,
-    AcBoundField,
-  },
-})
-class AcInvoiceForm extends mixins(Subjective) {
-  @Prop({required: true})
-  public newInvoice!: FormController
-
-  @Prop({required: true})
-  public escrowEnabled!: boolean
-
-  @Prop({required: true})
-  public lineItems!: LineItem[]
-}
-
-export default toNative(AcInvoiceForm)
+const props = defineProps<{newInvoice: FormController, escrowEnabled: boolean, lineItems: ListController<LineItem>, username: string}>()
 </script>
