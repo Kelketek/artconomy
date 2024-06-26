@@ -10,7 +10,7 @@
             <v-avatar>
               <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url"
                    alt="">
-              <img :src="$img(event.data.display, 'notification', true)" alt="" v-else>
+              <img :src="image" alt="" v-else>
             </v-avatar>
           </slot>
         </v-badge>
@@ -26,16 +26,17 @@
   </v-list-item>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts" generic="T, D extends DisplayData">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import {RouteLocationRaw} from 'vue-router'
+import {useImg} from '@/plugins/shortcuts.ts'
+import {useViewer} from '@/mixins/viewer.ts'
 
-export default {
-  name: 'ac-base-notification',
-  components: {AcLink},
-  mixins: [Notification],
-  props: ['assetLink', 'hrefLink'],
-}
+const props = defineProps<{assetLink?: RouteLocationRaw, hrefLink?: RouteLocationRaw} & NotificationProps<T, D>>()
+const {viewer} = useViewer()
+const event = useEvent(props)
+const image = useImg(event.value.data.display, 'notification', true, viewer)
 </script>
 
 <style scoped>

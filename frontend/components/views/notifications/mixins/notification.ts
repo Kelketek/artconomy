@@ -2,10 +2,15 @@ import {toNative} from 'vue-facing-decorator'
 import Viewer from '@/mixins/viewer.ts'
 import {computed, defineComponent, PropType} from 'vue'
 import AcNotification from '@/types/AcNotification.ts'
+import {Asset} from '@/types/Asset.ts'
 
 
 export interface NotificationProps<T, D> {
   notification: AcNotification<T, D>,
+}
+
+export interface DisplayData {
+  display: Asset,
 }
 
 export default defineComponent({
