@@ -6,25 +6,20 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps} from '../mixins/notification.ts'
+import {computed} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
 
-export default {
-  name: 'ac-auto-closed',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      return {
-        name: 'Sales',
-        params: {
-          username: this.viewer.username,
-        },
-      }
-    },
+const props = defineProps<NotificationProps<null, DisplayData>>()
+const {viewer} = useViewer()
+const assetLink = computed(() => ({
+  name: 'Sales',
+  params: {
+    username: viewer.value.username,
   },
-}
+}))
 </script>
 
 <style scoped>
