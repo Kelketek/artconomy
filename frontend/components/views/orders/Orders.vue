@@ -134,102 +134,68 @@
   </v-container>
 </template>
 
-<script lang="ts">
-import AcLoadSection from '../../wrappers/AcLoadSection.vue'
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Subjective from '../../../mixins/subjective.ts'
-import AcPaginated from '../../wrappers/AcPaginated.vue'
-import {SingleController} from '@/store/singles/controller.ts'
+<script setup lang="ts">
+import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import {useSubject} from '@/mixins/subjective.ts'
 import CommissionStats from '@/types/CommissionStats.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import {flatten, getSalesStatsSchema} from '@/lib/lib.ts'
 import {mdiCheckCircle, mdiBullhorn, mdiReceipt} from '@mdi/js'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed, ref} from 'vue'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {listenForList} from '@/store/lists/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useRoute, useRouter} from 'vue-router'
+import {usePricing} from '@/mixins/PricingAware.ts'
 
-@Component({
-  components: {
-    AcPricePreview,
-    AcBoundField,
-    AcFormDialog,
-    AcPaginated,
-    AcLoadSection,
+
+const props = defineProps<{baseName: string} & SubjectiveProps>()
+const {subjectHandler} = useSubject(props)
+const route = useRoute()
+const router = useRouter()
+const showBroadcast = ref(false)
+const confirmBroadcast = ref(false)
+
+const type = props.baseName.toLocaleLowerCase()
+const stats = useSingle<CommissionStats>(`stats__sales__${flatten(props.username)}`, getSalesStatsSchema(props.username))
+listenForList(`orders__${flatten(props.username)}__${type}__archived`)
+listenForList(`orders__${flatten(props.username)}__${type}__current`)
+listenForList(`orders__${flatten(props.username)}__${type}__waiting`)
+
+const isSales = computed(() => props.baseName === 'Sales')
+
+const isCases = computed(() => props.baseName === 'Cases')
+
+const isCurrentRoute = computed(() => route.name === props.baseName)
+
+if (isCurrentRoute.value) {
+  router.replace({
+    name: 'Current' + props.baseName,
+    params: {username: props.username},
+  })
+}
+if (isSales.value) {
+  stats.get()
+  subjectHandler.artistProfile.get()
+}
+const broadcastForm = useForm('broadcast', {
+  endpoint: `/api/sales/account/${props.username}/broadcast/`,
+  fields: {
+    text: {value: ''},
+    extra_data: {value: {}},
+    include_active: {value: true},
+    include_waitlist: {value: false},
   },
 })
-class Orders extends mixins(Subjective) {
-  public stats: SingleController<CommissionStats> = null as unknown as SingleController<CommissionStats>
-  @Prop({required: true})
-  public baseName!: string
-  public showBroadcast = false
-  public confirmBroadcast = false
-  public broadcastForm: FormController = null as unknown as FormController
-  public mdiCheckCircle = mdiCheckCircle
-  public mdiBullhorn = mdiBullhorn
-  public mdiReceipt = mdiReceipt
 
-  public get isSales() {
-    return this.baseName === 'Sales'
+const closed = computed(() => {
+  if (!stats.x) {
+    return null
   }
-
-  public get isCases() {
-    return this.baseName === 'Cases'
-  }
-
-  public get isCurrentRoute() {
-    return this.$route.name === this.baseName
-  }
-
-  // @ts-ignore
-  public get sellerName() {
-    return this.username
-  }
-
-  // @ts-ignore
-  public get international() {
-    return this.subject?.international || false
-  }
-
-  public get planName() {
-    // eslint-disable-next-line camelcase
-    return this.subject?.service_plan || null
-  }
-
-  public get closed() {
-    const stats = this.stats.x as CommissionStats
-    if (!stats) {
-      return null
-    }
-    return stats.commissions_closed || stats.commissions_disabled || stats.load >= stats.max_load
-  }
-
-  public created() {
-    const type = this.baseName.toLocaleLowerCase()
-    this.stats = this.$getSingle(`stats__sales__${flatten(this.username)}`, getSalesStatsSchema(this.username))
-    this.$listenForList(`orders__${flatten(this.username)}__${type}__archived`)
-    this.$listenForList(`orders__${flatten(this.username)}__${type}__current`)
-    this.$listenForList(`orders__${flatten(this.username)}__${type}__waiting`)
-    if (this.isCurrentRoute) {
-      this.$router.replace({
-        name: 'Current' + this.baseName,
-        params: {username: this.username},
-      })
-    }
-    if (this.isSales) {
-      this.stats.get()
-      this.subjectHandler.artistProfile.get()
-    }
-    this.broadcastForm = this.$getForm('broadcast', {
-      endpoint: `/api/sales/account/${this.username}/broadcast/`,
-      fields: {
-        text: {value: ''},
-        extra_data: {value: {}},
-        include_active: {value: true},
-        include_waitlist: {value: false},
-      },
-    })
-  }
-}
-
-export default toNative(Orders)
+  return stats.x.commissions_closed || stats.x.commissions_disabled || stats.x.load >= stats.x.max_load
+})
+// Used by tests.
+const {pricing} = usePricing()
 </script>

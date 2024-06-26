@@ -16,8 +16,6 @@ let store: ArtStore
 let router: Router
 let wrapper: VueWrapper<any>
 
-const WrappedOrders = VuetifyWrapped(Orders)
-
 describe('Orders.vue', () => {
   beforeEach(() => {
     store = createStore()
@@ -98,7 +96,7 @@ describe('Orders.vue', () => {
       }, {
         name: 'InvoiceByProduct',
         component: Empty,
-        path: '/store/:username/invoice-by-product/'
+        path: '/store/:username/invoice-by-product/',
       }],
     })
     vi.useFakeTimers()
@@ -111,7 +109,7 @@ describe('Orders.vue', () => {
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         username: 'Fox',
@@ -121,7 +119,7 @@ router,
     })
     const vm = wrapper.vm as any
     vm.pricing.makeReady(genPricing())
-    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
     await vm.$nextTick()
     expect(vm.closed).toBe(null)
   })
@@ -130,7 +128,7 @@ router,
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         username: 'Fox',
@@ -139,17 +137,17 @@ router,
       },
     })
     const vm = wrapper.vm as any
-    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
     vm.stats.setX(genCommissionStats())
     await vm.$nextTick()
     expect(vm.closed).toBe(false)
   })
   test('Sends the user to the invoicing page', async() => {
     setViewer(store, genUser())
-    const wrapper = mount(WrappedOrders, {
+    const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         username: 'Fox',
@@ -157,8 +155,8 @@ router,
         baseName: 'Sales',
       },
     })
-    const vm = wrapper.vm.$refs.vm as any
-    vm.viewerHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
+    const vm = wrapper.vm
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
     vm.stats.makeReady(genCommissionStats())
     await wrapper.vm.$nextTick()
     await wrapper.find('.new-invoice-button').trigger('click')
@@ -175,7 +173,7 @@ router,
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         username: 'Fox',
@@ -195,7 +193,7 @@ router,
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         username: 'Fox',
