@@ -8,21 +8,18 @@
   </ac-base-notification>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import {computed} from 'vue'
+import Submission from '@/types/Submission.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
-export default {
-  name: 'ac-favorite',
-  components: {AcBaseNotification},
-  mixins: [Notification],
-  data() {
-    return {}
-  },
-  computed: {
-    assetLink() {
-      return {name: 'Submission', params: {'submissionId': this.event.target.id}}
-    }
-  }
+declare interface Favorite extends DisplayData {
+  user: TerseUser,
 }
+
+const props = defineProps<NotificationProps<Submission, Favorite>>()
+const event = useEvent(props)
+const assetLink = computed(() => ({name: 'Submission', params: {'submissionId': event.value.target.id}}))
 </script>
