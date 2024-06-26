@@ -47,7 +47,7 @@
                   <ac-paginated :list="art">
                     <v-col class="px-1" cols="6" sm="6" md="3" v-for="submission in art.list" :key="submission.x!.id"
                            @click.capture.stop.prevent="artToSample(submission.x!)">
-                      <ac-gallery-preview :submission="submission.x" class="product-sample-option"/>
+                      <ac-gallery-preview :submission="submission.x!" class="product-sample-option"/>
                     </v-col>
                   </ac-paginated>
                 </v-col>
@@ -70,154 +70,122 @@
   </ac-expanded-property>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import Subjective from '@/mixins/subjective.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import Product from '@/types/Product.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {flatten, newUploadSchema} from '@/lib/lib.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import Submission from '@/types/Submission.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import LinkedSubmission from '@/types/LinkedSubmission.ts'
-import {defineAsyncComponent} from 'vue'
+import {computed, defineAsyncComponent, nextTick, ref, watch} from 'vue'
 import {mdiUpload} from '@mdi/js'
+import {useList} from '@/store/lists/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
-@Component({
-  components: {
-    AcLoadSection,
-    AcGalleryPreview,
-    AcPaginated,
-    AcNewSubmission,
-    AcPatchField,
-    AcExpandedProperty,
-  },
-  emits: ['update:modelValue'],
+const props = defineProps<{
+  product: SingleController<Product>,
+  samples: ListController<LinkedSubmission>,
+  modelValue: boolean,
+  productId: number|string,
+} & SubjectiveProps>()
+
+const {subjectHandler} = useSubject(props)
+const emit = defineEmits<{'update:modelValue': [boolean]}>()
+const tab = ref('tab-pick-sample')
+const newUpload = ref(false)
+const newSubmissionForm = ref<null|typeof AcNewSubmission>(null)
+
+const localSamples = useList<LinkedSubmission>(
+    // We don't want to use the outer scope's sample list because it will paginate separately.
+    `product-${props.productId}-sample-select`, {endpoint: props.product.endpoint + 'samples/'},
+)
+localSamples.firstRun().then(() => {
+  if (localSamples.empty) {
+    tab.value = 'tab-add-new'
+  }
 })
-class AcSampleEditor extends mixins(Subjective) {
-  @Prop({required: true})
-  public product!: SingleController<Product>
+const newSubmission = useForm(`${flatten(props.username)}-newSubmission`, newUploadSchema(subjectHandler.user))
+const art = useList<Submission>(`${flatten(props.username)}-art`, {
+  endpoint: `/api/profiles/account/${props.username}/submissions/sample-options/`,
+})
+art.firstRun().catch(() => {})
 
-  @Prop({required: true})
-  public samples!: ListController<LinkedSubmission>
-
-  @Prop({required: true})
-  public modelValue!: boolean
-
-  @Prop({required: true})
-  public productId!: number
-
-  public art: ListController<Submission> = null as unknown as ListController<Submission>
-  public localSamples: ListController<LinkedSubmission> = null as unknown as ListController<LinkedSubmission>
-  public newSubmission: FormController = null as unknown as FormController
-  public tab = 'tab-pick-sample'
-  public newUpload = false
-  public mdiUpload = mdiUpload
-
-  // These two functions reference the new submission form, which is not playing nicely with other test suites, and
-  // it's not clear why.
-  /* istanbul ignore next */
-  @Watch('modelValue', {immediate: true})
-  public uploadToggle(value: boolean) {
-    if (!value) {
-      this.newUpload = false
-      return
+watch(() => props.modelValue, (value: boolean) => {
+  if (!value) {
+    newUpload.value = false
+    return
+  }
+  nextTick(() => {
+    if (newSubmissionForm.value) {
+      newSubmissionForm.value.isArtist = true
     }
-    this.$nextTick(() => {
-      if (this.$refs.newSubmissionForm) {
-        (this.$refs.newSubmissionForm as any).isArtist = true
+  })
+}, {immediate: true})
+
+watch(newUpload, (value: boolean) => {
+  if (value) {
+    nextTick(() => {
+      if (newSubmissionForm.value) {
+        newSubmissionForm.value.isArtist = true
       }
     })
   }
+})
 
-  /* istanbul ignore next */
-  @Watch('newUpload', {immediate: true})
-  public ensureArtist(value: boolean) {
-    if (value) {
-      this.$nextTick(() => {
-        if (this.$refs.newSubmissionForm) {
-          (this.$refs.newSubmissionForm as any).isArtist = true
-        }
-      })
+const firstUpload = computed(() => {
+  const product = props.product.x as Product
+  return (!product.primary_submission) && props.samples.empty && art.empty
+})
+
+const toggle = (value: boolean) => emit('update:modelValue', value)
+
+const artToSample = (value: Submission) => {
+  localSamples.post({submission_id: value.id}).then((result: any) => {
+    localSamples.uniquePush(result)
+    props.samples.uniquePush(result)
+    tab.value = 'tab-pick-sample'
+    if (!(props.product.x as Product).primary_submission) {
+      props.product.patch({primary_submission: result.submission.id})
     }
-  }
-
-  public get firstUpload() {
-    const product = this.product.x as Product
-    return (!product.primary_submission) && this.samples.empty && this.art.empty
-  }
-
-  public toggle(value: boolean) {
-    this.$emit('update:modelValue', value)
-  }
-
-  public artToSample(value: Submission) {
-    this.localSamples.post({submission_id: value.id}).then((result: any) => {
-      this.localSamples.uniquePush(result)
-      this.samples.uniquePush(result)
-      this.tab = 'tab-pick-sample'
-      if (!(this.product.x as Product).primary_submission) {
-        this.product.patch({primary_submission: result.submission.id})
-      }
-    })
-  }
-
-  public addSample(value: Submission) {
-    this.art.uniquePush(value)
-    this.localSamples.post({submission_id: value.id}).then((result: any) => {
-      this.localSamples.push(result)
-      this.samples.push(result)
-    })
-    this.tab = 'tab-pick-sample'
-    this.newSubmission.reset()
-    this.newUpload = false
-    // @ts-ignore
-    if (this.product.x.primary_submission) {
-      return
-    }
-    // @ts-expect-error
-    return this.product.patch({primary_submission: value.id})
-  }
-
-  public unlinkSubmission(submission: SingleController<any>) {
-    const oldValue = submission.x
-    const id = submission.x.submission.id
-    submission.delete().then(() => {
-      const existingPrimary = (this.product.x as Product).primary_submission
-      // @ts-ignore
-      if (existingPrimary && existingPrimary.id === id) {
-        this.product.updateX({primary_submission: null})
-      }
-      this.samples.remove(oldValue)
-      this.localSamples.remove(oldValue)
-    })
-  }
-
-  public created() {
-    this.localSamples = this.$getList(
-        // We don't want to use the outer scope's sample list because it will paginate separately.
-        `product-${this.productId}-sample-select`, {endpoint: this.product.endpoint + 'samples/'},
-    )
-    this.localSamples.firstRun().then(() => {
-      if (this.localSamples.empty) {
-        this.tab = 'tab-add-new'
-      }
-    })
-    this.newSubmission = this.$getForm(`${flatten(this.username)}-newSubmission`, newUploadSchema(this.subjectHandler.user))
-    this.art = this.$getList(`${flatten(this.username)}-art`, {
-      endpoint: `/api/profiles/account/${this.username}/submissions/sample-options/`,
-    })
-    this.art.firstRun().catch(() => {
-    })
-  }
+  })
 }
 
-export default toNative(AcSampleEditor)
+const addSample = (value: Submission) => {
+  art.uniquePush(value)
+  localSamples.post({submission_id: value.id}).then((result: any) => {
+    localSamples.push(result)
+    const samples = props.samples
+    samples.push(result)
+  })
+  tab.value = 'tab-pick-sample'
+  newSubmission.reset()
+  newUpload.value = false
+  if (props.product.x!.primary_submission) {
+    return
+  }
+  // @ts-expect-error
+  return props.product.patch({primary_submission: value.id})
+}
+
+const unlinkSubmission = (submission: SingleController<LinkedSubmission>) => {
+  const oldValue = submission.x!
+  const id = submission.x!.submission.id
+  submission.delete().then(() => {
+    const existingPrimary = (props.product.x as Product).primary_submission
+    // @ts-ignore
+    if (existingPrimary && existingPrimary.id === id) {
+      props.product.updateX({primary_submission: null})
+    }
+    props.samples.remove(oldValue)
+    localSamples.remove(oldValue)
+  })
+}
 </script>
