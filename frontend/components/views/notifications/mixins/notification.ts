@@ -9,6 +9,7 @@ export interface NotificationProps<T, D> {
   notification: AcNotification<T, D>,
 }
 
+
 export interface DisplayData {
   display: Asset,
 }

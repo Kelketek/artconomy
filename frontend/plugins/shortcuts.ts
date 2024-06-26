@@ -2,7 +2,6 @@ import {computed, ComputedRef, createApp} from 'vue'
 import {Asset} from '@/types/Asset.ts'
 import {v4 as uuidv4} from 'uuid'
 import {extPreview, getExt, isImage} from '@/mixins/asset_base.ts'
-import {useViewer} from '@/mixins/viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 

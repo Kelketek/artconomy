@@ -11,25 +11,20 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-landscape-referral',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      return {
-        name: 'LinksAndStats',
-        params: {
-          username: this.event.target.username,
-        },
-      }
-    },
+const props = defineProps<NotificationProps<any, DisplayData>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => ({
+  name: 'LinksAndStats',
+  params: {
+    username: event.value.target.username,
   },
-}
+}))
 </script>
 
 <style scoped>
