@@ -274,7 +274,7 @@ export const routes: RouteRecordRaw[] = [
     component: Contact,
   },
   {
-    path: '/notifications/:tabName?/',
+    path: '/notifications/:username/',
     name: 'Notifications',
     component: Notifications,
     props: true,
@@ -283,16 +283,16 @@ export const routes: RouteRecordRaw[] = [
         name: 'CommunityNotifications',
         path: 'community/',
         component: NotificationsList,
-        props() {
-          return {subset: 'community', autoRead: true}
+        props(route: RouteLocationNormalized) {
+          return {subset: 'community', autoRead: true, username: route.params.username}
         },
       },
       {
         name: 'SalesNotifications',
         path: 'sales/',
         component: NotificationsList,
-        props() {
-          return {subset: 'sales', autoRead: false}
+        props(route: RouteLocationNormalized) {
+          return {subset: 'sales', autoRead: false, username: route.params.username}
         },
       },
     ],

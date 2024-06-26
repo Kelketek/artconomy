@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="characterLink">
+  <ac-base-notification :notification="notification" :asset-link="characterLink" :username="username">
     <template v-slot:title>
       <ac-link :to="characterLink">
         A character was shared with you
@@ -11,34 +11,34 @@
   </ac-base-notification>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import {computed} from 'vue'
+import {Character} from '@/store/characters/types/Character.ts'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
-export default {
-  name: 'ac-char-shared',
-  components: {AcBaseNotification, AcLink},
-  mixins: [Notification],
-  data() {
-    return {}
-  },
-  computed: {
-    characterLink() {
-      if (this.event.data.character) {
-        return {
-          name: 'Character',
-          params: {
-            characterName: this.event.data.character.name,
-            username: this.event.data.character.user.username,
-          },
-        }
-      } else {
-        return {}
-      }
-    },
-  },
+declare interface CharShared extends DisplayData {
+  character: Character,
+  user: TerseUser,
 }
+
+const props = defineProps<NotificationProps<Character, CharShared>>()
+const event = useEvent(props)
+const characterLink = computed(() => {
+  if (event.value.data.character) {
+    return {
+      name: 'Character',
+      params: {
+        characterName: event.value.data.character.name,
+        username: event.value.data.character.user.username,
+      },
+    }
+  } else {
+    return {}
+  }
+})
 </script>
 
 <style scoped>

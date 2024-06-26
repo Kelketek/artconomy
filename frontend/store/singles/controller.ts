@@ -155,11 +155,15 @@ export class SingleController<T extends object> extends BaseController<SingleMod
     return this.attr('params')
   }
 
+  public set failed(val: boolean) {
+    this.commit('setFailed', val)
+  }
+
   public get failed(): boolean {
     return this.attr('failed')
   }
 
-  public refresh() {
+  public refresh = ()=> {
     this.ready = false
     return this.get()
   }

@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="characterLink">
+  <ac-base-notification :notification="notification" :asset-link="characterLink" :username="username">
     <template v-slot:title>
       <ac-link :to="characterLink">{{ character.name }}</ac-link>
       was tagged by
@@ -11,48 +11,39 @@
   </ac-base-notification>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-
 import {profileLink} from '@/lib/otherFormatters.ts'
+import Submission from '@/types/Submission.ts'
+import {Character} from '@/store/characters/types/Character.ts'
+import {computed} from 'vue'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
-export default {
-  name: 'ac-char-tag',
-  components: {
-    AcBaseNotification,
-    AcLink,
-  },
-  mixins: [Notification],
-  computed: {
-    user() {
-      return this.notification.event.data.user
-    },
-    userLink() {
-      return profileLink(this.user)
-    },
-    submissionLink() {
-      return {
-        name: 'Submission',
-        params: {submissionId: this.submission.id},
-      }
-    },
-    submission() {
-      return this.notification.event.data.submission
-    },
-    character() {
-      return this.notification.event.data.character
-    },
-    characterLink() {
-      return {
-        name: 'Character',
-        params: {
-          username: this.character.user.username,
-          characterName: this.character.name,
-        },
-      }
-    },
-  },
+declare interface CharTag extends DisplayData {
+  submission: Submission,
+  character: Character,
+  user: TerseUser,
 }
+const props = defineProps<NotificationProps<Character, CharTag>>()
+const event = useEvent(props)
+
+const user = computed(() => event.value.data.user)
+const userLink = computed(() => profileLink(user.value))
+const submission = computed(() => event.value.data.submission)
+const character = computed(() => event.value.data.character)
+const submissionLink = computed(() => ({
+  name: 'Submission',
+  params: {submissionId: submission.value.id},
+}))
+const characterLink = computed(() => {
+  return {
+    name: 'Character',
+    params: {
+      username: character.value.user.username,
+      characterName: character.value.name,
+    },
+  }
+})
 </script>

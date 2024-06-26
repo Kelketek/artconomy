@@ -1,7 +1,7 @@
 <template>
-  <ac-base-notification :asset-link="url" :notification="notification">
+  <ac-base-notification :asset-link="url" :notification="notification" :username="username">
     <template v-slot:title>
-      <router-link :to="url" slot="title">
+      <router-link :to="url">
         Order #{{event.target.order.id}} [{{event.target.name}}]
       </router-link>
     </template>
@@ -11,30 +11,27 @@
   </ac-base-notification>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import Viewer from '@/mixins/viewer.ts'
+import Reference from '@/types/Reference.ts'
+import Deliverable from '@/types/Deliverable.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-reference-uploaded',
-  components: {AcBaseNotification},
-  mixins: [Notification, Viewer],
-  data() {
-    return {}
-  },
-  computed: {
-    url() {
-      return {
-        name: 'OrderDeliverableReference',
-        params: {
-          deliverableId: this.event.target.id,
-          orderId: this.event.target.order.id,
-          username: this.rawViewerName,
-          referenceId: this.event.data.reference.id,
-        },
-      }
-    },
-  },
+declare interface ReferenceUploaded extends DisplayData {
+  reference: Reference,
 }
+
+const props = defineProps<NotificationProps<Deliverable, ReferenceUploaded>>()
+const event = useEvent(props)
+
+const url = computed(() => ({
+  name: 'OrderDeliverableReference',
+  params: {
+    deliverableId: event.value.target.id,
+    orderId: event.value.target.order.id,
+    username: props.username,
+    referenceId: event.value.data.reference.id,
+  },
+}))
 </script>

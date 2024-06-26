@@ -5,7 +5,6 @@ import {errors} from './errors/index.ts'
 import {forms} from './forms/index.ts'
 import {lists} from './lists/index.ts'
 import cloneDeep from 'lodash/cloneDeep'
-import {notifications} from './notifications/index.ts'
 import {genId} from '@/lib/lib.ts'
 import {singles} from './singles/index.ts'
 import {characterModules} from '@/store/characters/index.ts'
@@ -96,7 +95,6 @@ export function storeDefaults(): StoreOptions<ArtState> {
       userModules,
       errors,
       forms,
-      notifications,
       lists,
       singles,
       characterModules,

@@ -13,7 +13,7 @@
               >
                 <component :is="dynamicComponent(notification.x!.event.type)"
                            :key="notification.x!.id" v-observe-visibility="(value: boolean) => markRead(value, notification)"
-                           class="notification" :notification="notification.x"
+                           class="notification" :notification="notification.x" :username="username"
                 />
               </div>
               <v-list-item v-else :key="index">
@@ -34,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import {artCall} from '@/lib/lib.ts'
+import {artCall, flatten} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcNotification from '@/types/AcNotification.ts'
 import {computed, defineComponent, onUnmounted, ref} from 'vue'
@@ -44,7 +44,6 @@ import AcDispute from './events/AcDispute.vue'
 import AcFavorite from './events/AcFavorite.vue'
 import AcSaleUpdate from './events/AcSaleUpdate.vue'
 import AcOrderUpdate from './events/AcOrderUpdate.vue'
-import AcSubmissionTag from './events/AcSubmissionTag.vue'
 import AcCharTag from './events/AcCharTag.vue'
 import AcSubmissionCharTag from './events/AcSubmissionCharTag.vue'
 import AcRevisionUploaded from './events/AcRevisionUploaded.vue'
@@ -58,7 +57,6 @@ import AcRenewalFixed from './events/AcRenewalFixed.vue'
 import AcRenewalFailure from './events/AcRenewalFailure.vue'
 import AcSubscriptionDeactivated from './events/AcSubscriptionDeactivated.vue'
 import AcNewJournal from './events/AcNewJournal.vue'
-import AcOrderTokenIssued from './events/AcOrderTokenIssued.vue'
 import AcWithdrawFailed from './events/AcWithdrawFailed.vue'
 import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
 import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
@@ -69,9 +67,11 @@ import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlis
 import AcTipReceived from '@/components/views/notifications/events/AcTipReceived.vue'
 import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.vue'
 import AcRevisionApproved from '@/components/views/notifications/events/AcRevisionApproved.vue'
-import {useStore} from 'vuex'
-import {ArtState} from '@/store/artState.ts'
 import {useList} from '@/store/lists/hooks.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useSubject} from '@/mixins/subjective.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {NotificationStats} from '@/types/NotificationStats.ts'
 
 const components = {
   0: AcNewCharacter,
@@ -79,7 +79,6 @@ const components = {
   4: AcCommentNotification,
   6: AcNewProduct,
   7: AcCommissionsOpen,
-  10: AcSubmissionTag,
   14: AcFavorite,
   15: AcDispute,
   16: AcRefund,
@@ -95,7 +94,6 @@ const components = {
   28: AcSubscriptionDeactivated,
   29: AcRenewalFixed,
   30: AcNewJournal,
-  31: AcOrderTokenIssued,
   32: AcWithdrawFailed,
   34: AcLandscapeReferral,
   35: AcReferenceUploaded,
@@ -105,12 +103,13 @@ const components = {
   39: AcRevisionApproved,
 }
 
-declare interface NotificationsListProps {
+declare interface NotificationsListProps extends SubjectiveProps {
   autoRead?: boolean,
   subset: boolean,
 }
 
 const props = withDefaults(defineProps<NotificationsListProps>(), {autoRead: true})
+const {isCurrent} = useSubject(props)
 
 const error = (x: any) => {
   console.error(x)
@@ -120,31 +119,31 @@ const dynamicComponent = (type: number): ReturnType<typeof defineComponent> => {
   return components[type as keyof typeof components]
 }
 
-const readUrl = '/api/profiles/data/notifications/mark-read/'
-const notifications = useList<AcNotification<any, any>>(props.subset + 'Notifications')
+const readUrl = `/api/profiles/account/${props.username}/notifications/mark-read/`
+const notifications = useList<AcNotification<any, any>>(props.subset + 'Notifications' + '__' + flatten(props.username))
 const toMark = ref<Array<Partial<AcNotification<any, any>>>>([])
 const marking = ref<Array<Partial<AcNotification<any, any>>>>([])
 const marked = ref<Array<Partial<AcNotification<any, any>>>>([])
-const store = useStore<ArtState>()
 
-const sendUpdateEvent = () => {
-  store.dispatch('notifications/runFetch').then()
-}
+const stats = useSingle<NotificationStats>('notifications_stats__' + flatten(props.username))
 
 const clickRead = (notification: SingleController<AcNotification<any, any>>) => {
   if (props.autoRead) {
     return
   }
+  if (!isCurrent.value) {
+    return
+  }
   notification.updateX({read: true})
   artCall({
-        url: '/api/profiles/data/notifications/mark-read/',
+        url: `/api/profiles/account/${props.username}/notifications/mark-read/`,
         method: 'patch',
         data: [{
           id: (notification.x as AcNotification<any, any>).id,
           read: true,
         }],
       },
-  ).then(sendUpdateEvent)
+  ).then(stats.refresh)
 }
 
 const toMarkIDs = computed(() => toMark.value.map((x) => x.id))
@@ -189,10 +188,13 @@ const postMark = () => {
     }
   }
   clearMarking()
-  sendUpdateEvent()
+  stats.refresh()
 }
 
 const readMonitor = () => {
+  if (!isCurrent.value) {
+    return
+  }
   if (toMark.value.length && !marking.value.length) {
     marking.value = toMark.value
     artCall(

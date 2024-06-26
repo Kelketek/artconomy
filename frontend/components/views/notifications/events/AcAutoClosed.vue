@@ -1,30 +1,23 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink">
+  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
     <template v-slot:title>
       <router-link :to="assetLink">Your sales have been automatically closed for inactivity.</router-link>
     </template>
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps} from '../mixins/notification.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-auto-closed',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      return {
-        name: 'Sales',
-        params: {
-          username: this.viewer.username,
-        },
-      }
-    },
+const props = defineProps<NotificationProps<null, DisplayData>>()
+const assetLink = computed(() => ({
+  name: 'Sales',
+  params: {
+    username: props.username,
   },
-}
+}))
 </script>
 
 <style scoped>

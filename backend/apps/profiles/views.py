@@ -1069,20 +1069,23 @@ def order_comment_types():
     return ORDER_COMMENT_TYPES_STORE
 
 
-class UnreadNotifications(APIView):
-    permission_classes = [IsRegistered]
+class UnreadNotifications(GenericAPIView):
+    permission_classes = [IsRegistered, UserControls]
+
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs["username"])
 
     # noinspection PyUnusedLocal
-    def get(self, request):
+    def get(self, request, username):
+        user = self.get_object()
+        self.check_object_permissions(self.request, user)
         return Response(
             status=200,
             data={
-                "count": Notification.objects.filter(user=self.request.user, read=False)
+                "count": Notification.objects.filter(user=user, read=False)
                 .exclude(event__recalled=True)
                 .count(),
-                "community_count": Notification.objects.filter(
-                    user=self.request.user, read=False
-                )
+                "community_count": Notification.objects.filter(user=user, read=False)
                 .exclude(event__recalled=True)
                 .exclude(event__type__in=ORDER_NOTIFICATION_TYPES)
                 .exclude(
@@ -1090,7 +1093,7 @@ class UnreadNotifications(APIView):
                 )
                 .count(),
                 "sales_count": Notification.objects.filter(
-                    user=self.request.user,
+                    user=user,
                     read=False,
                 )
                 .exclude(event__recalled=True)
@@ -1108,11 +1111,16 @@ class UnreadNotifications(APIView):
 
 class CommunityNotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
-    permission_classes = [IsRegistered]
+    permission_classes = [IsRegistered, UserControls]
+
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs["username"])
 
     def get_queryset(self):
+        user = self.get_object()
+        self.check_object_permissions(self.request, user)
         qs = (
-            Notification.objects.filter(user=self.request.user)
+            Notification.objects.filter(user=user)
             .exclude(event__recalled=True)
             .exclude(event__type__in=ORDER_NOTIFICATION_TYPES)
             .exclude(
@@ -1184,12 +1192,17 @@ class RefColorManager(RetrieveUpdateDestroyAPIView):
 
 
 class MarkNotificationsRead(BulkUpdateAPIView):
-    permission_classes = [IsRegistered]
+    permission_classes = [IsRegistered, UserControls]
     serializer_class = BulkNotificationSerializer
     queryset = Notification.objects.all()
 
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs["username"])
+
     def filter_queryset(self, queryset):
-        return queryset.filter(user=self.request.user)
+        user = self.get_object()
+        self.check_object_permissions(self.request, user)
+        return queryset.filter(user=user)
 
 
 class WatchListSubmissions(ListAPIView):

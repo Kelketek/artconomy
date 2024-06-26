@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink">
+  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
     <template v-slot:title>
       <router-link :to="assetLink">{{event.target.username}} is open!</router-link>
     </template>
@@ -9,26 +9,22 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
+import {computed} from 'vue'
+import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
-export default {
-  name: 'ac-commissions-open',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      return {
-        name: 'Profile',
-        params: {
-          username: this.event.target.username,
-          tabName: 'products',
-        },
-      }
-    },
+const props = defineProps<NotificationProps<TerseUser, DisplayData<NotificationUser>>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => ({
+  name: 'Profile',
+  params: {
+    username: event.value.target.username,
+    tabName: 'products',
   },
-}
+}))
 </script>
 
 <style scoped>

@@ -1,8 +1,9 @@
 <template>
-  <ac-base-notification :asset-link="assetLink" :notification="notification">
+  <ac-base-notification :asset-link="assetLink" :notification="notification" :username="username">
     <template v-slot:title>
       <router-link :to="assetLink">
         <span v-if="event.target.status === 10">New Order in Limbo</span>
+        <span v-else-if="event.target.status === 11">Order expired.</span>
         <span v-else>Sale #{{event.target.order.id}} [{{event.target.name}}]</span>
       </router-link>
     </template>
@@ -19,59 +20,53 @@
 }
 </style>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import Deliverable from '@/types/Deliverable.ts'
+import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {computed} from 'vue'
+import {useRouter} from 'vue-router'
 
-const ORDER_STATUSES = {
-  0: 'has been added to your waitlist.',
-  1: 'has been placed, and is awaiting your acceptance!',
-  2: 'is waiting on the commissioner to pay.',
-  3: 'has been added to your queue.',
-  4: 'is currently in progress. Update when you have a revision or the final completed.',
-  5: 'is completed and awaiting the commissioner\'s review.',
-  6: 'has been cancelled.',
-  7: 'has been placed under dispute.',
-  8: 'has been completed!',
-  9: 'has been refunded.',
-  10: 'Click here to upgrade and view your order!',
+const ORDER_STATUSES: Record<DeliverableStatus, string> = {
+  [DeliverableStatus.WAITING]: 'has been added to your waitlist.',
+  [DeliverableStatus.NEW]: 'has been placed, and is awaiting your acceptance!',
+  [DeliverableStatus.PAYMENT_PENDING]: 'is waiting on the commissioner to pay.',
+  [DeliverableStatus.QUEUED]: 'has been added to your queue.',
+  [DeliverableStatus.IN_PROGRESS]: 'is currently in progress. Update when you have a revision or the final completed.',
+  [DeliverableStatus.REVIEW]: 'is completed and awaiting the commissioner\'s review.',
+  [DeliverableStatus.CANCELLED]: 'has been cancelled.',
+  [DeliverableStatus.DISPUTED]: 'has been placed under dispute.',
+  [DeliverableStatus.COMPLETED]: 'has been completed!',
+  [DeliverableStatus.REFUNDED]: 'has been refunded.',
+  [DeliverableStatus.LIMBO]: 'Click here to upgrade and view your order!',
+  [DeliverableStatus.MISSED]: 'An order has expired. Upgrade to avoid this happening again!'
 }
 
-export default {
-  name: 'ac-sale-update',
-  components: {AcBaseNotification},
-  mixins: [Notification],
-  data() {
-    return {}
-  },
-  computed: {
-    assetLink() {
-      const deliverableLink = {
-        name: 'SaleDeliverableOverview',
-        params: {
-          orderId: this.event.target.order.id,
-          username: this.viewer.username,
-          deliverableId: this.event.target.id,
-        },
-      }
-      if (this.event.target.status === 10) {
-        return {
-          name: 'Upgrade',
-          params: {username: this.viewer.username},
-          query: {next: this.$router.resolve(deliverableLink).href},
-        }
-      }
-      return deliverableLink
+const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
+const router = useRouter()
+const event = useEvent(props)
+
+const assetLink = computed(() => {
+  const deliverableLink = {
+    name: 'SaleDeliverableOverview',
+    params: {
+      orderId: event.value.target.order.id,
+      username: props.username,
+      deliverableId: event.value.target.id,
     },
-    message() {
-      return ORDER_STATUSES[this.event.target.status]
-    },
-    streamingLink() {
-      if (this.event.target.status === 4) {
-        return this.event.target.stream_link
-      }
-      return ''
-    },
-  },
-}
+  }
+  if ([10, 11].includes(event.value.target.status)) {
+    return {
+      name: 'Upgrade',
+      params: {username: props.username},
+      query: {next: router.resolve(deliverableLink).href},
+    }
+  }
+  return deliverableLink
+})
+
+const message = computed(() => {
+  return ORDER_STATUSES[event.value.target.status]
+})
 </script>

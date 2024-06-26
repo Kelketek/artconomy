@@ -634,10 +634,8 @@ def streaming(obj, context):
     user_data = notification_display(deliverable.order.seller, context)
     # Don't want to use full order here, would have too much info sent.
     return {
-        "order": {
-            "stream_link": deliverable.stream_link,
-            "seller": user_data,
-        },
+        "stream_link": deliverable.stream_link,
+        "seller": user_data,
         "display": user_data,
     }
 

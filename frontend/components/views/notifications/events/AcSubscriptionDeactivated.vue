@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="upgradeLink">
+  <ac-base-notification :notification="notification" :asset-link="upgradeLink" :username="username">
     <template v-slot:title>
       <router-link :to="upgradeLink">Your subscription has been deactivated.</router-link>
     </template>
@@ -9,22 +9,20 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps} from '@/components/views/notifications/mixins/notification.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-subscription-deactivated',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    upgradeLink() {
-      return {
-        name: 'Upgrade',
-      }
-    },
-  },
-}
+const props = defineProps<NotificationProps<null, DisplayData>>()
+const upgradeLink = computed(() => {
+  return {
+    name: 'Upgrade',
+    params: {
+      username: props.username,
+    }
+  }
+})
 </script>
 
 <style scoped>

@@ -1,24 +1,26 @@
 <template>
-  <ac-base-notification :notification="notification" :href-link="streamLink">
+  <ac-base-notification :notification="notification" :href-link="streamLink" :username="username">
     <template v-slot:title><a :href="streamLink"
-                              target="_blank">{{ event.data.order.seller.username }} is streaming!</a></template>
+                              target="_blank">{{ event.data.seller.username }} is streaming!</a></template>
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
+import Deliverable from '@/types/Deliverable.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-streaming',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    streamLink() {
-      return this.event.data.order.stream_link || '#'
-    },
-  },
+declare interface Streaming extends DisplayData {
+  stream_link: string,
+  seller: NotificationUser,
 }
+const props = defineProps<NotificationProps<Deliverable, Streaming>>()
+const event = useEvent(props)
+
+const streamLink = computed(() => {
+  return event.value.data.stream_link || '#'
+})
 </script>
 
 <style scoped>

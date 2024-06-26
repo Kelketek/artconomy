@@ -70,7 +70,6 @@ export class SingleModule<T> {
     }
     this.actions = {
       get({state, commit}) {
-        // @ts-ignore
         if (state.fetching || state.ready || state.failed) {
           return immediate(state.x)
         }

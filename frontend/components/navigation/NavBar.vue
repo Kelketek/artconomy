@@ -149,17 +149,7 @@
       </v-card>
       <ac-stats-bar :username="rawViewerName" v-if="viewer && viewer.artist_mode && fullInterface" />
       <v-toolbar-items v-if="fullInterface">
-        <v-btn variant="plain" v-if="isRegistered" @click="notificationLoad" class="notifications-button" aria-label="Notifications">
-          <template #default>
-            <v-badge overlap right color="red" :model-value="!!counts.count">
-              <template v-slot:badge>
-                <span v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
-                <span v-else>*</span>
-              </template>
-              <v-icon size="x-large" :icon="mdiBell"/>
-            </v-badge>
-          </template>
-        </v-btn>
+        <ac-notification-indicator :username="rawViewerName" v-if="isRegistered" @click="notificationLoad" :key="rawViewerName" />
         <v-btn class="nav-login-item" variant="text" v-if="isRegistered"
                :to="profileRoute">
           <v-avatar size="32px">
@@ -215,12 +205,13 @@ const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBo
 import {useNav} from '@/mixins/nav.ts'
 const AcNavLinks = defineAsyncComponent(() => import('@/components/navigation/AcNavLinks.vue'))
 import {siDiscord, siTwitter} from 'simple-icons'
-import {computed, defineAsyncComponent, onUnmounted, ref, watch} from 'vue'
+import {computed, defineAsyncComponent, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import {useSearchForm} from '@/components/views/search/hooks.ts'
-import {mdiBell, mdiChatQuestion, mdiMagnify, mdiPencil} from '@mdi/js'
+import {mdiChatQuestion, mdiMagnify, mdiPencil} from '@mdi/js'
+const AcNotificationIndicator = defineAsyncComponent(() => import('@/components/navigation/AcNotificationIndicator.vue'))
 const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/AcStatsBar.vue'))
 
 // Should already have been populated in the root component.
@@ -278,21 +269,13 @@ const notificationLoad = () => {
       params: {path: route.path},
     })
   } else if (viewer.value?.artist_mode) {
-    router.push({name: 'SalesNotifications'})
+    router.push({name: 'SalesNotifications', params: {username: rawViewerName.value}})
   } else {
-    router.push({name: 'CommunityNotifications'})
+    router.push({name: 'CommunityNotifications', params: {username: rawViewerName.value}})
   }
 }
 
 const showSupport = () => store.commit('supportDialog', true)
-
-watch(isRegistered, (val: boolean) => {
-  if (val) {
-    store.dispatch('notifications/startLoop').then()
-  } else {
-    store.dispatch('notifications/stopLoop').then()
-  }
-}, {immediate: true})
 
 const profileRoute = computed(() => {
   return {
@@ -302,9 +285,4 @@ const profileRoute = computed(() => {
 })
 
 const sfwMode = computed(() => viewerHandler.user.patchers.sfw_mode)
-
-const counts = computed(() => store.state.notifications!.stats)
-
-onUnmounted(() => store.dispatch('notifications/stopLoop').then())
-
 </script>

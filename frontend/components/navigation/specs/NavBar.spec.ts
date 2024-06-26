@@ -41,51 +41,6 @@ describe('NavBar.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Starts the notifications loop when a viewer is set and is real.', async() => {
-    const dispatch = vi.spyOn(store, 'dispatch')
-    wrapper = shallowMount(NavBar, vueSetup({
-      store,
-router,
-    }))
-    await router.isReady()
-    const vm = wrapper.vm as any
-    vm.viewerHandler.user.makeReady(genUser())
-    await nextTick()
-    expect((wrapper.vm as any).viewer.username).toBe('Fox')
-    expect(dispatch).toHaveBeenCalledWith('notifications/startLoop')
-  })
-  test('Stops the notifications loop when a viewer is set and is anonymous.', async() => {
-    const dispatch = vi.spyOn(store, 'dispatch')
-    wrapper = shallowMount(NavBar, vueSetup({
-      store,
-router,
-      stubs: ['router-link'],
-    }))
-    await router.isReady()
-    // Have to start as logged in to trigger the event.
-    const vm = wrapper.vm as any
-    vm.viewerHandler.user.makeReady(genUser())
-    await nextTick()
-    dispatch.mockClear();
-    (wrapper.vm as any).viewerHandler.user.setX(genAnon())
-    await nextTick()
-    expect(dispatch).toHaveBeenCalledWith('notifications/stopLoop')
-  })
-  test('Stops the notifications loop when destroyed.', async() => {
-    const dispatch = vi.spyOn(store, 'dispatch')
-    wrapper = shallowMount(NavBar, vueSetup({
-      store,
-router,
-      stubs: ['router-link'],
-    }))
-    await router.isReady()
-    const vm = wrapper.vm as any
-    vm.viewerHandler.user.makeReady(genUser())
-    await nextTick()
-    dispatch.mockClear()
-    wrapper.unmount()
-    expect(dispatch).toHaveBeenCalledWith('notifications/stopLoop')
-  })
   test('Generates a profile link', async() => {
     const user = genUser()
     user.username = 'Goober'
@@ -93,7 +48,7 @@ router,
     setViewer(store, user)
     wrapper = shallowMount(NavBar, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -107,7 +62,7 @@ router,
     setViewer(store, genUser())
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await nextTick()
@@ -121,7 +76,7 @@ router,
     await router.push({name: 'FAQ'})
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
     }))
     await router.isReady()
     await nextTick()
@@ -138,7 +93,7 @@ router,
     setViewer(store, genUser({artist_mode: true}))
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -148,13 +103,13 @@ router,
     await wrapper.find('.notifications-button').trigger('click')
     await nextTick()
     await waitFor(() => expect(router.currentRoute.value.name).toEqual('Reload'))
-    expect(router.currentRoute.value.params).toEqual({path: '/notifications/sales/'})
+    expect(router.currentRoute.value.params).toEqual({path: '/notifications/Fox/sales/'})
   })
   test('Loads the notifications view for a non-artist', async() => {
     setViewer(store, genUser({artist_mode: false}))
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -164,24 +119,27 @@ router,
     await wrapper.find('.notifications-button').trigger('click')
     await nextTick()
     await waitFor(() => expect(router.currentRoute.value.name).toEqual('Reload'))
-    expect(router.currentRoute.value.params).toEqual({path: '/notifications/community/'})
+    expect(router.currentRoute.value.params).toEqual({path: '/notifications/Fox/community/'})
   })
   test('Loads a login link', async() => {
     setViewer(store, genAnon())
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
     }))
     await nextTick()
     const vm = wrapper.findComponent(NavBar)!.vm as any
-    expect(vm.loginLink).toEqual({name: 'Login', query: {next: '/'}})
+    expect(vm.loginLink).toEqual({
+      name: 'Login',
+      query: {next: '/'},
+    })
     await router.replace({name: 'Login'})
     await waitFor(() => expect(vm.loginLink).toEqual({name: 'Login'}))
   })
   test('Sends you to the search page', async() => {
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await router.push('/')
@@ -196,7 +154,7 @@ router,
     await router.isReady()
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await router.push('/')
@@ -209,7 +167,7 @@ router,
     setViewer(store, genUser())
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await router.isReady()
@@ -220,7 +178,7 @@ router,
   test('Does not alter the route if we are already on a search page', async() => {
     wrapper = mount(NavBarContainer, vueSetup({
       store,
-router,
+      router,
       stubs: ['router-link'],
     }))
     await router.push({name: 'SearchSubmissions'})

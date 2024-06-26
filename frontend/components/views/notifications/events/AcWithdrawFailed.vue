@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink">
+  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
     <template v-slot:title>
       <router-link :to="assetLink">We had an issue sending money to your bank.</router-link>
     </template>
@@ -9,25 +9,23 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notification from '../mixins/notification.ts'
+import {NotificationProps, DisplayUser, useEvent} from '../mixins/notification.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-withdraw-failed',
-  components: {AcBaseNotification},
-  mixins: [Notification],
-  computed: {
-    assetLink() {
-      return {
-        name: 'Payout',
-        params: {
-          username: this.event.target.username,
-        },
-      }
+const props = defineProps<NotificationProps<User, DisplayUser>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => {
+  return {
+    name: 'Payout',
+    params: {
+      username: event.value.target.username,
     },
-  },
-}
+  }
+})
 </script>
 
 <style scoped>

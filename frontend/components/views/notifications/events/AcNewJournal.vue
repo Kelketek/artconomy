@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink">
+  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
     <template v-slot:title>
       <router-link :to="assetLink">{{event.target.username}} posted a Journal:</router-link>
     </template>
@@ -9,26 +9,28 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
+import {computed} from 'vue'
+import {Journal} from '@/types/Journal.ts'
 
-export default {
-  name: 'ac-new-journal',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      return {
-        name: 'Journal',
-        params: {
-          username: this.event.target.username,
-          journalId: this.event.data.journal.id + '',
-        },
-      }
-    },
-  },
+declare interface NewJournal extends DisplayData {
+  journal: Journal
 }
+
+const props = defineProps<NotificationProps<NotificationUser, NewJournal>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => {
+  return {
+    name: 'Journal',
+    params: {
+      username: event.value.target.username,
+      journalId: event.value.data.journal.id + '',
+    },
+  }
+})
 </script>
 
 <style scoped>

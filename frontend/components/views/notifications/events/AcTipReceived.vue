@@ -1,37 +1,37 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink">
+  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
     <template v-slot:title>
       <router-link :to="assetLink">{{buyerName}} sent you a tip!</router-link>
     </template>
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 
 import {deriveDisplayName} from '@/lib/otherFormatters.ts'
+import Deliverable from '@/types/Deliverable.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-tip-received',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      return {
-        name: 'SaleDeliverableOverview',
-        params: {
-          orderId: this.event.target.order.id,
-          username: this.viewer.username,
-          deliverableId: this.event.target.id,
-        },
-      }
+
+const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => {
+  return {
+    name: 'SaleDeliverableOverview',
+    params: {
+      orderId: event.value.target.order.id,
+      username: props.username,
+      deliverableId: event.value.target.id,
     },
-    buyerName() {
-      return deriveDisplayName(this.event.target.order.buyer.username)
-    },
-  },
-}
+  }
+})
+
+const buyerName = computed(() => {
+  return deriveDisplayName(event.value.target.order.buyer!.username)
+})
 </script>
 
 <style scoped>

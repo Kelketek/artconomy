@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="paymentLink">
+  <ac-base-notification :notification="notification" :asset-link="paymentLink" :username="username">
     <template v-slot:title>
       <router-link
           :to="paymentLink">There was an issue renewing your subscription.
@@ -11,26 +11,24 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-renewal-failure',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    paymentLink() {
-      return {
-        name: 'Settings',
-        params: {
-          username: this.event.target.username,
-          tabName: 'payment',
-        },
-      }
-    },
-  },
+declare interface RenewalFailure extends DisplayData {
+  error: string,
 }
+const props = defineProps<NotificationProps<NotificationUser, RenewalFailure>>()
+const event = useEvent(props)
+
+const paymentLink = computed(() => ({
+  name: 'Settings',
+  params: {
+    username: event.value.target.username,
+    tabName: 'payment',
+  },
+}))
 </script>
 
 <style scoped>

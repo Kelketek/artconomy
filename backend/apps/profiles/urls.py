@@ -1,5 +1,6 @@
 """artconomy URL Configuration
 """
+
 from apps.profiles import views
 from django.urls import path, register_converter
 from short_stuff.django.converters import ShortCodeConverter
@@ -70,26 +71,6 @@ urlpatterns = [
         name="password_reset_start",
     ),
     path("data/requester/", views.CurrentUserInfo.as_view(), name="current_user_info"),
-    path(
-        "data/notifications/unread/",
-        views.UnreadNotifications.as_view(),
-        name="unread_notifications",
-    ),
-    path(
-        "data/notifications/mark-read/",
-        views.MarkNotificationsRead.as_view(),
-        name="mark_read",
-    ),
-    path(
-        "data/notifications/community/",
-        views.CommunityNotificationsList.as_view(),
-        name="community_notifications",
-    ),
-    path(
-        "data/notifications/sales/",
-        views.SalesNotificationsList.as_view(),
-        name="sales_notifications",
-    ),
     path("data/user/id/<int:user_id>/", views.UserInfoByID.as_view(), name="user_info"),
     path(
         "data/character/id/<int:character_id>/",
@@ -108,6 +89,26 @@ urlpatterns = [
         "search/submission/",
         views.SubmissionSearch.as_view(),
         name="submission_search",
+    ),
+    path(
+        "account/<username>/notifications/unread/",
+        views.UnreadNotifications.as_view(),
+        name="unread_notifications",
+    ),
+    path(
+        "account/<username>/notifications/mark-read/",
+        views.MarkNotificationsRead.as_view(),
+        name="mark_read",
+    ),
+    path(
+        "account/<username>/notifications/community/",
+        views.CommunityNotificationsList.as_view(),
+        name="community_notifications",
+    ),
+    path(
+        "account/<username>/notifications/sales/",
+        views.SalesNotificationsList.as_view(),
+        name="sales_notifications",
     ),
     path(
         "account/<username>/notification-settings/",

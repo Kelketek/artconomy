@@ -1,7 +1,9 @@
-import {createApp} from 'vue'
+import {computed, ComputedRef, createApp} from 'vue'
 import {Asset} from '@/types/Asset.ts'
 import {v4 as uuidv4} from 'uuid'
 import {extPreview, getExt, isImage} from '@/mixins/asset_base.ts'
+import {User} from '@/store/profiles/types/User.ts'
+import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 
 export function Shortcuts(app: ReturnType<typeof createApp>): void {
   app.mixin({
@@ -44,5 +46,32 @@ export function Shortcuts(app: ReturnType<typeof createApp>): void {
         return asset.file[thumbName]
       },
     },
+  })
+}
+
+export const useImg = (asset: Asset, thumbName: string, fallback: boolean, viewer: ComputedRef<User|AnonUser>) => {
+  return computed(() => {
+    if (!asset || !asset.file) {
+      return '/static/images/default-avatar.png'
+    }
+    // Viewer must be defined elsewhere. In near all cases, should be from the Viewer mixin.
+    if (asset.rating > viewer.value.rating) {
+      if (fallback) {
+        return '/static/images/default-avatar.png'
+      }
+      return ''
+    }
+    if (['gallery', 'full', 'preview'].indexOf(thumbName) === -1) {
+      if (asset.preview) {
+          return asset.preview.thumbnail
+        }
+      }
+      if (getExt(asset.file.full) === 'SVG') {
+        return asset.file.full
+      }
+      if (!isImage(asset.file.full)) {
+        return extPreview(asset.file.full)
+      }
+    return asset.file[thumbName]
   })
 }

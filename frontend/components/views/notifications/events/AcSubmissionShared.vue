@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :asset-link="assetLink" :notification="notification">
+  <ac-base-notification :asset-link="assetLink" :notification="notification" :username="username">
     <template v-slot:title>
       <router-link :to="assetLink">
         A submission was shared with you
@@ -12,30 +12,30 @@
   </ac-base-notification>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import Submission from '@/types/Submission.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-submission-shared',
-  components: {AcBaseNotification},
-  mixins: [Notification],
-  data() {
-    return {}
-  },
-  computed: {
-    assetLink() {
-      if (this.event.data.submission) {
-        return {
-          name: 'Submission',
-          params: {submissionId: this.event.data.submission.id},
-        }
-      } else {
-        return {}
-      }
-    },
-  },
+declare interface SubmissionShared extends DisplayData {
+  user: NotificationUser,
+  submission: Submission,
 }
+
+const props = defineProps<NotificationProps<null, SubmissionShared>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => {
+  if (event.value.data.submission) {
+    return {
+      name: 'Submission',
+      params: {submissionId: event.value.data.submission.id},
+    }
+  } else {
+    return {}
+  }
+})
 </script>
 
 <style scoped>

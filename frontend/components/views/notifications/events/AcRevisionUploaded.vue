@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :asset-link="url" :notification="notification">
+  <ac-base-notification :asset-link="url" :notification="notification" :username="username">
     <template v-slot:title>
       <router-link :to="url">
         Order #{{event.target.order.id}} [{{event.target.name}}]
@@ -11,40 +11,39 @@
   </ac-base-notification>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import Viewer from '@/mixins/viewer.ts'
+import Deliverable from '@/types/Deliverable.ts'
+import {computed} from 'vue'
+import Revision from '@/types/Revision.ts'
 
-export default {
-  name: 'ac-revision-uploaded',
-  components: {AcBaseNotification},
-  mixins: [Notification, Viewer],
-  data() {
-    return {}
-  },
-  computed: {
-    url() {
-      if (this.event.target.revisions_hidden) {
-        return {
-          name: 'OrderDeliverableRevisions',
-          params: {
-            deliverableId: this.event.target.id,
-            orderId: this.event.target.order.id,
-            username: this.rawViewerName,
-          },
-        }
-      }
-      return {
-        name: 'OrderDeliverableRevision',
-        params: {
-          deliverableId: this.event.target.id,
-          orderId: this.event.target.order.id,
-          username: this.rawViewerName,
-          revisionId: this.event.data.revision.id,
-        },
-      }
-    },
-  },
+declare interface RevisionUploaded extends DisplayData {
+  revision?: Revision
 }
+
+const props = defineProps<NotificationProps<Deliverable, RevisionUploaded>>()
+const event = useEvent(props)
+
+const url = computed(() => {
+  if (event.value.data.revision) {
+    return {
+      name: 'OrderDeliverableRevision',
+      params: {
+        deliverableId: event.value.target.id,
+        orderId: event.value.target.order.id,
+        username: props.username,
+        revisionId: event.value.data.revision.id,
+      },
+    }
+  }
+  return {
+    name: 'OrderDeliverableRevisions',
+    params: {
+      deliverableId: event.value.target.id,
+      orderId: event.value.target.order.id,
+      username: props.username,
+    },
+  }
+})
 </script>

@@ -390,7 +390,17 @@ class User(AbstractEmailUser, HitsMixin):
     def notification_serialize(self, context):
         from .serializers import RelatedUserSerializer
 
-        return RelatedUserSerializer(instance=self, context=context).data
+        data = RelatedUserSerializer(instance=self, context=context).data
+        # Shim this file data in here so that it behaves like any other displayable
+        # 'asset' on the notifications list.
+        extra = {
+            "rating": GENERAL,
+            "preview": None,
+            "file": {"full": data["avatar_url"], "notification": data["avatar_url"]},
+            "__type__": "data:image",
+        }
+        data.update(extra)
+        return data
 
     def watches(self):
         return self.watched_by.all().count()

@@ -1,5 +1,5 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink">
+  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
     <template v-slot:title>An artist has been tagged on
       <router-link
           :to="assetLink">{{event.target.title}}!
@@ -15,32 +15,27 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
+import {computed} from 'vue'
+import Submission from '@/types/Submission.ts'
 
-export default {
-  name: 'ac-submission-artist-tag',
-  components: {AcBaseNotification},
-  mixins: [Notifiction],
-  computed: {
-    assetLink() {
-      if (!this.event.target) {
-        return
-      }
-      return {
-        name: 'Submission',
-        params: {assetID: this.event.target.id},
-      }
-    },
-    userName() {
-      return this.event.data.user.username
-    },
-    artistName() {
-      return this.event.data.artist.username
-    },
-  },
+declare interface SubmissionArtistTag extends DisplayData<Submission> {
+  user: NotificationUser,
+  artist: NotificationUser,
 }
+
+const props = defineProps<NotificationProps<Submission, SubmissionArtistTag>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => ({
+  name: 'Submission',
+  params: {assetID: event.value.target.id},
+}))
+
+const userName = computed(() => event.value.data.user.username)
+const artistName = computed(() => event.value.data.artist.username)
 </script>
 
 <style scoped>

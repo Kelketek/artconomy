@@ -1,14 +1,12 @@
 <template>
-  <v-list-item>
-    <router-link :to="casePath">
-      <template v-slot:prepend>
-        <img :src="$img(event.data.display, 'notification', true)" alt=""/>
-      </template>
-    </router-link>
+  <ac-base-notification :notification="notification" :asset-link="casePath" :username="username">
+    <template v-slot:avatar>
+      <img :src="image" alt=""/>
+    </template>
     <v-list-item-title>
       A Dispute has been filed for Deliverable #{{event.target.id}}.
     </v-list-item-title>
-    <template v-slot:append>
+    <template v-slot:extra>
       <v-btn
           @click="claimDispute"
           variant="flat"
@@ -16,47 +14,46 @@
       >Claim
       </v-btn>
     </template>
-  </v-list-item>
+  </ac-base-notification>
 </template>
 
 <style scoped>
 </style>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import {artCall} from '@/lib/lib.ts'
+import {useRouter} from 'vue-router'
+import Deliverable from '@/types/Deliverable.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {computed} from 'vue'
+import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import {useImg} from '@/plugins/shortcuts.ts'
 
-export default {
-  name: 'ac-dispute',
-  mixins: [Notification],
-  data() {
-    return {}
-  },
-  methods: {
-    visitOrder() {
-      this.$router.push(this.casePath)
+const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
+const event = useEvent(props)
+const {viewer} = useViewer()
+const image = useImg(event.value.data.display, 'notification', true, viewer)
+
+const router = useRouter()
+const url = computed(() => {
+  return `/api/sales/order/${event.value.target.order.id}/deliverables/${event.value.target.id}/`
+})
+const casePath = computed(() => {
+  return {
+    name: 'CaseDeliverableOverview',
+    params: {
+      orderId: event.value.target.order.id,
+      username: props.username,
+      deliverableId: event.value.target.id,
     },
-    claimDispute() {
-      artCall({
-        url: `${this.url}claim/`,
-        method: 'post',
-      }).then(this.visitOrder)
-    },
-  },
-  computed: {
-    url() {
-      return `/api/sales/order/${this.event.target.order.id}/deliverables/${this.event.target.id}/`
-    },
-    casePath() {
-      return {
-        name: 'CaseDeliverableOverview',
-        params: {
-          orderId: this.event.target.order.id,
-          username: this.viewerName,
-          deliverableId: this.event.target.id,
-        },
-      }
-    },
-  },
+  }
+})
+const visitOrder = () => router.push(casePath.value)
+const claimDispute = () => {
+  artCall({
+    url: `${url.value}claim/`,
+    method: 'post',
+  }).then(visitOrder)
 }
 </script>
