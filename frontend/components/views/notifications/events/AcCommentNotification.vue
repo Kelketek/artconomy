@@ -18,7 +18,7 @@ import {RouteLocationRaw} from 'vue-router'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {computed} from 'vue'
 
-declare interface CommentNotification {
+declare interface CommentNotification extends DisplayData {
   link: RouteLocationRaw,
   subject: TerseUser,
   commenters: string[],
@@ -27,7 +27,7 @@ declare interface CommentNotification {
   name: string,
 }
 
-const props = defineProps<NotificationProps<DisplayData, CommentNotification>>()
+const props = defineProps<NotificationProps<null, CommentNotification>>()
 const event = useEvent(props)
 
 const byLine = computed(() => {

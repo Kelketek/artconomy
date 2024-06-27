@@ -1,12 +1,12 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="casePath">
-    <template v-slot:prepend>
+    <template v-slot:avatar>
       <img :src="image" alt=""/>
     </template>
     <v-list-item-title>
       A Dispute has been filed for Deliverable #{{event.target.id}}.
     </v-list-item-title>
-    <template v-slot:append>
+    <template v-slot:extra>
       <v-btn
           @click="claimDispute"
           variant="flat"

@@ -11,11 +11,11 @@
 
 <script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import {NotificationProps, useEvent} from '../mixins/notification.ts'
+import {NotificationProps, DisplayUser, useEvent} from '../mixins/notification.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {computed} from 'vue'
 
-const props = defineProps<NotificationProps<User, null>>()
+const props = defineProps<NotificationProps<User, DisplayUser>>()
 const event = useEvent(props)
 
 const assetLink = computed(() => {

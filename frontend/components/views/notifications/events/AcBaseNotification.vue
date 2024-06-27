@@ -8,9 +8,7 @@
           </template>
           <slot name="avatar">
             <v-avatar>
-              <img :src="event.data.display.avatar_url" v-if="event.data.display && event.data.display.avatar_url"
-                   alt="">
-              <img :src="image" alt="" v-else>
+              <img :src="image" alt="">
             </v-avatar>
           </slot>
         </v-badge>
@@ -30,8 +28,8 @@
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {RouteLocationRaw} from 'vue-router'
-import {useImg} from '@/plugins/shortcuts.ts'
 import {useViewer} from '@/mixins/viewer.ts'
+import {useImg} from '@/plugins/shortcuts.ts'
 
 const props = defineProps<{assetLink?: RouteLocationRaw, hrefLink?: RouteLocationRaw} & NotificationProps<T, D>>()
 const {viewer} = useViewer()
