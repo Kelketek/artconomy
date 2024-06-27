@@ -11,15 +11,13 @@
 
 <script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import {NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
 import {computed} from 'vue'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 
-declare interface CommissionOpen {
-  display: NotificationUser,
-}
 
-const props = defineProps<NotificationProps<TerseUser, CommissionOpen>>()
+
+const props = defineProps<NotificationProps<TerseUser, DisplayData<NotificationUser>>>()
 const event = useEvent(props)
 
 const assetLink = computed(() => ({

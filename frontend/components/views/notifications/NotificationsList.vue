@@ -58,7 +58,6 @@ import AcRenewalFixed from './events/AcRenewalFixed.vue'
 import AcRenewalFailure from './events/AcRenewalFailure.vue'
 import AcSubscriptionDeactivated from './events/AcSubscriptionDeactivated.vue'
 import AcNewJournal from './events/AcNewJournal.vue'
-import AcOrderTokenIssued from './events/AcOrderTokenIssued.vue'
 import AcWithdrawFailed from './events/AcWithdrawFailed.vue'
 import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
 import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
@@ -95,7 +94,6 @@ const components = {
   28: AcSubscriptionDeactivated,
   29: AcRenewalFixed,
   30: AcNewJournal,
-  31: AcOrderTokenIssued,
   32: AcWithdrawFailed,
   34: AcLandscapeReferral,
   35: AcReferenceUploaded,

@@ -11,31 +11,24 @@
   </ac-base-notification>
 </template>
 
-<script>
-import Notification from '../mixins/notification.ts'
+<script setup lang="ts">
+import {NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import Viewer from '@/mixins/viewer.ts'
+import {useViewer} from '@/mixins/viewer.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-revision-approved',
-  components: {AcBaseNotification},
-  mixins: [Notification, Viewer],
-  data() {
-    return {}
+const props = defineProps<NotificationProps<any, any>>()
+const {rawViewerName} = useViewer()
+const event = useEvent(props)
+
+const url = computed(() => ({
+  name: 'SaleDeliverableRevision',
+  params: {
+    deliverableId: event.value.data.deliverable.id,
+    orderId: event.value.data.deliverable.order.id,
+    username: rawViewerName.value,
+    revisionId: event.value.target.id,
   },
-  computed: {
-    url() {
-      console.log(this.event)
-      return {
-        name: 'SaleDeliverableRevision',
-        params: {
-          deliverableId: this.event.data.deliverable.id,
-          orderId: this.event.data.deliverable.order.id,
-          username: this.rawViewerName,
-          revisionId: this.event.target.id,
-        },
-      }
-    },
-  },
-}
+}))
+
 </script>

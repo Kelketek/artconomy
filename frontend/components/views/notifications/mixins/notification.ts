@@ -14,8 +14,8 @@ export interface NotificationProps<T, D> {
 }
 
 
-export interface DisplayData {
-  display: Asset,
+export interface DisplayData<T extends Asset = Asset> {
+  display: T,
 }
 
 export type NotificationUser = TerseUser & Asset

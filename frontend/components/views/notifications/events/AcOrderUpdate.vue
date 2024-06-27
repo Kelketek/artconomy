@@ -9,7 +9,7 @@
     <template v-slot:extra>
       <v-list-item-subtitle>
         <a target="_blank" :href="streamingLink" v-if="streamingLink">Click here for stream!</a>
-        <span v-if="autofinalizeDisplay">Will autofinalize on {{formatDate(event.target.auto_finalize_on)}}.</span>
+        <span v-if="autoFinalizeDisplay && event.target.auto_finalize_on">Will auto-finalize on {{formatDate(event.target.auto_finalize_on)}}.</span>
       </v-list-item-subtitle>
     </template>
   </ac-base-notification>
@@ -18,10 +18,13 @@
 <style scoped>
 </style>
 
-<script>
-import Notification from '../mixins/notification.ts'
-import Formatting from '@/mixins/formatting.ts'
+<script setup lang="ts">
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import {computed} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
+import {formatDate} from '@/lib/otherFormatters.ts'
+import Deliverable from '@/types/Deliverable.ts'
 
 const ORDER_STATUSES = {
   0: 'has been added to the artist\'s waitlist.',
@@ -36,33 +39,27 @@ const ORDER_STATUSES = {
   9: 'has been refunded.',
 }
 
-export default {
-  name: 'ac-order-update',
-  components: {AcBaseNotification},
-  mixins: [Notification, Formatting],
-  computed: {
-    assetLink() {
-      return {
-        name: 'OrderDeliverableOverview',
-        params: {
-          orderId: this.event.target.order.id,
-          username: this.viewer.username,
-          deliverableId: this.event.target.id,
-        },
-      }
-    },
-    message() {
-      return ORDER_STATUSES[this.event.target.status + '']
-    },
-    streamingLink() {
-      if (this.event.target.status === 4) {
-        return this.event.target.stream_link
-      }
-      return ''
-    },
-    autofinalizeDisplay() {
-      return this.event.target.status === '8'
-    },
+const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
+const {viewer} = useViewer()
+const event = useEvent(props)
+
+const assetLink = computed(() => ({
+  name: 'OrderDeliverableOverview',
+  params: {
+    orderId: event.value.target.order.id,
+    username: viewer.value.username,
+    deliverableId: event.value.target.id,
   },
-}
+}))
+
+const message = computed(() => ORDER_STATUSES[event.value.target.status as keyof typeof ORDER_STATUSES])
+const streamingLink = computed(() => {
+  if (event.value.target.status === 4) {
+    return event.value.target.stream_link
+  }
+  return ''
+})
+
+const autoFinalizeDisplay = computed(() => event.value.target.status === 8)
+
 </script>

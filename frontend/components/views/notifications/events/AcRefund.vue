@@ -6,28 +6,21 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notification from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
+import Deliverable from '@/types/Deliverable.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-refund',
-  mixins: [Notification],
-  components: {AcBaseNotification},
-  data() {
-    return {}
-  },
-  computed: {
-    assetLink() {
-      return {
-        name: 'SaleDeliverableOverview',
-        params: {
-          username: this.event.target.order.seller.username,
-          orderId: this.event.target.order.id,
-          deliverableId: this.event.target.id,
-        },
-      }
-    },
-  },
-}
+const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
+const event = useEvent(props)
+
+const assetLink = computed(() => ({
+  name: 'SaleDeliverableOverview',
+  params: {
+    username: event.value.target.order.seller.username,
+    orderId: event.value.target.order.id,
+    deliverableId: event.value.target.id,
+  }
+}))
 </script>

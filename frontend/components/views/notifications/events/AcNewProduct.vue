@@ -11,33 +11,27 @@
   </ac-base-notification>
 </template>
 
-<script>
+<script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
-import Notifiction from '../mixins/notification.ts'
+import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
+import Product from '@/types/Product.ts'
+import {computed} from 'vue'
 
-export default {
-  name: 'ac-new-character',
-  components: {
-    AcLink,
-    AcBaseNotification,
-  },
-  mixins: [Notifiction],
-  computed: {
-    productLink() {
-      if (this.event.data.product) {
-        return {
-          name: 'Product',
-          params: {
-            productId: this.event.data.product.id,
-            username: this.event.data.product.user.username,
-          },
-        }
-      }
-      return null
-    },
-  },
+declare interface NewProduct extends DisplayData {
+  product: Product,
 }
+
+const props = defineProps<NotificationProps<NotificationUser, NewProduct>>()
+const event = useEvent(props)
+
+const productLink = computed(() => ({
+  name: 'Product',
+  params: {
+    productId: event.value.data.product.id,
+    username: event.value.data.product.user.username,
+  },
+}))
 </script>
 
 <style scoped>

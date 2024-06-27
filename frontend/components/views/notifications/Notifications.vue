@@ -12,7 +12,7 @@
         </v-card>
       </v-col>
     </v-row>
-    <router-view :key="$route.path"/>
+    <router-view :key="route.path"/>
   </v-container>
 </template>
 
@@ -22,8 +22,9 @@ import {useList} from '@/store/lists/hooks.ts'
 import {computed} from 'vue'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
+import {useRoute} from 'vue-router'
 
-
+const route = useRoute()
 const store = useStore<ArtState>()
 const community = useList('communityNotifications', {
   grow: true,
