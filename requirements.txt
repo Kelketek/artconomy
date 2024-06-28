@@ -94,7 +94,7 @@ click-repl==0.3.0
     # via celery
 constantly==23.10.4
     # via twisted
-coverage==7.5.3
+coverage==7.5.4
     # via -r requirements.in
 croniter==2.0.5
     # via discord-py-interactions
@@ -116,7 +116,7 @@ ddt==1.7.2
     # via -r requirements.in
 decorator==5.1.1
     # via ipython
-discord-py-interactions==5.12.1
+discord-py-interactions==5.13.1
     # via -r requirements.in
 discord-typings==0.9.0
     # via discord-py-interactions
@@ -180,7 +180,7 @@ django-static-sitemaps==5.0.0
     # via -r requirements.in
 django-vite==3.0.4
     # via -r requirements.in
-djangorestframework==3.15.1
+djangorestframework==3.15.2
     # via
     #   -r requirements.in
     #   adrf
@@ -204,7 +204,7 @@ executing==2.0.1
     # via stack-data
 factory-boy==3.3.0
     # via -r requirements.in
-faker==25.8.0
+faker==26.0.0
     # via factory-boy
 freezegun==1.5.1
     # via -r requirements.in
@@ -246,7 +246,7 @@ idna==3.7
     #   yarl
 incremental==22.10.0
     # via twisted
-ipython==8.25.0
+ipython==8.26.0
     # via -r requirements.in
 isort==5.13.2
     # via -r requirements.in
@@ -357,12 +357,12 @@ pyyaml==6.0.1
     # via uvicorn
 qrcode==7.4.2
     # via -r requirements.in
-redis==5.0.6
+redis==5.0.7
     # via
     #   celery
     #   channels-redis
     #   django-redis
-reportlab==4.2.0
+reportlab==4.2.2
     # via
     #   -r requirements.in
     #   svglib
@@ -373,7 +373,7 @@ requests==2.32.3
     #   geoip2
     #   premailer
     #   stripe
-ruff==0.4.9
+ruff==0.5.0
     # via -r requirements.in
 sendgrid==6.11.0
     # via django-sendgrid-v5
@@ -401,7 +401,7 @@ stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==9.12.0
+stripe==10.1.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
