@@ -1109,12 +1109,6 @@ class BankAccountSerializer(serializers.ModelSerializer):
         read_only_fields = ("last_four",)
 
 
-# noinspection PyAbstractClass
-class WithdrawSerializer(serializers.Serializer):
-    bank = serializers.IntegerField()
-    amount = serializers.DecimalField(6, decimal_places=2, min_value=1)
-
-
 class TransactionRecordSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     payer = RelatedUserSerializer(read_only=True)
