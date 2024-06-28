@@ -82,7 +82,7 @@ router,
       WrappedDeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
