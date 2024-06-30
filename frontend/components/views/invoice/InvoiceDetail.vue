@@ -77,17 +77,17 @@
                   <v-col cols="12" md="6" lg="4" offset-md="4" class="text-center">
                     <ac-form-container v-bind="stateChange.bind">
                       <v-row>
-                        <v-col class="text-center" v-if="isStaff && (invoice.x.status === DRAFT)">
+                        <v-col class="text-center" v-if="isStaff && (invoice.x.status === InvoiceStatus.DRAFT)">
                           <v-btn color="primary" variant="flat" @click="() => statusEndpoint('finalize')">Finalize</v-btn>
                         </v-col>
-                        <v-col class="text-center" v-if="invoice.x.status === OPEN && !invoice.x.record_only">
+                        <v-col class="text-center" v-if="invoice.x.status === InvoiceStatus.OPEN && !invoice.x.record_only">
                           <v-btn color="green" variant="flat" @click="() => showPayment = true">Pay</v-btn>
                         </v-col>
-                        <v-col class="text-center" v-if="isStaff && ([DRAFT, OPEN].includes(invoice.x.status))">
+                        <v-col class="text-center" v-if="isStaff && ([InvoiceStatus.DRAFT, InvoiceStatus.OPEN].includes(invoice.x.status))">
                           <v-btn color="danger" variant="flat" @click="() => statusEndpoint('void')">Void</v-btn>
                         </v-col>
                       </v-row>
-                      <v-row v-if="invoice.x.record_only && invoice.x.status === OPEN">
+                      <v-row v-if="invoice.x.record_only && invoice.x.status === InvoiceStatus.OPEN">
                         <v-col>
                           <v-alert type="info">
                             This invoice is for record purposes only and cannot be paid through this site. You must
@@ -200,7 +200,7 @@
                   <v-col cols="12">
                     <v-list three-line>
                       <template v-for="transaction, index in transactions.list" :key="transaction.x.id">
-                        <ac-transaction :transaction="transaction.x" :username="username" :current-account="300"/>
+                        <ac-transaction :transaction="transaction.x!" :username="username" :current-account="300"/>
                         <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
                       </template>
                     </v-list>
@@ -215,23 +215,18 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
-import Viewer from '@/mixins/viewer.ts'
+<script setup lang="ts">
+import {computed, ref, watch} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
 import {Decimal} from 'decimal.js'
-import {SingleController} from '@/store/singles/controller.ts'
 import Invoice from '@/types/Invoice.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Formatting from '@/mixins/formatting.ts'
-import {ListController} from '@/store/lists/controller.ts'
 import LineItem from '@/types/LineItem.ts'
 import AcLineItemListing from '@/components/price_preview/AcLineItemListing.vue'
 import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import StripeHostMixin from '@/components/views/order/mixins/StripeHostMixin.ts'
+import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
 import {reckonLines} from '@/lib/lineItemFunctions.ts'
 import {BASE_URL, baseCardSchema, INVOICE_TYPES} from '@/lib/lib.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
@@ -239,191 +234,150 @@ import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import AcAvatar from '@/components/AcAvatar.vue'
 import Transaction from '@/types/Transaction.ts'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
-import {profileLink} from '@/lib/otherFormatters.ts'
+import {formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useSingle} from '@/store/singles/hooks.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import ClientSecret from '@/types/ClientSecret.ts'
 
-@Component({
-  components: {
-    AcTransaction,
-    AcAvatar,
-    AcLink,
-    AcPaginated,
-    AcBoundField,
-    AcCardManager,
-    AcFormDialog,
-    AcFormContainer,
-    AcInvoiceStatus,
-    AcLineItemListing,
-    AcLoadSection,
+const props = defineProps<{invoiceId: string} & SubjectiveProps>()
+const {isStaff} = useViewer()
+
+const showPayment = ref(false)
+const cardTabs = ref(0)
+const logo = new URL('/static/images/logo.svg', BASE_URL).href
+
+const url = computed(() => `/api/sales/invoice/${props.invoiceId}/`)
+const cardManager = ref<null|typeof AcCardManager>(null)
+
+const schema = baseCardSchema(`${url.value}pay/`)
+schema.fields = {
+  ...schema.fields,
+  card_id: {value: null},
+  service: {value: null},
+  amount: {value: 0},
+  remote_id: {value: ''},
+  cash: {value: false},
+  make_primary: {value: false},
+  save_card: {value: false},
+}
+schema.reset = false
+
+const prefix = computed(() => `invoice__${props.invoiceId}`)
+const editable = computed(() => isStaff.value && (invoice.x?.status === InvoiceStatus.DRAFT))
+const paymentForm = useForm(`${prefix.value}__payment`, schema)
+const clientSecret = useSingle<ClientSecret>(`${prefix.value}__clientSecret`, {endpoint: `${url.value}payment-intent/`})
+const stateChange = useForm(`${prefix.value}__stateChange`, {
+  endpoint: url.value,
+  fields: {},
+})
+const invoice = useSingle<Invoice>(`${prefix.value}`, {
+  endpoint: url.value,
+  socketSettings: {
+    appLabel: 'sales',
+    modelName: 'Invoice',
+    serializer: 'InvoiceSerializer',
   },
 })
-class InvoiceDetail extends mixins(Subjective, Viewer, Formatting, StripeHostMixin) {
-  @Prop({required: true})
-  public invoiceId!: string
-
-  public invoice = null as unknown as SingleController<Invoice>
-  public lineItems = null as unknown as ListController<LineItem>
-  public transactions = null as unknown as ListController<Transaction>
-  public stateChange = null as unknown as FormController
-  public showPayment = false
-  public cardTabs = 0
-  public INVOICE_TYPES = INVOICE_TYPES
-  public profileLink = profileLink
-  public logo = new URL('/static/images/logo.svg', BASE_URL).href
-
-  DRAFT = InvoiceStatus.DRAFT
-  OPEN = InvoiceStatus.OPEN
-
-  @Watch('cardTabs')
-  public clearManualTransactionSettings(tabValue: number) {
-    // TODO: Find a good way to deduplicate this code fragment from DeliverablePayment
-    if (tabValue === 2) {
-      this.paymentForm.fields.cash.update(true)
-    } else {
-      this.paymentForm.fields.cash.update(false)
-    }
-    if ((tabValue === 1) && this.readers.list.length) {
-      if (!this.readerForm.fields.reader.value) {
-        this.readerForm.fields.reader.update(this.readers.list[0].x!.id)
-      }
-      this.paymentForm.fields.use_reader.update(true)
-    } else {
-      this.paymentForm.fields.use_reader.update(false)
-    }
-    this.updateIntent()
+invoice.get()
+const statusEndpoint = (append: string) => {
+  stateChange.endpoint = `${url.value}${append}/`
+  stateChange.submit()
+}
+const lineItems = useList<LineItem>(`${prefix.value}__line_items`, {
+  endpoint: `/api/sales/invoice/${props.invoiceId}/line-items/`,
+  paginated: false,
+  socketSettings: {
+    appLabel: 'sales',
+    modelName: 'LineItem',
+    serializer: 'LineItemSerializer',
+    list: {
+      appLabel: 'sales',
+      modelName: 'Invoice',
+      pk: `${props.invoiceId}`,
+      listName: 'line_items',
+    },
+  },
+})
+lineItems.firstRun()
+const transactions = useList<Transaction>(`${prefix.value}__transaction_records`, {
+  endpoint: `/api/sales/invoice/${props.invoiceId}/transaction-records/`,
+})
+const {statusOk} = useErrorHandling()
+transactions.get().catch(statusOk(403))
+const readerFormUrl = computed(() => `${invoice?.endpoint}stripe-process-present-card/`)
+const canUpdate = computed(() => {
+  if (paymentForm.fields.cash.value) {
+    return false
   }
-
-  public get editable() {
-    return this.isStaff && this.invoice.x!.status === InvoiceStatus.DRAFT
+  if (!invoice.x) {
+    return false
   }
+  return invoice.x.status === InvoiceStatus.OPEN
+})
 
-  public statusEndpoint(append: string) {
-    this.stateChange.endpoint = `${this.url}${append}/`
-    this.stateChange.submit()
-  }
+const {readerForm, updateIntent, readers} = useStripeHost({clientSecret, readerFormUrl, canUpdate, paymentForm})
 
-  get url() {
-    return `/api/sales/invoice/${this.invoiceId}/`
-  }
-
-  get totalCharge() {
-    if (!this.lineItems || (this.lineItems.list.length === 0)) {
-      return new Decimal('0.00')
-    }
-    return reckonLines(this.lineItems.list.map((item) => item.x as LineItem))
-  }
-
-  @Watch('totalCharge')
-  public updateForLines(newVal: Decimal, oldVal: Decimal) {
-    this.paymentForm.fields.amount.model = newVal.toString()
-    if (newVal.eq(oldVal)) {
-      return
-    }
-    this.updateIntent()
-  }
-
-  public get canUpdate() {
-    if (this.paymentForm.fields.cash.value) {
-      return false
-    }
-    const invoice = this.invoice && this.invoice.x
-    if (!invoice) {
-      return false
-    }
-    return invoice.status === InvoiceStatus.OPEN
-  }
-
-  @Watch('invoice.x')
-  public enableIntent(invoice: null | Invoice) {
-    this.updateIntent()
-    if (invoice && invoice.status !== InvoiceStatus.OPEN) {
-      this.showPayment = false
-    }
-  }
-
-  public get readerFormUrl() {
-    return `${this.invoice?.endpoint}stripe-process-present-card/`
-  }
-
-  @Watch('readers.ready')
-  public setTab(val: boolean) {
-    if (val && this.isStaff && this.readers.list.length) {
-      this.cardTabs = 1
-    }
-  }
-
-  public paymentSubmit() {
-    this.paymentForm.clearErrors()
-    if (this.paymentForm.fields.cash.value) {
-      this.paymentForm.submit()
-    } else if (this.paymentForm.fields.use_reader.value) {
-      this.readerForm.submit().catch((error) => {
-        this.readerForm.setErrors(error)
-      })
-    } else {
-      const cardManager = this.$refs.cardManager as any
-      cardManager.stripeSubmit()
-    }
-  }
-
-  public get prefix() {
-    return `invoice__${this.invoiceId}`
-  }
-
-  public created() {
-    const schema = baseCardSchema(`${this.url}pay/`)
-    schema.fields = {
-      ...schema.fields,
-      card_id: {value: null},
-      service: {value: null},
-      amount: {value: 0},
-      remote_id: {value: ''},
-      cash: {value: false},
-      make_primary: {value: false},
-      save_card: {value: false},
-    }
-    schema.reset = false
-    this.paymentForm = this.$getForm(`${this.prefix}__payment`, schema)
-    this.clientSecret = this.$getSingle(`${this.prefix}__clientSecret`, {endpoint: `${this.url}payment-intent/`})
-    this.stateChange = this.$getForm(`${this.prefix}__stateChange`, {
-      endpoint: this.url,
-      fields: {},
+const paymentSubmit = () => {
+  paymentForm.clearErrors()
+  if (paymentForm.fields.cash.value) {
+    paymentForm.submit()
+  } else if (paymentForm.fields.use_reader.value) {
+    readerForm.submit().catch((error) => {
+      readerForm.setErrors(error)
     })
-    this.invoice = this.$getSingle(`${this.prefix}`, {
-      endpoint: this.url,
-      socketSettings: {
-        appLabel: 'sales',
-        modelName: 'Invoice',
-        serializer: 'InvoiceSerializer',
-      },
-    })
-    // Fix the form, since it will be null on upstream's creation.
-    this.readerForm.endpoint = this.readerFormUrl
-    this.invoice.get()
-    this.lineItems = this.$getList(`${this.prefix}__line_items`, {
-      endpoint: `/api/sales/invoice/${this.invoiceId}/line-items/`,
-      paginated: false,
-      socketSettings: {
-        appLabel: 'sales',
-        modelName: 'LineItem',
-        serializer: 'LineItemSerializer',
-        list: {
-          appLabel: 'sales',
-          modelName: 'Invoice',
-          pk: `${this.invoiceId}`,
-          listName: 'line_items',
-        },
-      },
-    })
-    this.lineItems.firstRun()
-    this.transactions = this.$getList(`${this.prefix}__transaction_records`, {
-      endpoint: `/api/sales/invoice/${this.invoiceId}/transaction-records/`,
-    })
-    this.transactions.get().catch(this.statusOk(403))
+  } else {
+    cardManager.value?.stripeSubmit()
   }
 }
 
-export default toNative(InvoiceDetail)
+const totalCharge = computed(() => {
+  if (lineItems.list.length === 0) {
+    return new Decimal('0.00')
+  }
+  return reckonLines(lineItems.list.map((item) => item.x as LineItem))
+})
+
+watch(cardTabs, (tabValue) => {
+  // TODO: Find a good way to deduplicate this code fragment from DeliverablePayment
+  if (tabValue === 2) {
+    paymentForm.fields.cash.update(true)
+  } else {
+    paymentForm.fields.cash.update(false)
+  }
+  if ((tabValue === 1) && readers.list.length) {
+    if (!readerForm.fields.reader.value) {
+      readerForm.fields.reader.update(readers.list[0].x!.id)
+    }
+    paymentForm.fields.use_reader.update(true)
+  } else {
+    paymentForm.fields.use_reader.update(false)
+  }
+  updateIntent()
+})
+
+watch(totalCharge, (newVal: Decimal, oldVal: Decimal) => {
+  paymentForm.fields.amount.model = newVal.toString()
+  if (newVal.eq(oldVal)) {
+    return
+  }
+  updateIntent()
+})
+
+watch(() => readers.ready, (val) => {
+  if (val && isStaff.value && readers.list.length) {
+    cardTabs.value = 1
+  }
+})
+
+watch(() => invoice.x, (invoice: null | Invoice) => {
+  updateIntent()
+  if (invoice && invoice.status !== InvoiceStatus.OPEN) {
+    showPayment.value = false
+  }
+})
 </script>
