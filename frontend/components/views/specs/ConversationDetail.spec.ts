@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory, Router} from 'vue-router'
+import {Router} from 'vue-router'
 import {
   cleanUp,
   confirmAction,
@@ -11,7 +11,6 @@ import {
 } from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import ConversationDetail from '@/components/views/ConversationDetail.vue'
 import {genConversation} from '@/components/views/specs/fixtures.ts'

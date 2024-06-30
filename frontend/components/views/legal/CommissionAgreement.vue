@@ -1,4 +1,3 @@
-<!--suppress HtmlUnknownTarget -->
 <template>
   <v-container>
     <v-row>

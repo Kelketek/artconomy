@@ -3,22 +3,19 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   confirmAction, createTestRouter,
-  flushPromises,
   mount,
   rq,
   rs,
   vueSetup,
-  VuetifyWrapped, waitFor,
+  waitFor,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {createRouter, createWebHistory, Router} from 'vue-router'
+import {Router} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
 import Journal from '@/components/views/JournalDetail.vue'
 import {genJournal} from '@/components/views/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
-import {VMenu} from 'vuetify/components'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

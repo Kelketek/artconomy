@@ -84,7 +84,7 @@
       <v-row no-gutters>
         <v-col class="text-center" cols="12">
           <v-btn large color="green" :to="{name: 'Register', query: {artist_mode: 'true'}}"
-                 :block="$vuetify.display.xs" variant="flat" class="commission-cta">
+                 :block="display.xs.value" variant="flat" class="commission-cta">
             <v-icon left :icon="mdiPalette"/>
             Open Your Store Now!
           </v-btn>
@@ -106,6 +106,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {mdiPalette} from '@mdi/js'
+import {useDisplay} from 'vuetify'
 
 const router = useRouter()
 
@@ -114,16 +115,8 @@ const forbidden = new URL('/static/images/403.png', BASE_URL).href
 const laptop = new URL('/static/images/laptop.png', BASE_URL).href
 const banner = new URL('/static/images/banner.jpg', BASE_URL).href
 
-const search = () => {
-  searchForm.reset()
-  searchForm.fields.shield_only.update(true)
-  router.push({
-    name: 'SearchProducts',
-    query: searchForm.rawData,
-  })
-}
-
 const {prerendering} = usePrerendering()
+const display = useDisplay()
 
 const searchForm = useForm('search')
 </script>

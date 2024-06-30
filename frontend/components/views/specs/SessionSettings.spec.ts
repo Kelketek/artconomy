@@ -6,7 +6,6 @@ import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {Router} from 'vue-router'
-import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

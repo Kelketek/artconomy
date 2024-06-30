@@ -77,7 +77,7 @@
       </v-row>
       <v-row no-gutters>
         <v-col class="text-center" cols="12">
-          <v-btn large color="green" @click="search" :block="$vuetify.display.xs" variant="flat" class="commission-cta">
+          <v-btn large color="green" @click="search" :block="display.xs.value" variant="flat" class="commission-cta">
             <v-icon left :icon="mdiPalette"/>
             Commission an Artist Now!
           </v-btn>
@@ -99,8 +99,10 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {mdiPalette} from '@mdi/js'
+import {useDisplay} from 'vuetify'
 
 const router = useRouter()
+const display = useDisplay()
 
 const fridge = new URL('/static/images/fridge.png', BASE_URL).href
 const fingerPainting = new URL('/static/images/fingerpainting.png', BASE_URL).href
