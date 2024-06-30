@@ -34,7 +34,7 @@ import {useImg} from '@/plugins/shortcuts.ts'
 const props = defineProps<{assetLink?: RouteLocationRaw, hrefLink?: RouteLocationRaw} & NotificationProps<T, D>>()
 const {viewer} = useViewer()
 const event = useEvent(props)
-const image = useImg(event.value.data.display, 'notification', true, viewer)
+const image = useImg(event.value.data.display, 'notification', true)
 </script>
 
 <style scoped>

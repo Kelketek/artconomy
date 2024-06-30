@@ -1,11 +1,8 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="casePath" :username="username">
-    <template v-slot:avatar>
-      <img :src="image" alt=""/>
-    </template>
-    <v-list-item-title>
+    <template v-slot:title>
       A Dispute has been filed for Deliverable #{{event.target.id}}.
-    </v-list-item-title>
+    </template>
     <template v-slot:extra>
       <v-btn
           @click="claimDispute"
@@ -25,15 +22,11 @@ import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.t
 import {artCall} from '@/lib/lib.ts'
 import {useRouter} from 'vue-router'
 import Deliverable from '@/types/Deliverable.ts'
-import {useViewer} from '@/mixins/viewer.ts'
 import {computed} from 'vue'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import {useImg} from '@/plugins/shortcuts.ts'
 
 const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
 const event = useEvent(props)
-const {viewer} = useViewer()
-const image = useImg(event.value.data.display, 'notification', true, viewer)
 
 const router = useRouter()
 const url = computed(() => {

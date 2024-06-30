@@ -28,7 +28,6 @@ export interface ArtVueGlobals {
   $sock: SocketManager,
   // Shortcuts
   $displayImage: (asset: object, thumbName: string) => string,
-  $img: (asset: object | null, thumbName: string, fallback?: boolean) => string,
   // Single module funcs
   $getSingle: (name: string, schema?: SingleModuleOpts<any>, uid?: string) => SingleController<any>,
   $listenForSingle: (name: string, uid?: string) => void,

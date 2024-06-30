@@ -1,43 +1,28 @@
-import ViewerComponent from '@/specs/helpers/dummy_components/viewer.vue'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
-import {ArtStore, createStore} from '@/store/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
-import {genUser} from '@/specs/helpers/fixtures.ts'
-import {afterEach, beforeEach, describe, expect, test} from 'vitest'
-import {setViewer} from '@/lib/lib.ts'
+import {describe, expect, test} from 'vitest'
+import {deriveImage} from '@/plugins/shortcuts.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
-let store: ArtStore
-let vm: any
-const fox = genUser()
-fox.rating = 2
 
 describe('shortcuts.ts', () => {
-  beforeEach(() => {
-    store = createStore()
-    setViewer(store, fox)
-    vm = mount(ViewerComponent, vueSetup({store})).vm
-  })
-  afterEach(() => {
-    cleanUp()
-  })
   test('Handles a null asset', async() => {
-    expect(vm.$img(null, 'preview', true)).toBe('/static/images/default-avatar.png')
+    expect(deriveImage(null, 'preview', true, Ratings.ADULT)).toBe('/static/images/default-avatar.png')
   })
   test('Handles a submission with a viewable rating', async() => {
     const submission = genSubmission()
-    submission.rating = 2
-    expect(vm.$img(submission, 'thumbnail', true)).toBe(
+    submission.rating = Ratings.ADULT
+    expect(deriveImage(submission, 'thumbnail', true, Ratings.ADULT)).toBe(
       'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.300x300_q85_crop-,0.png',
     )
-    expect(vm.$img(submission, 'blabla', false)).toBe(undefined)
+    expect(deriveImage(submission, 'blabla', false, Ratings.ADULT)).toBe(undefined)
   })
   test('Handles a submission with an unviewable rating', async() => {
     const adultSubmission = genSubmission()
     adultSubmission.rating = 3
-    expect(vm.$img(adultSubmission, 'thumbnail', true)).toBe(
+    expect(deriveImage(adultSubmission, 'thumbnail', true, Ratings.ADULT)).toBe(
       '/static/images/default-avatar.png',
     )
-    expect(vm.$img(adultSubmission, 'thumbnail', false)).toBe(
+    expect(deriveImage(adultSubmission, 'thumbnail', false, Ratings.ADULT)).toBe(
       '',
     )
   })
@@ -46,24 +31,24 @@ describe('shortcuts.ts', () => {
     submission.preview = {
       thumbnail: '/test/image.png',
     }
-    expect(vm.$img(submission, 'thumbnail', true)).toBe(
+    expect(deriveImage(submission, 'thumbnail', true, Ratings.ADULT)).toBe(
       '/test/image.png',
     )
-    expect(vm.$img(submission, 'gallery', false)).toBe(
+    expect(deriveImage(submission, 'gallery', false, Ratings.ADULT)).toBe(
       'https://artconomy.vulpinity.com/media/art/2019/07/26/kairef-color.png.1000x700_q85.png',
     )
   })
   test('Handles an SVG', async() => {
     const submission = genSubmission()
     submission.file.full = '/test/image.svg'
-    expect(vm.$img(submission, 'thumbnail', true)).toBe(
+    expect(deriveImage(submission, 'thumbnail', true, Ratings.ADULT)).toBe(
       '/test/image.svg',
     )
   })
   test('Handles a non-image file thumbnail', async() => {
     const submission = genSubmission()
     submission.file.full = '/test/image.mp4'
-    expect(vm.$img(submission, 'thumbnail', true)).toBe(
+    expect(deriveImage(submission, 'thumbnail', true, Ratings.ADULT)).toBe(
       '/static/icons/MP4.png',
     )
   })

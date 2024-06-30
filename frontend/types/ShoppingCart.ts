@@ -1,4 +1,4 @@
-import {ContentRating} from '@/types/ContentRating.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
 export interface ShoppingCart {
   product: number,
@@ -6,7 +6,7 @@ export interface ShoppingCart {
   private: boolean,
   details: string,
   characters: number[],
-  rating: ContentRating,
+  rating: Ratings,
   references: number[],
   named_price: null|number,
   escrow_upgrade: boolean,

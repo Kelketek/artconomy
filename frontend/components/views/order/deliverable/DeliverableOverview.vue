@@ -19,7 +19,7 @@
                   </ac-link>
                 </v-col>
                 <v-col cols="6" md="12">
-                  <ac-asset :asset="deliverable.x!.display && {...deliverable.x!.display, rating: deliverable.x!.rating}" thumb-name="thumbnail" alt=""/>
+                  <ac-asset :asset="deliverable.x!.display" thumb-name="thumbnail" alt=""/>
                 </v-col>
               </v-row>
             </v-card-text>
