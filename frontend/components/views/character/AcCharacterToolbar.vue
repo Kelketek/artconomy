@@ -1,6 +1,6 @@
 <template>
   <ac-load-section :controller="character.profile">
-    <ac-subjective-toolbar :username="username">
+    <ac-subjective-toolbar :username="username" v-if="character.profile.x">
       <template v-if="characterAvatar" v-slot:avatar>
         <ac-mini-character :show-name="false" :character="character.profile.x" class="ml-3" :alt="character.profile.x!.name"/>
         <v-toolbar-title>
@@ -30,7 +30,7 @@
                            ref="submissionDialog"
                            @success="success"
         />
-        <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="$menuTarget">
+        <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="menuTarget">
           <template v-slot:activator="{props}">
             <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
               <v-icon :icon="mdiDotsHorizontal"/>
@@ -84,112 +84,66 @@
   </ac-load-section>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative, Watch} from 'vue-facing-decorator'
-import AcConfirmation from '../../wrappers/AcConfirmation.vue'
-import CharacterCentric from './mixins/CharacterCentric.ts'
-import AcShareButton from '../../AcShareButton.vue'
-import AcLoadSection from '../../wrappers/AcLoadSection.vue'
-import AcRelatedManager from '../../wrappers/AcRelatedManager.vue'
-import AcBoundField from '../../fields/AcBoundField.ts'
-import AcAvatar from '../../AcAvatar.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
+<script setup lang="ts">
+import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
+import AcShareButton from '@/components/AcShareButton.vue'
+import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcSubjectiveToolbar from '@/components/navigation/AcSubjectiveToolbar.vue'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {Character} from '@/store/characters/types/Character.ts'
-import {newUploadSchema} from '@/lib/lib.ts'
-import Upload from '@/mixins/upload.ts'
+import {useUpload} from '@/mixins/upload.ts'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Editable from '@/mixins/editable.ts'
-import Sharable from '@/mixins/sharable.ts'
 import Submission from '@/types/Submission.ts'
-import {defineAsyncComponent} from 'vue'
+import {computed, defineAsyncComponent, ref} from 'vue'
 import {mdiDelete, mdiPencil, mdiLock, mdiDotsHorizontal, mdiUpload} from '@mdi/js'
+import {CharacterProps} from '@/types/CharacterProps.ts'
+import {useCharacter} from '@/store/characters/hooks.ts'
+import {useRouter} from 'vue-router'
+import {useSharable} from '@/mixins/sharable.ts'
+import {useTargets} from '@/plugins/targets.ts'
+import {useSubject} from '@/mixins/subjective.ts'
+import {useEditable} from '@/mixins/editable.ts'
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
-@Component({
-  components: {
-    AcLink,
-    AcMiniCharacter,
-    AcShareManager,
-    AcNewSubmission,
-    AcFormDialog,
-    AcSubjectiveToolbar,
-    AcAvatar,
-    AcBoundField,
-    AcRelatedManager,
-    AcLoadSection,
-    AcShareButton,
-    AcConfirmation,
-  },
-  emits: ['success'],
+const props = withDefaults(
+    defineProps<{characterAvatar?: boolean, showEdit?: boolean} & CharacterProps>(),
+    {characterAvatar: true, showEdit: false},
+)
+const {controls} = useSubject(props)
+const {editing} = useEditable(controls)
+const router = useRouter()
+const character = useCharacter(props)
+const preloadedCharacter = computed(() => (character.profile.x && [character.profile.x]) || [])
+const emit = defineEmits<{'success': [Submission]}>()
+const {showUpload} = useUpload()
+const {menuTarget} = useTargets()
+const submissionDialog = ref<typeof AcNewSubmission|null>(null)
+
+
+const shareMedia = computed(() => {
+  const profile = character.profile.x
+  /* istanbul ignore if */
+  if (!profile) {
+    return null
+  }
+  if (!profile.primary_submission) {
+    return null
+  }
+  return profile.primary_submission
 })
-class AcCharacterToolbar extends mixins(CharacterCentric, Upload, Editable, Sharable) {
-  @Prop({default: true})
-  public characterAvatar!: boolean
+const {shareMediaClean, shareMediaUrl} = useSharable(shareMedia)
 
-  @Prop({default: false})
-  public showEdit!: boolean
-
-  public newUpload: FormController = null as unknown as FormController
-  public step = 1
-  public mdiDelete = mdiDelete
-  public mdiPencil = mdiPencil
-  public mdiLock = mdiLock
-  public mdiDotsHorizontal = mdiDotsHorizontal
-  public mdiUpload = mdiUpload
-
-  public success(submission: Submission) {
-    this.showUpload = false
-    this.$emit('success', submission)
-  }
-
-  public deleteCharacter() {
-    return this.character.profile.delete().then(() => {
-      return this.$router.replace({
-        name: 'Profile',
-        params: {username: this.username},
-      })
-    })
-  }
-
-  public get preloadedCharacter() {
-    return [this.character.profile.x]
-  }
-
-  @Watch('character.profile.x', {
-    deep: true,
-    immediate: true,
-  })
-  public updateSubmissionTags(val: Character | null | undefined) {
-    if (!val) {
-      return
-    }
-    this.newUpload.fields.tags.model = val.tags
-    if (this.newUpload.fields.characters.model.indexOf(val.id) === -1) {
-      this.newUpload.fields.characters.model.push(val.id)
-      this.newUpload.fields.characters.initialData = [val.id]
-    }
-  }
-
-  public get shareMedia() {
-    const character = this.character.profile.x as Character
-    /* istanbul ignore if */
-    if (!character) {
-      return null
-    }
-    if (!character.primary_submission) {
-      return null
-    }
-    return character.primary_submission
-  }
-
-  public created() {
-    this.newUpload = this.$getForm('newUpload', newUploadSchema(this.subjectHandler.user))
-  }
+const success = (submission: Submission) => {
+  showUpload.value = false
+  emit('success', submission)
 }
 
-export default toNative(AcCharacterToolbar)
+const deleteCharacter = async () => {
+  return character.profile.delete().then(() => {
+    return router.replace({
+      name: 'Profile',
+      params: {username: props.username},
+    })
+  })
+}
 </script>
