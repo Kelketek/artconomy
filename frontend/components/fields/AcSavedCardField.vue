@@ -17,31 +17,14 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import {ListController} from '@/store/lists/controller.ts'
 import {CreditCardToken} from '@/types/CreditCardToken.ts'
 
-@Component({
-  components: {
-    AcCard,
-    AcLoadSection,
-  },
-  emits: ['update:modelValue'],
-})
-class AcSavedCards extends Vue {
-  @Prop({required: true})
-  public cards!: ListController<CreditCardToken>
 
-  @Prop({default: null})
-  public modelValue!: number
-
-  public sendInput(value: number|null) {
-    this.$emit('update:modelValue', value)
-  }
-}
-
-export default toNative(AcSavedCards)
+const props = defineProps<{modelValue: number|null, cards: ListController<CreditCardToken>}>()
+const emit = defineEmits<{'update:modelValue': [number|null]}>()
+const sendInput = (value: number|null) => emit('update:modelValue', value)
 </script>
