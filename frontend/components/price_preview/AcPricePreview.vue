@@ -32,7 +32,7 @@
               <ac-new-line-skeleton v-if="addOnForm.sending"/>
               <ac-form-container v-bind="addOnForm.bind" :show-spinner="false">
                 <ac-form @submit.prevent="postSubmitAdd(addOnForm)">
-                  <ac-new-line-item :form="addOnForm" :price="priceData.subtotals.get(addOnFormItem) || 0"/>
+                  <ac-new-line-item :form="addOnForm"/>
                 </ac-form>
               </ac-form-container>
             </template>
@@ -55,7 +55,7 @@
               <ac-new-line-skeleton v-if="extraForm.sending"/>
               <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
                 <ac-form @submit.prevent="extraForm.submitThen(lineItems.uniquePush)">
-                  <ac-new-line-item :form="extraForm" :price="priceData.subtotals.get(extraFormItem) || 0"/>
+                  <ac-new-line-item :form="extraForm"/>
                 </ac-form>
               </ac-form-container>
             </template>

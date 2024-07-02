@@ -15,7 +15,7 @@ import {LineTypes} from '@/types/LineTypes.ts'
 import {computed} from 'vue'
 import {mdiPlus} from '@mdi/js'
 
-const props = defineProps<{form: FormController, price: number}>()
+const props = defineProps<{form: FormController}>()
 const placeholder = computed(() => {
   if (props.form.fields.type.value === LineTypes.ADD_ON) {
     return 'Surcharge/Discount'
