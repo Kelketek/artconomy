@@ -39,52 +39,30 @@
 </style>
 
 
-<script>
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {toNative} from 'vue-facing-decorator'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useForm} from '@/store/forms/hooks.ts'
+import {computed} from 'vue'
+import {ListController} from '@/store/lists/controller.ts'
+import LineItem from '@/types/LineItem.ts'
 
-export default {
-  mixins: [toNative(Subjective)],
-  components: {
-    AcBoundField,
-    AcPricePreview,
-  },
-  props: {
-    username: {required: true},
-    lineItemSetMaps: {required: true},
-  },
-  data() {
-    return {hourlyForm: null}
-  },
-  created() {
-    this.hourlyForm = this.$getForm('hourly', {
-      endpoint: '#',
-      fields: {hours: {value: null}},
-    })
-  },
-  computed: {
-    mdSize() {
-      if (this.lineItemSetMaps.length > 1) {
-        return 6
-      }
-      return 12
-    },
-    offerExists() {
-      return !!this.lineItemSetMaps.filter((item) => item.offer).length
-    },
-    lgSize() {
-      if (this.lineItemSetMaps.length >= 3) {
-        return 4
-      } else if (this.lineItemSetMaps.length === 2) {
-        return 6
-      }
-      return 12
-    },
-    single() {
-      return this.lineItemSetMaps.length === 1
-    },
-  },
-}
+declare type LineItemSetMaps = { name: string, lineItems: ListController<LineItem> | undefined, offer: boolean}[]
+
+const props = defineProps<{lineItemSetMaps: LineItemSetMaps} & SubjectiveProps>()
+const hourlyForm = useForm('hourly', {endpoint: '#', fields: {hours: {value: null}}})
+const mdSize = computed(() => props.lineItemSetMaps.length > 1 ? 6 : 12)
+const offerExists = computed(() => !!props.lineItemSetMaps.filter((item) => item.offer).length)
+const lgSize = computed(() => {
+  if (props.lineItemSetMaps.length >= 3) {
+    return 4
+  } else if (props.lineItemSetMaps.length === 2) {
+    return 6
+  }
+  return 12
+})
+const single = computed(() => {
+  return props.lineItemSetMaps.length === 1
+})
 </script>
