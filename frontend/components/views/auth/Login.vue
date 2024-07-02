@@ -31,7 +31,7 @@
         @keydown.enter="sendLogin()"
         v-model="showTokenPrompt"
         width="500"
-        :attach="$modalTarget"
+        :attach="modalTarget"
         class="token-prompt-dialog"
     >
       <v-col v-if="showTokenPrompt" class="token-prompt-loaded"/>
@@ -70,75 +70,60 @@
   </v-card-text>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import {Auth} from '@/components/views/auth/mixins/Auth.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
+<script setup lang="ts">
+import {useAuth} from '@/components/views/auth/mixins/Auth.ts'
 import {AxiosResponse} from 'axios'
 import {isAxiosError} from '@/lib/lib.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import Viewer from '@/mixins/viewer.ts'
 import {AcServerError} from '@/types/AcServerError.ts'
-import {vMaskToken as MaskToken} from '@/lib/vMask.ts'
+import {vMaskToken} from '@/lib/vMask.ts'
+import {useTargets} from '@/plugins/targets.ts'
+import {nextTick, ref, watch} from 'vue'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcFormContainer,
-    AcForm,
-  },
-  directives: {
-    MaskToken,
-  }
-})
-class Login extends mixins(Auth, Viewer) {
-  public showTokenPrompt: boolean = false
 
-  @Watch('showTokenPrompt')
-  public focusToken(newVal: boolean) {
-    if (newVal) {
-      this.$nextTick(() => {
-        const element = document.getElementById('field-token');
-        (element as HTMLElement).focus()
-      })
-    }
-  }
+const {loginForm, loginHandler} = useAuth()
+const {modalTarget} = useTargets()
+const showTokenPrompt = ref(false)
 
-  public loginFailure(error: AcServerError) {
-    const loginForm = (this.loginForm as FormController)
-    if (!isAxiosError(error)) {
-      loginForm.setErrors(error)
-      return
-    }
-    if (!(error.response as AxiosResponse).data) {
-      loginForm.setErrors(error)
-      return
-    }
-    if (('token' in (error.response as AxiosResponse).data)) {
-      const tokenErrors = (error.response as AxiosResponse).data.token
-      if (!tokenErrors.length) {
-        loginForm.setErrors(error)
-        return
-      }
-      if (this.showTokenPrompt) {
-        loginForm.setErrors(error)
-        return
-      }
-      loginForm.sending = false
-      this.showTokenPrompt = true
-      return
-    }
+const loginFailure = (error: AcServerError) => {
+  if (!isAxiosError(error)) {
     loginForm.setErrors(error)
+    return
   }
-
-  public sendLogin() {
-    (this.loginForm as FormController).submitThen(this.loginHandler, this.loginFailure).then()
+  if (!(error.response as AxiosResponse).data) {
+    loginForm.setErrors(error)
+    return
   }
+  if (('token' in (error.response as AxiosResponse).data)) {
+    const tokenErrors = (error.response as AxiosResponse).data.token
+    if (!tokenErrors.length) {
+      loginForm.setErrors(error)
+      return
+    }
+    if (showTokenPrompt.value) {
+      loginForm.setErrors(error)
+      return
+    }
+    loginForm.sending = false
+    showTokenPrompt.value = true
+    return
+  }
+  loginForm.setErrors(error)
 }
 
-export default toNative(Login)
+const sendLogin = () => {
+  loginForm.submitThen(loginHandler, loginFailure).then()
+}
+
+watch(showTokenPrompt, (newVal) => {
+  if (newVal) {
+    nextTick(() => {
+      document.getElementById('field-token')?.focus();
+    })
+  }
+})
 </script>
 
 <style scoped>
