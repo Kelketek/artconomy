@@ -21,30 +21,18 @@
   </v-card-text>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {Auth} from '@/components/views/auth/mixins/Auth.ts'
+<script setup lang="ts">
+import {useAuth} from '@/components/views/auth/mixins/Auth.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {ref} from 'vue'
 
-@Component({
-  components: {
-    AcFormContainer,
-    AcForm,
-    AcBoundField,
-  },
-})
-class Forgot extends mixins(Auth, Viewer) {
-  public resetSent: boolean = false
-
-  public forgotHandler(): void {
-    this.resetSent = true
-  }
+const {forgotForm} = useAuth()
+const resetSent = ref(false)
+const forgotHandler = (): void => {
+  resetSent.value = true
 }
-
-export default toNative(Forgot)
 </script>
 
 <style scoped>
