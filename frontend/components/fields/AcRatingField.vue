@@ -11,7 +11,7 @@
               <v-btn
                   :value="index"
                   :key="label"
-                  :color="ratingColor[index as Ratings]"
+                  :color="RATING_COLOR[index as Ratings]"
                   :disabled="disabled"
                   v-if="index <= max"
                   variant="flat"
@@ -21,9 +21,9 @@
         </v-col>
         <v-col cols="12" class="hidden-md-and-up">
           <v-row no-gutters>
-            <v-col cols="12" v-for="(label, index) in ratingOptions" :key="label">
+            <v-col cols="12" v-for="(label, index) in RATINGS_SHORT" :key="label">
               <v-btn
-                  :color="(String(scratch) === String(index)) ? ratingColor[index] : ''"
+                  :color="(String(scratch) === String(index)) ? RATING_COLOR[index] : ''"
                   @click="scratch = index"
                   :disabled="disabled"
                   block
@@ -36,13 +36,13 @@
         </v-col>
         <v-col cols="12" :class="{disabled}">
           <v-row>
-            <v-col class="text-center" cols="12"><h2>{{ratingOptions[scratch]}}</h2></v-col>
+            <v-col class="text-center" cols="12"><h2>{{RATINGS_SHORT[scratch]}}</h2></v-col>
             <v-col class="text-center" cols="12">
               <span>
-                {{ratingLongDesc[scratch]}}
+                {{RATING_LONG_DESC[scratch]}}
               </span>
             </v-col>
-            <v-col cols="12" v-if="showWarning && scratch === EXTREME">
+            <v-col cols="12" v-if="showWarning && scratch === Ratings.EXTREME">
               <v-alert type="warning" class="my-2">
                 What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this
                 content.
@@ -61,42 +61,30 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
-import ExtendedInput from '@/components/fields/mixins/extended_input.ts'
+import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
 import {Ratings} from '@/types/Ratings.ts'
+import {computed} from 'vue'
 
-@Component({
-  emits: ['update:modelValue'],
+
+const props = withDefaults(defineProps<{
+  disabled?: boolean,
+  modelValue: Ratings,
+  max: number,
+  showWarning: boolean,
+} & ExtendedInputProps>(),{
+  disabled: false,
+  max: 3,
+  showWarning: false,
 })
-class AcRatingField extends mixins(ExtendedInput) {
-  @Prop({default: false})
-  public disabled!: boolean
+const emit = defineEmits<{'update:modelValue': [Ratings]}>()
 
-  @Prop({required: true})
-  public modelValue!: Ratings
+const scratch = computed({
+  get: () => props.modelValue,
+  set: (value) => emit('update:modelValue', value)
+})
 
-  @Prop({default: 3})
-  public max!: number
-
-  @Prop({default: false})
-  public showWarning!: boolean
-
-  public ratingLabels = Object.values(RATINGS_SHORT)
-  public ratingLongDesc = RATING_LONG_DESC
-  public ratingColor = RATING_COLOR
-  public ratingOptions = RATINGS_SHORT
-  public EXTREME = 3
-
-  public get scratch(): Ratings {
-    return this.modelValue
-  }
-
-  public set scratch(val: Ratings) {
-    this.$emit('update:modelValue', val)
-  }
-}
-
-export default toNative(AcRatingField)
+const {passedProps} = useExtendedInput(props)
+const ratingLabels = Object.values(RATINGS_SHORT)
 </script>
