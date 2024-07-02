@@ -42,7 +42,7 @@ describe('ac-editor', () => {
   })
   test('Does not propagate the changes down when manually controlled', async() => {
     wrapper = mount(Editor, vueSetup({store}))
-    const mockEmit = vi.spyOn(wrapper.vm.$refs.auto as any, '$emit');
+    const mockEmit = vi.spyOn(wrapper.vm.$refs.auto as any, 'emit');
     (wrapper.vm as any).things = 'Hello there!'
     await wrapper.vm.$nextTick()
     expect((wrapper.vm.$refs.manual as any).scratch).toBe('')

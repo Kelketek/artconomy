@@ -31,7 +31,7 @@
           <div class="flex-shrink-1 mx-2">
             <v-tooltip top aria-label="Tooltip for Formatting help button">
               <template v-slot:activator="{ props }">
-                <v-btn v-bind="props" @click="$store.commit('setMarkdownHelp', true)" :class="{weakened: disabled}"
+                <v-btn v-bind="props" @click="store.commit('setMarkdownHelp', true)" :class="{weakened: disabled}"
                        size="small" icon color="blue" aria-label="Formatting help">
                   <v-icon size="x-large" :icon="mdiHelpCircle"/>
                 </v-btn>
@@ -100,120 +100,86 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, Prop, toNative, Watch} from 'vue-facing-decorator'
-import AcMarkdownExplanation from '@/components/fields/AcMarkdownExplination.vue'
+<script setup lang="ts">
 import AcRendered from '@/components/wrappers/AcRendered.ts'
-import {ComponentPublicInstance} from 'vue'
-import {ArtVue} from '@/lib/lib.ts'
+import {computed, ref, useAttrs, watch} from 'vue'
 import {mdiEyeOff, mdiEye, mdiHelpCircle, mdiCheckCircle, mdiAlert, mdiContentSave} from '@mdi/js'
+import {useRoute} from 'vue-router'
+import {VTextarea} from 'vuetify/lib/components/VTextarea/index.mjs'
+import {ArtState} from '@/store/artState.ts'
+import {useStore} from 'vuex'
 
-@Component({
-  components: {
-    AcRendered,
-    AcMarkdownExplanation,
-  },
-  emits: ['update:modelValue'],
+
+const props = withDefaults(defineProps<{
+  modelValue: string,
+  autoSave?: boolean,
+  saveComparison?: string,
+  autoGrow?: boolean,
+  saveIndicator?: boolean,
+  disabled?: boolean,
+  errorMessages?: string[],
+}>(), {
+  autoSave: true,
+  autoGrow: true,
+  saveIndicator: true,
+  disabled: false,
+  errorMessages: () => [],
 })
-class AcEditor extends ArtVue {
-  @Prop({required: true})
-  public modelValue!: string
+const route = useRoute()
+const emit = defineEmits<{'update:modelValue': [string]}>()
+const extraAttrs = useAttrs()
 
-  @Prop({default: true})
-  public autoSave!: boolean
+const input = ref<null|VTextarea>()
+const previewMode = ref(false)
+const scratch = ref(props.modelValue)
+const store = useStore<ArtState>()
+const save = () => emit('update:modelValue', scratch.value)
 
-  @Prop({default: null})
-  public saveComparison!: string | null
-
-  @Prop({default: true})
-  public autoGrow!: boolean
-
-  @Prop({default: true})
-  public saveIndicator!: boolean
-
-  @Prop({default: false})
-  public disabled!: boolean
-
-  @Prop({default: () => []})
-  public errorMessages!: string[]
-
-  public previewMode = false
-
-  public scratch: string = ''
-  public mdiEyeOff = mdiEyeOff
-  public mdiEye = mdiEye
-  public mdiHelpCircle = mdiHelpCircle
-  public mdiCheckCircle = mdiCheckCircle
-  public mdiAlert = mdiAlert
-  public mdiContentSave = mdiContentSave
-
-  public created() {
-    this.scratch = this.modelValue
+const inputAttrs = computed(() => {
+  const attrs = {...extraAttrs}
+  attrs.disabled = props.disabled
+  delete attrs.value
+  delete attrs.modelValue
+  delete attrs.autoSave
+  delete attrs.onInput
+  delete attrs.onChange
+  delete attrs.onBlur
+  delete attrs['onUpdate:modelValue']
+  if (attrs.id) {
+    attrs['id'] += '__textarea'
   }
+  return attrs
+})
 
-  public save() {
-    this.$emit('update:modelValue', this.scratch)
+const saved = computed(() => {
+  if (props.saveComparison === undefined) {
+    return false
   }
+  return props.saveComparison.trim() === scratch.value.trim()
+})
 
-  @Watch('scratch')
-  public watchScratch() {
-    if (this.autoSave) {
-      this.save()
-    }
+const triggerResize = () => {
+  // Only reliable way to trigger a resize is to tell the internal text element that an input event has occurred.
+  if (!input.value) {
+    return
   }
-
-  @Watch('modelValue')
-  public watchValue(val: string) {
-    if (this.autoSave) {
-      this.scratch = val
-    }
-  }
-
-  public triggerResize() {
-    // Only reliable way to trigger a resize is to tell the internal text element that an input event has occurred.
-    const inputElement = this.$refs.input as ComponentPublicInstance
-    inputElement.$el.querySelector('textarea')!.dispatchEvent(new Event('input'))
-  }
-
-  @Watch('$route.query.editing')
-  public editingResize(val: any) {
-    // Most cases where we need to have a text area hidden, we use v-show, which makes calculation of field height
-    // impossible.
-    //
-    // In those cases, watch for the editing flag to be flipped and resize if so.
-    this.triggerResize()
-  }
-
-  @Watch('autoGrow')
-  public autoGrowResize() {
-    // Hacky workaround for v-show. Use the same boolean for v-show as for this to force a recalculation when
-    // changed.
-    this.triggerResize()
-  }
-
-  public get inputAttrs() {
-    const attrs: any = {...this.$attrs}
-    attrs.disabled = this.disabled
-    delete attrs.value
-    delete attrs.modelValue
-    delete attrs.autoSave
-    delete attrs.onInput
-    delete attrs.onChange
-    delete attrs.onBlur
-    delete attrs['onUpdate:modelValue']
-    if (attrs.id) {
-      attrs['id'] += '__textarea'
-    }
-    return attrs
-  }
-
-  public get saved() {
-    if (this.saveComparison === null) {
-      return false
-    }
-    return this.saveComparison.trim() === this.scratch.trim()
-  }
+  input.value.querySelector('textarea')?.dispatchEvent(new Event('input'))
 }
 
-export default toNative(AcEditor)
+// Hacky workaround for v-show. Use the same boolean for v-show as for this to force a recalculation when
+// changed.
+watch(() => props.autoGrow, triggerResize)
+watch(() => route.query.editing, triggerResize)
+watch(scratch, () => {
+  if (props.autoSave) {
+    save()
+  }
+})
+watch(() => props.modelValue, (val) => {
+  if (props.autoSave) {
+    scratch.value = val
+  }
+})
+// Used in tests
+defineExpose({emit, scratch})
 </script>
