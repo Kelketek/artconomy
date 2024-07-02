@@ -12,91 +12,57 @@
   />
 </template>
 
-<script lang="ts">
+<script setup lang="ts">
 import axios from 'axios'
 import {artCall} from '@/lib/lib.ts'
-import {Component, Prop, toNative, Vue, Watch} from 'vue-facing-decorator'
 import debounce from 'lodash/debounce'
 import deepEqual from 'fast-deep-equal'
+import {computed, ref, watch} from 'vue'
+import {VCombobox} from 'vuetify/lib/components/index.mjs'
 
-@Component({emits: ['update:modelValue']})
-class AcTagField extends Vue {
-  @Prop({required: true})
-  public modelValue!: string[]
+const emit = defineEmits<{'update:modelValue': [string[]]}>()
+const props = defineProps<{modelValue: string[]}>()
+const queryStore = ref('')
+const tags = ref<string[]>([...props.modelValue])
+const oldCount = ref(0)
+const cancelSource = ref(new AbortController)
+const items = ref<string[]>([])
+const input = ref<null | typeof VCombobox>()
 
-  public queryStore = ''
-  public tags: string[] = []
-  public oldCount = 0
-  public cancelSource: AbortController = new AbortController()
+const _searchTags = (val: string) => {
+  cancelSource.value.abort()
+  cancelSource.value = new AbortController()
+  artCall(
+      {
+        url: '/api/profiles/search/tag/',
+        params: {q: val},
+        method: 'get',
+        signal: cancelSource.value.signal,
+      },
+  ).then(
+      (response) => {
+        items.value = response
+      },
+  ).catch(
+      (error) => {
+        if (axios.isCancel(error)) {
+          return
+        }
+        console.error(error)
+      },
+  )
+}
 
-  // noinspection JSMismatchedCollectionQueryUpdate
-  public items: string[] = []
+const searchTags = debounce(_searchTags, 100, {trailing: true})
 
-  public created() {
-    this.tags = [...this.modelValue]
-  }
-
-  public _searchTags(val: string) {
-    this.cancelSource.abort()
-    this.cancelSource = new AbortController()
-    artCall(
-        {
-          url: '/api/profiles/search/tag/',
-          params: {q: val},
-          method: 'get',
-          signal: this.cancelSource.signal,
-        },
-    ).then(
-        (response) => {
-          this.items = response
-        },
-    ).catch(
-        (error) => {
-          if (axios.isCancel(error)) {
-            return
-          }
-          console.error(error)
-        },
-    )
-  }
-
-  @Watch('modelValue', {deep: true})
-  public syncDownstream(newVal: string[]) {
-    this.tags = [...newVal]
-  }
-
-  @Watch('tags', {deep: true})
-  public syncUpstream(newVal: string[]) {
-    if (deepEqual(newVal, this.modelValue)) {
-      return
-    }
-    this.$emit('update:modelValue', [...newVal])
-    const input = this.$refs.input as any
-    if (!input) {
-      return
-    }
-    if (newVal.length !== this.oldCount) {
-      this.queryStore = ''
-      input.search = ''
-    }
-    this.oldCount = newVal.length
-  }
-
-  public get searchTags() {
-    return debounce(this._searchTags, 100, {trailing: true})
-  }
-
-  public get query() {
-    return this.queryStore
-  }
-
-  public set query(val: string) {
+const query = computed({
+  get: () => queryStore.value,
+  set: (val) => {
     val = val || ''
     val = val.replace(/,/g, ' ')
     val = val.replace(/\s+/g, ' ')
-    const input = this.$refs.input as any
     if (val && val.split(' ').length > 1) {
-      const currentSet = [...this.tags].map((item) => item.toLowerCase())
+      const currentSet = [...tags.value].map((item) => item.toLowerCase())
       const initialTerms = val.split(' ').filter((term) => term && !currentSet.includes(term.toLowerCase()))
       const terms: string[] = []
       const seen: { [key: string]: boolean } = {}
@@ -107,15 +73,34 @@ class AcTagField extends Vue {
         seen[term.toLowerCase()] = true
         terms.push(term)
       }
-      this.queryStore = ''
-      input.search = ''
-      this.tags.push(...terms)
+      queryStore.value = ''
+      if (input.value) {
+        input.value.search = ''
+      }
+      tags.value.push(...terms)
       return
     }
-    this.queryStore = val
-    this.searchTags(val)
+    queryStore.value = val
+    searchTags(val)
   }
-}
+})
 
-export default toNative(AcTagField)
+watch(() => props.modelValue, (newVal) => {
+  tags.value = [...newVal]
+}, {deep: true})
+
+watch(tags, (newVal) => {
+  if (deepEqual(newVal, props.modelValue)) {
+    return
+  }
+  emit('update:modelValue', [...newVal])
+  if (!input.value) {
+    return
+  }
+  if (newVal.length !== oldCount.value) {
+    queryStore.value = ''
+    input.value.search = ''
+  }
+  oldCount.value = newVal.length
+}, {deep: true})
 </script>
