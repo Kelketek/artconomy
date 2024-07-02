@@ -6,8 +6,9 @@ import {cleanUp, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcAttributes from '@/components/views/character/AcAttributes.vue'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 describe('AcAttributes.vue', () => {
   let store: ArtStore
@@ -26,17 +27,6 @@ describe('AcAttributes.vue', () => {
       AcAttributes, {
         ...vueSetup({
           store,
-          mocks: {
-            $route: {
-              name: 'Character',
-              params: {
-                username: 'Fox',
-                characterName: 'Kai',
-              },
-              query: {},
-            },
-          },
-          stubs: ['router-link'],
         }),
         props: {
           username: 'Fox',
@@ -57,7 +47,7 @@ describe('AcAttributes.vue', () => {
     store.commit('characterModules/character__Fox__Kai/profile/setReady', true)
     vm.character.attributes.setList(attributes)
     store.commit('characterModules/character__Fox__Kai/attributes/setReady', true)
-    await vm.$nextTick()
+    await nextTick()
   })
   test('Handles a new attribute', async() => {
     setViewer(store, genUser())
@@ -65,17 +55,6 @@ describe('AcAttributes.vue', () => {
       AcAttributes, {
         ...vueSetup({
           store,
-          mocks: {
-            $route: {
-              name: 'Character',
-              params: {
-                username: 'Fox',
-                characterName: 'Kai',
-              },
-              query: {editing: 'true'},
-            },
-          },
-          stubs: ['router-link'],
         }),
         props: {
           username: 'Fox',
@@ -88,15 +67,15 @@ describe('AcAttributes.vue', () => {
     store.commit('characterModules/character__Fox__Kai/profile/setFetching', false)
     store.commit('characterModules/character__Fox__Kai/attributes/setReady', true)
     store.commit('characterModules/character__Fox__Kai/attributes/setFetching', false)
-    await vm.$nextTick()
+    await nextTick()
     vm.addAttribute({
       id: 1,
       sticky: false,
       key: 'Stuff',
       value: 'things',
     })
-    await vm.$nextTick()
-    await vm.$nextTick()
+    await nextTick()
+    await nextTick()
     expect(vm.character.attributes.list[0].x).toEqual({
       id: 1,
       sticky: false,
@@ -110,17 +89,6 @@ describe('AcAttributes.vue', () => {
       AcAttributes, {
         ...vueSetup({
           store,
-          mocks: {
-            $route: {
-              name: 'Character',
-              params: {
-                username: 'Fox',
-                characterName: 'Kai',
-              },
-              query: {editing: 'true'},
-            },
-          },
-          stubs: ['router-link'],
         }),
         props: {
           username: 'Fox',
@@ -134,13 +102,13 @@ describe('AcAttributes.vue', () => {
     vm.character.attributes.ready = true
     vm.character.attributes.fetching = true
     mockAxios.reset()
-    await vm.$nextTick()
+    await nextTick()
     vm.character.attributes.setList([{
       key: 'Species',
       value: 'Foxie',
       sticky: true,
     }])
-    await vm.$nextTick()
+    await nextTick()
     const request = mockAxios.lastReqGet()
     expect(request.url).toBe('/api/profiles/account/Fox/characters/Kai/')
     const updatedCharacter = genCharacter()
@@ -148,7 +116,7 @@ describe('AcAttributes.vue', () => {
     updatedCharacter.tags = ['hello', 'there']
     mockAxios.mockResponse(rs(updatedCharacter))
     await flushPromises()
-    await vm.$nextTick()
+    await nextTick()
     const localCharacter = vm.character.profile.x as Character
     expect(localCharacter.tags).toEqual(['hello', 'there'])
     // We should only update the tags.

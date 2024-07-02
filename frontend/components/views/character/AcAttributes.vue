@@ -77,108 +77,90 @@
 }
 </style>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
+<script setup lang="ts">
 import deepEqual from 'fast-deep-equal'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import Subjective from '@/mixins/subjective.ts'
+import {useSubject} from '@/mixins/subjective.ts'
 import Attribute from '@/types/Attribute.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import CharacterCentric from '@/components/views/character/mixins/CharacterCentric.ts'
-import Editable from '@/mixins/editable.ts'
 import {artCall} from '@/lib/lib.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {mdiContentSave, mdiDelete} from '@mdi/js'
+import {CharacterProps} from '@/types/CharacterProps.ts'
+import {useCharacter} from '@/store/characters/hooks.ts'
+import {computed, nextTick, ref, watch} from 'vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import {useEditable} from '@/mixins/editable.ts'
 
-@Component({
-  components: {
-    AcForm,
-    AcBoundField,
-    AcFormContainer,
-    AcConfirmation,
-    AcPatchField,
-    AcLoadSection,
+const props = defineProps<CharacterProps>()
+const {controls} = useSubject(props)
+const {editing} = useEditable(controls)
+const character = useCharacter(props)
+
+const cancelSource = ref(new AbortController())
+
+const newAttribute = useForm(`${character.attributes.name}__newAttribute`, {
+  endpoint: character.attributes.endpoint,
+  fields: {
+    key: {value: ''},
+    value: {value: ''},
   },
 })
-class AcAttributes extends mixins(Subjective, CharacterCentric, Editable) {
-  public newAttribute: FormController = null as unknown as FormController
-  public cancelSource = new AbortController()
-  public mdiContentSave = mdiContentSave
-  public mdiDelete = mdiDelete
+character.attributes.firstRun().then()
 
-  @Watch('stickies')
-  public updateTags(newVal: string[], oldVal: string[]) {
-    if (oldVal === null) {
-      return
-    }
-    if (this.character && deepEqual(newVal, oldVal)) {
-      return
-    }
-    this.cancelSource.abort()
-    this.cancelSource = new AbortController()
-    artCall({
-      url: this.character.profile.endpoint,
-      method: 'get',
-      signal: this.cancelSource.signal,
-    }).then(
-        (character: Character) => {
-          this.character.profile.updateX({tags: character.tags})
-        })
-  }
-
-  @Watch('character.attributes.endpoint')
-  public updateEndpoint(value: string | undefined) {
-    /* istanbul ignore if */
-    if (value === undefined) {
-      return
-    }
-    this.newAttribute.endpoint = value
-  }
-
-  public addAttribute(result: Attribute) {
-    this.character.attributes.push(result)
-    const element = document.querySelector('#' + this.newAttribute.fields.key.id) as HTMLInputElement
-    /* istanbul ignore if */
-    if (!element) {
-      return
-    }
-    element.focus()
-    this.$nextTick(() => {
-      this.newAttribute.stopValidators()
-      this.$nextTick(() => {
-        this.newAttribute.clearErrors()
-      })
-    })
-  }
-
-  public get stickies() {
-    if (!this.character) {
-      return null
-    }
-    return this.character.attributes.list.filter((attribute) => {
+const stickies = computed(() => {
+  const stickied: string[] = []
+  character.attributes.list.forEach(
+    (attribute) => {
       if (attribute.x && attribute.x.sticky) {
-        return attribute.x.value
+        stickied.push(attribute.x.value)
       }
-      return undefined
-    })
-  }
+    }
+  )
+  return new Set(stickied)
+})
 
-  public created() {
-    this.newAttribute = this.$getForm(`${this.character.attributes.name}__newAttribute`, {
-      endpoint: this.character.attributes.endpoint,
-      fields: {
-        key: {value: ''},
-        value: {value: ''},
-      },
-    })
-    this.character.attributes.firstRun().then()
+const addAttribute = (result: Attribute) => {
+  character.attributes.push(result)
+  const element = document.querySelector('#' + newAttribute.fields.key.id) as HTMLInputElement
+  /* istanbul ignore if */
+  if (!element) {
+    return
   }
+  element.focus()
+  nextTick(() => {
+    newAttribute.stopValidators()
+    nextTick(() => {
+      newAttribute.clearErrors()
+    })
+  })
 }
 
-export default toNative(AcAttributes)
+watch(() => character.attributes.endpoint, (value) => {
+  newAttribute.endpoint = value
+})
+
+watch(stickies, (newVal: Set<string>, oldVal?: Set<string>) => {
+  if (oldVal === undefined) {
+    return
+  }
+  // Does this work for sets?
+  if (newVal === oldVal) {
+    return
+  }
+  cancelSource.value.abort()
+  cancelSource.value = new AbortController()
+  artCall({
+    url: character.profile.endpoint,
+    method: 'get',
+    signal: cancelSource.value.signal,
+  }).then(
+      (characterData: Character) => {
+        character.profile.updateX({tags: characterData.tags})
+  })
+})
 </script>
