@@ -970,7 +970,7 @@ const lineItemSetMaps = computed(() => {
   const sets = []
   for (const set of rawLineItemSetMaps.value) {
     const name = listControllerMaps.has(set.name) ? set.name : '__preferred'
-    const controller = listControllerMaps.get(name)
+    const controller = listControllerMaps.get(name) as ListController<LineItem>
     sets.push({name: set.name, lineItems: controller, offer: set.offer})
   }
   return sets

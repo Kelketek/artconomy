@@ -48,7 +48,7 @@ import {computed} from 'vue'
 import {ListController} from '@/store/lists/controller.ts'
 import LineItem from '@/types/LineItem.ts'
 
-declare type LineItemSetMaps = { name: string, lineItems: ListController<LineItem> | undefined, offer: boolean}[]
+declare type LineItemSetMaps = { name: string, lineItems: ListController<LineItem>, offer: boolean}[]
 
 const props = defineProps<{lineItemSetMaps: LineItemSetMaps} & SubjectiveProps>()
 const hourlyForm = useForm('hourly', {endpoint: '#', fields: {hours: {value: null}}})

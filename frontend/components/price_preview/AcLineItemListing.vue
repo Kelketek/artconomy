@@ -50,11 +50,10 @@ import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import LineItem from '@/types/LineItem.ts'
-import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
 import {LineTypes} from '@/types/LineTypes.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {computed} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
+import {useLineItems} from '@/components/price_preview/mixins/line_items.ts'
 
 const props = withDefaults(defineProps<{
   lineItems: ListController<LineItem>,
@@ -67,101 +66,25 @@ const props = withDefaults(defineProps<{
   editable: false,
 })
 
-const addOnForm = useForm(`${props.lineItems.name}_addOn`, {
-  endpoint: props.lineItems.endpoint,
-  fields: {
-    amount: {
-      value: 0,
-      validators: [{name: 'numeric'}],
-    },
-    description: {value: ''},
-    type: {value: LineTypes.ADD_ON},
-    percentage: {value: 0},
-  },
-})
-const extraForm = useForm(`${props.lineItems.name}_extra`, {
-  endpoint: props.lineItems.endpoint,
-  fields: {
-    amount: {
-      value: 0,
-      validators: [{name: 'numeric'}],
-    },
-    description: {value: ''},
-    type: {value: LineTypes.EXTRA},
-    percentage: {value: 0},
-  },
-})
-
-const rawLineItems = computed(() => props.lineItems.list.map((item) => item.x as LineItem))
-const baseItems = computed(() => props.lineItems.list.filter(item => item.x && item.x.type === LineTypes.BASE_PRICE))
-
 const modifiers = computed(() => rawLineItems.value.filter(
       // We include tips here since we will handle that with a different interface.
       (line: LineItem) => [
         LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE,
       ].includes(line.type)))
 
-const addOns = computed(() => props.lineItems.list.filter((item) => item.x && item.x.type === LineTypes.ADD_ON))
-const exras = computed(() => props.lineItems.list.filter((item) => item.x && item.x.type === LineTypes.EXTRA))
-const others = computed(() => props.lineItems.list.filter((item) => item.x && [LineTypes.PREMIUM_SUBSCRIPTION, LineTypes.OTHER_FEE, LineTypes.DELIVERABLE_TRACKING].includes(item.x.type)))
 
-const addOnFormItem = computed((): LineItem => {
-  return {
-    id: -105,
-    amount: parseFloat(addOnForm.fields.amount.value),
-    frozen_value: null,
-    cascade_amount: false,
-    cascade_percentage: false,
-    back_into_percentage: false,
-    percentage: parseFloat(addOnForm.fields.percentage.value),
-    type: addOnForm.fields.type.value,
-    priority: 100,
-    description: addOnForm.fields.description.value,
-  }
-})
+const {
+  addOnForm,
+  extraForm,
+  rawLineItems,
+  baseItems,
+  addOns,
+  extras,
+  others,
+  taxes,
+  priceData,
+  rawPrice,
+} = useLineItems(props)
 
-const extraFormItem = computed((): LineItem => {
-  return {
-    id: -106,
-    amount: parseFloat(extraForm.fields.amount.value),
-    frozen_value: null,
-    cascade_amount: false,
-    cascade_percentage: false,
-    back_into_percentage: false,
-    percentage: parseFloat(extraForm.fields.percentage.value),
-    type: extraForm.fields.type.value,
-    priority: 400,
-    description: extraForm.fields.description.value,
-  }
-})
-
-const addForms = (startingItems: LineItem[]) => {
-  const allItems = [...startingItems]
-  const addOnValue = parseFloat(addOnForm.fields.amount.value)
-  if (addOnValue && !isNaN(addOnValue)) {
-    allItems.push(addOnFormItem.value)
-  }
-  const extraValue = parseFloat(extraForm.fields.amount.value)
-  if (extraValue && !isNaN(extraValue)) {
-    allItems.push(extraFormItem.value)
-  }
-  return allItems
-}
-
-const rawPlusForms = computed(() => {
-  return addForms(rawLineItems.value)
-})
-
-const priceData = computed(() => {
-  return getTotals(rawPlusForms.value)
-})
-
-const rawPrice = computed(() => priceData.value.total)
-
-const linesOfType = (type: LineTypes) => props.lineItems.list.filter((item) => item.x!.type === type)
-
-const extras = computed(() => linesOfType(LineTypes.EXTRA))
-
-const taxes = computed(() => linesOfType(LineTypes.TAX))
 
 </script>
