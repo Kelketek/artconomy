@@ -71,8 +71,8 @@ import {computed} from 'vue'
 const props = withDefaults(defineProps<{
   disabled?: boolean,
   modelValue: Ratings,
-  max: number,
-  showWarning: boolean,
+  max?: number,
+  showWarning?: boolean,
 } & ExtendedInputProps>(),{
   disabled: false,
   max: 3,

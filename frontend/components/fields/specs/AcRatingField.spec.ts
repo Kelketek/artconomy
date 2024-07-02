@@ -17,7 +17,7 @@ describe('AcRatingField.vue', () => {
   test('Creates a field based on a field controller', async() => {
     wrapper = mount(AcRatingField, {
       ...vueSetup({store}),
-      props: {modelValue: 1},
+      props: {modelValue: 1, label: 'Beep'},
     })
     const vm = wrapper.vm as any
     await vm.$nextTick()
