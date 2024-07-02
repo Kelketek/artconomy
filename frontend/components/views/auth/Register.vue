@@ -75,40 +75,23 @@
   </v-card-text>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative, Watch} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
-import {Auth} from '@/components/views/auth/mixins/Auth.ts'
+<script setup lang="ts">
+import {useAuth} from '@/components/views/auth/mixins/Auth.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
-import {FormController} from '@/store/forms/form-controller.ts'
+import {computed, ref, watch} from 'vue'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcForm,
-    AcFormContainer,
-    VueHcaptcha,
-  },
+const siteKey = computed(() => window.RECAPTCHA_SITE_KEY || 'undefined')
+const {registerForm, loginForm, loginHandler} = useAuth()
+const recaptcha = ref<null|VueHcaptcha>()
+watch(() => registerForm.sending, (newVal, oldVal) => {
+  if (oldVal && !newVal) {
+    recaptcha.value?.reset();
+    registerForm.fields.recaptcha.update('', false)
+  }
 })
-class Register extends mixins(Auth, Viewer) {
-
-  @Watch('registerForm.sending')
-  public resetCaptcha(newVal: string, oldVal: string) {
-    if (oldVal && !newVal) {
-      (this.$refs.recaptcha as any).reset();
-      (this.registerForm as FormController).fields.recaptcha.update('', false)
-    }
-  }
-
-  public get siteKey() {
-    return window.RECAPTCHA_SITE_KEY || 'undefined'
-  }
-}
-
-export default toNative(Register)
 </script>
 
 <style scoped>
