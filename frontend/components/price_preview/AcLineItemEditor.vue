@@ -30,8 +30,7 @@
   </v-row>
 </template>
 
-<script lang="ts">
-import {Component, Prop, toNative, Vue} from 'vue-facing-decorator'
+<script setup lang="ts">
 import LineItem from '@/types/LineItem.ts'
 import LineAccumulator from '@/types/LineAccumulator.ts'
 import {SingleController} from '@/store/singles/controller.ts'
@@ -39,63 +38,49 @@ import {Decimal} from 'decimal.js'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {LineTypes} from '@/types/LineTypes.ts'
 import {mdiDelete} from '@mdi/js'
+import {computed} from 'vue'
 
-@Component({
-  components: {AcPatchField},
-  emits: ['new-line'],
+const props = withDefaults(defineProps<{
+  line: SingleController<LineItem>,
+  priceData: LineAccumulator,
+  enableNewLine?: boolean,
+  disabled?: boolean,
+}>(), {
+  enableNewLines: false,
+  disabled: false,
 })
-class AcLineItemEditor extends Vue {
-  @Prop({required: true})
-  public line!: SingleController<LineItem>
+const emit = defineEmits<{'new-line': []}>()
 
-  @Prop({required: true})
-  public priceData!: LineAccumulator
+const deletable = computed(()  => props.line.x?.type !== LineTypes.BASE_PRICE)
 
-  @Prop({default: false})
-  public enableNewLine!: boolean
+const price = computed(() => props.priceData.subtotals.get(props.line.x as LineItem) as Decimal)
 
-  @Prop({default: false})
-  public disabled!: boolean
-
-  public mdiDelete = mdiDelete
-
-  public get deletable() {
-    return (this.line.x as LineItem).type !== LineTypes.BASE_PRICE
-  }
-
-  public get price() {
-    return this.priceData.subtotals.get(this.line.x as LineItem) as Decimal
-  }
-
-  public newLineFunc() {
-    if (this.enableNewLine) {
-      this.$emit('new-line')
-    }
-  }
-
-  public get placeholder() {
-    if ((this.line.x as LineItem).type === 0) {
-      return 'Base price'
-    }
-    if ((this.line.x as LineItem).type === 1) {
-      if (this.price.lt(0)) {
-        return 'Discount'
-      } else {
-        return 'Additional requirements'
-      }
-    }
-    const BASIC_TYPES: { [key: number]: string } = {
-      0: 'Base price',
-      2: 'Shield protection',
-      3: 'Landscape bonus',
-      4: 'Tip',
-      5: 'Table service',
-      6: 'Tax',
-      7: 'Accessory item',
-    }
-    return BASIC_TYPES[(this.line.x as LineItem).type] || 'Other'
+const newLineFunc = () => {
+  if (props.enableNewLine) {
+    emit('new-line')
   }
 }
 
-export default toNative(AcLineItemEditor)
+const placeholder = computed(() => {
+  if ((props.line.x as LineItem).type === 0) {
+    return 'Base price'
+  }
+  if ((props.line.x as LineItem).type === 1) {
+    if (price.value.lt(0)) {
+      return 'Discount'
+    } else {
+      return 'Additional requirements'
+    }
+  }
+  const BASIC_TYPES: { [key: number]: string } = {
+    0: 'Base price',
+    2: 'Shield protection',
+    3: 'Landscape bonus',
+    4: 'Tip',
+    5: 'Table service',
+    6: 'Tax',
+    7: 'Accessory item',
+  }
+  return BASIC_TYPES[(props.line.x as LineItem).type] || 'Other'
+})
 </script>
