@@ -20,17 +20,19 @@
   />
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import AcAvatar from '@/components/AcAvatar.vue'
-import Autocomplete from '@/components/fields/mixins/autocomplete.ts'
+<script setup lang="ts">
+import {
+  autocompleteDefaults,
+  AutocompleteEmits,
+  AutocompleteProps,
+  useAutocomplete,
+} from '@/components/fields/mixins/autocomplete.ts'
+import {ref, useAttrs} from 'vue'
+import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 
-@Component({
-  components: {AcAvatar},
-})
-class AcUserSelect extends mixins(Autocomplete) {
-  public url = '/api/profiles/search/user/'
-}
-
-export default toNative(AcUserSelect)
+const props = withDefaults(defineProps<{itemValue?: string} & AutocompleteProps>(), {...autocompleteDefaults(), itemValue: 'id'})
+const input = ref<null|typeof VAutocomplete>(null)
+const fieldAttrs = useAttrs()
+const emit = defineEmits<{'update:modelValue': [AutocompleteEmits]}>()
+const {tags, query, items, itemFilter} = useAutocomplete(props, emit, input, '/api/profiles/search/user/', props.itemValue)
 </script>

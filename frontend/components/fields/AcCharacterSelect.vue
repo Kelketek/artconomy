@@ -19,36 +19,38 @@
   />
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import AcAvatar from '@/components/AcAvatar.vue'
+<script setup lang="ts">
 import {Character} from '@/store/characters/types/Character.ts'
-import Viewer from '@/mixins/viewer.ts'
-import Autocomplete from '@/components/fields/mixins/autocomplete.ts'
+import {
+  autocompleteDefaults,
+  AutocompleteEmits,
+  AutocompleteProps,
+  useAutocomplete,
+} from '@/components/fields/mixins/autocomplete.ts'
+import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
+import {ref} from 'vue'
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component({
-  components: {AcAvatar},
-})
-class AcCharacterSelect extends mixins(Autocomplete, Viewer) {
-  public url = '/api/profiles/search/character/'
+const props = withDefaults(defineProps<AutocompleteProps>(), autocompleteDefaults())
+const {rawViewerName} = useViewer()
+const input = ref<null|typeof VAutocomplete>(null)
 
-  public formatName(_id: number, sourceItem: Character | '' | number) {
-    const item = sourceItem || _id
-    /* istanbul ignore if */
-    if (Array.isArray(item) || !item) {
-      // Type mismatch thrown by parent library. Return an empty string for this.
-      return ''
-    }
-    if (typeof item === 'number') {
-      return `${item}`
-    }
-    let text = item.name
-    if (item.user.username !== this.rawViewerName) {
-      text += ` (${item.user.username})`
-    }
-    return text
+const emit = defineEmits<{'update:modelValue': [AutocompleteEmits]}>()
+const {tags, query, items, itemFilter} = useAutocomplete(props, emit, input, '/api/profiles/search/character/')
+const formatName = (_id: number, sourceItem: Character | '' | number) => {
+  const item = sourceItem || _id
+  /* istanbul ignore if */
+  if (Array.isArray(item) || !item) {
+    // Type mismatch thrown by parent library. Return an empty string for this.
+    return ''
   }
+  if (typeof item === 'number') {
+    return `${item}`
+  }
+  let text = item.name
+  if (item.user.username !== rawViewerName.value) {
+    text += ` (${item.user.username})`
+  }
+  return text
 }
-
-export default toNative(AcCharacterSelect)
 </script>
