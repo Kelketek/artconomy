@@ -11,7 +11,7 @@
       <v-row no-gutters v-if="!isRegistered && !guestOk">
         <v-col class="text-center" cols="12">
           <v-btn class="new-comment-button"
-                 :to="{name: 'Login', query: {next: $route.fullPath}}"
+                 :to="{name: 'Login', query: {next: route.fullPath}}"
                  variant="elevated"
           >Log in or
             Register to
@@ -83,7 +83,9 @@ import {computed, Ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {profileLink} from '@/lib/otherFormatters.ts'
 import {useTheme} from 'vuetify'
+import {useRoute} from 'vue-router'
 
+const route = useRoute()
 
 // Used for when we're nested under a comment thread.
 const cancel = () => {

@@ -209,7 +209,7 @@
                         <h3>Info</h3>
                         <v-divider/>
                       </v-col>
-                      <v-col class="hidden-sm-and-up" cols="4" :class="{'d-flex': $vuetify.display.xs}">
+                      <v-col class="hidden-sm-and-up" cols="4" :class="{'d-flex': xs}">
                         <v-row no-gutters class="justify-content" align="center">
                           <strong>Submitted by:</strong>
                         </v-row>
@@ -256,6 +256,7 @@
 
 <script setup lang="ts">
 import {useViewer} from '@/mixins/viewer.ts'
+import {useDisplay} from 'vuetify'
 import Submission from '@/types/Submission.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcAsset from '@/components/AcAsset.vue'
@@ -270,7 +271,6 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcArtistDisplay from './AcArtistDisplay.vue'
 import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
-import {Character} from '@/store/characters/types/Character.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
@@ -452,6 +452,8 @@ const locked = computed(() => {
 const shareMedia = computed(() => {
   return submission.x as Submission
 })
+
+const {xs} = useDisplay()
 
 const {shareMediaUrl, shareMediaClean} = useSharable(shareMedia)
 

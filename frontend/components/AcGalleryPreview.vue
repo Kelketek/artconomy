@@ -1,5 +1,5 @@
 <template>
-  <v-responsive v-if="($vuetify.display.smAndDown && showFooter) || mini" aspect-ratio="1" class="submission"
+  <v-responsive v-if="(smAndDown && showFooter) || mini" aspect-ratio="1" class="submission"
                 :class="{unavailable}">
     <v-card>
       <v-card-text class="pa-2">
@@ -72,6 +72,7 @@ import AcAsset from './AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import Submission from '@/types/Submission.ts'
 import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
 
 declare interface AcGalleryPreviewProps {
   submission: Submission,
@@ -99,6 +100,8 @@ const props = withDefaults(defineProps<AcGalleryPreviewProps>(), {
   allowPreview: false,
   forceHidden: false,
 })
+
+const {smAndDown} = useDisplay()
 
 const submissionLink = computed(() => {
   if (!props.linked) {

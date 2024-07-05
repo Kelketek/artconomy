@@ -38,7 +38,7 @@
   <v-container class="pa-0" v-else>
     <v-toolbar class="table-invoice-toolbar">
       <v-toolbar-items>
-        <v-btn @click="() => $router.go(-1)" color="secondary" variant="flat">
+        <v-btn @click="() => router.go(-1)" color="secondary" variant="flat">
           <v-icon left :icon="mdiArrowLeftThick"/>
           Back
         </v-btn>

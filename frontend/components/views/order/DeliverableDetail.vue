@@ -64,7 +64,7 @@
                         <p v-if="deliverable.x.escrow_enabled">
                           <strong class="danger">WARNING:</strong> Only send payment using the <strong>'Send
                           Payment'</strong> button in the '<strong>Payment</strong>' <span
-                            v-if="$vuetify.display.mdAndUp">tab</span><span v-else>dropdown option</span> directly below
+                            v-if="mdAndUp">tab</span><span v-else>dropdown option</span> directly below
                           this section.
                           Do not use any other method, button, or link, or we will not be able to protect you from
                           fraud. If your
@@ -163,9 +163,9 @@
                         </v-col>
                         <v-col class="text-center">
                           <v-btn
-                              color="primary" v-if="$route.params.deliverableId"
+                              color="primary" v-if="route.params.deliverableId"
                               :to="{name: `${baseName}DeliverablePayment`,
-                            params: {...$route.params}}"
+                            params: {...route.params}}"
                               @click="scrollToSection"
                               variant="flat"
                               class="review-terms-button"
@@ -173,9 +173,9 @@
                               v-else-if="(is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW)) && isSeller">/Accept</span></v-btn>
                         </v-col>
                         <v-col v-if="isBuyer" class="text-center">
-                          <v-btn color="secondary" v-if="$route.params.deliverableId"
+                          <v-btn color="secondary" v-if="route.params.deliverableId"
                                  variant="flat"
-                                 :to="{name: `${baseName}DeliverableReferences`, params: {...$route.params}}">Add
+                                 :to="{name: `${baseName}DeliverableReferences`, params: {...route.params}}">Add
                             References
                           </v-btn>
                         </v-col>
@@ -437,7 +437,7 @@ import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPromp
 import {ServicePlan} from '@/types/ServicePlan.ts'
 import {computed, onMounted, watch} from 'vue'
 import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
-import {useGoTo} from 'vuetify'
+import {useGoTo, useDisplay} from 'vuetify'
 import {useViewer} from '@/mixins/viewer.ts'
 import {usePricing} from '@/mixins/PricingAware.ts'
 import {listenForSingle} from '@/store/singles/hooks.ts'
@@ -485,6 +485,7 @@ const {
   disputeWindow,
   updateDeliverable,
 } = useDeliverable(props)
+const {mdAndUp} = useDisplay()
 
 const {isRegistered, isStaff} = useViewer()
 

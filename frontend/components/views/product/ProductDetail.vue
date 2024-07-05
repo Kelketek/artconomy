@@ -3,7 +3,7 @@
                    class="pt-3">
     <template v-slot:default>
       <v-row v-if="product.x">
-        <template v-if="$vuetify.display.smAndDown">
+        <template v-if="smAndDown">
           <v-col class="hidden-md-and-up" cols="12" style="position: relative">
             <ac-sample-editor v-model="showChangePrimary" :large="true" :username="username" :product="product"
                               :product-id="productId" :samples="samples"/>
@@ -90,7 +90,7 @@
             </v-row>
           </v-responsive>
         </v-col>
-        <v-col cols="12" md="5" lg="5" :class="{'px-2': $vuetify.display.mdAndUp}">
+        <v-col cols="12" md="5" lg="5" :class="{'px-2': mdAndUp}">
           <v-toolbar dense color="black">
             <ac-avatar :username="username" :show-name="false" class="ml-3"/>
             <v-toolbar-title class="ml-1">
@@ -270,7 +270,7 @@
           </v-card>
         </v-col>
         <v-col cols="12" md="3" lg="2">
-          <v-card :color="$vuetify.theme.current.colors['well-darken-2']">
+          <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
                 <v-col class="text-h4" cols="12">
@@ -552,7 +552,7 @@
           <v-toolbar color="secondary" dense>
             <v-toolbar-title>You might also like...</v-toolbar-title>
           </v-toolbar>
-          <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
+          <v-card :color="current.colors['well-darken-4']">
             <v-card-text class="px-0" v-if="recommended">
               <ac-load-section :controller="recommended">
                 <template v-slot:default>
@@ -644,6 +644,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {ListController} from '@/store/lists/controller.ts'
+import {useTheme, useDisplay} from 'vuetify'
 
 
 const props = defineProps<SubjectiveProps & ProductProps>()
@@ -654,6 +655,8 @@ const showChangePrimary = ref(false)
 const ratingDialog = ref(false)
 const shown = ref<Submission|null>(null)
 const {setError, statusOk} = useErrorHandling()
+const {current} = useTheme()
+const {smAndDown, mdAndUp} = useDisplay()
 
 const shownSubmissionLink = computed(() => {
   if (!shown.value) {

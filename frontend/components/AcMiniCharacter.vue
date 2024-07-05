@@ -3,7 +3,7 @@
     <div class="flex">
       <div class="flex">
         <router-link :to="route">
-          <v-avatar :color="$vuetify.theme.current.colors.well">
+          <v-avatar :color="current.colors.well">
             <v-icon v-if="!canDisplay" :icon="mdiCancel"/>
             <img :src="displayImage" v-else-if="canDisplay && displayImage" class="asset-image" :alt="alt">
           </v-avatar>
@@ -34,12 +34,15 @@ import {Character} from '@/store/characters/types/Character.ts'
 import AssetProps from '@/types/AssetProps.ts'
 import {computed} from 'vue'
 import {mdiCancel, mdiClose} from '@mdi/js'
+import {useTheme} from 'vuetify'
 
 declare interface AcMiniCharacterProps extends AssetProps {
   character: Character,
   showName?: boolean,
   removable?: boolean
 }
+
+const {current} = useTheme()
 
 const props = withDefaults(
     defineProps<AcMiniCharacterProps>(),

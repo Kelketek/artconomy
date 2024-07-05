@@ -64,8 +64,8 @@
              variant="flat"
       >Clear Showcased Sample
       </v-btn>
-      <v-btn color="primary" @click="toggle(false)" v-if="$vuetify.display.mdAndUp" variant="flat">Done</v-btn>
-      <v-spacer v-if="$vuetify.display.smAndDown"/>
+      <v-btn color="primary" @click="toggle(false)" v-if="mdAndUp" variant="flat">Done</v-btn>
+      <v-spacer v-if="smAndDown"/>
     </template>
   </ac-expanded-property>
 </template>
@@ -87,6 +87,7 @@ import {mdiUpload} from '@mdi/js'
 import {useList} from '@/store/lists/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {useDisplay} from 'vuetify'
 
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
@@ -102,6 +103,7 @@ const emit = defineEmits<{'update:modelValue': [boolean]}>()
 const tab = ref('tab-pick-sample')
 const newUpload = ref(false)
 const newSubmissionForm = ref<null|typeof AcNewSubmission>(null)
+const {mdAndUp, smAndDown} = useDisplay()
 
 const localSamples = useList<LinkedSubmission>(
     // We don't want to use the outer scope's sample list because it will paginate separately.

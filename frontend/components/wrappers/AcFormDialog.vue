@@ -11,7 +11,7 @@
       :attach="modalTarget"
   >
     <v-card :id="id">
-      <div v-if="display.smAndDown.value">
+      <div v-if="smAndDown">
         <v-toolbar dark color="secondary">
           <v-btn variant="plain" @click="toggle = false" dark class="dialog-closer">
             <v-icon :icon="mdiClose"/>
@@ -19,7 +19,7 @@
           <v-toolbar-title>{{ title }}</v-toolbar-title>
           <v-spacer/>
           <slot name="top-buttons">
-            <v-toolbar-items v-if="$vuetify.display.smAndDown">
+            <v-toolbar-items v-if="smAndDown">
               <v-btn variant="text" @click.prevent="reSend" :disabled="disabled">{{ submitText }}</v-btn>
             </v-toolbar-items>
           </slot>
@@ -109,7 +109,7 @@ const props = withDefaults(
 
 const {modalTarget} = useTargets()
 
-const display = useDisplay()
+const {smAndDown} = useDisplay()
 
 const emit = defineEmits<{'submit': [SubmitEvent], 'update:modelValue': [boolean]}>()
 

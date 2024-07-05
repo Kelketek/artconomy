@@ -2,12 +2,9 @@
   <div></div>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Alerts from '@/mixins/alerts.ts'
+<script setup lang="ts">
+import {useAlerts} from '@/mixins/alerts.ts'
 
-@Component({})
-class AlertsComponent extends mixins(Alerts) {
-}
-export default toNative(AlertsComponent)
+const {sendAlert} = useAlerts()
+defineExpose({sendAlert})
 </script>

@@ -111,7 +111,7 @@ router,
     await Promise.all(wrapper.findAll('.v-item-group .v-btn').map(async (el, index) => {
       await el.trigger('click')
       await wrapper.vm.$nextTick()
-      expect(wrapper.vm.$route.name).toBe(routes[index])
+      expect(wrapper.vm.route.name).toBe(routes[index])
     }))
   })
   test('Opens the default view', async() => {

@@ -177,7 +177,7 @@
                         :false-value="false"
                     />
                   </v-col>
-                  <v-col sm="6" v-else-if="$vuetify.display.smAndUp"></v-col>
+                  <v-col sm="6" v-else-if="smAndUp"></v-col>
                   <v-col cols="12" sm="6">
                     <ac-bound-field :field="newProduct.fields.expected_turnaround" number
                                     label="Expected Days Turnaround"
@@ -275,6 +275,7 @@
   </ac-form-dialog>
 </template>
 <script setup lang="ts">
+import {useDisplay} from 'vuetify'
 import {User} from '@/store/profiles/types/User.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -300,6 +301,7 @@ import {ListController} from '@/store/lists/controller.ts'
 
 const props = defineProps<{modelValue: boolean} & SubjectiveProps>()
 const emit = defineEmits<{'update:modelValue': [boolean]}>()
+const {smAndUp} = useDisplay()
 const router = useRouter()
 const {subjectHandler, subject} = useSubject(props)
 const {setError} = useErrorHandling()

@@ -371,7 +371,7 @@ const routeKey = computed(() => {
   // when absolutely necessary and it wouldn't otherwise detect.
   //
   // If we don't do this, then the component won't be recreated when we, say, jump from one profile page to another.
-  // If we use the standard advice of 'make $route.fullPath the key', we'll be recreating far too often, since
+  // If we use the standard advice of 'make route.fullPath the key', we'll be recreating far too often, since
   // we have many nested routes.
   return paramsKey(route.params)
 })

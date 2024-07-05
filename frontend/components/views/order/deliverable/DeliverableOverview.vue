@@ -9,7 +9,7 @@
               <ac-link :to="profileLink(order.x.seller)">{{ order.x.seller.username }}</ac-link>
             </v-toolbar-title>
           </v-toolbar>
-          <v-card :color="$vuetify.theme.current.colors['well-darken-2']">
+          <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
                 <v-col class="py-2 subheading" cols="12">
@@ -33,7 +33,7 @@
               <span v-if="order.x.guest_email && isSeller"> ({{order.x.guest_email}})</span>
             </v-toolbar-title>
           </v-toolbar>
-          <v-card :color="$vuetify.theme.current.colors['well-darken-2']">
+          <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
                 <v-col cols="12" md="9" order="1">
@@ -118,7 +118,7 @@
                   </v-btn>
                 </v-col>
                 <v-col class="text-center" v-if="order.x.deliverable_count > 1">
-                  <v-btn color="primary" variant="flat" :to="{name: baseName, params: {orderId, username: $route.params.username}}">See
+                  <v-btn color="primary" variant="flat" :to="{name: baseName, params: {orderId, username: route.params.username}}">See
                     All Deliverables
                   </v-btn>
                 </v-col>
@@ -193,7 +193,7 @@
         </v-row>
       </ac-expanded-property>
       <ac-comment-section :commentList="comments" :nesting="false" :locked="!isInvolved || is(s.LIMBO) || is(s.MISSED)"
-                          :guest-ok="true" :show-history="isArbitrator" v-if="$vuetify.display.smAndDown"/>
+                          :guest-ok="true" :show-history="isArbitrator" v-if="smAndDown"/>
     </template>
   </ac-load-section>
 </template>
@@ -222,6 +222,7 @@ import {usePrerendering} from '@/mixins/prerendering.ts'
 import {deriveDisplayName} from '@/lib/otherFormatters.ts'
 import {mdiEyeOff, mdiPencil} from '@mdi/js'
 import {profileLink} from '@/lib/otherFormatters.ts'
+import {useDisplay, useTheme} from 'vuetify'
 
 const props = defineProps<DeliverableProps>()
 
@@ -230,6 +231,8 @@ const inviteSent = ref(false)
 const editDetails = ref(false)
 const ratingDialog = ref(false)
 const cheering = new URL('/static/images/cheering.png', BASE_URL).href
+const {current} = useTheme()
+const {smAndDown, mdAndUp} = useDisplay()
 
 const route = useRoute()
 const store = useStore()

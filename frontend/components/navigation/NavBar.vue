@@ -92,7 +92,7 @@
         clipped-left
         app
         dark
-        :scroll-off-screen="$vuetify.display.mdAndDown"
+        :scroll-off-screen="mdAndDown"
         :scroll-threshold="150"
         v-if="!store.state.iFrame"
     >
@@ -210,6 +210,7 @@ import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import {useSearchForm} from '@/components/views/search/hooks.ts'
+import {useDisplay} from 'vuetify'
 import {mdiChatQuestion, mdiMagnify, mdiPencil} from '@mdi/js'
 const AcNotificationIndicator = defineAsyncComponent(() => import('@/components/navigation/AcNotificationIndicator.vue'))
 const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/AcStatsBar.vue'))
@@ -220,6 +221,7 @@ const logo = new URL('/static/images/mini-logo.png', BASE_URL).href
 const route = useRoute()
 const router = useRouter()
 const store = useStore<ArtState>()
+const {mdAndDown} = useDisplay()
 
 const drawer = ref(false)
 

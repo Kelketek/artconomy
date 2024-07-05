@@ -51,7 +51,7 @@
                         </v-col>
                         <v-col cols="12" sm="6" class="text-center" v-if="!isRegistered">
                           <p>Or, if you have an account,</p>
-                          <v-btn :to="{name: 'Login', query: {next: $route.fullPath}}" color="primary" variant="flat">Log in here!
+                          <v-btn :to="{name: 'Login', query: {next: route.fullPath}}" color="primary" variant="flat">Log in here!
                           </v-btn>
                         </v-col>
                       </v-row>
@@ -235,7 +235,7 @@
               <ac-link :to="profileLink(product.x.user)">{{username}}</ac-link>
             </v-toolbar-title>
           </v-toolbar>
-          <v-card :color="$vuetify.theme.current.colors['well-darken-2']">
+          <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
                 <v-col class="title" cols="12">
@@ -302,6 +302,7 @@ import {RawData} from '@/store/forms/types/RawData.ts'
 import debounce from 'lodash/debounce'
 import {statusOk} from '@/mixins/ErrorHandling.ts'
 import {ShoppingCart} from '@/types/ShoppingCart.ts'
+import {useTheme} from 'vuetify'
 
 declare interface NewOrderProps {
   invoiceMode?: string,
@@ -311,6 +312,7 @@ const props = defineProps<NewOrderProps & SubjectiveProps & ProductProps>()
 const {product, deliveryDate} = useProduct(props)
 const showCharacters = ref(false)
 const initCharacters = ref<Character[]>([])
+const {current} = useTheme()
 // Do we still need this? Or is there now a better way?
 const clickCounter = ref(0)
 const laptop = new URL('/static/images/laptop.png', BASE_URL)

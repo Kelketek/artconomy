@@ -18,7 +18,7 @@
                   <v-spacer></v-spacer>
                   <v-col class="text-right">
                     <v-progress-circular
-                        :color="$vuetify.theme.current.colors.secondary"
+                        :color="current.colors.secondary"
                         indeterminate
                         :size="24"
                         v-if="loading === derived(submission).id"
@@ -48,6 +48,7 @@ import {genId} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref, watch} from 'vue'
+import {useTheme} from 'vuetify'
 import {mdiCheckCircle} from '@mdi/js'
 
 declare interface AcSubmissionSelectProps {
@@ -67,6 +68,8 @@ const props = withDefaults(defineProps<AcSubmissionSelectProps & Partial<Extende
   label: '',
   errorMessages: () => [],
 })
+
+const {current} = useTheme()
 
 const {passedProps, errorFocused, errorColor} = useExtendedInput(props)
 

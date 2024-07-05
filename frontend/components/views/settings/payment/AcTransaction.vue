@@ -20,7 +20,7 @@
       </v-btn>
     </template>
     <v-dialog v-model="showDetails" max-width="800px" :attach="modalTarget">
-      <v-toolbar flat dark color="secondary" :dense="$vuetify.display.mdAndUp">
+      <v-toolbar flat dark color="secondary" :dense="mdAndUp">
         <v-toolbar-title>
           <slot name="title">Transaction Details</slot>
         </v-toolbar-title>
@@ -81,6 +81,7 @@ import {computed, ref} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
 import {useTargets} from '@/plugins/targets.ts'
+import {useDisplay} from 'vuetify'
 
 
 const props = defineProps<SubjectiveProps & {transaction: Transaction, currentAccount: number}>()
@@ -88,6 +89,7 @@ const props = defineProps<SubjectiveProps & {transaction: Transaction, currentAc
 const {isSuperuser} = useViewer()
 const {subject} = useSubject(props)
 const {modalTarget} = useTargets()
+const {mdAndUp} = useDisplay()
 
 const showDetails = ref(false)
 

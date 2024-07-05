@@ -76,7 +76,7 @@
                 <v-row dense>
                   <v-col cols="12">
                     <router-link
-                        :to="{name: `${baseName}DeliverableRevision`, params: {...$route.params, revisionId: revision.x!.id}}">
+                        :to="{name: `${baseName}DeliverableRevision`, params: {...route.params, revisionId: revision.x!.id}}">
                       <ac-unread-marker :read="revision.x!.read" content-type="sales.Revision">
                         <ac-asset :asset="revision.x" thumb-name="thumbnail" :alt="`Revision #${index} for order.`"/>
                       </ac-unread-marker>
@@ -104,7 +104,7 @@
                   </v-col>
                 </v-row>
                 <template v-slot:append>
-                  <v-btn :to="{name: `${baseName}DeliverablePayment`, params: {...$route.params}}" variant="flat">
+                  <v-btn :to="{name: `${baseName}DeliverablePayment`, params: {...route.params}}" variant="flat">
                     Send Payment
                   </v-btn>
                 </template>

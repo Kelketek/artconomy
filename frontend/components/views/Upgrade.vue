@@ -15,7 +15,7 @@
           <template v-slot:default v-if="selection === null">
             <v-row>
               <v-col cols="12" md="4" class="mt-3" v-for="(plan, index) in plans" :key="plan.id">
-                <v-card style="height: 100%" :color="$vuetify.theme.current.colors['well-darken-2']"
+                <v-card style="height: 100%" :color="current.colors['well-darken-2']"
                         class="d-flex flex-column">
                   <v-card-text>
                     <v-row>
@@ -186,6 +186,7 @@ import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
 import ClientSecret from '@/types/ClientSecret.ts'
+import {useTheme} from 'vuetify'
 
 const props = defineProps<SubjectiveProps>()
 const {viewer} = useViewer()
@@ -195,6 +196,7 @@ const router = useRouter()
 const selection = ref<null|string>(null)
 const paid = ref(false)
 const cardManager = ref<null | typeof AcCardManager>(null)
+const {current} = useTheme()
 
 const tab = computed(() => {
   if (selection.value === null) {

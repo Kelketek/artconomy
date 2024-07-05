@@ -37,7 +37,7 @@
             <ac-patch-field field-type="ac-tag-field" :patcher="patcher" :autofocus="true"/>
           </v-col>
           <v-col cols="12" v-show="!editing">
-            <v-chip v-for="tag in patcher.rawValue" :key="tag" class="mx-1" :color="$vuetify.theme.current.colors['well-darken-4']">
+            <v-chip v-for="tag in patcher.rawValue" :key="tag" class="mx-1" :color="current.colors['well-darken-4']">
               <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
             </v-chip>
           </v-col>
@@ -61,6 +61,7 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {mdiTagMultiple} from '@mdi/js'
 import {computed, ref} from 'vue'
+import {useTheme} from 'vuetify'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
@@ -73,6 +74,7 @@ declare interface AcTagDisplayProps {
   scope: string,
 }
 
+const {current} = useTheme()
 const props = withDefaults(defineProps<AcTagDisplayProps & SubjectiveProps>(), {editable: false})
 
 const {isRegistered, isStaff} = useViewer()

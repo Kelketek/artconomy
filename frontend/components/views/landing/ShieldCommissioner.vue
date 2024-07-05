@@ -81,7 +81,7 @@
       </v-row>
       <v-row no-gutters>
         <v-col class="text-center" cols="12">
-          <v-btn large color="green" @click="search" :block="$vuetify.display.xs" variant="flat" class="commission-cta">
+          <v-btn large color="green" @click="search" :block="xs" variant="flat" class="commission-cta">
             <v-icon left :icon="mdiPalette"/>
             Commission an Artist Now!
           </v-btn>
@@ -102,8 +102,10 @@ import {BASE_URL} from '@/lib/lib.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {mdiPalette} from '@mdi/js'
+import {useDisplay} from 'vuetify'
 
 const router = useRouter()
+const {xs} = useDisplay()
 
 const fridge = new URL('/static/images/fridge.png', BASE_URL).href
 const forbidden = new URL('/static/images/403.png', BASE_URL).href

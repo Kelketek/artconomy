@@ -88,7 +88,7 @@
       <v-tab v-if="!isCases" :to="{name: 'Cancelled' + baseName, params: {username}}">Cancelled</v-tab>
     </v-tabs>
     <v-window>
-      <router-view :key="$route.path"></router-view>
+      <router-view :key="route.path"></router-view>
     </v-window>
     <ac-form-dialog v-if="isSales" v-bind="broadcastForm.bind" v-model="showBroadcast"
                     @submit.prevent="broadcastForm.submitThen(() => {confirmBroadcast = true})">

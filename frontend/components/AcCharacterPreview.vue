@@ -1,5 +1,5 @@
 <template>
-  <v-responsive v-if="$vuetify.display.smAndDown || mini" aspect-ratio="1" class="character" :class="{unavailable}">
+  <v-responsive v-if="smAndDown || mini" aspect-ratio="1" class="character" :class="{unavailable}">
     <v-card>
       <v-card-text class="pa-2">
         <v-row no-gutters>
@@ -62,6 +62,9 @@ import AcAsset from './AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {Character} from '@/store/characters/types/Character.ts'
 import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
+
+const {smAndDown} = useDisplay()
 
 declare interface AcCharacterPreviewProps {
   character: Character,

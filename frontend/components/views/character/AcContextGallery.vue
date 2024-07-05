@@ -13,9 +13,9 @@
                   :contain="true"
                   :compact="true"
                   :aspect-ratio="null"
-                  :show-footer="$vuetify.display.lgAndUp"
+                  :show-footer="lgAndUp"
               />
-              <v-col class="shrink text-center pt-2" v-if="more && $vuetify.display.mdAndUp">
+              <v-col class="shrink text-center pt-2" v-if="more && mdAndUp">
                 <v-btn color="primary" variant="flat" :to="{name: 'CharacterGallery', params: {username, characterName}}">See all
                   Uploads
                 </v-btn>
@@ -32,7 +32,7 @@
                     :show-footer="false"
                 />
               </v-col>
-              <v-col cols="12" class="text-center pt-2" v-if="more && $vuetify.display.smAndDown">
+              <v-col cols="12" class="text-center pt-2" v-if="more && smAndDown">
                 <v-btn color="primary" variant="flat" :to="{name: 'CharacterGallery', params: {username, characterName}}">See all
                   Uploads
                 </v-btn>
@@ -59,7 +59,7 @@ import {useDisplay} from 'vuetify'
 const props = defineProps<CharacterProps>()
 
 const character = useCharacter(props)
-const display = useDisplay()
+const {smAndDown, mdAndUp, lgAndUp} = useDisplay()
 
 character.submissions.firstRun()
 
@@ -85,7 +85,7 @@ const prunedSubmissions = computed(() => {
 const featuredClasses = computed(() => {
   const single = prunedSubmissions.value.length === 0
   return {
-    'pb-2': display.smAndDown.value,
+    'pb-2': smAndDown.value,
     'v-col-12': true,
     'v-col-md-7': !single,
     'v-col-lg-9': !single,

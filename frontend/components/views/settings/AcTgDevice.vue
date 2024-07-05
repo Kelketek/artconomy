@@ -6,7 +6,7 @@
           <v-card-text>
             <v-row>
               <v-col class="text-center" cols="12" sm="12" order="2" order-sm="1"
-                     :class="{'two-factor-label': $vuetify.display.xs}">
+                     :class="{'two-factor-label': xs}">
                 <!--suppress HtmlUnknownTarget -->
                 <img :src="telegramLogo" style="height: 10vh" alt="Telegram Logo"/>
               </v-col>
@@ -133,6 +133,7 @@
 <script setup lang="ts">
 import {SingleController} from '@/store/singles/controller.ts'
 import {TGDevice} from '@/store/profiles/types/TGDevice.ts'
+import {useDisplay} from 'vuetify'
 import {artCall, BASE_URL} from '@/lib/lib.ts'
 import {useSubject} from '@//mixins/subjective.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
@@ -146,6 +147,7 @@ import {User} from '@/store/profiles/types/User.ts'
 
 const telegramLogo = new URL('/static/images/telegram_logo.svg', BASE_URL).href
 const logo = new URL('/static/images/logo.png', BASE_URL).href
+const {xs} = useDisplay()
 
 declare interface AcTgDeviceProps {
   device: SingleController<TGDevice>

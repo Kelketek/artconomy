@@ -90,7 +90,7 @@
       </v-row>
     </v-container>
   </v-sheet>
-  <v-responsive v-else-if="$vuetify.display.smAndDown || mini" aspect-ratio="1" :class="{unavailable}"
+  <v-responsive v-else-if="smAndDown || mini" aspect-ratio="1" :class="{unavailable}"
                 class="product-preview">
     <v-card>
       <v-container fluid class="pa-2">
@@ -235,6 +235,7 @@ import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
 import {RouteLocationRaw} from 'vue-router'
 import {mdiShieldHalfFull} from '@mdi/js'
 import {computed} from 'vue'
+import {useDisplay} from 'vuetify'
 
 declare interface AcProductPreviewProps {
   product: Product,
@@ -254,6 +255,8 @@ const props = withDefaults(defineProps<AcProductPreviewProps>(), {
   linked: true,
   eager: false,
 })
+
+const {smAndDown} = useDisplay()
 
 const startingPrice = computed(() => {
   if (props.forceShield) {

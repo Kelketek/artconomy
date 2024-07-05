@@ -145,7 +145,7 @@
             <v-toolbar color="secondary" dense>
               <v-toolbar-title>You might also like...</v-toolbar-title>
             </v-toolbar>
-            <v-card :color="$vuetify.theme.current.colors['well-darken-4']">
+            <v-card :color="current.colors['well-darken-4']">
               <v-card-text class="px-0" v-if="character.recommended">
                 <ac-load-section :controller="character.recommended">
                   <template v-slot:default>
@@ -192,6 +192,7 @@ import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {textualize} from '@/lib/markdown.ts'
 import {mdiCheckCircle, mdiAlert, mdiUpload} from '@mdi/js'
+import {useTheme} from 'vuetify'
 
 const props = defineProps<CharacterProps>()
 
@@ -200,6 +201,7 @@ const {controls} = useSubject(props)
 const {editing} = useEditable(controls)
 const {ageCheck, isRegistered} = useViewer()
 const toolbar = ref(null)
+const {current} = useTheme()
 
 const character = useCharacter(props)
 character.profile.get().catch(setError)

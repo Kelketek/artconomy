@@ -15,25 +15,25 @@
           <v-col class="grow">
             <v-row no-gutters>
               <v-col cols="6">
-                <v-btn :to="{name: 'SearchProducts', query: $route.query}" density="comfortable" block class="rounded-0" variant="flat">
+                <v-btn :to="{name: 'SearchProducts', query: route.query}" density="comfortable" block class="rounded-0" variant="flat">
                   <v-icon left :icon="mdiBasket"/>
                   Products
                 </v-btn>
               </v-col>
               <v-col cols="6">
-                <v-btn :to="{name: 'SearchSubmissions', query: $route.query}" density="comfortable" block class="rounded-0" variant="flat">
+                <v-btn :to="{name: 'SearchSubmissions', query: route.query}" density="comfortable" block class="rounded-0" variant="flat">
                   <v-icon left :icon="mdiImage"/>
                   Submissions
                 </v-btn>
               </v-col>
               <v-col cols="6">
-                <v-btn :to="{name: 'SearchCharacters', query: $route.query}" density="comfortable" block class="rounded-0" variant="flat">
+                <v-btn :to="{name: 'SearchCharacters', query: route.query}" density="comfortable" block class="rounded-0" variant="flat">
                   <v-icon left :icon="mdiAccount"/>
                   Characters
                 </v-btn>
               </v-col>
               <v-col cols="6">
-                <v-btn :to="{name: 'SearchProfiles', query: $route.query}" density="comfortable" block class="rounded-0" variant="flat">
+                <v-btn :to="{name: 'SearchProfiles', query: route.query}" density="comfortable" block class="rounded-0" variant="flat">
                   <v-icon left :icon="mdiAccountCircle"/>
                   Profiles
                 </v-btn>

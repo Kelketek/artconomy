@@ -52,8 +52,6 @@ export interface ArtVueGlobals {
   // Vue Router
   $router: Router,
   $route: RouteLocation,
-  // Vuetify
-  $vuetify: ReturnType<typeof createVuetify>
   $nextTick: (callBack?: () => void) => Promise<void>,
   $root: ArtVueInterface,
   $menuTarget: string|false,

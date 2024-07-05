@@ -64,7 +64,7 @@
         </ac-comment-section>
         <v-row no-gutters>
           <v-col class="text-center" cols="12" v-if="!inConversation">
-            <v-btn @click="locked = !locked" :block="$vuetify.display.xs" class="lock-toggle" variant="flat">
+            <v-btn @click="locked = !locked" :block="xs" class="lock-toggle" variant="flat">
               <v-icon v-if="locked" left :icon="mdiLock"/>
               <v-icon v-else left :icon="mdiLockOpen"/>
               <span v-if="locked">Unlock to allow outside comment.</span>
@@ -92,6 +92,7 @@ import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useViewer} from '@/mixins/viewer.ts'
+import {useDisplay} from 'vuetify'
 
 
 const props = defineProps<SubjectiveProps & {conversationId: number}>()
@@ -99,6 +100,7 @@ const router = useRouter()
 const {rawViewerName} = useViewer()
 const {setError} = useErrorHandling()
 const locked = ref(true)
+const {xs} = useDisplay()
 
 const url = computed(() => {
   return `/api/profiles/account/${props.username}/conversations/${props.conversationId}/`
