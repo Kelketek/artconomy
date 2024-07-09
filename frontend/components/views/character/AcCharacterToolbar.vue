@@ -146,4 +146,6 @@ const deleteCharacter = async () => {
     })
   })
 }
+
+defineExpose({showUpload})
 </script>

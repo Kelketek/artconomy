@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false"
                           :show-edit="true" ref="toolbar" @success="addSubmission" :visit="!showChangePrimary"/>
     <ac-load-section :controller="character.profile" tag="v-layout" class="mt-3">
@@ -47,7 +47,7 @@
                             <v-row>
                               <v-col cols="12" class="text-center">
                                 <!-- @vue-ignore -->
-                                <v-btn color="green" variant="flat" class="upload-button" @click="$refs.toolbar.showUpload = true">
+                                <v-btn color="green" variant="flat" class="upload-button" @click="toolbar!.showUpload = true">
                                   <v-icon left :icon="mdiUpload"/>
                                   Upload new Submission
                                 </v-btn>
@@ -200,7 +200,7 @@ const {setError} = useErrorHandling()
 const {controls} = useSubject(props)
 const {editing} = useEditable(controls)
 const {ageCheck, isRegistered} = useViewer()
-const toolbar = ref(null)
+const toolbar = ref<null|typeof AcCharacterToolbar>(null)
 const {current} = useTheme()
 
 const character = useCharacter(props)

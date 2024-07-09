@@ -58,7 +58,7 @@ import {Asset} from '@/types/Asset.ts'
 import {md} from '@/lib/markdown.ts'
 import {useTargets} from '@/plugins/targets.ts'
 
-const props = defineProps<{asset: Asset, compact: boolean, popOut: boolean}>()
+const props = defineProps<{asset: Asset, compact?: boolean, popOut?: boolean}>()
 const response = ref<string|null>(null)
 const toggle = ref(false)
 const {modalTarget} = useTargets()

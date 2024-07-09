@@ -122,7 +122,7 @@ export async function confirmAction(wrapper: VueWrapper<any>, selectors: string[
   try {
     await waitFor(() => wrapper.findComponent('.v-overlay--active .confirmation-button').trigger('click'))
   } catch (e) {
-    console.log(wrapper.html())
+    console.log('Confirmation dialog missing in:', wrapper.html())
     throw e
   }
 }

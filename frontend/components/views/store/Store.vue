@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0">
     <router-view v-if="!currentRoute"/>
-    <v-container v-else>
+    <v-container fluid v-else>
       <ac-profile-header :username="username" v-if="!store.state.iFrame"/>
       <ac-subjective-product-list :username="username"/>
     </v-container>

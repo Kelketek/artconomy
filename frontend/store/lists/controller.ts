@@ -84,6 +84,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
 
   public makeReady = (array: T[]) => {
     this.setList(array)
+    this.kill()
     this.fetching = false
     this.ready = true
   }

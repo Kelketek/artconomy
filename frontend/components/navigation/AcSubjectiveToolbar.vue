@@ -1,5 +1,5 @@
 <template>
-  <v-toolbar :dense="true" color="black" class="subjective-toolbar">
+  <v-toolbar density="compact" color="black" class="subjective-toolbar">
     <slot name="avatar">
       <ac-avatar :username="username" :show-name="false" class="ml-3" />
       <v-toolbar-title class="ml-1">
@@ -7,23 +7,18 @@
       </v-toolbar-title>
     </slot>
     <v-spacer/>
-    <v-toolbar-items v-if="!display.xs.value">
+    <v-toolbar-items v-if="!xs">
       <slot/>
     </v-toolbar-items>
   </v-toolbar>
-  <v-toolbar v-if="display.xs.value" dense class="subjective-mini-buttons" height="32px">
-    <slot/>
+  <v-toolbar v-if="xs" :dense="true" class="subjective-mini-buttons" density="compact">
+    <v-toolbar-items>
+      <slot/>
+    </v-toolbar-items>
   </v-toolbar>
 </template>
 
 <style>
-.subjective-mini-buttons .v-toolbar__content {
-  justify-content: center; }
-.subjective-mini-buttons .v-toolbar__content .v-btn {
-  padding: 0 4px;
-  font-size: 80%; }
-.subjective-mini-buttons .v-toolbar__content .v-btn .v-icon--left {
-  margin-right: 4px; }
 </style>
 
 <script setup lang="ts">
@@ -37,7 +32,5 @@ import {profileLink} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<SubjectiveProps>()
 const {subjectHandler, subject} = useSubject(props)
-const display = useDisplay()
-// @ts-ignore
-window.display = display
+const {xs} = useDisplay()
 </script>

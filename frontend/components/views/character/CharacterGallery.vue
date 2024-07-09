@@ -1,5 +1,5 @@
 <template>
-  <v-container>
+  <v-container fluid>
     <ac-load-section :controller="character.profile">
       <ac-character-toolbar :username="username" :character-name="characterName"
                             @success="character.submissions.unshift" :visit="false"/>

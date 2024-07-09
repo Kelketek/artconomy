@@ -53,7 +53,7 @@ export const useSearchField = (searchForm: FormController, list: ListController<
     if (list.ready || list.fetching || list.failed) {
       list.reset().catch(searchForm.setErrors)
     } else {
-      list.get().catch(searchForm.setErrors)
+      list.get()?.catch(searchForm.setErrors)
     }
   }
 

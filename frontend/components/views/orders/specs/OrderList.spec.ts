@@ -3,10 +3,10 @@ import {
   confirmAction,
   createTestRouter,
   mount,
-  rs, sleep,
-  vueSetup,
-  VuetifyWrapped,
+  rs,
   waitFor,
+  waitForSelector,
+  vueSetup,
 } from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import OrderList from '@/components/views/orders/OrderList.vue'
@@ -15,11 +15,10 @@ import {genOrder, genProduct} from '@/specs/helpers/fixtures.ts'
 import {afterEach, describe, expect, test, beforeEach} from 'vitest'
 import {Router} from 'vue-router'
 import {nextTick} from 'vue'
+import flushPromises from 'flush-promises'
 
 let wrapper: VueWrapper<typeof OrderList>
 let router: Router
-
-const WrappedOrderList = VuetifyWrapped(OrderList)
 
 describe('OrderList.vue', () => {
   beforeEach(() => {
@@ -30,8 +29,8 @@ describe('OrderList.vue', () => {
   })
   test('Recognizes when it is on the waiting list page.', async() => {
     wrapper = mount(OrderList, {
-      ...vueSetup({
-router,
+        ...vueSetup({
+        router,
       }),
       props: {
         type: 'sales',
@@ -39,13 +38,13 @@ router,
         username: 'Fox',
       },
     })
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm
     expect(vm.salesWaiting).toBe(true)
     await wrapper.setProps({category: 'current'})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.salesWaiting).toBe(false)
     await wrapper.setProps({category: 'orders'})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.salesWaiting).toBe(false)
   })
   test('Loads state from query', async() => {
@@ -57,7 +56,7 @@ router,
     })
     wrapper = mount(OrderList, {
       ...vueSetup({
-router,
+        router,
       }),
       props: {
         type: 'sales',
@@ -75,47 +74,45 @@ router,
       id: 10,
       name: 'stuff',
     })), request)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.showProduct).toBe(true)
     expect(vm.productInitItems.length).toBe(1)
     expect(vm.productInitItems[0].name).toBe('stuff')
   })
-  // Test is broken, not clear why-- vm is not getting populated. Tested manually and it is working at the time of this commit.
-  // test('Clears a waitlist', async() => {
-  //   wrapper = mount(WrappedOrderList, {
-  //     ...vueSetup({extraPlugins: [router]}),
-  //     props: {
-  //       type: 'sales',
-  //       category: 'waiting',
-  //       username: 'Fox',
-  //     },
-  //   })
-  //   // Why is this an empty object? Tests are failing now.
-  //   const vm = wrapper.vm.$refs.vm as any
-  //   console.log(vm)
-  //   vm.list.makeReady([])
-  //   await vm.$nextTick()
-  //   vm.searchForm.fields.product.update(100)
-  //   await vm.$nextTick()
-  //   await confirmAction(wrapper, ['.clear-waitlist'])
-  //   await vm.$nextTick()
-  //   const request = mockAxios.getReqByUrl('/api/sales/account/Fox/products/100/clear-waitlist/')
-  //   mockAxios.mockResponse(rs(undefined), request)
-  //   await vm.$nextTick()
-  //   expect(vm.list.ready).toBe(false)
-  // })
+  test('Clears a waitlist', async() => {
+    wrapper = mount(OrderList, {
+      ...vueSetup({router}),
+      props: {
+        type: 'sales',
+        category: 'waiting',
+        username: 'Fox',
+      },
+    })
+    const vm = wrapper.vm
+    vm.list.makeReady([])
+    await nextTick()
+    vm.searchForm.fields.product.update(100)
+    await waitForSelector(wrapper, '.clear-waitlist:not([disabled])')
+    await confirmAction(wrapper, ['.clear-waitlist'])
+    await nextTick()
+    const request = mockAxios.getReqByUrl('/api/sales/account/Fox/products/100/clear-waitlist/')
+    mockAxios.mockResponse(rs(undefined), request)
+    await flushPromises()
+    await nextTick()
+    await waitFor(() => expect(vm.list.ready).toBe(false))
+    // Force readiness to prevent promise issues as we close out.
+    vm.list.makeReady([])
+  })
   test('Displays orders in a tabulated manner', async() => {
     wrapper = mount(OrderList, {
       ...vueSetup({
-router,
+        router,
       }),
       props: {
         type: 'sales',
         category: 'waiting',
         username: 'Fox',
       },
-      mocks: {$route: {query: {}}},
-      stubs: ['router-link'],
     })
     const vm = wrapper.vm as any
     vm.list.makeReady(
@@ -132,6 +129,6 @@ router,
       ],
     )
     vm.dataMode = true
-    await vm.$nextTick()
+    await nextTick()
   })
 })
