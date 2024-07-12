@@ -20,7 +20,7 @@
                     :save-indicator="false"
                     color="primary"
                     :patcher="subjectHandler.artistProfile.patchers.commissions_closed"
-                ></ac-patch-field>
+                />
               </v-col>
               <v-col cols="12" sm="6" md="3">
                 <ac-patch-field
@@ -31,7 +31,7 @@
                     :patcher="artistProfile.patchers.auto_withdraw"
                     :save-indicator="false"
                     color="primary"
-                    :persistent-hint="true"></ac-patch-field>
+                    :persistent-hint="true" />
               </v-col>
               <v-col cols="12" sm="6" md="3">
                 <ac-patch-field
@@ -40,7 +40,8 @@
                     hint="Allows people to see what orders you're currently working on."
                     :patcher="artistProfile.patchers.public_queue"
                     :save-indicator="false"
-                    :persistent-hint="true"></ac-patch-field>
+                    color="primary"
+                    :persistent-hint="true" />
               </v-col>
               <v-col cols="12" sm="6" md="3">
                 <v-row no-gutters>
@@ -52,8 +53,7 @@
                         :min="1"
                         step="1"
                         :max="100"
-                    >
-                    </ac-patch-field>
+                    />
                   </v-col>
                   <v-col cols="12">
                     <div class="v-messages mb-1">
@@ -72,7 +72,7 @@
                         type="number"
                         :save-indicator="false"
                         step="1"
-                    ></ac-patch-field>
+                    />
                   </v-col>
                 </v-row>
               </v-col>
