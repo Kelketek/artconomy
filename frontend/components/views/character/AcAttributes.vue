@@ -78,7 +78,6 @@
 </style>
 
 <script setup lang="ts">
-import deepEqual from 'fast-deep-equal'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
@@ -103,7 +102,7 @@ const character = useCharacter(props)
 
 const cancelSource = ref(new AbortController())
 
-const newAttribute = useForm(`${character.attributes.name}__newAttribute`, {
+const newAttribute = useForm(`${character.attributes.name.value}__newAttribute`, {
   endpoint: character.attributes.endpoint,
   fields: {
     key: {value: ''},

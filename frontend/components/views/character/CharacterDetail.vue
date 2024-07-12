@@ -253,9 +253,9 @@ const primarySubmissionText = computed(() => {
   if (character.profile.x && character.profile.x.primary_submission) {
     const title = character.profile.x.primary_submission.title
     if (!title) {
-      return `Untitled Focus Submission for ${character.profile.name}`
+      return `Untitled Focus Submission for ${character.profile.x.name}`
     }
-    return `Focus Submission for ${character.profile.name} titled: ${title}`
+    return `Focus Submission for ${character.profile.x.name} titled: ${title}`
   }
   return ''
 })

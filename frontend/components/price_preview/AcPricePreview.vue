@@ -154,7 +154,6 @@ const {
   rawLineItems,
   baseItems,
   addOns,
-  addForms,
   extras,
   priceData,
   rawPrice,
@@ -216,7 +215,7 @@ const postSubmitAdd = (form: FormController) => {
   form.submitThen(props.lineItems.uniquePush).then(() => {
     const line = props.lineItems.list[props.lineItems.list.length - 1]
     nextTick(() => {
-      const element = el.value?.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
+      const element = el.value?.$el.querySelector(`#lineItem-${line.x!.id}-description`) as HTMLElement
       element.focus()
     })
   })

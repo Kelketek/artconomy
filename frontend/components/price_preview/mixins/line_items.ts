@@ -6,7 +6,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
 
 export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
-  const addOnForm = useForm(`${props.lineItems.name}_addOn`, {
+  const addOnForm = useForm(`${props.lineItems.name.value}_addOn`, {
     endpoint: props.lineItems.endpoint,
     fields: {
       amount: {
@@ -18,7 +18,7 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
       percentage: {value: 0},
     },
   })
-  const extraForm = useForm(`${props.lineItems.name}_extra`, {
+  const extraForm = useForm(`${props.lineItems.name.value}_extra`, {
     endpoint: props.lineItems.endpoint,
     fields: {
       amount: {
