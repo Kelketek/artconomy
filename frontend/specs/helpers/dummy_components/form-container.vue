@@ -5,20 +5,9 @@
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {ArtVue} from '@/lib/lib.ts'
+import {useForm} from '@/store/forms/hooks.ts'
 
-@Component({
-  components: {AcFormContainer},
-})
-class FormContainer extends ArtVue {
-  public basicForm: FormController = null as unknown as FormController
-  public created() {
-    this.basicForm = this.$getForm('basicForm', {endpoint: '/endpoint/', fields: {}})
-  }
-}
-export default toNative(FormContainer)
+const basicForm = useForm('basicForm', {endpoint: '/endpoint/', fields: {}})
 </script>

@@ -3,7 +3,7 @@
     <v-card-text>
       <v-row>
         <v-col cols="12" v-if="label">
-          <label :for="$attrs.id as string || undefined" class="v-label">{{label}}</label>
+          <label :for="attrs.id as string || undefined" class="v-label">{{label}}</label>
         </v-col>
         <v-col cols="12" class="text-center hidden-sm-and-down">
           <v-btn-toggle v-model="scratch" mandatory elevation="3" variant="flat">
@@ -65,7 +65,7 @@
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
 import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
 import {Ratings} from '@/types/Ratings.ts'
-import {computed} from 'vue'
+import {computed, useAttrs} from 'vue'
 
 
 const props = withDefaults(defineProps<{
@@ -86,5 +86,6 @@ const scratch = computed({
 })
 
 const {passedProps} = useExtendedInput(props)
+const attrs = useAttrs()
 const ratingLabels = Object.values(RATINGS_SHORT)
 </script>

@@ -5,14 +5,12 @@
   </div>
 </template>
 
-<script lang="ts">
-import {Component, mixins, Prop, toNative} from 'vue-facing-decorator'
-import Editable from '@/mixins/editable.ts'
+<script setup lang="ts">
+import {useEditable} from '@/mixins/editable.ts'
+import {computed} from 'vue'
 
-@Component({})
-class EditableComponent extends mixins(Editable) {
-    @Prop()
-    public controls!: boolean
-}
-export default toNative(EditableComponent)
+const props = defineProps<{controls: boolean}>()
+const controls = computed(() => props.controls)
+
+const {editing} = useEditable(controls)
 </script>

@@ -1,13 +1,6 @@
-import {Component, Vue} from 'vue-facing-decorator'
 import {RouteLocationNormalizedLoaded, useRoute} from 'vue-router'
 import {computed} from 'vue'
 
-@Component
-export default class Nav extends Vue {
-  public get fullInterface() {
-    return checkForFullInterface(this.$route)
-  }
-}
 
 const checkForFullInterface = (route: RouteLocationNormalizedLoaded) => {
   const name = String(route.name || '')

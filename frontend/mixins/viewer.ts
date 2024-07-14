@@ -1,11 +1,8 @@
-import {Component, mixins} from 'vue-facing-decorator'
 import {differenceInYears} from 'date-fns'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {ProfileController} from '@/store/profiles/controller.ts'
-import {userHandle} from '@/store/profiles/handles.ts'
 import {Ratings} from '@/types/Ratings.ts'
-import ErrorHandling from '@/mixins/ErrorHandling.ts'
 import {useStore} from 'vuex'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
@@ -129,6 +126,7 @@ export const useViewer = () => {
   const rating = computed(() => getRating(viewer.value))
   const rawRating = computed(() => getRawRating(viewer.value))
   const unverifiedInTheocracy = computed(() => theocraticBan.value && !viewer.value.verified_adult)
+  const landscape = computed(() => hasLandscape(viewer.value))
 
   return {
     viewer,
@@ -144,68 +142,7 @@ export const useViewer = () => {
     rawRating,
     theocraticBan,
     unverifiedInTheocracy,
+    landscape,
     ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer.value, args),
-  }
-}
-
-// Deprecated.
-@Component
-export default class Viewer extends mixins(ErrorHandling) {
-  public viewerHandler: ProfileController = null as unknown as ProfileController
-  @userHandle('viewerHandler')
-  public viewer!: User|AnonUser|null
-
-  public get rating(): Ratings {
-    return getRating(this.viewer)
-  }
-
-  public get rawRating() {
-    return getRawRating(this.viewer)
-  }
-
-  public get isLoggedIn(): boolean {
-    return loginCheck(this.viewer)
-  }
-
-  public get isSuperuser(): boolean {
-    return checkSuperuser(this.isLoggedIn, this.viewer)
-  }
-
-  public get isRegistered(): boolean {
-    return checkRegistered(this.isLoggedIn, this.viewer)
-  }
-
-  public get isStaff(): boolean {
-    return checkStaff(this.isLoggedIn, this.viewer)
-  }
-
-  public get landscape() {
-    return hasLandscape(this.viewer)
-  }
-
-  public get viewerName() {
-    return this.viewerHandler.displayName
-  }
-
-  public get rawViewerName() {
-    return this.$store.state.profiles!.viewerRawUsername
-  }
-
-  public get adultAllowed() {
-    return isAdultAllowed(this.viewerHandler, this.theocraticBan)
-  }
-
-  public get theocraticBan() {
-    return window.THEOCRATIC_BAN
-  }
-
-  public ageCheck({value, force}: {value: number, force?: boolean}) {
-    ageCheck(this.$store, this.viewer!,{value, force})
-  }
-
-  public created() {
-    this.viewerHandler = this.$getProfile(
-      this.rawViewerName, {persistent: true, viewer: true},
-    )
   }
 }

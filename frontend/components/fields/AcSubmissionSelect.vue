@@ -1,7 +1,7 @@
 <template>
   <v-input v-bind="passedProps" class="ac-uppy-file">
     <v-col class="text-center mb-2" v-if="label">
-      <v-label :for="$attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
+      <v-label :for="attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
     </v-col>
     <ac-paginated :list="submissionList" class="submission-list-container" v-if="submissionList">
       <template v-slot:default>
@@ -47,7 +47,7 @@ import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/e
 import {genId} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import {computed, ref, watch} from 'vue'
+import {computed, ref, useAttrs, watch} from 'vue'
 import {useTheme} from 'vuetify'
 import {mdiCheckCircle} from '@mdi/js'
 
@@ -70,6 +70,7 @@ const props = withDefaults(defineProps<AcSubmissionSelectProps & Partial<Extende
 })
 
 const {current} = useTheme()
+const attrs = useAttrs()
 
 const {passedProps, errorFocused, errorColor} = useExtendedInput(props)
 

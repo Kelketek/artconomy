@@ -14,8 +14,6 @@ import {nextTick} from 'vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {setViewer} from '@/lib/lib.ts'
 
-const WrappedDeliverableDetail = VuetifyWrapped(DeliverableDetail)
-
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
@@ -32,7 +30,10 @@ describe('DeliverableDetail.vue', () => {
     cleanUp(wrapper)
     mockScrollIntoView.mockReset()
   })
-  const getControllers = ({orderId, deliverableId}: {orderId: string, deliverableId: string}) => {
+  const getControllers = ({
+    orderId,
+    deliverableId,
+  }: { orderId: string, deliverableId: string }) => {
     const empty = mount(Empty, vueSetup({store})).vm
     const baseName = `order${orderId}__deliverable${deliverableId}`
     return {
@@ -55,12 +56,12 @@ describe('DeliverableDetail.vue', () => {
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Sale',
           username: 'Fox',
         },
@@ -79,22 +80,25 @@ router,
     setViewer(store, vulpes)
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
-      WrappedDeliverableDetail, {
+      DeliverableDetail, {
         ...vueSetup({
           store,
           router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
       })
     const deliverableDef = genDeliverable()
     deliverableDef.status = DeliverableStatus.COMPLETED
-    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const {deliverable} = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(deliverableDef)
     await nextTick()
     mockAxios.reset()
@@ -118,15 +122,15 @@ router,
     setViewer(store, genUser())
     await router.push('/orders/Fox/order/1/')
     wrapper = mount(
-      WrappedDeliverableDetail, {
+      DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
@@ -145,15 +149,15 @@ router,
     setViewer(store, user)
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
-      WrappedDeliverableDetail, {
+      DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
@@ -173,15 +177,15 @@ router,
     setViewer(store, genUser())
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
-      WrappedDeliverableDetail, {
+      DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
@@ -190,7 +194,10 @@ router,
     deliverableDef.product = null
     deliverableDef.status = DeliverableStatus.COMPLETED
     deliverableDef.revisions_hidden = false
-    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const {deliverable} = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(deliverableDef)
     await nextTick()
     await wrapper.find('.collection-add').trigger('click')
@@ -202,15 +209,15 @@ router,
     setViewer(store, user)
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
-      WrappedDeliverableDetail, {
+      DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
@@ -221,7 +228,10 @@ router,
     deliverableDef.status = DeliverableStatus.COMPLETED
     deliverableDef.order.claim_token = 'sdvi397awr'
     deliverableDef.revisions_hidden = false
-    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const {deliverable} = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(deliverableDef)
     await nextTick()
     await wrapper.find('.collection-add').trigger('click')
@@ -239,17 +249,20 @@ router,
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const {deliverable} = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     const deliverableDef = genDeliverable()
     deliverableDef.order.seller = user
     deliverable.makeReady(deliverableDef)
@@ -264,17 +277,20 @@ router,
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const {deliverable} = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     const deliverableDef = genDeliverable()
     deliverableDef.order.seller = user
     deliverable.makeReady(deliverableDef)
@@ -290,12 +306,12 @@ router,
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: '__1',
         },
@@ -304,7 +320,10 @@ router,
     deliverableDef.order.buyer = {...user}
     deliverableDef.order.claim_token = 'sdvi397awr'
     deliverableDef.revisions_hidden = false
-    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const {deliverable} = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(deliverableDef)
     await nextTick()
     await wrapper.find('.link-account').trigger('click')
@@ -321,17 +340,24 @@ router,
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['ac-revision-manager'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Fox',
         },
       })
-    const {deliverable, revisions, addSubmission} = getControllers({orderId: "1", deliverableId: "5"})
+    const {
+      deliverable,
+      revisions,
+      addSubmission,
+    } = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(genDeliverable())
     revisions.makeReady([])
     await nextTick()
@@ -357,18 +383,25 @@ router,
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['router-link'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Order',
           username: 'Vulpes',
         },
       })
     const deliverableDef = genDeliverable({id: 1})
-    const {deliverable, parentDeliverables, viewSettings} = getControllers({orderId: "1", deliverableId: "5"})
+    const {
+      deliverable,
+      parentDeliverables,
+      viewSettings,
+    } = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(deliverableDef)
     parentDeliverables.setList([genDeliverable(({id: 1}))])
     viewSettings.patchers.showAddDeliverable.model = true
@@ -396,17 +429,24 @@ router,
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['router-link'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Sale',
           username: 'Fox',
         },
       })
-    const {deliverable, references, newInvoice} = getControllers({orderId: "1", deliverableId: "5"})
+    const {
+      deliverable,
+      references,
+      newInvoice,
+    } = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(genDeliverable())
     references.setList([{
       id: 1,
@@ -433,17 +473,20 @@ router,
       DeliverableDetail, {
         ...vueSetup({
           store,
-router,
+          router,
           stubs: ['router-link'],
         }),
         props: {
-          orderId: "1",
-          deliverableId: "5",
+          orderId: '1',
+          deliverableId: '5',
           baseName: 'Sale',
           username: 'Fox',
         },
       })
-    const {deliverable} = getControllers({orderId: "1", deliverableId: "5"})
+    const {deliverable} = getControllers({
+      orderId: '1',
+      deliverableId: '5',
+    })
     deliverable.makeReady(genDeliverable())
     await nextTick()
     expect(mockAxios.getReqByUrl('/api/sales/account/Vulpes/products/1/')).toBeTruthy

@@ -2,7 +2,7 @@ import {computed} from 'vue'
 
 
 export interface ExtendedInputProps {
-  label: string,
+  label?: string,
   errorMessages?: string[],
 }
 

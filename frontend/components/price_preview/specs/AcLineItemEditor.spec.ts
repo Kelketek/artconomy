@@ -1,6 +1,6 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, mount, vueSetup, VuetifyWrapped} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {dummyLineItems, genLineItem} from '@/lib/specs/helpers.ts'
 import AcLineItemEditor from '@/components/price_preview/AcLineItemEditor.vue'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
@@ -8,7 +8,6 @@ import {LineTypes} from '@/types/LineTypes.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
-import vue from '@vitejs/plugin-vue'
 import {nextTick} from 'vue'
 
 let store: ArtStore

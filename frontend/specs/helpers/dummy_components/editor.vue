@@ -5,18 +5,11 @@
   </div>
 </template>
 
-<script lang="ts">
-import {Component, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcEditor from '@/components/fields/AcEditor.vue'
-import {ArtVue} from '@/lib/lib.ts'
+import {ref} from 'vue'
 
-@Component({
-  components: {AcEditor},
-})
-class Editor extends ArtVue {
-  public stuff = ''
-  public things = ''
-  public base = ''
-}
-export default toNative(Editor)
+const stuff = ref('')
+const things = ref('')
+const base = ref('')
 </script>

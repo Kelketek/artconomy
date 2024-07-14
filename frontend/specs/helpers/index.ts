@@ -271,6 +271,7 @@ export const mockStripe = () => {
   return stripeInstance
 }
 
+// For components which MUST be wrapped in a true vuetify container. Most shouldn't need this.
 export function VuetifyWrapped(component: ReturnType<typeof defineComponent>) {
   return defineComponent({
     components: {wrapped: component},

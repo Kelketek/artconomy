@@ -2,7 +2,7 @@
   <v-input v-bind="passedProps" class="ac-uppy-file" v-if="uppy">
     <div class="flex flex-column">
       <div class="flex text-center" v-if="label">
-        <v-label :for="$attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
+        <v-label :for="attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
       </div>
       <div class="flex text-center" :id="uppyId">
         <v-col class="dashboard-container"/>
@@ -47,7 +47,7 @@
 
 <script setup lang="ts">
 import Uppy, {UppyFile} from '@uppy/core'
-import {toRaw, markRaw, ref, watch, onMounted} from 'vue'
+import {toRaw, markRaw, ref, watch, onMounted, useAttrs} from 'vue'
 import Dashboard from '@uppy/dashboard'
 import XHRUpload from '@uppy/xhr-upload'
 import Url from '@uppy/url'
@@ -142,6 +142,8 @@ const {passedProps, errorColor, errorFocused} = useExtendedInput(props)
 const emit = defineEmits<{'update:modelValue': [string|string[]|null]}>()
 
 const originalState = ref({})
+
+const attrs = useAttrs()
 
 const uppySingle = useSingle(props.uppyId, {
   x: {},

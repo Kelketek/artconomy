@@ -42,7 +42,6 @@
     "sortablejs-vue3": "^1.2.11",
     "uuid": "^9.0.1",
     "vue": "^3.4.21",
-    "vue-facing-decorator": "^3.0.4",
     "vue-observe-visibility": "^2.0.0-alpha.1",
     "vue-router": "^4.3.2",
     "vuetify": "^3.5.12",

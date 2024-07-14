@@ -6,7 +6,6 @@ import {
   mount,
   rs,
   vueSetup,
-  VuetifyWrapped,
   waitFor,
 } from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
@@ -17,16 +16,12 @@ import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 import {setViewer} from '@/lib/lib.ts'
-import {router} from '@/router'
-import {useForm} from '@/store/forms/hooks.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
 
 const mockError = vi.spyOn(console, 'error')
-
-const WrappedDummySubmit = VuetifyWrapped(DummySubmit)
 
 describe('AcNewSubmission.vue', () => {
   beforeEach(() => {
@@ -92,7 +87,7 @@ describe('AcNewSubmission.vue', () => {
     setViewer(store, user)
     const router = createTestRouter()
     await router.push({name: 'Profile', params: {username: 'Fox'}, query: {editing: 'false'}})
-    wrapper = mount(WrappedDummySubmit, {
+    wrapper = mount(DummySubmit, {
       ...vueSetup({
         store,
         router,

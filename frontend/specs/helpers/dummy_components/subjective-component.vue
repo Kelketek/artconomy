@@ -2,23 +2,21 @@
   <div :id="id"></div>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Subjective from '@/mixins/subjective.ts'
+<script setup lang="ts">
+import {useSubject} from '@/mixins/subjective.ts'
+import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import {computed} from 'vue'
+import {useRoute} from 'vue-router'
 
-@Component
-class SubjectiveComponent extends mixins(Subjective) {
-  public get id() {
-    if (this.$route) {
-      return (String(this.$route.name) + '-component').toLowerCase()
-    } else {
-      return 'subjective-component'
-    }
+const props = withDefaults(defineProps<SubjectiveProps & {isPrivate?: boolean, isProtected?: boolean}>(), {isPrivate: false, isProtected: false})
+const route = useRoute()
+const subjectValues = useSubject(props, props.isPrivate, props.isProtected)
+defineExpose(subjectValues)
+
+const id = computed(() => {
+  if (route.name) {
+    return (String(route.name) + '-component').toLowerCase()
   }
-}
-export default toNative(SubjectiveComponent)
+  return 'subjective-component'
+})
 </script>
-
-<style scoped>
-
-</style>

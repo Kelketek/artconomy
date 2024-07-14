@@ -2,12 +2,8 @@
   <div></div>
 </template>
 
-<script lang="ts">
-import {Component, mixins, toNative} from 'vue-facing-decorator'
-import Viewer from '@/mixins/viewer.ts'
+<script setup lang="ts">
+import {useViewer} from '@/mixins/viewer.ts'
 
-@Component
-class ViewerComponent extends mixins(Viewer) {
-}
-export default toNative(ViewerComponent)
+defineExpose(useViewer())
 </script>

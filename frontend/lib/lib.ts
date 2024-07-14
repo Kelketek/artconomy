@@ -12,8 +12,6 @@ import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import cloneDeep from 'lodash/cloneDeep'
 import {LogLevels} from '@/types/LogLevels.ts'
-import {Vue} from 'vue-facing-decorator'
-import {ArtVueClassInterface} from '@/types/ArtVueClassInterface.ts'
 import {Ratings} from '@/types/Ratings.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
 import {FieldController} from '@/store/forms/field-controller.ts'
@@ -564,9 +562,6 @@ export const paypalTokenToUrl = (invoiceToken: string, sender: boolean): string 
   return `${baseUrl}${extension}`
 }
 
-export const ArtVue = Vue as ArtVueClassInterface
-
-
 /**
  * Class decorator which makes all getters/setters computed properties for use by Vue 3's reactivity system.
  * The target class must have a Map defined on it named __getterMap.
@@ -575,6 +570,10 @@ export const ArtVue = Vue as ArtVueClassInterface
  * If you need to access any refs within the getter functions, you will need to use `toRaw` to normalize them
  * as reference objects. Otherwise, Vue's internal proxying will sometimes give you raw values and other times
  * give you the reference objects depending on how the function is called.
+ *
+ * This getup is needed because there are so many parts of the code that expect 'raw access' to these values Vue 2
+ * style that changing the controllers to use .value for all their computed properties would be a massive, error-prone
+ * undertaking, and it would be more verbose than I'd like anyway.
 */
 export function ComputedGetters<T extends Function> (
   Wrapped: T,

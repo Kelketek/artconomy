@@ -4,20 +4,9 @@
   </v-app>
 </template>
 
-<script lang="ts">
-import {Component, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {ArtVue} from '@/lib/lib.ts'
+import {ref} from 'vue'
 
-@Component({
-  components: {AcFormDialog},
-})
-class FormDialogContainer extends ArtVue {
-  public expanded = false
-}
-export default toNative(FormDialogContainer)
+const expanded = ref(false)
 </script>
-
-<style scoped>
-
-</style>

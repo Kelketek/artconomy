@@ -15,7 +15,7 @@
       item-value="id"
       :item-title="formatName"
       ref="input"
-      v-bind="$attrs"
+      v-bind="attrs"
   />
 </template>
 
@@ -28,12 +28,13 @@ import {
   useAutocomplete,
 } from '@/components/fields/mixins/autocomplete.ts'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
-import {ref} from 'vue'
+import {ref, useAttrs} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 
 const props = withDefaults(defineProps<AutocompleteProps>(), autocompleteDefaults())
 const {rawViewerName} = useViewer()
 const input = ref<null|typeof VAutocomplete>(null)
+const attrs = useAttrs()
 
 const emit = defineEmits<{'update:modelValue': [AutocompleteEmits]}>()
 const {tags, query, items, itemFilter} = useAutocomplete(props, emit, input, '/api/profiles/search/character/')

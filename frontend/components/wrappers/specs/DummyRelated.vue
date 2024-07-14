@@ -16,39 +16,15 @@
   </v-col>
 </template>
 
-<script lang="ts">
-import {Component, toNative} from 'vue-facing-decorator'
+<script setup lang="ts">
 import AcRelatedManager from '../AcRelatedManager.vue'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {ListController} from '@/store/lists/controller.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {ArtVue} from '@/lib/lib.ts'
+import {useList} from '@/store/lists/hooks.ts'
+import {useForm} from '@/store/forms/hooks.ts'
 
-@Component({
-  components: {
-    AcBoundField,
-    AcAvatar,
-    AcRelatedManager,
-  },
-})
-class DummyRelated extends ArtVue {
-  public demoList: ListController<User> = null as unknown as ListController<User>
-  public userForm: FormController = null as unknown as FormController
-
-  public created() {
-    this.demoList = this.$getList('demoList', {
-      endpoint: '/endpoint/',
-      paginated: false,
-    })
-    this.userForm = this.$getForm('userForm', {
-      endpoint: '/endpoint/',
-      fields: {user_id: {value: null}},
-    })
-    this.demoList.get().then()
-  }
-}
-
-export default toNative(DummyRelated)
+const demoList = useList<User>('demoList', {endpoint: '/endpoint/', paginated: false})
+const userForm = useForm('userForm', {endpoint: '/endpoint/', fields: {user_id: {value: null}}})
+demoList.firstRun()
 </script>
