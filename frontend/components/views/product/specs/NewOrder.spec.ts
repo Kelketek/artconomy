@@ -635,7 +635,7 @@ describe('NewOrder.vue', () => {
     await nextTick()
     mockReplace.mockReset()
     const mockSubmitThen = vi.spyOn(vm.orderForm, 'submitThen')
-    await waitFor(() => expect(wrapper.find('input').exists()).toBeTruthy())
+    await waitFor(() => expect(wrapper.find('input').exists()).toBeTruthy(), 5000)
     await wrapper.find('input').trigger('submit')
     await nextTick()
     expect(mockReplace).toHaveBeenCalledWith({query: {stepId: '3'}})

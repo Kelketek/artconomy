@@ -5,11 +5,12 @@ import flushPromises from 'flush-promises'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {UppyFile} from '@uppy/core'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {nextTick} from 'vue'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
 
-describe('ac-uppy-file.vue', () => {
+describe('AcUppyFile.vue', () => {
   beforeEach(() => {
     store = createStore()
   })
@@ -88,8 +89,8 @@ describe('ac-uppy-file.vue', () => {
         bytesUploaded: 100,
       },
     };
-    (wrapper.vm as any).uppy.setState({files: {1: file}});
-    (wrapper.vm as any).uppy.emit('upload-success', file, {body: {id: 'wat'}})
+    wrapper.vm.uppy.setState({files: {1: file}})
+    wrapper.vm.uppy.emit('upload-success', file, {body: {id: 'wat'}})
     expect(wrapper.emitted('update:modelValue')![0]).toEqual(['wat'])
   })
   test('Handles multiple files.', async() => {
@@ -119,7 +120,7 @@ describe('ac-uppy-file.vue', () => {
         bytesUploaded: 100,
       },
     }
-    const vm = wrapper.vm as any
+    const vm = wrapper.vm
     vm.uppy.setState({files: {1: file}})
     vm.uppy.emit('upload-success', file, {body: {id: 'do'}})
     expect(wrapper.emitted('update:modelValue')![0]).toEqual([['wat', 'do']])
@@ -127,8 +128,8 @@ describe('ac-uppy-file.vue', () => {
   test('Sets the proper label color when there are no errors.', async() => {
     const errorMessages: string[] = []
     wrapper = makeUppy({errorMessages, modelValue: '', label: 'Beep'})
-    await wrapper.vm.$nextTick()
-    const vm = wrapper.vm as any
+    await nextTick()
+    const vm = wrapper.vm
     expect(vm.errorColor).toBe('primary')
   })
   test('Sets the proper label color when there are errors.', async() => {
@@ -139,7 +140,7 @@ describe('ac-uppy-file.vue', () => {
       errorMessages,
       uppyId: 'uppyTest',
     })
-    await wrapper.vm.$nextTick()
+    await nextTick()
     const vm = wrapper.vm as any
     expect(vm.errorColor).toBe('red')
   })

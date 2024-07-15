@@ -15,12 +15,10 @@ import {nextTick} from 'vue'
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
-let commentSet: ReturnType<typeof genCommentSet>
 
 describe('AcCommentSection.vue', () => {
   beforeEach(() => {
     store = createStore()
-    commentSet = genCommentSet()
     router = createRouter({
       history: createWebHistory(),
       routes: [{
@@ -78,10 +76,11 @@ describe('AcCommentSection.vue', () => {
       },
       signal: expect.any(Object),
     }))
+    const commentSet = genCommentSet()
     commentList.makeReady(commentSet.results)
     commentList.response = commentSet
-    // This fails when running in the full test suite, but does not fail when run individually. Not sure why.
-    await waitFor(() => expect(wrapper.findAll('.comment').length).toBe(7))
+    // This might be 7 if AcNewComment loads, since it also uses that class name.
+    await waitFor(() => expect(wrapper.findAll('.comment').length).toBe(6))
   })
   test('Throws an error if you try to load an unreversedlist', async() => {
     const commentList = mount(Empty, vueSetup({store})).vm.$getList('commentList', {

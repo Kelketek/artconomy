@@ -82,7 +82,9 @@ class ArtconomyUppyStore<T extends GenericState = GenericState> {
 
   public set state(val: T) {
     this.stateStore = markRaw(val)
-    this.single.setX(val)
+    if (!this.single.purged) {
+      this.single.setX(val)
+    }
   }
 
   public setState(patch?: Partial<T>): void {

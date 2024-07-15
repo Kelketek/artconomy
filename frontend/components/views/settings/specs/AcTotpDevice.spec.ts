@@ -3,13 +3,11 @@ import AcTotpDevice from '../AcTotpDevice.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
-  createVuetify,
-  docTarget,
   flushPromises,
   mount,
   rq,
   vueSetup,
-  VuetifyWrapped,
+  VuetifyWrapped, waitForSelector,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {ListController} from '@/store/lists/controller.ts'
@@ -18,6 +16,7 @@ import mockAxios from '@/specs/helpers/mock-axios.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {nextTick} from 'vue'
 
 const qrImageUrl = 'otpauth://totp/Artconomy%20Dev%3Afox%40vulpinity.com?secret=KJZWLZLDMVY3XJAX72V4WAXDKKZZDA76' +
   '&algorithm=SHA1&digits=6&period=30&issuer=Artconomy+Dev'
@@ -126,7 +125,7 @@ describe('AcTotpDevice.vue', () => {
       config_url: qrImageUrl,
       name: 'Phone',
     }])
-    wrapper = mount(WrappedDevice, {
+    wrapper = mount(AcTotpDevice, {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
@@ -135,10 +134,12 @@ describe('AcTotpDevice.vue', () => {
     })
     const form = wrapper.vm.$getForm('1_totpForm')
     form.fields.code.update('123456')
-    wrapper.vm.$refs.vm.step = 3
-    await wrapper.vm.$nextTick()
+    wrapper.vm.step = 3
+    await nextTick()
+    mockAxios.reset()
+    await waitForSelector(wrapper, '.submit-button')
     await wrapper.find('.submit-button').trigger('click')
     expect(mockAxios.request).toHaveBeenCalledWith(
-      rq('/api/profiles/account/Fox/auth/two-factor/totp/1/', 'patch', {code: '123 456'}, {}))
+      rq('/test/1/', 'patch', {code: '123 456'}, {}))
   })
 })

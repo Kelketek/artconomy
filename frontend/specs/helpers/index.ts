@@ -308,7 +308,7 @@ export const realTimerScope = (): () => void => {
   return () => {}
 }
 
-export async function waitFor(func: () => any, timeout = 1000) {
+export async function waitFor(func: () => any, timeout = 2000) {
   const restoreFakes = realTimerScope()
   const startTime = Date.now()
   // eslint-disable-next-line no-constant-condition

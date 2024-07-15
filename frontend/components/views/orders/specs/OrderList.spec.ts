@@ -16,6 +16,7 @@ import {afterEach, describe, expect, test, beforeEach} from 'vitest'
 import {Router} from 'vue-router'
 import {nextTick} from 'vue'
 import flushPromises from 'flush-promises'
+import {VDataTable} from 'vuetify/lib/components/VDataTable/index.mjs'
 
 let wrapper: VueWrapper<typeof OrderList>
 let router: Router
@@ -101,7 +102,8 @@ describe('OrderList.vue', () => {
     await nextTick()
     await waitFor(() => expect(vm.list.ready).toBe(false))
     // Force readiness to prevent promise issues as we close out.
-    vm.list.makeReady([])
+    vm.list.kill()
+    await nextTick()
   })
   test('Displays orders in a tabulated manner', async() => {
     wrapper = mount(OrderList, {
@@ -128,7 +130,10 @@ describe('OrderList.vue', () => {
         }),
       ],
     )
+    await nextTick()
+    expect(wrapper.findComponent(VDataTable).exists()).toBeFalsy()
     vm.dataMode = true
     await nextTick()
+    await waitFor(() => expect(wrapper.findComponent(VDataTable).exists()).toBeTruthy())
   })
 })

@@ -6,11 +6,16 @@ import {useGoTo} from 'vuetify'
 export const useQuestionSet = (questions: string[]) => {
   const router = useRouter()
   const route = useRoute()
+  const routeName = route.name
 
   const attempts = ref(0)
   const goTo = useGoTo()
 
   const updatePath = (value: number) => {
+    if (route.name != routeName) {
+      // We've moved to a different route-- bail.
+      return
+    }
     const params: {[key: string]: any} = {}
     params.question = questions[value]
     const newParams = Object.assign({}, route.params, params)

@@ -333,7 +333,7 @@ describe('AcComment.vue', () => {
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
-    commentList.setList(commentSet.results)
+    commentList.makeReady(commentSet.results)
     wrapper = mount(WrappedAcComment, {
       ...vueSetup({
         store,
@@ -350,7 +350,7 @@ describe('AcComment.vue', () => {
         nesting: false,
       },
     })
-    const vm = wrapper.findComponent(AcComment).vm as any
+    const vm = wrapper.findComponent(AcComment).vm
     expect(vm.comment.x).toBeTruthy()
     await nextTick()
     mockAxios.reset()

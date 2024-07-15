@@ -25,6 +25,9 @@ export const useSearchField = (searchForm: FormController, list: ListController<
   })
 
   const rawUpdate = (newData: RawData) => {
+    if (list.purged) {
+      return
+    }
     const newParams = makeQueryParams(newData)
     /* istanbul ignore next */
     const oldParams = makeQueryParams(list.params || {})
