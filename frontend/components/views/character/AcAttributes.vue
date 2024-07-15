@@ -22,7 +22,7 @@
               <v-row no-gutters class="text-center">
                 <ac-confirmation :action="attribute.delete">
                   <template v-slot:default="{on}">
-                    <v-btn color="red" icon small type="submit" v-on="on">
+                    <v-btn color="red" icon variant="plain" size="small" type="submit" v-on="on">
                       <v-icon :icon="mdiDelete"/>
                     </v-btn>
                   </template>

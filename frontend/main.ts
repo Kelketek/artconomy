@@ -4,7 +4,7 @@ import {
   replayIntegration,
 } from '@sentry/vue'
 import {createApp, h} from 'vue'
-import {createStore} from './store/index.ts'
+import {createStore} from '@/store/index.ts'
 import App from './App.vue'
 import {configureHooks, router} from '@/router/index.ts'
 import {createForms} from '@/store/forms/registry.ts'

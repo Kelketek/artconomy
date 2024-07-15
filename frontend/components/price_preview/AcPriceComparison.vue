@@ -5,7 +5,7 @@
         <v-card>
           <v-card-text>
             <v-card-title v-if="!single">{{name}}</v-card-title>
-            <ac-price-preview :line-items="lineItems" :username="username" :hide-hourly-form="!single"/>
+            <ac-price-preview :line-items="lineItems" :username="username" :hide-hourly-form="!single" :is-seller="true"/>
             <v-row no-gutters>
               <v-col cols="12" class="text-center" v-if="offerExists">
                 <v-btn
