@@ -126,6 +126,12 @@
       .tag-search-link {
           font-weight: bold;
       }
+      .markdown-rendered h1, .markdown-rendered h2, .markdown-rendered h3, .markdown-rendered h4, .markdown-rendered h5, .markdown-rendered h6, .markdown-rendered ul {
+          margin-bottom: 1rem;
+      }
+      .markdown-rendered ul {
+          margin-left: 1rem;
+      }
   </style>
   {% for link in preload_images %}
   <link rel="preload" as="image" href="{{link}}" />

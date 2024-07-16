@@ -1,11 +1,11 @@
 import {markRaw} from 'vue'
-import MarkDownIt from 'markdown-it'
+import markdownit from 'markdown-it'
 import Token from 'markdown-it/lib/token'
 import {Options} from 'markdown-it/lib'
 import Renderer from 'markdown-it/lib/renderer'
 import StateInline from 'markdown-it/lib/rules_inline/state_inline'
 
-export const md = markRaw(new MarkDownIt({
+export const md = markRaw(markdownit({
   linkify: true,
   breaks: true,
 }))

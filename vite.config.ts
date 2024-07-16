@@ -87,7 +87,7 @@ export default defineConfig({
       ],
       output: {
         manualChunks: {
-          vueCore: ['vue', 'vuetify', 'vuex', 'vue-facing-decorator', 'vue-router'],
+          vueCore: ['vue', 'vuetify', 'vuex', 'vue-router'],
           vueStyles: ['vuetify/styles'],
           captcha: ['@hcaptcha/vue3-hcaptcha', '@/components/fields/AcCaptchaField.vue'],
           navAssist: ['@/components/navigation/AcTabs.vue', '@/components/AcTab.vue', '@/components/wrappers/AcLoadSection.vue', '@/components/wrappers/AcLoadingSpinner.vue'],

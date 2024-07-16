@@ -100,7 +100,7 @@ export default defineComponent({
       if (props.inline) {
         return rendered.value[0]
       }
-      return h(props.tag, {class: props.classes}, [...rendered.value, ...readMore.value])
+      return h(props.tag, {class: {'markdown-rendered': true, ...props.classes}}, [...rendered.value, ...readMore.value])
     }
   }
 })

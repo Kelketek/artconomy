@@ -33,7 +33,7 @@
     "list-diff.js": "^0.1.0",
     "lodash.clonedeep": "^4.5.0",
     "lodash.debounce": "^4.0.8",
-    "markdown-it": "^13.0.2",
+    "markdown-it": "^14.1.0",
     "qrcode": "^1.5.3",
     "reconnecting-websocket": "^4.4.0",
     "roboto-fontface": "*",
