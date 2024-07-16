@@ -187,7 +187,7 @@ const props = withDefaults(defineProps<SubjectiveProps & { dense?: boolean, show
   dense: false,
   showEdit: false,
 })
-const {rawViewerName, isStaff, isRegistered} = useViewer()
+const {rawViewerName, isStaff, isRegistered, viewer} = useViewer()
 const {subject, subjectHandler, isCurrent, controls} = useSubject(props)
 const {editing} = useEditable(controls)
 const router = useRouter()
@@ -218,11 +218,17 @@ const visitConversation = (response: Conversation) => {
   })
 }
 
-watch(subject, (value) => {
-  /* istanbul ignore if */
-  if (!value) {
+const updateParticipants = () => {
+  if (!subject.value) {
     return
   }
-  newConversation.fields.participants.model = [value.id]
-})
+  const us = viewer.value as User
+  if (!us || !us.id) {
+    return
+  }
+  newConversation.fields.participants.model = [subject.value.id, us.id]
+}
+
+watch(subject, updateParticipants, {immediate: true})
+watch(viewer, updateParticipants, {immediate: true})
 </script>
