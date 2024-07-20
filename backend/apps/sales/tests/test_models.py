@@ -479,12 +479,35 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
 
     @override_settings(AUTO_CANCEL_DAYS=5)
     @freeze_time("2023-01-01")
+    def test_no_auto_cancel_on_comment_with_auto_cancel_disabled(self):
+        deliverable = DeliverableFactory.create(status=NEW, auto_cancel_disabled=True)
+        self.assertIsNone(deliverable.auto_cancel_on)
+        with freeze_time(date(2023, 1, 3)):
+            CommentFactory.create(
+                top=deliverable,
+                content_object=deliverable,
+                user=deliverable.order.buyer,
+            )
+            deliverable.refresh_from_db()
+            self.assertIsNone(deliverable.auto_cancel_on)
+
+    @override_settings(AUTO_CANCEL_DAYS=5)
+    @freeze_time("2023-01-01")
     def test_no_set_auto_cancel_on_seller_issued(self):
         user = UserFactory.create()
         deliverable = DeliverableFactory.create(
             status=NEW,
             order__seller=user,
             created_by=user,
+        )
+        self.assertIsNone(deliverable.auto_cancel_on)
+
+    @override_settings(AUTO_CANCEL_DAYS=5)
+    @freeze_time("2023-01-01")
+    def test_no_set_auto_cancel_on_auto_cancel_disabled(self):
+        deliverable = DeliverableFactory.create(
+            status=NEW,
+            auto_cancel_disabled=True,
         )
         self.assertIsNone(deliverable.auto_cancel_on)
 

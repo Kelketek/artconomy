@@ -154,6 +154,9 @@ class TestDeliverableStatusChange(APITestCase):
         self.state_assertion(
             "seller", "make-new/", initial_status=WAITING, target_status=NEW
         )
+        self.deliverable.refresh_from_db()
+        self.assertTrue(self.deliverable.auto_cancel_disabled)
+        self.assertIsNone(self.deliverable.auto_cancel_on)
 
     def test_accept_deliverable_waitlist(self, _mock_notify):
         idempotent_lines(self.deliverable)

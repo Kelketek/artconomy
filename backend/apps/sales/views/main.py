@@ -834,6 +834,7 @@ class MakeNew(GenericAPIView):
         deliverable = self.get_object()
         self.check_object_permissions(request, deliverable)
         deliverable.status = NEW
+        deliverable.auto_cancel_disabled = True
         deliverable.save()
         data = self.serializer_class(
             instance=deliverable, context=self.get_serializer_context()

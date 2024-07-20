@@ -456,6 +456,7 @@ class Deliverable(Model):
     revisions = IntegerField(default=0)
     revisions_hidden = BooleanField(default=True)
     final_uploaded = BooleanField(default=False)
+    auto_cancel_disabled = BooleanField(default=False)
     details = TextField(max_length=5000)
     notes = TextField(max_length=5000, blank=True, default="")
     adjustment_expected_turnaround = DecimalField(
@@ -581,7 +582,12 @@ class Deliverable(Model):
     def new_comment(self, comment):
         if self.status != NEW:
             return
-        if comment.user == self.order.seller or self.created_by == self.order.seller:
+        exemptions = [
+            comment.user == self.order.seller,
+            self.created_by == self.order.seller,
+            self.auto_cancel_disabled,
+        ]
+        if any(exemptions):
             self.auto_cancel_on = None
         else:
             self.auto_cancel_on = timezone.now() + relativedelta(
@@ -590,7 +596,12 @@ class Deliverable(Model):
         self.save()
 
     def save(self, *args, **kwargs):
-        if self.status == NEW and not self.id and not self.auto_cancel_on:
+        if (
+            self.status == NEW
+            and not self.id
+            and not self.auto_cancel_on
+            and not self.auto_cancel_disabled
+        ):
             if (
                 self.order.deliverables.all().count() == 0
                 and self.created_by != self.order.seller
@@ -601,7 +612,7 @@ class Deliverable(Model):
                 )
             else:
                 self.auto_cancel_on = None
-        elif self.status is not NEW:
+        elif self.status is not NEW or self.auto_cancel_disabled:
             self.auto_cancel_on = None
         if self.table_order:
             self.escrow_enabled = True
