@@ -261,7 +261,7 @@
                     <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span> included.
                   </span>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="12" v-if="deliveryDate">
                   <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate!)}}</strong></span>
                 </v-col>
               </v-row>
