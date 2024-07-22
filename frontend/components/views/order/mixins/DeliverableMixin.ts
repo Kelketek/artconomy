@@ -259,7 +259,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     if (deliverable.x.paid_on) {
       time = parseISO(deliverable.x.paid_on)
     } else {
-      time = new Date()
+      return null
     }
     return addBusinessDays(time, Math.ceil(expectedTurnaround.value))
   })

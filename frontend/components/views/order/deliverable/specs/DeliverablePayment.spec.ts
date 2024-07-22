@@ -268,11 +268,11 @@ describe('DeliverablePayment.vue', () => {
     })
     vm.deliverable.setX(deliverable)
     vm.deliverable.ready = true
+    expect(vm.deliveryDate).toEqual(null)
+    vm.deliverable.updateX({paid_on: parseISO('2020-08-01').toISOString()})
+    await nextTick()
     // August first is a saturday. Sunday, then two work days, plus one more day for adjustment.
     expect(vm.deliveryDate).toEqual(parseISO('2020-08-06'))
-    vm.deliverable.updateX({paid_on: parseISO('2020-06-01').toISOString()})
-    await nextTick()
-    expect(vm.deliveryDate).toEqual(parseISO('2020-06-05'))
   })
   test('Handles a Stripe Payment boop', async() => {
     const fox = genUser()
