@@ -1255,7 +1255,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         mock_drip.post.assert_not_called()
 
 
-class TestPromoteTopProducts(EnsurePlansMixin, TestCase):
+class TestPromoteTopSellers(EnsurePlansMixin, TestCase):
     def test_promote_top_sellers(self):
         to_unmark = ProductFactory.create(
             user__featured=True,
@@ -1269,6 +1269,11 @@ class TestPromoteTopProducts(EnsurePlansMixin, TestCase):
         unrated = ProductFactory.create(user__stars=None, user__username="Unrated")
         not_in_the_running = ProductFactory.create(
             user__stars=5, user__username="NotInTheRunning"
+        )
+        disqualified = ProductFactory.create(
+            user__stars=5,
+            user__username="Disqualified",
+            user__is_active=False,
         )
         created_on = utc_now() - relativedelta(months=1)
         # One less factory creation per order.
@@ -1315,6 +1320,14 @@ class TestPromoteTopProducts(EnsurePlansMixin, TestCase):
                 status=QUEUED,
                 created_on=utc_now() - relativedelta(months=2),
             )
+        for i in range(6):
+            DeliverableFactory.create(
+                order__buyer=buyer,
+                order__seller=disqualified.user,
+                product=disqualified,
+                status=QUEUED,
+                created_on=created_on,
+            )
         promote_top_sellers()
         for label, user in [
             ("to_mark", to_mark.user),
@@ -1329,6 +1342,7 @@ class TestPromoteTopProducts(EnsurePlansMixin, TestCase):
             ("unrated", unrated.user),
             ("not_in_the_running", not_in_the_running.user),
             ("to_unmark", to_unmark.user),
+            ("disqualified", disqualified.user),
         ]:
             user.refresh_from_db()
             try:

@@ -759,6 +759,7 @@ def promote_top_sellers(reference_date: Optional[str] = None):
     users = (
         User.objects.filter(stars__gte=4.5)
         .exclude(stars=None)
+        .exclude(is_active=False)
         .annotate(
             month_sales=Count(
                 "sales",
