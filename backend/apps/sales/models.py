@@ -740,6 +740,7 @@ class Order(Model):
     )
     claim_token = ShortCodeField(blank=True, null=True)
     customer_email = EmailField(blank=True)
+    customer_display_name = CharField(max_length=40, default="")
     created_on = DateTimeField(db_index=True, default=timezone.now)
     private = BooleanField(default=False)
     hide_details = BooleanField(default=False)

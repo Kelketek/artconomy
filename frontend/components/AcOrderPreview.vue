@@ -32,7 +32,8 @@
                 (Pending)
               </span>
           </v-col>
-          <v-col cols="12" v-if="order.x.guest_email">
+          <v-col cols="12" v-if="order.x.customer_display_name">{{order.x.customer_display_name}}</v-col>
+          <v-col cols="12" v-else-if="order.x.guest_email">
             <strong>{{order.x.guest_email}}</strong>
           </v-col>
           <v-col cols="12">

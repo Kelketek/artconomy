@@ -42,7 +42,7 @@
                     <span v-else>Order</span>
                     #{{ order.x.id }} <span v-if="!isSeller || !(is(s.NEW) || is(s.WAITING))">- [{{ deliverable.x.name }}] Details:</span>
                   </h2>
-                  <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name"
+                <ac-patch-field :patcher="deliverable.patchers.name" label="Deliverable Name"
                                   v-if="isSeller && (is(s.NEW) || is(s.WAITING))"></ac-patch-field>
                 </v-col>
                 <v-col cols="12" md="12" order="2" order-md="3" v-if="isSeller">
@@ -74,9 +74,14 @@
                 </v-col>
               </v-row>
               <v-col
-                  v-if="isSeller && unregisteredBuyer && !(is(s.COMPLETED) || is(s.DISPUTED) || is(s.REFUNDED) || is(s.CANCELLED))"
+                  v-if="isSeller && (unregisteredBuyer || guestBuyer) && !(is(s.COMPLETED) || is(s.DISPUTED) || is(s.REFUNDED) || is(s.CANCELLED))"
                   cols="12">
-                <ac-form @submit.prevent="orderEmail.submitThen(markInviteSent)">
+                <ac-patch-field
+                    :patcher="order.patchers.customer_display_name"
+                    hint="Enter a name to show on your order page to help you remember who ordered this. If the user
+                    registers, we will use their username instead."
+                    label="Display name" />
+                <ac-form @submit.prevent="orderEmail.submitThen(markInviteSent)" v-if="unregisteredBuyer">
                   <ac-form-container v-bind="orderEmail.bind">
                     <v-row dense class="justify-content" align-content="center">
                       <v-col>
@@ -269,6 +274,8 @@ const showRating = () => {
 }
 
 const unregisteredBuyer = computed(() => !buyer.value || (buyer.value as User).verified_email)
+
+const guestBuyer = computed(() => buyer.value && (buyer.value as User).guest)
 
 const verifiedEmail = computed(() => buyer.value && (buyer.value as User).verified_email)
 

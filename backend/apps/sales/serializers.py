@@ -507,6 +507,7 @@ class OrderViewSerializer(
                 self.instance.buyer.guest and not self.instance.buyer.verified_email
             ):
                 self.fields["customer_email"].read_only = False
+                self.fields["customer_display_name"].read_only = False
             self.fields["hide_details"].read_only = False
         if not self.instance.buyer:
             self.fields["customer_email"].allow_blank = True
@@ -531,6 +532,7 @@ class OrderViewSerializer(
             "private",
             "hide_details",
             "customer_email",
+            "customer_display_name",
             "claim_token",
             "deliverable_count",
             "product_name",
@@ -966,6 +968,7 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
             "product_name",
             "status",
             "guest_email",
+            "customer_display_name",
         )
         read_only_fields = [field for field in fields]
 
