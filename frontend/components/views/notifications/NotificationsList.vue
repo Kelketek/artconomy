@@ -2,29 +2,31 @@
   <v-row no-gutters>
     <ac-paginated :show-pagination="false" :list="notifications">
       <template v-slot:default>
-        <v-col cols="12" md="10" offset-md="1">
+        <v-col cols="12">
           <v-list lines="three">
             <template v-for="(notification, index) in notifications.list">
-              <div
-                  v-if="dynamicComponent(notification.x!.event.type)"
-                  @click.left.capture="clickRead(notification)"
-                  @click.middle.capture="clickRead(notification)"
-                  :key="'container-' + index"
-              >
-                <component :is="dynamicComponent(notification.x!.event.type)"
-                           :key="notification.x!.id" v-observe-visibility="(value: boolean) => markRead(value, notification)"
-                           class="notification" :notification="notification.x" :username="username"
-                />
-              </div>
-              <v-list-item v-else :key="index">
-                <v-row>
-                  <v-col>
-                    {{error(notification.x)}}
-                    {{notification.x}}
-                  </v-col>
-                </v-row>
-              </v-list-item>
-              <v-divider v-if="index + 1 < notifications.list.length" :key="`divider-${index}`"/>
+              <template v-if="!notification.x!.event.recalled">
+                <div
+                    v-if="dynamicComponent(notification.x!.event.type)"
+                    @click.left.capture="clickRead(notification)"
+                    @click.middle.capture="clickRead(notification)"
+                    :key="'container-' + index"
+                >
+                  <component :is="dynamicComponent(notification.x!.event.type)"
+                             :key="notification.x!.id" v-observe-visibility="(value: boolean) => markRead(value, notification)"
+                             class="notification" :notification="notification.x" :username="username"
+                  />
+                </div>
+                <v-list-item v-else :key="index">
+                  <v-row>
+                    <v-col>
+                      {{error(notification.x)}}
+                      {{notification.x}}
+                    </v-col>
+                  </v-row>
+                </v-list-item>
+                <v-divider v-if="index + 1 < notifications.list.length" :key="`divider-${index}`"/>
+              </template>
             </template>
           </v-list>
         </v-col>
@@ -105,7 +107,7 @@ const components = {
 
 declare interface NotificationsListProps extends SubjectiveProps {
   autoRead?: boolean,
-  subset: boolean,
+  subset: string,
 }
 
 const props = withDefaults(defineProps<NotificationsListProps>(), {autoRead: true})

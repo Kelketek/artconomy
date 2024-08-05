@@ -312,6 +312,7 @@ const getVersion = (versionData: {version: string}) => {
   socketState.updateX({serverVersion: versionData.version})
 }
 
+
 const socketStart = () => {
   sock.addListener('version', 'App', getVersion)
   sock.addListener('viewer', 'App', viewerHandler.user.makeReady)

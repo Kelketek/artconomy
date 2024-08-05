@@ -5,6 +5,7 @@ export default interface AcNotification<T, D> {
     data: D,
     date: string,
     target: T,
+    recalled: boolean,
   },
   read: boolean,
   id: number

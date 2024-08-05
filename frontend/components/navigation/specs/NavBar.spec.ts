@@ -89,7 +89,7 @@ describe('NavBar.vue', () => {
     await waitFor(() => expect(router.currentRoute.value.name).toEqual('Home'))
     expect(store.state.profiles!.viewerRawUsername).toEqual('_')
   })
-  test('Loads the notifications view for an artist', async() => {
+  test('Loads the notifications view', async() => {
     setViewer(store, genUser({artist_mode: true}))
     wrapper = mount(NavBarContainer, vueSetup({
       store,
@@ -99,27 +99,7 @@ describe('NavBar.vue', () => {
     await router.isReady()
     await nextTick()
     await wrapper.find('.notifications-button').trigger('click')
-    await waitFor(() => expect(router.currentRoute.value.name).toEqual('SalesNotifications'))
-    await wrapper.find('.notifications-button').trigger('click')
-    await nextTick()
-    await waitFor(() => expect(router.currentRoute.value.name).toEqual('Reload'))
-    expect(router.currentRoute.value.params).toEqual({path: '/notifications/Fox/sales/'})
-  })
-  test('Loads the notifications view for a non-artist', async() => {
-    setViewer(store, genUser({artist_mode: false}))
-    wrapper = mount(NavBarContainer, vueSetup({
-      store,
-      router,
-      stubs: ['router-link'],
-    }))
-    await router.isReady()
-    await nextTick()
-    await wrapper.find('.notifications-button').trigger('click')
-    await waitFor(() => expect(router.currentRoute.value.name).toEqual('CommunityNotifications'))
-    await wrapper.find('.notifications-button').trigger('click')
-    await nextTick()
-    await waitFor(() => expect(router.currentRoute.value.name).toEqual('Reload'))
-    expect(router.currentRoute.value.params).toEqual({path: '/notifications/Fox/community/'})
+    await waitFor(() => expect(wrapper.find('.message-center.v-navigation-drawer--active').exists()).toBe(true))
   })
   test('Loads a login link', async() => {
     setViewer(store, genAnon())

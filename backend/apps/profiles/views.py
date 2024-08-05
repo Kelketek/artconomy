@@ -6,6 +6,7 @@ from textwrap import shorten
 from typing import Dict
 
 from apps.lib.abstract_models import GENERAL
+from apps.lib.consumers import send_updated
 from apps.lib.models import (
     ARTIST_TAG,
     CHAR_SHARED,
@@ -51,6 +52,7 @@ from apps.lib.utils import (
     notify,
     preview_rating,
     recall_notification,
+    order_comment_types,
 )
 from apps.lib.views import BasePreview, PositionShift
 from apps.profiles.models import (
@@ -115,6 +117,7 @@ from apps.profiles.serializers import (
     TwoFactorTimerSerializer,
     UsernameValidationSerializer,
     UserSerializer,
+    UnreadNotificationsSerializer,
 )
 from apps.profiles.tasks import drip_subscribe
 from apps.profiles.utils import (
@@ -1053,60 +1056,14 @@ class UserSerializerView:
             return UserInfoSerializer
 
 
-ORDER_COMMENT_TYPES_STORE = None
-
-
-def order_comment_types():
-    global ORDER_COMMENT_TYPES_STORE
-    if ORDER_COMMENT_TYPES_STORE is not None:
-        return ORDER_COMMENT_TYPES_STORE
-    ORDER_COMMENT_TYPES_STORE = (
-        ContentType.objects.get_for_model(Order),
-        ContentType.objects.get_for_model(Reference),
-        ContentType.objects.get_for_model(Revision),
-        ContentType.objects.get_for_model(Deliverable),
-    )
-    return ORDER_COMMENT_TYPES_STORE
-
-
-class UnreadNotifications(GenericAPIView):
+class UnreadNotifications(RetrieveAPIView):
     permission_classes = [IsRegistered, UserControls]
+    serializer_class = UnreadNotificationsSerializer
 
     def get_object(self):
-        return get_object_or_404(User, username=self.kwargs["username"])
-
-    # noinspection PyUnusedLocal
-    def get(self, request, username):
-        user = self.get_object()
+        user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
-        return Response(
-            status=200,
-            data={
-                "count": Notification.objects.filter(user=user, read=False)
-                .exclude(event__recalled=True)
-                .count(),
-                "community_count": Notification.objects.filter(user=user, read=False)
-                .exclude(event__recalled=True)
-                .exclude(event__type__in=ORDER_NOTIFICATION_TYPES)
-                .exclude(
-                    event__type=COMMENT, event__content_type__in=order_comment_types()
-                )
-                .count(),
-                "sales_count": Notification.objects.filter(
-                    user=user,
-                    read=False,
-                )
-                .exclude(event__recalled=True)
-                .filter(
-                    Q(event__type__in=ORDER_NOTIFICATION_TYPES)
-                    | Q(
-                        event__type=COMMENT,
-                        event__content_type__in=order_comment_types(),
-                    )
-                )
-                .count(),
-            },
-        )
+        return user
 
 
 class CommunityNotificationsList(ListAPIView):
@@ -1203,6 +1160,11 @@ class MarkNotificationsRead(BulkUpdateAPIView):
         user = self.get_object()
         self.check_object_permissions(self.request, user)
         return queryset.filter(user=user)
+
+    def bulk_update(self, request, *args, **kwargs):
+        result = super().bulk_update(request, *args, **kwargs)
+        send_updated(self.get_object(), serializers=["UnreadNotificationsSerializer"])
+        return result
 
 
 class WatchListSubmissions(ListAPIView):

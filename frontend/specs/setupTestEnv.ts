@@ -56,3 +56,12 @@ window.fbq = vi.fn();
 
 document.hasFocus = () => true
 clearBody()
+
+const IntersectionObserverMock = vi.fn(() => ({
+  disconnect: vi.fn(),
+  observe: vi.fn(),
+  takeRecords: vi.fn(),
+  unobserve: vi.fn(),
+}))
+
+vi.stubGlobal('IntersectionObserver', IntersectionObserverMock)

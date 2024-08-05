@@ -709,6 +709,7 @@ NOTIFICATION_TYPE_MAP = {
 class EventSerializer(serializers.ModelSerializer):
     target = EventTargetRelatedField(read_only=True)
     data = SerializerMethodField(read_only=True)
+    recalled = BooleanField()
 
     def get_data(self, obj):
         return NOTIFICATION_TYPE_MAP.get(obj.type, lambda x, _: x.data)(
@@ -717,10 +718,11 @@ class EventSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Event
-        fields = ("id", "type", "data", "date", "target")
+        fields = ("id", "type", "data", "date", "target", "recalled")
         read_only_fields = fields
 
 
+@register_serializer
 class NotificationSerializer(serializers.ModelSerializer):
     event = EventSerializer(read_only=True)
 

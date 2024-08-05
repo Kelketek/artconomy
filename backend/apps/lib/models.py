@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import reversion
 from apps.lib.abstract_models import ALLOWED_EXTENSIONS
-from apps.lib.permissions import CommentViewPermission
+from apps.lib.permissions import CommentViewPermission, Any
 from apps.lib.tasks import check_asset_associations, generate_thumbnails
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -27,6 +27,8 @@ from django.utils import timezone
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.signals import saved_file
 from short_stuff import unslugify
+
+from apps.profiles.permissions import UserControls
 from shortcuts import disable_on_load
 
 
@@ -260,6 +262,13 @@ class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     event = models.ForeignKey(Event, on_delete=CASCADE, related_name="notifications")
     read = models.BooleanField(default=False, db_index=True)
+    watch_permissions = {"NotificationSerializer": [UserControls]}
+
+    def announce_channels(self):
+        if self.event.type in ORDER_NOTIFICATION_TYPES:
+            return [f"profiles.User.pk.{self.user.id}.sales_notifications"]
+        else:
+            return [f"profiles.User.pk.{self.user.id}.community_notifications"]
 
 
 class EmailPreference(models.Model):

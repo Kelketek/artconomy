@@ -82,7 +82,6 @@ const CommissionAgreement = () => import('@/components/views/legal/CommissionAgr
 const RefundPolicy = () => import('@/components/views/legal/RefundPolicy.vue')
 const TermsOfService = () => import('@/components/views/legal/TermsOfService.vue')
 const PrivacyPolicy = () => import('@/components/views/legal/PrivacyPolicy.vue')
-const Notifications = () => import('@/components/views/notifications/Notifications.vue')
 const Profile = () => import('@/components/views/profile/Profile.vue')
 const Policies = () => import('@/components/views/legal/Policies.vue')
 const Contact = () => import('@/components/views/Contact.vue')
@@ -272,30 +271,6 @@ export const routes: RouteRecordRaw[] = [
     path: '/contact/',
     name: 'Contact',
     component: Contact,
-  },
-  {
-    path: '/notifications/:username/',
-    name: 'Notifications',
-    component: Notifications,
-    props: true,
-    children: [
-      {
-        name: 'CommunityNotifications',
-        path: 'community/',
-        component: NotificationsList,
-        props(route: RouteLocationNormalized) {
-          return {subset: 'community', autoRead: true, username: route.params.username}
-        },
-      },
-      {
-        name: 'SalesNotifications',
-        path: 'sales/',
-        component: NotificationsList,
-        props(route: RouteLocationNormalized) {
-          return {subset: 'sales', autoRead: false, username: route.params.username}
-        },
-      },
-    ],
   },
   {
     path: '/store/:username/',

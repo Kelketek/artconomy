@@ -68,7 +68,7 @@ def send_new(instance: Model):
             )
 
 
-def send_updated(instance):
+def send_updated(instance, serializers=None):
     """
     Constructs and sends an 'updated' message to send out for an instance.
     """
@@ -76,7 +76,11 @@ def send_updated(instance):
     layer = get_channel_layer()
     app_label = model._meta.app_label
     model_name = model.__name__
-    for serializer_name in [key for key in model.watch_permissions.keys() if key]:
+    if serializers is None:
+        serializers = list(model.watch_permissions.keys())
+    for serializer_name in [
+        key for key in model.watch_permissions.keys() if key and key in serializers
+    ]:
         async_to_sync(layer.group_send)(
             f"{app_label}.{model_name}.update.{serializer_name}.{instance.pk}",
             {

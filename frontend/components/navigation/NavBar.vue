@@ -85,6 +85,7 @@
         </v-row>
       </v-container>
     </v-navigation-drawer>
+    <message-center v-if="isRegistered" :username="rawViewerName" v-model="messagesOpen" />
     <v-app-bar
         color="secondary"
         density="compact"
@@ -149,7 +150,7 @@
       </v-card>
       <ac-stats-bar :username="rawViewerName" v-if="viewer && viewer.artist_mode && fullInterface" />
       <v-toolbar-items v-if="fullInterface">
-        <ac-notification-indicator :username="rawViewerName" v-if="isRegistered" @click="notificationLoad" :key="rawViewerName" />
+        <ac-notification-indicator :username="rawViewerName" v-if="isRegistered" @click="messagesOpen = !messagesOpen" :key="rawViewerName" />
         <v-btn class="nav-login-item" variant="text" v-if="isRegistered"
                :to="profileRoute">
           <v-avatar size="32px">
@@ -214,6 +215,7 @@ import {useDisplay} from 'vuetify'
 import {mdiChatQuestion, mdiMagnify, mdiPencil} from '@mdi/js'
 const AcNotificationIndicator = defineAsyncComponent(() => import('@/components/navigation/AcNotificationIndicator.vue'))
 const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/AcStatsBar.vue'))
+const MessageCenter = defineAsyncComponent(() => import('@/components/navigation/MessageCenter.vue'))
 
 // Should already have been populated in the root component.
 const searchForm = useSearchForm()
@@ -264,19 +266,6 @@ const {
 
 const registeredUser = computed(() => viewer.value as User)
 
-const notificationLoad = () => {
-  if (['CommunityNotifications', 'SalesNotifications'].indexOf(String(route.name) + '') !== -1) {
-    router.replace({
-      name: 'Reload',
-      params: {path: route.path},
-    })
-  } else if (viewer.value?.artist_mode) {
-    router.push({name: 'SalesNotifications', params: {username: rawViewerName.value}})
-  } else {
-    router.push({name: 'CommunityNotifications', params: {username: rawViewerName.value}})
-  }
-}
-
 const showSupport = () => store.commit('supportDialog', true)
 
 const profileRoute = computed(() => {
@@ -287,4 +276,9 @@ const profileRoute = computed(() => {
 })
 
 const sfwMode = computed(() => viewerHandler.user.patchers.sfw_mode)
+
+const messagesOpen = computed<boolean>({
+  get: () => store.state.messagesOpen,
+  set: (val: boolean) => store.commit('setMessagesOpen', val)
+})
 </script>

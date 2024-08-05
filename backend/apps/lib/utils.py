@@ -114,7 +114,7 @@ for code, name in ("AE", "AA", "AP"):
 class RecallNotification(Exception):
     """
     Used during a transform function to recall a notification.
-    For instance, if we're tracking all of the people who commented on a submission
+    For instance, if we're tracking all the people who commented on a submission
     and the only person who commented removed their comment, we'd want to recall the
     event altogether.
     """
@@ -125,10 +125,14 @@ class RecallNotification(Exception):
 
 
 def recall_notification(event_type, target, data=None, unique_data=False):
+    from apps.lib.consumers import send_updated
+
     content_type = target and ContentType.objects.get_for_model(target)
     object_id = target and target.id
     events = get_matching_events(event_type, content_type, object_id, data, unique_data)
     events.update(recalled=True)
+    for notification in Notification.objects.filter(event__in=events):
+        send_updated(notification)
 
 
 def update_event(
@@ -339,6 +343,7 @@ def notify(
     silent_broadcast will not generate any emails or telegram notifications if they
     otherwise would have been generated.
     """
+    from apps.lib.consumers import send_new, send_updated
     from apps.lib.serializers import NOTIFICATION_TYPE_MAP, notification_serialize
 
     if data is None:
@@ -450,17 +455,44 @@ def notify(
     # is now eligible can get one. To do that, we must avoid creating any that already
     # exist if we want to leverage bulk_create. This should be a minority case that
     # won't require too much overhead when it happens, but I suppose we will see.
-    existing = Notification.objects.filter(event=event.id).values_list(
-        "user_id", flat=True
-    )
-    subscriptions = subscriptions.exclude(subscriber_id__in=existing)
-    Notification.objects.bulk_create(
+    existing_user_ids = []
+    existing_resolved = []
+    existing = Notification.objects.filter(event=event.id).prefetch_related("user")
+    for existing in existing:
+        existing_user_ids.append(existing.user_id)
+        existing_resolved.append(existing)
+
+    def update_existing():
+        user_ids = []
+        for existing_notification in existing_resolved:
+            user_ids.append(existing_notification.user_id)
+            send_updated(existing_notification)
+        for user in User.objects.filter(id__in=user_ids):
+            send_updated(user, serializers=["UnreadNotificationsSerializer"])
+
+    transaction.on_commit(update_existing)
+    subscriptions = subscriptions.exclude(subscriber_id__in=existing_user_ids)
+    notifications = Notification.objects.bulk_create(
         (
             Notification(event_id=event.id, user_id=subscriber_id)
             for subscriber_id in subscriptions.values_list("subscriber_id", flat=True)
         ),
         batch_size=1000,
     )
+
+    def send_new_notifications():
+        # The post_save hooks aren't called in bulk_create, so we send them here.
+        user_ids = []
+        for notification in notifications:
+            send_new(notification)
+            user_ids.append(notification.user_id)
+            send_updated(
+                notification.user,
+            )
+        for user in User.objects.filter(id__in=user_ids):
+            send_updated(user, serializers=["UnreadNotificationsSerializer"])
+
+    transaction.on_commit(send_new_notifications)
 
 
 def subscribe(event_type, user, target, implicit=True):
@@ -1283,3 +1315,21 @@ def check_theocratic_ban(ip):
         if all(results):
             return True
     return False
+
+
+ORDER_COMMENT_TYPES_STORE = None
+
+
+def order_comment_types():
+    global ORDER_COMMENT_TYPES_STORE
+    from apps.sales.models import Order, Reference, Revision, Deliverable
+
+    if ORDER_COMMENT_TYPES_STORE is not None:
+        return ORDER_COMMENT_TYPES_STORE
+    ORDER_COMMENT_TYPES_STORE = (
+        ContentType.objects.get_for_model(Order),
+        ContentType.objects.get_for_model(Reference),
+        ContentType.objects.get_for_model(Revision),
+        ContentType.objects.get_for_model(Deliverable),
+    )
+    return ORDER_COMMENT_TYPES_STORE

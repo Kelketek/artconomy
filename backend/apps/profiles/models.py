@@ -332,6 +332,7 @@ class User(AbstractEmailUser, HitsMixin):
     watch_permissions = {
         "UserSerializer": [UserControls],
         "UserInfoSerializer": [],
+        "UnreadNotificationsSerializer": [IsRegistered, UserControls],
         None: [UserControls],
     }
 

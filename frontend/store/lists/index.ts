@@ -55,7 +55,6 @@ export const totalPages = (response: PaginatedResponse | undefined | null) => {
 
 export const pageSizeFromParams = (params: QueryParams) => {
   /* istanbul ignore next */
-  const rawData = {size: 24, ...params}
   return parseInt(`${(params && params.size) || 24}`, 10)
 }
 
@@ -94,6 +93,7 @@ export class ListModule<T extends {}> {
       keyProp: 'id' as keyof T,
       fetching: false,
       reverse: false,
+      prependNew: false,
       failed: false,
       paginated: true,
       params: {},
@@ -123,6 +123,10 @@ export class ListModule<T extends {}> {
       unshift(state, items) {
         const entries = registerItems(this as unknown as Store<any>, state, items)
         state.refs.unshift(...entries)
+      },
+      uniqueUnshift(state, items) {
+        const entries = registerItems(this as unknown as Store<any>, state, items)
+        state.refs.unshift(...entries.filter((ref: string) => state.refs.indexOf(ref) === -1))
       },
       push(state, items) {
         const entries = registerItems(this as unknown as Store<any>, state, items)

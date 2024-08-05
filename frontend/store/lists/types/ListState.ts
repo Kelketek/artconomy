@@ -14,6 +14,7 @@ export interface ListState<T> {
   name: string,
   fetching: boolean,
   reverse: boolean,
+  prependNew: boolean,
   failed: boolean,
   paginated: boolean,
   stale: boolean,

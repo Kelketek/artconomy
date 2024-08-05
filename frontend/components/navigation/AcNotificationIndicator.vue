@@ -16,19 +16,18 @@ import {mdiBell} from '@mdi/js'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {NotificationStats} from '@/types/NotificationStats.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
-import {computed, onBeforeUnmount} from 'vue'
+import {computed} from 'vue'
 import {flatten} from '@/lib/lib.ts'
 
 const props = defineProps<SubjectiveProps>()
-const stats = useSingle<NotificationStats>('notifications_stats__' + flatten(props.username), {endpoint: `/api/profiles/account/${props.username}/notifications/unread/`, x: {
-  count: 0,
-  community_count: 0,
-  sales_count: 0,
-}})
+const stats = useSingle<NotificationStats>('notifications_stats__' + flatten(props.username), {
+  endpoint: `/api/profiles/account/${props.username}/notifications/unread/`, x: {
+    count: 0,
+    community_count: 0,
+    sales_count: 0
+  },
+  socketSettings: {serializer: 'UnreadNotificationsSerializer', appLabel: 'profiles', modelName: 'User'}
+})
 const counts = computed(() => stats.x as NotificationStats)
 stats.get()
-// @ts-expect-error
-window.indicator_stats = stats
-const loop = setInterval(stats.refresh, 10000)
-onBeforeUnmount(() => clearTimeout(loop))
 </script>

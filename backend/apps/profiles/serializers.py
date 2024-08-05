@@ -19,6 +19,7 @@ from apps.lib.serializers import (
     UserListField,
     UserRelationField,
 )
+from apps.lib.utils import order_comment_types
 from apps.profiles.models import (
     ArtistProfile,
     ArtistTag,
@@ -1143,3 +1144,55 @@ class EmailPreferencesSerializer(RelatedAtomicMixin, serializers.ModelSerializer
         setattr(cls, "Meta", Meta)
         cls._declared_fields = declared_fields
         return super().__new__(cls, *args, **kwargs)
+
+
+@register_serializer
+class UnreadNotificationsSerializer(serializers.ModelSerializer):
+    """
+    Used for displaying the number of unread messages a user has.
+    """
+
+    count = serializers.SerializerMethodField()
+    community_count = serializers.SerializerMethodField()
+    sales_count = serializers.SerializerMethodField()
+
+    def get_count(self, obj):
+        from apps.lib.models import Notification
+
+        return (
+            Notification.objects.filter(user=obj, read=False)
+            .exclude(event__recalled=True)
+            .count()
+        )
+
+    def get_community_count(self, obj):
+        from apps.lib.models import Notification
+        from apps.lib.models import COMMENT, ORDER_NOTIFICATION_TYPES
+
+        return (
+            Notification.objects.filter(user=obj, read=False)
+            .exclude(event__recalled=True)
+            .exclude(event__type__in=ORDER_NOTIFICATION_TYPES)
+            .exclude(event__type=COMMENT, event__content_type__in=order_comment_types())
+            .count()
+        )
+
+    def get_sales_count(self, obj):
+        from apps.lib.models import Notification
+        from apps.lib.models import COMMENT, ORDER_NOTIFICATION_TYPES
+
+        Notification.objects.filter(
+            user=obj,
+            read=False,
+        ).exclude(event__recalled=True).filter(
+            Q(event__type__in=ORDER_NOTIFICATION_TYPES)
+            | Q(
+                event__type=COMMENT,
+                event__content_type__in=order_comment_types(),
+            )
+        ).count()
+
+    class Meta:
+        model = User
+        fields = ("id", "count", "community_count", "sales_count")
+        read_only_fields = fields

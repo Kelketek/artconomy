@@ -1,3 +1,4 @@
+import 'vite/modulepreload-polyfill'
 import {
   init,
   browserTracingIntegration,

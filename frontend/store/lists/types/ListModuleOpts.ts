@@ -6,6 +6,7 @@ export interface ListModuleOpts {
   currentPage?: number,
   endpoint: string,
   reverse?: boolean,
+  prependNew?: boolean,
   persistent?: boolean,
   keyProp?: string,
   paginated?: boolean,

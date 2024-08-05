@@ -58,6 +58,18 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     this.commit('uniquePush', args)
   }
 
+  public uniqueUnshift = (...args: T[]) => {
+    this.commit('uniqueUnshift', args)
+  }
+
+  public uniqueAddNew = (...args: T[]) => {
+    if (this.state?.prependNew) {
+      this.uniqueUnshift(...args)
+    } else if (this.state) {
+      this.uniquePush(...args)
+    }
+  }
+
   public post = (item: Partial<T>) => {
     return this.dispatch('post', item)
   }
@@ -298,7 +310,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     this.$sock.addListener(
       this.newItemLabel,
       `${this.socketLabelBase}.new`,
-      this.uniquePush,
+      this.uniqueAddNew,
     )
     this.$sock.send('watch_new', data)
   }
