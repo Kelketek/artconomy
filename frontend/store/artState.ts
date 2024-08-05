@@ -31,6 +31,7 @@ export interface ArtState {
   contentRating: Ratings,
   showAgeVerification: boolean,
   showCookieDialog: boolean,
+  messagesOpen: boolean,
   errors?: ErrorState,
   lists?: {[key: string]: ListState<any>},
   singles?: {[key: string]: SingleState<any>},

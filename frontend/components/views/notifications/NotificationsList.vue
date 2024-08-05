@@ -2,7 +2,7 @@
   <v-row no-gutters>
     <ac-paginated :show-pagination="false" :list="notifications">
       <template v-slot:default>
-        <v-col cols="12" md="10" offset-md="1">
+        <v-col cols="12">
           <v-list lines="three">
             <template v-for="(notification, index) in notifications.list">
               <div
@@ -105,7 +105,7 @@ const components = {
 
 declare interface NotificationsListProps extends SubjectiveProps {
   autoRead?: boolean,
-  subset: boolean,
+  subset: string,
 }
 
 const props = withDefaults(defineProps<NotificationsListProps>(), {autoRead: true})

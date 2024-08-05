@@ -22,6 +22,7 @@ export function storeDefaults(): StoreOptions<ArtState> {
       alerts: [],
       ageAsked: false,
       contentRating: 0,
+      messagesOpen: false,
       showAgeVerification: false,
       showCookieDialog: false,
     },
@@ -65,6 +66,9 @@ export function storeDefaults(): StoreOptions<ArtState> {
       setShowCookieDialog(state, value: boolean) {
         state.showCookieDialog = value
       },
+      setMessagesOpen(state, value: boolean) {
+        state.messagesOpen = value
+      }
     },
     getters: {
       latestAlert(state) {
