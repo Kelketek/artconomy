@@ -1909,7 +1909,7 @@ def cart_for_request(request, create=False):
     Grabs the shopping cart for a particular request, or creates a new one if it
     does not exist.
     """
-    from apps.sales.models import ShoppingCart
+    from apps.sales.models import ShoppingCart, Product
 
     cart = None
     if request.GET.get("cart_id"):
@@ -1938,6 +1938,10 @@ def cart_for_request(request, create=False):
     product_id = request.data.get("product", None)
     if create and not product_id:
         raise ValidationError({"product": "This field is required."})
-    return ShoppingCart.objects.create(
-        user=user, session_key=session_key, product_id=product_id
-    )
+    with transaction.atomic():
+        product = Product.objects.filter(id=product_id).select_for_update().first()
+        if not product:
+            raise ValidationError({"product": "This product does not exist."})
+        return ShoppingCart.objects.create(
+            user=user, session_key=session_key, product_id=product_id
+        )

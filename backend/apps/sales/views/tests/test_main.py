@@ -3726,3 +3726,13 @@ class TestShoppingCart(APITestCase):
         second_id = ShoppingCart.objects.all().get().id
         # And it shouldn't have been recreated.
         self.assertEqual(first_id, second_id)
+
+    def test_product_exists(self):
+        # Ensure session key is set.
+        self.client.session.session_key
+        resp = self.client.patch(
+            f"/api/sales/cart/",
+            {"details": "", "product": 5},
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("product", resp.data)
