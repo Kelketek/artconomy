@@ -38,6 +38,7 @@ from apps.lib.permissions import (
     IsAnonymous,
     IsMethod,
     IsSafeMethod,
+    StaffPower,
 )
 from apps.lib.serializers import (
     BulkNotificationSerializer,
@@ -83,8 +84,8 @@ from apps.profiles.permissions import (
     SubmissionControls,
     SubmissionTagPermission,
     SubmissionViewPermission,
-    UserControls,
     ViewFavorites,
+    staff_power,
 )
 from apps.profiles.serializers import (
     ArtistProfileSerializer,
@@ -263,7 +264,7 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
     serializer_class = ArtistProfileSerializer
     permission_classes = [
         Any(
-            All(UserControls, IsRegistered),
+            All(Any(ObjectControls, StaffPower("administrate_users")), IsRegistered),
             IsSafeMethod,
         )
     ]
@@ -299,7 +300,7 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
 
 class CredentialsAPI(GenericAPIView):
     serializer_class = CredentialsSerializer
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
 
     def get_object(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -409,7 +410,10 @@ class CharacterListAPI(ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = get_object_or_404(User, username=self.kwargs["username"])
-        if not (self.request.user.is_staff or self.request.user == user):
+        if not (
+            staff_power(self.request.user, "moderate_content")
+            or self.request.user == user
+        ):
             raise PermissionDenied(
                 "You do not have permission to create characters for that user."
             )
@@ -429,7 +433,12 @@ class CharacterListAPI(ListCreateAPIView):
 
 class CharacterSubmissions(ListAPIView):
     serializer_class = SubmissionSerializer
-    permission_classes = [Any(SharedWith, ObjectControls)]
+    permission_classes = [
+        Any(
+            SharedWith,
+            Any(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
+        )
+    ]
 
     def get_queryset(self):
         char = get_object_or_404(
@@ -445,9 +454,14 @@ class CharacterManager(RetrieveUpdateDestroyAPIView):
     serializer_class = CharacterManagementSerializer
     permission_classes = [
         Any(
-            All(IsSafeMethod, SharedWith),
-            All(IsRegistered, SharedWith),
-            All(IsRegistered, ObjectControls),
+            All(
+                IsSafeMethod,
+                Any(SharedWith, StaffPower("view_as"), StaffPower("moderate_content")),
+            ),
+            All(
+                IsRegistered,
+                Any(SharedWith, ObjectControls, StaffPower("moderate_content")),
+            ),
         )
     ]
     queryset = Character.objects.all()
@@ -467,7 +481,7 @@ class CharacterById(RetrieveAPIView):
     permission_classes = [
         Any(
             All(IsRegistered, SharedWith),
-            ObjectControls,
+            Any(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
         )
     ]
 
@@ -520,7 +534,13 @@ class SubmissionManager(RetrieveUpdateDestroyAPIView):
 
 class SetAvatar(APIView):
     parser_classes = (MultiPartParser,)
-    permission_classes = [UserControls]
+    permission_classes = [
+        Any(
+            ObjectControls,
+            StaffPower("administrate_users"),
+            StaffPower("moderate_content"),
+        )
+    ]
 
     def post(self, request, username):
         user = get_object_or_404(User, username=username)
@@ -548,12 +568,12 @@ class UserInfo(APIView):
         Any(
             IsSafeMethod,
             IsRegistered,
-            All(IsAuthenticated, UserControls),
+            All(IsAuthenticated, Any(ObjectControls, StaffPower("administrate_users"))),
         )
     ]
 
     def get_serializer(self, user):
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "administrate_users"):
             return UserSerializer
         if self.request.user == user:
             return UserSerializer
@@ -561,7 +581,7 @@ class UserInfo(APIView):
             return UserInfoSerializer
 
     def get_object(self):
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "administrate_users"):
             extra = Q()
         else:
             extra = Q(is_active=True)
@@ -668,7 +688,7 @@ class CharacterSearch(ListAPIView):
             raise ValidationError({"errors": ["New Order must be a boolean."]})
 
         # If staffer, allow search on behalf of user.
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "view_as"):
             user = get_object_or_404(
                 User, id=self.request.GET.get("user", self.request.user.id)
             )
@@ -983,7 +1003,10 @@ class SubmissionCharacterManager(DestroyAPIView):
 
 class AttributeList(ListCreateAPIView):
     permission_classes = [
-        Any(All(IsSafeMethod, SharedWith), All(IsRegistered, ObjectControls))
+        Any(
+            All(IsSafeMethod, SharedWith),
+            All(IsRegistered, Any(ObjectControls, StaffPower("moderate_content"))),
+        )
     ]
     serializer_class = AttributeListSerializer
     pagination_class = None
@@ -1024,7 +1047,10 @@ class AttributeList(ListCreateAPIView):
 
 
 class AttributeManager(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("moderate_content")),
+    ]
     serializer_class = AttributeSerializer
     queryset = Attribute.objects.all()
 
@@ -1048,7 +1074,7 @@ class AttributeManager(RetrieveUpdateDestroyAPIView):
 
 class UserSerializerView:
     def get_serializer(self, user):
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "administrate_users"):
             return UserSerializer
         if self.request.user == user:
             return UserSerializer
@@ -1057,7 +1083,7 @@ class UserSerializerView:
 
 
 class UnreadNotifications(RetrieveAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [IsRegistered, Any(ObjectControls, StaffPower("view_as"))]
     serializer_class = UnreadNotificationsSerializer
 
     def get_object(self):
@@ -1066,9 +1092,25 @@ class UnreadNotifications(RetrieveAPIView):
         return user
 
 
+ORDER_COMMENT_TYPES_STORE = None
+
+
+def order_comment_types():
+    global ORDER_COMMENT_TYPES_STORE
+    if ORDER_COMMENT_TYPES_STORE is not None:
+        return ORDER_COMMENT_TYPES_STORE
+    ORDER_COMMENT_TYPES_STORE = (
+        ContentType.objects.get_for_model(Order),
+        ContentType.objects.get_for_model(Reference),
+        ContentType.objects.get_for_model(Revision),
+        ContentType.objects.get_for_model(Deliverable),
+    )
+    return ORDER_COMMENT_TYPES_STORE
+
+
 class CommunityNotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [IsRegistered, Any(ObjectControls, StaffPower("view_as"))]
 
     def get_object(self):
         return get_object_or_404(User, username=self.kwargs["username"])
@@ -1149,7 +1191,10 @@ class RefColorManager(RetrieveUpdateDestroyAPIView):
 
 
 class MarkNotificationsRead(BulkUpdateAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("administrate_users")),
+    ]
     serializer_class = BulkNotificationSerializer
     queryset = Notification.objects.all()
 
@@ -1336,7 +1381,14 @@ class FavoritesList(ListAPIView):
 
 class SubmissionList(ListCreateAPIView):
     serializer_class = SubmissionSerializer
-    permission_classes = [UserControls, AccountCurrentPermission]
+    permission_classes = [
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, StaffPower("view_as")),
+            StaffPower("moderate_content"),
+        ),
+        AccountCurrentPermission,
+    ]
 
     def perform_create(self, serializer):
         self.check_object_permissions(self.request, self.request.subject)
@@ -1371,7 +1423,9 @@ class FilteredSubmissionList(ListAPIView):
 
 
 class RawArtistSubmissionList(FilteredSubmissionList):
-    permission_classes = [ObjectControls]
+    permission_classes = [
+        Any(ObjectControls, StaffPower("moderate_content"), StaffPower("view_as"))
+    ]
 
 
 class CollectionManagementList(ListAPIView):
@@ -1382,7 +1436,7 @@ class CollectionManagementList(ListAPIView):
     """
 
     serializer_class = SubmissionSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -1402,7 +1456,7 @@ class ArtRelationList(ListAPIView):
         user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
         manage = self.kwargs.get("manage") and (
-            self.request.user.is_staff or self.request.user == user
+            staff_power(self.request.user, "view_as") or self.request.user == user
         )
         if manage:
             return ArtistTag.objects.filter(user=user)
@@ -1420,7 +1474,7 @@ class ArtRelationManager(RetrieveUpdateDestroyAPIView):
     """
 
     serializer_class = ArtistTagSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
     queryset = ArtistTag.objects.all()
 
     def get_object(self) -> Any:
@@ -1433,7 +1487,7 @@ class ArtRelationManager(RetrieveUpdateDestroyAPIView):
 
 class ArtRelationShift(PositionShift):
     serializer_class = ArtistTagSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
 
     def get_object(self) -> Any:
         return get_object_or_404(
@@ -1443,14 +1497,21 @@ class ArtRelationShift(PositionShift):
 
 class CollectionShift(PositionShift):
     serializer_class = SubmissionSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
 
     def get_object(self) -> Any:
         return get_object_or_404(Submission, id=self.kwargs["submission_id"])
 
 
 class SubmissionSharedList(ListCreateAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, StaffPower("view_as")),
+            StaffPower("moderate_content"),
+        ),
+    ]
     serializer_class = SubmissionSharedSerializer
     pagination_class = None
 
@@ -1494,7 +1555,14 @@ class SubmissionSharedList(ListCreateAPIView):
 
 
 class SubmissionSharedManager(DestroyAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, StaffPower("view_as")),
+            StaffPower("moderate_content"),
+        ),
+    ]
     serializer_class = RelatedUserSerializer
 
     def get_object(self) -> Submission.shared_with.through:
@@ -1519,7 +1587,7 @@ class SubmissionSharedManager(DestroyAPIView):
 
 
 class CharacterSharedList(ListCreateAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [IsRegistered, Any(ObjectControls)]
     serializer_class = CharacterSharedSerializer
     pagination_class = None
 
@@ -1565,7 +1633,14 @@ class CharacterSharedList(ListCreateAPIView):
 
 
 class CharacterSharedManager(DestroyAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, StaffPower("view_as")),
+            StaffPower("moderate_content"),
+        ),
+    ]
     serializer_class = RelatedUserSerializer
 
     def get_object(self) -> Character.shared_with.through:
@@ -1817,7 +1892,14 @@ class JournalManager(RetrieveUpdateDestroyAPIView):
         Any(
             IsSafeMethod,
             All(IsMethod("PUT"), IsRegistered),
-            All(IsRegistered, ObjectControls),
+            All(
+                IsRegistered,
+                Any(
+                    ObjectControls,
+                    StaffPower("view_as"),
+                    StaffPower("moderate_content"),
+                ),
+            ),
         )
     ]
     queryset = Journal.objects.all()
@@ -1848,7 +1930,10 @@ def perform_logout(request):
 
 class CharacterPreview(BasePreview):
     permission_classes = [
-        Any(All(IsSafeMethod, SharedWith), All(IsRegistered, ObjectControls))
+        Any(
+            All(IsSafeMethod, SharedWith),
+            All(IsRegistered, All(ObjectControls, StaffPower("view_as"))),
+        )
     ]
 
     def context(self, username, character):
@@ -1945,7 +2030,7 @@ class SubmissionPreview(BasePreview):
 
 
 class ReferralStats(APIView):
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("view_as"))]
 
     # noinspection PyUnusedLocal
     def get(self, request, **kwargs):
@@ -2031,7 +2116,7 @@ class RecommendedCharacters(ListAPIView):
     permission_classes = [
         Any(
             All(IsSafeMethod, SharedWith),
-            ObjectControls,
+            Any(ObjectControls, StaffPower("view_as")),
         )
     ]
 
@@ -2064,7 +2149,7 @@ class RecommendedCharacters(ListAPIView):
 
 class DestroyAccount(GenericAPIView):
     serializer_class = DeleteUserSerializer
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
 
     def get_object(self) -> User:
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -2091,7 +2176,7 @@ class DestroyAccount(GenericAPIView):
 
 class NotificationSettings(RetrieveUpdateAPIView):
     serializer_class = EmailPreferencesSerializer
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
     queryset = User.objects.all()
 
     @property

@@ -1,6 +1,6 @@
-from apps.lib.permissions import IsStaff
+from apps.lib.permissions import StaffPower, Any
 from apps.profiles.models import User
-from apps.profiles.permissions import IsRegistered, UserControls
+from apps.profiles.permissions import IsRegistered, ObjectControls, BillTo
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.sales.constants import DRAFT, OPEN
 from apps.sales.models import Invoice, ServicePlan, StripeAccount, StripeReader
@@ -58,7 +58,7 @@ def create_account(*, user: User, country: str):
 
 
 class StripeAccountLink(GenericAPIView):
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
     serializer_class = StripeBankSetupSerializer
 
     def get_serializer_context(self):
@@ -106,7 +106,7 @@ class StripeAccounts(ListAPIView):
     command.
     """
 
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("view_financials"))]
     serializer_class = StripeAccountSerializer
     pagination_class = None
 
@@ -154,7 +154,7 @@ class PremiumPaymentIntent(APIView):
 
 
 class SetupIntent(APIView):
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("table_seller"))]
 
     def get_object(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -181,7 +181,10 @@ class InvoicePaymentIntent(APIView):
     Creates a payment intent for an invoice.
     """
 
-    permission_classes = [UserControls, InvoiceStatus(OPEN)]
+    permission_classes = [
+        Any(BillTo, StaffPower("table_seller")),
+        InvoiceStatus(OPEN),
+    ]
 
     def get_object(self):
         invoice = get_object_or_404(
@@ -214,7 +217,10 @@ class ProcessPresentCard(APIView):
     running the terminal and use it to process.
     """
 
-    permission_classes = [UserControls, InvoiceStatus(OPEN)]
+    permission_classes = [
+        Any(BillTo, StaffPower("table_seller")),
+        InvoiceStatus(OPEN),
+    ]
     serializer_class = TerminalProcessSerializer
 
     def get_object(self):
@@ -268,7 +274,7 @@ class StripeReaders(ListAPIView):
     Lists all the Stripe Readers in the system.
     """
 
-    permission_classes = [IsStaff]
+    permission_classes = [StaffPower("table_seller")]
     serializer_class = StripeReaderSerializer
 
     def get_queryset(self) -> QuerySet:

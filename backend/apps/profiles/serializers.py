@@ -20,6 +20,7 @@ from apps.lib.serializers import (
     UserRelationField,
 )
 from apps.lib.utils import order_comment_types
+from apps.profiles.constants import POWER_LIST
 from apps.profiles.models import (
     ArtistProfile,
     ArtistTag,
@@ -34,7 +35,9 @@ from apps.profiles.models import (
     User,
     banned_named_validator,
     banned_prefix_validator,
+    StaffPowers,
 )
+from apps.profiles.permissions import staff_power
 from apps.sales.constants import STRIPE
 from apps.sales.models import Promo, ServicePlan, PaypalConfig
 from apps.tg_bot.models import TelegramDevice
@@ -342,7 +345,9 @@ class CharacterManagementSerializer(RelatedAtomicMixin, serializers.ModelSeriali
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         user = self.context["request"].user
-        if (not (user == self.instance.user)) and not user.is_staff:
+        if (not (user == self.instance.user)) and not staff_power(
+            user, "moderate_content"
+        ):
             for value in self.fields.values():
                 value.read_only = True
             if self.instance.user.taggable:
@@ -501,7 +506,9 @@ class SubmissionManagementSerializer(
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         user = self.context["request"].user
-        if (not (user == self.instance.owner)) and not user.is_staff:
+        if (not (user == self.instance.owner)) and not staff_power(
+            user, "moderate_content"
+        ):
             exempt = ["subscribed", "favorites"]
             for key, value in self.fields.items():
                 if key not in exempt:
@@ -669,6 +676,18 @@ class CredentialsSerializer(serializers.ModelSerializer):
         fields = ("username", "current_password", "new_password", "email")
 
 
+def null_powers():
+    return {power: False for power in POWER_LIST}
+
+
+def all_powers():
+    return {power: True for power in POWER_LIST}
+
+
+def serialize_powers(obj: StaffPowers):
+    return {power: getattr(obj, power) for power in POWER_LIST}
+
+
 @register_serializer
 class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     landscape_paid_through = serializers.SerializerMethodField()
@@ -684,6 +703,16 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     next_service_plan = serializers.SerializerMethodField()
     international = serializers.SerializerMethodField()
     paypal_configured = serializers.SerializerMethodField()
+    staff_powers = serializers.SerializerMethodField()
+
+    def get_staff_powers(self, obj):
+        if not obj.is_staff:
+            return null_powers()
+        if obj.is_superuser:
+            return all_powers()
+        if not hasattr(obj, "staff_powers"):
+            return null_powers()
+        return serialize_powers(obj.staff_powers)
 
     def get_international(self, obj):
         from apps.sales.models import StripeAccount
@@ -780,6 +809,7 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "verified_email",
             "verified_adult",
             "paypal_configured",
+            "staff_powers",
         )
         read_only_fields = [
             field

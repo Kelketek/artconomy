@@ -21,6 +21,7 @@ from apps.lib.test_resources import (
 )
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.factories_interdepend import CommentFactory
+from apps.lib.tests.test_utils import create_staffer
 from apps.lib.utils import watch_subscriptions
 from apps.profiles.models import (
     Character,
@@ -53,7 +54,7 @@ from rest_framework import status
 logger = logging.getLogger(__name__)
 
 
-class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
+class TestCharacterAPICase(APITestCase):
     def test_character_listing(self):
         user = UserFactory.create()
         characters = gen_characters(user)
@@ -103,7 +104,7 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
         self.assertEqual(len(response.data["results"]), 5)
         self.assertIDInList(private_character, response.data["results"])
         # Should work for staff, too.
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("view_as")
         self.login(staffer)
         response = self.client.get(
             "/api/profiles/v1/account/{}/characters/".format(user.username)
@@ -134,7 +135,7 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
         self.assertEqual(char.open_requests_restrictions, "Must be foxy.")
 
         # Should work for staffer.
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("moderate_content")
         self.login(staffer)
         response = self.client.post(
             "/api/profiles/v1/account/{}/characters/".format(user.username),
@@ -175,7 +176,7 @@ class TestCharacterAPICase(SignalsDisabledMixin, APITestCase):
         self.assertEqual(char.description, "Positively foxy.")
 
         # Should work for staff, too.
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("moderate_content")
         self.login(staffer)
         response = self.client.patch(
             "/api/profiles/v1/account/{}/characters/{}/".format(
@@ -260,7 +261,7 @@ class TestSubmission(APITestCase):
         self.assertEqual(submission.rating, MATURE)
 
         # Should work for staffer, too.
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("moderate_content")
         self.login(staffer)
         response = self.client.patch(
             "/api/profiles/v1/submission/{}/".format(submission.id),
@@ -688,10 +689,11 @@ class TestSettings(APITestCase):
 class TestArtistProfilePermissions(MethodAccessMixin, PermissionsTestCase):
     passes = {
         **MethodAccessMixin.passes,
-        "get": ["user", "staff", "outsider", "anonymous"],
+        "get": ["user", "staff", "staff_unpowered", "outsider", "anonymous"],
         "patch": ["user", "staff"],
         "put": ["user", "staff"],
     }
+    staff_powers = ["administrate_users"]
     view_class = ArtistProfileSettings
 
 
@@ -900,7 +902,7 @@ class TestCharacterSearch(APITestCase):
         CharacterFactory.create(name="Stuff", open_requests=True)
         blocked_character = CharacterFactory.create(name="Terrific", open_requests=True)
         blocked_character.user.blocking.add(user)
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("view_as")
         self.login(staffer)
         response = self.client.get(
             f"/api/profiles/v1/search/character/"
@@ -929,7 +931,7 @@ class TestRefColor(APITestCase):
 
     def test_add_refcolor_staff(self):
         char = CharacterFactory.create()
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("moderate_content")
         self.login(staffer)
         response = self.client.post(
             "/api/profiles/v1/account/{}/characters/{}/colors/".format(
@@ -1690,7 +1692,7 @@ class TestConversations(APITestCase):
             "/api/profiles/v1/account/{}/conversations/".format(user.username)
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("view_as")
         self.login(staffer)
         response = self.client.get(
             "/api/profiles/v1/account/{}/conversations/".format(user.username)
@@ -2061,7 +2063,7 @@ class TestDestroyUser(APITestCase):
 
     def test_destroy_user_staff(self):
         user = UserFactory.create()
-        user2 = UserFactory.create(is_staff=True)
+        user2 = create_staffer("administrate_users")
         self.login(user2)
         self.assertTrue(user.is_active)
         response = self.client.post(

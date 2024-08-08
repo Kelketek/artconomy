@@ -48,6 +48,7 @@ from apps.lib.models import (
 from apps.lib.signals import broadcast_update
 from apps.lib.utils import multi_filter, notify, recall_notification, utc
 from apps.profiles.models import User
+from apps.profiles.permissions import staff_power
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.sales.constants import (
     ADD_ON,
@@ -262,7 +263,10 @@ def available_products(requester, query="", ordering=True):
         wait_list=True,
     )
     if requester.is_authenticated:
-        if not requester.is_staff:
+        if not (
+            staff_power(requester, "view_as")
+            or staff_power(requester, "moderate_content")
+        ):
             qs = qs.exclude(user__blocking=requester)
             qs = qs.exclude(table_product=True)
         qs = qs.exclude(user__blocked_by=requester)
@@ -1030,7 +1034,9 @@ def perform_charge(
     determines which kind of payment is being submitted from the client, then routes the
     payment according to permissions and payment type.
     """
-    if attempt.get("cash", False) and (requesting_user.is_staff or not amount):
+    if attempt.get("cash", False) and (
+        staff_power(requesting_user, "table_seller") or not amount
+    ):
         return from_cash(
             attempt=attempt,
             amount=amount,
@@ -1041,7 +1047,7 @@ def perform_charge(
             context=context,
         )
     if attempt.get("remote_ids") and (
-        requesting_user.is_staff or attempt.get("stripe_event")
+        staff_power(requesting_user, "table_seller") or attempt.get("stripe_event")
     ):
         return from_remote_id(
             attempt=attempt,

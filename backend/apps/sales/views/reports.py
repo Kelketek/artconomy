@@ -4,10 +4,10 @@ from typing import Union
 from moneyed import Money
 from pytz import UTC
 
-from apps.lib.permissions import IsStaff
+from apps.lib.permissions import StaffPower, Any
 from apps.lib.utils import utc_now, utc
 from apps.profiles.models import User
-from apps.profiles.permissions import IsSuperuser, UserControls
+from apps.profiles.permissions import IsSuperuser, ObjectControls
 from apps.sales.constants import (
     BANK,
     CANCELLED,
@@ -375,7 +375,7 @@ class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
 
 class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = UserPayoutTransactionSerializer
-    permission_classes = [UserControls]
+    permission_classes = [Any(StaffPower("view_financials"), ObjectControls)]
     pagination_class = None
     date_fields = ["finalized_on"]
     report_name = "user-payout-report"
@@ -412,7 +412,9 @@ class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
 
 
 class TroubledDeliverables(ListAPIView):
-    permission_classes = [IsStaff]
+    permission_classes = [
+        Any(StaffPower("handle_disputes"), StaffPower("view_financials"))
+    ]
     serializer_class = DeliverableSerializer
 
     def get_queryset(self):

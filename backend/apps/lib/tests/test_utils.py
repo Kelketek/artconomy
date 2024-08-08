@@ -24,6 +24,7 @@ from apps.lib.utils import (
     subscribe,
     check_theocratic_ban,
 )
+from apps.profiles.constants import POWER, POWER_LIST
 from apps.profiles.models import ArtconomyAnonymousUser, Submission
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from django.contrib.contenttypes.models import ContentType
@@ -423,3 +424,12 @@ class TestCheckTheocraticBan(TestCase):
             mock_func.return_value = data
             self.assertEqual(check_theocratic_ban(ip), result)
             mock_func.assert_called_with(ip)
+
+
+def create_staffer(*powers: POWER, **kwargs):
+    user = UserFactory.create(is_staff=True, **kwargs)
+    for power in powers:
+        assert power in POWER_LIST
+        setattr(user.staff_powers, power, True)
+    user.staff_powers.save()
+    return user

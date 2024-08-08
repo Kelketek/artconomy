@@ -31,7 +31,7 @@ from apps.lib.permissions import (
     Any,
     IsMethod,
     IsSafeMethod,
-    IsStaff,
+    StaffPower,
     SessionKeySet,
 )
 from apps.lib.serializers import CommentSerializer, UserInfoSerializer
@@ -62,7 +62,8 @@ from apps.profiles.permissions import (
     IssuedBy,
     IsSuperuser,
     ObjectControls,
-    UserControls,
+    staff_power,
+    IsUser,
 )
 from apps.profiles.serializers import SubmissionSerializer, UserSerializer
 from apps.profiles.utils import (
@@ -256,7 +257,10 @@ logger = logging.getLogger(__name__)
 def user_products(username: str, requester: User, show_hidden=False):
     qs = Product.objects.filter(user__username=username, active=True)
     if not (
-        (requester.username.lower() == username.lower() or requester.is_staff)
+        (
+            requester.username.lower() == username.lower()
+            or staff_power(requester, "view_as")
+        )
         and show_hidden
     ):
         qs = qs.filter(hidden=False, table_product=False)
@@ -266,7 +270,19 @@ def user_products(username: str, requester: User, show_hidden=False):
 
 class ProductList(ListCreateAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [Any(IsSafeMethod, All(IsRegistered, UserControls))]
+    permission_classes = [
+        Any(
+            IsSafeMethod,
+            All(
+                IsRegistered,
+                Any(
+                    ObjectControls,
+                    StaffPower("table_seller"),
+                    StaffPower("moderate_content"),
+                ),
+            ),
+        )
+    ]
 
     def get(self, *args, **kwargs):
         self.check_object_permissions(self.request, self.request.subject)
@@ -297,7 +313,19 @@ class ProductList(ListCreateAPIView):
 
 class ProductManager(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
+    permission_classes = [
+        Any(
+            IsSafeMethod,
+            All(
+                IsRegistered,
+                Any(
+                    StaffPower("moderate_content"),
+                    StaffPower("table_seller"),
+                    ObjectControls,
+                ),
+            ),
+        )
+    ]
     queryset = Product.objects.all()
 
     def perform_update(self, serializer):
@@ -321,7 +349,12 @@ class ProductManager(RetrieveUpdateDestroyAPIView):
 
 class ProductInventoryManager(RetrieveUpdateAPIView):
     serializer_class = InventorySerializer
-    permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
+    permission_classes = [
+        Any(
+            IsSafeMethod,
+            All(IsRegistered, Any(ObjectControls, StaffPower("table_seller"))),
+        )
+    ]
     queryset = Product.objects.all()
 
     @lru_cache()
@@ -347,7 +380,19 @@ class ProductInventoryManager(RetrieveUpdateAPIView):
 
 class ProductSamples(ListCreateAPIView):
     serializer_class = ProductSampleSerializer
-    permission_classes = [Any(IsSafeMethod, All(IsRegistered, ObjectControls))]
+    permission_classes = [
+        Any(
+            IsSafeMethod,
+            All(
+                IsRegistered,
+                Any(
+                    ObjectControls,
+                    StaffPower("moderate_content"),
+                    StaffPower("table_seller"),
+                ),
+            ),
+        )
+    ]
 
     @lru_cache()
     def get_object(self):
@@ -382,7 +427,10 @@ class ProductSamples(ListCreateAPIView):
 
 
 class ProductSampleManager(DestroyAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("moderate_content"), StaffPower("table_seller")),
+    ]
     serializer_class = ProductSampleSerializer
 
     def get_object(self) -> Submission.artists.through:
@@ -419,7 +467,9 @@ def derive_user_from_string(seller, user_string):
 
 class PlaceOrder(CreateAPIView):
     serializer_class = ProductNewOrderSerializer
-    permission_classes = [Any(OrderPlacePermission, UserControls)]
+    permission_classes = [
+        Any(OrderPlacePermission, Any(ObjectControls, StaffPower("handle_disputes")))
+    ]
 
     @lru_cache
     def get_object(self):
@@ -436,7 +486,7 @@ class PlaceOrder(CreateAPIView):
         user = self.request.user
         reconnect = False
         user_string = serializer.validated_data.get("email", "")
-        if user.is_staff and product.table_product:
+        if staff_power(user, "table_seller") and product.table_product:
             user = create_guest_user(user_string)
         elif not user.is_authenticated:
             user = create_guest_user(user_string)
@@ -444,7 +494,7 @@ class PlaceOrder(CreateAPIView):
             reconnect = True
         elif (
             (product.user == self.request.user)
-            or self.request.user.is_staff
+            or staff_power(user, "table_seller")
             and serializer.validated_data["invoicing"]
         ):
             user = derive_user_from_string(product.user, user_string)
@@ -955,7 +1005,11 @@ class DeliverableCancel(GenericAPIView):
 
 
 class ClearWaitlist(GenericAPIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [
+        Any(
+            ObjectControls, StaffPower("administrate_users"), StaffPower("table_seller")
+        )
+    ]
 
     def get_object(self):
         product = get_object_or_404(
@@ -975,7 +1029,7 @@ class InvoiceLineItems(ListCreateAPIView):
         Any(
             Any(
                 All(IsSafeMethod, Any(BillTo, IssuedBy)),
-                IsStaff,
+                StaffPower("table_seller"),
             ),
             Any(IsSafeMethod, InvoiceStatus(DRAFT, OPEN)),
         )
@@ -1010,7 +1064,7 @@ class InvoiceLineItems(ListCreateAPIView):
 
 class InvoiceLineItemManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [
-        Any(IsStaff, BillTo, IssuedBy),
+        Any(StaffPower("table_seller"), BillTo, IssuedBy),
         InvoiceStatus(DRAFT),
     ]
     serializer_class = LineItemSerializer
@@ -1130,7 +1184,10 @@ class DeliverableLineItemManager(RetrieveUpdateDestroyAPIView):
                         ),
                     ),
                     All(OrderBuyerPermission, LineItemTypePermission(TIP)),
-                    All(IsStaff, LineItemTypePermission(EXTRA, TABLE_SERVICE)),
+                    All(
+                        StaffPower("table_seller"),
+                        LineItemTypePermission(EXTRA, TABLE_SERVICE),
+                    ),
                     IsSuperuser,
                 ),
             ),
@@ -1342,7 +1399,10 @@ class ReferenceManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [OrderViewPermission]
 
     def perform_destroy(self, instance):
-        if not (self.request.user.is_staff or instance.owner == self.request.user):
+        if not (
+            staff_power(self.request.user, "handle_disputes")
+            or instance.owner == self.request.user
+        ):
             # Probably should find some cleaner way to check this with the permissions
             # framework.
             raise PermissionDenied(
@@ -1575,7 +1635,7 @@ class StartDispute(GenericAPIView):
 
 
 class ClaimDispute(GenericAPIView):
-    permission_classes = [IsStaff]
+    permission_classes = [StaffPower("handle_disputes")]
     serializer_class = DeliverableSerializer
 
     def get_object(self):
@@ -1781,7 +1841,9 @@ class WaitingMixin(object):
 
 
 class OrderListBase(ListAPIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [
+        Any(ObjectControls, StaffPower("view_as"), StaffPower("table_seller"))
+    ]
     serializer_class = OrderPreviewSerializer
 
     def extra_filter(self, qs):  # pragma: no cover
@@ -1817,7 +1879,9 @@ class WaitingOrderList(WaitingMixin, OrderListBase):
 
 
 class SalesListBase(ListAPIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [
+        Any(ObjectControls, StaffPower("view_as"), StaffPower("table_seller"))
+    ]
     serializer_class = OrderPreviewSerializer
 
     def extra_filter(self, qs):  # pragma: no cover
@@ -1850,7 +1914,7 @@ class CancelledSalesList(CancelledMixin, SalesListBase):
 
 class PublicSalesQueue(SalesListBase):
     serializer_class = OrderPreviewSerializer
-    permission_classes = [Any(ObjectControls, PublicQueue)]
+    permission_classes = [Any(ObjectControls, StaffPower("view_as"), PublicQueue)]
 
     def get_object(self):
         return get_object_or_404(User, username=self.kwargs["username"])
@@ -1878,7 +1942,7 @@ class PublicSalesQueue(SalesListBase):
 
 
 class SearchWaiting(ListAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [IsRegistered, Any(ObjectControls, StaffPower("table_seller"))]
     serializer_class = OrderPreviewSerializer
 
     def get_object(self):
@@ -1913,7 +1977,7 @@ class SearchWaiting(ListAPIView):
 
 
 class CasesListBase(ListAPIView):
-    permission_classes = [ObjectControls, IsStaff]
+    permission_classes = [StaffPower("handle_disputes")]
     serializer_class = OrderPreviewSerializer
 
     @staticmethod
@@ -1960,8 +2024,15 @@ class WaitingCasesList(WaitingMixin, CasesListBase):
 class CardList(ListAPIView):
     permission_classes = [
         Any(
-            All(IsSafeMethod, UserControls),
-            All(IsRegistered, UserControls),
+            All(IsSafeMethod, Any(ObjectControls, StaffPower("view_financials"))),
+            All(
+                IsRegistered,
+                Any(
+                    ObjectControls,
+                    StaffPower("administrate_users"),
+                    StaffPower("table_seller"),
+                ),
+            ),
         ),
     ]
     serializer_class = CardSerializer
@@ -1985,7 +2056,15 @@ class CardList(ListAPIView):
 
 
 class CardManager(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(
+            ObjectControls,
+            StaffPower("administrate_users"),
+            StaffPower("table_seller"),
+            All(IsSafeMethod, StaffPower("view_financials")),
+        ),
+    ]
     serializer_class = CardSerializer
     queryset = CreditCardToken.objects.all()
 
@@ -2005,7 +2084,7 @@ class CardManager(RetrieveUpdateDestroyAPIView):
 
 class MakePrimary(APIView):
     serializer_class = CardSerializer
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [IsRegistered, Any(ObjectControls, StaffPower("table_seller"))]
 
     def get_object(self):
         return get_object_or_404(
@@ -2037,7 +2116,7 @@ PAYMENT_PERMISSIONS = (
 
 class InvoicePayment(GenericAPIView):
     serializer_class = PaymentSerializer
-    permission_classes = [IsStaff, InvoiceStatus(OPEN)]
+    permission_classes = [StaffPower("table_seller"), InvoiceStatus(OPEN)]
 
     @lru_cache()
     def get_object(self):
@@ -2074,7 +2153,10 @@ class InvoicePayment(GenericAPIView):
 
 
 class AccountBalance(RetrieveAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("view_financials")),
+    ]
     serializer_class = AccountBalanceSerializer
 
     def get_object(self):
@@ -2108,7 +2190,7 @@ class ProductSearch(ListAPIView):
             watchlist_only = search_serializer.validated_data.get("watch_list")
 
         # If staffer, allow search on behalf of user.
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "view_as"):
             user = get_object_or_404(
                 User, username=self.request.GET.get("user", self.request.user.username)
             )
@@ -2152,7 +2234,7 @@ class ProductSearch(ListAPIView):
 
 
 class SetPlan(GenericAPIView):
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
 
     def get_object(self) -> Any:
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -2207,7 +2289,10 @@ class PersonalProductSearch(ListAPIView):
 
 
 class AccountStatus(GenericAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("view_financials")),
+    ]
     serializer_class = TransactionRecordSerializer
 
     def get(self, request, *args, **kwargs):
@@ -2226,7 +2311,10 @@ class AccountStatus(GenericAPIView):
 
 
 class AccountHistory(ListAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("view_financials")),
+    ]
     serializer_class = TransactionRecordSerializer
 
     def get_queryset(self):
@@ -2280,7 +2368,15 @@ class WhoIsOpen(ListAPIView):
 
 
 class SalesStats(RetrieveAPIView):
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(
+            ObjectControls,
+            StaffPower("view_financials"),
+            StaffPower("table_seller"),
+            StaffPower("handle_disputes"),
+        ),
+    ]
     serializer_class = SalesStatsSerializer
 
     def get_object(self):
@@ -2391,7 +2487,10 @@ class PricingInfo(APIView):
 
 
 class CancelPremium(APIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("administrate_users")),
+    ]
 
     def post(self, request, *args, **kwargs):
         self.check_permissions(request)
@@ -2482,7 +2581,7 @@ class CommissionStatusImage(View):
 
 # TODO: Eliminate this. Should be able to do it with a patch request instead.
 class FeatureProduct(APIView):
-    permission_classes = [IsStaff]
+    permission_classes = [StaffPower("moderate_content")]
 
     # noinspection PyMethodMayBeStatic
     def post(self, request, username, product):
@@ -2684,7 +2783,7 @@ class CreateInvoice(GenericAPIView):
 
     permission_classes = [
         IsRegistered,
-        UserControls,
+        Any(StaffPower("table_seller"), ObjectControls),
         BankingConfigured,
         PlanDeliverableAddition,
         AccountCurrentPermission,
@@ -2763,7 +2862,7 @@ class ProductRecommendations(ListAPIView):
     permission_classes = [
         Any(
             All(IsSafeMethod, OrderPlacePermission),
-            ObjectControls,
+            Any(ObjectControls, StaffPower("view_as")),
         )
     ]
 
@@ -3032,7 +3131,10 @@ class OrderAuth(GenericAPIView):
 
 class Broadcast(CreateAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("handle_disputes")),
+    ]
 
     def get_object(self):
         return self.request.subject
@@ -3085,8 +3187,10 @@ class Broadcast(CreateAPIView):
 
 class InvoiceDetail(RetrieveUpdateAPIView):
     permission_classes = [
-        Any(BillTo, IssuedBy, IsStaff),
-        Any(IsSafeMethod, IsStaff),
+        Any(BillTo, IssuedBy, StaffPower("table_seller")),
+        Any(
+            IsSafeMethod, Any(StaffPower("table_seller"), StaffPower("view_financials"))
+        ),
     ]
     serializer_class = InvoiceSerializer
     queryset = Invoice.objects.all()
@@ -3099,7 +3203,7 @@ class InvoiceDetail(RetrieveUpdateAPIView):
 
 class TableProducts(ListAPIView):
     serializer_class = ProductSerializer
-    permission_classes = [IsStaff]
+    permission_classes = [StaffPower("table_seller")]
     pagination_class = None
 
     def get_queryset(self) -> QuerySet:
@@ -3110,7 +3214,7 @@ class TableProducts(ListAPIView):
 
 class TableOrders(ListAPIView):
     serializer_class = OrderPreviewSerializer
-    permission_classes = [IsStaff]
+    permission_classes = [StaffPower("table_seller")]
     pagination_class = None
 
     def get_queryset(self) -> QuerySet:
@@ -3130,7 +3234,7 @@ class CreateAnonymousInvoice(GenericAPIView):
     Creates an invoice with sales tax applied, and returns it for filling out.
     """
 
-    permission_classes = [IsStaff]
+    permission_classes = [StaffPower("table_seller")]
     serializer_class = InvoiceSerializer
 
     @transaction.atomic
@@ -3158,7 +3262,7 @@ class CreateAnonymousInvoice(GenericAPIView):
 
 
 class TableInvoices(ListAPIView):
-    permission_classes = [IsStaff]
+    permission_classes = [StaffPower("table_seller")]
     serializer_class = InvoiceSerializer
 
     def get_queryset(self) -> QuerySet:
@@ -3177,7 +3281,7 @@ class TableInvoices(ListAPIView):
 class FinalizeInvoice(GenericAPIView):
     permission_classes = [
         Any(
-            All(IsStaff, InvoiceStatus(DRAFT)),
+            All(StaffPower("table_seller"), InvoiceStatus(DRAFT)),
             All(BillTo, InvoiceStatus(DRAFT), InvoiceType(TIPPING)),
         )
     ]
@@ -3198,7 +3302,7 @@ class FinalizeInvoice(GenericAPIView):
 class VoidInvoice(GenericAPIView):
     permission_classes = [
         Any(
-            All(IsStaff, InvoiceStatus(OPEN, DRAFT)),
+            All(StaffPower("table_seller"), InvoiceStatus(OPEN, DRAFT)),
             All(BillTo, InvoiceStatus(OPEN, DRAFT), InvoiceType(TIPPING)),
         ),
     ]
@@ -3226,7 +3330,7 @@ class Plans(ListAPIView):
 
 
 class UserInvoices(ListAPIView):
-    permission_classes = [UserControls]
+    permission_classes = [Any(ObjectControls, StaffPower("view_financials"))]
     serializer_class = InvoiceSerializer
 
     def get_object(self):
@@ -3240,7 +3344,9 @@ class UserInvoices(ListAPIView):
 
 
 class InvoiceTransactions(ListAPIView):
-    permission_classes = [IsStaff]
+    permission_classes = [
+        Any(StaffPower("view_financials"), StaffPower("table_seller"))
+    ]
     serializer_class = TransactionRecordSerializer
 
     def get_queryset(self):
@@ -3284,7 +3390,7 @@ class IssueTipInvoice(GenericAPIView):
 
 class StoreShift(PositionShift):
     serializer_class = ProductSerializer
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
 
     def get_object(self) -> Any:
         return get_object_or_404(Product, id=self.kwargs["product"])
@@ -3319,7 +3425,10 @@ class QueueListing(View):
 
 
 class PaypalSettings(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("administrate_users")),
+    ]
     queryset = PaypalConfig.objects.all()
 
     def get_object(self):
@@ -3421,7 +3530,7 @@ class PaypalSettings(RetrieveUpdateDestroyAPIView):
 
 
 class PaypalTemplates(GenericAPIView):
-    permission_classes = [ObjectControls]
+    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
 
     def get_object(self):
         config = get_object_or_404(

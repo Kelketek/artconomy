@@ -12,6 +12,7 @@ from apps.profiles.models import (
     User,
     default_plan,
 )
+from apps.profiles.permissions import staff_power
 from apps.sales.constants import (
     DISPUTED,
     DRAFT,
@@ -66,7 +67,12 @@ def available_chars(
     sfw=False,
 ):
     exclude = Q(private=True)
-    if (not requester.is_staff) and requester.is_authenticated:
+    if (
+        not (
+            staff_power(requester, "moderate_content")
+            or staff_power(requester, "view_as")
+        )
+    ) and requester.is_authenticated:
         exclude |= Q(user__blocking=requester)
     if commissions:
         exclude |= Q(open_requests=False)
@@ -99,7 +105,7 @@ def available_chars(
 
 def available_artists(requester):
     qs = User.objects.filter(Q(id=requester.id) | Q(taggable=True), is_active=True)
-    if not requester.is_staff and requester.is_authenticated:
+    if not staff_power(requester, "administrate_users") and requester.is_authenticated:
         qs = qs.exclude(blocking=requester)
     return qs
 
@@ -107,7 +113,10 @@ def available_artists(requester):
 def available_submissions(request, requester, show_all=False):
     exclude = Q(private=True)
     exclude |= Q(owner__is_active=False)
-    if not request.user.is_staff and request.user.is_authenticated:
+    if (
+        not staff_power(request.user, "moderate_content")
+        and request.user.is_authenticated
+    ):
         exclude |= Q(owner__blocking=requester)
         exclude |= Q(owner__blocked_by=requester)
         exclude |= Q(artists__blocking=requester)
@@ -123,7 +132,7 @@ def available_submissions(request, requester, show_all=False):
 
 
 def available_users(user):
-    if user.is_staff or not user.is_authenticated:
+    if staff_power(user, "administrate_users") or not user.is_authenticated:
         return User.objects.exclude(is_active=False)
     return User.objects.exclude(id__in=user.blocked_by.all().values("id")).exclude(
         is_active=False

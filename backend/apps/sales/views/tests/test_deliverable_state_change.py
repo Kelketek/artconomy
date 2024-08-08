@@ -13,6 +13,7 @@ from apps.lib.models import (
     ref_for_instance,
 )
 from apps.lib.test_resources import APITestCase
+from apps.lib.tests.test_utils import create_staffer
 from apps.lib.utils import utc
 from apps.profiles.tests.factories import (
     CharacterFactory,
@@ -78,8 +79,11 @@ class TestDeliverableStatusChange(APITestCase):
         )
         self.seller = UserFactory.create(username="Seller", email="seller@example.com")
         self.buyer = UserFactory.create(username="Buyer", email="buyer@example.com")
-        self.staffer = UserFactory.create(
-            is_staff=True, username="Staffer", email="staff@example.com"
+        self.staffer = create_staffer(
+            "handle_disputes",
+            "table_seller",
+            username="Staffer",
+            email="staff@example.com",
         )
         characters = [
             CharacterFactory.create(

@@ -15,7 +15,7 @@ from apps.lib.permissions import (
     IsAuthenticatedObj,
     IsMethod,
     IsSafeMethod,
-    IsStaff,
+    StaffPower,
     SessionKeySet,
     PermittedAsset,
 )
@@ -37,7 +37,7 @@ from apps.lib.utils import (
     request_key,
 )
 from apps.profiles.models import User
-from apps.profiles.permissions import IsRegistered, ObjectControls
+from apps.profiles.permissions import IsRegistered, ObjectControls, staff_power
 from apps.profiles.serializers import ContactSerializer, PositionShiftSerializer
 from django.apps import apps
 from django.conf import settings
@@ -99,7 +99,7 @@ class CommentUpdate(RetrieveUpdateDestroyAPIView):
 
     def get_serializer(self, instance, *args, **kwargs):
         kwargs["context"] = self.get_serializer_context()
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "moderate_discussion"):
             return CommentSerializer(instance=instance, *args, **kwargs)
         if self.request.user == instance.user:
             return CommentSerializer(instance=instance, *args, **kwargs)
@@ -146,7 +146,10 @@ class Comments(UniversalViewMixin, ListCreateAPIView):
 
     def get_queryset(self):
         qs = self.get_object().comments.all()
-        if not (self.request.user.is_staff and self.request.GET.get("history", False)):
+        staff_powers = staff_power(self.request.user, "handle_disputes") or staff_power(
+            self.request.user, "moderate_discussions"
+        )
+        if not (staff_powers and self.request.GET.get("history", False)):
             qs = qs.filter(thread_deleted=False)
         return qs.select_related("user").order_by("-created_on")
 
@@ -194,7 +197,9 @@ class VersionHistoryQuerySet(VersionQuerySet):
 
 class CommentHistory(ListAPIView):
     serializer_class = CommentSerializer
-    permission_classes = [IsStaff]
+    permission_classes = [
+        Any(StaffPower("handle_disputes"), StaffPower("moderate_discussion"))
+    ]
 
     def get_object(self):
         comment = get_object_or_404(Comment, id=self.kwargs["comment_id"])
@@ -220,7 +225,10 @@ class CountryListing(APIView):
 
 class BaseUserTagView(GenericAPIView):
     field_name = "shared_with"
-    permission_classes = [IsRegistered, ObjectControls]
+    permission_classes = [
+        IsRegistered,
+        Any(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
+    ]
 
     def get_target(self):
         raise NotImplementedError()

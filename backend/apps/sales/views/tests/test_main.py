@@ -13,6 +13,7 @@ from apps.lib.test_resources import (
     PermissionsTestCase,
 )
 from apps.lib.tests.factories import AssetFactory, TagFactory
+from apps.lib.tests.test_utils import create_staffer
 from apps.lib.utils import set_tags
 from apps.profiles.models import (
     IN_SUPPORTED_COUNTRY,
@@ -209,6 +210,8 @@ class TestCaseLists(TestOrderListBase, APITestCase):
     def factory_kwargs(user):
         user.is_staff = True
         user.save()
+        user.staff_powers.handle_disputes = True
+        user.staff_powers.save()
         return {
             "arbitrator": user,
             "order__buyer": UserFactory.create(),
@@ -223,36 +226,42 @@ class TestCurrentOrderListPermissions(MethodAccessMixin, PermissionsTestCase):
     passes = order_passes
     kwargs = {"username": "Test"}
     view_class = CurrentOrderList
+    staff_powers = ["table_seller"]
 
 
 class TestCancelledOrderListPermissions(MethodAccessMixin, PermissionsTestCase):
     passes = order_passes
     kwargs = {"username": "Test"}
     view_class = CancelledOrderList
+    staff_powers = ["view_as"]
 
 
 class TestArchivedOrderListPermissions(MethodAccessMixin, PermissionsTestCase):
     passes = order_passes
     kwargs = {"username": "Test"}
     view_class = ArchivedOrderList
+    staff_powers = ["view_as"]
 
 
 class TestCurrentSalesListPermissions(MethodAccessMixin, PermissionsTestCase):
     passes = order_passes
     kwargs = {"username": "Test"}
     view_class = CurrentSalesList
+    staff_powers = ["table_seller"]
 
 
 class TestCancelledSalesListPermissions(MethodAccessMixin, PermissionsTestCase):
     passes = order_passes
     kwargs = {"username": "Test"}
     view_class = CancelledSalesList
+    staff_powers = ["view_as"]
 
 
 class TestArchivedSalesListPermissions(MethodAccessMixin, PermissionsTestCase):
     passes = order_passes
     kwargs = {"username": "Test"}
     view_class = ArchivedSalesList
+    staff_powers = ["table_seller"]
 
 
 class StaffUserList:
@@ -265,6 +274,9 @@ class StaffUserList:
         request = self.factory.get("/")
         request.user = self.user
         request.user.is_staff = True
+        request.user.save()
+        request.user.staff_powers.handle_disputes = True
+        request.user.staff_powers.save()
         self.check_perms(request, self.user, fails=False)
 
 
@@ -277,6 +289,7 @@ class TestCurrentCasesListPermissions(
     passes = staff_order_passes
     kwargs = {"username": "Test"}
     view_class = CurrentCasesList
+    staff_powers = ["handle_disputes"]
 
 
 class TestCancelledCasesListPermissions(
@@ -285,6 +298,7 @@ class TestCancelledCasesListPermissions(
     passes = staff_order_passes
     kwargs = {"username": "Test"}
     view_class = CancelledCasesList
+    staff_powers = ["handle_disputes"]
 
 
 class TestArchivedCasesListPermissions(
@@ -293,6 +307,7 @@ class TestArchivedCasesListPermissions(
     passes = staff_order_passes
     kwargs = {"username": "Test"}
     view_class = ArchivedCasesList
+    staff_powers = ["handle_disputes"]
 
 
 class TestSearchWaiting(APITestCase):
@@ -502,7 +517,7 @@ class TestCardManagement(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_card_listing_staffer(self):
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("table_seller")
         user = UserFactory.create()
         self.login(staffer)
         cards = [CreditCardTokenFactory(user=user) for __ in range(4)]
@@ -580,7 +595,7 @@ class TestCardManagement(APITestCase):
     @patch("apps.sales.models.delete_payment_method")
     def test_card_removal_staff(self, _mock_execute):
         user = UserFactory.create()
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("administrate_users")
         self.login(staffer)
         cards = [
             CreditCardTokenFactory(user=user, stripe_token=f"{i}") for i in range(4)
@@ -599,8 +614,9 @@ class TestCardManagement(APITestCase):
 
 class TestProductListPermissions(PermissionsTestCase, MethodAccessMixin):
     passes = {**MethodAccessMixin.passes}
-    passes["get"] = ["user", "staff", "outsider", "anonymous"]
+    passes["get"] = ["user", "staff", "staff_unpowered", "outsider", "anonymous"]
     passes["post"] = ["user", "staff"]
+    staff_powers = ["table_seller"]
     view_class = ProductList
 
     def get_object(self):
@@ -843,7 +859,7 @@ class TestProduct(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_create_product_staff(self):
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("table_seller")
         user = UserFactory.create()
         asset = AssetFactory.create(uploaded_by=staffer)
         self.login(staffer)
@@ -946,7 +962,7 @@ class TestProduct(APITestCase):
 
     def test_product_listing_staff(self):
         user = UserFactory.create()
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("view_as")
         self.login(staffer)
         products = [ProductFactory.create(user=user) for __ in range(3)]
         hidden = ProductFactory.create(user=user, hidden=True)
@@ -1047,7 +1063,7 @@ class TestProduct(APITestCase):
         self.assertEqual(Product.objects.filter(id=products[2].id).count(), 1)
 
     def test_product_delete_staffer(self):
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("moderate_content")
         user = UserFactory.create()
         self.login(staffer)
         products = [ProductFactory.create(user=user) for __ in range(3)]
@@ -1340,7 +1356,7 @@ class TestProductSearch(APITestCase):
 
     def test_watchlist(self):
         viewer = UserFactory.create()
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("view_as")
         watched = ProductFactory.create()
         viewer.watching.add(watched.user)
         # Unwatched
@@ -2690,7 +2706,7 @@ class TestQueue(APITestCase):
 class TestAnonymousInvoice(APITestCase):
     def test_invoice_created(self):
         UserFactory.create(username=settings.ANONYMOUS_USER_USERNAME)
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         response = self.client.post("/api/sales/create-anonymous-invoice/")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
@@ -2716,7 +2732,7 @@ class TestRecentInvoices(APITestCase):
             created_on=timezone.now().replace(year=2021, month=8, day=1),
             manually_created=True,
         )
-        self.login(UserFactory.create(is_staff=True))
+        self.login(create_staffer("table_seller"))
         response = self.client.get("/api/sales/recent-invoices/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         target_list = [newest.id, middle.id, oldest.id]
@@ -2753,7 +2769,7 @@ class TestInvoiceLineItems(APITestCase):
         self.assertEqual(response.data[0]["amount"], "10.00")
 
     def test_create_line_item(self):
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("table_seller")
         deliverable = DeliverableFactory.create(
             product__base_price=Money("10.00", "USD")
         )
@@ -2765,7 +2781,7 @@ class TestInvoiceLineItems(APITestCase):
         self.assertEqual(response.data["amount"], "5.0")
 
     def test_modify_base_line_item(self):
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("table_seller")
         deliverable = DeliverableFactory.create(
             product__base_price=Money("10.00", "USD")
         )
@@ -2887,7 +2903,7 @@ class TestInvoiceLineItems(APITestCase):
 
 class TestLineItemManager(APITestCase):
     def test_retrieve_line_item(self):
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("table_seller")
         line_item = LineItemFactory.create(amount=Money("5.00", "USD"))
         self.login(staff)
         response = self.client.get(
@@ -2951,7 +2967,7 @@ class TestReferenceManager(APITestCase):
 class TestInvoicePayment(APITestCase):
     def test_pay_cash(self):
         line_item = LineItemFactory.create(invoice__status=OPEN)
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("table_seller")
         self.login(staff)
         response = self.client.post(
             f"/api/sales/invoice/{line_item.invoice.id}/pay/",
@@ -2964,7 +2980,7 @@ class TestInvoicePayment(APITestCase):
 
     def test_pay_cash_wrong_amount(self):
         line_item = LineItemFactory.create(invoice__status=OPEN)
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("table_seller")
         self.login(staff)
         response = self.client.post(
             f"/api/sales/invoice/{line_item.invoice.id}/pay/",
@@ -3135,7 +3151,7 @@ class TestFeatureProduct(APITestCase):
     def test_feature_product(self):
         product = ProductFactory.create()
         self.assertFalse(product.featured)
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("moderate_content")
         self.login(user)
         self.client.post(
             f"/api/sales/account/{product.user.username}/products/"
@@ -3148,7 +3164,7 @@ class TestFeatureProduct(APITestCase):
     def test_unfeature_product(self):
         product = ProductFactory.create(featured=True)
         self.assertTrue(product.featured)
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("moderate_content")
         self.login(user)
         self.client.post(
             f"/api/sales/account/{product.user.username}/products/"
@@ -3218,7 +3234,7 @@ class TestPremadeSearches(APITestCase):
     def test_table_products(self):
         table_product = ProductFactory.create(table_product=True)
         ProductFactory.create()
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         response = self.client.get("/api/sales/table/products/")
         self.assertEqual(len(response.data), 1)
@@ -3243,7 +3259,7 @@ class TestPremadeSearches(APITestCase):
 class TestInvoiceStatus(APITestCase):
     def test_finalize_invoice(self):
         invoice = InvoiceFactory.create(status=DRAFT)
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         self.client.post(f"/api/sales/invoice/{invoice.id}/finalize/")
         invoice.refresh_from_db()
@@ -3258,7 +3274,7 @@ class TestInvoiceStatus(APITestCase):
 
     def test_void_invoice(self):
         invoice = InvoiceFactory.create(status=OPEN)
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         self.client.post(f"/api/sales/invoice/{invoice.id}/void/")
         invoice.refresh_from_db()
@@ -3299,7 +3315,7 @@ class TestInvoiceDetail(APITestCase):
 
 class TestTableOrders(APITestCase):
     def test_table_orders(self):
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         deliverable = DeliverableFactory(table_order=True)
         # Unrelated
         DeliverableFactory.create()
@@ -3359,7 +3375,7 @@ class TestInvoiceTransactions(APITestCase):
         # Unrelated record
         TransactionRecordFactory.create()
         record.targets.add(ref_for_instance(invoice))
-        self.login(UserFactory.create(is_staff=True))
+        self.login(create_staffer("table_seller"))
         response = self.client.get(
             f"/api/sales/invoice/{invoice.id}/transaction-records/",
         )

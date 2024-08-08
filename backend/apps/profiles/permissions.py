@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from dateutil.relativedelta import relativedelta
 from django.utils import timezone
@@ -6,8 +6,11 @@ from django.views import View
 from rest_framework.permissions import BasePermission
 from rest_framework.request import Request
 
+from apps.profiles.constants import POWER
+
 if TYPE_CHECKING:
     from apps.sales.models import Invoice
+    from apps.profiles.models import User
 
 
 class ObjectControls(BasePermission):
@@ -18,8 +21,6 @@ class ObjectControls(BasePermission):
     message = "You are not authorized to edit this."
 
     def has_object_permission(self, request, view, obj):
-        if request.user.is_staff:
-            return True
         user = getattr(obj, "user", obj)
         if user == request.user:
             return True
@@ -62,7 +63,7 @@ class SubmissionTagPermission(BasePermission):
     message = "Tagging is disabled for that submission."
 
     def has_object_permission(self, request, view, obj):
-        if request.user.is_staff:
+        if staff_power(request.user, "moderate_content"):
             return True
         if obj.owner == request.user:
             return True
@@ -79,7 +80,9 @@ class SubmissionViewPermission(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        if request.user.is_staff:
+        if staff_power(request.user, "moderate_content") or staff_power(
+            request.user, "view_as"
+        ):
             return True
         if obj.owner == request.user:
             return True
@@ -99,9 +102,8 @@ class SubmissionCommentPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         if obj.comments_disabled:
             return False
-        if (
-            obj.owner.blocking.filter(id=request.user.id).exists()
-            and not request.user.is_staff
+        if obj.owner.blocking.filter(id=request.user.id).exists() and not staff_power(
+            request.user, "moderate_discussion"
         ):
             return False
         return True
@@ -112,25 +114,7 @@ def derive_user(obj):
 
     if isinstance(obj, User):
         return obj
-    return getattr(obj, "user", getattr(obj, "bill_to", None))
-
-
-class UserControls(BasePermission):
-    """
-    Checks to see whether this is a staffer or the current user. Ignore actions if
-    comment is deleted.
-    """
-
-    message = "You may not affect changes for this account."
-
-    def has_object_permission(self, request, view, obj):
-        if request.user.is_staff:
-            return True
-        if request.user == obj:
-            return True
-        user = derive_user(obj)
-        if user and user == request.user:
-            return True
+    return getattr(obj, "user", getattr(obj, "bill_to", getattr(obj, "owner", None)))
 
 
 class IssuedBy(BasePermission):
@@ -165,7 +149,7 @@ class ColorControls(BasePermission):
     """
 
     def has_object_permission(self, request, view, obj):
-        if request.user.is_staff:
+        if staff_power(request.user, "moderate_content"):
             return True
         if hasattr(obj, "user"):
             if request.user == obj.user:
@@ -187,7 +171,7 @@ class ViewFavorites(BasePermission):
     def has_object_permission(self, request, view, obj):
         if obj == request.user:
             return True
-        if request.user.is_staff:
+        if staff_power(request.user, "view_as"):
             return True
         if obj.favorites_hidden:
             return False
@@ -227,7 +211,7 @@ class JournalCommentPermission(BasePermission):
         if obj.comments_disabled:
             self.message = "Comments are disabled on this journal."
             return False
-        if obj.user.is_staff:
+        if staff_power(request.user, "moderate_discussion"):
             return True
         if obj.user.blocking.filter(id=request.user.id):
             return False
@@ -272,3 +256,14 @@ class AccountCurrentPermission(BasePermission):
     def has_object_permission(self, request, view, obj):
         user = derive_user(obj)
         return not user.delinquent
+
+
+def staff_power(user: "User", *powers: Iterable["POWER"]):
+    """
+    Return true if this user is a staffer and has the specified power.
+    """
+    if not hasattr(user, "staff_powers"):
+        return False
+    if not user.is_staff:
+        return False
+    return all((getattr(user.staff_powers, power) for power in powers))

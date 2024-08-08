@@ -1,7 +1,7 @@
 from typing import Any
 
 from apps.profiles.models import UNSET, User
-from apps.profiles.permissions import derive_user
+from apps.profiles.permissions import derive_user, staff_power
 from apps.sales.constants import CONCURRENCY_STATUSES, LIMBO, MISSED
 from apps.sales.utils import available_products_from_user
 from django.db.models import Q
@@ -44,7 +44,9 @@ class OrderViewPermission(BasePermission):
         obj = derive_order(obj)
         if not obj:  # pragma: no cover
             return False
-        if request.user.is_staff:
+        if staff_power(request.user, "handle_disputes"):
+            return True
+        if staff_power(request.user, "table_seller"):
             return True
         if request.user == obj.buyer:
             return True
@@ -57,7 +59,7 @@ class OrderSellerPermission(BasePermission):
         obj = derive_order(obj)
         if not obj:  # pragma: no cover
             return False
-        if request.user.is_staff:
+        if staff_power(request.user, "handle_disputes"):
             return True
         if request.user == obj.seller:
             return True
@@ -68,7 +70,7 @@ class OrderBuyerPermission(BasePermission):
         obj = derive_order(obj)
         if not obj:  # pragma: no cover
             return False
-        if request.user.is_staff:
+        if staff_power(request.user, "handle_disputes"):
             return True
         if request.user == obj.buyer:
             return True

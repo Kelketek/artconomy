@@ -49,6 +49,7 @@ from apps.lib.models import (
     Subscription,
     Tag,
 )
+from apps.lib.permissions import Any, StaffPower
 from apps.lib.utils import (
     clear_events,
     clear_events_subscriptions_and_comments,
@@ -63,13 +64,15 @@ from apps.lib.utils import (
     websocket_send,
     post_commit_defer,
 )
+from apps.profiles.constants import POWER_LIST
 from apps.profiles.permissions import (
     IsRegistered,
     JournalCommentPermission,
     MessageReadPermission,
     SubmissionCommentPermission,
     SubmissionViewPermission,
-    UserControls,
+    staff_power,
+    ObjectControls,
 )
 from apps.sales.constants import PROCESSOR_CHOICES
 from avatar.models import Avatar
@@ -224,7 +227,12 @@ class User(AbstractEmailUser, HitsMixin):
     landscape_enabled = BooleanField(default=False, db_index=True, null=True)
     # Used for the users where we have received bounce notifications for their email
     # address. Prevents us from sending email to them.
-    email_nulled = BooleanField(default=False, db_index=True)
+    email_nulled = BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Drop all emails that would otherwise be sent to this user. Will "
+        "reset to off if the email address is updated by the user.",
+    )
     landscape_paid_through = DateField(
         null=True, default=None, blank=True, db_index=True
     )
@@ -330,10 +338,13 @@ class User(AbstractEmailUser, HitsMixin):
     )
     drip_id = models.CharField(max_length=32, db_index=True, default="")
     watch_permissions = {
-        "UserSerializer": [UserControls],
+        "UserSerializer": [ObjectControls, StaffPower("administrate_users")],
         "UserInfoSerializer": [],
-        "UnreadNotificationsSerializer": [IsRegistered, UserControls],
-        None: [UserControls],
+        "UnreadNotificationsSerializer": [
+            IsRegistered,
+            Any(ObjectControls, StaffPower("view_as")),
+        ],
+        None: [Any(ObjectControls, StaffPower("administrate_users"))],
     }
 
     @property
@@ -513,9 +524,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
         create_email_preferences(instance)
         set_avatar_url(instance)
     if instance.is_staff:
-        Subscription.objects.get_or_create(
-            subscriber=instance, content_type=None, object_id=None, type=DISPUTE
-        )
+        StaffPowers.objects.get_or_create(user=instance)
     if instance.is_superuser:
         subscription, _ = Subscription.objects.get_or_create(
             subscriber=instance, content_type=None, object_id=None, type=REFUND
@@ -587,7 +596,9 @@ class ArtistProfile(Model):
     commission_info = CharField(max_length=14000, blank=True, default="")
     watch_permissions = {
         "ArtistProfileSerializer": [],
-        "SalesStatsSerializer": [UserControls],
+        "SalesStatsSerializer": [
+            Any(StaffPower("view_financials"), StaffPower("view_as"), ObjectControls)
+        ],
     }
 
     def __str__(self):
@@ -1282,6 +1293,67 @@ def auto_unsubscribe_journal(sender, instance, **kwargs):
     ).delete()
 
 
+class StaffPowers(models.Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name="staff_powers")
+    # Enables the ability to handle disputes, create and perform actions on invoices.
+    handle_disputes = BooleanField(default=False)
+    # Allows someone to view the social media promotion settings of particular users.
+    view_social_data = BooleanField(default=False)
+    # Allows the user to view and download financial data
+    view_financials = BooleanField(default=False)
+    # Allows a user to edit other user's submissions
+    moderate_content = BooleanField(default=False)
+    # Allows a user to delete comments
+    moderate_discussion = BooleanField(default=False)
+    # Grants access to the virtual table control panel and associated features.
+    table_seller = BooleanField(default=False)
+    # Allows a staffer to view things from the other user's perspective.
+    view_as = BooleanField(default=False)
+    # Allows a staffer to do things like reset passwwords, change usernames,
+    # disable accounts, and update emails.
+    administrate_users = BooleanField(default=False)
+
+
+for power in POWER_LIST:
+    assert hasattr(StaffPowers, power)
+
+
+@receiver(post_save, sender=StaffPowers)
+def power_subscriptions(sender, instance, **kwargs):
+    from apps.profiles.serializers import UserSerializer
+    from apps.lib.consumers import send_updated
+
+    user = instance.user
+    if user.is_superuser or (user.is_staff and instance.handle_disputes):
+        Subscription.objects.get_or_create(
+            subscriber=user, content_type=None, object_id=None, type=DISPUTE
+        )
+
+    else:
+        Subscription.objects.filter(
+            subscriber=user,
+            content_type=None,
+            object_id=None,
+            type=DISPUTE,
+        ).delete()
+    if user.is_superuser or (user.is_staff and instance.view_financials):
+        Subscription.objects.get_or_create(
+            defaults={"email": True},
+            subscriber=user,
+            content_type=None,
+            object_id=None,
+            type=REFUND,
+        )
+    else:
+        Subscription.objects.filter(
+            subscriber=user,
+            content_type=None,
+            object_id=None,
+            type=REFUND,
+        ).delete()
+    send_updated(instance.user, serializers=[UserSerializer])
+
+
 @disable_on_load
 def subscribe_watching(sender, instance, **kwargs):
     action = kwargs.get("action", "")
@@ -1445,7 +1517,7 @@ def create_email_preferences(user: User):
                 ),
             ]
         )
-    if user.is_staff:
+    if staff_power(user, "handle_disputes"):
         preferences.extend(
             [
                 EmailPreference(

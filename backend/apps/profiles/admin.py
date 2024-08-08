@@ -1,8 +1,19 @@
-from apps.profiles.models import ArtistProfile, Character, RefColor, Submission, User
+from apps.profiles.models import (
+    ArtistProfile,
+    Character,
+    RefColor,
+    Submission,
+    User,
+    StaffPowers,
+)
 from custom_user.admin import EmailUserAdmin
 from django.contrib import admin
-from django.contrib.admin import ModelAdmin
+from django.contrib.admin import ModelAdmin, StackedInline
 from django.contrib.admin.options import TabularInline
+
+
+class StaffPowersInline(StackedInline):
+    model = StaffPowers
 
 
 class ArtconomyUserAdmin(EmailUserAdmin):
@@ -13,6 +24,7 @@ class ArtconomyUserAdmin(EmailUserAdmin):
             {
                 "fields": (
                     "is_active",
+                    "email_nulled",
                     "is_staff",
                     "is_superuser",
                     "artist_mode",
@@ -43,6 +55,11 @@ class ArtconomyUserAdmin(EmailUserAdmin):
     list_filter = ["guest", "artist_mode", "is_staff", "is_superuser"]
     search_fields = ["username", "email"]
     raw_id_fields = ["primary_card"]
+
+    def get_inlines(self, request, obj):
+        if hasattr(obj, "staff_powers"):
+            return [StaffPowersInline]
+        return []
 
 
 class SubmissionAdmin(ModelAdmin):

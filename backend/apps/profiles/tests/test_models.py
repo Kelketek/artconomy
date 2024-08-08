@@ -1,8 +1,9 @@
 from unittest.mock import Mock
 
 from apps.lib import models
-from apps.lib.models import COMMENT, Event, Subscription
+from apps.lib.models import COMMENT, Event, Subscription, DISPUTE
 from apps.lib.test_resources import EnsurePlansMixin
+from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.models import Character
 from apps.profiles.tests.factories import (
     ConversationFactory,
@@ -42,8 +43,8 @@ class SubscriptionsTestCase(EnsurePlansMixin, TestCase):
         checks.insert(0, (models.SYSTEM_ANNOUNCEMENT, None, None, False))
         self.assertEqual(list(subscriptions), checks)
 
-    def test_subscriptions_created_staff(self):
-        user = UserFactory.create(is_staff=True)
+    def test_subscriptions_created_staff_disputes(self):
+        user = create_staffer("handle_disputes")
         # 2: System announcement, New Dispute
         self.assertEqual(
             Subscription.objects.filter(subscriber=user).count(),
@@ -52,7 +53,23 @@ class SubscriptionsTestCase(EnsurePlansMixin, TestCase):
         self.assertTrue(
             Subscription.objects.filter(
                 subscriber=user,
-                type=models.DISPUTE,
+                type=DISPUTE,
+                content_type_id=None,
+                object_id=None,
+            ).exists()
+        )
+
+    def test_subscriptions_created_staff_refunds(self):
+        user = create_staffer("view_financials")
+        # 2: System announcement, New Dispute
+        self.assertEqual(
+            Subscription.objects.filter(subscriber=user).count(),
+            len(expected_subscriptions) + 2,
+        )
+        self.assertTrue(
+            Subscription.objects.filter(
+                subscriber=user,
+                type=models.REFUND,
                 content_type_id=None,
                 object_id=None,
             ).exists()

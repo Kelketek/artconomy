@@ -14,6 +14,7 @@ from apps.lib.models import (
 )
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
+from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
 from apps.profiles.tests.factories import (
     CharacterFactory,
@@ -381,8 +382,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
 
     @patch("apps.sales.views.main.login")
     def test_place_order_table_product(self, mock_login):
-        user = UserFactory.create(is_staff=True)
-        self.login(user)
+        staffer = create_staffer("table_seller")
+        self.login(staffer)
         product = ProductFactory.create(table_product=True)
         self.assertEqual(len(mail.outbox), 0)
         response = self.client.post(
@@ -829,7 +830,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_add_line_item_staff(self):
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("table_seller")
         user = UserFactory.create()
         self.login(staffer)
         deliverable = DeliverableFactory.create(order__seller=user)
@@ -850,7 +851,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(line_item.destination_user, user)
 
     def test_add_extra_item_staff(self):
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("table_seller")
         user = UserFactory.create()
         self.login(staffer)
         deliverable = DeliverableFactory.create(order__seller=user)
@@ -936,7 +937,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         line_item = add_adjustment(deliverable, Money("5.00", "USD"))
         line_item.type = EXTRA
         line_item.save()
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("table_seller")
         self.login(staff)
         response = self.client.delete(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
@@ -1283,7 +1284,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
 
     def test_revision_upload_staffer(self):
         user = UserFactory.create()
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("handle_disputes")
         self.login(staffer)
         deliverable = DeliverableFactory.create(
             order__seller=user, status=IN_PROGRESS, rating=ADULT
@@ -1441,7 +1442,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
 
     def test_delete_revision_staffer(self):
         user = UserFactory.create()
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("handle_disputes")
         self.login(staffer)
         deliverable = DeliverableFactory.create(order__seller=user, status=IN_PROGRESS)
         revision = RevisionFactory.create(deliverable=deliverable)
@@ -1536,7 +1537,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
     def test_order_get_rating_staff_buyer_end(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
         LineItemFactory.create(invoice=deliverable.invoice)
-        self.login(UserFactory.create(is_staff=True))
+        staffer = create_staffer("handle_disputes")
+        self.login(staffer)
         response = self.client.get(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/rate/buyer/",
@@ -1546,7 +1548,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
 
     def test_order_get_rating_staff_seller_end(self):
         deliverable = DeliverableFactory.create(status=COMPLETED)
-        self.login(UserFactory.create(is_staff=True))
+        staffer = create_staffer("handle_disputes")
+        self.login(staffer)
         response = self.client.get(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
             f"{deliverable.id}/rate/seller/",

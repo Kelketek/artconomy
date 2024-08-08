@@ -67,6 +67,13 @@ export default defineConfig({
   plugins,
   test: {
     globals: true,
+    pool: 'forks',
+    poolOptions: {
+      forks: {
+        minForks: 4,
+        maxForks: 8,
+      }
+    },
     environment: 'jsdom',
     setupFiles: ['specs/setupTestEnv.ts'],
     server: {

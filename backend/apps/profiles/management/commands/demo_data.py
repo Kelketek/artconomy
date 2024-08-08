@@ -19,7 +19,7 @@ class Command(BaseCommand):
             artist_mode=True,
             authorize_token="",
             is_staff=True,
-            is_admin=True,
+            is_superuser=True,
         )
         fox.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         fox.artist_profile.save()

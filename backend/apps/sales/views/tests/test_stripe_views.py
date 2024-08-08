@@ -1,6 +1,7 @@
 from unittest.mock import Mock, patch
 
 from apps.lib.test_resources import APITestCase
+from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.tests.factories import UserFactory
 from apps.sales import stripe as stripe_module
 from apps.sales.constants import OPEN, PAYMENT_PENDING, STRIPE
@@ -230,7 +231,7 @@ class TestStripePresentCard(APITestCase):
 class TestStripeReaders(APITestCase):
     def test_list_readers(self, _mock_stripe):
         reader = StripeReaderFactory.create(name="Money Maker")
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         result = self.client.get("/api/sales/v1/stripe-readers/")
         self.assertEqual(

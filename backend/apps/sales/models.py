@@ -27,7 +27,7 @@ from apps.lib.models import (
     note_for_text,
     ref_for_instance,
 )
-from apps.lib.permissions import Any, IsStaff
+from apps.lib.permissions import Any, StaffPower
 from apps.lib.utils import (
     clear_events,
     clear_events_subscriptions_and_comments,
@@ -40,7 +40,7 @@ from apps.lib.utils import (
     send_transaction_email,
 )
 from apps.profiles.models import ArtistProfile, User
-from apps.profiles.permissions import BillTo, IssuedBy, UserControls
+from apps.profiles.permissions import BillTo, IssuedBy, ObjectControls
 from apps.sales.constants import (
     ACCOUNT_TYPES,
     BASE_PRICE,
@@ -1169,7 +1169,9 @@ class CreditCardToken(Model):
     active = BooleanField(default=True, db_index=True)
     cvv_verified = BooleanField(default=False, db_index=True)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
-    watch_permissions = {"CardSerializer": [UserControls]}
+    watch_permissions = {
+        "CardSerializer": [Any(ObjectControls, StaffPower("view_financials"))]
+    }
 
     def __str__(self):
         return "%s ending in %s%s" % (
@@ -1285,8 +1287,10 @@ class Invoice(models.Model):
     id = ShortCodeField(primary_key=True, db_index=True, default=gen_shortcode)
     status = models.IntegerField(default=DRAFT, choices=INVOICE_STATUSES)
     watch_permissions = {
-        "InvoiceSerializer": [Any(UserControls, BillTo, IssuedBy)],
-        None: [Any(UserControls, BillTo, IssuedBy)],
+        "InvoiceSerializer": [
+            Any(ObjectControls, StaffPower("view_financials"), BillTo, IssuedBy)
+        ],
+        None: [Any(ObjectControls, StaffPower("view_financials"), BillTo, IssuedBy)],
     }
     type = models.IntegerField(default=SALE, choices=INVOICE_TYPES)
     bill_to = models.ForeignKey(
@@ -1414,7 +1418,15 @@ class LineItem(Model):
     destination_account = IntegerField(choices=ACCOUNT_TYPES)
     description = CharField(max_length=250, blank=True, default="")
     watch_permissions = {
-        "LineItemSerializer": [Any(OrderViewPermission, BillTo, IssuedBy, IsStaff)]
+        "LineItemSerializer": [
+            Any(
+                OrderViewPermission,
+                BillTo,
+                IssuedBy,
+                StaffPower("table_seller"),
+                StaffPower("view_financials"),
+            )
+        ]
     }
     targets = ManyToManyField(
         "lib.GenericReference", through=LineItemAnnotation, related_name="line_items"
@@ -1561,7 +1573,13 @@ class Reference(ImageModel):
     as signals would not indicate which deliverable is being dealt with.
     """
 
-    comment_permissions = [Any(ReferenceViewPermission, IsStaff)]
+    comment_permissions = [
+        Any(
+            ReferenceViewPermission,
+            StaffPower("handle_disputes"),
+            StaffPower("table_seller"),
+        )
+    ]
     preserve_comments = True
     deliverables = ManyToManyField(Deliverable)
     comments = GenericRelation(
@@ -1730,7 +1748,11 @@ class StripeAccount(Model):
     active = BooleanField(default=False, db_index=True)
     token = CharField(max_length=50, db_index=True)
     processor = "stripe"
-    watch_permissions = {"StripeAccountSerializer": [UserControls]}
+    watch_permissions = {
+        "StripeAccountSerializer": [
+            Any(ObjectControls, StaffPower("administrate_users"))
+        ]
+    }
 
     def announce_channels(self):
         return [f"profiles.User.pk.{self.user_id}.stripe_accounts"]

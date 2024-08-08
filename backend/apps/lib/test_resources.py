@@ -1,7 +1,5 @@
 import ctypes
 import multiprocessing
-import os
-import platform
 import time
 from decimal import Decimal
 from multiprocessing import Queue
@@ -12,11 +10,14 @@ from unittest.mock import Mock, patch
 
 import coverage
 import signal_disabler
+
+from apps.profiles.constants import POWER, POWER_LIST
 from apps.sales.models import ServicePlan
 from ddt import data, ddt
 from django.conf import settings
 from django.db import connections
 from django.test.runner import DiscoverRunner, ParallelTestSuite
+from django.test.utils import setup_test_environment
 from moneyed import Money
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import GenericAPIView
@@ -83,7 +84,15 @@ class APITestCase(EnsurePlansMixin, BaseAPITestCase):
 _worker_id = 0
 
 
-def _init_worker(counter):
+def _init_worker(
+    counter,
+    initial_settings=None,
+    serialized_contents=None,
+    process_setup=None,
+    process_setup_args=None,
+    debug_mode=None,
+    used_aliases=None,
+):
     """
     Switch to databases dedicated to this worker.
 
@@ -93,23 +102,29 @@ def _init_worker(counter):
     global _worker_id
     import django
 
-    django.setup()
-
     with counter.get_lock():
         counter.value += 1
         _worker_id = counter.value
 
-    for alias in connections:
+    start_method = multiprocessing.get_start_method()
+
+    if start_method == "spawn":
+        if process_setup and callable(process_setup):
+            if process_setup_args is None:
+                process_setup_args = ()
+            process_setup(*process_setup_args)
+        django.setup()
+        setup_test_environment(debug=debug_mode)
+
+    db_aliases = used_aliases if used_aliases is not None else connections
+    for alias in db_aliases:
         connection = connections[alias]
-        settings_dict = connection.creation.get_test_db_clone_settings(str(_worker_id))
-        # connection.settings_dict must be updated in place for changes to be
-        # reflected in django.db.connections. If the following line assigned
-        # connection.settings_dict = settings_dict, new threads would connect
-        # to the default database instead of the appropriate clone.
-        if platform.system().lower() == "darwin":
-            settings_dict["NAME"] = f'test_{settings_dict["NAME"]}'
-        connection.settings_dict.update(settings_dict)
-        connection.close()
+        if start_method == "spawn":
+            # Restore initial settings in spawned processes.
+            connection.settings_dict.update(initial_settings[alias])
+            if value := serialized_contents.get(alias):
+                connection._test_serialized_contents = value
+        connection.creation.setup_worker_connection(_worker_id)
     # Remove parent process reference, which won't be valid.
     try:
         del coverage.process_startup.coverage
@@ -148,11 +163,20 @@ class CoveredParallelTestSuite(ParallelTestSuite):
         to make sure coverage is properly handled.
         """
         # noinspection PyTypeChecker
+        self.initialize_suite()
         counter = multiprocessing.Value(ctypes.c_int, 0)
         pool = multiprocessing.Pool(
             processes=self.processes,
             initializer=self.init_worker.__func__,
-            initargs=[counter],
+            initargs=[
+                counter,
+                self.initial_settings,
+                self.serialized_contents,
+                self.process_setup.__func__,
+                self.process_setup_args,
+                self.debug_mode,
+                self.used_aliases,
+            ],
         )
         args = [
             (self.runner_class, index, subsuite, self.failfast, self.buffer)
@@ -368,6 +392,7 @@ class PermissionsTestCase(APITestCase):
     view_class = GenericAPIView
     args = []
     kwargs = {}
+    staff_powers: list[POWER] = []
 
     def setUp(self):
         from apps.profiles.models import User
@@ -378,6 +403,7 @@ class PermissionsTestCase(APITestCase):
         self.user = Mock(spec=User)
         self.user2 = Mock(spec=User)
         self.staff = Mock(spec=User)
+        self.staff_unpowered = Mock(spec=User)
         self.anonymous = Mock(spec=AnonymousUser)
         self.user.label = "user"
         self.user.is_staff = False
@@ -391,6 +417,16 @@ class PermissionsTestCase(APITestCase):
         self.staff.is_staff = True
         self.staff.is_superuser = False
         self.staff.is_authenticated = True
+        for power in POWER_LIST:
+            setattr(self.staff.staff_powers, power, False)
+        for power in self.staff_powers:
+            setattr(self.staff.staff_powers, power, True)
+        self.staff_unpowered.label = "staff_unpowered"
+        self.staff_unpowered.is_staff = True
+        self.staff_unpowered.is_superuser = False
+        self.staff_unpowered.is_authenticated = True
+        for power in POWER_LIST:
+            setattr(self.staff_unpowered.staff_powers, power, False)
         self.anonymous.label = "anonymous"
         self.anonymous.is_staff = False
         self.anonymous.is_authenticated = False
@@ -412,7 +448,7 @@ class PermissionsTestCase(APITestCase):
         if fails:
             raise AssertionError(
                 f"Permission check passed when it should not have! {request.method} - "
-                f"{self.user.label}",
+                f"{request.user.label}",
             )
 
     def mod_request(self, request):
@@ -486,6 +522,14 @@ class MethodAccessMixin:
         request.user = self.staff
         self.mod_request(request)
         fails = self.staff.label not in self.passes[method]
+        self.check_perms(request, self.user, fails=fails)
+
+    @data("get", "post", "patch", "delete", "put")
+    def test_staff_unpowered(self, method):
+        request = getattr(self.factory, method)("/")
+        request.user = self.staff_unpowered
+        self.mod_request(request)
+        fails = self.staff_unpowered.label not in self.passes[method]
         self.check_perms(request, self.user, fails=fails)
 
     @data("get", "post", "patch", "delete", "put")

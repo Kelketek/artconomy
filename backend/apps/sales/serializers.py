@@ -21,6 +21,7 @@ from apps.lib.serializers import (
 )
 from apps.lib.utils import add_check, check_read, multi_filter
 from apps.profiles.models import Character, Submission, User, ArtistProfile
+from apps.profiles.permissions import staff_power
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
 from apps.sales.constants import (
@@ -136,9 +137,10 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         request = self.context.get("request")
         if not request:
             return
-        if request.user.is_staff:
+        if staff_power(request.user, "moderate_content"):
             self.fields["featured"].read_only = False
             self.fields["catalog_enabled"].read_only = False
+        if staff_power(request.user, "table_seller"):
             self.fields["table_product"].read_only = False
         self.subject = getattr(request, "subject", None)
         if self.subject and self.subject.is_registered and self.subject.landscape:
@@ -254,7 +256,7 @@ class CharacterValidationMixin:
         value = Character.objects.filter(id__in=value)
         for character in value:
             user = self.context["request"].user
-            if not (user.is_staff or character.user == user):
+            if not (staff_power(user, "table_seller") or character.user == user):
                 private = character.private and not character.shared_with.filter(
                     id=user.id
                 )
@@ -353,7 +355,7 @@ class ProductNewOrderSerializer(
         requires_email = any(
             [
                 not self.context["request"].user.is_authenticated,
-                self.context["request"].user.is_staff
+                staff_power(self.context["request"].user, "table_seller")
                 and self.context["product"].table_product,
             ]
         )
@@ -481,7 +483,11 @@ class OrderViewSerializer(
         user = self.context["request"].user
         if self.context.get("public"):
             return ""
-        if not (user == order.seller or user.is_staff):
+        if not (
+            user == order.seller
+            or staff_power(user, "handle_disputes")
+            or staff_power(user, "table_seller")
+        ):
             return ""
         if order.buyer and order.buyer.guest:
             return order.buyer.guest_email
@@ -515,7 +521,11 @@ class OrderViewSerializer(
     @property
     def is_seller(self):
         user = self.context["request"].user
-        return (user == self.instance.seller) or user.is_staff
+        return (
+            (user == self.instance.seller)
+            or staff_power(user, "handle_disputes")
+            or staff_power(user, "table_seller")
+        )
 
     def get_claim_token(self, order):
         user = self.context["request"].user
@@ -646,7 +656,11 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         # answer.
         if not isinstance(obj, Deliverable):  # pragma: no cover
             return ""
-        if self.is_buyer or self.is_seller or self.context["request"].user.is_staff:
+        user = self.context["request"].user
+        staff_powers = staff_power(user, "handle_disputes") or staff_power(
+            user, "table_seller"
+        )
+        if self.is_buyer or self.is_seller or staff_powers:
             return getattr(getattr(obj, key, None), "id", None)
         return None
 
@@ -736,14 +750,22 @@ class DeliverableSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         if not isinstance(self.instance, Deliverable):
             return False
         user = self.context["request"].user
-        return (user == self.instance.order.seller) or user.is_staff
+        return (
+            (user == self.instance.order.seller)
+            or staff_power(user, "handle_disputes")
+            or staff_power(user, "table_seller")
+        )
 
     @property
     def is_buyer(self):
         if not isinstance(self.instance, Deliverable):
             return False
         user = self.context["request"].user
-        return (user == self.instance.order.buyer) or user.is_staff
+        return (
+            (user == self.instance.order.buyer)
+            or staff_power(user, "handle_disputes")
+            or staff_power(user, "table_seller")
+        )
 
     def get_display(self, obj):
         return obj.notification_display(context=self.context)
@@ -864,7 +886,7 @@ class LineItemSerializer(serializers.ModelSerializer):
         deliverable = self.context.get("deliverable")
         self.context.get("invoice")
         user = self.context["request"].user
-        if user.is_staff:
+        if staff_power(user, "table_seller"):
             permitted_types = [EXTRA, ADD_ON, TIP]
         elif deliverable and user == deliverable.order.seller:
             permitted_types = [ADD_ON]
@@ -929,7 +951,8 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
         return (
             (order.buyer == requester)
             or (order.seller == requester)
-            or requester.is_staff
+            or staff_power(requester, "handle_disputes")
+            or staff_power(requester, "table_seller")
         )
 
     def get_status(self, order):
@@ -940,7 +963,11 @@ class OrderPreviewSerializer(ProductNameMixin, serializers.ModelSerializer):
         user = self.context["request"].user
         if self.context.get("public"):
             return ""
-        if not (user == order.seller or user.is_staff):
+        if not (
+            user == order.seller
+            or staff_power(user, "handle_disputes")
+            or staff_power(user, "table_seller")
+        ):
             return ""
         if order.buyer and order.buyer.guest:
             return order.buyer.guest_email
@@ -1015,7 +1042,7 @@ class MakePaymentMixin:
         super().__init__(*args, **kwargs)
         cash = kwargs["data"].get("cash")
         card_id = kwargs["data"].get("card_id", None)
-        is_staff = kwargs["context"]["request"].user.is_staff
+        is_staff = staff_power(kwargs["context"]["request"].user, "table_seller")
         if "data" in kwargs and (card_id or (cash and is_staff)):
             del self.fields["make_primary"]
             if cash and is_staff:
@@ -1148,7 +1175,7 @@ class TransactionRecordSerializer(serializers.ModelSerializer):
         subject = getattr(
             self.context["request"], "subject", self.context["request"].user
         )
-        if (instance.payer != subject) and not subject.is_staff:
+        if (instance.payer != subject) and not staff_power(subject, "view_financials"):
             # In this case the user should not have access to the card information.
             result["card"] = None
         return result

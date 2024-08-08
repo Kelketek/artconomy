@@ -7,6 +7,7 @@ from apps.lib.test_resources import (
     PermissionsTestCase,
     SignalsDisabledMixin,
 )
+from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import (
     BANK,
@@ -28,6 +29,7 @@ history_passes = {**MethodAccessMixin.passes, "get": ["user", "staff"]}
 class TestAccountHistoryPermissions(PermissionsTestCase, MethodAccessMixin):
     passes = history_passes
     view_class = AccountHistory
+    staff_powers = ["view_financials"]
 
 
 class TestHistoryViews(SignalsDisabledMixin, APITestCase):
@@ -135,7 +137,7 @@ class TestAccountBalance(APITestCase):
     @patch("apps.sales.serializers.account_balance")
     def test_account_balance_staff(self, mock_account_balance):
         user = UserFactory.create()
-        staffer = UserFactory.create(is_staff=True)
+        staffer = create_staffer("view_financials")
         self.login(staffer)
         mock_account_balance.side_effect = mock_balance
         response = self.client.get(

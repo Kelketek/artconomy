@@ -1,6 +1,7 @@
 from decimal import Decimal
 
 from apps.lib.test_resources import APITestCase
+from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import CARD, CASH_DEPOSIT, PAYMENT_PENDING, STRIPE
 from apps.sales.models import TransactionRecord
@@ -15,7 +16,7 @@ from rest_framework import status
 @ddt
 class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
     def test_pay_order_fail_no_guest_email(self):
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         deliverable = DeliverableFactory.create(
             status=PAYMENT_PENDING,
@@ -38,7 +39,7 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
         )
 
     def test_pay_order_staffer_cash(self):
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         deliverable = DeliverableFactory.create(
             status=PAYMENT_PENDING,
@@ -58,7 +59,7 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
         )
 
     def test_pay_order_table_cash(self):
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         deliverable = DeliverableFactory.create(
             status=PAYMENT_PENDING,
@@ -83,7 +84,7 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
     def test_pay_order_table_edge_case(self):
         # This edge case has showed up before-- it created an extra penny. Putting this
         # in to prevent a regression.
-        user = UserFactory.create(is_staff=True)
+        user = create_staffer("table_seller")
         self.login(user)
         deliverable = DeliverableFactory.create(
             status=PAYMENT_PENDING,

@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import reversion
 from apps.lib.abstract_models import ALLOWED_EXTENSIONS
-from apps.lib.permissions import CommentViewPermission, Any
+from apps.lib.permissions import CommentViewPermission, Any, StaffPower
 from apps.lib.tasks import check_asset_associations, generate_thumbnails
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -28,7 +28,7 @@ from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.signals import saved_file
 from short_stuff import unslugify
 
-from apps.profiles.permissions import UserControls
+from apps.profiles.permissions import ObjectControls
 from shortcuts import disable_on_load
 
 
@@ -182,6 +182,8 @@ EVENT_TYPES = (
     (REFUND, "Refund Processed"),
     (STREAMING, "Artist is streaming"),
     (NEW_CHAR_SUBMISSION, "New Submission of Character"),
+    (SUBMISSION_SHARED, "Submission shared"),
+    (CHAR_SHARED, "Character Shared"),
     (FAVORITE, "New Favorite"),
     (SUBMISSION_TAG, "Submission Tagged"),
     (SUBMISSION_CHAR_TAG, "Submission tagged with Character"),
@@ -262,7 +264,9 @@ class Notification(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=CASCADE)
     event = models.ForeignKey(Event, on_delete=CASCADE, related_name="notifications")
     read = models.BooleanField(default=False, db_index=True)
-    watch_permissions = {"NotificationSerializer": [UserControls]}
+    watch_permissions = {
+        "NotificationSerializer": [Any(StaffPower("view_as"), ObjectControls)]
+    }
 
     def announce_channels(self):
         if self.event.type in ORDER_NOTIFICATION_TYPES:
