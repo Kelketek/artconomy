@@ -34,6 +34,7 @@ from apps.profiles.models import (
     banned_named_validator,
     banned_prefix_validator,
 )
+from apps.profiles.permissions import staff_power
 from apps.sales.constants import STRIPE
 from apps.sales.models import Promo, ServicePlan, PaypalConfig
 from apps.tg_bot.models import TelegramDevice
@@ -341,7 +342,9 @@ class CharacterManagementSerializer(RelatedAtomicMixin, serializers.ModelSeriali
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         user = self.context["request"].user
-        if (not (user == self.instance.user)) and not user.is_staff:
+        if (not (user == self.instance.user)) and not staff_power(
+            user, "moderate_content"
+        ):
             for value in self.fields.values():
                 value.read_only = True
             if self.instance.user.taggable:
@@ -500,7 +503,9 @@ class SubmissionManagementSerializer(
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         user = self.context["request"].user
-        if (not (user == self.instance.owner)) and not user.is_staff:
+        if (not (user == self.instance.owner)) and not staff_power(
+            user, "moderate_content"
+        ):
             exempt = ["subscribed", "favorites"]
             for key, value in self.fields.items():
                 if key not in exempt:

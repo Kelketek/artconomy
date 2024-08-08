@@ -5,6 +5,9 @@ from django.views import View
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
 from rest_framework.request import Request
 
+from apps.profiles.models import POWER
+from apps.profiles.permissions import staff_power
+
 logger = getLogger(__name__)
 
 
@@ -14,7 +17,7 @@ class CommentEditPermission(BasePermission):
             return False
         if obj.user == request.user:
             return True
-        if request.user.is_staff:
+        if staff_power(request.user, "moderate_discussion"):
             return True
 
 
@@ -37,8 +40,6 @@ class CommentViewPermission(BasePermission):
             return False
         if obj.system:
             return False
-        if request.user.is_staff:
-            return True
         permission_check = getattr(
             obj.content_object,
             "comment_view_permissions",
@@ -87,14 +88,21 @@ def ObjectStatus(statuses, message):
     return PermClass
 
 
-class IsStaff(BasePermission):
-    message = "You do not have sufficient privileges to perform this operation."
+def StaffPower(power: POWER):
+    class WrappedPermission(BasePermission):
+        message = "You do not have sufficient privileges to perform this operation."
 
-    def has_permission(self, request: Request, view: View) -> bool:
-        return request.user.is_staff
+        def has_permission(self, request: Request, view: View) -> bool:
+            if not request.user.is_staff:
+                return False
+            return getattr(request.user.staff_powers, power)
 
-    def has_object_permission(self, request: Request, view: View, obj: Any) -> bool:
-        return request.user.is_staff
+        def has_object_permission(self, request: Request, view: View, obj: Any) -> bool:
+            if not request.user.is_staff:
+                return False
+            return getattr(request.user.staff_powers, power)
+
+    return WrappedPermission
 
 
 class IsAnonymous(BasePermission):

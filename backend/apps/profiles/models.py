@@ -4,6 +4,7 @@ Models dealing primarily with user preferences and personalization.
 
 import hashlib
 import uuid
+from typing import Literal
 from urllib.parse import urlencode, urljoin
 from django.contrib.auth import models as auth_models
 from django.contrib.auth import user_logged_in, user_logged_out
@@ -49,6 +50,7 @@ from apps.lib.models import (
     Subscription,
     Tag,
 )
+from apps.lib.permissions import Any
 from apps.lib.utils import (
     clear_events,
     clear_events_subscriptions_and_comments,
@@ -330,9 +332,9 @@ class User(AbstractEmailUser, HitsMixin):
     )
     drip_id = models.CharField(max_length=32, db_index=True, default="")
     watch_permissions = {
-        "UserSerializer": [UserControls],
+        "UserSerializer": [UserControls("administrate_users")],
         "UserInfoSerializer": [],
-        None: [UserControls],
+        None: [UserControls("administrate_users")],
     }
 
     @property
@@ -512,9 +514,7 @@ def auto_subscribe(sender, instance, created=False, **_kwargs):
         create_email_preferences(instance)
         set_avatar_url(instance)
     if instance.is_staff:
-        Subscription.objects.get_or_create(
-            subscriber=instance, content_type=None, object_id=None, type=DISPUTE
-        )
+        StaffPowers.get_or_create(user=instance)
     if instance.is_superuser:
         subscription, _ = Subscription.objects.get_or_create(
             subscriber=instance, content_type=None, object_id=None, type=REFUND
@@ -586,7 +586,9 @@ class ArtistProfile(Model):
     commission_info = CharField(max_length=14000, blank=True, default="")
     watch_permissions = {
         "ArtistProfileSerializer": [],
-        "SalesStatsSerializer": [UserControls],
+        "SalesStatsSerializer": [
+            Any(UserControls("view_financials"), UserControls("view_as"))
+        ],
     }
 
     def __str__(self):
@@ -1281,6 +1283,67 @@ def auto_unsubscribe_journal(sender, instance, **kwargs):
     ).delete()
 
 
+class StaffPowers(models.Model):
+    user = OneToOneField(User, on_delete=CASCADE, related_name="staff_powers")
+    # Enables the ability to handle disputes, create and perform actions on invoices.
+    handle_disputes = BooleanField(default=False)
+    # Allows someone to view the social media promotion settings of particular users.
+    view_social_data = BooleanField(default=False)
+    # Allows the user to view and download financial data
+    view_financials = BooleanField(default=False)
+    # Allows a user to edit other user's submissions
+    moderate_content = BooleanField(default=False)
+    # Allows a user to delete comments
+    moderate_discussion = BooleanField(default=False)
+    # Grants access to the virtual table control panel and associated features.
+    table_seller = BooleanField(default=False)
+    # Allows a staffer to view things from the other user's perspective.
+    view_as = BooleanField(default=False)
+    # Allows a staffer to do things like reset passwwords, change usernames,
+    # disable accounts, and update emails.
+    administrate_users = BooleanField(default=False)
+
+
+POWER_LIST = (
+    "handle_disputes",
+    "view_social_data",
+    "moderate_content",
+    "moderate_discussion",
+    "table_seller",
+    "view_as",
+    "administrate_users",
+)
+
+for power in POWER_LIST:
+    assert hasattr(StaffPowers, power)
+
+POWER = Literal[*POWER_LIST]
+
+
+@receiver(post_save, sender=StaffPowers)
+def power_subscriptions(sender, instance, **kwargs):
+    user = instance.user
+    if user.is_superuser or instance.handle_disputes:
+        Subscription.objects.get_or_create(
+            subscriber=user, content_type=None, object_id=None, type=DISPUTE
+        )
+        Subscription.objects.get_or_create(
+            subcriber=user,
+        )
+        subscription, _ = Subscription.objects.get_or_create(
+            subscriber=instance, content_type=None, object_id=None, type=REFUND
+        )
+        subscription.email = True
+        subscription.save()
+    else:
+        Subscription.objects.filter(
+            subscriber=user,
+            content_type=None,
+            object_id=None,
+            type__in=[DISPUTE, REFUND],
+        ).delete()
+
+
 @disable_on_load
 def subscribe_watching(sender, instance, **kwargs):
     action = kwargs.get("action", "")
@@ -1444,7 +1507,7 @@ def create_email_preferences(user: User):
                 ),
             ]
         )
-    if user.is_staff:
+    if staff_power("handle_disputes"):
         preferences.extend(
             [
                 EmailPreference(

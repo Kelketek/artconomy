@@ -83,6 +83,7 @@ from apps.profiles.permissions import (
     SubmissionViewPermission,
     UserControls,
     ViewFavorites,
+    staff_power,
 )
 from apps.profiles.serializers import (
     ArtistProfileSerializer,
@@ -260,7 +261,7 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
     serializer_class = ArtistProfileSerializer
     permission_classes = [
         Any(
-            All(UserControls, IsRegistered),
+            All(UserControls("administrate_users"), IsRegistered),
             IsSafeMethod,
         )
     ]
@@ -296,7 +297,7 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
 
 class CredentialsAPI(GenericAPIView):
     serializer_class = CredentialsSerializer
-    permission_classes = [UserControls]
+    permission_classes = [UserControls("administrate_users")]
 
     def get_object(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -406,7 +407,10 @@ class CharacterListAPI(ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = get_object_or_404(User, username=self.kwargs["username"])
-        if not (self.request.user.is_staff or self.request.user == user):
+        if not (
+            staff_power(self.request.user, "moderate_content")
+            or self.request.user == user
+        ):
             raise PermissionDenied(
                 "You do not have permission to create characters for that user."
             )
@@ -517,7 +521,9 @@ class SubmissionManager(RetrieveUpdateDestroyAPIView):
 
 class SetAvatar(APIView):
     parser_classes = (MultiPartParser,)
-    permission_classes = [UserControls]
+    permission_classes = [
+        Any(UserControls("administrate_users"), UserControls("moderate_content"))
+    ]
 
     def post(self, request, username):
         user = get_object_or_404(User, username=username)
@@ -545,12 +551,12 @@ class UserInfo(APIView):
         Any(
             IsSafeMethod,
             IsRegistered,
-            All(IsAuthenticated, UserControls),
+            All(IsAuthenticated, UserControls("administrate_users")),
         )
     ]
 
     def get_serializer(self, user):
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "administrate_users"):
             return UserSerializer
         if self.request.user == user:
             return UserSerializer
@@ -558,7 +564,7 @@ class UserInfo(APIView):
             return UserInfoSerializer
 
     def get_object(self):
-        if self.request.user.is_staff:
+        if staff_power("administrate_users"):
             extra = Q()
         else:
             extra = Q(is_active=True)
@@ -665,7 +671,7 @@ class CharacterSearch(ListAPIView):
             raise ValidationError({"errors": ["New Order must be a boolean."]})
 
         # If staffer, allow search on behalf of user.
-        if self.request.user.is_staff:
+        if staff_power("view_as"):
             user = get_object_or_404(
                 User, id=self.request.GET.get("user", self.request.user.id)
             )
@@ -1045,7 +1051,7 @@ class AttributeManager(RetrieveUpdateDestroyAPIView):
 
 class UserSerializerView:
     def get_serializer(self, user):
-        if self.request.user.is_staff:
+        if staff_power(self.request.user, "administrate_users"):
             return UserSerializer
         if self.request.user == user:
             return UserSerializer
@@ -1070,7 +1076,7 @@ def order_comment_types():
 
 
 class UnreadNotifications(GenericAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [IsRegistered, UserControls("view_as")]
 
     def get_object(self):
         return get_object_or_404(User, username=self.kwargs["username"])
@@ -1111,7 +1117,7 @@ class UnreadNotifications(GenericAPIView):
 
 class CommunityNotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [IsRegistered, UserControls("view_as")]
 
     def get_object(self):
         return get_object_or_404(User, username=self.kwargs["username"])
@@ -1192,7 +1198,7 @@ class RefColorManager(RetrieveUpdateDestroyAPIView):
 
 
 class MarkNotificationsRead(BulkUpdateAPIView):
-    permission_classes = [IsRegistered, UserControls]
+    permission_classes = [IsRegistered, UserControls("administrate_users")]
     serializer_class = BulkNotificationSerializer
     queryset = Notification.objects.all()
 
@@ -1374,7 +1380,7 @@ class FavoritesList(ListAPIView):
 
 class SubmissionList(ListCreateAPIView):
     serializer_class = SubmissionSerializer
-    permission_classes = [UserControls, AccountCurrentPermission]
+    permission_classes = [UserControls("view_as"), AccountCurrentPermission]
 
     def perform_create(self, serializer):
         self.check_object_permissions(self.request, self.request.subject)
@@ -1440,7 +1446,7 @@ class ArtRelationList(ListAPIView):
         user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
         manage = self.kwargs.get("manage") and (
-            self.request.user.is_staff or self.request.user == user
+            staff_power(self.request.user, "view_as") or self.request.user == user
         )
         if manage:
             return ArtistTag.objects.filter(user=user)
@@ -1983,7 +1989,7 @@ class SubmissionPreview(BasePreview):
 
 
 class ReferralStats(APIView):
-    permission_classes = [UserControls]
+    permission_classes = [UserControls("view_as")]
 
     # noinspection PyUnusedLocal
     def get(self, request, **kwargs):
@@ -2102,7 +2108,7 @@ class RecommendedCharacters(ListAPIView):
 
 class DestroyAccount(GenericAPIView):
     serializer_class = DeleteUserSerializer
-    permission_classes = [UserControls]
+    permission_classes = [UserControls("administrate_users")]
 
     def get_object(self) -> User:
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -2129,7 +2135,7 @@ class DestroyAccount(GenericAPIView):
 
 class NotificationSettings(RetrieveUpdateAPIView):
     serializer_class = EmailPreferencesSerializer
-    permission_classes = [UserControls]
+    permission_classes = [UserControls("administrate_users")]
     queryset = User.objects.all()
 
     @property
