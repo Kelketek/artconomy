@@ -345,6 +345,7 @@ def notify(
     """
     from apps.lib.consumers import send_new, send_updated
     from apps.lib.serializers import NOTIFICATION_TYPE_MAP, notification_serialize
+    from apps.profiles.models import User
 
     if data is None:
         data = {}
