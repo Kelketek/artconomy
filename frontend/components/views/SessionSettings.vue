@@ -1,7 +1,7 @@
 <template>
   <ac-load-section :controller="viewerHandler.user">
     <template v-slot:default>
-      <v-container>
+      <v-container fluid>
         <v-card>
           <v-card-text>
             <v-row>
@@ -32,18 +32,16 @@
                   Settings
                 </v-btn>
               </v-col>
-              <v-col cols="12" order="3">
-                <v-card-text :class="{disabled: patchers.sfw_mode.model}">
-                  <ac-patch-field
-                      field-type="ac-rating-field"
-                      label="Select the maximum content rating you'd like to see when browsing."
-                      :patcher="patchers.rating"
-                      :disabled="!adultAllowed"
-                      :persistent-hint="true"
-                      :show-warning="true"
-                      hint="You must be at least 18 years old to view adult content."
-                  />
-                </v-card-text>
+              <v-col cols="12" class="pt-5" order="3" :class="{disabled: patchers.sfw_mode.model}"><strong>Select the maximum content rating
+                you'd like to see when browsing.</strong></v-col>
+              <v-col cols="12" order="4" :class="{disabled: patchers.sfw_mode.model}">
+                <ac-patch-field
+                    field-type="ac-rating-field"
+                    :patcher="patchers.rating"
+                    :disabled="!adultAllowed"
+                    :show-warning="true"
+                    hint="Beep"
+                />
               </v-col>
               <v-col cols="12" order="5">
               </v-col>
