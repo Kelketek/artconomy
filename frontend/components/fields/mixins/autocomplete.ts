@@ -4,7 +4,7 @@ import debounce from 'lodash/debounce'
 import {artCall} from '@/lib/lib.ts'
 import deepEqual from 'fast-deep-equal'
 import {RawData} from '@/store/forms/types/RawData.ts'
-import {computed, ref, Ref, watch} from 'vue'
+import {computed, ref, Ref, toValue, watch} from 'vue'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {isNumber} from 'lodash'
 
@@ -98,12 +98,10 @@ export const useAutocomplete = (
         // so I'm going to leave it as-is until it proves to cause an issue.
         addedVal[itemValue] = (query.value + '').trim()
         val.push(addedVal)
-        // Clear out our previous cached hacks here.
-        // @ts-ignore
-        this.cachedItems = Object.values(this.cachedItems).filter((item: IdModel) => item.id !== 0)
       }
       const items: { [key: number]: IdModel } = {}
       val.forEach((item) => items[item.id] = item)
+      cachedItems.value = {...cachedItems.value, ...items}
       itemStore.value = items
     },
   })

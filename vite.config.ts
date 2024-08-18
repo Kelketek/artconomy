@@ -142,5 +142,7 @@ export default defineConfig({
   server: {
     port: 8001,
     host: true,
+    warmup: {clientFiles: ['store/**/*.ts', 'lib/*.ts', 'components/wrappers/*.vue']},
+    fs: {cachedChecks: true},
   },
 })

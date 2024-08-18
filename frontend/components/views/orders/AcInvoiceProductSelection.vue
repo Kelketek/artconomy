@@ -28,7 +28,6 @@
           <ac-bound-field
               :field="customForm.fields.buyer"
               label="Customer username/email"
-              :cached-items="[]"
               field-type="ac-user-select"
               item-value="username"
               :multiple="false"

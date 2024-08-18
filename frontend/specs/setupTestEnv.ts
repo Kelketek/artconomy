@@ -50,7 +50,6 @@ Object.defineProperty(window, 'localStorage', {value: new LocalStorageMock()})
 global.ResizeObserver = require('resize-observer-polyfill')
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
-// @ts-expect-error
 window.scrollTo = vi.fn();
 window.fbq = vi.fn();
 
