@@ -14,7 +14,7 @@
         <ac-load-section :controller="pricing">
           <template v-slot:default v-if="selection === null">
             <v-row>
-              <v-col cols="12" md="4" class="mt-3" v-for="(plan, index) in plans" :key="plan.id">
+              <v-col cols="12" md="4" class="mt-3 plan-column" v-for="(plan, index) in plans" :key="plan.id" :id="`plan-${flatten(plan.name)}-column`">
                 <v-card style="height: 100%" :color="current.colors['well-darken-2']"
                         class="d-flex flex-column">
                   <v-card-text>
@@ -51,7 +51,7 @@
                           <v-card-text class="text-center">
                             <div>
                               <span class="text-h4" v-if="!plan.max_simultaneous_orders">${{plan.monthly_charge}} Monthly</span>
-                              <span v-else-if="!plan.monthly_charge">
+                              <span v-else-if="!toFloat(plan.monthly_charge)">
                                 <span class="text-h4">FREE</span>
                               </span>
                             </div>
@@ -78,15 +78,16 @@
                         </v-card>
                       </v-col>
                       <v-col cols="12">
-                        <v-chip color="gray" variant="flat" light
-                                v-if="plan.name === loggedInViewer.next_service_plan && !plan.monthly_charge"><strong>Your
+                        <v-chip color="gray" class="current-plan-indicator" variant="flat" light
+                                v-if="plan.name === loggedInViewer.next_service_plan && !toFloat(plan.monthly_charge)"><strong>Your
                           Current Plan</strong></v-chip>
                         <template v-else>
                           <v-btn color="primary" variant="flat" v-if="!(plan.name === loggedInViewer.next_service_plan)"
+                                 class="select-plan-button"
                                  @click="selection=plan.name">
                             Switch to {{ plan.name }}!
                           </v-btn>
-                          <v-btn v-else :to="{name: 'Premium', params: {username: viewer!.username}}" variant="flat">Manage {{
+                          <v-btn v-else :to="{name: 'Premium', params: {username: viewer!.username}}" class="manage-plan-button" variant="flat">Manage {{
                             plan.name }}
                           </v-btn>
                         </template>
@@ -115,7 +116,7 @@
                       :show-save="false"
                       @paymentSent="postPay"
                       @cardAdded="setPlan"
-                      :save-only="!selectedPlan.monthly_charge"
+                      :save-only="!toFloat(selectedPlan.monthly_charge)"
                       :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
                   />
                 </v-col>
@@ -144,7 +145,7 @@
       <v-window-item value="completed">
         <v-col cols="12" class="mt-4 text-center" v-if="selectedPlan">
           <v-icon :icon="mdiCheckCircle" size="x-large" />
-          <div v-if="selectedPlan.monthly_charge">
+          <div v-if="toFloat(selectedPlan.monthly_charge)">
             <p><strong>Your payment has been received!</strong></p>
             <p>We've received your payment and your account has been upgraded! Visit your
               <router-link :to="{name: 'Premium', params: {username: viewer!.username}}">premium settings page
@@ -171,7 +172,7 @@
 <script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
-import {artCall, baseCardSchema} from '@/lib/lib.ts'
+import {artCall, baseCardSchema, flatten} from '@/lib/lib.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
@@ -275,7 +276,7 @@ const setPlan = () => {
 }
 
 const nonFree = computed(() => {
-  return selectedPlan.value && (selectedPlan.value.monthly_charge || selectedPlan.value.per_deliverable_price)
+  return selectedPlan.value && (toFloat(selectedPlan.value.monthly_charge) || selectedPlan.value.per_deliverable_price)
 })
 
 const nextUrl = computed(() => {
@@ -297,15 +298,19 @@ const switchIsFree = computed(() => {
   if (selectedPlan.value.name === loggedInViewer.value.service_plan) {
     return true
   }
-  return !selectedPlan.value.monthly_charge && !selectedPlan.value.per_deliverable_price
+  return !toFloat(selectedPlan.value.monthly_charge) && !selectedPlan.value.per_deliverable_price
 })
 
 const paymentSubmit = () => {
-  if (!selectedPlan.value!.monthly_charge && paymentForm.fields.card_id.value) {
+  if (!toFloat(selectedPlan.value!.monthly_charge) && paymentForm.fields.card_id.value) {
     setPlan().then(postPay)
   } else {
     cardManager.value!.stripeSubmit()
   }
+}
+
+const toFloat = (value?: string|null) => {
+  return parseFloat(value || '0')
 }
 
 const postPay = () => {
@@ -317,10 +322,10 @@ watch(() => selectedPlan.value?.monthly_charge, (value) => {
   if (value === undefined) {
     return
   }
-  if (!value) {
-    clientSecret.endpoint = `/api/sales/account/${props.username}/cards/setup-intent/`
-  } else {
+  if (toFloat(value)) {
     clientSecret.endpoint = `/api/sales/account/${props.username}/premium/intent/`
+  } else {
+    clientSecret.endpoint = `/api/sales/account/${props.username}/cards/setup-intent/`
   }
 })
 
