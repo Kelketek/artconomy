@@ -4,11 +4,11 @@
 #
 #    pip-compile deploy_requirements.in
 #
-ansible==10.2.0
+ansible==10.3.0
     # via -r deploy_requirements.in
-ansible-core==2.17.2
+ansible-core==2.17.3
     # via ansible
-cffi==1.16.0
+cffi==1.17.0
     # via cryptography
 cryptography==43.0.0
     # via ansible-core
@@ -20,7 +20,7 @@ packaging==24.1
     # via ansible-core
 pycparser==2.22
     # via cffi
-pyyaml==6.0.1
+pyyaml==6.0.2
     # via ansible-core
 resolvelib==1.0.1
     # via ansible-core

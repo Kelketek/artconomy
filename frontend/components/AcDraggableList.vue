@@ -98,9 +98,7 @@ const sortableList = computed({
       //
       // However, we really need to know the on-server 'up' value on this one to do this right.
       const first = oldList[index].controller
-      // Not clear why, but TypeScript doesn't recognize Partial<T> as having display_position: number here.
-      // @ts-expect-error
-      target.updateX({display_position: first.patchers.display_position.model + 0.1})
+      target.updateX({display_position: first.patchers.display_position.model + 0.1} as Partial<T>)
       artCall({
         url: `${target.endpoint}up/`,
         method: 'post',
@@ -137,7 +135,7 @@ const moveItemInList = (event: SortableEvent) => {
   const array = [...sortableList.value]
   const from = event.oldIndex
   const to = event.newIndex
-  if (!(from && to)) {
+  if (!(typeof from === 'number' && typeof to === 'number')) {
     // Bogus instructions. Ignore.
     return
   }

@@ -26,7 +26,6 @@ describe("MessageCenter.vue", () => {
       props: {username: user.username, modelValue: true},
     })
     const vm = wrapper.findComponent(MessageCenter).vm as any
-    console.log(vm)
     expect(vm.section).toEqual(1)
   })
 })
