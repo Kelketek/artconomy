@@ -141,7 +141,7 @@
               <v-switch
                   label="Policy Updates"
                   :disabled="true"
-                  :value="true"
+                  :model-value="true"
                   color="primary"
                   :persistent-hint="true"
                   hint="Information about policy and terms of service updates which may affect you"/>
@@ -150,7 +150,7 @@
               <v-switch
                   label="Direct Contact for Account Issues"
                   :disabled="true"
-                  :value="true"
+                  :model-value="true"
                   :persistent-hint="true"
                   color="primary"
                   hint="Staffers may contact you directly if we detect an issue with your account"/>
