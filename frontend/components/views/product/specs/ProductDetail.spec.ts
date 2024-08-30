@@ -21,7 +21,7 @@ import {Router} from 'vue-router'
 
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import LineItem from '@/types/LineItem.ts'
 import {Ratings} from '@/types/Ratings.ts'
@@ -396,11 +396,11 @@ describe('ProductDetail.vue', () => {
     vm.subjectHandler.user.makeReady(genUser())
     await waitFor(() => expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
-      [LineTypes.TABLE_SERVICE]),
+      [LineType.TABLE_SERVICE]),
     ).toEqual('5.54'))
     expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
-      [LineTypes.SHIELD, LineTypes.BONUS, LineTypes.DELIVERABLE_TRACKING]),
+      [LineType.SHIELD, LineType.BONUS, LineType.DELIVERABLE_TRACKING]),
     ).toEqual('0.00')
     expect(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
       (x: SingleController<LineItem>) => x.x)).total,
@@ -425,11 +425,11 @@ describe('ProductDetail.vue', () => {
     vm.subjectHandler.artistProfile.ready = true
     await waitFor(() => expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
-      [LineTypes.SHIELD]),
+      [LineType.SHIELD]),
     ).toEqual('4.05'))
     expect(totalForTypes(getTotals(vm.lineItemSetMaps[0].lineItems.list.map(
         (x: SingleController<LineItem>) => x.x)),
-      [LineTypes.TABLE_SERVICE]),
+      [LineType.TABLE_SERVICE]),
     ).toEqual('0.00')
   })
   test('Shows the rating modal only when editing', async() => {

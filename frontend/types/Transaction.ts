@@ -1,15 +1,15 @@
-import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
-import {CreditCardToken} from '@/types/CreditCardToken.ts'
-import {AccountType} from '@/types/AccountType.ts'
-import {TransactionCategory} from '@/types/TransactionCategory.ts'
-import {TransactionStatus} from '@/types/TransactionStatus.ts'
+import type {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import type {CreditCardToken} from '@/types/CreditCardToken.ts'
+import type {AccountTypeValue} from '@/types/AccountType.ts'
+import type {TransactionCategoryValue} from '@/types/TransactionCategory.ts'
+import type {TransactionStatusValue} from '@/types/TransactionStatus.ts'
 
 export default interface Transaction {
   id: string,
-  source: AccountType,
-  destination: AccountType,
-  status: TransactionStatus,
-  category: TransactionCategory,
+  source: AccountTypeValue,
+  destination: AccountTypeValue,
+  status: TransactionStatusValue,
+  category: TransactionCategoryValue,
   card: CreditCardToken|null,
   payer: RelatedUser|null,
   payee: RelatedUser|null,

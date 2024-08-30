@@ -289,7 +289,7 @@ import {
   mdiPalette,
   mdiPencil,
 } from '@mdi/js'
-import {Ratings} from '@/types/Ratings.ts'
+import {Ratings, RatingsValue} from '@/types/Ratings.ts'
 import {formatDateTime, posse, profileLink} from '@/lib/otherFormatters.ts'
 import AcRatingButton from '@/components/AcRatingButton.vue'
 import {computed, ref, watch} from 'vue'
@@ -465,7 +465,7 @@ const setMeta = (submissionData: Submission | null | false) => {
   setMetaContent('description', textualize(submissionData.caption).slice(0, 160))
 }
 
-watch(() => submission.x?.rating, (value?: Ratings|null) => {
+watch(() => submission.x?.rating, (value?: RatingsValue|null) => {
   if (value) {
     ageCheck({value})
   }

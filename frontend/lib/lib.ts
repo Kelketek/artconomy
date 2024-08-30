@@ -1,7 +1,7 @@
 import {computed, ref, Ref, watch, WatchSource} from 'vue'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
-import {LocationQueryRaw, LocationQueryValue, RouteLocation, RouteLocationRaw, RouteParamsRaw} from 'vue-router'
+import {LocationQueryRaw, LocationQueryValue, RouteParamsRaw} from 'vue-router'
 import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
@@ -11,9 +11,9 @@ import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema.ts'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import cloneDeep from 'lodash/cloneDeep'
-import {LogLevels} from '@/types/LogLevels.ts'
-import {Ratings} from '@/types/Ratings.ts'
-import {InvoiceType} from '@/types/InvoiceType.ts'
+import {LogLevels, LogLevelsValue} from '@/types/LogLevels.ts'
+import {RatingsValue} from '@/types/Ratings.ts'
+import {InvoiceTypeValue} from '@/types/InvoiceType.ts'
 import {FieldController} from '@/store/forms/field-controller.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import {Store} from 'vuex'
@@ -33,7 +33,7 @@ declare global {
   // noinspection JSUnusedGlobalSymbols
   interface Window {
     _paq: Array<any[]>,
-    __LOG_LEVEL__: LogLevels,
+    __LOG_LEVEL__: LogLevelsValue,
   }
 }
 
@@ -146,14 +146,14 @@ export function artCall(options: ArtCallOptions): Promise<any> {
   return axios.request(config).then(preSuccess)
 }
 
-export const RATINGS: Record<Ratings, string> = {
+export const RATINGS: Record<RatingsValue, string> = {
   0: 'Clean/Safe for work',
   1: 'Risque/mature, not adult content but not safe for work',
   2: 'Adult content, not safe for work',
   3: 'Offensive/Disturbing to most viewers, not safe for work',
 }
 
-export const RATINGS_SHORT: Record<Ratings, string> = {
+export const RATINGS_SHORT: Record<RatingsValue, string> = {
   0: 'Clean/Safe',
   1: 'Risque',
   2: 'Adult content',
@@ -183,11 +183,7 @@ export function ratingsShortLister() {
   return genOptions(RATINGS_SHORT)
 }
 
-export interface TypeToValue {
-  [key: number]: string,
-}
-
-export const INVOICE_TYPES: Record<InvoiceType, string> = {
+export const INVOICE_TYPES: Record<InvoiceTypeValue, string> = {
   0: 'Sale',
   1: 'Subscription',
   2: 'Term',
@@ -239,7 +235,7 @@ export function genId() {
   return text
 }
 
-export const RATING_LONG_DESC: Record<Ratings, string> = {
+export const RATING_LONG_DESC: Record<RatingsValue, string> = {
   0: `Content which can be safely viewed in most workplaces. Pieces with nudity
                     or especially suggestive clothing do not belong in this category. Pieces with violence or
                     offensive messages do not belong in this category, either.`,
@@ -252,7 +248,7 @@ export const RATING_LONG_DESC: Record<Ratings, string> = {
                     that most viewers would find 'squicky' or disturbing or portrayals of extreme violence.`,
 }
 
-export const RATING_COLOR: Record<Ratings, string> = {
+export const RATING_COLOR: Record<RatingsValue, string> = {
   0: 'green',
   1: 'blue',
   2: 'red',
@@ -324,7 +320,7 @@ export function searchSchema() {
       commissions: {value: false, omitIf: false},
       artists_of_color: {value: false, omitIf: false},
       content_ratings: {value: '', omitIf: ''},
-      minimum_content_rating: {value: 0 as Ratings, omitIf: 0},
+      minimum_content_rating: {value: 0 as RatingsValue, omitIf: 0},
       max_price: {value: '', omitIf: ''},
       min_price: {value: '', omitIf: ''},
       max_turnaround: {value: '', omitIf: ''},
@@ -391,35 +387,6 @@ export function baseInvoiceSchema(endpoint: string): NamelessFormSchema {
       expected_turnaround: {value: 1},
     },
   }
-}
-
-declare interface Helper {
-  mask: string,
-  cvv: string,
-}
-
-export const cardHelperMap: { [key: string]: Helper } = {
-  amex: {mask: '#### ###### #####', cvv: '4 digit number on front of card'},
-  default: {mask: '#### #### #### ####', cvv: '3 digit number on back of card'},
-}
-
-export function saneNav(originalFunction: (location: RouteLocationRaw) => Promise<RouteLocation>) {
-  // @ts-ignore
-  function wrapped(this: Router, location) {
-    originalFunction.call(this, location).catch((err: Error) => {
-      /* istanbul ignore else */
-      // @ts-ignore
-      if (err && err.name === 'NavigationDuplicated') {
-        // This never matters.
-        return this.currentRoute
-      }
-      /* istanbul ignore next */
-      throw err
-    })
-  }
-
-  wrapped.PATCHED = true
-  return wrapped
 }
 
 export function paramsKey(sourceParams: RouteParamsRaw) {
@@ -545,8 +512,8 @@ export const paypalTokenToUrl = (invoiceToken: string, sender: boolean): string 
   if (!invoiceToken) {
     return ''
   }
-  let extension = ''
-  let baseUrl = ''
+  let extension: string
+  let baseUrl: string
   if (sender) {
     extension = `/invoice/details/${invoiceToken}`
   } else {

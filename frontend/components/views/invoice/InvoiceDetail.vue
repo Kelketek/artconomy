@@ -83,7 +83,7 @@
                         <v-col class="text-center" v-if="invoice.x.status === InvoiceStatus.OPEN && !invoice.x.record_only">
                           <v-btn color="green" variant="flat" @click="() => showPayment = true">Pay</v-btn>
                         </v-col>
-                        <v-col class="text-center" v-if="isStaff && ([InvoiceStatus.DRAFT, InvoiceStatus.OPEN].includes(invoice.x.status))">
+                        <v-col class="text-center" v-if="isStaff && (([InvoiceStatus.DRAFT, InvoiceStatus.OPEN] as InvoiceStatusValue[]).includes(invoice.x.status))">
                           <v-btn color="danger" variant="flat" @click="() => statusEndpoint('void')">Void</v-btn>
                         </v-col>
                       </v-row>
@@ -222,7 +222,7 @@ import Invoice from '@/types/Invoice.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import LineItem from '@/types/LineItem.ts'
 import AcLineItemListing from '@/components/price_preview/AcLineItemListing.vue'
-import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
+import {InvoiceStatus, InvoiceStatusValue} from '@/types/InvoiceStatus.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'

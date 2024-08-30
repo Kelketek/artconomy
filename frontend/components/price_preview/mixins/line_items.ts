@@ -1,7 +1,7 @@
 import {computed} from 'vue'
 import LineItem from '@/types/LineItem.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType, LineTypeValue} from '@/types/LineType.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
 
@@ -14,7 +14,7 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
         validators: [{name: 'numeric'}],
       },
       description: {value: ''},
-      type: {value: LineTypes.ADD_ON},
+      type: {value: LineType.ADD_ON},
       percentage: {value: '0'},
     },
   })
@@ -26,7 +26,7 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
         validators: [{name: 'numeric'}],
       },
       description: {value: ''},
-      type: {value: LineTypes.EXTRA},
+      type: {value: LineType.EXTRA},
       percentage: {value: '0'},
     },
   })
@@ -73,12 +73,12 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
     }
     return allItems
   }
-  const baseItems = computed(() => props.lineItems.list.filter(item => item.x && item.x.type === LineTypes.BASE_PRICE))
-  const linesOfType = (type: LineTypes) => props.lineItems.list.filter((item) => item.x!.type === type)
-  const addOns = computed(() => linesOfType(LineTypes.ADD_ON))
-  const extras = computed(() => linesOfType(LineTypes.EXTRA))
-  const taxes = computed(() => linesOfType(LineTypes.TAX))
-  const others = computed(() => props.lineItems.list.filter((item) => item.x && [LineTypes.PREMIUM_SUBSCRIPTION, LineTypes.OTHER_FEE, LineTypes.DELIVERABLE_TRACKING].includes(item.x.type)))
+  const baseItems = computed(() => props.lineItems.list.filter(item => item.x && item.x.type === LineType.BASE_PRICE))
+  const linesOfType = (type: LineTypeValue) => props.lineItems.list.filter((item) => item.x!.type === type)
+  const addOns = computed(() => linesOfType(LineType.ADD_ON))
+  const extras = computed(() => linesOfType(LineType.EXTRA))
+  const taxes = computed(() => linesOfType(LineType.TAX))
+  const others = computed(() => props.lineItems.list.filter((item) => item.x && ([LineType.PREMIUM_SUBSCRIPTION, LineType.OTHER_FEE, LineType.DELIVERABLE_TRACKING] as LineTypeValue[]).includes(item.x.type)))
   const rawPlusForms = computed(() => {
     return addForms(rawLineItems.value)
   })

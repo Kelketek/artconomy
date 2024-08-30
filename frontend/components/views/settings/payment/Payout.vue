@@ -80,7 +80,7 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {BASE_URL, flatten} from '@/lib/lib.ts'
 import StripeAccount from '@/types/StripeAccount.ts'
 import {User} from '@/store/profiles/types/User.ts'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useViewer} from '@/mixins/viewer.ts'
@@ -128,7 +128,7 @@ const inSupportedCountry = computed(() => {
   // Should be synced this way.
   const profile = subjectHandler.artistProfile
   /* istanbul ignore next */
-  return profile.x && (profile.patchers.bank_account_status.model === BANK_STATUSES.IN_SUPPORTED_COUNTRY)
+  return profile.x && (profile.patchers.bank_account_status.model === BankStatus.IN_SUPPORTED_COUNTRY)
 })
 
 const hasActiveStripe = computed(() => {

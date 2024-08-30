@@ -4,7 +4,7 @@
 import LineItem from '@/types/LineItem.ts'
 import {LineMoneyMap} from '@/types/LineMoneyMap.ts'
 import LineAccumulator from '@/types/LineAccumulator.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType, LineTypeValue} from '@/types/LineType.ts'
 import Pricing from '@/types/Pricing.ts'
 import Product from '@/types/Product.ts'
 import {js_get_totals, js_reckon_lines} from '@/lib/lines'
@@ -36,7 +36,7 @@ export const reckonLines = (lines: LineItem[]) => {
   }
 };
 
-export function totalForTypes(accumulator: LineAccumulator, types: LineTypes[]) {
+export function totalForTypes(accumulator: LineAccumulator, types: LineTypeValue[]) {
   const relevant = [...accumulator.subtotals.keys()].filter((line: LineItem) => types.includes(line.type))
   const totals = relevant.map((line: LineItem) => parseFloat(accumulator.subtotals.get(line) as string))
   return sum(totals)
@@ -74,7 +74,7 @@ export function invoiceLines(
     extraLines.push({
       id: -2,
       priority: 100,
-      type: LineTypes.ADD_ON,
+      type: LineType.ADD_ON,
       amount: addOnPrice.toFixed(2),
       frozen_value: null,
       percentage: '0',
@@ -122,7 +122,7 @@ export const deliverableLines = ({
   lines.push({
     id: -1,
     priority: 0,
-    type: LineTypes.BASE_PRICE,
+    type: LineType.BASE_PRICE,
     amount: basePrice,
     frozen_value: null,
     percentage: '0',
@@ -135,7 +135,7 @@ export const deliverableLines = ({
     lines.push({
       id: -3,
       priority: 400,
-      type: LineTypes.TABLE_SERVICE,
+      type: LineType.TABLE_SERVICE,
       cascade_percentage: cascade,
       // We don't cascade this flat amount for table products. Might revisit this later.
       cascade_amount: false,
@@ -147,7 +147,7 @@ export const deliverableLines = ({
     }, {
       id: -4,
       priority: 700,
-      type: LineTypes.TAX,
+      type: LineType.TAX,
       cascade_percentage: cascade,
       cascade_amount: cascade,
       percentage: pricing.table_tax,
@@ -164,7 +164,7 @@ export const deliverableLines = ({
     lines.push({
       id: -5,
       priority: 300,
-      type: LineTypes.SHIELD,
+      type: LineType.SHIELD,
       cascade_percentage: cascade,
       cascade_amount: cascade,
       amount: plan.shield_static_price,
@@ -177,7 +177,7 @@ export const deliverableLines = ({
     lines.push({
       id: -6,
       priority: 300,
-      type: LineTypes.DELIVERABLE_TRACKING,
+      type: LineType.DELIVERABLE_TRACKING,
       cascade_percentage: cascade,
       cascade_amount: cascade,
       amount: plan.per_deliverable_price,

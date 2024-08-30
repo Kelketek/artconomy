@@ -1,16 +1,16 @@
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
-import Product from '@/types/Product.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import Submission from '@/types/Submission.ts'
-import {Ratings} from '@/types/Ratings.ts'
-import Order from '@/types/Order.ts'
-import {Asset} from '@/types/Asset.ts'
+import type {DeliverableStatusValue} from '@/types/DeliverableStatus.ts'
+import type Product from '@/types/Product.ts'
+import type {User} from '@/store/profiles/types/User.ts'
+import type Submission from '@/types/Submission.ts'
+import type {RatingsValue} from '@/types/Ratings.ts'
+import type Order from '@/types/Order.ts'
+import type {Asset} from '@/types/Asset.ts'
 
 export default interface Deliverable {
   id: number,
   name: string,
   created_on: string,
-  status: DeliverableStatus,
+  status: DeliverableStatusValue,
   product: Product|null,
   price: number,
   details: string,
@@ -36,7 +36,7 @@ export default interface Deliverable {
   table_order: boolean,
   international: boolean,
   final_uploaded: boolean,
-  rating: Ratings,
+  rating: RatingsValue,
   display: Asset|null,
   order: Order,
   invoice: string | null,

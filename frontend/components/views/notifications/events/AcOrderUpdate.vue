@@ -24,9 +24,9 @@ import AcBaseNotification from '@/components/views/notifications/events/AcBaseNo
 import {computed} from 'vue'
 import {formatDate} from '@/lib/otherFormatters.ts'
 import Deliverable from '@/types/Deliverable.ts'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus, DeliverableStatusValue} from '@/types/DeliverableStatus.ts'
 
-const ORDER_STATUSES: Record<DeliverableStatus, string> = {
+const ORDER_STATUSES: Record<DeliverableStatusValue, string> = {
   [DeliverableStatus.WAITING]: 'has been added to the artist\'s waitlist.',
   [DeliverableStatus.NEW]: 'has been placed, and is waiting for the artist to accept.',
   [DeliverableStatus.PAYMENT_PENDING]: 'requires payment to continue.',

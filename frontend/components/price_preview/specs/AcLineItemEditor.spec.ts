@@ -4,7 +4,7 @@ import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {dummyLineItems, genLineItem} from '@/lib/specs/helpers.ts'
 import AcLineItemEditor from '@/components/price_preview/AcLineItemEditor.vue'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
@@ -37,7 +37,7 @@ describe('AcLineItemEditor.vue', () => {
   test('Gives a default label to a discount', async() => {
     const lineItems = dummyLineItems()
     const discount = genLineItem({
-      type: LineTypes.ADD_ON,
+      type: LineType.ADD_ON,
       amount: '-2',
       id: -500,
       priority: 100,
@@ -61,7 +61,7 @@ describe('AcLineItemEditor.vue', () => {
   test('Gives a default label to an add-on', async() => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
-      type: LineTypes.ADD_ON,
+      type: LineType.ADD_ON,
       amount: '2',
       id: -500,
       priority: 100,
@@ -85,7 +85,7 @@ describe('AcLineItemEditor.vue', () => {
   test('Gives a default label to the base price', async() => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
-      type: LineTypes.BASE_PRICE,
+      type: LineType.BASE_PRICE,
       amount: '2',
       id: -500,
       priority: 100,
@@ -109,7 +109,7 @@ describe('AcLineItemEditor.vue', () => {
   test('Gives a default label to other types', async() => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
-      type: LineTypes.EXTRA,
+      type: LineType.EXTRA,
       amount: '2',
       id: -500,
       priority: 400,
@@ -133,6 +133,7 @@ describe('AcLineItemEditor.vue', () => {
   test('Gives a blank label for an unknown type', async() => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
+      // @ts-expect-error
       type: 1234,
       amount: '2',
       id: -500,

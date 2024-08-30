@@ -2,7 +2,7 @@ import {genDeliverable, genInvoice, genUser} from '@/specs/helpers/fixtures.ts'
 import {mount, setPricing, vueSetup} from '@/specs/helpers/index.ts'
 import {dummyLineItems} from '@/lib/specs/helpers.ts'
 import mockAxios from '@/__mocks__/axios.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {Router} from 'vue-router'
@@ -29,7 +29,7 @@ const tipLines = (): LineItem[] => {
       percentage: "4",
       amount: "0.50",
       frozen_value: null,
-      type: LineTypes.PROCESSING,
+      type: LineType.PROCESSING,
       destination_account: null,
       destination_user: null,
       description: '',
@@ -43,7 +43,7 @@ const tipLines = (): LineItem[] => {
       percentage: "0",
       amount: "7.00",
       frozen_value: null,
-      type: LineTypes.TIP,
+      type: LineType.TIP,
       destination_account: 304,
       destination_user: null,
       description: '',

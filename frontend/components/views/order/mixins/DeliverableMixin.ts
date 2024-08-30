@@ -7,7 +7,7 @@ import {ListController} from '@/store/lists/controller.ts'
 import Submission from '@/types/Submission.ts'
 import {baseCardSchema, baseInvoiceSchema, paypalTokenToUrl} from '@/lib/lib.ts'
 import DeliverableViewSettings from '@/types/DeliverableViewSettings.ts'
-import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
+import {ViewerType, ViewerTypeValue} from '@/types/ViewerType.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import Revision from '@/types/Revision.ts'
 import LinkedCharacter from '@/types/LinkedCharacter.ts'
@@ -50,13 +50,13 @@ const getInitialViewSetting = (isStaff: boolean, setting: LocationQueryValue | L
   }
   switch (setting) {
     case ('Seller'): {
-      return VIEWER_TYPE.SELLER
+      return ViewerType.SELLER
     }
     case ('Buyer'): {
-      return VIEWER_TYPE.BUYER
+      return ViewerType.BUYER
     }
     case ('Staff'): {
-      return VIEWER_TYPE.STAFF
+      return ViewerType.STAFF
     }
   }
 }
@@ -98,7 +98,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     `${prefix.value}__viewSettings`,
     {
       x: {
-        viewerType: getInitialViewSetting(isStaff.value, route.query.view_as) || VIEWER_TYPE.UNSET,
+        viewerType: getInitialViewSetting(isStaff.value, route.query.view_as) || ViewerType.UNSET,
         showAddSubmission: false,
         showPayment: false,
         characterInitItems: [],
@@ -130,7 +130,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     get() {
       return viewSettings.model.viewerType
     },
-    set(viewerType: VIEWER_TYPE) {
+    set(viewerType: ViewerTypeValue) {
       viewSettings.model.viewerType = viewerType
     }
   })
@@ -296,20 +296,20 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   })
 
   const isBuyer = computed(() => {
-    if (viewMode.value === VIEWER_TYPE.BUYER) {
+    if (viewMode.value === ViewerType.BUYER) {
       return true
     }
-    if (viewMode.value !== VIEWER_TYPE.UNSET) {
+    if (viewMode.value !== ViewerType.UNSET) {
       return false
     }
     return buyer.value && buyer.value.username === rawViewerName.value
   })
 
   const isSeller = computed(() => {
-    if (viewMode.value === VIEWER_TYPE.SELLER) {
+    if (viewMode.value === ViewerType.SELLER) {
       return true
     }
-    if (viewMode.value !== VIEWER_TYPE.UNSET) {
+    if (viewMode.value !== ViewerType.UNSET) {
       return false
     }
     return seller.value && seller.value.username === rawViewerName.value
@@ -326,7 +326,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   })
 
   const isArbitrator = computed(() => {
-    return viewMode.value === VIEWER_TYPE.STAFF
+    return viewMode.value === ViewerType.STAFF
   })
 
   const isInvolved = computed(() => {
@@ -392,13 +392,13 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     ensureHandler(sellerHandler, order.seller, true)
     paymentForm.endpoint = `/api/sales/invoice/${ourDeliverable.invoice}/pay/`
     /* istanbul ignore if */
-    if (viewMode.value !== VIEWER_TYPE.UNSET) {
+    if (viewMode.value !== ViewerType.UNSET) {
       return
     }
     if (buyer.value && buyer.value.username === rawViewerName.value) {
-      viewMode.value = VIEWER_TYPE.BUYER
+      viewMode.value = ViewerType.BUYER
     } else if (seller.value && seller.value.username === rawViewerName.value) {
-      viewMode.value = VIEWER_TYPE.SELLER
+      viewMode.value = ViewerType.SELLER
     }
   }, {immediate: true})
 

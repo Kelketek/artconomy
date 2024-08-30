@@ -107,7 +107,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {totalForTypes} from '@/lib/lineItemFunctions.ts'
 import LineItem from '@/types/LineItem.ts'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType, LineTypeValue} from '@/types/LineType.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcLineItemEditor from '@/components/price_preview/AcLineItemEditor.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
@@ -180,12 +180,12 @@ const hourly = computed(() => {
 })
 
 const payout = computed(() => {
-  const types = [LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.TIP]
+  const types = [LineType.BASE_PRICE, LineType.ADD_ON, LineType.TIP]
   return totalForTypes(priceData.value, types)
 })
 
-const MODIFIER_TYPE_SETS = new Set([LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE, LineTypes.PROCESSING,
-    LineTypes.DELIVERABLE_TRACKING, LineTypes.RECONCILIATION])
+const MODIFIER_TYPE_SETS = new Set([LineType.TIP, LineType.SHIELD, LineType.BONUS, LineType.TABLE_SERVICE, LineType.PROCESSING,
+    LineType.DELIVERABLE_TRACKING, LineType.RECONCILIATION] as LineTypeValue[])
 
 const moddedItems = computed(() => {
   // Modify the items for user-facing calculation.
@@ -195,11 +195,11 @@ const moddedItems = computed(() => {
   // We eliminate the Deliverable tracking fee since that's just for the artist's reference-- it doesn't affect
   // the price charged. It just tells the artist what they will be charged later.
   return rawLineItems.value.filter(
-      (line: LineItem) => (![LineTypes.DELIVERABLE_TRACKING].includes(line.type)),
+      (line: LineItem) => (!([LineType.DELIVERABLE_TRACKING] as LineTypeValue[]).includes(line.type)),
   )
 })
 
-const taxes = computed(() => moddedItems.value.filter((line: LineItem) => line.type === LineTypes.TAX))
+const taxes = computed(() => moddedItems.value.filter((line: LineItem) => line.type === LineType.TAX))
 
 const modifiers = computed(() => moddedItems.value.filter(
   // We include tips here since we will handle that with a different interface.

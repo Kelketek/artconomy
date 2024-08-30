@@ -1,6 +1,6 @@
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 import Submission from '@/types/Submission.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/Ratings.ts'
 
 export default interface Product {
   id: number,
@@ -10,7 +10,7 @@ export default interface Product {
   revisions: number,
   hidden: boolean,
   max_parallel: number,
-  max_rating: Ratings,
+  max_rating: RatingsValue,
   hits: number,
   task_weight: number
   expected_turnaround: number,

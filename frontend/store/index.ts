@@ -8,7 +8,7 @@ import cloneDeep from 'lodash/cloneDeep'
 import {genId} from '@/lib/lib.ts'
 import {singles} from './singles/index.ts'
 import {characterModules} from '@/store/characters/index.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/Ratings.ts'
 
 export function storeDefaults(): StoreOptions<ArtState> {
   return {
@@ -57,7 +57,7 @@ export function storeDefaults(): StoreOptions<ArtState> {
       setAgeAsked(state, value: boolean) {
         state.ageAsked = value
       },
-      setContentRating(state, value: Ratings) {
+      setContentRating(state, value: RatingsValue) {
         state.contentRating = value
       },
       setShowAgeVerification(state, value: boolean) {

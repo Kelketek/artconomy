@@ -1,4 +1,4 @@
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import type {BankStatusValue} from '@/store/profiles/types/BankStatus.ts'
 
 export interface ArtistProfile {
   dwolla_configured: boolean,
@@ -11,5 +11,5 @@ export interface ArtistProfile {
   escrow_enabled: boolean,
   lgbt: boolean,
   artist_of_color: boolean,
-  bank_account_status: BANK_STATUSES,
+  bank_account_status: BankStatusValue,
 }

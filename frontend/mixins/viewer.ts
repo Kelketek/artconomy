@@ -2,7 +2,7 @@ import {differenceInYears} from 'date-fns'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {ProfileController} from '@/store/profiles/controller.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import type {RatingsValue} from '@/types/Ratings.ts'
 import {useStore} from 'vuex'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
@@ -10,6 +10,7 @@ import {ArtStore} from '@/store/index.ts'
 import {computed} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
+import {Ratings} from '@/types/Ratings.ts'
 
 export interface AgeCheckArgs {
   value: number,
@@ -49,7 +50,7 @@ const getRating = (viewer: User|AnonUser|null) => {
   return viewer.rating
 }
 
-const getRawRating = (viewer: User|AnonUser|null): Ratings|undefined => {
+const getRawRating = (viewer: User|AnonUser|null): RatingsValue|undefined => {
   // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
   // in and not currently using SFW settings. So, if we want to watch for this value's change, but we want to ignore
   // the default rating setting, we use this property instead.

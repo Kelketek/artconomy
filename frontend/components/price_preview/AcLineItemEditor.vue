@@ -35,7 +35,7 @@ import LineItem from '@/types/LineItem.ts'
 import LineAccumulator from '@/types/LineAccumulator.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import {mdiDelete} from '@mdi/js'
 import {computed} from 'vue'
 
@@ -50,7 +50,7 @@ const props = withDefaults(defineProps<{
 })
 const emit = defineEmits<{'new-line': []}>()
 
-const deletable = computed(()  => props.line.x?.type !== LineTypes.BASE_PRICE)
+const deletable = computed(()  => props.line.x?.type !== LineType.BASE_PRICE)
 
 const price = computed(() => props.priceData.subtotals.get(props.line.x as LineItem)!)
 

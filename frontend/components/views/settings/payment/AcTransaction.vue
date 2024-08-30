@@ -71,9 +71,9 @@ import {useSubject} from '@/mixins/subjective.ts'
 import Transaction from '@/types/Transaction.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
-import {TransactionCategory} from '@/types/TransactionCategory.ts'
-import {TransactionStatus} from '@/types/TransactionStatus.ts'
-import {AccountType} from '@/types/AccountType.ts'
+import {TransactionCategoryValue} from '@/types/TransactionCategory.ts'
+import {TransactionStatusValue} from '@/types/TransactionStatus.ts'
+import {AccountTypeValue} from '@/types/AccountType.ts'
 import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
 import {mdiClose, mdiDotsHorizontal} from '@mdi/js'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
@@ -93,19 +93,19 @@ const {mdAndUp} = useDisplay()
 
 const showDetails = ref(false)
 
-const STATUS_COMMENTS: Record<TransactionStatus, string> = {
+const STATUS_COMMENTS: Record<TransactionStatusValue, string> = {
   0: '',
   1: '(Failed)',
   2: '(Pending)',
 }
 
-const STATUSES: Record<TransactionStatus, string> = {
+const STATUSES: Record<TransactionStatusValue, string> = {
   0: 'Success',
   1: 'Failure',
   2: 'Pending',
 }
 
-const CATEGORY_TYPES: Record<TransactionCategory, string> = {
+const CATEGORY_TYPES: Record<TransactionCategoryValue, string> = {
   400: 'Artconomy Service Fee',
   401: 'Escrow hold',
   402: 'Escrow release',
@@ -128,7 +128,7 @@ const CATEGORY_TYPES: Record<TransactionCategory, string> = {
   419: 'Tip',
 }
 
-const ACCOUNT_TYPES: Record<AccountType, string> = {
+const ACCOUNT_TYPES: Record<AccountTypeValue, string> = {
   300: 'Credit Card',
   301: 'Bank Account',
   302: 'Escrow',

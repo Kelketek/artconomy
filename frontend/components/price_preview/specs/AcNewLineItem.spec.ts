@@ -1,7 +1,7 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {cleanUp, docTarget, mount, vueSetup} from '@/specs/helpers/index.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
@@ -25,7 +25,7 @@ describe('AcNewLineItem.vue', () => {
           validators: [{name: 'numeric'}],
         },
         description: {value: ''},
-        type: {value: LineTypes.ADD_ON},
+        type: {value: LineType.ADD_ON},
         percentage: {value: 0},
       },
     })
@@ -43,7 +43,7 @@ describe('AcNewLineItem.vue', () => {
     expect(wrapper.html()).toContain('Surcharge/Discount')
   })
   test('Gives a default label to an extra service item', async() => {
-    addOnForm.fields.type.update(LineTypes.EXTRA)
+    addOnForm.fields.type.update(LineType.EXTRA)
     wrapper = mount(AcNewLineItem, {
       ...vueSetup({store}),
       attachTo: docTarget(),

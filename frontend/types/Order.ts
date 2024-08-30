@@ -1,6 +1,6 @@
 import {User} from '@/store/profiles/types/User.ts'
 import {RouteLocationNamedRaw} from 'vue-router'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatusValue} from '@/types/DeliverableStatus.ts'
 import {Asset} from '@/types/Asset.ts'
 
 export default interface Order {
@@ -19,6 +19,6 @@ export default interface Order {
   display: Asset|null,
   default_path: RouteLocationNamedRaw,
   deliverable_count: number,
-  status: DeliverableStatus,
+  status: DeliverableStatusValue,
   read: boolean,
 }

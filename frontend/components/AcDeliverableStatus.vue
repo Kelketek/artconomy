@@ -19,9 +19,9 @@ import {
   mdiPencil,
   mdiStar,
 } from '@mdi/js'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatusValue} from '@/types/DeliverableStatus.ts'
 
-const props = defineProps<{deliverable: {status: DeliverableStatus}}>()
+const props = defineProps<{deliverable: {status: DeliverableStatusValue}}>()
 const STATUSES = {
   0: {
     text: 'Waiting',

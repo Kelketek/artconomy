@@ -2,7 +2,7 @@ import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcBankToggleStripe from '@/components/fields/AcBankToggle.vue'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import StripeAccount from '@/types/StripeAccount.ts'
 import {genId, setViewer} from '@/lib/lib.ts'
@@ -32,7 +32,7 @@ describe('AcBankToggle.vue', () => {
       ...vueSetup({store}),
       props: {
         username: 'Fox',
-        modelValue: BANK_STATUSES.NO_SUPPORTED_COUNTRY,
+        modelValue: BankStatus.NO_SUPPORTED_COUNTRY,
       },
     })
     const vm = wrapper.vm as any

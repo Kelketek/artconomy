@@ -11,16 +11,16 @@
 
 <script setup lang="ts">
 import {FormController} from '@/store/forms/form-controller.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import {computed} from 'vue'
 import {mdiPlus} from '@mdi/js'
 
 const props = defineProps<{form: FormController}>()
 const placeholder = computed(() => {
-  if (props.form.fields.type.value === LineTypes.ADD_ON) {
+  if (props.form.fields.type.value === LineType.ADD_ON) {
     return 'Surcharge/Discount'
   }
-  if (props.form.fields.type.value === LineTypes.EXTRA) {
+  if (props.form.fields.type.value === LineType.EXTRA) {
     return 'Extra item'
   }
   return 'Other'

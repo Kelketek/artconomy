@@ -105,7 +105,7 @@ const mutations: MutationTree<RootFormState> = {
     // Sets the errors on a particular field.
     setFieldErrors(state, payload.name, payload.fields)
   },
-  updateMeta(state: RootFormState, payload: { name: string, meta: { [key in MetaToggles]: boolean } }) {
+  updateMeta(state: RootFormState, payload: { name: string, meta: { [key in keyof typeof MetaToggles]: boolean } }) {
     for (const key of Object.keys(payload.meta)) {
       // @ts-ignore
       state[payload.name][key] = payload.meta[key]

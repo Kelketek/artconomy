@@ -121,7 +121,7 @@
 
 <script setup lang="ts">
 import {getTotals, reckonLines, totalForTypes} from '@/lib/lineItemFunctions.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType, LineTypeValue} from '@/types/LineType.ts'
 import LineItem from '@/types/LineItem.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
@@ -225,10 +225,10 @@ const stateChange = useForm(
 )
 
 const sansOutsiders = computed(() => {
-  return bareLines.value.filter((x) => [
-    LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
-    LineTypes.PROCESSING,
-  ].includes(x.type))
+  return bareLines.value.filter((x) => ([
+    LineType.BASE_PRICE, LineType.ADD_ON, LineType.BONUS, LineType.SHIELD,
+    LineType.PROCESSING,
+  ] as LineTypeValue[]).includes(x.type))
 })
 
 const showSendTip = computed({
@@ -248,7 +248,7 @@ const showSendTip = computed({
 })
 
 const tip = computed(() => {
-  return lineItems.list.filter((x) => x.x && x.x.type === LineTypes.TIP)[0]
+  return lineItems.list.filter((x) => x.x && x.x.type === LineType.TIP)[0]
 })
 
 const total = computed(() => {
@@ -271,7 +271,7 @@ const paymentSubmit = () => {
 
 const setTip = (multiplier: number) => {
   const subTotal = totalForTypes(getTotals(sansOutsiders.value), [
-    LineTypes.BASE_PRICE, LineTypes.ADD_ON, LineTypes.BONUS, LineTypes.SHIELD,
+    LineType.BASE_PRICE, LineType.ADD_ON, LineType.BONUS, LineType.SHIELD,
   ])
   const tipAmount = parseFloat(subTotal) * multiplier
   tip.value.patchers.amount.model = tipAmount.toFixed(2)

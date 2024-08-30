@@ -7,7 +7,7 @@ import {genArtistProfile, genCommissionStats, genUser} from '@/specs/helpers/fix
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {genPricing} from '@/lib/specs/helpers.ts'
 import OrderList from '@/components/views/orders/OrderList.vue'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
@@ -119,7 +119,7 @@ describe('Orders.vue', () => {
     })
     const vm = wrapper.vm as any
     vm.pricing.makeReady(genPricing())
-    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.IN_SUPPORTED_COUNTRY}))
     await vm.$nextTick()
     expect(vm.closed).toBe(null)
   })
@@ -137,7 +137,7 @@ describe('Orders.vue', () => {
       },
     })
     const vm = wrapper.vm as any
-    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.IN_SUPPORTED_COUNTRY}))
     vm.stats.setX(genCommissionStats())
     await vm.$nextTick()
     expect(vm.closed).toBe(false)
@@ -156,7 +156,7 @@ describe('Orders.vue', () => {
       },
     })
     const vm = wrapper.vm
-    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BANK_STATUSES.IN_SUPPORTED_COUNTRY}))
+    vm.subjectHandler.artistProfile.makeReady(genArtistProfile({bank_account_status: BankStatus.IN_SUPPORTED_COUNTRY}))
     vm.stats.makeReady(genCommissionStats())
     await wrapper.vm.$nextTick()
     await wrapper.find('.new-invoice-button').trigger('click')

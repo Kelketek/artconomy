@@ -3,7 +3,7 @@ import {Asset} from '@/types/Asset.ts'
 import {v4 as uuidv4} from 'uuid'
 import {extPreview, getExt, isImage} from '@/mixins/asset_base.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import type {RatingsValue} from '@/types/Ratings.ts'
 
 export function Shortcuts(app: ReturnType<typeof createApp>): void {
   app.mixin({
@@ -14,7 +14,7 @@ export function Shortcuts(app: ReturnType<typeof createApp>): void {
   })
 }
 
-export const deriveImage = (asset: Asset|null, thumbName: string, fallback: boolean, rating: Ratings) => {
+export const deriveImage = (asset: Asset|null, thumbName: string, fallback: boolean, rating: RatingsValue) => {
   if (!asset || !asset.file) {
     return '/static/images/default-avatar.png'
   }

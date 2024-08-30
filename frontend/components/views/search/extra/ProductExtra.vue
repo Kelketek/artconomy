@@ -159,7 +159,7 @@
 <script setup lang="ts">
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import type {Ratings} from '@/types/Ratings.ts'
+import type {RatingsValue} from '@/types/Ratings.ts'
 import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'
@@ -170,8 +170,8 @@ const searchForm = useForm('search')
 const {showRatings, ratingItems} = useContentRatingSearch(searchForm)
 const {isRegistered, rating, ageCheck} = useViewer()
 const panel = ref<number|null>(null)
-const ratingKey = computed(() => searchForm.fields.minimum_content_rating.value as Ratings)
-watch(() => searchForm.fields.minimum_content_rating.value, (value: Ratings) => {
+const ratingKey = computed(() => searchForm.fields.minimum_content_rating.value as RatingsValue)
+watch(() => searchForm.fields.minimum_content_rating.value, (value: RatingsValue) => {
   if (value) {
     ageCheck({value})
   }

@@ -7,7 +7,7 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {errorSend} from '@/store/singles/patcher.ts'
 import {AxiosError} from 'axios'
-import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
+import {ViewerType} from '@/types/ViewerType.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick, toValue} from 'vue'
@@ -53,7 +53,7 @@ describe('Patcher', () => {
   test('Does not send a patch request when the url is #', async() => {
     wrapper = mount(Patcher, vueSetup({store}))
     wrapper.vm.localShare.makeReady({
-      viewerType: VIEWER_TYPE.BUYER,
+      viewerType: ViewerType.BUYER,
       showPayment: false,
       showAddSubmission: false,
     })

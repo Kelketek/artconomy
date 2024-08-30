@@ -233,6 +233,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {mdiHammerWrench, mdiUpdate} from '@mdi/js'
+import {SocketState} from '@/types/SocketState.ts'
 
 const router = useRouter()
 const route = useRoute()
@@ -287,7 +288,7 @@ const forceRecompute = ref(0)
 // Do we still need this?
 store.commit('setSearchInitialized', true)
 
-const socketState = useSingle('socketState', {
+const socketState = useSingle<SocketState>('socketState', {
   endpoint: '#',
   persist: true,
   x: {

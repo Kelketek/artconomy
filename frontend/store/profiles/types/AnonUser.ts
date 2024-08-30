@@ -1,7 +1,7 @@
-import {Ratings} from '@/types/Ratings.ts'
+import type {RatingsValue} from '@/types/Ratings.ts'
 
 export interface AnonUser {
-  rating: Ratings,
+  rating: RatingsValue,
   blacklist: string[],
   nsfw_blacklist: string[],
   sfw_mode: boolean,

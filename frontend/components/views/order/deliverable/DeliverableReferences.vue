@@ -59,7 +59,7 @@ import AcReference from '@/components/views/order/deliverable/AcReference.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed, watch} from 'vue'
 import {useRoute} from 'vue-router'
-import {Ratings} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/Ratings.ts'
 
 const props = defineProps<DeliverableProps>()
 const route = useRoute()
@@ -86,7 +86,7 @@ const addReference = (reference: Reference) => {
   references.post({reference_id: reference.id}).then(references.uniquePush)
 }
 
-watch(() => deliverable.x?.rating, (val: Ratings|undefined) => {
+watch(() => deliverable.x?.rating, (val: RatingsValue|undefined) => {
   if (val === undefined) {
     return
   }

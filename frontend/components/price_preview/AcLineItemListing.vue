@@ -50,7 +50,7 @@ import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import LineItem from '@/types/LineItem.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType, LineTypeValue} from '@/types/LineType.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {computed} from 'vue'
 import {useLineItems} from '@/components/price_preview/mixins/line_items.ts'
@@ -68,9 +68,9 @@ const props = withDefaults(defineProps<{
 
 const modifiers = computed(() => rawLineItems.value.filter(
       // We include tips here since we will handle that with a different interface.
-      (line: LineItem) => [
-        LineTypes.TIP, LineTypes.SHIELD, LineTypes.BONUS, LineTypes.TABLE_SERVICE,
-      ].includes(line.type)))
+      (line: LineItem) => ([
+        LineType.TIP, LineType.SHIELD, LineType.BONUS, LineType.TABLE_SERVICE,
+      ] as LineTypeValue[]).includes(line.type)))
 
 
 const {

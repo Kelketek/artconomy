@@ -1,7 +1,7 @@
-import {ConnectionStatus} from '@/types/ConnectionStatus.ts'
+import type {ConnectionStatusValue} from '@/types/ConnectionStatus.ts'
 
 export interface SocketState {
-  status: ConnectionStatus,
+  status: ConnectionStatusValue,
   version: string,
   serverVersion: string,
 }

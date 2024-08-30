@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import LineItem from '@/types/LineItem.ts'
 import LineAccumulator from '@/types/LineAccumulator.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import {computed} from 'vue'
 
 declare interface AcLineItemPreviewProps {
@@ -74,21 +74,21 @@ const label = computed(() => {
   if (props.line.description) {
     return props.line.description
   }
-  if (props.line.type === LineTypes.ADD_ON) {
+  if (props.line.type === LineType.ADD_ON) {
     if (parseFloat(price.value) < 0) {
       return 'Discount'
     } else {
       return 'Additional requirements'
     }
   }
-  if (props.line.type === LineTypes.TIP) {
+  if (props.line.type === LineType.TIP) {
     if (props.transfer) {
       return 'Tip net'
     } else {
       return 'Tip'
     }
   }
-  if (props.line.type === LineTypes.DELIVERABLE_TRACKING) {
+  if (props.line.type === LineType.DELIVERABLE_TRACKING) {
     let label = 'Order Tracking'
     if (props.line.targets?.length) {
       label += ' (' + props.line.targets.map((target) => `${target.model} #${target.id}`).join(', ') + ')'

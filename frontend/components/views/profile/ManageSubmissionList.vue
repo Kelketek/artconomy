@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {flatten} from '@/lib/lib.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/Ratings.ts'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useViewer} from '@/mixins/viewer.ts'
@@ -66,7 +66,7 @@ if (props.username) {
 
 const list = useList<LinkedSubmission>(listName, {endpoint: props.endpoint})
 
-watch(rawRating, (newValue: Ratings|undefined, oldValue: Ratings | undefined) => {
+watch(rawRating, (newValue: RatingsValue|undefined, oldValue: RatingsValue|undefined) => {
   if (oldValue === undefined || newValue === undefined) {
     return
   }

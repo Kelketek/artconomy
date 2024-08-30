@@ -6,7 +6,7 @@ import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
 import {genDeliverable, genUser} from '@/specs/helpers/fixtures.ts'
 import DeliverableOverview from '@/components/views/order/deliverable/DeliverableOverview.vue'
 import mockAxios from '@/__mocks__/axios.ts'
-import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
+import {ViewerType, ViewerTypeValue} from '@/types/ViewerType.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -131,16 +131,16 @@ describe('DeliverableOverview.vue', () => {
   })
   test.each`
   mode                  | string
-  ${VIEWER_TYPE.STAFF}  | ${'Staff'}
-  ${VIEWER_TYPE.SELLER} | ${'Seller'}
-  ${VIEWER_TYPE.BUYER}  | ${'Buyer'}
-  ${VIEWER_TYPE.UNSET}  | ${'Wat'}
-  ${VIEWER_TYPE.UNSET}  | ${''}
+  ${ViewerType.STAFF}  | ${'Staff'}
+  ${ViewerType.SELLER} | ${'Seller'}
+  ${ViewerType.BUYER}  | ${'Buyer'}
+  ${ViewerType.UNSET}  | ${'Wat'}
+  ${ViewerType.UNSET}  | ${''}
   `('Sets the viewerMode to $mode when $string is set as view_as.',
     async({
       mode,
       string,
-    }: { mode: VIEWER_TYPE, string: string }) => {
+    }: { mode: ViewerTypeValue, string: string }) => {
       setViewer(store, genUser({is_staff: true}))
       await router.push(`/orders/Fox/order/1/deliverables/5/overview?view_as=${string}`)
       wrapper = mount(

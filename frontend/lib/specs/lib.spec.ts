@@ -634,6 +634,7 @@ describe('Logger', () => {
     expect(error).toHaveBeenCalledTimes(1)
   })
   test('Sends all logging levels if the log level is super high', () => {
+    // @ts-expect-error
     window.__LOG_LEVEL__ = LogLevels.ERROR + 1
     sendMessages()
     expect(debug).not.toHaveBeenCalled()

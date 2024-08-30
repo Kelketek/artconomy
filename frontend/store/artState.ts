@@ -3,20 +3,22 @@ import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {FormState} from '@/store/forms/types/FormState.ts'
 import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ErrorState} from '@/store/errors/types.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/Ratings.ts'
 
-export enum AlertCategory {
-  SUCCESS = 'success',
-  ERROR = 'error',
-  WARNING = 'warning',
-  INFO = 'info',
-}
+export const AlertCategory = {
+  SUCCESS: 'success',
+  ERROR: 'error',
+  WARNING: 'warning',
+  INFO: 'info',
+} as const
+
+export type AlertCategoryKey = typeof AlertCategory[keyof typeof AlertCategory]
 
 export interface Alert {
   id?: string,
   message: string,
   timeout: number,
-  category: AlertCategory
+  category: AlertCategoryKey,
 }
 
 export interface ArtState {
@@ -28,7 +30,7 @@ export interface ArtState {
   searchInitialized: boolean,
   alerts: Alert[],
   ageAsked: boolean,
-  contentRating: Ratings,
+  contentRating: RatingsValue,
   showAgeVerification: boolean,
   showCookieDialog: boolean,
   messagesOpen: boolean,

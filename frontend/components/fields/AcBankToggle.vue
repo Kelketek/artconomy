@@ -1,7 +1,7 @@
 <template>
   <ac-load-section :controller="stripeAccounts">
     <template v-slot:default>
-      <v-container v-if="modelValue === BANK_STATUSES.UNSET || modelValue === BANK_STATUSES.IN_SUPPORTED_COUNTRY" class="pa-0">
+      <v-container v-if="modelValue === BankStatus.UNSET || modelValue === BankStatus.IN_SUPPORTED_COUNTRY" class="pa-0">
         <v-card v-if="(needStripe || restartStripe) && (!hasActiveStripe)">
           <v-card-text>
             <ac-form-container v-bind="stripeSetupForm.bind" v-if="stripeCountries.x">
@@ -24,7 +24,7 @@
                   <p>If your country isn't supported, or you wish to forgo shield protection altogether, click the
                     button below. You'll still be able to list products, manage orders, and use other features of the
                     site, but you'll have to handle payment on your own.</p>
-                  <v-btn @click="() => $emit('update:modelValue', BANK_STATUSES.NO_SUPPORTED_COUNTRY)" color="danger" variant="flat">Disable Shield
+                  <v-btn @click="() => $emit('update:modelValue', BankStatus.NO_SUPPORTED_COUNTRY)" color="danger" variant="flat">Disable Shield
                   </v-btn>
                 </v-col>
               </v-row>
@@ -59,7 +59,7 @@
         <h2>You may now list products!</h2>
         <p>Your products will not be protected by Artconomy Shield, but you will still be able to list products, take
           orders, and use other features of the site.</p>
-        <v-btn color="primary" @click="() => $emit('update:modelValue', BANK_STATUSES.UNSET)" class="have-us-account" variant="flat">Re-enable
+        <v-btn color="primary" @click="() => $emit('update:modelValue', BankStatus.UNSET)" class="have-us-account" variant="flat">Re-enable
           Shield
         </v-btn>
       </v-row>
@@ -68,7 +68,7 @@
 </template>
 
 <script setup lang="ts">
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {BankStatus, BankStatusValue} from '@/store/profiles/types/BankStatus.ts'
 import {flatten} from '@/lib/lib.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
@@ -84,7 +84,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 
 
 const props = withDefaults(
-    defineProps<{modelValue: BANK_STATUSES, manageBanks?: boolean} & SubjectiveProps>(),
+    defineProps<{modelValue: BankStatusValue, manageBanks?: boolean} & SubjectiveProps>(),
     {
       manageBanks: false,
     },

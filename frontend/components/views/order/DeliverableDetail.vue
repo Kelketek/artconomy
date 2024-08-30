@@ -426,7 +426,7 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import Deliverable from '@/types/Deliverable.ts'
 import {DeliverableProps, useDeliverable, ensureHandler} from './mixins/DeliverableMixin.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import {VIEWER_TYPE} from '@/types/VIEWER_TYPE.ts'
+import {ViewerType} from '@/types/ViewerType.ts'
 import {Character} from '@/store/characters/types/Character.ts'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
 import {SingleController} from '@/store/singles/controller.ts'
@@ -528,19 +528,19 @@ const viewerItems = computed(() => {
   if (viewMode.value === 0) {
     items.push({
       title: 'Please select...',
-      value: VIEWER_TYPE.UNSET,
+      value: ViewerType.UNSET,
     })
   }
-  items.push({title: 'Staff', value: VIEWER_TYPE.STAFF})
+  items.push({title: 'Staff', value: ViewerType.STAFF})
   if (buyer.value) {
     items.push({
       title: 'Buyer',
-      value: VIEWER_TYPE.BUYER,
+      value: ViewerType.BUYER,
     })
   }
   items.push({
     title: 'Seller',
-    value: VIEWER_TYPE.SELLER,
+    value: ViewerType.SELLER,
   })
   return items
 })

@@ -2,7 +2,7 @@ import {genShortcode} from 'short-stuff'
 import {rs} from './index.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import Revision from '@/types/Revision.ts'
 import Order from '@/types/Order.ts'
@@ -77,7 +77,7 @@ export function genArtistProfile(overrides?: Partial<ArtistProfile>): ArtistProf
     lgbt: false,
     artist_of_color: false,
     escrow_enabled: true,
-    bank_account_status: 0 as BANK_STATUSES.UNSET,
+    bank_account_status: BankStatus.UNSET,
     public_queue: true,
     ...overrides,
   }

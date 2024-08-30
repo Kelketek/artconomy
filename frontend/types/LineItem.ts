@@ -1,3 +1,5 @@
+import {LineTypeValue} from '@/types/LineType.ts'
+
 export default interface LineItem {
   id: number,
   priority: number,
@@ -7,7 +9,7 @@ export default interface LineItem {
   cascade_percentage: boolean,
   cascade_amount: boolean,
   back_into_percentage: boolean,
-  type: number,
+  type: LineTypeValue,
   description: string,
   destination_account?: number|null,
   destination_user?: number|null,

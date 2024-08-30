@@ -1,7 +1,7 @@
-import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
-import {Asset} from '@/types/Asset.ts'
-import {RouteLocationRaw} from 'vue-router'
-import {Ratings} from '@/types/Ratings.ts'
+import type {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import type {Asset} from '@/types/Asset.ts'
+import type {RouteLocationRaw} from 'vue-router'
+import type {RatingsValue} from '@/types/Ratings.ts'
 
 export default interface Submission extends Asset {
   id: number,
@@ -12,7 +12,7 @@ export default interface Submission extends Asset {
   owner: RelatedUser,
   comment_count: number,
   favorite_count: number,
-  rating: Ratings,
+  rating: RatingsValue,
   tags: string[],
   favorites: boolean,
   subscribed: boolean,

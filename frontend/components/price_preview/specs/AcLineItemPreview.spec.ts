@@ -5,7 +5,7 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import {dummyLineItems, genLineItem} from '@/lib/specs/helpers.ts'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 
@@ -64,7 +64,7 @@ describe('AcLineItemPreview.vue', () => {
     const line = genLineItem({
       id: -500,
       priority: 100,
-      type: LineTypes.ADD_ON,
+      type: LineType.ADD_ON,
       amount: '-2',
     })
     lineItems.push(line)
@@ -85,7 +85,7 @@ describe('AcLineItemPreview.vue', () => {
     const line = genLineItem({
       id: -500,
       priority: 100,
-      type: LineTypes.ADD_ON,
+      type: LineType.ADD_ON,
       amount: '2',
     })
     lineItems.push(line)

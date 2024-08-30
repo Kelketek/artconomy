@@ -1,5 +1,5 @@
 import LineItem from '@/types/LineItem.ts'
-import {LineTypes} from '@/types/LineTypes.ts'
+import {LineType} from '@/types/LineType.ts'
 import Pricing from '@/types/Pricing.ts'
 
 export function genLineItem(overrides: Partial<LineItem>): LineItem {
@@ -26,7 +26,7 @@ export function dummyLineItems(): LineItem[] {
       percentage: '4',
       amount: '0.50',
       frozen_value: null,
-      type: LineTypes.SHIELD,
+      type: LineType.SHIELD,
       destination_account: 304,
       destination_user: null,
       description: '',
@@ -40,7 +40,7 @@ export function dummyLineItems(): LineItem[] {
       percentage: '4',
       amount: '0.25',
       frozen_value: null,
-      type: LineTypes.BONUS,
+      type: LineType.BONUS,
       destination_account: 304,
       destination_user: null,
       description: '',
@@ -54,7 +54,7 @@ export function dummyLineItems(): LineItem[] {
       percentage: '0',
       amount: '100.00',
       frozen_value: null,
-      type: LineTypes.BASE_PRICE,
+      type: LineType.BASE_PRICE,
       destination_account: 302,
       destination_user: 1,
       description: '',
@@ -68,7 +68,7 @@ export function dummyLineItems(): LineItem[] {
       percentage: '0',
       amount: '-20.00',
       frozen_value: null,
-      type: LineTypes.ADD_ON,
+      type: LineType.ADD_ON,
       destination_account: 302,
       destination_user: 1,
       description: 'Discount',

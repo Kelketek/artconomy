@@ -11,7 +11,7 @@
               <v-btn
                   :value="index"
                   :key="label"
-                  :color="RATING_COLOR[index as Ratings]"
+                  :color="RATING_COLOR[index as RatingsValue]"
                   :disabled="disabled"
                   v-if="index <= max"
                   variant="flat"
@@ -64,13 +64,13 @@
 <script setup lang="ts">
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
 import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {Ratings, RatingsValue} from '@/types/Ratings.ts'
 import {computed, useAttrs} from 'vue'
 
 
 const props = withDefaults(defineProps<{
   disabled?: boolean,
-  modelValue: Ratings,
+  modelValue: RatingsValue,
   max?: number,
   showWarning?: boolean,
 } & ExtendedInputProps>(),{
@@ -78,7 +78,7 @@ const props = withDefaults(defineProps<{
   max: 3,
   showWarning: false,
 })
-const emit = defineEmits<{'update:modelValue': [Ratings]}>()
+const emit = defineEmits<{'update:modelValue': [RatingsValue]}>()
 
 const scratch = computed({
   get: () => props.modelValue,

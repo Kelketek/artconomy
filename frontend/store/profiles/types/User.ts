@@ -1,11 +1,11 @@
-import {Ratings} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/Ratings.ts'
 
 export interface User {
   landscape_paid_through: string | null,
   telegram_link: string,
   watching: boolean,
   blocking: boolean,
-  rating: Ratings,
+  rating: RatingsValue,
   sfw_mode: boolean,
   username: string,
   id: number,

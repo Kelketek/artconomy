@@ -2,7 +2,7 @@ import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures.ts'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import {cleanUp, createTestRouter, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {Router} from 'vue-router'
@@ -68,7 +68,7 @@ describe('AcSettingNav.vue', () => {
     user.artist_mode = false
     vm.subjectHandler.user.setX(user)
     const profile = genArtistProfile()
-    profile.bank_account_status = 1 as BANK_STATUSES
+    profile.bank_account_status = BankStatus.IN_SUPPORTED_COUNTRY
     vm.subjectHandler.artistProfile.setX(profile)
     await wrapper.vm.$nextTick()
     expect(wrapper.find('.payout-link').exists()).toBe(true)

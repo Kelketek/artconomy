@@ -75,7 +75,7 @@
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
-import {BANK_STATUSES} from '@/store/profiles/types/BANK_STATUSES.ts'
+import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed, ref} from 'vue'
 import {
@@ -96,7 +96,7 @@ const open = ref(['Payment'])
 const {subjectHandler, subject} = useSubject(props)
 const inSupportedCountry = computed(() => {
   const profile = subjectHandler.artistProfile
-  return profile.x && (profile.x.bank_account_status === BANK_STATUSES.IN_SUPPORTED_COUNTRY)
+  return profile.x && (profile.x.bank_account_status === BankStatus.IN_SUPPORTED_COUNTRY)
 })
 const showPayout = computed(() => {
   return (subject.value as User).artist_mode || inSupportedCountry.value
