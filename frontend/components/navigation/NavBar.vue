@@ -136,7 +136,7 @@
           </v-btn>
         </template>
       </ac-bound-field>
-      <v-card class="px-2 py-1 hidden-xs-only"
+      <v-card class="px-2 py-1 hidden-xs"
               :color="sfwMode.model? 'blue darken-3' : 'black'"
               v-if="viewer && viewer.rating > 0 && fullInterface"
       >

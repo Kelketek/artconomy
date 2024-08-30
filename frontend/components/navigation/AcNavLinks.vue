@@ -7,6 +7,15 @@
         </template>
         <v-list-item-title>Close Menu</v-list-item-title>
       </v-list-item>
+      <v-list-item class="hidden-sm-and-up" v-if="showSfwToggle" role="listitem" tabindex="0">
+        <ac-patch-field
+            field-type="v-switch"
+            :patcher="sfwMode"
+            :save-indicator="false"
+            label="SFW Mode"
+            color="primary"
+        />
+      </v-list-item>
       <v-list-item to="/" exact role="listitem" tabindex="0">
         <template v-slot:prepend>
           <v-icon :icon="mdiHome"/>
@@ -177,15 +186,6 @@
           Upgrade
         </v-list-item-title>
       </v-list-item>
-      <v-list-item class="hidden-sm-and-up" v-if="!showSfwToggle" role="listitem" tabindex="0">
-        <ac-patch-field
-            field-type="v-switch"
-            :patcher="sfwMode"
-            :save-indicator="false"
-            label="SFW Mode"
-            color="primary"
-        />
-      </v-list-item>
     </v-list>
     <v-divider aria-hidden="true"/>
     <v-list nav density="compact" role="list">
@@ -266,7 +266,7 @@ const emit = defineEmits<{'update:modelValue': [boolean|null]}>()
 
 const subject = computed(() => props.subjectHandler.user.x)
 const sfwMode = computed(() => props.subjectHandler.user.patchers.sfw_mode)
-const showSfwToggle = computed(() => props.embedded && subject.value && (subject.value as User).rating > 0)
+const showSfwToggle = computed(() => !props.embedded && subject.value && (subject.value as User).rating > 0)
 
 const searchForm = useForm('search')
 
