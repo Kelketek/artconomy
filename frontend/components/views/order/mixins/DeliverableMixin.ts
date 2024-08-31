@@ -81,7 +81,7 @@ host component and so can avoid running commands repeatedly, such as setting the
 */
 export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   const route = useRoute()
-  const {isStaff, rawViewerName} = useViewer()
+  const {powers, rawViewerName} = useViewer()
   const prefix = computed(() => {
     return `order${props.orderId}__deliverable${props.deliverableId}`
   })
@@ -98,7 +98,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     `${prefix.value}__viewSettings`,
     {
       x: {
-        viewerType: getInitialViewSetting(isStaff.value, route.query.view_as) || ViewerType.UNSET,
+        viewerType: getInitialViewSetting(powers.value.handle_disputes || powers.value.table_seller, route.query.view_as) || ViewerType.UNSET,
         showAddSubmission: false,
         showPayment: false,
         characterInitItems: [],

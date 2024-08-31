@@ -7,10 +7,11 @@ import {useStore} from 'vuex'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
 import {ArtStore} from '@/store/index.ts'
-import {computed} from 'vue'
+import {computed, watch} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
 import {Ratings} from '@/types/Ratings.ts'
+import {StaffPower} from '@/store/profiles/types/StaffPowers.ts'
 
 export interface AgeCheckArgs {
   value: number,
@@ -108,6 +109,23 @@ const hasLandscape = (viewer: User|AnonUser|null) => {
   return viewer.landscape
 }
 
+export const POWER_LIST: StaffPower[] = [
+  'handle_disputes', 'view_social_data', 'view_financials', 'moderate_content', 'moderate_discussion',
+  'table_seller', 'view_as', 'administrate_users',
+] as const
+
+export const buildPowers = (handler: ProfileController) => computed((): Record<StaffPower, boolean> => {
+  if (!handler.user.x?.is_staff || !handler.staffPowers.x) {
+    return Object.fromEntries(POWER_LIST.map((key) => [key, false])) as Record<StaffPower, boolean>
+  }
+  if (handler.user.x?.is_superuser) {
+    return Object.fromEntries(POWER_LIST.map((key) => [key, true])) as Record<StaffPower, boolean>
+  }
+  return Object.fromEntries(
+    Object.entries(handler.staffPowers.x).filter(([_key, value]) => typeof value === 'boolean')
+  ) as Record<StaffPower, boolean>
+})
+
 
 export const useViewer = () => {
   const store = useStore<ArtState>()
@@ -122,12 +140,20 @@ export const useViewer = () => {
   const adultAllowed = computed(() => isAdultAllowed(viewerHandler, theocraticBan.value))
   const isLoggedIn = computed(() => loginCheck(viewer.value))
   const isRegistered = computed(() => checkRegistered(isLoggedIn.value, viewer.value))
+  // TODO: Remove once tests are updated.
   const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer.value))
   const isSuperuser = computed(() => checkSuperuser(isLoggedIn.value, viewer.value))
   const rating = computed(() => getRating(viewer.value))
   const rawRating = computed(() => getRawRating(viewer.value))
   const unverifiedInTheocracy = computed(() => theocraticBan.value && !viewer.value.verified_adult)
   const landscape = computed(() => hasLandscape(viewer.value))
+  watch(() => viewer.value?.is_staff, (flag) => {
+    if (!flag) {
+      return
+    }
+    viewerHandler.staffPowers.get().catch(() => {})
+  }, {immediate: true})
+  const powers = buildPowers(viewerHandler)
 
   return {
     viewer,
@@ -137,6 +163,7 @@ export const useViewer = () => {
     adultAllowed,
     isLoggedIn,
     isRegistered,
+    // TODO: Remove once tests are updated.
     isStaff,
     isSuperuser,
     rating,
@@ -144,6 +171,7 @@ export const useViewer = () => {
     theocraticBan,
     unverifiedInTheocracy,
     landscape,
+    powers,
     ageCheck: (args: AgeCheckArgs) => ageCheck(store, viewer.value, args),
   }
 }

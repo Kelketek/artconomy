@@ -18,7 +18,7 @@ describe('Options.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts the options page', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Options, {
       ...vueSetup({store}),
       props: {username: 'Fox'},
@@ -26,10 +26,12 @@ describe('Options.vue', () => {
     await wrapper.vm.$nextTick()
   })
   test('Conditionally permits the rating to be adjusted', async() => {
-    setViewer(store, genUser({
-      birthday: null,
-      username: 'Fox',
-    }))
+    setViewer({
+store, user: genUser({
+birthday: null,
+username: 'Fox',
+})
+})
     wrapper = mount(Options, {
       ...vueSetup({store}),
       props: {username: 'Fox'},
@@ -45,10 +47,12 @@ describe('Options.vue', () => {
     expect(vm.adultAllowed).toBe(false)
   })
   test('Reopens the cookie dialog', async() => {
-    setViewer(store, genUser({
-      birthday: null,
-      username: 'Fox',
-    }))
+    setViewer({
+store, user: genUser({
+birthday: null,
+username: 'Fox',
+})
+})
     wrapper = mount(Options, {
       ...vueSetup({store}),
       props: {username: 'Fox'},

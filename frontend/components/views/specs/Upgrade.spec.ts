@@ -24,7 +24,7 @@ describe("Upgrade.vue", () => {
   })
   it('Loads a set of plans', async () => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(Upgrade, {...vueSetup({store}), props: {username: user.username}})
     wrapper.vm.pricing.makeReady(genPricing())
     await nextTick()
@@ -36,7 +36,7 @@ describe("Upgrade.vue", () => {
   })
   it('Discovers the current free plan', async () => {
     const user = genUser({service_plan: 'Basic', next_service_plan: 'Free'})
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(Upgrade, {...vueSetup({store}), props: {username: user.username}})
     wrapper.vm.pricing.makeReady(genPricing())
     await nextTick()
@@ -45,7 +45,7 @@ describe("Upgrade.vue", () => {
   })
   it('Discovers the current monthly fee plan', async () => {
     const user = genUser({service_plan: 'Free', next_service_plan: 'Landscape'})
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(Upgrade, {...vueSetup({store}), props: {username: user.username}})
     wrapper.vm.pricing.makeReady(genPricing())
     await nextTick()
@@ -54,7 +54,7 @@ describe("Upgrade.vue", () => {
   })
   it('Prepares for a plan with tracking fees but no monthly charge', async () => {
     const user = genUser({username: 'Fox', service_plan: 'Free', next_service_plan: 'Free'})
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(Upgrade, {...vueSetup({store}), props: {username: user.username}})
     wrapper.vm.pricing.makeReady(genPricing())
     await nextTick()
@@ -65,7 +65,7 @@ describe("Upgrade.vue", () => {
   })
   it('Prepares for a plan with a monthly charge', async () => {
     const user = genUser({username: 'Fox', service_plan: 'Free', next_service_plan: 'Free'})
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(Upgrade, {...vueSetup({store}), props: {username: user.username}})
     wrapper.vm.pricing.makeReady(genPricing())
     await nextTick()

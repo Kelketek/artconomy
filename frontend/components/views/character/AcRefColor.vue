@@ -55,7 +55,7 @@ import {mdiDelete} from '@mdi/js'
 
 const props = defineProps<{color: SingleController<Color>, username: string}>()
 
-const {controls} = useSubject(props)
+const {controls} = useSubject({ props })
 const {editing} = useEditable(controls)
 
 const patchers = props.color.patchers

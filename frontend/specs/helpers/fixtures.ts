@@ -17,6 +17,8 @@ import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
 import {InvoiceType} from '@/types/InvoiceType.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {Ratings} from '@/types/Ratings.ts'
+import {StaffPower, StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
+import {POWER_LIST} from '@/mixins/viewer.ts'
 
 export function genUser(overrides?: Partial<User>): User {
   return {
@@ -322,4 +324,8 @@ export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
     verified_adult: false,
     ...overrides,
   }
+}
+
+export function genPowers(overrides?: Partial<Record<StaffPower, boolean>>): StaffPowers {
+  return {id: 1, ...Object.fromEntries(POWER_LIST.map((entry) => [entry, false])), ...overrides} as StaffPowers
 }

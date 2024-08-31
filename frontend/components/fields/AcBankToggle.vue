@@ -92,7 +92,7 @@ const props = withDefaults(
 
 const restartStripe = ref(false)
 
-const {subject} = useSubject(props)
+const {subject} = useSubject({ props })
 
 const hasActiveStripe = computed(() => !!stripeAccounts.list.filter((controller) => controller.x!.active).length)
 

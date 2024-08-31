@@ -23,7 +23,7 @@ describe('Profile controller', () => {
   })
   test('Updates the route if the username changed', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({
@@ -50,7 +50,7 @@ describe('Profile controller', () => {
   })
   test('Does not mess with the route if the username is unrelated', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({
@@ -76,7 +76,7 @@ describe('Profile controller', () => {
     expect((store.state as any).profiles.viewerRawUsername).toBe('Fox')
   })
   test('Does not mess with the route if there is no username param.', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({
@@ -97,7 +97,7 @@ describe('Profile controller', () => {
     expect(replace).toHaveBeenCalledTimes(0)
   })
   test('Does not mess with the route if the username has not changed.', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const replace = vi.fn()
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
@@ -133,7 +133,7 @@ describe('Profile controller', () => {
     expect((store.state as any).userModules.Fox).toBeFalsy()
   })
   test('Refreshes user data to an anonymous user', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const controller = mount(Empty, vueSetup({store})).vm.$getProfile('Fox', {}) as ProfileController
     controller.artistProfile.setX(genArtistProfile())
     controller.artistProfile.fetching = false

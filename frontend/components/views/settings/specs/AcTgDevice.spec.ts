@@ -28,7 +28,7 @@ describe('AcTgDevice.vue', () => {
     cleanUp(wrapper)
   })
   test('Shows a set of steps', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     controller.setList([{
       id: 1,
       confirmed: false,
@@ -45,7 +45,7 @@ describe('AcTgDevice.vue', () => {
     expect(wrapper.findAll('.v-stepper-window-item').length).toBe(3)
   })
   test('Shows no steps if the device is confirmed', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     controller.setList([{
       id: 1,
       confirmed: true,
@@ -62,7 +62,7 @@ describe('AcTgDevice.vue', () => {
     expect(wrapper.findAll('.v-stepper__step').length).toBe(0)
   })
   test('Deletes a device', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     controller.setList([{
       id: 1,
       confirmed: true,
@@ -91,7 +91,7 @@ describe('AcTgDevice.vue', () => {
     expect(controller.list).toEqual([])
   })
   test('Sends a telegram code', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mockError.mockImplementationOnce(() => undefined)
     controller.setList([{
       id: 1,
@@ -115,7 +115,7 @@ describe('AcTgDevice.vue', () => {
   // This test appears to have some unknown isolation issue. It works when meaninglessly modified so that a test rerun
   // is triggered.
   test('Sends a verification code', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mockError.mockImplementationOnce(() => undefined)
     controller.setList([{
       id: 1,
@@ -141,7 +141,7 @@ describe('AcTgDevice.vue', () => {
   test('Updates the form URL if the username changes', async() => {
     const user = genUser()
     user.username = 'Vulpes'
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await store.dispatch('profiles/saveUser', user)
     controller.setList([{
       id: 1,

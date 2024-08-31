@@ -111,7 +111,7 @@ declare interface NotificationsListProps extends SubjectiveProps {
 }
 
 const props = withDefaults(defineProps<NotificationsListProps>(), {autoRead: true})
-const {isCurrent} = useSubject(props)
+const {isCurrent} = useSubject({ props })
 
 const error = (x: any) => {
   console.error(x)

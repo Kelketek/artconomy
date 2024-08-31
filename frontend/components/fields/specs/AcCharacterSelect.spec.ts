@@ -20,7 +20,7 @@ describe('AcCharacterSelect.vue', () => {
     cleanUp(wrapper)
   })
   test('Accepts a response from the server on its query', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const tagList: number[] = []
     wrapper = mount(AcCharacterSelect, {
       ...vueSetup({store}),

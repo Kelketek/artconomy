@@ -73,6 +73,7 @@ from apps.profiles.permissions import (
     SubmissionViewPermission,
     staff_power,
     ObjectControls,
+    IsSuperuser,
 )
 from apps.sales.constants import PROCESSOR_CHOICES
 from avatar.models import Avatar
@@ -338,7 +339,7 @@ class User(AbstractEmailUser, HitsMixin):
     )
     drip_id = models.CharField(max_length=32, db_index=True, default="")
     watch_permissions = {
-        "UserSerializer": [ObjectControls, StaffPower("administrate_users")],
+        "UserSerializer": [Any(ObjectControls, StaffPower("administrate_users"))],
         "UserInfoSerializer": [],
         "UnreadNotificationsSerializer": [
             IsRegistered,
@@ -1294,6 +1295,9 @@ def auto_unsubscribe_journal(sender, instance, **kwargs):
 
 
 class StaffPowers(models.Model):
+    watch_permissions = {
+        "StaffPowersSerializer": [ObjectControls, IsSuperuser],
+    }
     user = OneToOneField(User, on_delete=CASCADE, related_name="staff_powers")
     # Enables the ability to handle disputes, create and perform actions on invoices.
     handle_disputes = BooleanField(default=False)
@@ -1351,7 +1355,6 @@ def power_subscriptions(sender, instance, **kwargs):
             object_id=None,
             type=REFUND,
         ).delete()
-    send_updated(instance.user, serializers=[UserSerializer])
 
 
 @disable_on_load

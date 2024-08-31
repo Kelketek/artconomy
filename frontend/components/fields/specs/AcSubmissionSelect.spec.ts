@@ -15,7 +15,7 @@ let wrapper: VueWrapper<any>
 describe('AcSubmissionSelect.vue', () => {
   beforeEach(() => {
     store = createStore()
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
   })
   afterEach(() => {
     cleanUp(wrapper)

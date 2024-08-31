@@ -39,7 +39,7 @@ describe('WatchList.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts and loads a watchlist', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     // Need a route for the paginator to check page numbers on. Can be any.
     await router.push({name: 'Dummy'})
     wrapper = mount(WatchList, {

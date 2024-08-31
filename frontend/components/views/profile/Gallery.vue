@@ -49,7 +49,7 @@ import AcNewSubmission from '@/components/AcNewSubmission.vue'
 import {TabNavSpec} from '@/types/TabNavSpec.ts'
 
 const props = defineProps<SubjectiveProps>()
-const {subject, controls} = useSubject(props)
+const {subject, controls} = useSubject({ props })
 const route = useRoute()
 const router = useRouter()
 const id = ref(genId())

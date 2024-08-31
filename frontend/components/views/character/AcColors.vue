@@ -53,7 +53,7 @@ import {mdiPalette} from '@mdi/js'
 const props = defineProps<CharacterProps>()
 
 const character = useCharacter(props)
-const {controls} = useSubject(props)
+const {controls} = useSubject({ props })
 const colors = character.colors
 const {editing} = useEditable(controls)
 

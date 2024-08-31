@@ -159,7 +159,7 @@ const props = withDefaults(defineProps<AcNewSubmissionsProps>(), {
 })
 
 const {isRegistered} = useViewer()
-const {subject, subjectHandler} = useSubject(props)
+const {subject, subjectHandler} = useSubject({ props })
 const {showUpload} = useUpload()
 const router = useRouter()
 

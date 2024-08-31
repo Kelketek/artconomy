@@ -221,7 +221,7 @@ const showDeleteAccount = ref(false)
 
 const props = defineProps<SubjectiveProps>()
 
-const {subject, subjectHandler} = useSubject(props)
+const {subject, subjectHandler} = useSubject({props, controlPowers: ['administrate_users']})
 
 const userSubject = computed(() => subject.value as User)
 

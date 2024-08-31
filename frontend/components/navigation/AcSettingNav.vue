@@ -93,7 +93,7 @@ import {User} from '@sentry/vue'
 
 const props = withDefaults(defineProps<SubjectiveProps & {nested?: boolean}>(), {nested: false})
 const open = ref(['Payment'])
-const {subjectHandler, subject} = useSubject(props)
+const {subjectHandler, subject} = useSubject({ props })
 const inSupportedCountry = computed(() => {
   const profile = subjectHandler.artistProfile
   return profile.x && (profile.x.bank_account_status === BankStatus.IN_SUPPORTED_COUNTRY)

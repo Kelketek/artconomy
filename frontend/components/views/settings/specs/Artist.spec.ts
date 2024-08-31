@@ -15,7 +15,7 @@ describe('Artist.vue', () => {
     cleanUp()
   })
   test('Mounts', () => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mount(Artist, {
       ...vueSetup({store}),
       props: {username: 'Fox'},

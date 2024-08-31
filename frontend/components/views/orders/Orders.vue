@@ -152,7 +152,7 @@ import {usePricing} from '@/mixins/PricingAware.ts'
 
 
 const props = defineProps<{baseName: string} & SubjectiveProps>()
-const {subjectHandler} = useSubject(props)
+const {subjectHandler} = useSubject({ props })
 const route = useRoute()
 const router = useRouter()
 const showBroadcast = ref(false)

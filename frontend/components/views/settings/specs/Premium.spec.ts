@@ -58,7 +58,7 @@ describe('Premium.vue', () => {
     user.landscape_enabled = true
     user.landscape = true
     user.landscape_paid_through = '2019-07-26T15:04:41.078424-05:00'
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(WrappedPremium, {
       ...vueSetup({
         store,

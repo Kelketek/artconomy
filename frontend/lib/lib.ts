@@ -20,12 +20,14 @@ import {
   artistProfileEndpointFor,
   artistProfilePathFor,
   endpointFor,
-  pathFor,
+  pathFor, staffPowersEndpointFor, staffPowersPathFor,
   userPathFor,
 } from '@/store/profiles/helpers.ts'
 import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
 import {ArtStore} from '@/store'
+import {StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
+import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
 
 // Needed for Matomo.
 declare global {
@@ -608,22 +610,32 @@ export const transformComponentName = (componentName: string) => {
   ).join('')
 }
 
-export const setViewer = (store: Store<any>, user: User | AnonUser | TerseUser) => {
+export const setViewer = ({ store, user, artistProfile, powers }: { store: Store<any>; user: User | AnonUser | TerseUser, artistProfile?: ArtistProfile, powers?: StaffPowers }) => {
   const username = user.username
   store.registerModule(pathFor(username), new ProfileModule({viewer: true, persistent: true}))
   store.registerModule(
     userPathFor(username),
     new SingleModule<User | AnonUser | TerseUser>({
       x: user,
+      ready: true,
       endpoint: endpointFor(username),
       socketSettings: {serializer: 'UserSerializer', appLabel: 'profiles', modelName: 'User'},
     }),
   )
   store.registerModule(
     artistProfilePathFor(username),
-    new SingleModule<User | AnonUser | TerseUser>({
-      x: null,
+    new SingleModule<ArtistProfile>({
+      x: artistProfile || null,
+      ready: !!artistProfile,
       endpoint: artistProfileEndpointFor(username),
+    }),
+  )
+  store.registerModule(
+    staffPowersPathFor(username),
+    new SingleModule<StaffPowers>({
+      x: powers || null,
+      ready: !!powers,
+      endpoint: staffPowersEndpointFor(username),
     }),
   )
   store.commit('profiles/setViewerUsername', username)

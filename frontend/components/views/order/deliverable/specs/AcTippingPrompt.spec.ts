@@ -76,7 +76,7 @@ describe('AcTippingPrompt', () => {
   test('Permits tipping', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/')
     const deliverableController = empty.vm.$getSingle('deliverable', {endpoint: '#'})
     const deliverable = genDeliverable()
@@ -117,7 +117,7 @@ describe('AcTippingPrompt', () => {
   test('Updates an existing tip line item', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     const deliverableController = empty.vm.$getSingle('deliverable', {endpoint: '#'})
     const deliverable = genDeliverable()

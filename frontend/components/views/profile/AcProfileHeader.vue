@@ -12,7 +12,7 @@
         <span v-if="editing">Lock</span>
         <span v-else>Edit</span>
       </v-btn>
-      <v-btn color="secondary" @click="showMenu=!showMenu" v-if="isStaff && !isCurrent" variant="flat">
+      <v-btn color="secondary" @click="showMenu=!showMenu" v-if="powers.view_as && !isCurrent" variant="flat">
         <v-icon left :icon="mdiMenu"/>
         Menu
       </v-btn>
@@ -64,7 +64,7 @@
         </v-btn>
       </template>
       <v-list dense>
-        <v-list-item v-if="isStaff && !isCurrent" @click="showMenu=true">
+        <v-list-item v-if="powers.view_as && !isCurrent" @click="showMenu=true">
           <template v-slot:prepend>
             <v-icon :icon="mdiMenu"/>
           </template>
@@ -128,7 +128,7 @@
         </ac-confirmation>
       </v-list>
     </v-menu>
-    <v-navigation-drawer v-model="showMenu" v-if="isStaff && subject" fixed clipped :disable-resize-watcher="true"
+    <v-navigation-drawer v-model="showMenu" v-if="powers.view_as && subject" fixed clipped :disable-resize-watcher="true"
                          temporary>
       <ac-nav-links
           :subject-handler="subjectHandler"
@@ -187,8 +187,8 @@ const props = withDefaults(defineProps<SubjectiveProps & { dense?: boolean, show
   dense: false,
   showEdit: false,
 })
-const {rawViewerName, isStaff, isRegistered, viewer} = useViewer()
-const {subject, subjectHandler, isCurrent, controls} = useSubject(props)
+const {rawViewerName, powers, isRegistered, viewer} = useViewer()
+const {subject, subjectHandler, isCurrent, controls} = useSubject({ props })
 const {editing} = useEditable(controls)
 const router = useRouter()
 

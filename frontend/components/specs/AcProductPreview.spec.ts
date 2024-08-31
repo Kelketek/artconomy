@@ -17,7 +17,7 @@ describe('AcProductPreview.ts', () => {
     cleanUp(wrapper)
   })
   test('Mounts', () => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcProductPreview, {
         ...vueSetup({

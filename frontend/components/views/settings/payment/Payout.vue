@@ -92,7 +92,7 @@ const props = defineProps<SubjectiveProps>()
 
 const {viewer} = useViewer()
 const userViewer = viewer as Ref<User>
-const {subjectHandler} = useSubject(props, true)
+const {subjectHandler} = useSubject({ props, privateView: true })
 
 const {setError} = useErrorHandling()
 

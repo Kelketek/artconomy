@@ -140,7 +140,7 @@
                       <v-btn color="green" class="accept-order" :disabled="stateChange.sending"
                              variant="flat"
                              @click="statusEndpoint('accept')()"
-                             v-else-if="is(DeliverableStatus.NEW, DeliverableStatus.WAITING) && isStaff">
+                             v-else-if="is(DeliverableStatus.NEW, DeliverableStatus.WAITING) && powers.table_seller">
                         Accept Order
                       </v-btn>
                     </v-col>
@@ -157,7 +157,7 @@
                       </ac-confirmation>
                     </v-col>
                     <v-col class="text-center payment-section"
-                           v-if="is(DeliverableStatus.PAYMENT_PENDING) && (isBuyer || isStaff) && deliverable.x.escrow_enabled"
+                           v-if="is(DeliverableStatus.PAYMENT_PENDING) && (isBuyer || powers.table_seller) && deliverable.x.escrow_enabled"
                            cols="12">
                       <v-btn color="green" @click="viewSettings.patchers.showPayment.model = true"
                              variant="flat"
@@ -174,7 +174,7 @@
                           <v-col cols="12">
                             <ac-load-section :controller="deliverable">
                               <template v-slot:default>
-                                <v-tabs fixed-tabs class="mb-2" v-model="cardTabs" v-if="isStaff">
+                                <v-tabs fixed-tabs class="mb-2" v-model="cardTabs" v-if="powers.table_seller">
                                   <v-tab>Manual Entry</v-tab>
                                   <v-tab>Terminal</v-tab>
                                   <v-tab>Cash</v-tab>
@@ -297,7 +297,7 @@ import {formatDate, formatDateTime, formatDateTerse} from '@/lib/otherFormatters
 
 const props = defineProps<DeliverableProps>()
 const {
-  isStaff,
+  powers,
   viewerHandler,
 } = useViewer()
 
@@ -432,8 +432,8 @@ watch(totalCharge, (val: string | undefined) => {
   oldTotal.value = val
 })
 
-watch(isStaff, (newVal: boolean) => {
-  if (newVal) {
+watch(powers, (newVal) => {
+  if (newVal.table_seller) {
     return
   }
   cardTabs.value = 0
@@ -450,7 +450,7 @@ watch(isBuyer, (val: boolean | null) => {
 }, {immediate: false})
 
 watch(() => readers.ready, (val: boolean) => {
-  if (val && isStaff.value && readers.list.length) {
+  if (val && powers.value.table_seller && readers.list.length) {
     cardTabs.value = 1
   }
 })

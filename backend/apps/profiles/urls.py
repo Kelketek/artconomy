@@ -121,6 +121,11 @@ urlpatterns = [
         name="artist_profile_update",
     ),
     path(
+        "account/<username>/staff-powers/",
+        views.RetrieveStaffPowers.as_view(),
+        name="retrieve_staff_powers",
+    ),
+    path(
         "account/<username>/auth/credentials/",
         views.CredentialsAPI.as_view(),
         name="credentials",

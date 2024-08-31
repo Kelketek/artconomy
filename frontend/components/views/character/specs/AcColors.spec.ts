@@ -27,7 +27,7 @@ describe('AcColors.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts a color display', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcColors, {
         ...vueSetup({

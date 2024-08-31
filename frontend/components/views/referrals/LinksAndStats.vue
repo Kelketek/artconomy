@@ -76,7 +76,7 @@ import {useSingle} from '@/store/singles/hooks.ts'
 import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
 const props = defineProps<SubjectiveProps>()
-useSubject(props, true)
+useSubject({ props, privateView: true })
 
 const stats = useSingle<ReferralStats>(`ReferralStats__${flatten(props.username)}`, {endpoint: `/api/profiles/account/${props.username}/referral_stats/`})
 stats.get()

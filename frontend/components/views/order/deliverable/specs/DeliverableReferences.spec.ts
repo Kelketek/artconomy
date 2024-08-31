@@ -25,7 +25,7 @@ describe('DeliverableReferences.vue', () => {
   test('Autosubmits a reference when a new file is added', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/references')
     wrapper = mount(
       DeliverableReferences, {

@@ -32,7 +32,7 @@ describe('AcNewSubmission.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts the submission form', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(DummySubmit, {
       ...vueSetup({
         store,
@@ -50,7 +50,7 @@ describe('AcNewSubmission.vue', () => {
   test('Toggles the isArtist computed field', async() => {
     const user = genUser()
     user.id = 1
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(DummySubmit, {
       ...vueSetup({
         store,
@@ -84,7 +84,7 @@ describe('AcNewSubmission.vue', () => {
   test('Submits and pushes you to the new Submission', async() => {
     const user = genUser()
     user.id = 1
-    setViewer(store, user)
+    setViewer({ store, user })
     const router = createTestRouter()
     await router.push({name: 'Profile', params: {username: 'Fox'}, query: {editing: 'false'}})
     wrapper = mount(DummySubmit, {
@@ -112,7 +112,7 @@ describe('AcNewSubmission.vue', () => {
   test('Submits and resets if multi-upload is enabled', async() => {
     const user = genUser()
     user.id = 1
-    setViewer(store, user)
+    setViewer({ store, user })
     const mockPush = vi.fn()
     wrapper = mount(DummySubmit, {
       ...vueSetup({
@@ -152,7 +152,7 @@ describe('AcNewSubmission.vue', () => {
     // v-dialog__content--active
     const user = genUser()
     user.id = 1
-    setViewer(store, user)
+    setViewer({ store, user })
     const mockPush = vi.fn()
     wrapper = mount(DummySubmit, {
       ...vueSetup({

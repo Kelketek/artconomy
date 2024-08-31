@@ -116,7 +116,7 @@ describe('Settings.vue', () => {
     cleanUp(wrapper)
   })
   test('Opens up a drawer when you click the settings button', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push({
       name: 'Settings',
       params: {username: 'Fox'},
@@ -138,7 +138,7 @@ describe('Settings.vue', () => {
     expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(0%)')
   })
   test('Adds Options to the route if missing', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push({
       name: 'Settings',
       params: {username: 'Fox'},
@@ -155,7 +155,7 @@ describe('Settings.vue', () => {
     expect(router.currentRoute.value.name).toBe('Options')
   })
   test('Loads the subordinate route', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push({
       name: 'Settings',
       params: {username: 'Fox'},

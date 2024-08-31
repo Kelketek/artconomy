@@ -25,7 +25,7 @@ describe('DeliverableRevisions.vue', () => {
   test('Determines the final', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions')
     wrapper = mount(
       DeliverableRevisions, {
@@ -53,7 +53,7 @@ describe('DeliverableRevisions.vue', () => {
   test('Refreshes the deliverable when the list changes', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions')
     wrapper = mount(
       DeliverableRevisions, {
@@ -82,7 +82,7 @@ describe('DeliverableRevisions.vue', () => {
     expect(spyRefresh).toHaveBeenCalled()
   })
   test('Fetches revisions if they are newly permitted to be seen', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions')
     wrapper = mount(
       DeliverableRevisions, {

@@ -28,7 +28,7 @@ import {useSubject} from '@/mixins/subjective.ts'
 const AcUppyFile = defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue'))
 
 const props = defineProps<SubjectiveProps>()
-const {subject} = useSubject(props)
+const {subject} = useSubject({ props })
 listenForSingle('uppy-avatar')
 
 const url = computed(() => `/api/profiles/account/${props.username}/avatar/`)

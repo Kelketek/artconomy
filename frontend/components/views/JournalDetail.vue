@@ -129,7 +129,7 @@ import {formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
 import {useTargets} from '@/plugins/targets.ts'
 
 const props = defineProps<SubjectiveProps & {journalId: number}>()
-const {controls, subject} = useSubject(props)
+const {controls, subject} = useSubject({ props })
 const router = useRouter()
 const {editing} = useEditable(controls)
 const {menuTarget} = useTargets()

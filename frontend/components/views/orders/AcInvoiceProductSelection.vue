@@ -109,7 +109,7 @@ const AcPaginated = defineAsyncComponent(() => import('@/components/wrappers/AcP
 const props = defineProps<SubjectiveProps>()
 const router = useRouter()
 
-useSubject(props, true)
+useSubject({ props, privateView: true })
 
 const products = useList<Product>(`${flatten(props.username)}-products`, {endpoint: `/api/sales/account/${props.username}/products/`})
 products.firstRun()

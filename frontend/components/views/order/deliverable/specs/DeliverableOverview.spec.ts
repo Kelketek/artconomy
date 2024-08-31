@@ -3,7 +3,7 @@ import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
-import {genDeliverable, genUser} from '@/specs/helpers/fixtures.ts'
+import {genDeliverable, genPowers, genUser} from '@/specs/helpers/fixtures.ts'
 import DeliverableOverview from '@/components/views/order/deliverable/DeliverableOverview.vue'
 import mockAxios from '@/__mocks__/axios.ts'
 import {ViewerType, ViewerTypeValue} from '@/types/ViewerType.ts'
@@ -37,7 +37,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Handles a null product', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/overview')
     wrapper = mount(
       WrappedDeliverableOverview, {
@@ -66,7 +66,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Sends an invite email', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/overview')
     wrapper = mount(
       WrappedDeliverableOverview, {
@@ -103,7 +103,7 @@ describe('DeliverableOverview.vue', () => {
     expect(wrapper.text()).toContain('Invite email sent!')
   })
   test('Loads with the order confirmation triggered', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push('/orders/Fox/order/1/deliverables/5/overview?showConfirm=true')
     wrapper = mount(
       WrappedDeliverableOverview, {
@@ -141,7 +141,7 @@ describe('DeliverableOverview.vue', () => {
       mode,
       string,
     }: { mode: ViewerTypeValue, string: string }) => {
-      setViewer(store, genUser({is_staff: true}))
+      setViewer({ store, user: genUser({ is_staff: true }), powers: genPowers({handle_disputes: true}) })
       await router.push(`/orders/Fox/order/1/deliverables/5/overview?view_as=${string}`)
       wrapper = mount(
         DeliverableOverview, {

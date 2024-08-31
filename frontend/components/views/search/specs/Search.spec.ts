@@ -102,7 +102,7 @@ router,
     }))
   })
   test('Tabs through each search option', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Search, vueSetup({
       store,
 router,
@@ -115,7 +115,7 @@ router,
     }))
   })
   test('Opens the default view', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push({name: 'Search'})
     searchForm.fields.featured.update(true)
     wrapper = mount(Search, vueSetup({
@@ -145,7 +145,7 @@ router,
   // })
   test('Shows an alert when an anonymous user has a max rating under the current search', async() => {
     await router.push({name: 'SearchProducts'})
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(Search, vueSetup({
       store,
 router,
@@ -161,10 +161,12 @@ router,
   test('Shows an alert when a registered user has a max rating under the current search', async() => {
     await router.push({name: 'SearchSubmissions'})
     searchForm.fields.content_ratings.update('2,3')
-    setViewer(store, genUser({
-      username: 'Fox',
-      rating: Ratings.GENERAL,
-    }))
+    setViewer({
+store, user: genUser({
+username: 'Fox',
+rating: Ratings.GENERAL,
+})
+})
     wrapper = mount(Search, vueSetup({
       store,
 router,
@@ -176,7 +178,7 @@ router,
     expect(wrapper.find('.v-alert .rating-button').exists()).toBe(true)
   })
   test('Properly handles setting and getting the allowed content ratings', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(SubmissionExtra, vueSetup({
       store,
 router,

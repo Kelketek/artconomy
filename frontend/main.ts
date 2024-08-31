@@ -80,7 +80,7 @@ app.use(createProfiles(store))
 app.use(createRegistries())
 app.use(createTargetsPlugin(false))
 
-setViewer(store, window.USER_PRELOAD)
+setViewer({ store, user: window.USER_PRELOAD })
 
 
 window.artconomy = app

@@ -33,7 +33,7 @@ let cards: ListController<CreditCardToken>
 describe('AcCardManager.vue Stripe', () => {
   beforeEach(() => {
     store = createStore()
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     ccForm = mount(Empty, vueSetup({store})).vm.$getForm('newCard', baseCardSchema('/test/'))
     const router = createTestRouter()
     wrapper = mount(

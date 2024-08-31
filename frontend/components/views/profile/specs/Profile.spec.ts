@@ -91,7 +91,7 @@ describe('Profile.vue', () => {
     cleanUp(wrapper)
   })
   test('Displays a Profile', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const fox = genUser()
     fox.artist_mode = false
     await router.push({
@@ -122,7 +122,7 @@ describe('Profile.vue', () => {
     await waitFor(() => expect(router.currentRoute.value.name).toBe('AboutUser'))
   })
   test('Displays a default route for an artist', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const fox = genUser()
     fox.artist_mode = true
     await router.push({
@@ -153,7 +153,7 @@ describe('Profile.vue', () => {
     await waitFor(() => expect(router.currentRoute.value.name).toBe('AboutUser'))
   })
   test('Starts a conversation', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const fox = genUser()
     fox.artist_mode = false
     await router.push({

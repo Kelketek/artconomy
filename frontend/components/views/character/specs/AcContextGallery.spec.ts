@@ -20,7 +20,7 @@ describe('AcContextGallery.vue', () => {
     cleanUp(wrapper)
   })
   test('Determines the featured submission', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcContextGallery, {
         ...vueSetup({

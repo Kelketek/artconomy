@@ -28,14 +28,14 @@ describe('Purchase.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Purchase, {
       ...vueSetup({store}),
       props: {username: 'Fox'},
     })
   })
   test('Updates the endpoints when the username is changed', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Purchase, {
       ...vueSetup({store}),
       props: {username: 'Fox'},
@@ -49,7 +49,7 @@ describe('Purchase.vue', () => {
   test('Sends a new card to Stripe', async() => {
     const user = genUser({username: 'Fox'})
     user.landscape = true
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(Purchase, {
       ...vueSetup({store}),
       props: {username: 'Fox', saveOnly: true},

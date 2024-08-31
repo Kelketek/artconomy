@@ -20,7 +20,7 @@ describe('Viewer.ts', () => {
   test('Returns the correct rating for the viewer', async() => {
     const user = genUser()
     user.rating = Ratings.EXTREME
-    setViewer(store, user)
+    setViewer({store, user})
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.rating).toBe(Ratings.EXTREME)
   })
@@ -28,23 +28,23 @@ describe('Viewer.ts', () => {
     const user = genUser()
     user.rating = Ratings.EXTREME
     user.sfw_mode = true
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     const rating = store.getters['profiles/rating']
     expect(wrapper.vm.rating).toBe(Ratings.GENERAL)
   })
   test('Sets the rating to general if not logged in', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.rating).toBe(Ratings.GENERAL)
   })
   test('Considers adult content "off" if sfw mode is on', async() => {
-    setViewer(store, genUser({rating: Ratings.ADULT, sfw_mode: true}))
+    setViewer({ store, user: genUser({ rating: Ratings.ADULT, sfw_mode: true }) })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.adultAllowed).toBe(false)
   })
   test('Considers adult content "on" if sfw mode is off and rating is high enough', async() => {
-    setViewer(store, genUser({rating: Ratings.ADULT, sfw_mode: false}))
+    setViewer({ store, user: genUser({ rating: Ratings.ADULT, sfw_mode: false }) })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.adultAllowed).toBe(true)
   })
@@ -53,19 +53,19 @@ describe('Viewer.ts', () => {
     expect(wrapper.vm.isLoggedIn).toBe(false)
   })
   test('Reports the user as logged in if a viewer is set', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.isLoggedIn).toBe(true)
   })
   test('Reports the user as registered in if a viewer is set and not a guest', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.isRegistered).toBe(true)
   })
   test('Reports the user as not registered if a guest.', async() => {
     const user = genUser()
     user.guest = true
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.isRegistered).toBe(false)
   })
@@ -78,21 +78,21 @@ describe('Viewer.ts', () => {
     expect(wrapper.vm.landscape).toBe(false)
   })
   test('Reports landscape status as false when viewer is anonymous', () => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.landscape).toBe(false)
   })
   test('Reports landscape status as false when viewer landscape is false', () => {
     const user = genUser()
     user.landscape = false
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.landscape).toBe(false)
   })
   test('Reports landscape status as true when viewer landscape is true', () => {
     const user = genUser()
     user.landscape = true
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.landscape).toBe(true)
   })
@@ -100,7 +100,7 @@ describe('Viewer.ts', () => {
     const user = genUser()
     user.guest = true
     user.id = 500
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.viewerName).toBe('Guest #500')
   })
@@ -109,19 +109,19 @@ describe('Viewer.ts', () => {
     expect(wrapper.vm.viewerName).toBe('')
   })
   test('Returns a blank username when the viewer is not logged in.', () => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.viewerName).toBe('')
   })
   test('Identifies the user as a superuser if they are one', async() => {
-    setViewer(store, genUser({is_superuser: true}))
+    setViewer({ store, user: genUser({ is_superuser: true }) })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.isSuperuser).toBe(true)
   })
   test('Identifies the user as not a superuser if they are not one', async() => {
     const user = genUser({is_superuser: false})
     user.is_superuser = false
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.isSuperuser).toBe(false)
   })
@@ -130,14 +130,14 @@ describe('Viewer.ts', () => {
     expect(wrapper.vm.isSuperuser).toBe(false)
   })
   test('Identifies the user as a staffer if they are one', async() => {
-    setViewer(store, genUser({is_staff: true}))
+    setViewer({ store, user: genUser({ is_staff: true }) })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.isStaff).toBe(true)
   })
   test('Identifies the user as not a staffer if they are not one', async() => {
     const user = genUser({is_staff: false})
     user.is_staff = false
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.isStaff).toBe(false)
   })
@@ -149,12 +149,12 @@ describe('Viewer.ts', () => {
     const user = genUser()
     user.guest = false
     user.username = 'TestPerson'
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     expect(wrapper.vm.viewerName).toBe('TestPerson')
   })
   test('Prompts for age verification', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     const vm = wrapper.vm
     expect(store.state.ageAsked).toBe(false)
@@ -167,7 +167,7 @@ describe('Viewer.ts', () => {
     expect(store.state.contentRating).toBe(2)
   })
   test('Does not reprompt age verification', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     const vm = wrapper.vm
     vm.ageCheck({value: 2})
@@ -183,7 +183,7 @@ describe('Viewer.ts', () => {
     expect(store.state.contentRating).toBe(2)
   })
   test('Forces reprompting', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     const vm = wrapper.vm
     vm.ageCheck({value: 2})
@@ -199,7 +199,7 @@ describe('Viewer.ts', () => {
     expect(store.state.contentRating).toBe(3)
   })
   test('Skips if the viewer has set their birthday', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(ViewerComponent, vueSetup({store}))
     const vm = wrapper.vm
     vm.ageCheck({value: 2})

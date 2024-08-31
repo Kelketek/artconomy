@@ -10,7 +10,7 @@ import {
   vueSetup,
   VuetifyWrapped, waitFor, waitForSelector,
 } from '@/specs/helpers/index.ts'
-import {genUser} from '@/specs/helpers/fixtures.ts'
+import {genPowers, genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {commentSet as genCommentSet} from './fixtures.ts'
 import AcComment from '@/components/comments/AcComment.vue'
@@ -178,7 +178,7 @@ describe('AcComment.vue', () => {
     expect(wrapper.find('.alternate').exists()).toBe(true)
   })
   test('Allows for a reply', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -214,7 +214,7 @@ describe('AcComment.vue', () => {
     user.username = 'Vulpes'
     user.is_staff = false
     user.is_superuser = false
-    setViewer(store, user)
+    setViewer({ store, user })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     const comments = {...commentSet, ...{results: [commentSet.results[0]]}}
@@ -247,7 +247,7 @@ describe('AcComment.vue', () => {
     expect(wrapper.find('.new-comment textarea').exists()).toBe(false)
   })
   test('Does not allow for a reply when nesting is disabled', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -271,7 +271,7 @@ describe('AcComment.vue', () => {
     expect(wrapper.find('.reply-button').exists()).toBe(false)
   })
   test('Edits a comment', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -329,7 +329,7 @@ describe('AcComment.vue', () => {
     }))
   })
   test('Deletes a comment', async() => {
-    setViewer(store, genUser({is_staff: true}))
+    setViewer({ store, user: genUser({ is_staff: true }), powers: genPowers({moderate_discussion: true}) })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -366,7 +366,7 @@ describe('AcComment.vue', () => {
     expect(vm.comment.ready).toBe(false)
   })
   test('Deletes a thread', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -399,7 +399,7 @@ describe('AcComment.vue', () => {
     expect(vm.comment.x).toBe(null)
   })
   test('Does not delete a thread in history mode', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -433,7 +433,7 @@ describe('AcComment.vue', () => {
     expect(vm.comment.x).toBeTruthy()
   })
   test('Does not delete a thread when displaying actual history', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -467,7 +467,7 @@ describe('AcComment.vue', () => {
     expect(vm.comment.x).toBeTruthy()
   })
   test('Renders historical comments', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}

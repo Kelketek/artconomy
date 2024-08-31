@@ -44,7 +44,7 @@ describe('NavBar.vue', () => {
     const user = genUser()
     user.username = 'Goober'
     user.artist_mode = false
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = shallowMount(NavBar, vueSetup({
       store,
       router,
@@ -58,7 +58,7 @@ describe('NavBar.vue', () => {
     })
   })
   test('Toggles the support form', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(NavBarContainer, vueSetup({
       store,
       router,
@@ -71,7 +71,7 @@ describe('NavBar.vue', () => {
     expect(store.state.showSupport).toBe(true)
   })
   test('Logs out a user', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push({name: 'FAQ'})
     wrapper = mount(NavBarContainer, vueSetup({
       store,
@@ -89,7 +89,7 @@ describe('NavBar.vue', () => {
     expect(store.state.profiles!.viewerRawUsername).toEqual('_')
   })
   test('Loads the notifications view', async() => {
-    setViewer(store, genUser({artist_mode: true}))
+    setViewer({ store, user: genUser({ artist_mode: true }) })
     wrapper = mount(NavBarContainer, vueSetup({
       store,
       router,
@@ -101,7 +101,7 @@ describe('NavBar.vue', () => {
     await waitFor(() => expect(wrapper.find('.message-center.v-navigation-drawer--active').exists()).toBe(true))
   })
   test('Loads a login link', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(NavBarContainer, vueSetup({
       store,
       router,
@@ -129,7 +129,7 @@ describe('NavBar.vue', () => {
     expect(router.currentRoute.value.query.q).toEqual('Stuff')
   })
   test('Sends you to the search page for recent products', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.isReady()
     wrapper = mount(NavBarContainer, vueSetup({
       store,
@@ -143,7 +143,7 @@ describe('NavBar.vue', () => {
     expect(router.currentRoute.value.query.q).toBeFalsy()
   })
   test('Sends you to the search page for recent art', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(NavBarContainer, vueSetup({
       store,
       router,

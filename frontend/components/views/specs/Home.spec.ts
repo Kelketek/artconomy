@@ -27,7 +27,7 @@ describe('Home.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Home, vueSetup({
       store,
       router,
@@ -36,7 +36,7 @@ describe('Home.vue', () => {
     await nextTick()
   })
   test('Handles several data sources', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Home, vueSetup({
       store,
 
@@ -68,7 +68,7 @@ describe('Home.vue', () => {
     await nextTick()
   })
   test('Performs a premade search for products', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Home, vueSetup({
       store,
       router,
@@ -90,7 +90,7 @@ describe('Home.vue', () => {
     })
   })
   test('Performs a search for characters', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(Home, vueSetup({
       store,
       router,
@@ -109,7 +109,7 @@ describe('Home.vue', () => {
     expect(searchForm.fields.q.value).toBe('')
   })
   test('Performs a search for submissions', async() => {
-    setViewer(store, genUser())
+    setViewer({store, user: genUser()})
     wrapper = mount(Home, vueSetup({
       store,
       router,
@@ -129,7 +129,7 @@ describe('Home.vue', () => {
     expect(searchForm.fields.q.value).toBe('')
   })
   test('Performs a search for Products', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(Home, vueSetup({
       store,
       router,

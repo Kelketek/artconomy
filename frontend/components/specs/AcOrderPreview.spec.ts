@@ -16,7 +16,7 @@ let order: SingleController<Order>
 describe('AcOrderPreview.ts', () => {
   beforeEach(() => {
     store = createStore()
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     order = mount(Empty, vueSetup({store})).vm.$getSingle('order', {
       endpoint: '#',
       x: genOrder(),
@@ -40,7 +40,7 @@ describe('AcOrderPreview.ts', () => {
       })
     const vm = wrapper.vm as any
     expect(vm.isBuyer).toBe(true)
-    setViewer(store, genUser({username: 'Vulpes'}))
+    setViewer({ store, user: genUser({ username: 'Vulpes' }) })
     await vm.$nextTick()
     expect(vm.isBuyer).toBe(false)
   })

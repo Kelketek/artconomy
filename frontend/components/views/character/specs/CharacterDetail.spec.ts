@@ -8,7 +8,7 @@ import {
   VuetifyWrapped,
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {Router, createRouter, createWebHistory} from 'vue-router'
+import {Router} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import CharacterDetail from '@/components/views/character/CharacterDetail.vue'
@@ -50,11 +50,11 @@ describe('CharacterDetail.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts and fetches a character', async() => {
-    setViewer(store, vulpes)
+    setViewer({store, user: vulpes})
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         username: 'Vulpes',
@@ -82,7 +82,7 @@ router,
     await nextTick()
   })
   test('Produces a relevant link to the primary submission', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
@@ -119,7 +119,7 @@ router,
     expect(wrapper.find('.primary-submission-container a').exists()).toBe(false)
   })
   test('Does not break setting meta information if the primary submission is not set', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
@@ -137,7 +137,7 @@ router,
     await wrapper.vm.$nextTick()
   })
   test('Handles a new submission when the primary is being changed', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,
@@ -166,7 +166,7 @@ router,
     expect(character.submissions.list[0].x.id).toBe(submission.id)
   })
   test('Handles a new submission when the primary is not being changed', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     wrapper = mount(WrappedCharacterDetail, {
       ...vueSetup({
         store,

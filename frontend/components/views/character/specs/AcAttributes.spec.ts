@@ -22,7 +22,7 @@ describe('AcAttributes.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts an attribute listing', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcAttributes, {
         ...vueSetup({
@@ -50,7 +50,7 @@ describe('AcAttributes.vue', () => {
     await nextTick()
   })
   test('Handles a new attribute', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcAttributes, {
         ...vueSetup({
@@ -84,7 +84,7 @@ describe('AcAttributes.vue', () => {
     })
   })
   test('Updates the tags on the character', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcAttributes, {
         ...vueSetup({

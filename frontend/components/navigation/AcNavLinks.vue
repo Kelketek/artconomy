@@ -83,7 +83,7 @@
         </template>
         <v-list-item-title>Reports</v-list-item-title>
       </v-list-item>
-      <v-list-item :to="{name: 'TableProducts'}" v-if="isLoggedIn && subject.is_staff" role="listitem" tabindex="0">
+      <v-list-item :to="{name: 'TableProducts'}" v-if="isLoggedIn && powers.table_seller" role="listitem" tabindex="0">
         <template v-slot:prepend>
           <v-icon :icon="mdiStoreCogOutline"/>
         </template>
@@ -91,7 +91,7 @@
       </v-list-item>
       <v-divider aria-hidden="true"/>
     </v-list>
-    <v-list v-if="isStaff" nav density="compact" role="list" tabindex="0">
+    <v-list v-if="powers.handle_disputes" nav density="compact" role="list" tabindex="0">
       <v-list-item :to="{name: 'CurrentCases', params: {username: subject.username}}" role="listitem">
         <template v-slot:prepend>
           <v-icon :icon="mdiGavel"/>
@@ -224,7 +224,7 @@
 import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {artCall, makeQueryParams, setViewer} from '@/lib/lib.ts'
+import {artCall, makeQueryParams} from '@/lib/lib.ts'
 import {RawData} from '@/store/forms/types/RawData.ts'
 import {User} from '@/store/profiles/types/User.ts'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
@@ -243,7 +243,7 @@ import {
   mdiStar,
   mdiStore, mdiStoreCogOutline, mdiStorefront,
 } from '@mdi/js'
-import {useViewer} from '@/mixins/viewer.ts'
+import {buildPowers, useViewer} from '@/mixins/viewer.ts'
 
 declare interface AcNavLinksProps {
   modelValue: boolean|null,
@@ -251,13 +251,14 @@ declare interface AcNavLinksProps {
   isRegistered: boolean,
   isLoggedIn: boolean,
   embedded?: boolean,
-  isStaff: boolean,
   isSuperuser: boolean,
 }
 
 const props = withDefaults(defineProps<AcNavLinksProps>(), {embedded: false})
 const router = useRouter()
 const {viewerHandler} = useViewer()
+const powers = buildPowers(props.subjectHandler)
+props.subjectHandler.staffPowers.get()
 
 const openFirst = ref(['Openings', 'Art'])
 const openSecond = ref(['Reports'])

@@ -31,7 +31,7 @@ describe('AcCharacterToolbar.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const mockResolve = vi.fn()
     mockResolve.mockImplementation(() => ({href: '/target/url/'}))
     wrapper = mount(
@@ -51,7 +51,7 @@ describe('AcCharacterToolbar.vue', () => {
     await wrapper.vm.$nextTick()
   })
   test('Deletes a character', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const router = createTestRouter()
     await router.push({name: 'Character', params: {username: 'Fox', characterName: 'Kai'}})
     wrapper = mount(
@@ -78,7 +78,7 @@ describe('AcCharacterToolbar.vue', () => {
     await waitFor(() => expect(router.currentRoute.value.params.username).toEqual('Fox'))
   })
   test('Determines which asset to share', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const mockResolve = vi.fn()
     mockResolve.mockImplementation(() => ({href: '/target/url/'}))
     wrapper = mount(
@@ -98,7 +98,7 @@ describe('AcCharacterToolbar.vue', () => {
     expect(wrapper.vm.shareMedia).toEqual(character.primary_submission)
   })
   test('Handles a character with no primary asset', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const mockResolve = vi.fn()
     mockResolve.mockImplementation(() => ({href: '/target/url/'}))
     wrapper = mount(
@@ -117,7 +117,7 @@ describe('AcCharacterToolbar.vue', () => {
     expect(vm.shareMedia).toBeNull()
   })
   test('Handles an upload properly', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const mockResolve = vi.fn()
     mockResolve.mockImplementation(() => ({href: '/target/url/'}))
     wrapper = mount(

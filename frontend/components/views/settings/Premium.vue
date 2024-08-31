@@ -201,7 +201,7 @@ const paypalWarned = ref(false)
 
 const props = defineProps<SubjectiveProps>()
 
-const {subject, subjectHandler, subjectPlan} = useSubject(props)
+const {subject, subjectHandler, subjectPlan} = useSubject({ props })
 
 const userSubject = computed(() => subject.value as User)
 

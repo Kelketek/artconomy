@@ -99,7 +99,7 @@ const props = defineProps<SubjectiveProps>()
 const router = useRouter()
 const {rawViewerName} = useViewer()
 const {setError} = useErrorHandling()
-const {isCurrent} = useSubject(props, true, true)
+const {isCurrent} = useSubject({ props, privateView: true })
 const showNew = ref(false)
 
 const conversations = useList<Conversation>('conversations-' + props.username, {

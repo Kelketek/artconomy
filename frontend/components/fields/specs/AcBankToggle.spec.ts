@@ -27,7 +27,7 @@ describe('AcBankToggle.vue', () => {
     cleanUp(wrapper)
   })
   test('Verifies if a Stripe account is needed', async() => {
-    setViewer(store, genUser({username: 'Fox'}))
+    setViewer({ store, user: genUser({ username: 'Fox' }) })
     wrapper = mount(AcBankToggleStripe, {
       ...vueSetup({store}),
       props: {

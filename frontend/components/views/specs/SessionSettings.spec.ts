@@ -20,14 +20,14 @@ describe('SessionSettings.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts a settings panel for an anonymous user', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     wrapper = mount(SessionSettings, vueSetup({
       store,
       stubs: ['router-link'],
     }))
   })
   test('Redirects a registered user', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push('/')
     await router.isReady()
     wrapper = mount(SessionSettings, vueSetup({
@@ -38,7 +38,7 @@ describe('SessionSettings.vue', () => {
     expect(router.currentRoute.value.params).toEqual({username: 'Fox'})
   })
   test('Conditionally permits the rating to be adjusted per session', async() => {
-    setViewer(store, genAnon({birthday: null}))
+    setViewer({ store, user: genAnon({ birthday: null }) })
     wrapper = mount(SessionSettings, vueSetup({
       store,
       stubs: ['router-link'],
@@ -54,7 +54,7 @@ describe('SessionSettings.vue', () => {
     expect(vm.adultAllowed).toBe(false)
   })
   test('Reopens the cookie dialog', async() => {
-    setViewer(store, genAnon({birthday: null}))
+    setViewer({ store, user: genAnon({ birthday: null }) })
     wrapper = mount(SessionSettings, vueSetup({
       store,
       stubs: ['router-link'],

@@ -44,7 +44,7 @@ describe('ac-setup-two-factor', () => {
     )
   })
   test('Handles a missing Telegram 2FA', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mockError.mockImplementationOnce(() => undefined)
     wrapper = mount(AcSetupTwoFactor, {
       ...vueSetup({store}),
@@ -71,7 +71,7 @@ describe('ac-setup-two-factor', () => {
     expect(vm.url).toBe('/api/profiles/account/Vulpes/auth/two-factor/')
   })
   test('Creates a Telegram Device', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcSetupTwoFactor,
       {
@@ -87,7 +87,7 @@ describe('ac-setup-two-factor', () => {
     )
   })
   test('Creates a TOTP Device', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcSetupTwoFactor,
       {

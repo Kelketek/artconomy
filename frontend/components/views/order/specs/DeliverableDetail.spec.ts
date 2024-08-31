@@ -2,7 +2,7 @@ import {cleanUp, flushPromises, mount, rs, vueSetup, VuetifyWrapped, waitFor} fr
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import DeliverableDetail from '@/components/views/order/DeliverableDetail.vue'
-import {genDeliverable, genGuest, genReference, genUser} from '@/specs/helpers/fixtures.ts'
+import {genDeliverable, genGuest, genPowers, genReference, genUser} from '@/specs/helpers/fixtures.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
@@ -50,7 +50,7 @@ describe('DeliverableDetail.vue', () => {
   test('Handles a null buyer', async() => {
     const vulpes = genUser()
     vulpes.username = 'Fox'
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     await router.push('/orders/Fox/order/1/deliverables/5/')
     wrapper = mount(
       DeliverableDetail, {
@@ -77,7 +77,7 @@ describe('DeliverableDetail.vue', () => {
   test('Sends a seller to their new submission', async() => {
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -119,7 +119,7 @@ describe('DeliverableDetail.vue', () => {
     expect(router.currentRoute.value.query).toEqual({editing: 'true'})
   })
   test('Handles an order without a product', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push('/orders/Fox/order/1/')
     wrapper = mount(
       DeliverableDetail, {
@@ -146,7 +146,7 @@ describe('DeliverableDetail.vue', () => {
   test('Renders a view mode selector', async() => {
     const user = genUser({is_staff: true})
     user.username = 'Dude'
-    setViewer(store, user)
+    setViewer({ store, user, powers: genPowers({handle_disputes: true}) })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -174,7 +174,7 @@ describe('DeliverableDetail.vue', () => {
     expect(selector.text()).contains('Please select...')
   })
   test('Prompts to add revision to collection', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -206,7 +206,7 @@ describe('DeliverableDetail.vue', () => {
   })
   test('Prompts to add revision to collection by registering if they are a guest', async() => {
     const user = genGuest()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -243,7 +243,7 @@ describe('DeliverableDetail.vue', () => {
   })
   test('Does not have the submission adding form loaded by default', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -271,7 +271,7 @@ describe('DeliverableDetail.vue', () => {
   })
   test('Loads with the submission prompt triggered', async() => {
     const user = genUser({username: 'Beep'})
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5?showAdd=true')
     wrapper = mount(
       DeliverableDetail, {
@@ -300,7 +300,7 @@ describe('DeliverableDetail.vue', () => {
   test('Prompts to link a guest account', async() => {
     const user = genGuest()
     user.username = '__1'
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/__1/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -334,7 +334,7 @@ describe('DeliverableDetail.vue', () => {
     )
   })
   test('Adds character tags to submission form', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverableDetail, {
@@ -377,7 +377,7 @@ describe('DeliverableDetail.vue', () => {
       username: 'Vulpes',
       landscape: true,
     })
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     await router.push('/orders/Vulpes/order/1/deliverables/5/overview')
     wrapper = mount(
       DeliverableDetail, {
@@ -423,7 +423,7 @@ describe('DeliverableDetail.vue', () => {
       username: 'Fox',
       landscape: true,
     })
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/overview')
     wrapper = mount(
       DeliverableDetail, {
@@ -467,7 +467,7 @@ describe('DeliverableDetail.vue', () => {
       username: 'Fox',
       landscape: true,
     })
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/overview')
     wrapper = mount(
       DeliverableDetail, {

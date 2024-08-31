@@ -40,7 +40,7 @@ import {flatten} from '@/lib/lib.ts'
 const drawer = defineModel<boolean>({required: true})
 const display = useDisplay()
 const props = defineProps<SubjectiveProps>()
-const {subject, isCurrent} = useSubject(props)
+const {subject, isCurrent} = useSubject({ props })
 const section = ref(0)
 const width = computed(() => {
   if (display.width.value < 600) {

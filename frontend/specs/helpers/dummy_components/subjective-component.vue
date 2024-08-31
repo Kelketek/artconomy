@@ -10,7 +10,7 @@ import {useRoute} from 'vue-router'
 
 const props = withDefaults(defineProps<SubjectiveProps & {isPrivate?: boolean, isProtected?: boolean}>(), {isPrivate: false, isProtected: false})
 const route = useRoute()
-const subjectValues = useSubject(props, props.isPrivate, props.isProtected)
+const subjectValues = useSubject({ props, privateView: props.isPrivate, controlPowers: ['administrate_users']})
 defineExpose(subjectValues)
 
 const id = computed(() => {

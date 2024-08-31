@@ -1,4 +1,4 @@
-import {genDeliverable, genUser} from '@/specs/helpers/fixtures.ts'
+import {genDeliverable, genPowers, genUser} from '@/specs/helpers/fixtures.ts'
 import {
   cleanUp,
   confirmAction,
@@ -55,7 +55,7 @@ describe('DeliverablePayment.vue', () => {
   test('Handles deletion', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/payment')
     wrapper = mount(
       DeliverablePayment, {
@@ -88,7 +88,7 @@ describe('DeliverablePayment.vue', () => {
   })
   test('Gracefully handles commission info', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/overview')
     wrapper = mount(
       DeliverablePayment, {
@@ -127,7 +127,7 @@ describe('DeliverablePayment.vue', () => {
   test('Sends a status update', async() => {
     const vulpes = genUser()
     vulpes.username = 'Vulpes'
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     await router.push('/sales/Vulpes/sale/1/deliverables/5/payment')
     wrapper = mount(
       DeliverablePayment, {
@@ -173,7 +173,7 @@ describe('DeliverablePayment.vue', () => {
   test('Identifies seller and buyer outputs', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5/payment')
     wrapper = mount(
       DeliverablePayment, {
@@ -212,7 +212,7 @@ describe('DeliverablePayment.vue', () => {
   test('Clears the cash flag when navigating off the cash tab', async() => {
     const fox = genUser({is_staff: true})
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -243,7 +243,7 @@ describe('DeliverablePayment.vue', () => {
   test('Calculates the correct completion date.', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -277,7 +277,7 @@ describe('DeliverablePayment.vue', () => {
   test('Handles a Stripe Payment boop', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -317,7 +317,7 @@ describe('DeliverablePayment.vue', () => {
   test('Handles a Stripe Payment with an existing card', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -360,7 +360,7 @@ describe('DeliverablePayment.vue', () => {
   test('Handles a Stripe Payment Failure', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -428,7 +428,7 @@ describe('DeliverablePayment.vue', () => {
   test('Refetches the secret when the card settings are toggled', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -467,7 +467,7 @@ describe('DeliverablePayment.vue', () => {
   test('Calculates the total expected turnaround days', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -496,7 +496,7 @@ describe('DeliverablePayment.vue', () => {
   test('Calculates the total expected revisions', async() => {
     const fox = genUser()
     fox.username = 'Fox'
-    setViewer(store, fox)
+    setViewer({ store, user: fox })
     await router.push('/orders/Fox/order/1/deliverables/5')
     wrapper = mount(
       DeliverablePayment, {
@@ -587,6 +587,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
   test('Sets a default reader', async() => {
     expect(vm.cardTabs).toBe(0)
     vm.viewerHandler.user.updateX({is_staff: true})
+    vm.viewerHandler.staffPowers.makeReady(genPowers({table_seller: true}))
     expect(vm.paymentForm.fields.use_reader.model).toBe(false)
     vm.readers.makeReady([{
       id: 'Test',
@@ -602,6 +603,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
   test('Handles an empty reader list', async() => {
     expect(vm.cardTabs).toBe(0)
     vm.viewerHandler.user.updateX({is_staff: true})
+    vm.viewerHandler.staffPowers.makeReady(genPowers({table_seller: true}))
     expect(vm.paymentForm.fields.use_reader.model).toBe(false)
     vm.cardTabs = 1
     await nextTick()
@@ -612,6 +614,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
   test('Handles switching to manual key-in', async() => {
     expect(vm.cardTabs).toBe(0)
     vm.viewerHandler.user.updateX({is_staff: true})
+    vm.viewerHandler.staffPowers.makeReady(genPowers({table_seller: true}))
     expect(vm.paymentForm.fields.use_reader.model).toBe(false)
     vm.readers.makeReady([{
       id: 'Test',
@@ -630,6 +633,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
   test('Handles switching from staff to non-staff', async() => {
     expect(vm.cardTabs).toBe(0)
     vm.viewerHandler.user.updateX({is_staff: true})
+    vm.viewerHandler.staffPowers.makeReady(genPowers({table_seller: true}))
     expect(vm.paymentForm.fields.use_reader.model).toBe(false)
     vm.readers.makeReady([{
       id: 'Test',
@@ -644,6 +648,7 @@ describe('DeliverablePayment.vue payment modal checks', () => {
   })
   test('Hides the payment form after marking a deliverable as paid by cash', async() => {
     vm.viewerHandler.user.updateX({is_staff: true})
+    vm.viewerHandler.staffPowers.makeReady(genPowers({table_seller: true}))
     vm.cardTabs = 2
     await nextTick()
     mockAxios.reset()

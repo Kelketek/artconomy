@@ -96,7 +96,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useEditable} from '@/mixins/editable.ts'
 
 const props = defineProps<CharacterProps>()
-const {controls} = useSubject(props)
+const {controls} = useSubject({ props })
 const {editing} = useEditable(controls)
 const character = useCharacter(props)
 

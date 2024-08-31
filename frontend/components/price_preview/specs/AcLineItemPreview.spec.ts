@@ -18,7 +18,7 @@ describe('AcLineItemPreview.vue', () => {
   })
   test('Mounts', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const lineItems = dummyLineItems()
     wrapper = mount(AcLineItemPreview, {
       ...vueSetup({store}),
@@ -30,7 +30,7 @@ describe('AcLineItemPreview.vue', () => {
   })
   test('Mounts in edit mode', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const lineItems = dummyLineItems()
     wrapper = mount(AcLineItemPreview, {
       ...vueSetup({store}),
@@ -43,7 +43,7 @@ describe('AcLineItemPreview.vue', () => {
   })
   test('Handles a line item description', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const lineItems = dummyLineItems()
     lineItems[0].description = 'Stuff and things'
     wrapper = mount(AcLineItemPreview, {
@@ -59,7 +59,7 @@ describe('AcLineItemPreview.vue', () => {
   })
   test('Uses a default descriptor for a discount', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const lineItems = dummyLineItems()
     const line = genLineItem({
       id: -500,
@@ -80,7 +80,7 @@ describe('AcLineItemPreview.vue', () => {
   })
   test('Uses a default descriptor for an additional requirement', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const lineItems = dummyLineItems()
     const line = genLineItem({
       id: -500,

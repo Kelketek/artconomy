@@ -45,7 +45,7 @@ import {profileLink} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<SubjectiveProps>()
 
-const {subjectHandler, subject, isCurrent} = useSubject(props, true)
+const {subjectHandler, subject, isCurrent} = useSubject({ props, privateView: true })
 
 const drawer = ref(false)
 

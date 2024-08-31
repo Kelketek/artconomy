@@ -676,16 +676,12 @@ class CredentialsSerializer(serializers.ModelSerializer):
         fields = ("username", "current_password", "new_password", "email")
 
 
-def null_powers():
-    return {power: False for power in POWER_LIST}
-
-
-def all_powers():
-    return {power: True for power in POWER_LIST}
-
-
-def serialize_powers(obj: StaffPowers):
-    return {power: getattr(obj, power) for power in POWER_LIST}
+@register_serializer
+class StaffPowersSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StaffPowers
+        fields = ("id",) + POWER_LIST
+        read_only_fields = fields
 
 
 @register_serializer
@@ -703,16 +699,6 @@ class UserSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     next_service_plan = serializers.SerializerMethodField()
     international = serializers.SerializerMethodField()
     paypal_configured = serializers.SerializerMethodField()
-    staff_powers = serializers.SerializerMethodField()
-
-    def get_staff_powers(self, obj):
-        if not obj.is_staff:
-            return null_powers()
-        if obj.is_superuser:
-            return all_powers()
-        if not hasattr(obj, "staff_powers"):
-            return null_powers()
-        return serialize_powers(obj.staff_powers)
 
     def get_international(self, obj):
         from apps.sales.models import StripeAccount

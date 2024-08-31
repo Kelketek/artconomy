@@ -63,7 +63,7 @@ describe('AcSampleEditor.vue', () => {
     cleanUp(wrapper)
   })
   test('Clears the showcased submission', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(WrappedEditor, {
       ...vueSetup({
         store,
@@ -94,7 +94,7 @@ describe('AcSampleEditor.vue', () => {
     expect(product.x!.primary_submission).toBeNull()
   })
   test('Clears the sample status of a submission', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = {
       id: 1,
       submission: genSubmission(),
@@ -146,7 +146,7 @@ describe('AcSampleEditor.vue', () => {
     expect(localSamples.list.length).toBe(2)
   })
   test('Clears the sample status of the primary submission', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = {
       id: 1,
       submission: genSubmission(),
@@ -200,7 +200,7 @@ describe('AcSampleEditor.vue', () => {
     expect(localSamples.list.length).toBe(2)
   })
   test('Turns an art submission into a sample', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = genSubmission()
     const submission2 = genSubmission()
     const submission3 = genSubmission()
@@ -240,7 +240,7 @@ describe('AcSampleEditor.vue', () => {
     expect(localSamples.list.length).toBe(1)
   })
   test('Turns an art submission into a sample and sets the primary submission', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     product.updateX({primary_submission: null})
     const submission = genSubmission()
     const submission2 = genSubmission()
@@ -284,7 +284,7 @@ describe('AcSampleEditor.vue', () => {
     expect((product.x as Product).primary_submission).toBeTruthy()
   })
   test('Adds a new sample', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(AcSampleEditor, {
       ...vueSetup({
         store,
@@ -315,7 +315,7 @@ describe('AcSampleEditor.vue', () => {
     expect(samplesList.list.length).toBe(1)
   })
   test('Adds a new sample and sets the primary submission', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     product.updateX({primary_submission: null})
     wrapper = mount(AcSampleEditor, {
       ...vueSetup({
@@ -353,7 +353,7 @@ describe('AcSampleEditor.vue', () => {
     expect(samplesList.list.length).toBe(1)
   })
   test('Toggles', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(AcSampleEditor, {
       ...vueSetup({
         store,

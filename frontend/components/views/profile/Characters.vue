@@ -68,7 +68,7 @@ import {useRouter} from 'vue-router'
 import {useSubject} from '@/mixins/subjective.ts'
 
 const props = defineProps<SubjectiveProps>()
-const {controls} = useSubject(props)
+const {controls} = useSubject({ props })
 const router = useRouter()
 const showNew = ref(false)
 

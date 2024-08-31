@@ -61,7 +61,7 @@ const AcCardManager = defineAsyncComponent(() => import('@/components/views/sett
 
 
 const props = defineProps<SubjectiveProps>()
-const {subjectHandler} = useSubject(props)
+const {subjectHandler} = useSubject({ props })
 
 const url = computed(() => {
   return `/api/sales/account/${props.username}/cards/`

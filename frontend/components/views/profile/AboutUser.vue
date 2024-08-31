@@ -98,7 +98,7 @@ declare interface ProfileBadge {
 }
 
 const props = defineProps<SubjectiveProps>()
-const {subject, subjectHandler, controls, isCurrent} = useSubject(props)
+const {subject, subjectHandler, controls, isCurrent} = useSubject({ props })
 const {editing} = useEditable(controls)
 
 const badges = computed(() => {

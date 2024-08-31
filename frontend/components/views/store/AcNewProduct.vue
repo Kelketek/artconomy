@@ -303,7 +303,7 @@ const props = defineProps<{modelValue: boolean} & SubjectiveProps>()
 const emit = defineEmits<{'update:modelValue': [boolean]}>()
 const {smAndUp} = useDisplay()
 const router = useRouter()
-const {subjectHandler, subject} = useSubject(props)
+const {subjectHandler, subject} = useSubject({ props })
 const {setError} = useErrorHandling()
 
 subjectHandler.artistProfile.get().catch(setError)

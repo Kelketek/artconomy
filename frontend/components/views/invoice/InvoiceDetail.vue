@@ -77,13 +77,13 @@
                   <v-col cols="12" md="6" lg="4" offset-md="4" class="text-center">
                     <ac-form-container v-bind="stateChange.bind">
                       <v-row>
-                        <v-col class="text-center" v-if="isStaff && (invoice.x.status === InvoiceStatus.DRAFT)">
+                        <v-col class="text-center" v-if="powers.table_seller && (invoice.x.status === InvoiceStatus.DRAFT)">
                           <v-btn color="primary" variant="flat" @click="() => statusEndpoint('finalize')">Finalize</v-btn>
                         </v-col>
                         <v-col class="text-center" v-if="invoice.x.status === InvoiceStatus.OPEN && !invoice.x.record_only">
                           <v-btn color="green" variant="flat" @click="() => showPayment = true">Pay</v-btn>
                         </v-col>
-                        <v-col class="text-center" v-if="isStaff && (([InvoiceStatus.DRAFT, InvoiceStatus.OPEN] as InvoiceStatusValue[]).includes(invoice.x.status))">
+                        <v-col class="text-center" v-if="powers.table_seller && (([InvoiceStatus.DRAFT, InvoiceStatus.OPEN] as InvoiceStatusValue[]).includes(invoice.x.status))">
                           <v-btn color="danger" variant="flat" @click="() => statusEndpoint('void')">Void</v-btn>
                         </v-col>
                       </v-row>
@@ -110,7 +110,7 @@
                 <v-col cols="12">
                   <ac-load-section :controller="invoice">
                     <template v-slot:default>
-                      <v-tabs v-model="cardTabs" class="mb-2" fixed-tabs v-if="isStaff">
+                      <v-tabs v-model="cardTabs" class="mb-2" fixed-tabs v-if="powers.table_seller">
                         <v-tab>Manual Entry</v-tab>
                         <v-tab>Terminal</v-tab>
                         <v-tab>Cash</v-tab>
@@ -193,7 +193,7 @@
               </v-row>
             </ac-form-dialog>
           </v-col>
-          <v-col cols="12" v-if="isStaff" class="pt-5 transactions-list">
+          <v-col cols="12" v-if="powers.view_financials" class="pt-5 transactions-list">
             <ac-paginated :list="transactions">
               <template v-slot:default>
                 <v-row>
@@ -244,7 +244,7 @@ import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import ClientSecret from '@/types/ClientSecret.ts'
 
 const props = defineProps<{invoiceId: string} & SubjectiveProps>()
-const {isStaff} = useViewer()
+const {powers} = useViewer()
 
 const showPayment = ref(false)
 const cardTabs = ref(0)
@@ -267,7 +267,7 @@ schema.fields = {
 schema.reset = false
 
 const prefix = computed(() => `invoice__${props.invoiceId}`)
-const editable = computed(() => isStaff.value && (invoice.x?.status === InvoiceStatus.DRAFT))
+const editable = computed(() => powers.value.table_seller && (invoice.x?.status === InvoiceStatus.DRAFT))
 const paymentForm = useForm(`${prefix.value}__payment`, schema)
 const clientSecret = useSingle<ClientSecret>(`${prefix.value}__clientSecret`, {endpoint: `${url.value}payment-intent/`})
 const stateChange = useForm(`${prefix.value}__stateChange`, {
@@ -368,7 +368,7 @@ watch(totalCharge, (newVal: string, oldVal: string) => {
 })
 
 watch(() => readers.ready, (val) => {
-  if (val && isStaff.value && readers.list.length) {
+  if (val && powers.value.table_seller && readers.list.length) {
     cardTabs.value = 1
   }
 })

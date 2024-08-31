@@ -1,5 +1,5 @@
 import {mount, VueWrapper} from '@vue/test-utils'
-import {genUser} from '@/specs/helpers/fixtures.ts'
+import {genPowers, genUser} from '@/specs/helpers/fixtures.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
@@ -35,7 +35,7 @@ describe('Subjective.ts', () => {
     cleanUp(wrapper)
   })
   test('Fetches the subject', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
         store,
@@ -48,7 +48,7 @@ describe('Subjective.ts', () => {
     expect(wrapper.vm.subject.username).toBe('Fox')
   })
   test('Updates the subject', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     store.commit('profiles/saveUser', genUser())
     wrapper = mount(
       SubjectiveComponent, {
@@ -66,7 +66,7 @@ describe('Subjective.ts', () => {
     expect(wrapper.vm.subject.email).toBe('test@example.com')
   })
   test('Changes the current viewer username if they are the subject.', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     store.commit('profiles/setViewerUsername', 'Fox')
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
@@ -85,7 +85,7 @@ describe('Subjective.ts', () => {
     const user = genUser()
     user.is_staff = false
     user.is_superuser = false
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
         store,
@@ -101,7 +101,7 @@ describe('Subjective.ts', () => {
   })
   test('Sends the user to an error if they are not the subject and the view is private', async() => {
     await router.push('/place')
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     expect(store.state.errors!.code).toBe(0)
     wrapper = mount(SubjectiveComponent, {
       ...vueSetup({
@@ -140,7 +140,7 @@ describe('Subjective.ts', () => {
       const user = genUser()
       user.is_superuser = false
       user.is_staff = true
-      setViewer(store, user)
+      setViewer({ store, user, powers: genPowers({administrate_users: true})})
       wrapper = mount(SubjectiveComponent, {
         ...vueSetup({
           store,
@@ -154,13 +154,13 @@ describe('Subjective.ts', () => {
       await nextTick()
       expect(store.state.errors!.code).toBe(0)
     })
-  test('Does not permit a normal staffer to access a protected view',
+  test('Does not permit an unqualified staffer to access a protected view',
     async() => {
       expect((store.state as any).errors.code).toBe(0)
       const user = genUser()
       user.is_superuser = false
       user.is_staff = true
-      setViewer(store, user)
+      setViewer({ store, user, powers: genPowers() })
       wrapper = mount(SubjectiveComponent, {
         ...vueSetup({
           store,
@@ -182,7 +182,7 @@ describe('Subjective.ts', () => {
       const user = genUser()
       user.is_superuser = true
       user.is_staff = true
-      setViewer(store, user)
+      setViewer({ store, user })
       wrapper = mount(SubjectiveComponent, {
         ...vueSetup({
           store,

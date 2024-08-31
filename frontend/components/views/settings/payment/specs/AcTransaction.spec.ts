@@ -65,7 +65,7 @@ describe('AcTransaction.vue', () => {
     cleanUp(wrapper)
   })
   test('Displays a transaction as the payee', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(AcTransaction, {
       ...vueSetup({store}),
       props: {
@@ -78,7 +78,7 @@ describe('AcTransaction.vue', () => {
   test('Displays a transaction as the payer', async() => {
     const user = genUser()
     user.username = 'Vulpes'
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(AcTransaction, {
       ...vueSetup({store}),
       props: {
@@ -90,7 +90,7 @@ describe('AcTransaction.vue', () => {
   })
   test('Displays a transaction as a transfer between accounts', () => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({store, user})
     const transaction = genTransaction()
     transaction.payer = transaction.payee
     wrapper = mount(AcTransaction, {
@@ -105,7 +105,7 @@ describe('AcTransaction.vue', () => {
   test('Displays a transaction as the payer with a null payee', async() => {
     const user = genUser()
     user.username = 'Vulpes'
-    setViewer(store, user)
+    setViewer({ store, user })
     const transaction = genTransaction()
     transaction.payee = null
     wrapper = mount(AcTransaction, {
@@ -118,7 +118,7 @@ describe('AcTransaction.vue', () => {
     })
   })
   test('Handles a card', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const transaction = genTransaction()
     transaction.card = genCard()
     wrapper = mount(AcTransaction, {
@@ -133,7 +133,7 @@ describe('AcTransaction.vue', () => {
   test('Handles a transaction link', async() => {
     const user = genUser()
     user.is_superuser = true
-    setViewer(store, user)
+    setViewer({ store, user })
     const transaction = genTransaction()
     transaction.card = genCard()
     wrapper = mount(AcTransaction, {
@@ -150,7 +150,7 @@ describe('AcTransaction.vue', () => {
   test('Does not give a transaction link if the user is not a superuser', async() => {
     const user = genUser()
     user.is_superuser = false
-    setViewer(store, user)
+    setViewer({ store, user })
     const transaction = genTransaction()
     transaction.card = genCard()
     wrapper = mount(AcTransaction, {

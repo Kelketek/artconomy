@@ -154,7 +154,7 @@ declare interface AcTgDeviceProps {
 }
 
 const props = defineProps<AcTgDeviceProps & SubjectiveProps>()
-const subjectTraits = useSubject(props)
+const subjectTraits = useSubject({ props })
 const subject = subjectTraits.subject as ComputedRef<User>
 const step = ref(1)
 

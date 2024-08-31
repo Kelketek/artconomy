@@ -11,7 +11,7 @@ import {
   artistProfileEndpointFor,
   artistProfilePathFor,
   endpointFor,
-  pathFor,
+  pathFor, staffPowersEndpointFor, staffPowersPathFor,
   userPathFor,
 } from '@/store/profiles/helpers.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
@@ -22,21 +22,23 @@ import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 import {guestName} from '@/lib/otherFormatters.ts'
+import {StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
 
 export type AnyUser = User | TerseUser | AnonUser
 
 @ComputedGetters
 export class ProfileController extends BaseController<ProfileModuleOpts, ProfileState> {
   public baseClass = ProfileModule
-  public submoduleKeys = ['user', 'artistProfile']
+  public submoduleKeys = ['user', 'artistProfile', 'staffPowers']
   public baseModuleName = 'userModules'
   public typeName: 'Profile' = 'Profile'
   // eslint-disable-next-line camelcase
   public profile_controller__ = true
   public isFetchableController = false
-  public user: SingleController<AnyUser> = null as unknown as SingleController<AnyUser>
-  public artistProfile: SingleController<ArtistProfile> = null as unknown as SingleController<ArtistProfile>
-  public products: ListController<Product> = null as unknown as ListController<Product>
+  public user = null as unknown as SingleController<AnyUser>
+  public artistProfile = null as unknown as SingleController<ArtistProfile>
+  public staffPowers = null as unknown as SingleController<StaffPowers>
+  public products = null as unknown as ListController<Product>
 
   public updateRoute = (newUsername: string, oldUsername: string | undefined) => {
     if (newUsername === '_') {
@@ -98,49 +100,64 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   constructor(args: ControllerArgs<ProfileModuleOpts>) {
     super(args)
     this.register()
-    this.user = getController<SingleState<AnyUser>, SingleModuleOpts<AnyUser>, SingleController<AnyUser>>(
-      {
-        uid: this._uid,
-        name: userPathFor(this.name.value).join('/'),
-        typeName: 'Single',
-        socket: this.$sock,
-        router: this.$router,
-        store: this.$store,
-        schema: {
-          endpoint: endpointFor(this.name.value),
-          socketSettings: {
-            appLabel: 'profiles',
-            modelName: 'User',
-            keyField: 'id',
-            serializer: this.viewer ? 'UserSerializer' : 'UserInfoSerializer',
-          },
+    this.user = getController<SingleState<AnyUser>, SingleModuleOpts<AnyUser>, SingleController<AnyUser>>({
+      uid: this._uid,
+      name: userPathFor(this.name.value).join('/'),
+      typeName: 'Single',
+      socket: this.$sock,
+      router: this.$router,
+      store: this.$store,
+      schema: {
+        endpoint: endpointFor(this.name.value),
+        socketSettings: {
+          appLabel: 'profiles',
+          modelName: 'User',
+          keyField: 'id',
+          serializer: this.viewer ? 'UserSerializer' : 'UserInfoSerializer',
         },
-        registries: this.$registries,
-        ControllerClass: SingleController,
       },
-    )
-    this.artistProfile = getController<SingleState<ArtistProfile>, SingleModuleOpts<ArtistProfile>, SingleController<ArtistProfile>>(
-      {
-        uid: this._uid,
-        name: artistProfilePathFor(this.name.value).join('/'),
-        typeName: 'Single',
-        router: this.$router,
-        socket: this.$sock,
-        store: this.$store,
-        schema: {
-          endpoint: artistProfileEndpointFor(this.name.value),
-          params: {view: 'true'},
-          socketSettings: {
-            appLabel: 'profiles',
-            modelName: 'ArtistProfile',
-            keyField: 'id',
-            serializer: 'ArtistProfileSerializer',
-          },
+      registries: this.$registries,
+      ControllerClass: SingleController,
+    })
+    this.artistProfile = getController<SingleState<ArtistProfile>, SingleModuleOpts<ArtistProfile>, SingleController<ArtistProfile>>({
+      uid: this._uid,
+      name: artistProfilePathFor(this.name.value).join('/'),
+      typeName: 'Single',
+      router: this.$router,
+      socket: this.$sock,
+      store: this.$store,
+      schema: {
+        endpoint: artistProfileEndpointFor(this.name.value),
+        params: {view: 'true'},
+        socketSettings: {
+          appLabel: 'profiles',
+          modelName: 'ArtistProfile',
+          keyField: 'id',
+          serializer: 'ArtistProfileSerializer',
         },
-        registries: this.$registries,
-        ControllerClass: SingleController,
       },
-    )
+      registries: this.$registries,
+      ControllerClass: SingleController,
+    })
+    this.staffPowers = getController<SingleState<StaffPowers>, SingleModuleOpts<StaffPowers>, SingleController<StaffPowers>>({
+      uid: this._uid,
+      name: staffPowersPathFor(this.name.value).join('/'),
+      typeName: 'Single',
+      router: this.$router,
+      socket: this.$sock,
+      store: this.$store,
+      schema: {
+        endpoint: staffPowersEndpointFor(this.name.value),
+        socketSettings: {
+          appLabel: 'profiles',
+          modelName: 'StaffPowers',
+          keyField: 'id',
+          serializer: 'StaffPowersSerializer',
+        }
+      },
+      registries: this.$registries,
+      ControllerClass: SingleController,
+    })
     watch(() => this.user.x?.username || '', this.updateUsername)
   }
 
@@ -160,6 +177,7 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
     }
     this.user.endpoint = endpointFor(newUsername)
     this.artistProfile.endpoint = artistProfileEndpointFor(newUsername)
+    this.staffPowers.endpoint = staffPowersEndpointFor(newUsername)
     this.updateRoute(newUsername, oldUsername)
   }
 

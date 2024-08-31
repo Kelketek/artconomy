@@ -34,7 +34,7 @@ let form: FormController
 let router: Router
 
 function prepData() {
-  setViewer(store, genUser())
+  setViewer({ store, user: genUser() })
   setPricing(store)
   const options = vueSetup({store})
   const data = {
@@ -68,7 +68,7 @@ describe('ProductDetail.vue', () => {
     cleanUp(wrapper)
   })
   test('Determines the slides to show for a product.', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     setPricing(store)
     wrapper = mount(ProductDetail, {
       ...vueSetup({
@@ -91,7 +91,7 @@ describe('ProductDetail.vue', () => {
     expect(vm.slides).toEqual([])
   })
   test('Prompts for age if the main sample is above the rating.', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     setPricing(store)
     wrapper = mount(ProductDetail, {
       ...vueSetup({

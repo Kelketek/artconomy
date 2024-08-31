@@ -105,7 +105,7 @@ describe('Orders.vue', () => {
     cleanUp(wrapper)
   })
   test('Sets up the order list', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
@@ -124,7 +124,7 @@ describe('Orders.vue', () => {
     expect(vm.closed).toBe(null)
   })
   test('Handles commission stats', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
@@ -143,7 +143,7 @@ describe('Orders.vue', () => {
     expect(vm.closed).toBe(false)
   })
   test('Sends the user to the invoicing page', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
@@ -169,7 +169,7 @@ describe('Orders.vue', () => {
       params: {username: 'Fox'},
     })
     const mockPush = vi.spyOn(router, 'replace')
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(Orders, {
       ...vueSetup({
         store,
@@ -188,7 +188,7 @@ describe('Orders.vue', () => {
     })
   })
   test('Does not ask for unneeded info if this is for orders instead of sales', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mockAxios.reset()
     const wrapper = mount(Orders, {
       ...vueSetup({

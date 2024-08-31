@@ -14,7 +14,7 @@ let store: ArtStore
 describe('ProductHints.vue', () => {
   beforeEach(() => {
     store = createStore()
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
   })
   afterEach(() => {

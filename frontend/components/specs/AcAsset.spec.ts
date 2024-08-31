@@ -22,7 +22,7 @@ describe('AcAsset.vue', () => {
     cleanUp(wrapper)
   })
   test('Loads and previews an asset', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -42,7 +42,7 @@ describe('AcAsset.vue', () => {
     const submission = genSubmission()
     submission.rating = 2
     viewer.sfw_mode = true
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -65,7 +65,7 @@ describe('AcAsset.vue', () => {
     const submission = genSubmission()
     submission.rating = 2
     viewer.rating = 1
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -89,7 +89,7 @@ describe('AcAsset.vue', () => {
       const submission = genSubmission()
       submission.rating = 2
       viewer.rating = 1
-      setViewer(store, viewer)
+      setViewer({ store, user: viewer })
       wrapper = mount(AcAsset, {
         ...vueSetup({
           store,
@@ -111,7 +111,7 @@ describe('AcAsset.vue', () => {
     const submission = genSubmission()
     submission.rating = 2
     viewer.rating = 1
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -136,7 +136,7 @@ describe('AcAsset.vue', () => {
     const submission = genSubmission()
     submission.rating = 2
     viewer.rating = 1
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -157,7 +157,7 @@ describe('AcAsset.vue', () => {
     const submission = genSubmission()
     submission.rating = 2
     viewer.rating = 1
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -182,7 +182,7 @@ describe('AcAsset.vue', () => {
       full: 'https://example.com/thing.mp4',
       __type__: 'data:swf',
     }
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -201,7 +201,7 @@ describe('AcAsset.vue', () => {
   test('Displays a thumbnail', async() => {
     const viewer = genUser()
     const submission = genSubmission()
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -222,7 +222,7 @@ describe('AcAsset.vue', () => {
     const viewer = genUser()
     const submission = genSubmission()
     submission.preview = {thumbnail: 'https://example.com/thing.jpg'}
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -246,7 +246,7 @@ describe('AcAsset.vue', () => {
       full: 'https://example.com/thing.doc',
       __type__: 'data:word',
     }
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -270,7 +270,7 @@ describe('AcAsset.vue', () => {
       full: 'https://example.com/thing.svg',
       __type__: 'data:image',
     }
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -295,7 +295,7 @@ describe('AcAsset.vue', () => {
       gallery: 'https://example.com/thumb.gif',
       __type__: 'data:image',
     }
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,
@@ -320,7 +320,7 @@ describe('AcAsset.vue', () => {
       full: 'https://example.com/thing.svg',
       __type__: 'data:svg',
     }
-    setViewer(store, viewer)
+    setViewer({ store, user: viewer })
     wrapper = mount(AcAsset, {
       ...vueSetup({
         store,

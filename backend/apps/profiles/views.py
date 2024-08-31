@@ -69,6 +69,7 @@ from apps.profiles.models import (
     Submission,
     User,
     trigger_reconnect,
+    StaffPowers,
 )
 from apps.profiles.permissions import (
     AccountAge,
@@ -86,6 +87,7 @@ from apps.profiles.permissions import (
     SubmissionViewPermission,
     ViewFavorites,
     staff_power,
+    IsSuperuser,
 )
 from apps.profiles.serializers import (
     ArtistProfileSerializer,
@@ -119,6 +121,7 @@ from apps.profiles.serializers import (
     UsernameValidationSerializer,
     UserSerializer,
     UnreadNotificationsSerializer,
+    StaffPowersSerializer,
 )
 from apps.profiles.tasks import drip_subscribe
 from apps.profiles.utils import (
@@ -296,6 +299,18 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
         self.check_object_permissions(self.request, profile)
         count_hit(self.request, profile.user)
         return super().get(*args, **kwargs)
+
+
+class RetrieveStaffPowers(RetrieveAPIView):
+    serializer_class = StaffPowersSerializer
+    permission_classes = [Any(ObjectControls, IsSuperuser)]
+
+    def get_object(self):
+        powers = get_object_or_404(
+            StaffPowers, user__username__iexact=self.kwargs["username"]
+        )
+        self.check_object_permissions(self.request, powers)
+        return powers
 
 
 class CredentialsAPI(GenericAPIView):

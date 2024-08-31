@@ -31,6 +31,6 @@ import {useDisplay} from 'vuetify'
 import {profileLink} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<SubjectiveProps>()
-const {subjectHandler, subject} = useSubject(props)
+const {subjectHandler, subject} = useSubject({ props })
 const {xs} = useDisplay()
 </script>

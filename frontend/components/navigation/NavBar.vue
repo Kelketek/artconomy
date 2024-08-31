@@ -13,7 +13,7 @@
         <v-row no-gutters>
           <v-col cols="12">
             <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered"
-                          :is-superuser="isSuperuser" :is-staff="isStaff" v-model="drawer"/>
+                          :is-superuser="isSuperuser" v-model="drawer"/>
           </v-col>
           <v-col cols="12">
             <v-divider />

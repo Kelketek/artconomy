@@ -137,7 +137,7 @@ import {ArtState} from '@/store/artState.ts'
 const props = defineProps<SubjectiveProps>()
 
 const {theocraticBan} = useViewer()
-const {subjectHandler} = useSubject(props)
+const {subjectHandler} = useSubject({ props })
 
 const patchers = computed(() => {
   return (subjectHandler.user as SingleController<User>).patchers

@@ -306,7 +306,7 @@ const props = defineProps<{submissionId: string}>()
 
 const showEditAsset = ref(false)
 const editAssetTab = ref(0)
-const {viewer, theocraticBan, rawViewerName, isStaff, isRegistered, ageCheck} = useViewer()
+const {viewer, theocraticBan, rawViewerName, powers, isRegistered, ageCheck} = useViewer()
 const {menuTarget} = useTargets()
 const router = useRouter()
 
@@ -387,7 +387,7 @@ const controls = computed(() => {
   if (!submission.x) {
     return false
   }
-  return isStaff.value || (submission.x.owner.username === rawViewerName.value)
+  return powers.value.moderate_content || (submission.x.owner.username === rawViewerName.value)
 })
 
 const {editing} = useEditable(controls)

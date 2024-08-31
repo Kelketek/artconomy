@@ -53,7 +53,7 @@ import {useSubject} from '@/mixins/subjective.ts'
 
 const {setError} = useErrorHandling()
 const props = defineProps<SubjectiveProps>()
-const {isCurrent} = useSubject(props)
+const {isCurrent} = useSubject({ props })
 
 const openListing = () => {
   const params = 'scrollbars=no,resizable=yes,status=no,location=no,toolbar=no,menubar=no,width=200,height=300,left=100,top=100'

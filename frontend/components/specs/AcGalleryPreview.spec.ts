@@ -18,7 +18,7 @@ describe('AcGalleryPreview.vue', () => {
     cleanUp(wrapper)
   })
   test('Displays a preview of a submission', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     const submission = genSubmission()
     submission.id = 534
     wrapper = shallowMount(AcGalleryPreview, {

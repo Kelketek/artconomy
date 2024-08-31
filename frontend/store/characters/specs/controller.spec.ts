@@ -20,7 +20,7 @@ describe('Profile controller', () => {
   })
   test('Updates the route if the character name changed', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({
@@ -53,7 +53,7 @@ describe('Profile controller', () => {
   })
   test('Leaves the route alone if no username is in it.', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({
@@ -77,7 +77,7 @@ describe('Profile controller', () => {
   })
   test('Leaves the route alone if no character name in it.', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({
@@ -101,7 +101,7 @@ describe('Profile controller', () => {
   })
   test('Leaves the route alone if a different character name is in it.', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({
@@ -128,7 +128,7 @@ describe('Profile controller', () => {
   })
   test('Leaves the route alone if a different username is present', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const replace = vi.fn()
     wrapper = mount(Empty, {
       ...vueSetup({

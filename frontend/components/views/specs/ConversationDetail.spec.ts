@@ -33,7 +33,7 @@ describe('ConversationDetail.vue', () => {
   test('Loads a lock toggle for an outside user', async() => {
     const user = genUser()
     user.username = 'Dude'
-    setViewer(store, user)
+    setViewer({ store, user })
     const wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
@@ -53,7 +53,7 @@ describe('ConversationDetail.vue', () => {
   })
   test('Does not load a lock toggle for an inside user', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
@@ -73,7 +73,7 @@ describe('ConversationDetail.vue', () => {
   })
   test('Leaves a conversation', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,

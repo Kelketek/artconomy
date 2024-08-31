@@ -259,7 +259,7 @@ const {
   controls,
   subject,
   subjectHandler,
-} = useSubject(props)
+} = useSubject({ props, controlPowers: ['moderate_discussion'] })
 const {menuTarget} = useTargets()
 
 const canHaveChildren = computed(() => {

@@ -42,7 +42,7 @@
             </template>
             <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData"
                                   :editing="editable" :transfer="transfer"/>
-            <template v-if="editable && isStaff">
+            <template v-if="editable && powers.table_seller">
               <ac-line-item-editor
                   :line="line"
                   v-for="(line, index) in extras"
@@ -144,8 +144,8 @@ const props = withDefaults(defineProps<{
   disabled: false,
 })
 
-const {subjectHandler} = useSubject(props)
-const {isStaff} = useViewer()
+const {subjectHandler} = useSubject({ props })
+const {powers} = useViewer()
 
 const {
   addOnForm,

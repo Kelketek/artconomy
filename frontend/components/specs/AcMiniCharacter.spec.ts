@@ -21,7 +21,7 @@ describe('AcMiniCharacter.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcMiniCharacter, {
         ...vueSetup({stubs: ['router-link']}),

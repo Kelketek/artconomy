@@ -109,7 +109,7 @@ const props = withDefaults(
     defineProps<{characterAvatar?: boolean, showEdit?: boolean} & CharacterProps>(),
     {characterAvatar: true, showEdit: false},
 )
-const {controls} = useSubject(props)
+const {controls} = useSubject({ props })
 const {editing} = useEditable(controls)
 const router = useRouter()
 const character = useCharacter(props)

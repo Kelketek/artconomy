@@ -53,7 +53,7 @@ describe('DeliverablePayment.vue', () => {
     cleanUp(wrapper)
   })
   test('Adds Purchase to the route if missing', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.replace({
       name: 'Payment',
       params: {username: 'Fox'},
@@ -71,7 +71,7 @@ router,
     expect(router.currentRoute.value.name).toBe('Purchase')
   })
   test('Loads the subordinate route', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push({
       name: 'Payment',
       params: {username: 'Fox'},

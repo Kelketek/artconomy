@@ -23,7 +23,7 @@ describe('AcShareButton.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts a share button and resolves a URL', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = genSubmission()
     const router = createTestRouter()
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
@@ -59,7 +59,7 @@ describe('AcShareButton.vue', () => {
     expect(vm.referral).toBe(false)
   })
   test('Closes out of the whole menu when the QR menu is closed', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = genSubmission()
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
     const mockResolve = vi.fn()

@@ -28,7 +28,7 @@ describe('Patcher', () => {
     mockTrace.mockClear()
     vi.clearAllTimers()
     store = createStore()
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
   })
   afterEach(() => {
     cleanUp(wrapper)

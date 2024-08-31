@@ -78,7 +78,7 @@ const router = useRouter()
 const route = useRoute()
 const store = useStore<ArtState>()
 
-const {subjectHandler, isCurrent, controls} = useSubject(props)
+const {subjectHandler, isCurrent, controls} = useSubject({ props })
 subjectHandler.artistProfile.get()
 
 const url = computed(() => `/api/sales/account/${props.username}/products/`)

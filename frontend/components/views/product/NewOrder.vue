@@ -317,8 +317,8 @@ const {current} = useTheme()
 const clickCounter = ref(0)
 const laptop = new URL('/static/images/laptop.png', BASE_URL)
 
-const {viewer, viewerHandler, rawViewerName, isStaff, isRegistered, viewerName} = useViewer()
-const {isCurrent, subjectHandler} = useSubject(props)
+const {viewer, viewerHandler, rawViewerName, powers, isRegistered, viewerName} = useViewer()
+const {isCurrent, subjectHandler} = useSubject({ props })
 
 
 watch(viewer, () => {
@@ -336,7 +336,7 @@ const route = useRoute()
 const router = useRouter()
 
 const forceShield = computed(() => !!({...route.query}.forceShield))
-const invoicing = computed(() => isCurrent.value || (isStaff.value && !!props.invoiceMode))
+const invoicing = computed(() => isCurrent.value || ((powers.value.table_seller) && !!props.invoiceMode))
 
 let step = parseInt(route.query.stepId + '') || 1
 if (step > 3) {
@@ -495,7 +495,7 @@ const goToOrder = (order: Order) => {
     return
   }
   // Special case override for table events.
-  if ((product.x?.table_product && isStaff.value) || invoicing.value) { // eslint-disable-line camelcase
+  if ((product.x?.table_product && powers.value.table_seller) || invoicing.value) { // eslint-disable-line camelcase
     link.query.view_as = 'Seller'
     link.name = 'SaleDeliverablePayment'
     delete link.query.showConfirm

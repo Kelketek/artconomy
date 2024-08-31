@@ -4,7 +4,7 @@ import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
-import {genUser} from '@/specs/helpers/fixtures.ts'
+import {genPowers, genUser} from '@/specs/helpers/fixtures.ts'
 import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
@@ -30,7 +30,7 @@ describe('AcTagDisplay.vue', () => {
     cleanUp(wrapper)
   })
   test('Loads and displays tags', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = genSubmission()
     submission.tags = ['fox', 'sexy', 'fluffy', 'herm']
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
@@ -38,7 +38,7 @@ describe('AcTagDisplay.vue', () => {
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -48,7 +48,7 @@ router,
     })
   })
   test('Exposes an editing interface', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = genSubmission()
     submission.tags = ['fox', 'sexy', 'fluffy', 'herm']
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
@@ -56,7 +56,7 @@ router,
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -73,7 +73,7 @@ router,
     expect(vm.editing).toBe(true)
   })
   test('Expands to show all tags', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = genSubmission()
     submission.tags = ['fox', 'sexy', 'fluffy', 'herm', 'dude', 'wat', 'stuff', 'things', 'fuck', 'paws', 'maws']
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
@@ -81,7 +81,7 @@ router,
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -98,7 +98,7 @@ router,
     expect(vm.editing).toBe(false)
   })
   test('Always allows staff to edit', async() => {
-    setViewer(store, genUser({is_staff: true}))
+    setViewer({ store, user: genUser({ is_staff: true }), powers: genPowers({moderate_content: true}) })
     const submission = genSubmission()
     submission.tags = ['fox', 'sexy', 'fluffy', 'herm', 'dude', 'wat']
     const empty = mount(Empty, vueSetup({store}))
@@ -111,7 +111,7 @@ router,
     wrapper = mount(WrappedTagDisplay, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         patcher: single.patchers.tags,
@@ -126,7 +126,7 @@ router,
     expect(vm.controls).toBe(true)
   })
   test('Edits the search query', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const submission = genSubmission()
     submission.tags = ['fox', 'sexy', 'fluffy', 'herm']
     const single = mount(Empty, vueSetup({store})).vm.$getSingle('submission', {endpoint: '/'})
@@ -135,7 +135,7 @@ router,
     wrapper = mount(AcTagDisplay, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
       props: {
         patcher: single.patchers.tags,

@@ -54,7 +54,7 @@ import Transaction from '@/types/Transaction.ts'
 
 const props = defineProps<SubjectiveProps>()
 
-const {subject} = useSubject(props)
+const {subject} = useSubject({ props })
 
 const transactionFilter = useForm(`transactions_form__${flatten(props.username)}`, {
   endpoint: '',

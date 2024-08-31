@@ -20,7 +20,7 @@ describe("MessageCenter.vue", () => {
   })
   it('Loads the Sales tab for an artist', async () => {
     const user = genUser()
-    setViewer(store, genUser({artist_mode: true}))
+    setViewer({ store, user: genUser({ artist_mode: true }) })
     wrapper = mount(WrappedMessageCenter, {
       ...vueSetup({store}),
       props: {username: user.username, modelValue: true},

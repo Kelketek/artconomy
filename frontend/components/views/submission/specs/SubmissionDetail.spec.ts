@@ -42,7 +42,7 @@ describe('SubmissionDetail.vue', () => {
     cleanUp(wrapper)
   })
   test('Deletes the submission', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     await router.push(`/submissions/${submission.id}`)
     submission.owner = vulpes as RelatedUser
@@ -69,7 +69,7 @@ describe('SubmissionDetail.vue', () => {
     expect(router.currentRoute.value.name).toBe('Profile')
   })
   test('Sets the meta info with artists', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     submission.title = 'Test submission'
     submission.owner = vulpes as RelatedUser
@@ -93,7 +93,7 @@ describe('SubmissionDetail.vue', () => {
     expect(document.title).toEqual('Test submission -- by Fox - (Artconomy.com)')
   })
   test('Sets the meta info with artists and no title', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     submission.title = ''
     submission.owner = vulpes as RelatedUser
@@ -117,7 +117,7 @@ describe('SubmissionDetail.vue', () => {
     expect(document.title).toEqual('By Fox - (Artconomy.com)')
   })
   test('Shows a rating edit dialog', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     submission.title = ''
     submission.owner = vulpes as RelatedUser
@@ -145,7 +145,7 @@ describe('SubmissionDetail.vue', () => {
     await waitFor(() => expect(wrapper.findComponent('.rating-field').exists()).toBe(true))
   })
   test('Nudges the viewer to adjust their settings', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     const submission = genSubmission({
       rating: 2,
       id: 123,
@@ -164,7 +164,7 @@ describe('SubmissionDetail.vue', () => {
     expect(store.state.showAgeVerification).toBe(true)
   })
   test('Reports that the viewer tag-controls the piece if the owner is taggable', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     submission.title = ''
     submission.owner.taggable = true
@@ -183,7 +183,7 @@ describe('SubmissionDetail.vue', () => {
     expect(vm.tagControls).toBe(true)
   })
   test('Reports that the viewer does not tag-control the piece if the owner is not taggable', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     submission.title = ''
     submission.owner.taggable = false
@@ -205,7 +205,7 @@ describe('SubmissionDetail.vue', () => {
     expect(vm.tagControls).toBe(false)
   })
   test('Shows a context menu when the user controls the submission', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     submission.owner = vulpes
     wrapper = mount(SubmissionDetail, {
@@ -224,7 +224,7 @@ describe('SubmissionDetail.vue', () => {
     expect(wrapper.find('.more-button').exists()).toBe(true)
   })
   test('Does not show a context menu when the user does not control', async() => {
-    setViewer(store, vulpes)
+    setViewer({ store, user: vulpes })
     const submission = genSubmission()
     wrapper = mount(SubmissionDetail, {
       ...vueSetup({

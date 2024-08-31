@@ -197,7 +197,7 @@ import {useTheme} from 'vuetify'
 const props = defineProps<CharacterProps>()
 
 const {setError} = useErrorHandling()
-const {controls} = useSubject(props)
+const {controls} = useSubject({ props })
 const {editing} = useEditable(controls)
 const {ageCheck, isRegistered} = useViewer()
 const toolbar = ref<null|typeof AcCharacterToolbar>(null)

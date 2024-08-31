@@ -109,7 +109,7 @@ let cardsName = `${flatten(props.username)}__creditCards`
 
 const url = computed(() => `/api/sales/account/${props.username}/cards/`)
 
-const {subject} = useSubject(props)
+const {subject} = useSubject({ props })
 
 // Should be set by the time we're here, and this will only be needed
 // when dealing with registered users.

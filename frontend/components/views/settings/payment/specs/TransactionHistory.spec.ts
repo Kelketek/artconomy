@@ -17,7 +17,7 @@ describe('AcTransaction.vue', () => {
     cleanUp(wrapper)
   })
   test('Identifies the current list type', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(TransactionHistory, {
       ...vueSetup({store}),
       props: {username: 'Fox'},

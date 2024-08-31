@@ -28,7 +28,7 @@ import {computed, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 
 const props = defineProps<SubjectiveProps>()
-const {subjectHandler, subject} = useSubject(props)
+const {subjectHandler, subject} = useSubject({ props })
 const {setError} = useErrorHandling()
 const route = useRoute()
 const router = useRouter()

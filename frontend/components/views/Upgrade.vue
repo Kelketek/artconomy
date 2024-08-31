@@ -191,7 +191,7 @@ import {useTheme} from 'vuetify'
 
 const props = defineProps<SubjectiveProps>()
 const {viewer} = useViewer()
-const {subject} = useSubject(props, true)
+const {subject} = useSubject({ props, privateView: true })
 const route = useRoute()
 const router = useRouter()
 const selection = ref<null|string>(null)

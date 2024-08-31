@@ -27,7 +27,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Determines if the revision is the most recent one', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
     wrapper = mount(
       RevisionDetail, {
@@ -67,7 +67,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Determines if the revision is the final', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
     wrapper = mount(
       RevisionDetail, {
@@ -102,7 +102,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Determines if the revision has a submission in the current user\'s gallery', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
     wrapper = mount(
       RevisionDetail, {
@@ -153,7 +153,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Shows the submission button to a buyer only once the deliverable is completed', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
     wrapper = mount(
       RevisionDetail, {
@@ -189,7 +189,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Prepares a revision for publication to gallery', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
     wrapper = mount(
       RevisionDetail, {
@@ -227,7 +227,7 @@ describe('DeliverableOverview.vue', () => {
   })
   test('Determines if the deliverable has been archived', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
     wrapper = mount(
       RevisionDetail, {
@@ -272,7 +272,7 @@ describe('DeliverableOverview.vue', () => {
       username: 'Fox',
       is_staff: false,
     })
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.push('/orders/Fox/order/1/deliverables/5/revisions/3/')
     wrapper = mount(
       RevisionDetail, {

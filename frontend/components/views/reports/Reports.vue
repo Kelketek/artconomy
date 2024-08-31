@@ -16,5 +16,5 @@ import SubjectiveProps from '@/types/SubjectiveProps.ts'
 
 
 const props = defineProps<SubjectiveProps>()
-const {subject, subjectHandler} = useSubject(props, true)
+const {subject, subjectHandler} = useSubject({ props, privateView: true })
 </script>

@@ -87,7 +87,7 @@ import {useDisplay} from 'vuetify'
 const props = defineProps<SubjectiveProps & {transaction: Transaction, currentAccount: number}>()
 
 const {isSuperuser} = useViewer()
-const {subject} = useSubject(props)
+const {subject} = useSubject({props})
 const {modalTarget} = useTargets()
 const {mdAndUp} = useDisplay()
 

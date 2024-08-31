@@ -20,7 +20,7 @@ describe('AcRefColor.vue', () => {
     cleanUp(wrapper)
   })
   test('Mounts', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     await router.push('/')
     await router.isReady()
     const empty = mount(Empty, vueSetup({store, router}))

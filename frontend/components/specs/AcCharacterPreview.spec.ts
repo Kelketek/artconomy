@@ -18,7 +18,7 @@ describe('AcCharacterPreview.ts', () => {
     cleanUp(wrapper)
   })
   test('Mounts', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcCharacterPreview, {
         ...vueSetup({

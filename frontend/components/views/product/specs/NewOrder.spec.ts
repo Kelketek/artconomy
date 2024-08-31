@@ -36,7 +36,7 @@ describe('NewOrder.vue', () => {
   })
   test('Resets scroll', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -53,7 +53,7 @@ describe('NewOrder.vue', () => {
   })
   test('Submits a form with a registered user', async() => {
     const user = genUser({username: 'OtherPerson'})
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -91,7 +91,7 @@ describe('NewOrder.vue', () => {
   })
   test('Creates an invoice for an artist', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -137,7 +137,7 @@ describe('NewOrder.vue', () => {
   })
   test('Submits a table order', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -187,7 +187,7 @@ describe('NewOrder.vue', () => {
     })
   })
   test('Submits a form with an unregistered user', async() => {
-    setViewer(store, genAnon())
+    setViewer({ store, user: genAnon() })
     // Need to be on a route for the 'viewer reset' controller code to be able to run.
     wrapper = mount(NewOrder, {
       ...vueSetup({
@@ -231,7 +231,7 @@ describe('NewOrder.vue', () => {
   })
   test('Fetches character info', async() => {
     const user = genUser()
-    setViewer(store, user)
+    setViewer({ store, user })
     const form = mount(Empty, vueSetup({store})).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
@@ -313,7 +313,7 @@ describe('NewOrder.vue', () => {
   })
   test('Updates the form when the user is silently registered', async() => {
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     const form = mount(Empty, vueSetup({store})).vm.$getForm('newOrder', {
       endpoint: '/boop/',
       persistent: true,
@@ -362,7 +362,7 @@ describe('NewOrder.vue', () => {
   })
   test('Sets the details template when starting from nothing.', async() => {
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -409,7 +409,7 @@ describe('NewOrder.vue', () => {
       },
     })
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -459,7 +459,7 @@ describe('NewOrder.vue', () => {
       },
     })
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -509,7 +509,7 @@ describe('NewOrder.vue', () => {
       },
     })
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     wrapper = mount(NewOrder, {
       ...vueSetup({
         store,
@@ -531,7 +531,7 @@ describe('NewOrder.vue', () => {
   })
   test('Redirects to step one if using the old order URL', async() => {
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.replace({
       name: 'NewOrder',
       params: {
@@ -556,7 +556,7 @@ describe('NewOrder.vue', () => {
   })
   test('Redirects to step one if the starting URL marks a lower number', async() => {
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.replace({
       name: 'NewOrder',
       params: {
@@ -582,7 +582,7 @@ describe('NewOrder.vue', () => {
   })
   test('Redirects to step three if the starting URL marks a higher number', async() => {
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.replace({
       name: 'NewOrder',
       params: {
@@ -607,7 +607,7 @@ describe('NewOrder.vue', () => {
   })
   test('Does not submit if the last step is not selected.', async() => {
     const user = genAnon()
-    setViewer(store, user)
+    setViewer({ store, user })
     await router.replace({
       name: 'NewOrder',
       params: {

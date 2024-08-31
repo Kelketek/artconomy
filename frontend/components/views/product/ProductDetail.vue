@@ -411,7 +411,7 @@
                   </ac-load-section>
                 </v-col>
                 <v-col cols="12">
-                  <template v-if="product.x.available || isStaff || isCurrent">
+                  <template v-if="product.x.available || powers.table_seller || isCurrent">
                     <div class="text-center" v-if="inventory.x && inventory.x.count">
                       <p>
                         <strong>
@@ -427,7 +427,7 @@
                     </v-btn>
                     <v-alert type="info" v-else>Visit our table to order!</v-alert>
                   </template>
-                  <v-alert v-if="!product.x.available" :class="{'mt-2': isCurrent || isStaff}" :value="true"
+                  <v-alert v-if="!product.x.available" :class="{'mt-2': isCurrent || powers.table_seller}" :value="true"
                            type="info">This product is not currently available.
                   </v-alert>
                 </v-col>
@@ -509,7 +509,7 @@
                     <v-row>
                       <v-col cols="12" sm="6">
                         <ac-patch-field :patcher="product.patchers.track_inventory" :persistent-hint="true"
-                                        v-if="isStaff || subject.landscape"
+                                        v-if="powers.table_seller || subject.landscape"
                                         field-type="ac-checkbox"
                                         label="Inventory"
                                         :disabled="product.patchers.wait_list.model"
@@ -532,15 +532,15 @@
                     </v-row>
                   </ac-expanded-property>
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="isStaff" v-show="editing">
+                <v-col class="text-center" cols="12" v-if="powers.moderate_content" v-show="editing">
                   <ac-patch-field :patcher="product.patchers.featured" field-type="v-switch" label="Featured"
                                   color="primary"/>
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="isStaff" v-show="editing">
+                <v-col class="text-center" cols="12" v-if="powers.moderate_content" v-show="editing">
                   <ac-patch-field :patcher="product.patchers.catalog_enabled" field-type="v-switch"
                                   label="Catalog Enabled" color="primary"/>
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="isStaff" v-show="editing">
+                <v-col class="text-center" cols="12" v-if="powers.table_seller" v-show="editing">
                   <ac-patch-field :patcher="product.patchers.table_product" field-type="v-switch" label="Table Product"
                                   color="primary"/>
                 </v-col>
@@ -671,8 +671,8 @@ const shownSubmissionLink = computed(() => {
   }
 })
 
-const {ageCheck, isStaff} = useViewer()
-const {subject, controls, isCurrent, subjectHandler} = useSubject(props)
+const {ageCheck, powers} = useViewer()
+const {subject, controls, isCurrent, subjectHandler} = useSubject({ props })
 const {editing} = useEditable(controls)
 const {product, deliveryDate, url} = useProduct(props)
 const {pricing} = usePricing()

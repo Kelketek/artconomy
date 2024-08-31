@@ -36,7 +36,7 @@ describe('AcTotpDevice.vue', () => {
     cleanUp(wrapper)
   })
   test('Shows a set of steps', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     controller.setList([{
       id: 1,
       confirmed: false,
@@ -53,7 +53,7 @@ describe('AcTotpDevice.vue', () => {
     expect(wrapper.findAll('.v-stepper-window-item').length).toBe(3)
   })
   test('Shows no steps if the device is confirmed', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     controller.setList([{
       id: 1,
       confirmed: true,
@@ -70,7 +70,7 @@ describe('AcTotpDevice.vue', () => {
     expect(wrapper.findAll('.v-stepper__step').length).toBe(0)
   })
   test('Deletes a device', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     controller.setList([{
       id: 1,
       confirmed: true,
@@ -99,7 +99,7 @@ describe('AcTotpDevice.vue', () => {
     expect(controller.list).toEqual([])
   })
   test('Logs an error if there was an issue building the QR code image', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mockError.mockImplementationOnce(() => undefined)
     controller.setList([{
       id: 1,
@@ -117,7 +117,7 @@ describe('AcTotpDevice.vue', () => {
     expect(mockError).toHaveBeenCalledWith(Error('No input text'))
   })
   test('Sends a verification code', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     mockError.mockImplementationOnce(() => undefined)
     controller.setList([{
       id: 1,

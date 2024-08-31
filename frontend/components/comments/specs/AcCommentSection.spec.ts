@@ -48,7 +48,7 @@ describe('AcCommentSection.vue', () => {
   })
   // This test appears to have some unknown isolation issue. It works on the second try.
   test('Fetches and renders a comment list', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const commentList = mount(Empty, vueSetup({store})).vm.$getList('commentList', {
       endpoint: '/api/comments/',
       reverse: true,
@@ -105,7 +105,7 @@ describe('AcCommentSection.vue', () => {
     expect(mockError).toHaveBeenCalledWith('Comment lists should always be reversed!')
   })
   test('Toggle history mode', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const commentList = mount(Empty, vueSetup({store})).vm.$getList('commentList', {
       endpoint: '/api/comments/',
       reverse: true,

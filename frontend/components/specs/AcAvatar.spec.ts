@@ -66,7 +66,7 @@ describe('AcAvatar', () => {
     )
   })
   test('Populates via ID locally', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(AcAvatar, {
       ...vueSetup({
         store,
@@ -95,7 +95,7 @@ describe('AcAvatar', () => {
     expect(mockError).toBeCalledWith('No username, no ID. We cannot load an avatar.')
   })
   test('Ignores a username update if the value is false', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(AcAvatar, {
       ...vueSetup({
         store,
@@ -112,7 +112,7 @@ describe('AcAvatar', () => {
     })
   })
   test('Repopulates if the username changes', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(AcAvatar, {
       ...vueSetup({
         store,
@@ -143,7 +143,7 @@ describe('AcAvatar', () => {
     )
   })
   test('Bootstraps straight from a user', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(AcAvatar, {
       ...vueSetup({
         store,
@@ -166,7 +166,7 @@ describe('AcAvatar', () => {
     const user = genUser()
     user.guest = true
     user.username = '__6'
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(AcAvatar, {
       ...vueSetup({
         store,
@@ -181,7 +181,7 @@ describe('AcAvatar', () => {
   test('Does not produce a link when told not to.', async() => {
     const user = genUser()
     user.artist_mode = false
-    setViewer(store, user)
+    setViewer({ store, user })
     const wrapper = mount(AcAvatar, {
       ...vueSetup({
         store,

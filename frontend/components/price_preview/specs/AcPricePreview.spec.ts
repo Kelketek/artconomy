@@ -43,7 +43,7 @@ describe('AcPricePreview.vue', () => {
     user = genUser()
   })
   test('Integrates add-on forms', async() => {
-    setViewer(store, user)
+    setViewer({ store, user })
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
@@ -66,7 +66,7 @@ describe('AcPricePreview.vue', () => {
     expect(vm.rawPrice).toEqual('95.00')
   })
   test('Calculates hourly rate for escrow', async() => {
-    setViewer(store, user)
+    setViewer({ store, user })
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
@@ -85,7 +85,7 @@ describe('AcPricePreview.vue', () => {
     expect(vm.hourly).toEqual('36.42')
   })
   test('Calculates hourly rate for non-escrow', async() => {
-    setViewer(store, user)
+    setViewer({ store, user })
     const wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,

@@ -98,7 +98,7 @@ const props = defineProps<{
   productId: number|string,
 } & SubjectiveProps>()
 
-const {subjectHandler} = useSubject(props)
+const {subjectHandler} = useSubject({ props })
 const emit = defineEmits<{'update:modelValue': [boolean]}>()
 const tab = ref('tab-pick-sample')
 const newUpload = ref(false)

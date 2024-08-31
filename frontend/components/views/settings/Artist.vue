@@ -141,7 +141,7 @@ import SubjectiveProps from '@/types/SubjectiveProps'
 
 const props = defineProps<SubjectiveProps>()
 
-const {subjectHandler} = useSubject(props)
+const {subjectHandler} = useSubject({ props })
 
 const artistProfile = subjectHandler.artistProfile
 artistProfile.get().then()

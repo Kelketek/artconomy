@@ -23,7 +23,7 @@ describe('AcProductSelect.vue', () => {
     }
   })
   test('Calls a custom display handler', () => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     wrapper = mount(
       AcProductSelect, {
         ...vueSetup({store}),

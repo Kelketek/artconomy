@@ -8,19 +8,10 @@ import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {ServicePlan} from '@/types/ServicePlan.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
+import {StaffPower} from '@/store/profiles/types/StaffPowers.ts'
 
 const getIsCurrent = (username: string, rawViewerName: string, viewerName: string) => {
   return username === rawViewerName || username === viewerName
-}
-
-const getControls = (isCurrent: boolean, protectedView: boolean, isSuperuser: boolean, isStaff: boolean) => {
-  if (isCurrent) {
-    return true
-  }
-  if (protectedView) {
-    return isSuperuser
-  }
-  return isStaff
 }
 
 const getSubjectPlan = (subject: TerseUser | User | null, getPlan: (planName: string) => ServicePlan | null) => {
@@ -31,19 +22,32 @@ const getSubjectPlan = (subject: TerseUser | User | null, getPlan: (planName: st
   return getPlan(subject.service_plan)
 }
 
-export const useSubject = <T extends SubjectiveProps>(props: T, privateView = false, protectedView = false) => {
+export const useSubject = <T extends SubjectiveProps>({ props, privateView = false, controlPowers = [] }: { props: T; privateView?: boolean; protectedView?: boolean, controlPowers?: StaffPower[] }) => {
   const {
     viewerName,
     rawViewerName,
     isSuperuser,
-    isStaff,
     isRegistered,
+    powers,
   } = useViewer()
   const subjectHandler = useProfile(props.username)
 
   const subject = computed(() => subjectHandler.user.x as TerseUser | User)
   const isCurrent = computed(() => getIsCurrent(props.username, rawViewerName.value, viewerName.value))
-  const controls = computed(() => getControls(isCurrent.value, protectedView, isSuperuser.value, isStaff.value))
+  const controls = computed(() => {
+    if (isCurrent.value) {
+      return true
+    }
+    if (controlPowers.length === 0) {
+      return isSuperuser.value
+    }
+    for (const entry of controlPowers) {
+      if (powers.value[entry]) {
+        return true
+      }
+    }
+    return false
+  })
   const {getPlan} = usePricing()
   const subjectPlan = computed(() => getSubjectPlan(subject.value, getPlan))
   const store = useStore()

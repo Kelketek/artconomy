@@ -6,6 +6,14 @@ export function artistProfilePathFor(username: string) {
   return [...pathFor(username), 'artistProfile']
 }
 
+export function staffPowersPathFor(username: string) {
+  return [...pathFor(username), 'staffPowers']
+}
+
+export function staffPowersEndpointFor(username: string) {
+  return `/api/profiles/account/${username}/staff-powers/`
+}
+
 export function pathFor(username: string) {
   return ['userModules', username]
 }

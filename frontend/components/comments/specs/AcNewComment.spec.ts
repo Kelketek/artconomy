@@ -59,7 +59,7 @@ describe('AcNewComment.vue', () => {
     cleanUp(wrapper)
   })
   test('Posts a new comment', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}
@@ -112,7 +112,7 @@ describe('AcNewComment.vue', () => {
     expect(commentList.list.length).toEqual(4)
   })
   test('Updates the extra data', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const empty = mount(Empty, vueSetup({store}))
     const commentList = empty.vm.$getList('commentList', {endpoint: '/api/comments/'})
     commentList.response = {...commentSet}

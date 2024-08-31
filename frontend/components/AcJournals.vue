@@ -73,7 +73,7 @@ import {useSubject} from '@/mixins/subjective.ts'
 import {formatDate} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<SubjectiveProps>()
-const {isCurrent} = useSubject(props)
+const {isCurrent} = useSubject({ props })
 const router = useRouter()
 const showNew = ref(false)
 const url = computed(() => `/api/profiles/account/${props.username}/journals/`)

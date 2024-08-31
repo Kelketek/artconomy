@@ -74,8 +74,8 @@ declare interface AcTagDisplayProps {
 }
 const props = withDefaults(defineProps<AcTagDisplayProps & SubjectiveProps>(), {editable: false})
 
-const {isRegistered, isStaff} = useViewer()
-const {isCurrent} = useSubject(props)
+const {isRegistered, powers} = useViewer()
+const {isCurrent} = useSubject({ props })
 
 const router = useRouter()
 
@@ -116,7 +116,7 @@ const controls = computed(() => {
   if (isCurrent.value) {
     return true
   }
-  return isStaff.value
+  return powers.value.moderate_content
 })
 
 const moreTags = computed(() => props.patcher.rawValue.length - displayedTags.value.length)

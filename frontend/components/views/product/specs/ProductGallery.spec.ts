@@ -40,7 +40,7 @@ describe('ProductGallery', () => {
     })
   })
   test('Mounts', async() => {
-    setViewer(store, genUser())
+    setViewer({ store, user: genUser() })
     const wrapper = mount(
       ProductGallery, {
         ...vueSetup({

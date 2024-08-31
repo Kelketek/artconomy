@@ -48,7 +48,7 @@ describe('Journal.vue', () => {
   })
   test('Deletes a journal', async() => {
     await router.push('/')
-    setViewer(store, genUser({is_staff: true}))
+    setViewer({ store, user: genUser({ is_staff: true }) })
     wrapper = mount(Journal, {
       ...vueSetup({
         store,
