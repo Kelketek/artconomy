@@ -76,7 +76,7 @@
     "vite-plugin-wasm": "^3.3.0",
     "vitest": "^2.0.5",
     "vitest-mock-axios": "^0.1.0",
-    "vitest-websocket-mock": "^0.3.0",
+    "vitest-websocket-mock": "^0.4.0",
     "vue-tsc": "^2.0.29"
   }
 }
