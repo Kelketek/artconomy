@@ -8,10 +8,9 @@
 
 <script setup lang="ts">
 import {ListController} from '@/store/lists/controller.ts'
-import cloneDeep from 'lodash/cloneDeep'
 import {RouteLocationNamedRaw} from 'vue-router'
-import {TabSpec} from '@/types/TabSpec.ts'
 import {computed} from 'vue'
+import {clone} from '@/lib/lib.ts'
 
 declare interface TabProps {
   icon?: string,
@@ -36,7 +35,7 @@ const destination = computed(() => {
   if (!props.list) {
     return props.to
   }
-  const route = cloneDeep(props.to)
+  const route = clone(props.to)
   if (props.list.currentPage > 1) {
     const query = route.query || {}
     query[props.pageVariable] = props.list.currentPage + ''

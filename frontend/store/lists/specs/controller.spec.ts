@@ -10,12 +10,12 @@ import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import WS from 'vitest-websocket-mock'
 import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
-import {cloneDeep} from 'lodash'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {buildRegistries} from '@/plugins/createRegistries.ts'
 import {buildSocketManger} from '@/plugins/socket.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import {nextTick} from 'vue'
+import {clone} from '@/lib/lib.ts'
 
 let store: ArtStore
 let state: any
@@ -467,7 +467,7 @@ describe('List controller', () => {
     )
   })
   test('Receives new items from the server, sans primary key.', async() => {
-    const settings = cloneDeep(socketSettings)
+    const settings = clone(socketSettings)
     delete settings.list.pk
     const controller = makeController({socketSettings: settings})
     const server = new WS(controller.$sock.endpoint, {jsonProtocol: true})

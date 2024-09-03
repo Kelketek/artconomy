@@ -1,9 +1,8 @@
 import {formRegistry} from './registry.ts'
-import cloneDeep from 'lodash/cloneDeep'
 import debounce from 'lodash/debounce'
 import axios from 'axios'
 import deepEqual from 'fast-deep-equal'
-import {ComputedGetters, dotTraverse, flatten} from '@/lib/lib.ts'
+import {clone, ComputedGetters, dotTraverse, flatten} from '@/lib/lib.ts'
 import {FormError} from '@/store/forms/types/FormError.ts'
 import {FormState} from '@/store/forms/types/FormState.ts'
 import {ValidatorSpec} from '@/store/forms/types/ValidatorSpec.ts'
@@ -82,7 +81,7 @@ export class FieldController {
 
   public set initialData(value: any) {
     const data: RawData = {}
-    data[this.fieldName] = cloneDeep(value)
+    data[this.fieldName] = clone(value)
     this.$store.commit('forms/updateInitialData', {name: this.formName, data})
   }
 
@@ -92,7 +91,7 @@ export class FieldController {
       // Should not happen unless we're tearing down.
       return
     }
-    this.localCache.value = cloneDeep(val)
+    this.localCache.value = clone(val)
   }
 
   // Watcher for localCache
@@ -199,7 +198,7 @@ export class FieldController {
 
   public update = (value: any, validate: boolean = true) => {
     const data: RawData = {}
-    data[this.fieldName] = cloneDeep(value)
+    data[this.fieldName] = clone(value)
     this.$store.commit('forms/updateValues', {name: this.formName, data})
     if (validate) {
       this.validate()
@@ -232,7 +231,7 @@ export class FieldController {
           Object.keys(formRegistry.asyncValidators))
         continue
       }
-      const args = cloneDeep(validator.args || [])
+      const args = clone(validator.args || [])
       args.unshift(this.cancelSource.signal)
       promiseSet.push(
         formRegistry.asyncValidators[validator.name](this, ...args).catch(axiosCatch),

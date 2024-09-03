@@ -1,10 +1,9 @@
 import axios from 'axios'
-import cloneDeep from 'lodash/cloneDeep'
 import debounce from 'lodash/debounce'
-import {artCall} from '@/lib/lib.ts'
+import {artCall, clone} from '@/lib/lib.ts'
 import deepEqual from 'fast-deep-equal'
 import {RawData} from '@/store/forms/types/RawData.ts'
-import {computed, ref, Ref, toValue, watch} from 'vue'
+import {computed, ref, Ref, watch} from 'vue'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {isNumber} from 'lodash'
 
@@ -109,7 +108,7 @@ export const useAutocomplete = (
     // Allows us to cache this value internally.
     items.value = [...props.initItems]
   }
-  tags.value = cloneDeep(props.modelValue)
+  tags.value = clone(props.modelValue)
 
   watch(tags, () => {
     if (Array.isArray(tags.value)) {
@@ -174,7 +173,7 @@ export const useAutocomplete = (
     if (deepEqual(newVal, oldVal)) {
       return
     }
-    oldValue.value = cloneDeep(oldVal)
+    oldValue.value = clone(oldVal)
     const cached: { [key: number]: IdModel } = {}
     items.value.forEach((val) => cached[val.id] = val)
     if (Array.isArray(newVal)) {
@@ -196,7 +195,7 @@ export const useAutocomplete = (
       }
       return
     }
-    tags.value = cloneDeep(newVal)
+    tags.value = clone(newVal)
     if ((oldVal === undefined) || (oldVal === null)) {
       return
     }

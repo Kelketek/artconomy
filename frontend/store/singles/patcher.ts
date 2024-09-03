@@ -1,7 +1,6 @@
 // Patcher that allows more flexibility in defining how data will be sent. In most cases, you want patcher in the
 // singles module instead.
-import {artCall, ComputedGetters, dotTraverse} from '@/lib/lib.ts'
-import cloneDeep from 'lodash/cloneDeep'
+import {artCall, clone, ComputedGetters, dotTraverse} from '@/lib/lib.ts'
 import debounce from 'lodash/debounce'
 import axios, {AxiosError} from 'axios'
 import {deriveErrors} from '@/store/forms/helpers.ts'
@@ -164,7 +163,7 @@ export class Patch<T = any> {
     }
     const value = model[this.attrName]
     if (typeof value === 'object') {
-      return cloneDeep(value)
+      return clone(value)
     }
     return model[this.attrName]
   }

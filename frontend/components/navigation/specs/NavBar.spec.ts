@@ -4,7 +4,6 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {
   cleanUp, createTestRouter,
-  mockRoutes,
   mount,
   rq,
   rs,
@@ -15,7 +14,7 @@ import mockAxios from '@/specs/helpers/mock-axios.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {nextTick} from 'vue'
-import {createRouter, createWebHistory, Router} from 'vue-router'
+import {Router} from 'vue-router'
 import {setViewer} from '@/lib/lib.ts'
 
 // Must use it directly, due to issues with package imports upstream.
@@ -67,7 +66,7 @@ describe('NavBar.vue', () => {
     }))
     await nextTick()
     expect(store.state.showSupport).toBe(false)
-    wrapper.find('.support-button').trigger('click')
+    await wrapper.find('.support-button').trigger('click')
     await nextTick()
     expect(store.state.showSupport).toBe(true)
   })

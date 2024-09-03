@@ -10,7 +10,6 @@ import {SimpleQueryParams} from '@/store/helpers/SimpleQueryParams.ts'
 import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema.ts'
 import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import cloneDeep from 'lodash/cloneDeep'
 import {LogLevels, LogLevelsValue} from '@/types/LogLevels.ts'
 import {RatingsValue} from '@/types/Ratings.ts'
 import {InvoiceTypeValue} from '@/types/InvoiceType.ts'
@@ -461,7 +460,7 @@ export function updateLinked(options: LinkUpdateOptions) {
   if (!options.newValue) {
     return
   }
-  let updateItems = options.list.list.map(x => cloneDeep(x.x))
+  let updateItems = options.list.list.map(x => clone(x.x))
   updateItems = updateItems.filter(
     (x) => x[options.key][options.subKey as string] === options.newValue[options.subKey as string])
   updateItems.map((x) => { x[options.key] = options.newValue }) // eslint-disable-line array-callback-return
@@ -684,5 +683,70 @@ export const starRound = (val: number|null) => {
   } else if (remainder <= .25) {
     return base
   }
+
   return base + remainder
+}
+
+const PRIMITIVES = new Set(['number', 'string', 'function', 'symbol', 'bigint', 'boolean', 'undefined'])
+
+export const clone = <T>(item: T, knownMap?: Map<any, any>): T => {
+  // This is our clone function. It should handle everything we need to clone for. We used to use lodash's cloneDeep,
+  // which is extremely comprehensive, but it increased our bundle size a good bit. StructuredClone, meanwhile, is too
+  // naive.
+
+  // Initialize our knownMap with Singletons.
+  knownMap = knownMap ?? new Map<any, any>([
+    [null, null],
+    [NaN, NaN],
+    [Infinity, Infinity],
+    [window, window],
+    [document, document]
+  ])
+  if (knownMap.has(item)) {
+    return item
+  }
+  if (PRIMITIVES.has(typeof item)) {
+    return item
+  }
+  if (Array.isArray(item)) {
+    const result = []
+    for (const entry of item) {
+      if (!knownMap.has(entry)) {
+        knownMap.set(entry, clone(entry, knownMap))
+      }
+      result.push(knownMap.get(entry) as typeof entry)
+    }
+    return result as T
+  }
+  if (item instanceof Set) {
+    const result = new Set()
+    for (const value of item.values()) {
+      if (!knownMap.has(value)) {
+        knownMap.set(value, clone(value, knownMap))
+      }
+      result.add(knownMap.get(value))
+    }
+    return result as T
+  }
+  if (item instanceof Map) {
+    const result = new Map()
+    for (const [key, value] of item.entries()) {
+      if (!knownMap.has(key)) {
+        knownMap.set(key, clone(key, knownMap))
+      }
+      if (!knownMap.has(value)) {
+        knownMap.set(value, clone(value, knownMap))
+      }
+      result.set(knownMap.get(key), knownMap.get(value))
+    }
+    return result as T
+  }
+  const result: any = {};
+  for (const [key, value] of Object.entries(item as Record<any, any>)) {
+    if (!knownMap.has(value)) {
+      knownMap.set(value, clone(value, knownMap))
+    }
+    result[key] = value
+  }
+  return result as T
 }

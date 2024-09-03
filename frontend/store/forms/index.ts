@@ -1,8 +1,7 @@
 import {ArtState as RootState} from '../artState.ts'
 import {ActionTree, GetterTree, MutationTree} from 'vuex'
-import cloneDeep from 'lodash/cloneDeep'
 import isEqual from 'lodash/isEqual'
-import {artCall} from '@/lib/lib.ts'
+import {artCall, clone} from '@/lib/lib.ts'
 import {FormSchema} from './types/FormSchema.ts'
 import {MetaToggles} from '@/store/forms/types/MetaToggles.ts'
 import {FieldSet} from '@/store/forms/types/FieldSet.ts'
@@ -24,7 +23,7 @@ export function fieldFromSchema(schema: FieldSchema): Field {
       validators: [],
       errors: [],
       hidden: false,
-      initialData: cloneDeep(schema.value),
+      initialData: clone(schema.value),
       extra: {},
       debounce: null,
       step: 1,
@@ -113,7 +112,7 @@ const mutations: MutationTree<RootFormState> = {
   },
   setMetaErrors(state: RootFormState, payload: { name: string, errors: [] }) {
     // Sets the meta form errors, such as those for connection issues.
-    state[payload.name].errors = cloneDeep(payload.errors)
+    state[payload.name].errors = clone(payload.errors)
   },
   updateValues(state: RootFormState, payload: { name: string, data: RawData }) {
     // Updates the data to contain whatever additional information is given.

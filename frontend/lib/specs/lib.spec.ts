@@ -2,7 +2,7 @@
 import mockAxios from '../../specs/helpers/mock-axios.ts'
 import {
   artCall,
-  clearMetaTag,
+  clearMetaTag, clone,
   crossDomain,
   csrfSafeMethod,
   dotTraverse,
@@ -651,5 +651,18 @@ describe('initDrawerValue', () => {
   test('Handles a set initial value', () => {
     localStorage.setItem('drawerOpen', 'true')
     expect(initDrawerValue()).toBe(true)
+  })
+})
+
+describe('Clones data', () => {
+  test.each`
+    value
+    ${'test'}
+    ${['test', 'test2']}
+    ${[]}
+    ${[null]}
+    ${{test: null}}
+  `('Should return an equivalent to $value', ({value}) => {
+    expect(clone(value)).toEqual(value)
   })
 })

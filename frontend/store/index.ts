@@ -4,8 +4,7 @@ import {profiles, userModules} from './profiles/index.ts'
 import {errors} from './errors/index.ts'
 import {forms} from './forms/index.ts'
 import {lists} from './lists/index.ts'
-import cloneDeep from 'lodash/cloneDeep'
-import {genId} from '@/lib/lib.ts'
+import {clone, genId} from '@/lib/lib.ts'
 import {singles} from './singles/index.ts'
 import {characterModules} from '@/store/characters/index.ts'
 import {RatingsValue} from '@/types/Ratings.ts'
@@ -110,5 +109,5 @@ export type ArtStore = VuexStore<ArtState>
 
 
 export const createStore = (options?: StoreOptions<ArtState>): ArtStore => {
-  return createVuexStore<ArtState>({...cloneDeep(options || storeDefaults()), plugins: [/**myPlugin**/]})
+  return createVuexStore<ArtState>({...clone(options || storeDefaults()), plugins: [/**myPlugin**/]})
 }
