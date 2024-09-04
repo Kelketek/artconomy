@@ -62,7 +62,7 @@ celery[redis]==5.4.0
     # via
     #   -r requirements.in
     #   django-celery-email
-certifi==2024.7.4
+certifi==2024.8.30
     # via
     #   httpcore
     #   httpx
@@ -99,7 +99,7 @@ coverage==7.6.1
     # via -r requirements.in
 croniter==3.0.3
     # via discord-py-interactions
-cryptography==43.0.0
+cryptography==43.0.1
     # via
     #   authlib
     #   autobahn
@@ -117,11 +117,11 @@ ddt==1.7.2
     # via -r requirements.in
 decorator==5.1.1
     # via ipython
-discord-py-interactions==5.13.1
+discord-py-interactions==5.13.2
     # via -r requirements.in
 discord-typings==0.9.0
     # via discord-py-interactions
-django==5.0.8
+django==5.0.9
     # via
     #   -r requirements.in
     #   adrf
@@ -163,7 +163,7 @@ django-markdown2==0.3.1
     # via -r requirements.in
 django-money==3.2.0
     # via -r requirements.in
-django-otp==1.5.2
+django-otp==1.5.3
     # via -r requirements.in
 django-premailer==0.2.0
     # via -r requirements.in
@@ -201,11 +201,11 @@ easy-thumbnails==2.9
     # via -r requirements.in
 emoji==2.12.1
     # via discord-py-interactions
-executing==2.0.1
+executing==2.1.0
     # via stack-data
 factory-boy==3.3.1
     # via -r requirements.in
-faker==28.0.0
+faker==28.4.1
     # via factory-boy
 freezegun==1.5.1
     # via -r requirements.in
@@ -247,7 +247,7 @@ idna==3.8
     #   yarl
 incremental==24.7.2
     # via twisted
-ipython==8.26.0
+ipython==8.27.0
     # via -r requirements.in
 isort==5.13.2
     # via -r requirements.in
@@ -286,7 +286,7 @@ multidict==6.0.5
     #   yarl
 mypy-extensions==1.0.0
     # via black
-numpy==2.1.0
+numpy==2.1.1
     # via pandas
 packaging==24.1
     # via black
@@ -378,7 +378,7 @@ requests==2.32.3
     #   geoip2
     #   premailer
     #   stripe
-ruff==0.6.2
+ruff==0.6.3
     # via -r requirements.in
 sendgrid==6.11.0
     # via django-sendgrid-v5
@@ -405,7 +405,7 @@ stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==10.8.0
+stripe==10.9.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
@@ -452,7 +452,7 @@ vine==5.1.0
     #   amqp
     #   celery
     #   kombu
-watchfiles==0.23.0
+watchfiles==0.24.0
     # via uvicorn
 wcwidth==0.2.13
     # via prompt-toolkit
@@ -460,11 +460,11 @@ webencodings==0.5.1
     # via
     #   cssselect2
     #   tinycss2
-websockets==13.0
+websockets==13.0.1
     # via uvicorn
-yarl==1.9.4
+yarl==1.9.8
     # via aiohttp
-zope-interface==7.0.1
+zope-interface==7.0.3
     # via twisted
 
 # The following packages are considered to be unsafe in a requirements file:
