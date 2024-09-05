@@ -2011,3 +2011,16 @@ class ShoppingCart(models.Model):
     )
     escrow_upgrade = models.BooleanField(default=False)
     details = TextField(max_length=5000, blank=True)
+
+
+class WebhookEventRecord(models.Model):
+    """
+    This model keeps track of webhook events, specifically for Stripe, though
+    we may eventually extend it to include PayPal webhook handling, but the PayPal
+    events don't actually move money around for us.
+    """
+
+    id = ShortCodeField(primary_key=True, default=gen_shortcode)
+    event_id = models.CharField(unique=True, db_index=True)
+    created_on = models.DateTimeField(default=timezone.now, db_index=True)
+    data = models.JSONField()

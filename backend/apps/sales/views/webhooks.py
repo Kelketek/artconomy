@@ -37,6 +37,7 @@ from apps.sales.models import (
     WebhookRecord,
     PaypalConfig,
     LineItem,
+    WebhookEventRecord,
 )
 from apps.sales.paypal import (
     validate_paypal_request,
@@ -66,7 +67,6 @@ from stripe.error import SignatureVerificationError
 logger = logging.getLogger(__name__)
 
 
-@transaction.atomic
 def handle_charge_event(event, successful=True):
     charge_event = event["data"]["object"]
     metadata = charge_event["metadata"]
@@ -150,7 +150,6 @@ def account_updated(event):
         withdraw_all.delay(account.user.id)
 
 
-@atomic
 def pull_and_reconcile_payout_report(event, report):
     """
     Given a Stripe ReportRun object as specified by payout_paid,
@@ -228,7 +227,6 @@ def reconcile_payout_report(event):
     pull_and_reconcile_payout_report(event, event["data"]["object"])
 
 
-@atomic
 def payout_paid(event):
     """
     Stripe webhook for the payout.paid event. Unfortunately the payout information does
@@ -274,7 +272,6 @@ def transfer_failed(event):
     )
 
 
-@transaction.atomic
 def payment_method_attached(event):
     card_info = event["data"]["object"]
     if not card_info["type"] == "card":
@@ -452,18 +449,24 @@ if settings.TESTING:
     REPORT_ROUTES["dummy_report"] = dummy_report_processor
 
 
+@atomic
 def handle_stripe_event(*, body: str = None, connect: bool, event: dict = None):
     """
     Stripe event handler. This does not validate the request is brought from stripe--
     that's handled by the StripeWebhooks view. This function allows an event to be
     run as blessed even without verification, which is useful for testing.
     """
-
     routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
     if event is None:
         if body is None:
             raise TypeError("Neither event nor body provided. Both are None.")
         event = json.loads(body)
+    key, created = WebhookEventRecord.objects.get_or_create(
+        defaults={"data": event},
+        event_id=event["id"],
+    )
+    if not created:
+        return Response(status=status.HTTP_204_NO_CONTENT)
     handler = routes.get(event["type"], None)
     if not handler:
         logger.warning(
@@ -471,6 +474,7 @@ def handle_stripe_event(*, body: str = None, connect: bool, event: dict = None):
             event["type"],
             connect,
         )
+        key.delete()
         return Response(
             status=status.HTTP_400_BAD_REQUEST,
             data={"detail": f'Unsupported command "{event["type"]}"'},
@@ -508,11 +512,6 @@ class StripeWebhooks(APIView):
 class PaypalWebhooks(APIView):
     """
     View for callbacks from PayPal.
-
-    TODO: These all mimic the manual movements of the non-shield status changing
-          buttons. Should we refactor this to be more in tune with the rest of the
-          payment workflow?
-    TODO: Validate PayPal message to verify it came from PayPal
     """
 
     def post(self, request, *, config_id: str):

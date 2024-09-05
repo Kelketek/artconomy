@@ -45,7 +45,7 @@ from apps.sales.constants import (
     CANCELLED,
     REFUNDED,
 )
-from apps.sales.models import CreditCardToken, TransactionRecord
+from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord
 from apps.sales.stripe import money_to_stripe
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -182,6 +182,12 @@ class TestHandleEvent(EnsurePlansMixin, TestCase):
             'Unsupported event "%s" received from Stripe. Connect is %s', "foo", False
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_idempotent_command(self):
+        event = base_charge_succeeded_event()
+        WebhookEventRecord.objects.create(event_id=event["id"], data={})
+        response = handle_stripe_event(event=event, connect=False)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     @patch("apps.sales.views.webhooks.mockable_dummy_report_processor")
     def test_report_processor(self, mock_dummy_event):

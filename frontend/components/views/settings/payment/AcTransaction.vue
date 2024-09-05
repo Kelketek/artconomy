@@ -2,7 +2,7 @@
   <v-list-item>
     <div>
       <v-list-item-title>
-        {{STATUS_COMMENTS[transaction.status]}} ${{amount.toFixed(2)}}
+        {{STATUS_COMMENTS[transaction.status]}} {{amount}}
       </v-list-item-title>
       <v-list-item-subtitle>
         <span v-if="outbound">to</span>
@@ -172,9 +172,9 @@ const otherAccount = computed(() => {
 
 const amount = computed(() => {
   if (outbound.value) {
-    return 0 - props.transaction.amount
+    return `-$${props.transaction.amount}`
   }
-  return props.transaction.amount
+  return `$${props.transaction.amount}`
 })
 
 const issuer = computed(() => {
