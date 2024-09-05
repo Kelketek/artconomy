@@ -640,6 +640,10 @@ CELERYBEAT_SCHEDULE = {
         "task": "apps.sales.tests.clear_old_carts",
         "schedule": crontab(hour=3, minute=0),
     },
+    "clear_old_webhook_logs": {
+        "task": "apps.sales.tests.clear_old_webhook_logs",
+        "schedule": crontab(hour=3, minute=0),
+    },
     "promote_top_sellers": {
         "task": "apps.sales.tasks.promote_top_sellers",
         "schedule": crontab(hour=10, minute=30, day_of_month=1),

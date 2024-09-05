@@ -51,6 +51,7 @@ from apps.sales.models import (
     TransactionRecord,
     Order,
     ShoppingCart,
+    WebhookEventRecord,
 )
 from apps.sales.stripe import money_to_stripe, stripe
 from apps.sales.utils import (
@@ -777,3 +778,10 @@ def promote_top_sellers(reference_date: Optional[str] = None):
     for user in users:
         user.featured = True
         user.save(update_fields=["featured"])
+
+
+@celery_app.task()
+def clear_old_webhook_logs():
+    WebhookEventRecord.objects.filter(
+        created_on__lte=timezone.now() - relativedelta(months=2),
+    ).delete()

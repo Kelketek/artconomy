@@ -35,7 +35,12 @@ from apps.sales.constants import (
     VOID,
     QUEUED,
 )
-from apps.sales.models import Deliverable, Invoice, TransactionRecord
+from apps.sales.models import (
+    Deliverable,
+    Invoice,
+    TransactionRecord,
+    WebhookEventRecord,
+)
 from apps.sales.tasks import (
     annotate_connect_fees,
     annotate_connect_fees_for_year_month,
@@ -55,6 +60,7 @@ from apps.sales.tasks import (
     drip_placed_order,
     drip_sync_cart,
     promote_top_sellers,
+    clear_old_webhook_logs,
 )
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -1349,3 +1355,20 @@ class TestPromoteTopSellers(EnsurePlansMixin, TestCase):
                 self.assertFalse(user.featured)
             except AssertionError as err:
                 raise AssertionError(f"FAILED ON {label}") from err
+
+
+class TestClearOldWebhookLogs(TestCase):
+    def test_clear_old_webhook_logs(self):
+        to_delete = WebhookEventRecord.objects.create(
+            event_id="beep", created_on=timezone.now() - relativedelta(months=3),
+            data={},
+        )
+        to_preserve = WebhookEventRecord.objects.create(
+            event_id="boop", created_on=timezone.now() - relativedelta(months=1),
+            data={},
+        )
+        clear_old_webhook_logs()
+        with self.assertRaises(WebhookEventRecord.DoesNotExist):
+            to_delete.refresh_from_db()
+        # Should not raise.
+        to_preserve.refresh_from_db()
