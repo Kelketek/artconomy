@@ -3,6 +3,7 @@ from unittest.mock import patch
 from apps.lib.models import Comment
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories_interdepend import CommentFactory
+from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.tests.factories import JournalFactory, SubmissionFactory, UserFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
 
@@ -33,6 +34,18 @@ class TestComment(APITestCase):
             user=journal.user, content_object=journal, top=journal
         )
         self.login(comment.user)
+        response = self.client.delete(
+            f"/api/lib/v1/comments/profiles.Journal/{journal.id}/{comment.id}/"
+        )
+        self.assertEqual(response.status_code, 204)
+        self.assertRaises(Comment.DoesNotExist, comment.refresh_from_db)
+
+    def test_delete_comment_staff(self):
+        journal = JournalFactory.create()
+        comment = CommentFactory.create(
+            user=journal.user, content_object=journal, top=journal
+        )
+        self.login(create_staffer("moderate_discussion"))
         response = self.client.delete(
             f"/api/lib/v1/comments/profiles.Journal/{journal.id}/{comment.id}/"
         )

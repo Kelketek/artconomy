@@ -147,7 +147,7 @@ class Comments(UniversalViewMixin, ListCreateAPIView):
     def get_queryset(self):
         qs = self.get_object().comments.all()
         staff_powers = staff_power(self.request.user, "handle_disputes") or staff_power(
-            self.request.user, "moderate_discussions"
+            self.request.user, "moderate_discussion"
         )
         if not (staff_powers and self.request.GET.get("history", False)):
             qs = qs.filter(thread_deleted=False)
