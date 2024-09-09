@@ -258,7 +258,7 @@ const props = withDefaults(defineProps<AcNavLinksProps>(), {embedded: false})
 const router = useRouter()
 const {viewerHandler} = useViewer()
 const powers = buildPowers(props.subjectHandler)
-props.subjectHandler.staffPowers.get()
+props.subjectHandler.staffPowers.get().catch(() => {})
 
 const openFirst = ref(['Openings', 'Art'])
 const openSecond = ref(['Reports'])
