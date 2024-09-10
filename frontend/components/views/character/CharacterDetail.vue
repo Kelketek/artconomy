@@ -196,7 +196,7 @@ import {useTheme} from 'vuetify'
 
 const props = defineProps<CharacterProps>()
 
-const {setError} = useErrorHandling()
+const {setError, statusOk} = useErrorHandling()
 const {controls} = useSubject({ props })
 const {editing} = useEditable(controls)
 const {ageCheck, isRegistered} = useViewer()
@@ -205,10 +205,10 @@ const {current} = useTheme()
 
 const character = useCharacter(props)
 character.profile.get().catch(setError)
-character.attributes.firstRun()
-character.colors.firstRun()
-character.sharedWith.firstRun()
-character.recommended.firstRun()
+character.attributes.firstRun().catch(statusOk(403))
+character.colors.firstRun().catch(statusOk(403))
+character.sharedWith.firstRun().catch(statusOk(403))
+character.recommended.firstRun().catch(statusOk(403))
 const submissionList = useList('characterSubmissions', {endpoint: character.submissions.endpoint})
 
 const tagControls = computed(() => {
