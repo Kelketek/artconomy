@@ -96,7 +96,7 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
   href = href.replace(/^http(s)?:[/][/](www[.])?artconomy[.]com([/]|$)/, '/')
   href = encodeURI(href)
   if (!href.startsWith('mailto:')) {
-    tokens[idx].attrPush(['onclick', `artconomy.$router.history.push('${href}');return false`])
+    tokens[idx].attrPush(['onclick', `artconomy.$router.push('${href}').catch(() => {});return false`])
   }
   return defaultRender(tokens, idx, options, env, self)
 }

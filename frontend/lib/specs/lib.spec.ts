@@ -349,7 +349,7 @@ Here's an email: support@artconomy.com`)).toBe(`<h1>Hello there.</h1>
 <p><em>This is a test of the markdown renderer.</em> <strong>There is no need to be alarmed.</strong><br>
 &lt;a href='<a href="https://example.com/'%3EI'm" target="_blank" rel="nofollow noopener">https://example.com/'&gt;I'm</a> going to try a manual link.&lt;/a&gt;</p>
 <p><a href="http://example.com/" target="_blank" rel="nofollow noopener">Here's a markdown link</a></p>
-<p><a href="/" target="_blank" onclick="artconomy.$router.history.push('/');return false">Here's another markdown link</a></p>
+<p><a href="/" target="_blank" onclick="artconomy.$router.push('/').catch(() =&gt; {});return false">Here's another markdown link</a></p>
 <p>Here's a raw link: <a href="https://example.com/" target="_blank" rel="nofollow noopener">https://example.com/</a></p>
 <p>Here's an email: <a href="mailto:support@artconomy.com" target="_blank">support@artconomy.com</a></p>
 `)
