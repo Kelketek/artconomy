@@ -497,7 +497,8 @@ export const log = {
 }
 
 export const initDrawerValue = () => {
-  const startValue = localStorage.getItem('drawerOpen')
+  // localStorage will be null on mobile, but that will always start closed anyway.
+  const startValue = localStorage && localStorage.getItem('drawerOpen')
   if (startValue !== null) {
     try {
       return JSON.parse(startValue) as boolean

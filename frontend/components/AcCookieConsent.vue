@@ -95,6 +95,7 @@ import {computed, onMounted, ref} from 'vue'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import {useTargets} from '@/plugins/targets.ts'
+import {getCookie, setCookie} from '@/lib/lib.ts'
 
 const forceRecalculate = ref(0)
 const required = ref(true)
@@ -107,10 +108,10 @@ const cookiesUnset = computed({
     // Increase the V number when this menu changes so viewers have a chance to reconsider.
     // Also change it in the getter.
     forceRecalculate.value // eslint-disable-line
-    return !parseInt(localStorage.getItem('cookieOptionsSetV1') || '0', 10)
+    return !parseInt(getCookie('cookieOptionsSetV2') || '0', 10)
   },
   set(value: boolean) {
-    localStorage.setItem('cookieOptionsSetV1', value ? '0' : '1')
+    setCookie('cookieOptionsSetV2', value ? '0' : '1')
   },
 })
 
@@ -126,22 +127,22 @@ const showDialog = computed({
 const firstParty = computed({
   get() {
     forceRecalculate.value  // eslint-disable-line
-    return !!parseInt(localStorage.getItem('firstPartyAnalytics') || '1', 10)
+    return !!parseInt(getCookie('firstPartyAnalytics') || '1', 10)
   },
   set(value: boolean) {
     forceRecalculate.value += 1
-    localStorage.setItem('firstPartyAnalytics', value ? '1' : '0')
+    setCookie('firstPartyAnalytics', value ? '1' : '0')
   }
 })
 
 const thirdParty = computed({
   get() {
     forceRecalculate.value  // eslint-disable-line
-    return !!parseInt(localStorage.getItem('thirdPartyAnalytics') || '1', 10)
+    return !!parseInt(getCookie('thirdPartyAnalytics') || '1', 10)
   },
   set(value: boolean) {
     forceRecalculate.value += 1
-    localStorage.setItem('thirdPartyAnalytics', value ? '1' : '0')
+    setCookie('thirdPartyAnalytics', value ? '1' : '0')
   },
 })
 
