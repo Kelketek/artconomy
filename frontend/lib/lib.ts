@@ -61,13 +61,11 @@ export function getCookie(name: string): string | null {
 }
 
 // https://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript
-export function setCookie(name: string, value: any, days?: number) {
+export function setCookie(name: string, value: any) {
   let expires = ''
-  if (days) {
-    const date = new Date()
-    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000))
-    expires = '; expires=' + date.toUTCString()
-  }
+  const date = new Date()
+  date.setFullYear(date.getFullYear() + 1)
+  expires = '; expires=' + date.toUTCString()
   let cookieVal = name + '=' + value + expires + '; path=/'
   /* istanbul ignore if */
   if (process.env.NODE_ENV === 'production') {

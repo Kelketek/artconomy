@@ -281,7 +281,7 @@ describe('HTTP Helpers', () => {
     expect(getCookie('test')).toBe('value')
   })
   test('Sets a cookie with an expiration date', () => {
-    setCookie('test', 'value', 1)
+    setCookie('test', 'value')
     // We can't actually check if the date was set correctly, just that coverage said the appropriate code ran.
     expect(getCookie('test')).toBe('value')
   })
