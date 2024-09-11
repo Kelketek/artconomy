@@ -97,11 +97,15 @@ def StaffPower(power: POWER):
         def has_permission(self, request: Request, view: View) -> bool:
             if not request.user.is_staff:
                 return False
+            if request.user.is_superuser:
+                return True
             return getattr(request.user.staff_powers, power)
 
         def has_object_permission(self, request: Request, view: View, obj: Any) -> bool:
             if not request.user.is_staff:
                 return False
+            if request.user.is_superuser:
+                return True
             return getattr(request.user.staff_powers, power)
 
     return WrappedPermission
