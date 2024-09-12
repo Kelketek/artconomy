@@ -124,6 +124,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: ['@date-io/date-fns'],
+    include: ['@hcaptcha/vue3-hcaptcha'],
   },
   define: {
     'process.env': {

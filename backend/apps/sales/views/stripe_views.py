@@ -12,6 +12,7 @@ from apps.sales.serializers import (
     StripeBankSetupSerializer,
     StripeReaderSerializer,
     TerminalProcessSerializer,
+    DashboardLinkSerializer,
 )
 from apps.sales.stripe import (
     create_account_link,
@@ -24,7 +25,7 @@ from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from stripe.error import InvalidRequestError
@@ -279,3 +280,24 @@ class StripeReaders(ListAPIView):
 
     def get_queryset(self) -> QuerySet:
         return StripeReader.objects.all()
+
+
+class StripeDashboardLink(GenericAPIView):
+    """
+    Generate an express Dashboard Link
+    """
+
+    permission_classes = [Any(ObjectControls, StaffPower("view_financials"))]
+    serializer_class = DashboardLinkSerializer
+
+    def get_object(self):
+        account = get_object_or_404(
+            StripeAccount, user__username=self.kwargs["username"]
+        )
+        self.check_object_permissions(self.request, account)
+        return account
+
+    def post(self, *args, **kwargs):
+        account = self.get_object()
+        serializer = self.get_serializer(instance=account)
+        return Response(serializer.data, status=status.HTTP_200_OK)

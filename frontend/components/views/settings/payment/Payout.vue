@@ -44,16 +44,20 @@
           <v-row>
             <v-col cols="12">
               <h2>Your bank account is configured, and you can now list products!</h2>
-              <p>Your products will be protected by
+              <p>Your products can be protected by
                 <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
                 .
               </p>
-              <p>If you need to update your bank settings, visit your <a target="_blank" rel="noopener"
-                                                                         href="https://connect.stripe.com/express_login">Stripe
-                Express Dashboard.</a></p>
             </v-col>
-            <v-col cols="12">
+            <v-col cols="12" sm="6">
               <v-btn color="primary" :to="{name: 'Store', params: {username}}" variant="flat">Go to my Store</v-btn>
+            </v-col>
+            <v-col cols="12" sm="6">
+              <ac-form @submit.prevent="dashboardLinkForm.submitThen(goToDashboard)">
+                <ac-form-container v-bind="dashboardLinkForm.bind">
+                  <v-btn color="secondary" variant="flat" type="submit">Stripe Dashboard</v-btn>
+                </ac-form-container>
+              </ac-form>
             </v-col>
           </v-row>
         </v-card-text>
@@ -87,10 +91,13 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {computed, Ref} from 'vue'
+import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import AcForm from '@/components/wrappers/AcForm.vue'
 
 const props = defineProps<SubjectiveProps>()
 
-const {viewer} = useViewer()
+const {viewer, powers} = useViewer()
 const userViewer = viewer as Ref<User>
 const {subjectHandler} = useSubject({ props, privateView: true })
 
@@ -134,4 +141,31 @@ const inSupportedCountry = computed(() => {
 const hasActiveStripe = computed(() => {
   return stripeAccounts.list.filter((controller) => controller.x!.active).length
 })
+
+const dashboardLinkForm = useForm(
+    `${flatten(props.username)}__stripeDashboardLink`,
+    {endpoint: `/api/sales/account/${props.username}/stripe-accounts/dashboard-link/`, fields: {}},
+)
+
+declare interface DashboardLinkData {
+  admin_url: string,
+  dashboard_url: string,
+}
+
+const newTab = (url: string) => {
+  Object.assign(document.createElement('a'), {
+    target: '_blank',
+    rel: 'noopener noreferrer',
+    href: url,
+  }).click()
+}
+
+const goToDashboard = (dashboardLinkData: DashboardLinkData) => {
+  console.log(dashboardLinkData)
+  if (powers.value.view_financials) {
+    newTab(dashboardLinkData.admin_url)
+  } else {
+    newTab(dashboardLinkData.dashboard_url)
+  }
+}
 </script>

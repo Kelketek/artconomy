@@ -69,6 +69,7 @@ from apps.sales.models import (
     PaypalConfig,
     ShoppingCart,
 )
+from apps.sales.stripe import stripe
 from apps.sales.utils import (
     AVAILABLE,
     PENDING,
@@ -2276,3 +2277,22 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             "escrow_upgrade",
         )
         model = ShoppingCart
+
+
+class DashboardLinkSerializer(serializers.ModelSerializer):
+    dashboard_url = serializers.SerializerMethodField()
+    admin_url = serializers.SerializerMethodField()
+
+    def get_dashboard_url(self, obj):
+        with stripe as stripe_api:
+            return stripe_api.Account.create_login_link(obj.token)["url"]
+
+    def get_admin_url(self, obj):
+        return f"https://dashboard.stripe.com/connect/accounts/{obj.token}/"
+
+    class Meta:
+        fields = (
+            "dashboard_url",
+            "admin_url",
+        )
+        model = StripeAccount

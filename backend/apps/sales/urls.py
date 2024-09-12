@@ -420,6 +420,11 @@ urlpatterns = [
         name="stripe_account_link",
     ),
     path(
+        "account/<username>/stripe-accounts/dashboard-link/",
+        stripe_views.StripeDashboardLink.as_view(),
+        name="stripe_account_dashboard_link",
+    ),
+    path(
         "account/<username>/account-status/",
         main.AccountStatus.as_view(),
         name="account_status",

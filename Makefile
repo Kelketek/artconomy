@@ -7,8 +7,9 @@ TEST_THREADS=10
 .PHONY: rust
 
 install_prereqs:
-	sudo apt install -y docker compose docker-ce
-	npm install
+	sudo apt install -y docker docker-ce
+	# Need to replace this with a frontend container.
+	#npm install
 
 build:
 	docker compose build
