@@ -1854,6 +1854,42 @@ class TestLogin(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
+    def test_username_login(self):
+        UserFactory.create(username="Goober", password="Test", email="test@example.com")
+        response = self.client.post(
+            "/api/profiles/v1/login/",
+            {
+                "email": "Goober",
+                "password": "Test",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_username_login_failed(self):
+        UserFactory.create(username="Goober", password="Test", email="test@example.com")
+        response = self.client.post(
+            "/api/profiles/v1/login/",
+            {
+                "email": "Goober",
+                "password": "Beep",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_email_login_failed(self):
+        UserFactory.create(username="Goober", password="Test", email="test@example.com")
+        response = self.client.post(
+            "/api/profiles/v1/login/",
+            {
+                "email": "test@example.com",
+                "password": "Beep",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
     @patch("apps.profiles.views.match_token")
     def test_2fa(self, mock_match_token):
         user = UserFactory.create(

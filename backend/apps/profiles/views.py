@@ -1348,6 +1348,12 @@ def perform_login(request):
     email = (
         str(request.data.get("email", request.POST.get("email", ""))).lower().strip()
     )
+    if "@" not in email:
+        temp_user = User.objects.filter(
+            username__iexact=email, is_active=True, guest=False
+        ).first()
+        if temp_user:
+            email = temp_user.email
     password = request.data.get("password", request.POST.get("password", "")).strip()
     token = (
         request.data.get("token", request.POST.get("token", ""))
