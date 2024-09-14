@@ -21,7 +21,7 @@ RUN apt-get autoremove -y
 RUN /usr/bin/python3.11 -m pip install --upgrade pip
 RUN /usr/bin/python3.11 -m pip install --upgrade virtualenv
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 10
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 RUN apt-get update --fix-missing
 RUN apt-get install nodejs
 RUN mkdir /app

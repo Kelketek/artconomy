@@ -39,10 +39,35 @@
 - name: Load app settings
   include_vars: "keys/{{env_prefix}}/app_settings.yml"
 
+
+- name: Check for outdated node
+  check_mode: true
+  file:
+    path: /root/.node_20_installed
+    state: absent
+  register: node_marker_status
+
+- set_fact:
+    outdated_node: "{{ not node_marker_status['changed'] }}"
+
+- name: Remove old node versions
+  apt:
+    name: nodejs
+    state: absent
+  when: outdated_node
+
+- name: Remove old node repository
+  file:
+    path: /etc/apt/sources.list.d/nodesource.list
+    state: absent
+  when: outdated_node
+
 - name: Install NPM repos
-  shell: "curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -"
+  shell: "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && touch /root/.node_20_installed"
   args:
-    creates: /etc/apt/sources.list.d/nodesource.list
+    creates: "/root/.node_20_installed"
+  register: node_installed
+  when: outdated_node
 
 - name: Install NPM
   apt:
@@ -60,8 +85,8 @@
   register: node_version
 
 - name: Ensure correct version of node
-  shell: n 18.13.0
-  when: node_version.stdout != "v18.13.0"
+  shell: n 20.17.0
+  when: node_version.stdout != "v20.17.0"
 
 - name: Add app user
   user:
