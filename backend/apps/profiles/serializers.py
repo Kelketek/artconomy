@@ -36,6 +36,8 @@ from apps.profiles.models import (
     banned_named_validator,
     banned_prefix_validator,
     StaffPowers,
+    SocialSettings,
+    SocialLink,
 )
 from apps.profiles.permissions import staff_power
 from apps.sales.constants import STRIPE
@@ -1214,3 +1216,36 @@ class UnreadNotificationsSerializer(serializers.ModelSerializer):
         model = User
         fields = ("id", "count", "community_count", "sales_count")
         read_only_fields = fields
+
+
+@register_serializer
+class SocialSettingsSerializer(serializers.ModelSerializer):
+    """
+    Serializer for social settings.
+    """
+
+    class Meta:
+        model = SocialSettings
+        fields = (
+            "allow_promotion",
+            "allow_site_promotion",
+            "nsfw_promotion",
+            "quick_description",
+            "promotion_notes",
+            "display_socials",
+        )
+
+
+@register_serializer
+class SocialLinkSerializer(serializers.ModelSerializer):
+    """
+    Serializer for social link
+    """
+
+    class Meta:
+        model = SocialLink
+        fields = (
+            "site_name",
+            "identifier",
+            "comment",
+        )

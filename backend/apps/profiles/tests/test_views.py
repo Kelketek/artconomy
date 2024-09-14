@@ -39,6 +39,7 @@ from apps.profiles.tests.factories import (
     SubmissionFactory,
     TOTPDeviceFactory,
     UserFactory,
+    SocialSettingsFactory,
 )
 from apps.profiles.tests.helpers import gen_characters
 from apps.profiles.views import ArtistProfileSettings
@@ -2174,117 +2175,29 @@ class TestProfileInfo(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
-test = [
-    {
-        "id": 23,
-        "name": "Terrence",
-        "description": "Fox with FOXSIS id 6",
-        "private": True,
-        "open_requests": False,
-        "open_requests_restrictions": "",
-        "user": {
-            "id": 604,
-            "username": "user7",
-            "avatar_url": "https://www.gravatar.com/avatar/0ad658a38a9eaecb3c9976d25ea51c75.jpg?s=80",
-            "stars": None,
-            "is_staff": False,
-            "is_superuser": False,
-            "guest": False,
-            "artist_mode": False,
-            "taggable": True,
-            "landscape": False,
-            "rating_count": 0,
-            "service_plan": "Free",
-            "international": False,
-            "verified_email": False,
-        },
-        "primary_submission": None,
-        "tags": [],
-        "nsfw": False,
-        "hits": 0,
-    },
-    {
-        "id": 21,
-        "name": "Terrybutt",
-        "description": "Fox with FOXSIS id 4",
-        "private": False,
-        "open_requests": False,
-        "open_requests_restrictions": "",
-        "user": {
-            "id": 604,
-            "username": "user7",
-            "avatar_url": "https://www.gravatar.com/avatar/0ad658a38a9eaecb3c9976d25ea51c75.jpg?s=80",
-            "stars": None,
-            "is_staff": False,
-            "is_superuser": False,
-            "guest": False,
-            "artist_mode": False,
-            "taggable": True,
-            "landscape": False,
-            "rating_count": 0,
-            "service_plan": "Free",
-            "international": False,
-            "verified_email": False,
-        },
-        "primary_submission": None,
-        "tags": [],
-        "nsfw": False,
-        "hits": 0,
-    },
-    {
-        "id": 22,
-        "name": "Terrencia",
-        "description": "Fox with FOXSIS id 5",
-        "private": False,
-        "open_requests": False,
-        "open_requests_restrictions": "",
-        "user": {
-            "id": 605,
-            "username": "user8",
-            "avatar_url": "https://www.gravatar.com/avatar/bfab5000d1c812cbf35423b0e0379e70.jpg?s=80",
-            "stars": None,
-            "is_staff": False,
-            "is_superuser": False,
-            "guest": False,
-            "artist_mode": False,
-            "taggable": True,
-            "landscape": False,
-            "rating_count": 0,
-            "service_plan": "Free",
-            "international": False,
-            "verified_email": False,
-        },
-        "primary_submission": None,
-        "tags": [],
-        "nsfw": False,
-        "hits": 0,
-    },
-    {
-        "id": 27,
-        "name": "Terrible",
-        "description": "Fox with FOXSIS id 10",
-        "private": False,
-        "open_requests": False,
-        "open_requests_restrictions": "",
-        "user": {
-            "id": 605,
-            "username": "user8",
-            "avatar_url": "https://www.gravatar.com/avatar/bfab5000d1c812cbf35423b0e0379e70.jpg?s=80",
-            "stars": None,
-            "is_staff": False,
-            "is_superuser": False,
-            "guest": False,
-            "artist_mode": False,
-            "taggable": True,
-            "landscape": False,
-            "rating_count": 0,
-            "service_plan": "Free",
-            "international": False,
-            "verified_email": False,
-        },
-        "primary_submission": None,
-        "tags": [],
-        "nsfw": False,
-        "hits": 0,
-    },
-]
+class TestSocialSettings(APITestCase):
+    def test_get_social_settings(self):
+        social_settings = SocialSettingsFactory.create(allow_promotion=False)
+        self.login(social_settings.user)
+        response = self.client.get(
+            f"/api/profiles/account/{social_settings.user.username}/social-settings/"
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data["allow_promotion"])
+
+    def test_get_social_settings_not_authorized(self):
+        social_settings = SocialSettingsFactory.create()
+        response = self.client.get(
+            f"/api/profiles/account/{social_settings.user.username}/social-settings/"
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_update_social_settings(self):
+        social_settings = SocialSettingsFactory.create(allow_promotion=False)
+        self.login(social_settings.user)
+        response = self.client.patch(
+            f"/api/profiles/account/{social_settings.user.username}/social-settings/",
+            {"allow_promotion": True},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["allow_promotion"], True)

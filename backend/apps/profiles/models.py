@@ -76,6 +76,7 @@ from apps.profiles.permissions import (
     staff_power,
     ObjectControls,
     IsSuperuser,
+    SocialsVisible,
 )
 from apps.sales.constants import PROCESSOR_CHOICES
 from avatar.models import Avatar
@@ -606,6 +607,74 @@ class ArtistProfile(Model):
 
     def __str__(self):
         return f"Artist profile for {self.user and self.user.username}"
+
+
+class SocialSettings(Model):
+    """
+    Settings for social media.
+    """
+
+    watch_permissions = {
+        "SocialSettingsSerializer": [
+            Any(ObjectControls, StaffPower("view_social_data"), SocialsVisible)
+        ],
+    }
+    user = OneToOneField(User, on_delete=CASCADE, related_name="social_settings")
+    allow_promotion = BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether we may promote you and your content in particular on social "
+        "media. We will link/ping your account on the relevant service when we do this.",
+    )
+    allow_site_promotion = BooleanField(
+        default=False,
+        db_index=True,
+        help_text="Whether we may use assets you upload to promote the site in a general "
+        "sense-- such as using screenshots with your content",
+    )
+    nsfw_promotion = BooleanField(
+        default=True,
+        db_index=True,
+        help_text="Whether we may promote your NSFW content on social media which "
+        "allows such content, if applicable.",
+    )
+    quick_description = CharField(
+        max_length=150,
+        help_text="A quick description of your art/style/offerings, for use by our social media specialist when promoting you.",
+        default="",
+    )
+    promotion_notes = TextField(
+        max_length=500,
+        help_text="Any notes/requests/conditions on using your content in promotions.",
+    )
+    display_socials = BooleanField(
+        default=True,
+        db_index=True,
+        help_text="Whether to display your socials on your profile.",
+    )
+
+
+class SocialLink(Model):
+    watch_permissions = {
+        "SocialLinkSerializer": [
+            Any(ObjectControls, StaffPower("view_social_data"), SocialsVisible)
+        ]
+    }
+    user = ForeignKey(User, on_delete=CASCADE, related_name="social_links")
+    site_name = CharField(
+        max_length=25,
+        db_index=True,
+        default="",
+        help_text="The name of the site your account is on.",
+    )
+    identifier = CharField(
+        max_length=100, default="", help_text="Username or URL of account on site."
+    )
+    comment = CharField(
+        max_length=30,
+        help_text="Short comment, such as 'Cat Photo Account'.",
+        default="",
+    )
 
 
 @receiver(pre_save, sender=ArtistProfile)

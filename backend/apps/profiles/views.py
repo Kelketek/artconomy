@@ -74,6 +74,7 @@ from apps.profiles.models import (
     User,
     trigger_reconnect,
     StaffPowers,
+    SocialSettings,
 )
 from apps.profiles.permissions import (
     AccountAge,
@@ -126,6 +127,7 @@ from apps.profiles.serializers import (
     UserSerializer,
     UnreadNotificationsSerializer,
     StaffPowersSerializer,
+    SocialSettingsSerializer,
 )
 from apps.profiles.tasks import drip_subscribe
 from apps.profiles.utils import (
@@ -242,6 +244,8 @@ class Register(CreateAPIView):
         )
         instance.artist_profile = ArtistProfile()
         instance.artist_profile.save()
+        instance.social_settings = SocialSettings()
+        instance.social_settings.save()
         if add_to_newsletter:
             drip_subscribe.delay(instance.id)
         login(self.request, instance)
@@ -2291,3 +2295,17 @@ class CommunitySubmissions(ListAPIView):
             .filter(owner__username__in=settings.COMMUNITY_ACCOUNT_NAMES)
             .order_by("-created_on")
         )
+
+
+class SocialSettingsManager(RetrieveUpdateAPIView):
+    serializer_class = SocialSettingsSerializer
+    permission_classes = [
+        Any(ObjectControls, All(IsSafeMethod, StaffPower("view_social_data")))
+    ]
+
+    def get_object(self):
+        social_settings = get_object_or_404(
+            SocialSettings, user__username=self.kwargs["username"]
+        )
+        self.check_object_permissions(self.request, social_settings)
+        return social_settings

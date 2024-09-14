@@ -267,3 +267,15 @@ def staff_power(user: "User", *powers: Iterable["POWER"]):
     if not user.is_staff:
         return False
     return all((getattr(user.staff_powers, power) for power in powers))
+
+
+class SocialsVisible(BasePermission):
+    """
+    Return True if the 'display_socials' flag is true.
+    """
+
+    message = "This user hasn't made their social links visible."
+
+    def has_object_permission(self, request, view, obj):
+        obj = derive_user(obj)
+        return obj.social_settings.display_socials

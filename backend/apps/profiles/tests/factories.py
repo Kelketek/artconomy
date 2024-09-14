@@ -7,6 +7,7 @@ from apps.profiles.models import (
     ConversationParticipant,
     Journal,
     Submission,
+    SocialSettings,
 )
 from avatar.models import Avatar
 from django.conf import settings
@@ -97,3 +98,10 @@ class AvatarFactory(DjangoModelFactory):
 
     class Meta:
         model = Avatar
+
+
+class SocialSettingsFactory(DjangoModelFactory):
+    user = SubFactory(UserFactory)
+
+    class Meta:
+        model = SocialSettings

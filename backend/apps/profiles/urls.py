@@ -126,6 +126,11 @@ urlpatterns = [
         name="retrieve_staff_powers",
     ),
     path(
+        "account/<username>/social-settings/",
+        views.SocialSettingsManager.as_view(),
+        name="social_settings",
+    ),
+    path(
         "account/<username>/auth/credentials/",
         views.CredentialsAPI.as_view(),
         name="credentials",
