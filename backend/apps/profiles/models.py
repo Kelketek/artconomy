@@ -1171,7 +1171,7 @@ class Conversation(Model):
 
         count, participants = participants.count(), participants[:3]
         if count > 3:
-            additional = count() - 3
+            additional = count - 3
             names = (
                 f"{participants[0]}, {participants[1]}, {participants[2]} and "
                 f"{additional} others"
