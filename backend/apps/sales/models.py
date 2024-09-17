@@ -13,19 +13,21 @@ from apps.lib.abstract_models import (
     thumbnail_hook,
 )
 from apps.lib.models import (
-    COMMENT,
-    NEW_PRODUCT,
-    ORDER_UPDATE,
-    REFERENCE_UPLOADED,
-    REVISION_APPROVED,
-    REVISION_UPLOADED,
-    SALE_UPDATE,
-    TIP_RECEIVED,
     Comment,
     Event,
     Subscription,
     note_for_text,
     ref_for_instance,
+)
+from apps.lib.constants import (
+    COMMENT,
+    NEW_PRODUCT,
+    ORDER_UPDATE,
+    SALE_UPDATE,
+    REVISION_UPLOADED,
+    REFERENCE_UPLOADED,
+    TIP_RECEIVED,
+    REVISION_APPROVED,
 )
 from apps.lib.permissions import Any, StaffPower
 from apps.lib.utils import (

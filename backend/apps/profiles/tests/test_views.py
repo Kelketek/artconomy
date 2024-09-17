@@ -4,14 +4,16 @@ from unittest.mock import patch
 
 from apps.lib.abstract_models import ADULT, EXTREME, GENERAL, MATURE
 from apps.lib.models import (
-    CHAR_SHARED,
-    COMMENT,
-    NEW_CHARACTER,
-    NEW_PRODUCT,
-    SUBMISSION_SHARED,
     Notification,
     Subscription,
     Tag,
+)
+from apps.lib.constants import (
+    NEW_CHARACTER,
+    COMMENT,
+    NEW_PRODUCT,
+    SUBMISSION_SHARED,
+    CHAR_SHARED,
 )
 from apps.lib.test_resources import (
     APITestCase,

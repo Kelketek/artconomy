@@ -4,7 +4,8 @@ from multiprocessing.pool import ThreadPool
 from time import sleep
 from unittest.mock import Mock, call, patch
 
-from apps.lib.models import SUBSCRIPTION_DEACTIVATED, Notification, ref_for_instance
+from apps.lib.models import Notification, ref_for_instance
+from apps.lib.constants import SUBSCRIPTION_DEACTIVATED
 from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import UserFactory
@@ -1360,11 +1361,13 @@ class TestPromoteTopSellers(EnsurePlansMixin, TestCase):
 class TestClearOldWebhookLogs(TestCase):
     def test_clear_old_webhook_logs(self):
         to_delete = WebhookEventRecord.objects.create(
-            event_id="beep", created_on=timezone.now() - relativedelta(months=3),
+            event_id="beep",
+            created_on=timezone.now() - relativedelta(months=3),
             data={},
         )
         to_preserve = WebhookEventRecord.objects.create(
-            event_id="boop", created_on=timezone.now() - relativedelta(months=1),
+            event_id="boop",
+            created_on=timezone.now() - relativedelta(months=1),
             data={},
         )
         clear_old_webhook_logs()

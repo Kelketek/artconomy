@@ -3,13 +3,11 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 from apps.lib.models import (
-    COMMENT,
-    NEW_PRODUCT,
-    REVISION_APPROVED,
     ModifiedMarker,
     Subscription,
     ref_for_instance,
 )
+from apps.lib.constants import COMMENT, NEW_PRODUCT, REVISION_APPROVED
 from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import FakeRequest

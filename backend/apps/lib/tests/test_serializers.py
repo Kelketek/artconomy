@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
-from apps.lib.models import NEW_PRODUCT, Event, Notification
+from apps.lib.models import Event, Notification
+from apps.lib.constants import NEW_PRODUCT
 from apps.lib.serializers import comment_made, new_product
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory

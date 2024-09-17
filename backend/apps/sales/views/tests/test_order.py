@@ -5,13 +5,10 @@ from uuid import uuid4
 
 from apps.lib.abstract_models import ADULT, GENERAL, MATURE
 from apps.lib.models import (
-    COMMENT,
-    ORDER_UPDATE,
-    SALE_UPDATE,
-    WAITLIST_UPDATED,
     Event,
     Subscription,
 )
+from apps.lib.constants import COMMENT, ORDER_UPDATE, SALE_UPDATE, WAITLIST_UPDATED
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.test_utils import create_staffer

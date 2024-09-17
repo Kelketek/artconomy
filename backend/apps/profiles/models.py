@@ -16,38 +16,40 @@ from apps.lib.abstract_models import (
     thumbnail_hook,
 )
 from apps.lib.models import (
-    AUTO_CLOSED,
-    CHAR_SHARED,
-    CHAR_TAG,
-    COMMENT,
-    COMMISSIONS_OPEN,
-    DISPUTE,
-    FAVORITE,
-    NEW_CHARACTER,
-    NEW_JOURNAL,
-    ORDER_UPDATE,
-    REFERENCE_UPLOADED,
-    REFERRAL_LANDSCAPE_CREDIT,
-    REFUND,
-    RENEWAL_FAILURE,
-    RENEWAL_FIXED,
-    REVISION_APPROVED,
-    REVISION_UPLOADED,
-    SALE_UPDATE,
-    SUBMISSION_ARTIST_TAG,
-    SUBMISSION_CHAR_TAG,
-    SUBMISSION_SHARED,
-    SUBSCRIPTION_DEACTIVATED,
-    SYSTEM_ANNOUNCEMENT,
-    TRANSFER_FAILED,
-    WAITLIST_UPDATED,
-    WATCHING,
     Comment,
     EmailPreference,
     Event,
     Notification,
     Subscription,
     Tag,
+)
+from apps.lib.constants import (
+    NEW_CHARACTER,
+    WATCHING,
+    CHAR_TAG,
+    COMMENT,
+    COMMISSIONS_OPEN,
+    SYSTEM_ANNOUNCEMENT,
+    FAVORITE,
+    DISPUTE,
+    REFUND,
+    SUBMISSION_CHAR_TAG,
+    ORDER_UPDATE,
+    SALE_UPDATE,
+    SUBMISSION_ARTIST_TAG,
+    REVISION_UPLOADED,
+    SUBMISSION_SHARED,
+    CHAR_SHARED,
+    RENEWAL_FAILURE,
+    SUBSCRIPTION_DEACTIVATED,
+    RENEWAL_FIXED,
+    NEW_JOURNAL,
+    TRANSFER_FAILED,
+    REFERRAL_LANDSCAPE_CREDIT,
+    REFERENCE_UPLOADED,
+    WAITLIST_UPDATED,
+    AUTO_CLOSED,
+    REVISION_APPROVED,
 )
 from apps.lib.permissions import Any, StaffPower
 from apps.lib.utils import (
@@ -1281,17 +1283,29 @@ def auto_subscribe_journal(sender, instance, created=False, **kwargs):
 @receiver(post_delete, sender=Journal)
 @disable_on_load
 def auto_unsubscribe_journal(sender, instance, **kwargs):
-    recall_notification(NEW_JOURNAL, instance.user, data={"journal": instance.id})
+    recall_notification(
+        NEW_JOURNAL,
+        target=instance.user,
+        data={"journal": instance.id},
+        unique_data=True,
+    )
     Subscription.objects.filter(
         type=COMMENT,
         object_id=instance.id,
         content_type=ContentType.objects.get_for_model(Journal),
     ).delete()
-    Event.objects.filter(
+    # Need to trigger the cleanup handlers.
+    for event in Event.objects.filter(
         content_type=ContentType.objects.get_for_model(model=sender),
         object_id=instance.id,
         type=COMMENT,
-    ).delete()
+    ):
+        event.delete()
+    for event in Event.objects.filter(
+        type=NEW_JOURNAL,
+        data__journal=instance.id,
+    ):
+        event.delete()
 
 
 class StaffPowers(models.Model):

@@ -11,20 +11,22 @@ from rest_framework.renderers import JSONRenderer
 from short_stuff import gen_shortcode
 
 from apps.lib.models import (
-    COMMENT,
-    DISPUTE,
-    NEW_PRODUCT,
-    ORDER_UPDATE,
-    REFERENCE_UPLOADED,
-    REVISION_APPROVED,
-    REVISION_UPLOADED,
-    SALE_UPDATE,
-    STREAMING,
-    WAITLIST_UPDATED,
     Comment,
     Subscription,
     note_for_text,
     ref_for_instance,
+)
+from apps.lib.constants import (
+    COMMENT,
+    NEW_PRODUCT,
+    DISPUTE,
+    ORDER_UPDATE,
+    SALE_UPDATE,
+    REVISION_UPLOADED,
+    STREAMING,
+    REFERENCE_UPLOADED,
+    WAITLIST_UPDATED,
+    REVISION_APPROVED,
 )
 from apps.lib.permissions import (
     All,

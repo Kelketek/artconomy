@@ -7,12 +7,11 @@ from unittest.mock import Mock, patch
 import dateutil
 import stripe as stripe_api
 from apps.lib.models import (
-    SALE_UPDATE,
-    TIP_RECEIVED,
     Notification,
     Subscription,
     ref_for_instance,
 )
+from apps.lib.constants import SALE_UPDATE, TIP_RECEIVED
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (

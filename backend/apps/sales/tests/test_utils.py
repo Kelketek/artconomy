@@ -3,7 +3,8 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import ddt
-from apps.lib.models import ORDER_UPDATE, Notification, Subscription, ref_for_instance
+from apps.lib.models import Notification, Subscription, ref_for_instance
+from apps.lib.constants import ORDER_UPDATE
 from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory

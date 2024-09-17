@@ -5,7 +5,8 @@ from unittest.mock import Mock, patch
 from authlib.integrations.base_client import MissingTokenError
 
 from apps.lib.abstract_models import ADULT, EXTREME, GENERAL
-from apps.lib.models import COMMENT, Comment, Subscription, ref_for_instance
+from apps.lib.models import Comment, Subscription, ref_for_instance
+from apps.lib.constants import COMMENT
 from apps.lib.test_resources import (
     APITestCase,
     EnsurePlansMixin,

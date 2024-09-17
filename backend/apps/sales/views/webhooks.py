@@ -10,7 +10,8 @@ import dateutil
 import requests
 from rest_framework.generics import get_object_or_404
 
-from apps.lib.models import TRANSFER_FAILED, ref_for_instance
+from apps.lib.models import ref_for_instance
+from apps.lib.constants import TRANSFER_FAILED
 from apps.lib.utils import notify
 from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
 from apps.sales.constants import (

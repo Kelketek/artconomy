@@ -1,7 +1,8 @@
 from unittest.mock import Mock
 
-from apps.lib import models
-from apps.lib.models import COMMENT, Event, Subscription, DISPUTE
+import apps.lib.constants
+from apps.lib.models import Event, Subscription
+from apps.lib.constants import COMMENT, DISPUTE
 from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.models import Character
@@ -15,15 +16,15 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 
 expected_subscriptions = (
-    (models.SUBMISSION_SHARED, False),
-    (models.CHAR_SHARED, False),
-    (models.RENEWAL_FAILURE, True),
-    (models.SUBSCRIPTION_DEACTIVATED, True),
-    (models.RENEWAL_FIXED, True),
-    (models.TRANSFER_FAILED, True),
-    (models.REFERRAL_LANDSCAPE_CREDIT, True),
-    (models.WAITLIST_UPDATED, True),
-    (models.AUTO_CLOSED, True),
+    (apps.lib.constants.SUBMISSION_SHARED, False),
+    (apps.lib.constants.CHAR_SHARED, False),
+    (apps.lib.constants.RENEWAL_FAILURE, True),
+    (apps.lib.constants.SUBSCRIPTION_DEACTIVATED, True),
+    (apps.lib.constants.RENEWAL_FIXED, True),
+    (apps.lib.constants.TRANSFER_FAILED, True),
+    (apps.lib.constants.REFERRAL_LANDSCAPE_CREDIT, True),
+    (apps.lib.constants.WAITLIST_UPDATED, True),
+    (apps.lib.constants.AUTO_CLOSED, True),
 )
 
 
@@ -40,7 +41,7 @@ class SubscriptionsTestCase(EnsurePlansMixin, TestCase):
             (event_type, user_type.id, user.id, email)
             for event_type, email in expected_subscriptions
         ]
-        checks.insert(0, (models.SYSTEM_ANNOUNCEMENT, None, None, False))
+        checks.insert(0, (apps.lib.constants.SYSTEM_ANNOUNCEMENT, None, None, False))
         self.assertEqual(list(subscriptions), checks)
 
     def test_subscriptions_created_staff_disputes(self):
@@ -69,7 +70,7 @@ class SubscriptionsTestCase(EnsurePlansMixin, TestCase):
         self.assertTrue(
             Subscription.objects.filter(
                 subscriber=user,
-                type=models.REFUND,
+                type=apps.lib.constants.REFUND,
                 content_type_id=None,
                 object_id=None,
             ).exists()
@@ -85,7 +86,7 @@ class SubscriptionsTestCase(EnsurePlansMixin, TestCase):
         self.assertTrue(
             Subscription.objects.filter(
                 subscriber=user,
-                type=models.REFUND,
+                type=apps.lib.constants.REFUND,
                 content_type_id=None,
                 object_id=None,
             ).exists()

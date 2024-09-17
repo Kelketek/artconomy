@@ -8,11 +8,13 @@ from dateutil.parser import parse
 from django.urls import reverse
 
 from apps.lib.models import (
-    AUTO_CLOSED,
-    RENEWAL_FAILURE,
-    RENEWAL_FIXED,
-    SUBSCRIPTION_DEACTIVATED,
     ref_for_instance,
+)
+from apps.lib.constants import (
+    RENEWAL_FAILURE,
+    SUBSCRIPTION_DEACTIVATED,
+    RENEWAL_FIXED,
+    AUTO_CLOSED,
 )
 from apps.lib.utils import notify, require_lock, send_transaction_email, utc_now
 from apps.profiles.models import User

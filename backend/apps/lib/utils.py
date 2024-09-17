@@ -14,13 +14,6 @@ import geoip2.errors as geoip_errors
 from django.contrib.gis.geoip2 import GeoIP2
 
 from apps.lib.models import (
-    COMMENT,
-    COMMISSIONS_OPEN,
-    EMAIL_SUBJECTS,
-    NEW_CHARACTER,
-    NEW_JOURNAL,
-    NEW_PRODUCT,
-    STREAMING,
     Asset,
     Comment,
     Event,
@@ -29,6 +22,15 @@ from apps.lib.models import (
     ReadMarker,
     Subscription,
     Tag,
+)
+from apps.lib.constants import (
+    NEW_CHARACTER,
+    COMMENT,
+    NEW_PRODUCT,
+    COMMISSIONS_OPEN,
+    STREAMING,
+    NEW_JOURNAL,
+    EMAIL_SUBJECTS,
 )
 from asgiref.sync import async_to_sync
 from bs4 import BeautifulSoup

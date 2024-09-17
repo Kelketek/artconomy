@@ -2,13 +2,12 @@ from unittest.mock import patch
 
 import ddt
 from apps.lib.models import (
-    FAVORITE,
-    SYSTEM_ANNOUNCEMENT,
     Comment,
     Event,
     Notification,
     Subscription,
 )
+from apps.lib.constants import SYSTEM_ANNOUNCEMENT, FAVORITE, NEW_JOURNAL
 from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.tests.fixtures.ip_checks import ip_result_sets
@@ -26,7 +25,7 @@ from apps.lib.utils import (
 )
 from apps.profiles.constants import POWER, POWER_LIST
 from apps.profiles.models import ArtconomyAnonymousUser, Submission
-from apps.profiles.tests.factories import SubmissionFactory, UserFactory
+from apps.profiles.tests.factories import SubmissionFactory, UserFactory, JournalFactory
 from django.contrib.contenttypes.models import ContentType
 from django.test import TestCase, override_settings
 from django.utils import timezone
@@ -285,6 +284,23 @@ class NotificationsTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
         recall_notification(FAVORITE, target=submission)
         notification.event.refresh_from_db()
         self.assertEqual(notification.event.recalled, True)
+
+    def test_recall_respects_data(self):
+        user = UserFactory.create()
+        journal1 = JournalFactory.create()
+        journal2 = JournalFactory.create()
+        subscribe(NEW_JOURNAL, user, user)
+        notify(NEW_JOURNAL, target=user, data={"journal": journal1.id})
+        event1 = Event.objects.get(type=NEW_JOURNAL, data={"journal": journal1.id})
+        notify(NEW_JOURNAL, target=user, data={"journal": journal2.id})
+        event2 = Event.objects.get(type=NEW_JOURNAL, data={"journal": journal2.id})
+        recall_notification(
+            NEW_JOURNAL, user, data={"journal": journal1.id}, unique_data=True
+        )
+        event1.refresh_from_db()
+        self.assertTrue(event1.recalled)
+        event2.refresh_from_db()
+        self.assertFalse(event2.recalled)
 
     def test_global_event_broadcast_global_with_target(self):
         submission = SubmissionFactory.create()

@@ -30,20 +30,22 @@ from urllib.parse import quote
 from pytz import UTC
 
 from apps.lib.models import (
-    COMMENT,
-    COMMISSIONS_OPEN,
-    DISPUTE,
-    ORDER_UPDATE,
-    REFERRAL_LANDSCAPE_CREDIT,
-    REFUND,
-    REVISION_APPROVED,
-    REVISION_UPLOADED,
-    SALE_UPDATE,
     Comment,
     Event,
     Notification,
     Subscription,
     ref_for_instance,
+)
+from apps.lib.constants import (
+    COMMENT,
+    COMMISSIONS_OPEN,
+    DISPUTE,
+    REFUND,
+    ORDER_UPDATE,
+    SALE_UPDATE,
+    REVISION_UPLOADED,
+    REFERRAL_LANDSCAPE_CREDIT,
+    REVISION_APPROVED,
 )
 from apps.lib.signals import broadcast_update
 from apps.lib.utils import multi_filter, notify, recall_notification, utc

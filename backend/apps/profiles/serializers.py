@@ -1183,7 +1183,8 @@ class UnreadNotificationsSerializer(serializers.ModelSerializer):
 
     def get_community_count(self, obj):
         from apps.lib.models import Notification
-        from apps.lib.models import COMMENT, ORDER_NOTIFICATION_TYPES
+        from apps.lib.constants import ORDER_NOTIFICATION_TYPES
+        from apps.lib.constants import COMMENT
 
         return (
             Notification.objects.filter(user=obj, read=False)
@@ -1195,7 +1196,8 @@ class UnreadNotificationsSerializer(serializers.ModelSerializer):
 
     def get_sales_count(self, obj):
         from apps.lib.models import Notification
-        from apps.lib.models import COMMENT, ORDER_NOTIFICATION_TYPES
+        from apps.lib.constants import ORDER_NOTIFICATION_TYPES
+        from apps.lib.constants import COMMENT
 
         Notification.objects.filter(
             user=obj,

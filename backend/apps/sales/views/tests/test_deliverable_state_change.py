@@ -4,13 +4,15 @@ from unittest.mock import call, patch
 
 from apps.lib.abstract_models import ADULT
 from apps.lib.models import (
+    Subscription,
+    ref_for_instance,
+)
+from apps.lib.constants import (
     COMMENT,
     DISPUTE,
     ORDER_UPDATE,
-    REVISION_APPROVED,
     REVISION_UPLOADED,
-    Subscription,
-    ref_for_instance,
+    REVISION_APPROVED,
 )
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.test_utils import create_staffer
