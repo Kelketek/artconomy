@@ -739,6 +739,17 @@ class ValidatorChecks(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
+class TestUserSearch(APITestCase):
+    def test_search_users(self):
+        user1 = UserFactory.create(username="person")
+        user2 = UserFactory.create(username="Personal")
+        user3 = UserFactory.create(username="Dude")
+        response = self.client.get("/api/profiles/v1/search/user/?q=person")
+        results = [user["username"] for user in response.data["results"]]
+        results.sort()
+        self.assertEqual(results, ["Personal", "person"])
+
+
 @override_settings(FORCE_THEOCRACY=False)
 class TestSubmissionSearch(APITestCase):
     def test_submission_rating_search(self):

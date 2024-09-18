@@ -5,6 +5,8 @@ from functools import lru_cache
 from textwrap import shorten
 from typing import Dict
 
+from django.db.models.functions import Collate
+
 from apps.lib.abstract_models import GENERAL
 from apps.lib.consumers import send_updated
 from apps.lib.models import (
@@ -746,9 +748,9 @@ class UserSearch(ListAPIView):
         tagging = self.request.GET.get("tagging", False)
         if not query:
             return User.objects.none()
-        qs = User.objects.filter(
-            username__startswith=query, is_active=True, guest=False
-        )
+        qs = User.objects.annotate(
+            username_case=Collate("username", "und-x-icu"),
+        ).filter(username_case__istartswith=query, is_active=True, guest=False)
         if tagging and self.request.user.is_authenticated:
             qs = qs.filter(Q(taggable=True) | Q(id=self.request.user.id))
         elif tagging:
