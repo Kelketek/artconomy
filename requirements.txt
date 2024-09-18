@@ -121,7 +121,7 @@ discord-py-interactions==5.13.2
     # via -r requirements.in
 discord-typings==0.9.0
     # via discord-py-interactions
-django==5.0.9
+django==5.1.1
     # via
     #   -r requirements.in
     #   adrf
@@ -147,7 +147,7 @@ django-appconf==1.0.6
     # via
     #   django-avatar
     #   django-celery-email
-django-avatar==7.1.1
+django-avatar==8.0.1
     # via -r requirements.in
 django-celery-email==3.0.0
     # via -r requirements.in

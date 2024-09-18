@@ -6,6 +6,7 @@ from typing import Dict, Optional
 from uuid import uuid4
 
 from authlib.integrations.base_client import MissingTokenError
+from django.db.models.functions import Collate
 from django.urls import reverse
 from rest_framework.renderers import JSONRenderer
 from short_stuff import gen_shortcode
@@ -1966,9 +1967,12 @@ class SearchWaiting(ListAPIView):
         )
         if not query:
             return qs.distinct().order_by("created_on")
+        qs = qs.annotate(
+            buyer_username_case=Collate("buyer__username", "und-x-icu"),
+        )
         return (
             qs.filter(
-                Q(buyer__username__startswith=query)
+                Q(buyer_username_case__startswith=query)
                 | Q(buyer__email__istartswith=query)
                 | Q(customer_email__istartswith=query)
                 | Q(buyer__guest=True, buyer__guest_email__istartswith=query)
