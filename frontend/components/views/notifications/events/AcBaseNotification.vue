@@ -2,16 +2,20 @@
   <v-list-item>
     <template v-slot:prepend>
       <ac-link :to="assetLink" class="mr-5">
-        <v-badge left overlap :model-value="!notification.read" color="primary">
-          <template v-slot:badge>
-            <span>*</span>
+        <v-tooltip :text="formatDateTime(event.date)">
+          <template v-slot:activator="{ props }">
+            <v-badge left overlap :model-value="!notification.read" color="primary" v-bind="props">
+              <template v-slot:badge>
+                <span>*</span>
+              </template>
+              <slot name="avatar">
+                <v-avatar>
+                  <img :src="image" alt="">
+                </v-avatar>
+              </slot>
+            </v-badge>
           </template>
-          <slot name="avatar">
-            <v-avatar>
-              <img :src="image" alt="">
-            </v-avatar>
-          </slot>
-        </v-badge>
+        </v-tooltip>
       </ac-link>
     </template>
     <v-list-item-title>
@@ -20,7 +24,7 @@
     <v-list-item-subtitle>
       <slot name="subtitle"/>
     </v-list-item-subtitle>
-    <slot name="extra"/>
+    <slot name="extra" />
   </v-list-item>
 </template>
 
@@ -30,9 +34,9 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import {RouteLocationRaw} from 'vue-router'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useImg} from '@/plugins/shortcuts.ts'
+import {formatDateTime} from '../../../../lib/otherFormatters.ts'
 
 const props = defineProps<{assetLink?: RouteLocationRaw, hrefLink?: RouteLocationRaw} & NotificationProps<T, D>>()
-const {viewer} = useViewer()
 const event = useEvent(props)
 const image = useImg(event.value.data.display, 'notification', true)
 </script>
