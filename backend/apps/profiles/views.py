@@ -133,6 +133,7 @@ from apps.profiles.utils import (
     char_ordering,
     clear_user,
     empty_user,
+    user_query,
 )
 from apps.sales.models import Deliverable, Order, Reference, Revision
 from apps.sales.serializers import SearchQuerySerializer
@@ -308,9 +309,7 @@ class RetrieveStaffPowers(RetrieveAPIView):
     permission_classes = [Any(ObjectControls, IsSuperuser)]
 
     def get_object(self):
-        powers = get_object_or_404(
-            StaffPowers, user__username__iexact=self.kwargs["username"]
-        )
+        powers = get_object_or_404(StaffPowers, user__username=self.kwargs["username"])
         self.check_object_permissions(self.request, powers)
         return powers
 
@@ -1351,9 +1350,11 @@ def perform_login(request):
         str(request.data.get("email", request.POST.get("email", ""))).lower().strip()
     )
     if "@" not in email:
-        temp_user = User.objects.filter(
-            username__iexact=email, is_active=True, guest=False
-        ).first()
+        temp_user = (
+            user_query()
+            .filter(username_case__iexact=email, is_active=True, guest=False)
+            .first()
+        )
         if temp_user:
             email = temp_user.email
     password = request.data.get("password", request.POST.get("password", "")).strip()

@@ -1844,12 +1844,24 @@ class TestRegister(APITestCase):
 
 
 class TestLogin(APITestCase):
-    def test_basic_login(self):
+    def test_email_login(self):
         UserFactory.create(username="Goober", password="Test", email="test@example.com")
         response = self.client.post(
             "/api/profiles/v1/login/",
             {
                 "email": "test@example.com",
+                "password": "Test",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_email_login_case_insensitive(self):
+        UserFactory.create(username="Goober", password="Test", email="test@example.com")
+        response = self.client.post(
+            "/api/profiles/v1/login/",
+            {
+                "email": "Test@example.com",
                 "password": "Test",
             },
             format="json",
@@ -1862,6 +1874,18 @@ class TestLogin(APITestCase):
             "/api/profiles/v1/login/",
             {
                 "email": "Goober",
+                "password": "Test",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_username_login_case_insensitive(self):
+        UserFactory.create(username="Goober", password="Test", email="test@example.com")
+        response = self.client.post(
+            "/api/profiles/v1/login/",
+            {
+                "email": "goober",
                 "password": "Test",
             },
             format="json",

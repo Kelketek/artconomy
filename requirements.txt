@@ -67,7 +67,7 @@ certifi==2024.8.30
     #   httpcore
     #   httpx
     #   requests
-cffi==1.17.0
+cffi==1.17.1
     # via cryptography
 channels[daphne]==4.1.0
     # via
@@ -132,6 +132,8 @@ django==5.0.9
     #   django-custom-user
     #   django-money
     #   django-otp
+    #   django-pgactivity
+    #   django-pglock
     #   django-redis
     #   django-reversion
     #   django-sendgrid-v5
@@ -163,7 +165,11 @@ django-markdown2==0.3.1
     # via -r requirements.in
 django-money==3.2.0
     # via -r requirements.in
-django-otp==1.5.3
+django-otp==1.5.4
+    # via -r requirements.in
+django-pgactivity==1.5.0
+    # via django-pglock
+django-pglock==1.6.2
     # via -r requirements.in
 django-premailer==0.2.0
     # via -r requirements.in
@@ -179,7 +185,7 @@ django-signal-disabler==0.1.1
     # via -r requirements.in
 django-static-sitemaps==5.0.0
     # via -r requirements.in
-django-vite==3.0.4
+django-vite==3.0.5
     # via -r requirements.in
 djangorestframework==3.15.2
     # via
@@ -197,7 +203,7 @@ dotted-dict==1.1.3
     # via -r requirements.in
 dwollav2==2.2.1
     # via -r requirements.in
-easy-thumbnails==2.9
+easy-thumbnails==2.10
     # via -r requirements.in
 emoji==2.12.1
     # via discord-py-interactions
@@ -237,7 +243,7 @@ hyperlink==21.0.0
     # via
     #   autobahn
     #   twisted
-idna==3.8
+idna==3.10
     # via
     #   anyio
     #   httpx
@@ -253,7 +259,7 @@ isort==5.13.2
     # via -r requirements.in
 jedi==0.19.1
     # via ipython
-kombu==5.4.0
+kombu==5.4.1
     # via celery
 lazy==1.6
     # via -r requirements.in
@@ -276,11 +282,11 @@ maturin==1.7.1
     # via -r requirements.in
 maxminddb==2.6.2
     # via geoip2
-more-itertools==10.4.0
+more-itertools==10.5.0
     # via cssutils
-msgpack==1.0.8
+msgpack==1.1.0
     # via channels-redis
-multidict==6.0.5
+multidict==6.1.0
     # via
     #   aiohttp
     #   yarl
@@ -303,7 +309,7 @@ pillow==10.4.0
     #   django-avatar
     #   easy-thumbnails
     #   reportlab
-platformdirs==4.2.2
+platformdirs==4.3.6
     # via black
 premailer==3.0.0
     # via django-premailer
@@ -311,9 +317,9 @@ prompt-toolkit==3.0.47
     # via
     #   click-repl
     #   ipython
-psycopg[binary]==3.2.1
+psycopg[binary]==3.2.2
     # via -r requirements.in
-psycopg-binary==3.2.1
+psycopg-binary==3.2.2
     # via psycopg
 ptyprocess==0.7.0
     # via pexpect
@@ -321,11 +327,11 @@ pure-eval==0.2.3
     # via stack-data
 py-moneyed==3.0
     # via django-money
-pyasn1==0.6.0
+pyasn1==0.6.1
     # via
     #   pyasn1-modules
     #   service-identity
-pyasn1-modules==0.4.0
+pyasn1-modules==0.4.1
     # via service-identity
 pycountry==24.6.1
     # via -r requirements.in
@@ -353,7 +359,7 @@ python-http-client==3.3.7
     #   sendgrid
 python-telegram-bot==20.8
     # via -r requirements.in
-pytz==2024.1
+pytz==2024.2
     # via
     #   -r requirements.in
     #   croniter
@@ -378,7 +384,7 @@ requests==2.32.3
     #   geoip2
     #   premailer
     #   stripe
-ruff==0.6.3
+ruff==0.6.5
     # via -r requirements.in
 sendgrid==6.11.0
     # via django-sendgrid-v5
@@ -405,7 +411,7 @@ stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==10.9.0
+stripe==10.11.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
@@ -439,7 +445,7 @@ tzdata==2024.1
     # via
     #   celery
     #   pandas
-urllib3==2.2.2
+urllib3==2.2.3
     # via requests
 uvicorn[standard]==0.30.6
     # via -r requirements.in
@@ -462,7 +468,7 @@ webencodings==0.5.1
     #   tinycss2
 websockets==13.0.1
     # via uvicorn
-yarl==1.9.8
+yarl==1.11.1
     # via aiohttp
 zope-interface==7.0.3
     # via twisted

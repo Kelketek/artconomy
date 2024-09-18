@@ -86,7 +86,6 @@ from django.contrib.auth.models import AnonymousUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import CICharField
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator
 from django.db import ProgrammingError, models
@@ -186,7 +185,7 @@ class User(AbstractEmailUser, HitsMixin):
     class Meta:
         ordering = ("-date_joined",)
 
-    username = CICharField(
+    username = CharField(
         max_length=40,
         unique=True,
         db_index=True,
@@ -195,6 +194,7 @@ class User(AbstractEmailUser, HitsMixin):
             banned_named_validator,
             banned_prefix_validator,
         ],
+        db_collation="case_insensitive",
     )
     primary_character = ForeignKey(
         "Character", blank=True, null=True, related_name="+", on_delete=SET_NULL

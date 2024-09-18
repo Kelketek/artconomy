@@ -54,6 +54,8 @@ django-money==3.2
 django-premailer
 # Library for providing One Time Passwords for 2FA apps
 django-otp
+# Gives us access to advisory locks for Postgres
+django-pglock
 # Redis support for Django's caching system
 django-redis
 # The Django REST Framework is the primary library for constructing our API endpoints and handling their serialization

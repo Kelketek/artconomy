@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+from django.db.models.functions import Collate
+
 from apps.lib.abstract_models import GENERAL
 from apps.lib.models import Comment
 from apps.lib.utils import destroy_comment
@@ -34,7 +36,7 @@ from avatar.models import Avatar
 from avatar.templatetags.avatar_tags import avatar_url
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db.models import Case, F, IntegerField, Q, When
+from django.db.models import Case, F, IntegerField, Q, When, QuerySet
 from django.utils import timezone
 from short_stuff import gen_shortcode
 
@@ -301,3 +303,14 @@ def get_anonymous_user() -> User:
     created via the create_anonymous_user command.
     """
     return User.objects.get(username=settings.ANONYMOUS_USER_USERNAME)
+
+
+def user_query() -> QuerySet[User]:
+    """
+    Lets us grab a user by the deterministic field 'username_case', for use in filters
+    like username_case__iexact. We can't use __iexact on the field directly since it has
+    a non-deterministic collation.
+    """
+    return User.objects.annotate(
+        username_case=Collate("username", "und-x-icu"),
+    )
