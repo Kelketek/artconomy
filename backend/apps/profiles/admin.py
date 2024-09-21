@@ -11,6 +11,8 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin, StackedInline
 from django.contrib.admin.options import TabularInline
 
+from apps.profiles.utils import user_query
+
 
 class StaffPowersInline(StackedInline):
     model = StaffPowers
@@ -53,13 +55,16 @@ class ArtconomyUserAdmin(EmailUserAdmin):
     )
     list_display = ("username", "email", "is_staff", "is_superuser")
     list_filter = ["guest", "artist_mode", "is_staff", "is_superuser"]
-    search_fields = ["username", "email"]
+    search_fields = ["username_case", "email"]
     raw_id_fields = ["primary_card"]
 
     def get_inlines(self, request, obj):
         if hasattr(obj, "staff_powers"):
             return [StaffPowersInline]
         return []
+
+    def get_queryset(self, request):
+        return user_query()
 
 
 class SubmissionAdmin(ModelAdmin):
