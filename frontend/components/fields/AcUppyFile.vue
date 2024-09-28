@@ -46,7 +46,7 @@
 </style>
 
 <script setup lang="ts">
-import Uppy, {UppyFile} from '@uppy/core'
+import Uppy, {Meta, UppyFile, Body, State} from '@uppy/core'
 import {toRaw, markRaw, ref, watch, onMounted, useAttrs} from 'vue'
 import Dashboard from '@uppy/dashboard'
 import XHRUpload from '@uppy/xhr-upload'
@@ -159,7 +159,8 @@ const uppy = ref(new Uppy({
   id: props.uppyId,
   autoProceed: true,
   debug: false,
-  store: new ArtconomyUppyStore(uppySingle),
+  // @ts-expect-error
+  store: new ArtconomyUppyStore<GenericState>(uppySingle),
   restrictions: {
     maxFileSize: null,
     maxNumberOfFiles: props.maxNumberOfFiles,
@@ -221,12 +222,12 @@ onMounted(() => {
   if (window.chrome) {
     // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
     uppy.value.use(Url, {
-      target: Dashboard,
+      target: `#${props.uppyId} .dashboard-container`,
       companionUrl,
       companionCookiesRule: 'include',
     })
   }
-  uppy.value.on('upload-success', (file: UppyFile | undefined, response: any) => {
+  uppy.value.on('upload-success', (file: UppyFile<Meta, Body> | undefined, response: any) => {
     if (props.maxNumberOfFiles > 1) {
       emit('update:modelValue', [...props.modelValue || [], response.body.id])
       return

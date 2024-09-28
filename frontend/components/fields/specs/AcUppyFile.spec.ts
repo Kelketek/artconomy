@@ -3,7 +3,7 @@ import {VueWrapper} from '@vue/test-utils'
 import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import flushPromises from 'flush-promises'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {UppyFile} from '@uppy/core'
+import {Body, Meta, UppyFile} from '@uppy/core'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 
@@ -68,7 +68,7 @@ describe('AcUppyFile.vue', () => {
   test('Handles a successfully uploaded file.', async() => {
     wrapper = makeUppy({modelValue: '', label: 'Boop'})
     await wrapper.vm.$nextTick()
-    const file = {
+    const file: UppyFile<Meta, Body> = {
       data: new Blob(),
       extension: 'jpg',
       isRemote: false,
@@ -76,9 +76,12 @@ describe('AcUppyFile.vue', () => {
       meta: {name: 'test.jpg'},
       size: 100,
       name: 'test.jpg',
-      providerName: 'URL',
+      isGhost: false,
+      type: 'URL',
       remote: {
         host: 'example.com',
+        requestClientId: 'blabla',
+        companionUrl: 'https://example.com/companion/',
         url: 'https://example.com/example.jpg',
       },
       progress: {
@@ -100,7 +103,7 @@ describe('AcUppyFile.vue', () => {
       label: 'Beep',
     })
     await wrapper.vm.$nextTick()
-    const file: UppyFile = {
+    const file: UppyFile<Meta, Body> = {
       data: new Blob(),
       extension: 'jpg',
       isRemote: false,
@@ -108,8 +111,12 @@ describe('AcUppyFile.vue', () => {
       meta: {name: 'test2.jpg'},
       size: 100,
       name: 'test2.jpg',
+      isGhost: false,
+      type: 'XHR',
       remote: {
         host: 'example.com',
+        requestClientId: 'blabla',
+        companionUrl: 'https://example.com/companion/',
         url: 'https://example.com/example.jpg',
       },
       progress: {
