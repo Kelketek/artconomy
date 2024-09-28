@@ -13,6 +13,15 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # Not sure why, but suddenly Django can't handle this in historical migrations,
+        # so adding this index management manually. not 100% sure if the hex value in
+        # this column is stable, but I imagine it should be since it would need to be
+        # predictable by Django's ORM. If it's not, just check the DB to see what the
+        # index is named.
+        migrations.RunSQL(
+            sql='DROP INDEX IF EXISTS "profiles_user_username_5357bba6_like"',
+            reverse_sql='CREATE INDEX IF NOT EXISTS "profiles_user_username_5357bba6_like" ON "profiles_user" using btree (username varchar_pattern_ops)',
+        ),
         migrations.AlterField(
             model_name="user",
             name="username",
