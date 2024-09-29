@@ -21,6 +21,9 @@ class ObjectControls(BasePermission):
     message = "You are not authorized to edit this."
 
     def has_object_permission(self, request, view, obj):
+        if request.user.is_superuser:
+            # Superusers always have control.
+            return True
         user = getattr(obj, "user", obj)
         if user == request.user:
             return True
