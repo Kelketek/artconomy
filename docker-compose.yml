@@ -74,6 +74,7 @@ services:
       - COMPANION_SECRET=aseriuehw4giluwesrbilunsdfijke4twesdf
       - COMPANION_DOMAIN=artconomy.vulpinity.com
       - COMPANION_PROTOCOL=https
+      - COMPANION_CLIENT_ORIGINS=true
       - COMPANION_DATADIR=/app/media/companion/
       - COMPANION_PATH=/companion/
       - COMPANION_PORT=3020
