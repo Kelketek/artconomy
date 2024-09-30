@@ -148,7 +148,7 @@ const artList = computed(() => {
       listName: 'art',
       label: 'Art',
       endpoint: `/api/profiles/account/${props.username}/submissions/art/`,
-      emptyMessage: 'You have not yet uploaded any art where you are tagged as the artist.',
+      emptyMessage: isCurrent.value ? 'You have not yet uploaded any art where you are tagged as the artist.' : 'This artist has not yet uploaded any art.',
       buttonText: buttonText,
       buttonDest: {
         name: 'Gallery',
@@ -165,8 +165,8 @@ const artList = computed(() => {
     listName: 'collection',
     label: 'Collection',
     endpoint: `/api/profiles/account/${props.username}/submissions/collection/`,
-    emptyMessage: 'You have not uploaded any art to your collection. Your collection ' +
-        'holds all art artists have made for you.',
+    emptyMessage: isCurrent.value ? 'You have not uploaded any art to your collection. Your collection ' +
+        'holds all art artists have made for you.' : 'This user has not uploaded any art to their collection. Their collection holds all art artists have made for them.',
     buttonText: buttonText,
     buttonDest: {
       name: 'Collection',
