@@ -35,6 +35,7 @@ import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
 import {StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
 import {genArtistProfile, genPowers} from '@/specs/helpers/fixtures.ts'
+import {RenderResult} from '@testing-library/vue'
 
 export interface ExtraData {
   status?: number,
@@ -196,11 +197,13 @@ export function vueSetup(overrides?: MountOverrideOptions): VueMountOptions {
   }
 }
 
-export function cleanUp(wrapper?: VueWrapper<any>) {
+export function cleanUp(wrapper?: VueWrapper<any>|RenderResult) {
   mockAxios.reset()
   vi.clearAllTimers()
   if (wrapper) {
+    // @ts-expect-error
     if (wrapper.vm && wrapper.vm.$sock) {
+      // @ts-expect-error
       wrapper.vm.$sock.reset()
     }
     wrapper.unmount()

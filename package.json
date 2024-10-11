@@ -47,6 +47,7 @@
   },
   "devDependencies": {
     "@babel/types": "^7.21.4",
+    "@testing-library/vue": "^8.1.0",
     "@types/lodash": "^4.14.201",
     "@types/markdown-it": "^13.0.6",
     "@types/node": "^18.15.0",
