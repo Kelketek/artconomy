@@ -3,6 +3,9 @@
   <v-app dark>
     <nav-bar/>
     <v-main class="main-content">
+      <ac-cookied-alert cookie="drinkcontest">
+        We're having a "Drinking Contest"! <a href="https://artconomy.com/blog/the-artconomy-character-drink-contest/" target="_blank">Turn your character into a drink and win up to $250!</a>
+      </ac-cookied-alert>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-error v-else/>
       <ac-form-dialog
@@ -234,6 +237,7 @@ import {ArtState} from '@/store/artState.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {mdiHammerWrench, mdiUpdate} from '@mdi/js'
 import {SocketState} from '@/types/SocketState.ts'
+import AcCookiedAlert from '@/components/AcCookiedAlert.vue'
 
 const router = useRouter()
 const route = useRoute()
