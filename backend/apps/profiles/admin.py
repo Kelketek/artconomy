@@ -1,3 +1,6 @@
+from django.urls import reverse
+from django.utils.safestring import mark_safe
+
 from apps.profiles.models import (
     ArtistProfile,
     Character,
@@ -53,10 +56,30 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         ("Preferences", {"fields": ("primary_card", "processor_override")}),
         ("Other details", {"fields": ("stars", "featured")}),
     )
-    list_display = ("username", "email", "is_staff", "is_superuser")
-    list_filter = ["guest", "artist_mode", "is_staff", "is_superuser"]
-    search_fields = ["username_case", "email"]
+    list_display = (
+        "username",
+        "email",
+        "is_staff",
+        "is_superuser",
+        "profile_link",
+        "service_plan",
+        "next_service_plan",
+    )
+    list_filter = [
+        "guest",
+        "artist_mode",
+        "is_staff",
+        "is_superuser",
+        "service_plan",
+        "next_service_plan",
+    ]
+    search_fields = ["username_case", "email", "guest_email"]
     raw_id_fields = ["primary_card"]
+
+    def profile_link(self, obj):
+        return mark_safe(
+            f'<a href="{reverse("profile:root_profile_preview", kwargs={"username": obj.username})}">profile</a>'
+        )
 
     def get_inlines(self, request, obj):
         if hasattr(obj, "staff_powers"):
