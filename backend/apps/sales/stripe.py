@@ -40,6 +40,10 @@ def refund_payment_intent(*, api: stripe_api, intent_token: str, amount: Money):
     )
 
 
+def cancel_payment_intent(*, api: stripe_api, intent_token: str):
+    return api.PaymentIntent.cancel(intent_token)
+
+
 def create_stripe_account(*, api: stripe_api, country: str):
     data = {
         "type": "express",

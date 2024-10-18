@@ -115,7 +115,12 @@ from apps.sales.line_item_funcs import (
     get_totals,
 )
 from apps.sales.paypal import clear_existing_invoice, paypal_api
-from apps.sales.stripe import refund_payment_intent, remote_ids_from_charge, stripe
+from apps.sales.stripe import (
+    refund_payment_intent,
+    remote_ids_from_charge,
+    stripe,
+    cancel_payment_intent,
+)
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -1750,13 +1755,25 @@ def get_invoice_intent(invoice: "Invoice", payment_settings: PaymentIntentSettin
                 intent = stripe_api.PaymentIntent.modify(
                     invoice.current_intent, **intent_kwargs
                 )
+                return intent["client_secret"]
             except InvalidRequestError as err:
                 if err.code == "payment_intent_unexpected_state":
-                    raise ValidationError(
-                        "Payment intent not in expected state. "
-                        "Likely, it has been paid and we are waiting on webhooks.",
+                    if err.json_body and err.json_body["error"]["payment_intent"][
+                        "status"
+                    ] in [
+                        "succeeded",
+                        "processing",
+                    ]:
+                        raise ValidationError(
+                            "This payment has already been made.",
+                        )
+                    # Don't catch this one-- will want to get notified if this fails
+                    # somehow.
+                    cancel_payment_intent(
+                        api=stripe_api, intent_token=invoice.current_intent
                     )
-            return intent["client_secret"]
+                else:
+                    raise err
         intent = stripe_api.PaymentIntent.create(**intent_kwargs)
         invoice.current_intent = intent["id"]
         invoice.save()

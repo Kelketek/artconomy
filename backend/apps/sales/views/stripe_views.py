@@ -19,13 +19,14 @@ from apps.sales.stripe import (
     create_stripe_account,
     get_country_list,
     stripe,
+    cancel_payment_intent,
 )
 from apps.sales.utils import get_invoice_intent, subscription_invoice_for_service
 from django.db import IntegrityError, transaction
 from django.db.models import QuerySet
 from django.shortcuts import get_object_or_404
 from rest_framework import status
-from rest_framework.generics import GenericAPIView, ListAPIView, RetrieveAPIView
+from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from stripe.error import InvalidRequestError
@@ -209,6 +210,15 @@ class InvoicePaymentIntent(APIView):
                 )
             }
         )
+
+    @transaction.atomic
+    def delete(self, *args, **kwargs):
+        invoice = self.get_object()
+        if not invoice.current_intent:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        with stripe as stripe_api:
+            cancel_payment_intent(api=stripe_api, intent_token=invoice.current_intent)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProcessPresentCard(APIView):

@@ -472,7 +472,7 @@ urlpatterns = [
     path(
         "invoice/<short_code:invoice>/payment-intent/",
         stripe_views.InvoicePaymentIntent.as_view(),
-        name="invoice_detail",
+        name="invoice_intent",
     ),
     path(
         "invoice/<short_code:invoice>/stripe-process-present-card/",

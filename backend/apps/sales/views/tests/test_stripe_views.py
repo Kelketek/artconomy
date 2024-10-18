@@ -437,13 +437,14 @@ class TestInvoicePaymentIntent(APITestCase):
         )
 
     @patch("apps.sales.utils.stripe")
-    def test_unexpected_state(self, mock_stripe):
+    def test_succeeded_already(self, mock_stripe):
         mock_api = Mock()
         mock_stripe.__enter__.return_value = mock_api
         mock_api.PaymentIntent.modify.side_effect = InvalidRequestError(
             "Oops.",
             param="",
             code="payment_intent_unexpected_state",
+            json_body={"error": {"payment_intent": {"status": "succeeded"}}},
         )
         deliverable = DeliverableFactory.create(
             status=PAYMENT_PENDING,
@@ -456,8 +457,36 @@ class TestInvoicePaymentIntent(APITestCase):
             f"/api/sales/v1/invoice/{deliverable.invoice.id}/payment-intent/",
             {"save_card": True},
         )
-        self.assertIn("not in expected state", response.data[0])
+        self.assertIn("This payment has already been made.", response.data[0])
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    @patch("apps.sales.utils.stripe")
+    def test_start_over(self, mock_stripe):
+        mock_api = Mock()
+        mock_stripe.__enter__.return_value = mock_api
+        mock_api.PaymentIntent.modify.side_effect = InvalidRequestError(
+            "Oops.",
+            param="",
+            code="payment_intent_unexpected_state",
+            json_body={"error": {"payment_intent": {"status": "beeping"}}},
+        )
+        mock_api.PaymentIntent.create.return_value = {
+            "id": "raw_id",
+            "client_secret": "sneak",
+        }
+        deliverable = DeliverableFactory.create(
+            status=PAYMENT_PENDING,
+            invoice__current_intent="old_id",
+            processor=STRIPE,
+            invoice__status=OPEN,
+        )
+        self.login(deliverable.order.buyer)
+        response = self.client.post(
+            f"/api/sales/v1/invoice/{deliverable.invoice.id}/payment-intent/",
+        )
+        self.assertEqual(response.data, {"secret": "sneak"})
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.invoice.current_intent, "raw_id")
 
     @patch("apps.sales.utils.stripe")
     def test_zero_invoice(self, mock_stripe):
