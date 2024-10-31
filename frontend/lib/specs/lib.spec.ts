@@ -19,7 +19,7 @@ import {
   ratingsShortLister,
   setCookie,
   setMetaContent,
-  singleQ,
+  singleQ, starRound,
   updateLinked,
 } from '@/lib/lib.ts'
 import {shallowMount, VueWrapper} from '@vue/test-utils'
@@ -664,5 +664,19 @@ describe('Clones data', () => {
     ${{test: null}}
   `('Should return an equivalent to $value', ({value}) => {
     expect(clone(value)).toEqual(value)
+  })
+})
+
+describe('Rounds ratings', () => {
+  test.each`
+  value   | result
+  ${4}    | ${4}
+  ${3.5}  | ${3.5}
+  ${4.91} | ${5}
+  ${2.8}  | ${3}
+  ${2.4}  | ${2.5}
+  ${null} | ${undefined}
+  `('Should round ratings to a displayable value', ({value, result}) => {
+    expect(starRound(value)).toEqual(result)
   })
 })

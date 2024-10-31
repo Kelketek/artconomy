@@ -687,15 +687,14 @@ export const starRound = (val: number|null) => {
   if (val === null) {
     return undefined
   }
-  let base = Math.floor(val)
-  const remainder = base % 1
+  const base = Math.floor(val)
+  const remainder = val % 1
   if (remainder >= .75) {
-    base += 1
+    return base + 1
   } else if (remainder <= .25) {
     return base
   }
-
-  return base + remainder
+  return base + .5
 }
 
 const PRIMITIVES = new Set(['number', 'string', 'function', 'symbol', 'bigint', 'boolean', 'undefined'])
