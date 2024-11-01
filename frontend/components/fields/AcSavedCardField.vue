@@ -21,7 +21,8 @@
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCard from '@/components/views/settings/payment/AcCard.vue'
 import {ListController} from '@/store/lists/controller.ts'
-import {CreditCardToken} from '@/types/CreditCardToken.ts'
+
+import type {CreditCardToken} from '@/types/main'
 
 
 const props = defineProps<{modelValue: number|null, cards: ListController<CreditCardToken>}>()

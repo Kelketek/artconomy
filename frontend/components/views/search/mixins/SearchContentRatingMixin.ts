@@ -1,8 +1,8 @@
 import {FormController} from '@/store/forms/form-controller.ts'
 import {RATINGS_SHORT} from '@/lib/lib.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import {RatingsValue} from '@/types/Ratings.ts'
 import {computed} from 'vue'
+import {RatingsValue} from '@/types/main'
 
 export const useContentRatingSearch = (searchForm: FormController) => {
   const {

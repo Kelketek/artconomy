@@ -7,11 +7,11 @@ import {createRouter, createWebHistory, Router} from 'vue-router'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {dummyLineItems} from '@/lib/specs/helpers.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import LineItem from '@/types/LineItem.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
+import type {LineItem} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

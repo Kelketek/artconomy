@@ -20,10 +20,10 @@
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Order from '@/types/Order.ts'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import {computed} from 'vue'
 import {useList} from '@/store/lists/hooks.ts'
+import type {Order} from '@/types/main'
 
 
 const ordersByUser = computed(() => {

@@ -38,13 +38,12 @@
 </template>
 <script setup lang="ts">
 import AcProductPreview from '@/components/AcProductPreview.vue'
-import Product from '@/types/Product.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {ref} from 'vue'
 import {mdiArrowExpand} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import type {Product, SubjectiveProps} from '@/types/main'
 
 
 const props = defineProps<{product: SingleController<Product>} & SubjectiveProps>()

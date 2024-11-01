@@ -55,10 +55,10 @@ import {ListController} from '@/store/lists/controller.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
-import LinkedCharacter from '@/types/LinkedCharacter.ts'
 import {mdiAccountGroup, mdiAccount} from '@mdi/js'
 import {ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
+import type {LinkedCharacter} from '@/types/main'
 
 const props = defineProps<{controller: ListController<LinkedCharacter>, editable: boolean}>()
 const toggle = ref(false)

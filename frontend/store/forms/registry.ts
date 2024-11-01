@@ -2,10 +2,9 @@ import {createApp, markRaw} from 'vue'
 import {FormController} from './form-controller.ts'
 import {FieldController} from './field-controller.ts'
 import {registerValidators} from './validators.ts'
-import {NamelessFormSchema} from './types/NamelessFormSchema.ts'
 import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
-import {FormState} from '@/store/forms/types/FormState.ts'
 import {ArtStore} from '@/store/index.ts'
+import {FormState, NamelessFormSchema} from '@/store/forms/types/main'
 
 export class FormRegistry extends BaseRegistry<FormState, FormController> {
   public validators: { [key: string]: (fieldController: FieldController, ...args: any[]) => string[] }

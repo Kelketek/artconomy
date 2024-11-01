@@ -7,7 +7,8 @@ import {lists} from './lists/index.ts'
 import {clone, genId} from '@/lib/lib.ts'
 import {singles} from './singles/index.ts'
 import {characterModules} from '@/store/characters/index.ts'
-import {RatingsValue} from '@/types/Ratings.ts'
+
+import {RatingsValue} from '@/types/main'
 
 export function storeDefaults(): StoreOptions<ArtState> {
   return {

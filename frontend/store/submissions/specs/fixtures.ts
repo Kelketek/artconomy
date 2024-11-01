@@ -1,4 +1,4 @@
-import Submission from '@/types/Submission.ts'
+import type {Submission} from '@/types/main'
 
 export function genSubmission(overrides?: Partial<Submission>): Submission {
   return {

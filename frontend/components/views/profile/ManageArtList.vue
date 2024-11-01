@@ -44,10 +44,9 @@
 <script setup lang="ts">
 import {flatten} from '@/lib/lib.ts'
 import AcDraggableList from '@/components/AcDraggableList.vue'
-import ArtistTag from '@/types/ArtistTag.ts'
 import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
+import type {ArtistTag, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps & {listName: string, endpoint: string}>()
 let listName = props.listName

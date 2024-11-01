@@ -41,9 +41,8 @@ import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {mdiArrowLeftBold} from '@mdi/js'
 import {useList} from '@/store/lists/hooks.ts'
-import ProductProps from '@/types/ProductProps.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
-import LinkedSubmission from '@/types/LinkedSubmission.ts'
+
+import type {LinkedSubmission, ProductProps, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps & ProductProps>()
 const {product, url} = useProduct(props)

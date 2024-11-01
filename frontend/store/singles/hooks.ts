@@ -1,7 +1,6 @@
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 import {generateModuleHooks} from '@/store/hooks.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {SingleState} from '@/store/singles/types/SingleState.ts'
+import type {SingleModuleOpts, SingleState} from '@/store/singles/types.d.ts'
 
 const {use, listen, clear} = generateModuleHooks<SingleState<any>, SingleModuleOpts<any>, SingleController<any>>('Single', SingleController)
 

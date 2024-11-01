@@ -8,8 +8,8 @@
 <script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
 import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
-import Deliverable from '@/types/Deliverable.ts'
 import {computed} from 'vue'
+import type {Deliverable} from '@/types/main'
 
 declare interface Streaming extends DisplayData {
   stream_link: string,

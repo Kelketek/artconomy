@@ -1,7 +1,6 @@
-import {ListModuleOpts} from '@/store/lists/types/ListModuleOpts.ts'
 import {generateModuleHooks} from '@/store/hooks.ts'
-import {ListState} from '@/store/lists/types/ListState.ts'
 import {ListController} from '@/store/lists/controller.ts'
+import type {ListModuleOpts, ListState} from '@/store/lists/types.d.ts'
 
 const {use, listen, clear} = generateModuleHooks<ListState<any>, ListModuleOpts, ListController<any>>('List', ListController)
 

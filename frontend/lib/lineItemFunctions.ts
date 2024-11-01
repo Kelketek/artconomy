@@ -1,13 +1,9 @@
 // The functions in this file are meant to mirror the functions in backend/apps/sales/utils. There's not a good way
 // to ensure that they're both updated at the same time, but they should, hopefully, be easy enough to keep in sync.
 // If enough code has to be repeated between the two bases it may be worth looking into a transpiler.
-import LineItem from '@/types/LineItem.ts'
-import {LineMoneyMap} from '@/types/LineMoneyMap.ts'
-import LineAccumulator from '@/types/LineAccumulator.ts'
-import {LineType, LineTypeValue} from '@/types/LineType.ts'
-import Pricing from '@/types/Pricing.ts'
-import Product from '@/types/Product.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {js_get_totals, js_reckon_lines} from '@/lib/lines'
+import type {LineAccumulator, LineItem, LineMoneyMap, LineTypeValue, Pricing, Product} from '@/types/main'
 
 declare type RustedAccumulator = Omit<LineAccumulator, 'subtotals'> & {subtotals: Map<number, string>}
 

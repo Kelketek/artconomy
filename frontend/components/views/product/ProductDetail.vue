@@ -602,7 +602,6 @@
 <script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {SingleController} from '@/store/singles/controller.ts'
-import Product from '@/types/Product.ts'
 import AcAsset from '@/components/AcAsset.vue'
 import {useEditable} from '@/mixins/editable.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
@@ -612,12 +611,10 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcTagDisplay from '@/components/AcTagDisplay.vue'
-import Submission from '@/types/Submission.ts'
 import AcSampleEditor from '@/components/views/product/AcSampleEditor.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import {RouteLocationRaw, useRoute, useRouter} from 'vue-router'
-import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import {useProduct} from '@/components/views/product/mixins/ProductCentric.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {RATING_COLOR, RATINGS_SHORT, setMetaContent, starRound, updateTitle} from '@/lib/lib.ts'
@@ -625,26 +622,31 @@ import AcShareButton from '@/components/AcShareButton.vue'
 import {useSharable} from '@/mixins/sharable.ts'
 import {deliverableLines} from '@/lib/lineItemFunctions.ts'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
-import {RawLineItemSetMap} from '@/types/RawLineItemSetMap.ts'
-import LineItem from '@/types/LineItem.ts'
 import {mdiCog, mdiBasket, mdiPencil, mdiStar, mdiEye, mdiDelete, mdiLock, mdiDotsHorizontal, mdiCameraBurst} from '@mdi/js'
 import {computed, ComputedRef, ref, watch} from 'vue'
 import {useSubject} from '@/mixins/subjective.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
-import ProductProps from '@/types/ProductProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {usePricing} from '@/mixins/PricingAware.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {textualize} from '@/lib/markdown.ts'
 import {formatDateTerse, profileLink} from '@/lib/otherFormatters.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
-import Inventory from '@/types/Inventory.ts'
 import {listenForForm} from '@/store/forms/hooks.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {useTheme, useDisplay} from 'vuetify'
+import {
+  Inventory,
+  LineItem,
+  LinkedSubmission,
+  Product,
+  ProductProps,
+  RawLineItemSetMap,
+  SubjectiveProps,
+  Submission,
+} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 
 const props = defineProps<SubjectiveProps & ProductProps>()

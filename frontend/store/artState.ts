@@ -1,9 +1,9 @@
-import {ListState} from '@/store/lists/types/ListState.ts'
-import {SingleState} from '@/store/singles/types/SingleState.ts'
-import {FormState} from '@/store/forms/types/FormState.ts'
-import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ErrorState} from '@/store/errors/types.ts'
-import {RatingsValue} from '@/types/Ratings.ts'
+import type {SingleState} from '@/store/singles/types.d.ts'
+import {ProfileState} from '@/store/profiles/types/main'
+import {RatingsValue} from '@/types/main'
+import type {ListState} from '@/store/lists/types.d.ts'
+import {FormState} from '@/store/forms/types/main'
 
 export const AlertCategory = {
   SUCCESS: 'success',

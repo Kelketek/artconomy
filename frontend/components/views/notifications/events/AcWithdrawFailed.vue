@@ -12,8 +12,8 @@
 <script setup lang="ts">
 import AcBaseNotification from './AcBaseNotification.vue'
 import {NotificationProps, DisplayUser, useEvent} from '../mixins/notification.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {computed} from 'vue'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<NotificationProps<User, DisplayUser>>()
 const event = useEvent(props)

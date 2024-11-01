@@ -71,13 +71,10 @@
 
 <script setup lang="ts">
 import AcAsset from '@/components/AcAsset.vue'
-import Revision from '@/types/Revision.ts'
 import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Comment from '@/types/Comment.ts'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import {markRead} from '@/lib/lib.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {mdiCloudDownload, mdiCheckCircle, mdiDelete, mdiUpload, mdiArrowLeft} from '@mdi/js'
 import {useSingle} from '@/store/singles/hooks.ts'
@@ -87,7 +84,9 @@ import {useRouter} from 'vue-router'
 import {computed} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
+import type {Comment, Revision} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<DeliverableProps & { revisionId: string|number }>()
 const router = useRouter()

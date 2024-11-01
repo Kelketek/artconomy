@@ -1,12 +1,13 @@
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {cleanUp, docTarget, mount, vueSetup} from '@/specs/helpers/index.ts'
-import {LineType} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
-import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
+
+import type {ArtVueInterface} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

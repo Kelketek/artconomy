@@ -11,12 +11,12 @@ import {
 } from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
+import {TOTPDevice} from '@/types/main'
 
 const qrImageUrl = 'otpauth://totp/Artconomy%20Dev%3Afox%40vulpinity.com?secret=KJZWLZLDMVY3XJAX72V4WAXDKKZZDA76' +
   '&algorithm=SHA1&digits=6&period=30&issuer=Artconomy+Dev'

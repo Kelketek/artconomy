@@ -9,13 +9,13 @@
 </template>
 
 <script setup lang="ts">
-import {Asset} from '@/types/Asset.ts'
 
 const props = defineProps<{asset: Asset}>()
 
 import { VuePDF, usePDF } from '@tato30/vue-pdf'
 import {ref} from 'vue'
 import AcPdfNav from '@/components/AcPdfNav.vue'
+import type {Asset} from '@/types/main'
 
 const page = ref(1)
 

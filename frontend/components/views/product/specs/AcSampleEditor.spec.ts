@@ -15,16 +15,14 @@ import {
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import Product from '@/types/Product.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {genProduct, genUser} from '@/specs/helpers/fixtures.ts'
-import Submission from '@/types/Submission.ts'
 import AcSampleEditor from '@/components/views/product/AcSampleEditor.vue'
 import mockAxios from '@/__mocks__/axios.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
-import LinkedSubmission from '@/types/LinkedSubmission.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {nextTick} from 'vue'
+import type {LinkedSubmission, Product, Submission} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

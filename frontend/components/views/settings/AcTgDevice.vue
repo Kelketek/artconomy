@@ -132,7 +132,6 @@
 
 <script setup lang="ts">
 import {SingleController} from '@/store/singles/controller.ts'
-import {TGDevice} from '@/store/profiles/types/TGDevice.ts'
 import {useDisplay} from 'vuetify'
 import {artCall, BASE_URL} from '@/lib/lib.ts'
 import {useSubject} from '@//mixins/subjective.ts'
@@ -140,10 +139,10 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {vMaskToken} from '@/lib/vMask.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed, ComputedRef, ref, watch} from 'vue'
-import {User} from '@/store/profiles/types/User.ts'
+import type {SubjectiveProps, TGDevice} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const telegramLogo = new URL('/static/images/telegram_logo.svg', BASE_URL).href
 const logo = new URL('/static/images/logo.png', BASE_URL).href

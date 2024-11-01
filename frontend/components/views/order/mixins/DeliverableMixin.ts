@@ -1,29 +1,29 @@
 import {useViewer} from '@/mixins/viewer.ts'
 import {AnyUser, ProfileController} from '@/store/profiles/controller.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import Order from '@/types/Order.ts'
-import Deliverable from '@/types/Deliverable.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import Submission from '@/types/Submission.ts'
 import {baseCardSchema, baseInvoiceSchema, paypalTokenToUrl} from '@/lib/lib.ts'
-import DeliverableViewSettings from '@/types/DeliverableViewSettings.ts'
-import {ViewerType, ViewerTypeValue} from '@/types/ViewerType.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import Revision from '@/types/Revision.ts'
-import LinkedCharacter from '@/types/LinkedCharacter.ts'
-import LineItem from '@/types/LineItem.ts'
-import LinkedReference from '@/types/LinkedReference.ts'
+import {ViewerType} from '@/types/enums/ViewerType.ts'
 import {addBusinessDays, isAfter} from 'date-fns'
 import {LocationQueryValue, useRoute} from 'vue-router'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {computed, nextTick, watch} from 'vue'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
-import Comment from '@/types/Comment.ts'
-import {OrderProps} from '@/types/OrderProps.ts'
+import {
+  Deliverable,
+  Comment,
+  DeliverableViewSettings,
+  LineItem,
+  LinkedCharacter,
+  LinkedReference, Order,
+  OrderProps, Submission, ViewerTypeValue,
+} from '@/types/main'
+import type {Revision} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 export interface DeliverableProps extends OrderProps {
   deliverableId: string|number,

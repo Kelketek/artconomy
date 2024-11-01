@@ -1,13 +1,11 @@
-import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import ClientSecret from '@/types/ClientSecret.ts'
 import debounce from 'lodash/debounce'
-import StripeReader from '@/types/StripeReader.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {ComputedRef, watch, Ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
+import type {ClientSecret, CreditCardToken, StripeReader} from '@/types/main'
 
 
 export interface StripeHostArgs {

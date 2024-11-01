@@ -1,9 +1,9 @@
 import {computed} from 'vue'
-import LineItem from '@/types/LineItem.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {LineType, LineTypeValue} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
+import type {LineItem, LineTypeValue} from '@/types/main'
 
 export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
   const addOnForm = useForm(`${props.lineItems.name.value}_addOn`, {

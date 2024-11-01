@@ -5,9 +5,9 @@ import {genOrder, genUser} from '@/specs/helpers/fixtures.ts'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import Order from '@/types/Order.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import type {Order} from '@/types/main'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore

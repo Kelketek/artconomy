@@ -227,7 +227,6 @@
 </style>
 
 <script setup lang="ts">
-import Product from '@/types/Product.ts'
 import AcAsset from '@/components/AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
@@ -236,6 +235,7 @@ import {RouteLocationRaw} from 'vue-router'
 import {mdiShieldHalfFull} from '@mdi/js'
 import {computed} from 'vue'
 import {useDisplay} from 'vuetify'
+import type {Product} from '@/types/main'
 
 declare interface AcProductPreviewProps {
   product: Product,

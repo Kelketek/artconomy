@@ -2,11 +2,11 @@ import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcBankToggleStripe from '@/components/fields/AcBankToggle.vue'
-import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import StripeAccount from '@/types/StripeAccount.ts'
 import {genId, setViewer} from '@/lib/lib.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import type {StripeAccount} from '@/types/main'
+import {BankStatus} from '@/store/profiles/types/enums.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

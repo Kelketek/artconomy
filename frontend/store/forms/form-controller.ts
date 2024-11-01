@@ -2,16 +2,13 @@ import {FieldController} from './field-controller.ts'
 import {MutationPayload} from 'vuex'
 import {formRegistry} from './registry.ts'
 import {deriveErrors} from './helpers.ts'
-import {NamelessFormSchema} from './types/NamelessFormSchema.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {dataFromForm} from '@/store/forms/index.ts'
-import StepSpec from '@/store/forms/types/StepSpec.ts'
-import {FormState} from '@/store/forms/types/FormState.ts'
-import {RawData} from '@/store/forms/types/RawData.ts'
 import {ComputedGetters, flatten} from '@/lib/lib.ts'
-import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import {computed, effectScope, nextTick, toValue} from 'vue'
-import {AcServerError} from '@/types/AcServerError.ts'
+
+import type {AcServerError, ArtVueInterface} from '@/types/main'
+import StepSpec, {FormState, NamelessFormSchema, RawData} from '@/store/forms/types/main'
 
 export interface FieldBank {
   [key: string]: FieldController

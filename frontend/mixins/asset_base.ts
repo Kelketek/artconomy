@@ -1,11 +1,8 @@
-import {Asset} from '@/types/Asset.ts'
 import {RATINGS} from '@/lib/lib.ts'
 import {useViewer} from './viewer.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {computed} from 'vue'
-import type {RatingsValue} from '@/types/Ratings.ts'
-import FileSpec from '@/types/FileSpec.ts'
+import type {Asset, FileSpec, RatingsValue} from '@/types/main'
+import {AnonUser, User} from '@/store/profiles/types/main'
 
 const getRatingText = (asset: Asset|null) => {
   if (!asset) {

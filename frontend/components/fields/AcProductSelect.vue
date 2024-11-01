@@ -25,10 +25,9 @@ import {
   AutocompleteEmits,
   AutocompleteProps, useAutocomplete,
 } from '@/components/fields/mixins/autocomplete.ts'
-import Product from '@/types/Product.ts'
 import {ref, useAttrs} from 'vue'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import type {Product, SubjectiveProps} from '@/types/main'
 
 const props = withDefaults(defineProps<AutocompleteProps & SubjectiveProps>(), autocompleteDefaults())
 const input = ref<null|typeof VAutocomplete>(null)

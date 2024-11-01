@@ -49,11 +49,11 @@ import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import LineItem from '@/types/LineItem.ts'
-import {LineType, LineTypeValue} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {computed} from 'vue'
 import {useLineItems} from '@/components/price_preview/mixins/line_items.ts'
+import type {LineItem, LineTypeValue} from '@/types/main'
 
 const props = withDefaults(defineProps<{
   lineItems: ListController<LineItem>,

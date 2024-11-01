@@ -10,16 +10,16 @@ import {
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {Router} from 'vue-router'
 import mockAxios from '@/__mocks__/axios.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import CharacterDetail from '@/components/views/character/CharacterDetail.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
-import Submission from '@/types/Submission.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {searchSchema, setViewer} from '@/lib/lib.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {nextTick} from 'vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
+import type {Submission} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

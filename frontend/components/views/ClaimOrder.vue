@@ -32,10 +32,10 @@
 import {useViewer} from '@/mixins/viewer.ts'
 import {RouteLocationRaw, useRouter} from 'vue-router'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {User} from '@/store/profiles/types/User.ts'
 import {BASE_URL} from '@/lib/lib.ts'
 import {useSocket} from '@/plugins/socket.ts'
 import {useForm} from '@/store/forms/hooks.ts'
+import {User} from '@/store/profiles/types/main'
 
 const cheering = new URL('static/images/cheering.png', BASE_URL).href
 const props = defineProps<{username?: string, orderId?: string, token?: string, deliverableId?: string, next?: string}>()

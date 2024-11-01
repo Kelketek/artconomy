@@ -23,8 +23,8 @@ import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.t
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 import {computed} from 'vue'
 import {formatDate} from '@/lib/otherFormatters.ts'
-import Deliverable from '@/types/Deliverable.ts'
-import {DeliverableStatus, DeliverableStatusValue} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
+import type {Deliverable, DeliverableStatusValue} from '@/types/main'
 
 const ORDER_STATUSES: Record<DeliverableStatusValue, string> = {
   [DeliverableStatus.WAITING]: 'has been added to the artist\'s waitlist.',

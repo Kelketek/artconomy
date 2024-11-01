@@ -185,16 +185,15 @@ import {artCall} from '@/lib/lib.ts'
 import {siDiscord} from 'simple-icons'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {PaypalConfig} from '@/types/PaypalConfig.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {statusOk} from '@/mixins/ErrorHandling.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {formatDate} from '@/lib/otherFormatters.ts'
-import {User} from '@/store/profiles/types/User.ts'
+import type {PaypalConfig, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const showPaypal = ref(false)
 const paypalWarned = ref(false)

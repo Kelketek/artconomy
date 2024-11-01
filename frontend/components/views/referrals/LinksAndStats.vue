@@ -70,10 +70,9 @@
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import ReferralStats from '@/types/ReferralStats.ts'
 import {flatten} from '@/lib/lib.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import type {ReferralStats, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 useSubject({ props, privateView: true })

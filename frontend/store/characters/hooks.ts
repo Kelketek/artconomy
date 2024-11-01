@@ -1,9 +1,8 @@
 import {generateModuleHooks} from '@/store/hooks.ts'
 
-import CharacterState from '@/store/characters/types/CharacterState.ts'
-import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts.ts'
 import {CharacterController} from '@/store/characters/controller.ts'
 import {flatten} from '@/lib/lib.ts'
+import type {CharacterModuleOpts, CharacterState} from '@/store/characters/types/main'
 
 
 const {use, listen, clear} = generateModuleHooks<CharacterState, CharacterModuleOpts, CharacterController>('Character', CharacterController)

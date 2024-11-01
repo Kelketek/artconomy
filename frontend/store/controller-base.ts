@@ -4,10 +4,10 @@ import {v4 as uuidv4} from 'uuid'
 import {NullClass} from '@/store/helpers/NullClass.ts'
 import deepEqual from 'fast-deep-equal'
 import {AttrKeys, ModuleName, Registry, RegistryRegistry} from '@/store/registry-base.ts'
-import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import {ArtStore} from '@/store/index.ts'
 import {SocketManager} from '@/plugins/socket.ts'
 import {Router} from 'vue-router'
+import type {ArtVueInterface} from '@/types/main'
 
 export interface ControllerArgs<S> {
   initName: string,

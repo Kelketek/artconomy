@@ -1,4 +1,3 @@
-import {RawData} from '@/store/forms/types/RawData.ts'
 import deepEqual from 'fast-deep-equal'
 import {makeQueryParams} from '@/lib/lib.ts'
 import {ListController} from '@/store/lists/controller.ts'
@@ -6,6 +5,7 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import debounce from 'lodash/debounce'
 import {watch} from 'vue'
 import {router} from '@/router'
+import {RawData} from '@/store/forms/types/main'
 
 
 export const useSearchField = (searchForm: FormController, list: ListController<any>) => {

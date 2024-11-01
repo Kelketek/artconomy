@@ -22,8 +22,8 @@ import {
   NotificationUser,
   useEvent,
 } from '@/components/views/notifications/mixins/notification.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import {computed} from 'vue'
+import {Character} from '@/store/characters/types/main'
 
 declare interface NewCharacter extends DisplayData {
   character: Character,

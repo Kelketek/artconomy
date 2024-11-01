@@ -1,9 +1,7 @@
-import Product from '@/types/Product.ts'
 import {addBusinessDays, formatISO} from 'date-fns'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {computed} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
-import ProductProps from '@/types/ProductProps.ts'
+import type {Product, ProductProps, SubjectiveProps} from '@/types/main'
 
 
 export const useProduct = <T extends SubjectiveProps & ProductProps>(props: T) => {

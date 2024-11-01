@@ -54,12 +54,11 @@ import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import Reference from '@/types/Reference.ts'
 import AcReference from '@/components/views/order/deliverable/AcReference.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed, watch} from 'vue'
 import {useRoute} from 'vue-router'
-import {RatingsValue} from '@/types/Ratings.ts'
+import type {RatingsValue, Reference} from '@/types/main'
 
 const props = defineProps<DeliverableProps>()
 const route = useRoute()

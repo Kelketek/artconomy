@@ -30,11 +30,11 @@
 
 <script setup lang="ts">
 import {assetDefaults, useAssetHelpers} from '@/mixins/asset_base.ts'
-import {Character} from '@/store/characters/types/Character.ts'
-import AssetProps from '@/types/AssetProps.ts'
 import {computed} from 'vue'
 import {mdiCancel, mdiClose} from '@mdi/js'
 import {useTheme} from 'vuetify'
+import type {AssetProps} from '@/types/main'
+import {Character} from '@/store/characters/types/main'
 
 declare interface AcMiniCharacterProps extends AssetProps {
   character: Character,

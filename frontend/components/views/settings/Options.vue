@@ -127,12 +127,12 @@ import {useSubject} from '@/mixins/subjective.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {differenceInYears} from 'date-fns'
 import {SingleController} from '@/store/singles/controller.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
 import {computed} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
+import type {SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

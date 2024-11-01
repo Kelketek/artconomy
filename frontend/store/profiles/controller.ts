@@ -1,12 +1,6 @@
 import {ProfileModule} from './index.ts'
-import {ProfileModuleOpts} from './types/ProfileModuleOpts.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {ComputedGetters} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
 import {
   artistProfileEndpointFor,
   artistProfilePathFor,
@@ -16,13 +10,19 @@ import {
 } from '@/store/profiles/helpers.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import Product from '@/types/Product.ts'
 import {nextTick, toValue, watch} from 'vue'
 import {getController} from '@/store/registry-base.ts'
-import {SingleState} from '@/store/singles/types/SingleState.ts'
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 import {guestName} from '@/lib/otherFormatters.ts'
-import {StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
+import type {Product} from '@/types/main'
+import type {SingleModuleOpts, SingleState} from '@/store/singles/types.d.ts'
+import {
+  AnonUser,
+  ArtistProfile,
+  ProfileModuleOpts,
+  ProfileState,
+  StaffPowers,
+  TerseUser, User,
+} from '@/store/profiles/types/main'
 
 export type AnyUser = User | TerseUser | AnonUser
 

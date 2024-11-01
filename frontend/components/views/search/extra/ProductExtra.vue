@@ -159,12 +159,12 @@
 <script setup lang="ts">
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import type {RatingsValue} from '@/types/Ratings.ts'
 import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'
 import {useContentRatingSearch} from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
 import {mdiCog} from '@mdi/js'
+import {RatingsValue} from '@/types/main'
 
 const searchForm = useForm('search')
 const {showRatings, ratingItems} = useContentRatingSearch(searchForm)

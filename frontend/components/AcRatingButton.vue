@@ -14,9 +14,9 @@ import {ref, useAttrs} from 'vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import {mdiPencil} from '@mdi/js'
 import {RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
-import {RatingsValue} from '@/types/Ratings.ts'
 import {Patch} from '@/store/singles/patcher.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
+import {RatingsValue} from '@/types/main'
 
 const ratingDialog = ref(false)
 

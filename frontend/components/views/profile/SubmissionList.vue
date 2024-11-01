@@ -15,15 +15,13 @@
 </template>
 
 <script setup lang="ts">
-import Submission from '@/types/Submission.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {flatten} from '@/lib/lib.ts'
-import ArtistTag from '@/types/ArtistTag.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
+import type {ArtistTag, SubjectiveProps, Submission} from '@/types/main'
 
 declare interface SubmissionListProps extends SubjectiveProps {
   listName: string,

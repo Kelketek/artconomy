@@ -60,7 +60,6 @@
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
-import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
@@ -70,13 +69,13 @@ import {flatten} from '@/lib/lib.ts'
 import {getStripe} from '@/components/views/order/mixins/StripeMixin.ts'
 import {StripeCardElement} from '@stripe/stripe-js'
 import AcStripeCharge from '@/components/AcStripeCharge.vue'
-import {RawData} from '@/store/forms/types/RawData.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {mdiCreditCard, mdiContentSave} from '@mdi/js'
 import {useList} from '@/store/lists/hooks.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {computed, ComputedRef, ref, watch} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import type {CreditCardToken, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
+import {RawData} from '@/store/forms/types/main'
 
 declare type StripeError = { error: null | { message: string } }
 

@@ -2,7 +2,8 @@ import {formRegistry} from './registry.ts'
 import {FieldController} from './field-controller.ts'
 import deepEqual from 'fast-deep-equal'
 import {artCall} from '@/lib/lib.ts'
-import {RawData} from '@/store/forms/types/RawData.ts'
+
+import {RawData} from '@/store/forms/types/main'
 
 export function required(field: FieldController): string[] {
   if (!field.value) {

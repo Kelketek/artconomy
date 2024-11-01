@@ -4,11 +4,10 @@ import {singleRegistry} from '@/store/singles/registry.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
 import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
-import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
 import WS from 'vitest-websocket-mock'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
+import type {SingleModuleOpts, SingleSocketSettings} from '@/store/singles/types.d.ts'
 
 let store: ArtStore
 let state: any

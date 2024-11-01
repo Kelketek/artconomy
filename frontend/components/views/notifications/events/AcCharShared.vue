@@ -16,8 +16,9 @@ import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.t
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 import {computed} from 'vue'
-import {Character} from '@/store/characters/types/Character.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+
+import {TerseUser} from '@/store/profiles/types/main'
+import {Character} from '@/store/characters/types/main'
 
 declare interface CharShared extends DisplayData {
   character: Character,

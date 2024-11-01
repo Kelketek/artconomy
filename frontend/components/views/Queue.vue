@@ -44,12 +44,11 @@
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
-import Order from '@/types/Order.ts'
 import {mdiOpenInNew, mdiPlus} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useSubject} from '@/mixins/subjective.ts'
+import type {Order, SubjectiveProps} from '@/types/main'
 
 const {setError} = useErrorHandling()
 const props = defineProps<SubjectiveProps>()

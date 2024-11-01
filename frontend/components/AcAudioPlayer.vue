@@ -13,8 +13,8 @@
 
 <script setup lang="ts">
 import {getExt} from '@/mixins/asset_base.ts'
-import {Asset} from '@/types/Asset.ts'
 import {computed} from 'vue'
+import type {Asset} from '@/types/main'
 
 const props = defineProps<{asset: Asset, alt: string}>()
 const type = computed(() =>  'audio/' + getExt(props.asset.file.full).toLowerCase())

@@ -21,9 +21,9 @@ import {
   NotificationUser,
   useEvent,
 } from '@/components/views/notifications/mixins/notification.ts'
-import Submission from '@/types/Submission.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import {computed} from 'vue'
+import type {Submission} from '@/types/main'
+import {Character} from '@/store/characters/types/main'
 
 declare interface SubmissionCharTag extends DisplayData {
   user: NotificationUser,

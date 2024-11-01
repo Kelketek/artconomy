@@ -16,10 +16,10 @@ import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.t
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 import {profileLink} from '@/lib/otherFormatters.ts'
-import Submission from '@/types/Submission.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import {computed} from 'vue'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import type {Submission} from '@/types/main'
+import {TerseUser} from '@/store/profiles/types/main'
+import {Character} from '@/store/characters/types/main'
 
 declare interface CharTag extends DisplayData {
   submission: Submission,

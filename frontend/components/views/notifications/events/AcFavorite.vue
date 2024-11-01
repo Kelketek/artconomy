@@ -12,8 +12,8 @@
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
 import {computed} from 'vue'
-import Submission from '@/types/Submission.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import type {Submission} from '@/types/main'
+import {TerseUser} from '@/store/profiles/types/main'
 
 declare interface Favorite extends DisplayData {
   user: TerseUser,

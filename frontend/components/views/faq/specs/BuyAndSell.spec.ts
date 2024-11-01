@@ -16,9 +16,9 @@ import searchSchema from '@/components/views/search/specs/fixtures.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import StripeCountryList from '@/types/StripeCountryList.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {nextTick} from 'vue'
+import type {StripeCountryList} from '@/types/main'
 
 let searchForm: FormController
 let countryList: SingleController<StripeCountryList>

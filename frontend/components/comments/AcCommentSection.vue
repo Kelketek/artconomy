@@ -45,16 +45,16 @@
 </template>
 
 <script setup lang="ts">
-import Comment from '@/types/Comment.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcComment from '@/components/comments/AcComment.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {QueryParams} from '@/store/helpers/QueryParams.ts'
-import {RawData} from '@/store/forms/types/RawData.ts'
 import {mdiEye, mdiEyeOff, mdiArrowExpandDown} from '@mdi/js'
 import {defineAsyncComponent, ref, watch} from 'vue'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import type {Comment} from '@/types/main'
+import {RawData} from '@/store/forms/types/main'
 const AcNewComment = defineAsyncComponent(() => import('@/components/comments/AcNewComment.vue'))
 
 declare interface AcCommentSectionProps {

@@ -9,9 +9,9 @@
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import {useList} from '@/store/lists/hooks.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
+import {TerseUser} from '@/store/profiles/types/main'
 
 
 const list = useList<TerseUser>('searchProfiles', {

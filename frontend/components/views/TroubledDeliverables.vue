@@ -51,7 +51,6 @@
 
 <script setup lang="ts">
 import {useViewer} from '@/mixins/viewer.ts'
-import Deliverable from '@/types/Deliverable.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
@@ -60,6 +59,7 @@ import {SingleController} from '@/store/singles/controller.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import {useList} from '@/store/lists/hooks.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
+import type {Deliverable} from '@/types/main'
 
 const {viewer} = useViewer()
 const troubledDeliverables = useList<Deliverable>('troubledDeliverables', {endpoint: '/api/sales/reports/troubled-deliverables/'})

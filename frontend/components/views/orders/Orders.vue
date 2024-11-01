@@ -137,18 +137,17 @@
 <script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {useSubject} from '@/mixins/subjective.ts'
-import CommissionStats from '@/types/CommissionStats.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {flatten, getSalesStatsSchema} from '@/lib/lib.ts'
 import {mdiCheckCircle, mdiBullhorn, mdiReceipt} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed, ref} from 'vue'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {listenForList} from '@/store/lists/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {usePricing} from '@/mixins/PricingAware.ts'
+import type {CommissionStats, SubjectiveProps} from '@/types/main'
 
 
 const props = defineProps<{baseName: string} & SubjectiveProps>()

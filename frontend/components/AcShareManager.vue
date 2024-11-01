@@ -27,8 +27,8 @@ import AcRelatedManager from './wrappers/AcRelatedManager.vue'
 import AcBoundField from './fields/AcBoundField.ts'
 import {genId} from '@/lib/lib.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {useForm} from '@/store/forms/hooks.ts'
+import {TerseUser} from '@/store/profiles/types/main'
 
 const props = defineProps<{controller: ListController<TerseUser>}>()
 

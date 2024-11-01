@@ -60,14 +60,13 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcProductList from '@/components/views/store/AcProductList.vue'
 import AcNewProduct from '@/components/views/store/AcNewProduct.vue'
 import {flatten} from '@/lib/lib.ts'
-import Product from '@/types/Product.ts'
 import {mdiCog, mdiPlus} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
+import type {Product, SubjectiveProps} from '@/types/main'
 
 
 const props = withDefaults(

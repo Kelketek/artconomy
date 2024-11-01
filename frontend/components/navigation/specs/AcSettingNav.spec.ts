@@ -2,10 +2,10 @@ import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {genArtistProfile, genUser} from '@/specs/helpers/fixtures.ts'
-import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import {cleanUp, createTestRouter, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {Router} from 'vue-router'
+import {BankStatus} from '@/store/profiles/types/enums.ts'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

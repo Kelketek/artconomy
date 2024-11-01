@@ -2,19 +2,11 @@ import {computed, ref, Ref, watch, WatchSource} from 'vue'
 import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import axios from 'axios'
 import {LocationQueryRaw, LocationQueryValue, RouteParamsRaw} from 'vue-router'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {SimpleQueryParams} from '@/store/helpers/SimpleQueryParams.ts'
-import {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema.ts'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {LogLevels, LogLevelsValue} from '@/types/LogLevels.ts'
-import {RatingsValue} from '@/types/Ratings.ts'
-import {InvoiceTypeValue} from '@/types/InvoiceType.ts'
+import {LogLevels} from '@/types/enums/LogLevels.ts'
 import {FieldController} from '@/store/forms/field-controller.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import {Store} from 'vuex'
 import {
   artistProfileEndpointFor,
@@ -26,8 +18,10 @@ import {
 import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
 import {ArtStore} from '@/store'
-import {StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
+import {AnonUser, ArtistProfile, StaffPowers, TerseUser, User} from '@/store/profiles/types/main'
+import {InvoiceTypeValue, LogLevelsValue, RatingsValue} from '@/types/main'
+import {HttpVerbs, NamelessFormSchema} from '@/store/forms/types/main'
+import {Character} from '@/store/characters/types/main'
 
 // Needed for Matomo.
 declare global {

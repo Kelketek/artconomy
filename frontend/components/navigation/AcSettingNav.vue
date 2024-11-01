@@ -75,8 +75,6 @@
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
-import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed, ref} from 'vue'
 import {
   mdiAccount,
@@ -90,6 +88,8 @@ import {
   mdiWallet, mdiWrench,
 } from '@mdi/js'
 import {User} from '@sentry/vue'
+import type {SubjectiveProps} from '@/types/main'
+import {BankStatus} from '@/store/profiles/types/enums.ts'
 
 const props = withDefaults(defineProps<SubjectiveProps & {nested?: boolean}>(), {nested: false})
 const open = ref(['Payment'])

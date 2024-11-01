@@ -65,15 +65,13 @@
 
 <script setup lang="ts">
 import AcTotpDevice from './AcTotpDevice.vue'
-import {TGDevice} from '@/store/profiles/types/TGDevice.ts'
-import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
 import AcTgDevice from './AcTgDevice.vue'
 import {BASE_URL} from '@/lib/lib.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, watch} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import type {SubjectiveProps, TGDevice, TOTPDevice} from '@/types/main'
 
 
 const props = defineProps<SubjectiveProps>()

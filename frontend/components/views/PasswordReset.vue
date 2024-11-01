@@ -49,13 +49,13 @@
 <script setup lang="ts">
 import AcLoadSection from '../wrappers/AcLoadSection.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {User} from '@/store/profiles/types/User.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
+import {User} from '@/store/profiles/types/main'
 
 
 const props = defineProps<{resetToken: string, username: string}>()

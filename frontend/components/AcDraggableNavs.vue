@@ -52,9 +52,9 @@ Make sure any draggable item has the .draggable-item class or it won't be proper
 <script setup lang="ts" generic="T extends SortableModel">
 import {Sortable} from 'sortablejs-vue3'
 import {artCall} from '@/lib/lib.ts'
-import {SortableModel} from '@/types/SortableModel.ts'
 import {ref} from 'vue'
-import {AcDraggableNavsProps} from '@/types/AcDraggableNavsProps.ts'
+
+import type {AcDraggableNavsProps, SortableModel} from '@/types/main'
 
 const props = defineProps<AcDraggableNavsProps<T>>()
 

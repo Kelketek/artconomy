@@ -93,16 +93,15 @@ import {useUpload} from '@/mixins/upload.ts'
 import AcShareManager from '@/components/AcShareManager.vue'
 import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Submission from '@/types/Submission.ts'
 import {computed, defineAsyncComponent, ref} from 'vue'
 import {mdiDelete, mdiPencil, mdiLock, mdiDotsHorizontal, mdiUpload} from '@mdi/js'
-import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useSharable} from '@/mixins/sharable.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useEditable} from '@/mixins/editable.ts'
+import type {CharacterProps, Submission} from '@/types/main'
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 const props = withDefaults(

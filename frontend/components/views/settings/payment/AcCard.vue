@@ -51,12 +51,12 @@
 
 <script setup lang="ts">
 import {SingleController} from '@/store/singles/controller.ts'
-import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {artCall} from '@/lib/lib.ts'
 import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
 import {mdiCreditCard, mdiStar, mdiStarOutline, mdiDelete} from '@mdi/js'
 import {computed, defineAsyncComponent} from 'vue'
+import type {CreditCardToken} from '@/types/main'
 const AcConfirmation = defineAsyncComponent(() => import('@/components/wrappers/AcConfirmation.vue'))
 
 const props = withDefaults(defineProps<{

@@ -60,17 +60,16 @@
 
 <script setup lang="ts">
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import {Journal} from '@/types/Journal.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {mdiPencil, mdiPlus} from '@mdi/js'
 import {computed, ref} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useSubject} from '@/mixins/subjective.ts'
 import {formatDate} from '@/lib/otherFormatters.ts'
+import type {Journal, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const {isCurrent} = useSubject({ props })

@@ -6,11 +6,12 @@ import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
 import {genDeliverable, genPowers, genUser} from '@/specs/helpers/fixtures.ts'
 import DeliverableOverview from '@/components/views/order/deliverable/DeliverableOverview.vue'
 import mockAxios from '@/__mocks__/axios.ts'
-import {ViewerType, ViewerTypeValue} from '@/types/ViewerType.ts'
+import {ViewerType} from '@/types/enums/ViewerType.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {setViewer} from '@/lib/lib.ts'
+import {ViewerTypeValue} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

@@ -14,10 +14,9 @@
 <script setup lang="ts">
 import {mdiBell} from '@mdi/js'
 import {useSingle} from '@/store/singles/hooks.ts'
-import {NotificationStats} from '@/types/NotificationStats.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed} from 'vue'
 import {flatten} from '@/lib/lib.ts'
+import type {NotificationStats, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const stats = useSingle<NotificationStats>('notifications_stats__' + flatten(props.username), {

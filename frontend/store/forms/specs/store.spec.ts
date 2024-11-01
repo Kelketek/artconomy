@@ -4,8 +4,8 @@ import {fieldFromSchema} from '../index.ts'
 import {formRegistry} from '../registry.ts'
 import {cleanUp, rq, rs} from '@/specs/helpers/index.ts'
 import flushPromises from 'flush-promises'
-import {RootFormState} from '@/store/forms/types/RootFormState.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
+import {RootFormState} from '@/store/forms/types/main'
 
 describe('Forms store', () => {
   let store: ArtStore

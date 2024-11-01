@@ -7,10 +7,10 @@ import {genArtistProfile, genCommissionStats, genUser} from '@/specs/helpers/fix
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {genPricing} from '@/lib/specs/helpers.ts'
 import OrderList from '@/components/views/orders/OrderList.vue'
-import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import {BankStatus} from '@/store/profiles/types/enums.ts'
 
 let store: ArtStore
 let router: Router

@@ -6,13 +6,13 @@ import {cleanUp, expectFields, fieldEl, mount, rq, vueSetup, VuetifyWrapped, wai
 import {userResponse} from '@/specs/helpers/fixtures.ts'
 import flushPromises from 'flush-promises'
 import {deleteCookie} from '@/lib/lib.ts'
-import {UserStoreState} from '@/store/profiles/types/UserStoreState.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import AuthViews from '@/components/views/auth/AuthViews.vue'
 import Register from '@/components/views/auth/Register.vue'
 import Forgot from '@/components/views/auth/Forgot.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {UserStoreState} from '@/store/profiles/types/main'
 
 let profiles: UserStoreState
 let wrapper: VueWrapper<any>

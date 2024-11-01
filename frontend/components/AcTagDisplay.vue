@@ -61,11 +61,11 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {mdiTagMultiple} from '@mdi/js'
 import {computed, ref} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useSubject} from '@/mixins/subjective.ts'
+import type {SubjectiveProps} from '@/types/main'
 
 declare interface AcTagDisplayProps {
   patcher: Patch,

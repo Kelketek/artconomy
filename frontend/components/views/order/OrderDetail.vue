@@ -20,18 +20,16 @@
 </template>
 
 <script setup lang="ts">
-import Deliverable from '@/types/Deliverable.ts'
-import Order from '@/types/Order.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcDeliverablePreview from '@/components/AcDeliverablePreview.vue'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import {computed} from 'vue'
 import {useSingle} from '@/store/singles/hooks.ts'
-import {OrderProps} from '@/types/OrderProps.ts'
 import {useRoute} from 'vue-router'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useList} from '@/store/lists/hooks.ts'
+import type {Deliverable, Order, OrderProps} from '@/types/main'
 
 
 const props = defineProps<OrderProps>()

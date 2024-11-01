@@ -80,12 +80,9 @@
 <script setup lang="ts">
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
-import {Conversation} from '@/types/Conversation.ts'
 import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import Comment from '@/types/Comment.ts'
 import {mdiLock, mdiDelete, mdiLockOpen} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed, ref} from 'vue'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
@@ -93,6 +90,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useDisplay} from 'vuetify'
+import type {Comment, Conversation, SubjectiveProps} from '@/types/main'
 
 
 const props = defineProps<SubjectiveProps & {conversationId: number}>()

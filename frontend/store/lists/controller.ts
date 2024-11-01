@@ -1,16 +1,12 @@
-import {ListModuleOpts} from './types/ListModuleOpts.ts'
 import {SingleController} from '../singles/controller.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {ListState} from '@/store/lists/types/ListState.ts'
 import {ListModule, pageFromParams, pageSizeFromParams, totalPages} from '@/store/lists/index.ts'
-import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse.ts'
 import {QueryParams} from '@/store/helpers/QueryParams.ts'
-import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
 import {ComputedGetters} from '@/lib/lib.ts'
 import {getController} from '@/store/registry-base.ts'
-import {SingleState} from '@/store/singles/types/SingleState.ts'
-import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 import {effectScope, watch} from 'vue'
+import type {SingleModuleOpts, SingleState} from '@/store/singles/types.d.ts'
+import type {ListModuleOpts, ListSocketSettings, ListState, PaginatedResponse} from '@/store/lists/types.d.ts'
 
 @ComputedGetters
 export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {

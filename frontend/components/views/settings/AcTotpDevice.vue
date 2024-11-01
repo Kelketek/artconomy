@@ -170,14 +170,13 @@
 import QRCode from 'qrcode'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {TOTPDevice} from '@/store/profiles/types/TOTPDevice.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {BASE_URL} from '@/lib/lib.ts'
 import {vMaskToken} from '@/lib/vMask.ts'
 import {onMounted, ref, watch} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
+import type {SubjectiveProps, TOTPDevice} from '@/types/main'
 
 const props = defineProps<{device: SingleController<TOTPDevice>} & SubjectiveProps>()
 

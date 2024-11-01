@@ -25,9 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSubject} from '@/mixins/subjective.ts'
-import {NotificationStats} from '@/types/NotificationStats.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {computed, ref, watch} from 'vue'
 import {useDisplay} from 'vuetify'
@@ -36,6 +34,7 @@ import NotificationsList from '@/components/views/notifications/NotificationsLis
 import {useList} from '@/store/lists/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {flatten} from '@/lib/lib.ts'
+import type {NotificationStats, SubjectiveProps} from '@/types/main'
 
 const drawer = defineModel<boolean>({required: true})
 const display = useDisplay()

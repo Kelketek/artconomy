@@ -102,8 +102,8 @@
 import {FormController} from '@/store/forms/form-controller.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPricePreview from '../../price_preview/AcPricePreview.vue'
-import LineItem from '@/types/LineItem.ts'
 import {ListController} from '@/store/lists/controller.ts'
+import type {LineItem} from '@/types/main'
 
 const props = defineProps<{newInvoice: FormController, escrowEnabled: boolean, lineItems: ListController<LineItem>, username: string}>()
 </script>

@@ -105,9 +105,8 @@
 <script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {totalForTypes} from '@/lib/lineItemFunctions.ts'
-import LineItem from '@/types/LineItem.ts'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
-import {LineType, LineTypeValue} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcLineItemEditor from '@/components/price_preview/AcLineItemEditor.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
@@ -116,13 +115,13 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcNewLineSkeleton from '@/components/price_preview/AcNewLineSkeleton.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useLineItems} from '@/components/price_preview/mixins/line_items.ts'
 import {computed, nextTick, ref} from 'vue'
 import {usePricing} from '@/mixins/PricingAware.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useViewer} from '@/mixins/viewer.ts'
+import type {LineItem, LineTypeValue, SubjectiveProps} from '@/types/main'
 
 
 const props = withDefaults(defineProps<{

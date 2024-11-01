@@ -218,11 +218,9 @@
 <script setup lang="ts">
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
-import Invoice from '@/types/Invoice.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import LineItem from '@/types/LineItem.ts'
 import AcLineItemListing from '@/components/price_preview/AcLineItemListing.vue'
-import {InvoiceStatus, InvoiceStatusValue} from '@/types/InvoiceStatus.ts'
+import {InvoiceStatus} from '@/types/enums/InvoiceStatus.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
@@ -233,15 +231,14 @@ import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Transaction from '@/types/Transaction.ts'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
 import {formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import ClientSecret from '@/types/ClientSecret.ts'
+
+import type {ClientSecret, Invoice, InvoiceStatusValue, LineItem, SubjectiveProps, Transaction} from '@/types/main'
 
 const props = defineProps<{invoiceId: string} & SubjectiveProps>()
 const {powers} = useViewer()

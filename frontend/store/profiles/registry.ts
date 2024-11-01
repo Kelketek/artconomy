@@ -1,9 +1,8 @@
 import {createApp, markRaw} from 'vue'
 import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
 import {ProfileController} from './controller.ts'
-import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
-import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ArtStore} from '@/store/index.ts'
+import {ProfileModuleOpts, ProfileState} from '@/store/profiles/types/main'
 
 export class ProfileRegistry extends BaseRegistry<ProfileState, ProfileController> {}
 

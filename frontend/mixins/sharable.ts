@@ -1,7 +1,8 @@
-import {Ratings} from '@/types/Ratings.ts'
+import {Ratings} from '@/types/enums/Ratings.ts'
 import {thumbFromSpec} from '@/mixins/asset_base.ts'
 import {computed, ComputedRef} from 'vue'
-import {Asset} from '@/types/Asset.ts'
+
+import type {Asset} from '@/types/main'
 
 export const useSharable = (shareMedia: ComputedRef<Asset|null>) => {
   const shareMediaUrl = computed(() => (shareMedia.value && thumbFromSpec('gallery', shareMedia.value.file)) || '')

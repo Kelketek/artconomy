@@ -30,15 +30,14 @@
 </template>
 
 <script setup lang="ts">
-import Rating from '@/types/Rating.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcProfileHeader from '@/components/views/profile/AcProfileHeader.vue'
 import {flatten, starRound} from '@/lib/lib.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
+import type {Rating, SubjectiveProps} from '@/types/main'
 
 
 const props = defineProps<SubjectiveProps>()

@@ -12,9 +12,9 @@
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import {flatten} from '@/lib/lib.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
+import type {SubjectiveProps} from '@/types/main'
+import {TerseUser} from '@/store/profiles/types/main'
 
 const props = defineProps<SubjectiveProps & {endpoint: string, nameSpace: string}>()
 const watch = useList<TerseUser>(`${flatten(props.username)}__${props.nameSpace}`, {endpoint: props.endpoint})

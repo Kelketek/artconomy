@@ -57,14 +57,13 @@
 <script setup lang="ts">
 import AcAsset from './AcAsset.vue'
 import {SingleController} from '@/store/singles/controller.ts'
-import Order from '@/types/Order.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {deriveDisplayName, formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
+import type {Order, SubjectiveProps} from '@/types/main'
 
 
 const props = defineProps<{type: string, order: SingleController<Order>} & SubjectiveProps>()

@@ -14,9 +14,8 @@
 <script setup lang="ts">
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import Reference from '@/types/Reference.ts'
-import Deliverable from '@/types/Deliverable.ts'
 import {computed} from 'vue'
+import type {Deliverable, Reference} from '@/types/main'
 
 declare interface ReferenceUploaded extends DisplayData {
   reference: Reference,

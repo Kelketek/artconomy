@@ -2,10 +2,10 @@ import axios from 'axios'
 import debounce from 'lodash/debounce'
 import {artCall, clone} from '@/lib/lib.ts'
 import deepEqual from 'fast-deep-equal'
-import {RawData} from '@/store/forms/types/RawData.ts'
 import {computed, ref, Ref, watch} from 'vue'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {isNumber} from 'lodash'
+import {RawData} from '@/store/forms/types/main'
 
 // TODO: Find a way to generalize this properly. I can't look up the docs now, but I need to be able to specify
 // that itemValue will be a key on this model whose value is a string.

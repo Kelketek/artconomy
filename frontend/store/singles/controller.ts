@@ -1,13 +1,10 @@
-import {SingleModuleOpts} from './types/SingleModuleOpts.ts'
-import {SingleState} from './types/SingleState.ts'
 import {SingleModule} from './index.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {RawData} from '@/store/forms/types/RawData.ts'
-import {SinglePatchers} from '@/store/singles/types/SinglePatchers.ts'
 import {Patch} from '@/store/singles/patcher.ts'
-import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
 import {ref, Ref, watch} from 'vue'
 import {ComputedGetters} from '@/lib/lib.ts'
+import type {SingleModuleOpts, SinglePatchers, SingleSocketSettings, SingleState} from '@/store/singles/types.d.ts'
+import {RawData} from '@/store/forms/types/main'
 
 @ComputedGetters
 export class SingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {

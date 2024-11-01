@@ -18,14 +18,14 @@ import {createProfiles} from '@/store/profiles/registry.ts'
 import {createCharacters} from '@/store/characters/registry.ts'
 import {createVueSocket} from '@/plugins/socket.ts'
 import {createVuetify} from '@/plugins/vuetify.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import '@stripe/stripe-js'
 import {Stripe, StripeConstructor} from '@stripe/stripe-js'
 import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
-import {ShoppingCart} from '@/types/ShoppingCart.ts'
+
+import type {ShoppingCart} from '@/types/main'
+import {AnonUser, User} from '@/store/profiles/types/main'
 
 declare global {
   interface Window {

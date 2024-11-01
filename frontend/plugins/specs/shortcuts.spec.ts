@@ -1,7 +1,7 @@
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {describe, expect, test} from 'vitest'
 import {deriveImage} from '@/plugins/shortcuts.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {Ratings} from '@/types/enums/Ratings.ts'
 
 
 describe('shortcuts.ts', () => {

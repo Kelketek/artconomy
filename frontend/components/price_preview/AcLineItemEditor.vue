@@ -31,13 +31,12 @@
 </template>
 
 <script setup lang="ts">
-import LineItem from '@/types/LineItem.ts'
-import LineAccumulator from '@/types/LineAccumulator.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {LineType} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {mdiDelete} from '@mdi/js'
 import {computed} from 'vue'
+import type {LineAccumulator, LineItem} from '@/types/main'
 
 const props = withDefaults(defineProps<{
   line: SingleController<LineItem>,

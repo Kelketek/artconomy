@@ -1,7 +1,6 @@
 import {generateModuleHooks} from '@/store/hooks.ts'
-import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
-import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ProfileController} from '@/store/profiles/controller.ts'
+import {ProfileModuleOpts, ProfileState} from '@/store/profiles/types/main'
 
 const {use, listen, clear} = generateModuleHooks<ProfileState, ProfileModuleOpts, ProfileController>('Profile', ProfileController)
 

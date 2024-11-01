@@ -75,15 +75,15 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {RawData} from '@/store/forms/types/RawData.ts'
 import {mdiCancel, mdiSend} from '@mdi/js'
-import {User} from '@/store/profiles/types/User.ts'
-import Comment from '@/types/Comment.ts'
 import {computed, Ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {profileLink} from '@/lib/otherFormatters.ts'
 import {useTheme} from 'vuetify'
 import {useRoute} from 'vue-router'
+import type {Comment} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
+import {RawData} from '@/store/forms/types/main'
 
 const route = useRoute()
 

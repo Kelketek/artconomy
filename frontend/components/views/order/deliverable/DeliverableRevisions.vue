@@ -145,15 +145,15 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcAsset from '@/components/AcAsset.vue'
-import Revision from '@/types/Revision.ts'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import {mdiHeart, mdiPlus, mdiStar} from '@mdi/js'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import {useViewer} from '@/mixins/viewer.ts'
+import type {Revision} from '@/types/main'
 
 const props = defineProps<DeliverableProps>()
 

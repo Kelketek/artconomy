@@ -276,21 +276,15 @@
 </template>
 <script setup lang="ts">
 import {useDisplay} from 'vuetify'
-import {User} from '@/store/profiles/types/User.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useSubject} from '@/mixins/subjective.ts'
-import Product from '@/types/Product.ts'
-import Pricing from '@/types/Pricing.ts'
 import {flatten} from '@/lib/lib.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {Ratings} from '@/types/enums/Ratings.ts'
 import {deliverableLines} from '@/lib/lineItemFunctions.ts'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
-import {RawLineItemSetMap} from '@/types/RawLineItemSetMap.ts'
-import LineItem from '@/types/LineItem.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
@@ -298,6 +292,8 @@ import {computed, watch} from 'vue'
 import {useRouter} from 'vue-router'
 import {useList} from '@/store/lists/hooks.ts'
 import {ListController} from '@/store/lists/controller.ts'
+import type {LineItem, Pricing, Product, RawLineItemSetMap, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<{modelValue: boolean} & SubjectiveProps>()
 const emit = defineEmits<{'update:modelValue': [boolean]}>()

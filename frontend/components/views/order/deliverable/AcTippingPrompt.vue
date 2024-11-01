@@ -121,30 +121,26 @@
 
 <script setup lang="ts">
 import {getTotals, reckonLines, totalForTypes} from '@/lib/lineItemFunctions.ts'
-import {LineType, LineTypeValue} from '@/types/LineType.ts'
-import LineItem from '@/types/LineItem.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import Invoice from '@/types/Invoice.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
 import {baseCardSchema} from '@/lib/lib.ts'
-import {InvoiceStatus} from '@/types/InvoiceStatus.ts'
+import {InvoiceStatus} from '@/types/enums/InvoiceStatus.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import Deliverable from '@/types/Deliverable.ts'
 import {mdiCheckCircle} from '@mdi/js'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed, ref, watch, Ref} from 'vue'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
-import ClientSecret from '@/types/ClientSecret.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import type {Deliverable, ClientSecret, Invoice, LineItem, SubjectiveProps, LineTypeValue} from '@/types/main'
 
 declare interface AcTippingPromptProps {
   invoiceId: string,

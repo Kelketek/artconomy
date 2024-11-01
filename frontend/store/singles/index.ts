@@ -1,9 +1,9 @@
 import {ArtState as RootState} from '../artState.ts'
 import type {ActionTree, GetterTree, MutationTree} from 'vuex/types/index.d.ts'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib.ts'
-import {SingleState} from './types/SingleState.ts'
 import {QueryParams} from '@/store/helpers/QueryParams.ts'
-import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
+
+import type {SingleSocketSettings, SingleState} from '@/store/singles/types.d.ts'
 
 export class SingleModule<T> {
   public state: SingleState<T>

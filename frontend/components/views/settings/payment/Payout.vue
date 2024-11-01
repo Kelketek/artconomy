@@ -79,13 +79,8 @@
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {Balance} from '@/types/Balance.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {BASE_URL, flatten} from '@/lib/lib.ts'
-import StripeAccount from '@/types/StripeAccount.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useList} from '@/store/lists/hooks.ts'
@@ -94,6 +89,9 @@ import {computed, Ref} from 'vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
+import type {Balance, StripeAccount, SubjectiveProps} from '@/types/main'
+import {BankStatus} from '@/store/profiles/types/enums.ts'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

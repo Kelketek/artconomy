@@ -43,16 +43,15 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcRatingButton from '@/components/AcRatingButton.vue'
-import Reference from '@/types/Reference.ts'
-import Comment from '@/types/Comment.ts'
 import {markRead, updateLinked} from '@/lib/lib.ts'
 import {mdiArrowLeft, mdiDelete} from '@mdi/js'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed} from 'vue'
 import {useRouter} from 'vue-router'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import {useViewer} from '@/mixins/viewer.ts'
+import type {Comment, Reference} from '@/types/main'
 
 const props = defineProps<DeliverableProps & {referenceId: string}>()
 const router = useRouter()

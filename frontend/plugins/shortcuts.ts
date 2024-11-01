@@ -1,9 +1,8 @@
 import {computed, createApp} from 'vue'
-import {Asset} from '@/types/Asset.ts'
 import {v4 as uuidv4} from 'uuid'
 import {extPreview, getExt, isImage} from '@/mixins/asset_base.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import type {RatingsValue} from '@/types/Ratings.ts'
+import type {Asset, RatingsValue} from '@/types/main'
 
 export function Shortcuts(app: ReturnType<typeof createApp>): void {
   app.mixin({

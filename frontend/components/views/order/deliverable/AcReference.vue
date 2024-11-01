@@ -32,9 +32,9 @@
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
-import Reference from '@/types/Reference.ts'
 import {mdiTab} from '@mdi/js'
 import {useRoute} from 'vue-router'
+import type {Reference} from '@/types/main'
 
 const route = useRoute()
 const props = defineProps<{reference: Reference, baseName: string}>()

@@ -1,4 +1,4 @@
-import {Character} from '@/store/characters/types/Character.ts'
+import {Character} from '@/store/characters/types/main'
 
 export function genCharacter(overrides?: Partial<Character>) {
   return {

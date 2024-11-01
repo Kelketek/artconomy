@@ -46,10 +46,8 @@
 
 <script setup lang="ts">
 import {ProfileController} from '@/store/profiles/controller.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {artCall, starRound, useForceRecompute} from '@/lib/lib.ts'
 import {profileRegistry} from '@/store/profiles/registry.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {mdiAccount, mdiClose, mdiStarCircle} from '@mdi/js'
 import {profileLink as getProfileLink} from '@/lib/otherFormatters.ts'
@@ -60,9 +58,7 @@ import {getUid, useRegistries} from '@/store/hooks.ts'
 import {getController, performUnhook} from '@/store/registry-base.ts'
 import {useSocket} from '@/plugins/socket.ts'
 import {useRouter} from 'vue-router'
-import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
-import {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
-import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import {ProfileModuleOpts, ProfileState, RelatedUser, TerseUser, User} from '@/store/profiles/types/main'
 
 // The logic for this module is a bit complex because we don't necessarily want to store the user in Vuex for
 // all the cases we'll use this. For example, when searching for users, it would be wasteful or incomplete to

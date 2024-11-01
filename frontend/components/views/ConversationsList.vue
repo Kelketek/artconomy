@@ -78,8 +78,6 @@
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
-import {Conversation} from '@/types/Conversation.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -88,11 +86,12 @@ import {posse} from '@/lib/otherFormatters.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {textualize} from '@/lib/markdown.ts'
+import type {Conversation, SubjectiveProps} from '@/types/main'
+import {TerseUser} from '@/store/profiles/types/main'
 
 
 const props = defineProps<SubjectiveProps>()
