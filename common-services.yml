@@ -1,0 +1,44 @@
+services:
+  django:
+    build:
+      context: .
+      dockerfile: docker/app_Dockerfile
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DWOLLA_KEY=${DWOLLA_KEY}
+      - DWOLLA_SECRET=${DWOLLA_SECRET}
+      - DWOLLA_FUNDING_SOURCE_KEY=${DWOLLA_FUNDING_SOURCE_KEY}
+      - AUTHORIZE_KEY=${AUTHORIZE_KEY}
+      - AUTHORIZE_SECRET=${AUTHORIZE_SECRET}
+      - GR_CAPTCHA_SECRET_KEY=${GR_CAPTCHA_SECRET_KEY}
+      - GR_CAPTCHA_PUBLIC_KEY=${GR_CAPTCHA_PUBLIC_KEY}
+      - TELEGRAM_BOT_KEY=${TELEGRAM_BOT_KEY}
+      - TELEGRAM_BOT_USERNAME=${TELEGRAM_BOT_USERNAME}
+      - DISCORD_BOT_KEY=${DISCORD_BOT_KEY}
+      - DISCORD_CLIENT_KEY=${DISCORD_CLIENT_KEY}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+      - DRIP_ACCOUNT_ID=${DRIP_ACCOUNT_ID}
+      - DRIP_API_KEY=${DRIP_API_KEY}
+      - FORCE_THEOCRACY=${FORCE_THEOCRACY}
+      - HTTPS=1
+      - CELERY_ALWAYS_EAGER=1
+      - CELERY_BROKER_CONNECTION_RETRY=1
+      - CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP=1
+      - EMAIL_BACKEND=django.core.mail.backends.console.EmailBackend
+      - OTP_TOTP_ISSUER=Artconomy Dev
+      - SERVICE_PERCENTAGE_FEE=5
+      - PREMIUM_PERCENTAGE_BONUS=3
+      - LANDSCAPE_PRICE=8
+      - ENV_NAME=dev
+      - REDIS_HOST=redis
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+      - WEBHOOKS_DOMAIN=${WEBHOOKS_DOMAIN}
+      - STRIPE_KEY=${STRIPE_KEY}
+      - DEFAULT_CARD_PROCESSOR=stripe
+    command: python manage.py runserver 0.0.0.0:8002
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./:/home/app/artconomy

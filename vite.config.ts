@@ -1,3 +1,4 @@
+import {readFileSync} from 'fs'
 import {sentryVitePlugin} from '@sentry/vite-plugin'
 import wasm from "vite-plugin-wasm"
 /// <reference types="vitest" />
@@ -14,7 +15,16 @@ import {defineConfig} from 'vite'
 import {fileURLToPath, URL} from 'node:url'
 import checker from 'vite-plugin-checker'
 
-const commitHash = ChildProcess.execSync('git rev-parse --short HEAD').toString().trim()
+let commitHash = '00000000'
+
+try {
+  const path = readFileSync('.git/HEAD', 'utf-8').split(': ')[1].trim()
+  commitHash = readFileSync('.git/' + path, 'utf-8').slice(0, 9)
+  console.log(commitHash)
+} catch (e) {
+  console.error(e)
+}
+
 
 const productionMode = process.env.NODE_ENV === 'production'
 

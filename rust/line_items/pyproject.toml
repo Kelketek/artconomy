@@ -1,5 +1,5 @@
 [build-system]
-requires = ["maturin>=1,<2", "cffi>=1.16.0,<2"]
+requires = ["maturin>=1.0,<2.0"]
 build-backend = "maturin"
 
 [project]
@@ -10,3 +10,6 @@ classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
 ]
+
+[tool.maturin]
+features = ["python"]
