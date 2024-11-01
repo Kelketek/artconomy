@@ -1,61 +1,33 @@
-# specify the node base image with your desired version node:<version>
-FROM ubuntu:jammy
+FROM python:3.11-alpine
+
+# Override these if your local user has a different UID/GID.
+ARG USER_UID=1000
+ARG GROUP_GID=1000
+
 # replace this with your application's default port
 EXPOSE 8001
 EXPOSE 8002
-ENV PYTHONUNBUFFERED=1
-WORKDIR /root
-RUN apt-get update
-RUN apt-get update --fix-missing
-RUN apt-get install software-properties-common apt-utils -y
-RUN add-apt-repository ppa:deadsnakes/ppa -y
-RUN add-apt-repository ppa:maxmind/ppa -y
-RUN apt-get update --fix-missing
-ENV DEBIAN_FRONTEND=noninteractive
-# Python compilation dependencies
-RUN apt-get install -y --no-install-recommends lzma lzma-dev bzip2 libbz2-dev libreadline-dev libncurses-dev sqlite3 libsqlite3-dev libffi-dev zlib1g zlib1g-dev geoipupdate libmaxminddb0 libmaxminddb-dev mmdb-bin cargo
+# Install essential packages, plus a few packages for live diagnosis if needed.
+RUN apk add bash cargo elfutils-dev geoip gettext git libc-dev linux-headers libmaxminddb-dev libmaxminddb musl-dev ncurses-dev postgresql14-client postgresql14-dev vim
+RUN addgroup -S app -g ${GROUP_GID}
+RUN adduser -S app -G app -h /home/app -s /bin/bash -u ${USER_UID}
 # Main dependencies
-RUN apt-get install -y --no-install-recommends python3-venv python3-pip python3.11 python3.11-dev build-essential curl git wget postgresql-client psmisc libpq-dev vim
-RUN apt-get upgrade -y
-RUN apt-get autoremove -y
-RUN /usr/bin/python3.11 -m pip install --upgrade pip
-RUN /usr/bin/python3.11 -m pip install --upgrade virtualenv
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.11 10
-RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-RUN apt-get update --fix-missing
-RUN apt-get install nodejs
-RUN mkdir /app
-RUN mkdir /home/dev
-RUN groupadd -g 1000 dev
-RUN useradd -u 1000 -d /home/dev -g dev dev
-RUN chown -R 1000:1000 /app
-RUN chown -R 1000:1000 /home/dev
-USER 1000
-WORKDIR /home/dev
-# Master at the time of coding.
-RUN curl -L https://raw.githubusercontent.com/pyenv/pyenv-installer/a08318c86abe0ebb68e0301e5d6861a860b8c765/bin/pyenv-installer | bash
-RUN echo eval "$(pyenv virtualenv-init -)" > ~/.bashrc
-ENV LANG=C.UTF-8
-ENV HOME=/home/dev
-ENV PYENV_ROOT=$HOME/.pyenv
-ENV PATH=$PYENV_ROOT/shims:$PYENV_ROOT/bin:$PATH;
-WORKDIR /app
+RUN mkdir /home/app/artconomy
+RUN mkdir /home/app/static
+RUN mkdir /home/app/media
+WORKDIR /home/app
+ENV LANG C.UTF-8
+ENV HOME /home/app
+ENV PATH $PATH:$HOME/.local/bin
+WORKDIR /home/app/artconomy/
 ADD . .
-USER root
-RUN chown -R 1000:1000 /app
-USER 1000
-RUN pyenv install 3.11.1
-RUN pyenv virtualenv 3.11.1 artconomy
-WORKDIR /
-USER root
-RUN echo artconomy > /.python-version
-USER 1000
-WORKDIR /app/rust/line_items
+RUN chown -R app:app /home/app
+WORKDIR /home/app/artconomy/rust/line_items
 RUN pip install maturin
-RUN maturin build --features python
-WORKDIR /app/
+RUN maturin sdist
+WORKDIR /home/app/artconomy/
 RUN pip install --upgrade pip
 RUN pip install pip-tools
-RUN pip install -r requirements.txt
-# More modificiations need to be done to this dockerfile to make it production-ready. Right now containers aren't
-# used for deployment, only dev.
+# Needed for uwsgi to build under Alpine.
+RUN pip install -r /home/app/artconomy/requirements.txt
+USER app

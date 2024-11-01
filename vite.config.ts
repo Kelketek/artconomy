@@ -1,3 +1,4 @@
+import {readFileSync} from 'fs'
 import {sentryVitePlugin} from '@sentry/vite-plugin'
 import wasm from "vite-plugin-wasm"
 /// <reference types="vitest" />
@@ -6,7 +7,6 @@ import wasm from "vite-plugin-wasm"
 import vue from '@vitejs/plugin-vue'
 import vuetify, {transformAssetUrls} from 'vite-plugin-vuetify'
 import ViteFonts from 'unplugin-fonts/vite'
-import ChildProcess from 'child_process'
 import topLevelAwait from "vite-plugin-top-level-await"
 
 // Utilities
@@ -14,7 +14,11 @@ import {defineConfig} from 'vite'
 import {fileURLToPath, URL} from 'node:url'
 import checker from 'vite-plugin-checker'
 
-const commitHash = ChildProcess.execSync('git rev-parse --short HEAD').toString().trim()
+let commitHash = '00000000'
+
+const path = readFileSync('.git/HEAD', 'utf-8').split(': ')[1].trim()
+commitHash = readFileSync('.git/' + path, 'utf-8').slice(0, 8)
+
 
 const productionMode = process.env.NODE_ENV === 'production'
 
