@@ -9,10 +9,10 @@
 </template>
 
 <script setup lang="ts">
-import {Asset} from '@/types/Asset.ts'
 
 import {getExt} from '@/mixins/asset_base.ts'
 import {computed} from 'vue'
+import type {Asset} from '@/types/main'
 
 const VID_TYPES = {
   MP4: 'video/mp4',

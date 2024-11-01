@@ -21,9 +21,9 @@
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import {artCall} from '@/lib/lib.ts'
 import {useRouter} from 'vue-router'
-import Deliverable from '@/types/Deliverable.ts'
 import {computed} from 'vue'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
+import type {Deliverable} from '@/types/main'
 
 const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
 const event = useEvent(props)

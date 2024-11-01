@@ -13,7 +13,8 @@
 import AcBaseNotification from './AcBaseNotification.vue'
 import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
 import {computed} from 'vue'
-import {Journal} from '@/types/Journal.ts'
+
+import type {Journal} from '@/types/main'
 
 declare interface NewJournal extends DisplayData {
   journal: Journal

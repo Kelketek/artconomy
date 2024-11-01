@@ -6,8 +6,8 @@
 </template>
 
 <script setup lang="ts">
-import Invoice from '@/types/Invoice.ts'
 import {mdiInvoiceCheck, mdiInvoiceTextEdit, mdiInvoiceTextRemove, mdiStar} from '@mdi/js'
+import type {Invoice} from '@/types/main'
 
 const props = defineProps<{invoice: Invoice}>()
 const STATUSES = {

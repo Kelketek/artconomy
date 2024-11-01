@@ -48,13 +48,12 @@
 <script setup lang="ts">
 import AcGalleryPreview from '../../AcGalleryPreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import Submission from '@/types/Submission.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {useRatingRefresh} from '@/mixins/RatingRefresh.ts'
-import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
 import {computed} from 'vue'
 import {useDisplay} from 'vuetify'
+import type {CharacterProps, Submission} from '@/types/main'
 
 const props = defineProps<CharacterProps>()
 

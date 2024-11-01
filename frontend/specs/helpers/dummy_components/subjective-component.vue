@@ -4,9 +4,9 @@
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed} from 'vue'
 import {useRoute} from 'vue-router'
+import type {SubjectiveProps} from '@/types/main'
 
 const props = withDefaults(defineProps<SubjectiveProps & {isPrivate?: boolean, isProtected?: boolean}>(), {isPrivate: false, isProtected: false})
 const route = useRoute()

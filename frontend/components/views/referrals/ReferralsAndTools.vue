@@ -10,7 +10,8 @@
 
 <script setup lang="ts">
 import {useRoute, useRouter} from 'vue-router'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const route = useRoute()

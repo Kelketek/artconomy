@@ -10,9 +10,9 @@
 
 <script setup lang="ts">
 import {flatten} from '@/lib/lib.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {listenForList} from '@/store/lists/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const router = useRouter()

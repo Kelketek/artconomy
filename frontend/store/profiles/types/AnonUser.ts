@@ -1,4 +1,4 @@
-import type {RatingsValue} from '@/types/Ratings.ts'
+import type {RatingsValue} from '@/types/enums/Ratings.ts'
 
 export interface AnonUser {
   rating: RatingsValue,

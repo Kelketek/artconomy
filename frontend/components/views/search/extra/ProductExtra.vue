@@ -159,7 +159,7 @@
 <script setup lang="ts">
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import type {RatingsValue} from '@/types/Ratings.ts'
+import type {RatingsValue} from '@/types/enums/Ratings.ts'
 import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'

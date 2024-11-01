@@ -211,8 +211,8 @@ import {useAlerts} from '@/mixins/alerts.ts'
 import {mdiAlert, mdiDeleteForever} from '@mdi/js'
 import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {AlertCategory} from '@/store/artState.ts'
+import type {SubjectiveProps} from '@/types/main'
 
 const showUsernameChange = ref(false)
 const showPasswordChange = ref(false)

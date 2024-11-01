@@ -5,7 +5,7 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import {dummyLineItems, genLineItem} from '@/lib/specs/helpers.ts'
 import AcLineItemPreview from '@/components/price_preview/AcLineItemPreview.vue'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
-import {LineType} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 

@@ -11,7 +11,7 @@
 
 <script setup lang="ts">
 import {FormController} from '@/store/forms/form-controller.ts'
-import {LineType} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {computed} from 'vue'
 import {mdiPlus} from '@mdi/js'
 

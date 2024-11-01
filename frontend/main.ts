@@ -25,7 +25,8 @@ import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
-import {ShoppingCart} from '@/types/ShoppingCart.ts'
+
+import type {ShoppingCart} from '@/types/main'
 
 declare global {
   interface Window {

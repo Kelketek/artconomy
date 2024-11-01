@@ -22,9 +22,9 @@
 
 <script setup lang="ts">
 import {computed, defineAsyncComponent} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {listenForSingle} from '@/store/singles/hooks.ts'
 import {useSubject} from '@/mixins/subjective.ts'
+import type {SubjectiveProps} from '@/types/main'
 const AcUppyFile = defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue'))
 
 const props = defineProps<SubjectiveProps>()

@@ -1,6 +1,6 @@
 import {SingleController} from '@/store/singles/controller.ts'
-import Pricing from '@/types/Pricing.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
+import type {Pricing} from '@/types/main'
 
 
 const getPlan = (pricing: SingleController<Pricing>, planName: string) => {

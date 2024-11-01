@@ -15,8 +15,8 @@
 import AcBaseNotification from './AcBaseNotification.vue'
 import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Product from '@/types/Product.ts'
 import {computed} from 'vue'
+import type {Product} from '@/types/main'
 
 declare interface NewProduct extends DisplayData {
   product: Product,

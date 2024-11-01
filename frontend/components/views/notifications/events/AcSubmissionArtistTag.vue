@@ -19,7 +19,8 @@
 import AcBaseNotification from './AcBaseNotification.vue'
 import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
 import {computed} from 'vue'
-import Submission from '@/types/Submission.ts'
+
+import type {Submission} from '@/types/main'
 
 declare interface SubmissionArtistTag extends DisplayData<Submission> {
   user: NotificationUser,

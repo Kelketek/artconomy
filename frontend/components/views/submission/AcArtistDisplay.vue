@@ -53,10 +53,10 @@ import AcAvatar from '../../AcAvatar.vue'
 import {ListController} from '@/store/lists/controller.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import ArtistTag from '@/types/ArtistTag.ts'
 import {mdiPalette} from '@mdi/js'
 import {ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
+import type {ArtistTag} from '@/types/main'
 
 const props = defineProps<{controller: ListController<ArtistTag>, submissionId: number|string, editable: boolean}>()
 

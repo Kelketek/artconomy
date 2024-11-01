@@ -38,10 +38,10 @@ import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import SubjectiveProps from '@/types/SubjectiveProps'
 import {onMounted, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {profileLink} from '@/lib/otherFormatters.ts'
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

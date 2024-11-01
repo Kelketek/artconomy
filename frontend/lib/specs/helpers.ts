@@ -1,6 +1,5 @@
-import LineItem from '@/types/LineItem.ts'
-import {LineType} from '@/types/LineType.ts'
-import Pricing from '@/types/Pricing.ts'
+import {LineType} from '@/types/enums/LineType.ts'
+import type {LineItem, Pricing} from '@/types/main'
 
 export function genLineItem(overrides: Partial<LineItem>): LineItem {
   return {

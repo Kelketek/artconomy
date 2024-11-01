@@ -124,14 +124,13 @@
 
 <script setup lang="ts">
 import {assetDefaults, getExt, useAssetHelpers} from '@/mixins/asset_base.ts'
-import {Asset} from '@/types/Asset.ts'
-import AssetProps from '@/types/AssetProps.ts'
 import {computed, defineAsyncComponent, onMounted, ref} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {mdiCancel, mdiPencil} from '@mdi/js'
 import {VImg} from 'vuetify/components'
 import {useDisplay} from 'vuetify'
+import type {Asset, AssetProps} from '@/types/main'
 
 const AcVideoPlayer = defineAsyncComponent(() => import('@/components/AcVideoPlayer.vue'))
 const AcMarkdownViewer = defineAsyncComponent(() => import('@/components/AcMarkdownViewer.vue'))

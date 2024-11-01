@@ -4,12 +4,12 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {cleanUp, flushPromises, mount, rq, rs, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {VCard} from 'vuetify/components'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {nextTick} from 'vue'
+import type {CreditCardToken} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

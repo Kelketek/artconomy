@@ -1,4 +1,4 @@
-export default interface CharacterModuleOpts {
+export interface CharacterModuleOpts {
   persistent?: boolean,
   username: string,
   characterName: string,

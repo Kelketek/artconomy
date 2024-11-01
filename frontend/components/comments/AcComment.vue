@@ -188,7 +188,6 @@
 import {computed, defineAsyncComponent, ref, watch} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import Comment from '@/types/Comment.ts'
 import {
   mdiArrowExpandDown,
   mdiDotsHorizontal,
@@ -201,7 +200,6 @@ import {
   mdiHistory,
   mdiInformation,
 } from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useGoTo, useTheme} from 'vuetify'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useRoute} from 'vue-router'
@@ -209,6 +207,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
+import type {Comment, SubjectiveProps} from '@/types/main'
 
 const AcAvatar = defineAsyncComponent(() => import('@/components/AcAvatar.vue'))
 const AcRendered = defineAsyncComponent(() => import('@/components/wrappers/AcRendered.ts'))

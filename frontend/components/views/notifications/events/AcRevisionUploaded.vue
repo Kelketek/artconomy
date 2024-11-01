@@ -14,9 +14,8 @@
 <script setup lang="ts">
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import Deliverable from '@/types/Deliverable.ts'
 import {computed} from 'vue'
-import Revision from '@/types/Revision.ts'
+import type {Deliverable, Revision} from '@/types/main'
 
 declare interface RevisionUploaded extends DisplayData {
   revision?: Revision

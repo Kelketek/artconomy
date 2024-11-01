@@ -34,10 +34,9 @@ import {artCall} from '@/lib/lib.ts'
 import {VCol} from 'vuetify/lib/components/VGrid/index.mjs'
 import {SortableEvent} from 'sortablejs'
 import {computed} from 'vue'
-import {SortableModel} from '@/types/SortableModel.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import {SortableItem} from '@/types/SortableItem.ts'
-import {AcDraggableListProps} from '@/types/AcDraggableListProps.ts'
+
+import type {AcDraggableListProps, SortableItem, SortableModel} from '@/types/main'
 
 const props = withDefaults(defineProps<AcDraggableListProps<T>>(), {
   trackPages: false,

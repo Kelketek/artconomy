@@ -137,7 +137,8 @@
 import {useSubject} from '@/mixins/subjective.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import SubjectiveProps from '@/types/SubjectiveProps'
+
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

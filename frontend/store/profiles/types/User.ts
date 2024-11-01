@@ -1,4 +1,4 @@
-import {RatingsValue} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/enums/Ratings.ts'
 
 export interface User {
   landscape_paid_through: string | null,

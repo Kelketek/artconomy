@@ -56,19 +56,18 @@
 </style>
 
 <script setup lang="ts">
-import Invoice from '@/types/Invoice.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {initDrawerValue, INVOICE_TYPES} from '@/lib/lib.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import {mdiArrowLeftBold, mdiPrinter} from '@mdi/js'
 import {useDisplay} from 'vuetify'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
 import {computed} from 'vue'
+import type {Invoice, SubjectiveProps} from '@/types/main'
 
 const props = withDefaults(defineProps<{initialState: boolean|null} & SubjectiveProps>(), {initialState: initDrawerValue()})
 

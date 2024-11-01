@@ -77,10 +77,10 @@ import {isAxiosError} from '@/lib/lib.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import {AcServerError} from '@/types/AcServerError.ts'
 import {vMaskToken} from '@/lib/vMask.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {nextTick, ref, watch} from 'vue'
+import type {AcServerError} from '@/types/main'
 
 
 const {loginForm, loginHandler} = useAuth()

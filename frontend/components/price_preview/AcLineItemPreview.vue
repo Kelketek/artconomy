@@ -28,10 +28,9 @@
 </template>
 
 <script setup lang="ts">
-import LineItem from '@/types/LineItem.ts'
-import LineAccumulator from '@/types/LineAccumulator.ts'
-import {LineType} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {computed} from 'vue'
+import type {LineAccumulator, LineItem} from '@/types/main'
 
 declare interface AcLineItemPreviewProps {
   line: LineItem,

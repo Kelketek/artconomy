@@ -271,9 +271,7 @@
 </template>
 
 <script setup lang="ts">
-import LineItem from '@/types/LineItem.ts'
 import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/DeliverableMixin.ts'
-import LineAccumulator from '@/types/LineAccumulator.ts'
 import {getTotals} from '@/lib/lineItemFunctions.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
@@ -285,15 +283,15 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
-import ClientSecret from '@/types/ClientSecret.ts'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import {mdiCheckCircle} from '@mdi/js'
 import {computed, ref, Ref, watch} from 'vue'
 import {useSingle} from '@/store/singles/hooks.ts'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {formatDate, formatDateTime, formatDateTerse} from '@/lib/otherFormatters.ts'
+import type {ClientSecret, LineAccumulator, LineItem} from '@/types/main'
 
 const props = defineProps<DeliverableProps>()
 const {

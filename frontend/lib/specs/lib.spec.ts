@@ -26,7 +26,7 @@ import {shallowMount, VueWrapper} from '@vue/test-utils'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {cleanUp, flushPromises, mount, rq, rs, vueSetup} from '@/specs/helpers/index.ts'
-import {LogLevels} from '@/types/LogLevels.ts'
+import {LogLevels} from '@/types/enums/LogLevels.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {

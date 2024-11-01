@@ -4,13 +4,13 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
 import {genDeliverable, genRevision, genUser} from '@/specs/helpers/fixtures.ts'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import RevisionDetail from '@/components/views/order/deliverable/RevisionDetail.vue'
-import Revision from '@/types/Revision.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import type {Revision} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

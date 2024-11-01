@@ -38,7 +38,6 @@
 <script setup lang="ts">
 import {artCall, flatten} from '@/lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import AcNotification from '@/types/AcNotification.ts'
 import {computed, defineComponent, onUnmounted, ref} from 'vue'
 import {ObserveVisibility as vObserveVisibility} from 'vue-observe-visibility'
 import AcRefund from './events/AcRefund.vue'
@@ -70,10 +69,9 @@ import AcTipReceived from '@/components/views/notifications/events/AcTipReceived
 import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.vue'
 import AcRevisionApproved from '@/components/views/notifications/events/AcRevisionApproved.vue'
 import {useList} from '@/store/lists/hooks.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
-import {NotificationStats} from '@/types/NotificationStats.ts'
+import type {AcNotification, NotificationStats, SubjectiveProps} from '@/types/main'
 
 const components = {
   0: AcNewCharacter,

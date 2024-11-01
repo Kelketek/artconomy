@@ -10,10 +10,10 @@
 
 <script setup lang="ts">
 import {ListController} from '@/store/lists/controller.ts'
-import Product from '@/types/Product.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import type {Product} from '@/types/main'
 
 const props = withDefaults(
     defineProps<{products: ListController<Product>, mini?: boolean}>(),

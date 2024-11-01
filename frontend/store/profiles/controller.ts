@@ -16,13 +16,13 @@ import {
 } from '@/store/profiles/helpers.ts'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import Product from '@/types/Product.ts'
 import {nextTick, toValue, watch} from 'vue'
 import {getController} from '@/store/registry-base.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 import {guestName} from '@/lib/otherFormatters.ts'
 import {StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
+import type {Product} from '@/types/main'
 
 export type AnyUser = User | TerseUser | AnonUser
 

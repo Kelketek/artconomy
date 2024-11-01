@@ -7,9 +7,9 @@
 </template>
 
 <script setup lang="ts">
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {onMounted} from 'vue'
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

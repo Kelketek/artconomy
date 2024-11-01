@@ -6,7 +6,8 @@
 
 <script setup lang="ts">
 import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 </script>

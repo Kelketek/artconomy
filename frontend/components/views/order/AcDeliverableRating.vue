@@ -22,11 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import Rating from '@/types/Rating.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {DeliverableProps} from '@/components/views/order/mixins/DeliverableMixin.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
+import type {Rating} from '@/types/main'
 
 const props = defineProps<Omit<DeliverableProps, "baseName"> & {end: 'buyer' | 'seller'}>()
 

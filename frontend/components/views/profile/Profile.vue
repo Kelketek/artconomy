@@ -19,13 +19,13 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {flatten} from '@/lib/lib.ts'
 import {mdiAccount, mdiAccountMultiple, mdiBasket, mdiEye, mdiHeart, mdiImageAlbum} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {listenForList} from '@/store/lists/hooks.ts'
 import {listenForProfile} from '@/store/profiles/hooks.ts'
 import {listenForForm} from '@/store/forms/hooks.ts'
 import {computed, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const {subjectHandler, subject} = useSubject({ props })

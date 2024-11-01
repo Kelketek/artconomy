@@ -34,19 +34,16 @@
 </style>
 
 <script setup lang="ts">
-import Submission from '@/types/Submission.ts'
 import {flatten, genId} from '@/lib/lib.ts'
 import {useUpload} from '@/mixins/upload.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import ArtistTag from '@/types/ArtistTag.ts'
 import {computed, ref, watch} from 'vue'
 import {mdiCog, mdiImageMultiple, mdiPalette, mdiPlus} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useSubject} from '@/mixins/subjective.ts'
 import AcNewSubmission from '@/components/AcNewSubmission.vue'
-import {TabNavSpec} from '@/types/TabNavSpec.ts'
+import type {ArtistTag, SubjectiveProps, Submission, TabNavSpec} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const {subject, controls} = useSubject({ props })

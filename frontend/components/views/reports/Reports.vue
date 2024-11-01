@@ -12,7 +12,8 @@ import {useSubject} from '@/mixins/subjective.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcSiteFinancials from '@/components/views/reports/AcSiteFinancials.vue'
 import AcTaxReports from '@/components/views/reports/AcTaxReports.vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+
+import type {SubjectiveProps} from '@/types/main'
 
 
 const props = defineProps<SubjectiveProps>()

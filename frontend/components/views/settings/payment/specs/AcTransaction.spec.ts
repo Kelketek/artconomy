@@ -3,9 +3,9 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
 import {genCard, genUser} from '@/specs/helpers/fixtures.ts'
-import Transaction from '@/types/Transaction.ts'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
+import type {Transaction} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

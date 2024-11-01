@@ -1,7 +1,7 @@
 import {generateModuleHooks} from '@/store/hooks.ts'
 
 import CharacterState from '@/store/characters/types/CharacterState.ts'
-import CharacterModuleOpts from '@/store/characters/types/CharacterModuleOpts.ts'
+import {CharacterModuleOpts} from '@/store/characters/types/CharacterModuleOpts.ts'
 import {CharacterController} from '@/store/characters/controller.ts'
 import {flatten} from '@/lib/lib.ts'
 

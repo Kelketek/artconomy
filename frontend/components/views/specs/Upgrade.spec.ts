@@ -5,10 +5,10 @@ import {ArtStore, createStore} from '@/store'
 import {genPricing} from '@/lib/specs/helpers.ts'
 import {mount, VueWrapper} from '@vue/test-utils'
 import {nextTick} from 'vue'
-import Pricing from '@/types/Pricing.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import {setViewer} from '@/lib/lib.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
+import type {Pricing} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

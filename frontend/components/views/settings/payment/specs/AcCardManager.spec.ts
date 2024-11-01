@@ -14,7 +14,6 @@ import {
   vueSetup,
 } from '@/specs/helpers/index.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {CreditCardToken} from '@/types/CreditCardToken.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {genCard, genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -23,6 +22,7 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {nextTick} from 'vue'
 import {getStripe} from '@/components/views/order/mixins/StripeMixin.ts'
+import type {CreditCardToken} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

@@ -1,5 +1,4 @@
 import {ComponentInternalInstance, getCurrentInstance, inject, onUnmounted, provide} from 'vue'
-import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import {
   AttrKeys,
   getController,
@@ -13,6 +12,7 @@ import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {useSocket} from '@/plugins/socket.ts'
 import {useStore} from 'vuex'
 import {useRouter} from 'vue-router'
+import type {ArtVueInterface} from '@/types/main'
 
 export type ArtVueInstance = ComponentInternalInstance & ArtVueInterface
 

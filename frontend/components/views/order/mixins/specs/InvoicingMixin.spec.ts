@@ -3,10 +3,10 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import DummyInvoice from '@/specs/helpers/dummy_components/DummyInvoice.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import LineItem from '@/types/LineItem.ts'
 import {genDeliverable, genOrder, genProduct} from '@/specs/helpers/fixtures.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import type {LineItem} from '@/types/main'
 
 let store: ArtStore
 let invoiceLineItems: ListController<LineItem>

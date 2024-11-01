@@ -24,13 +24,13 @@
 </template>
 
 <script setup lang="ts">
-import Product from '@/types/Product.ts'
 import AcProductPreview from '@/components/AcProductPreview.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {computed} from 'vue'
 import {useList} from '@/store/lists/hooks.ts'
+import type {Product} from '@/types/main'
 
 const productsByUser = computed(() => {
   const result = new Map()

@@ -25,7 +25,8 @@ import {useList} from '@/store/lists/hooks.ts'
 import {onMounted} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
-import Product from '@/types/Product.ts'
+
+import type {Product} from '@/types/main'
 
 const searchForm = useForm('search')
 const list = useList<Product>('searchProducts', {

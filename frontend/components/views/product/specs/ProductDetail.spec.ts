@@ -21,12 +21,12 @@ import {Router} from 'vue-router'
 
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {getTotals, totalForTypes} from '@/lib/lineItemFunctions.ts'
-import {LineType} from '@/types/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import LineItem from '@/types/LineItem.ts'
-import {Ratings} from '@/types/Ratings.ts'
+import {Ratings} from '@/types/enums/Ratings.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
+import type {LineItem} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

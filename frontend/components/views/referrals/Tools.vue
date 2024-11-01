@@ -38,7 +38,8 @@
 
 <script setup lang="ts">
 import {computed} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const host = computed(() => window.location.hostname)

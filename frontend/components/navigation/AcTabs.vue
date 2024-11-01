@@ -17,8 +17,8 @@
 
 <script setup lang="ts">
 import AcTab from '@/components/AcTab.vue'
-import {TabSpec} from '@/types/TabSpec.ts'
 import {computed} from 'vue'
+import type {TabSpec} from '@/types/main'
 
 const props = defineProps<{modelValue: number, label: string, items: TabSpec[]}>()
 const emit = defineEmits<{'update:modelValue': [number]}>()

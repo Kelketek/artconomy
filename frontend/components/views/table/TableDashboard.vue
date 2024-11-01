@@ -6,11 +6,11 @@
 </template>
 
 <script setup lang="ts">
-import {TabNavSpec} from '@/types/TabNavSpec.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {mdiReceipt, mdiShopping, mdiStorefront} from '@mdi/js'
 import {listenForList} from '@/store/lists/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
+import type {TabNavSpec} from '@/types/main'
 
 const route = useRoute()
 const router = useRouter()

@@ -70,9 +70,9 @@
 <script setup lang="ts">
 import AcAsset from './AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import Submission from '@/types/Submission.ts'
 import {computed} from 'vue'
 import {useDisplay} from 'vuetify'
+import type {Submission} from '@/types/main'
 
 declare interface AcGalleryPreviewProps {
   submission: Submission,

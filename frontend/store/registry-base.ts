@@ -1,7 +1,6 @@
 import type {EffectScope, Ref} from 'vue'
 import {ComponentOptions, createApp, effectScope, h, markRaw, toRaw, toValue} from 'vue'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {ArtVueInterface} from '@/types/ArtVueInterface.ts'
 import {Router} from 'vue-router'
 import {SocketManager} from '@/plugins/socket.ts'
 import {SingleState} from '@/store/singles/types/SingleState.ts'
@@ -15,6 +14,7 @@ import CharacterState from '@/store/characters/types/CharacterState.ts'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ArtStore} from '@/store/index.ts'
+import type {ArtVueInterface} from '@/types/main'
 
 type _Vue = ReturnType<typeof createApp>
 

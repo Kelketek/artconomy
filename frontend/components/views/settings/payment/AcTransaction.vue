@@ -68,20 +68,19 @@
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
-import Transaction from '@/types/Transaction.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
-import {TransactionCategoryValue} from '@/types/TransactionCategory.ts'
-import {TransactionStatusValue} from '@/types/TransactionStatus.ts'
-import {AccountTypeValue} from '@/types/AccountType.ts'
+import {TransactionCategoryValue} from '@/types/enums/TransactionCategory.ts'
+import {TransactionStatusValue} from '@/types/enums/TransactionStatus.ts'
+import {AccountTypeValue} from '@/types/enums/AccountType.ts'
 import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
 import {mdiClose, mdiDotsHorizontal} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed, ref} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {useDisplay} from 'vuetify'
+import type {SubjectiveProps, Transaction} from '@/types/main'
 
 
 const props = defineProps<SubjectiveProps & {transaction: Transaction, currentAccount: number}>()

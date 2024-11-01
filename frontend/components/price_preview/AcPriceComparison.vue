@@ -42,11 +42,11 @@
 <script setup lang="ts">
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed} from 'vue'
 import {ListController} from '@/store/lists/controller.ts'
-import LineItem from '@/types/LineItem.ts'
+
+import type {LineItem, SubjectiveProps} from '@/types/main'
 
 declare type LineItemSetMaps = { name: string, lineItems: ListController<LineItem>, offer: boolean}[]
 

@@ -40,7 +40,6 @@
 
 <script setup lang="ts">
 import {ListController} from '@/store/lists/controller.ts'
-import Submission from '@/types/Submission.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
@@ -50,6 +49,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref, useAttrs, watch} from 'vue'
 import {useTheme} from 'vuetify'
 import {mdiCheckCircle} from '@mdi/js'
+import type {Submission} from '@/types/main'
 
 declare interface AcSubmissionSelectProps {
   list?: ListController<Submission>,

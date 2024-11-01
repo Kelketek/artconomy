@@ -165,9 +165,8 @@
 <script setup lang="ts">
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {NotificationSettings} from '@/types/NotificationSettings.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
+import type {NotificationSettings, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

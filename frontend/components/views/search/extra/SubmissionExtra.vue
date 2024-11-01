@@ -89,7 +89,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {useContentRatingSearch,} from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {ref, watch} from 'vue'
-import type {RatingsValue} from '@/types/Ratings.ts'
+import type {RatingsValue} from '@/types/enums/Ratings.ts'
 import {RATING_COLOR} from '@/lib/lib.ts'
 import {mdiCog} from '@mdi/js'
 

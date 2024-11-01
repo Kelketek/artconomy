@@ -12,10 +12,9 @@
 <script setup lang="ts">
 import {useSingle} from '@/store/singles/hooks.ts'
 import {flatten, getSalesStatsSchema} from '@/lib/lib.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
-import CommissionStats from '@/types/CommissionStats.ts'
 import {computed} from 'vue'
 import {mdiInvoiceTextOutline} from '@mdi/js'
+import type {CommissionStats, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

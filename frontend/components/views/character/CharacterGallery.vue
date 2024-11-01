@@ -18,9 +18,9 @@ import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {useRatingRefresh} from '@/mixins/RatingRefresh.ts'
-import {CharacterProps} from '@/types/CharacterProps.ts'
 import {useCharacter} from '@/store/characters/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import type {CharacterProps} from '@/types/main'
 
 const props = defineProps<CharacterProps>()
 const character = useCharacter(props)

@@ -60,12 +60,12 @@ import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {flatten} from '@/lib/lib.ts'
 import {mdiPlus} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useSubject} from '@/mixins/subjective.ts'
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const {controls} = useSubject({ props })

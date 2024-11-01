@@ -48,10 +48,10 @@
 <script setup lang="ts">
 import {flatten} from '@/lib/lib.ts'
 import AcDraggableList from '@/components/AcDraggableList.vue'
-import Product from '@/types/Product.ts'
 import AcProductManager from '@/components/views/store/AcProductManager.vue'
 import {computed} from 'vue'
 import {useList} from '@/store/lists/hooks.ts'
+import type {Product} from '@/types/main'
 
 
 declare interface ManageProductsArgs {

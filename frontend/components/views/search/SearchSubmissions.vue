@@ -24,7 +24,8 @@ import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import Submission from '@/types/Submission.ts'
+
+import type {Submission} from '@/types/main'
 
 const searchForm = useForm('search')
 

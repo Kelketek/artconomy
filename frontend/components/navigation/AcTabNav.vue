@@ -16,10 +16,10 @@
 </template>
 
 <script setup lang="ts">
-import {TabNavSpec} from '@/types/TabNavSpec.ts'
 import {RouteLocationRaw, useRoute, useRouter} from 'vue-router'
 import AcTab from '@/components/AcTab.vue'
 import {computed} from 'vue'
+import type {TabNavSpec} from '@/types/main'
 
 const route = useRoute()
 const router = useRouter()

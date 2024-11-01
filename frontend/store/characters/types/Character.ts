@@ -1,5 +1,5 @@
-import Submission from '@/types/Submission.ts'
 import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+import type {Submission} from '@/types/main'
 
 export interface Character {
   id: number,

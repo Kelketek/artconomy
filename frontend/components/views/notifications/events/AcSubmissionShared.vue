@@ -15,8 +15,8 @@
 <script setup lang="ts">
 import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import Submission from '@/types/Submission.ts'
 import {computed} from 'vue'
+import type {Submission} from '@/types/main'
 
 declare interface SubmissionShared extends DisplayData {
   user: NotificationUser,

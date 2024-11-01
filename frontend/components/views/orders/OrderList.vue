@@ -93,23 +93,21 @@
 
 <script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import Order from '@/types/Order.ts'
 import AcOrderPreview from '@/components/AcOrderPreview.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
 import {artCall, fallback, fallbackBoolean, flatten} from '@/lib/lib.ts'
-import Product from '@/types/Product.ts'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {computed, ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRoute} from 'vue-router'
 import {useList} from '@/store/lists/hooks.ts'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useSearchField} from '@/components/views/search/mixins/SearchField.ts'
 import {deriveDisplayName, formatDateTime} from '@/lib/otherFormatters.ts'
 import {mdiDelete, mdiListBox, mdiMagnify, mdiShopping} from '@mdi/js'
 import {profileLink} from '@/lib/otherFormatters.ts'
+import type {Order, Product, SubjectiveProps} from '@/types/main'
 
 declare interface OrderListProps {
   type: string,

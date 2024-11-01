@@ -176,8 +176,8 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import {BASE_URL} from '@/lib/lib.ts'
 import {vMaskToken} from '@/lib/vMask.ts'
 import {onMounted, ref, watch} from 'vue'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {useForm} from '@/store/forms/hooks.ts'
+import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<{device: SingleController<TOTPDevice>} & SubjectiveProps>()
 

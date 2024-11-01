@@ -1,13 +1,12 @@
-import Product from '@/types/Product.ts'
-import Deliverable from '@/types/Deliverable.ts'
+
 import {invoiceLines} from '@/lib/lineItemFunctions.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
-import LineItem from '@/types/LineItem.ts'
 import {computed, ComputedRef, watch} from 'vue'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {usePricing} from '@/mixins/PricingAware.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useRouter} from 'vue-router'
+import type {Deliverable, LineItem, Product} from '@/types/main'
 
 declare interface UseInvoicingArgs {
   newInvoice: FormController,

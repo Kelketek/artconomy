@@ -3,7 +3,7 @@ import {SingleState} from '@/store/singles/types/SingleState.ts'
 import {FormState} from '@/store/forms/types/FormState.ts'
 import {ProfileState} from '@/store/profiles/types/ProfileState.ts'
 import {ErrorState} from '@/store/errors/types.ts'
-import {RatingsValue} from '@/types/Ratings.ts'
+import {RatingsValue} from '@/types/enums/Ratings.ts'
 
 export const AlertCategory = {
   SUCCESS: 'success',

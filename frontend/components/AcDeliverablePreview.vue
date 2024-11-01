@@ -30,13 +30,12 @@
 </template>
 
 <script setup lang="ts">
-import Deliverable from '@/types/Deliverable.ts'
-import Order from '@/types/Order.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAsset from '@/components/AcAsset.vue'
 import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
 import {computed} from 'vue'
+import type {Deliverable, Order} from '@/types/main'
 
 declare interface AcDeliverablePreviewProps {
   deliverable: Deliverable,

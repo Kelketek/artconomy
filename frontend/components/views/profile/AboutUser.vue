@@ -88,8 +88,8 @@ import SubmissionList from '@/components/views/profile/SubmissionList.vue'
 import {User} from '@/store/profiles/types/User.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {mdiTrayFull} from '@mdi/js'
-import SubjectiveProps from '@/types/SubjectiveProps.ts'
 import {computed} from 'vue'
+import type {SubjectiveProps} from '@/types/main'
 
 declare interface ProfileBadge {
   label: string,

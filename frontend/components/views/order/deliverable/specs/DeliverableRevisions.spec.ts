@@ -5,7 +5,7 @@ import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
 import DeliverableRevisions from '@/components/views/order/deliverable/DeliverableRevisions.vue'
-import {DeliverableStatus} from '@/types/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 

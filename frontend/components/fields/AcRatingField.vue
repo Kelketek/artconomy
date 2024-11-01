@@ -64,7 +64,7 @@
 <script setup lang="ts">
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
 import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
-import {Ratings, RatingsValue} from '@/types/Ratings.ts'
+import {Ratings, RatingsValue} from '@/types/enums/Ratings.ts'
 import {computed, useAttrs} from 'vue'
 
 

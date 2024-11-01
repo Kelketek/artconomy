@@ -54,9 +54,9 @@
 import {ref} from 'vue'
 import {artCall} from '../lib/lib.ts'
 import {mdiClose} from '@mdi/js'
-import {Asset} from '@/types/Asset.ts'
 import {md} from '@/lib/markdown.ts'
 import {useTargets} from '@/plugins/targets.ts'
+import type {Asset} from '@/types/main'
 
 const props = defineProps<{asset: Asset, compact?: boolean, popOut?: boolean}>()
 const response = ref<string|null>(null)
