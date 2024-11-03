@@ -16,12 +16,8 @@ import checker from 'vite-plugin-checker'
 
 let commitHash = '00000000'
 
-try {
-  const path = readFileSync('.git/HEAD', 'utf-8').split(': ')[1].trim()
-  commitHash = readFileSync('.git/' + path, 'utf-8').slice(0, 9)
-} catch (e) {
-  console.error(e)
-}
+const path = readFileSync('.git/HEAD', 'utf-8').split(': ')[1].trim()
+commitHash = readFileSync('.git/' + path, 'utf-8').slice(0, 8)
 
 
 const productionMode = process.env.NODE_ENV === 'production'
