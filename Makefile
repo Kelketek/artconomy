@@ -52,7 +52,7 @@ test: test_frontend test_backend
 
 rust:
 	wasm-pack build --dev --target=bundler --out-dir=../../frontend/lib/lines rust/line_items --features=wasm
-	${APP_COMMAND} cd rust/line_items && maturin build --features python && pip install --force-reinstall target/wheels/line_items-0.1.0.tar.gz
+	${APP_COMMAND} bash -lc "cd rust/line_items && maturin sdist && pip install --force-reinstall target/wheels/line_items-0.1.0.tar.gz"
 
 test_frontend:
 	${APP_COMMAND} npm run test

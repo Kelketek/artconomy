@@ -211,7 +211,7 @@
   when: source_clone.before != source_clone.after
   # This might fail if the generated wheel filename ever changes. If that happens, we'll need to upgrade
   # the requirements.txt.
-  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy/rust/line_items && maturin build --features python --release"
+  shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy/rust/line_items && maturin sdist"
   args:
     executable: "/bin/bash"
 
