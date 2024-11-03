@@ -70,4 +70,4 @@ upgrade:
 	rm -f deploy_requirements.txt && ${APP_COMMAND} pip-compile --resolver=backtracking deploy_requirements.in
 	@# Must do this because absolute paths aren't the same between stage, production, and docker.
 	@# There's a caveat, though. You MUST run pip install from the same directory as the requirements.txt.
-	sed -i 's#.*file:///app/#./#g' requirements.txt
+	sed -i 's#.*file:///home/app/artconomy/#./#g' requirements.txt
