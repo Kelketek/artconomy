@@ -18,11 +18,11 @@
 </template>
 <script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {Character} from '@/store/characters/types/Character.ts'
 import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
+import {Character} from '@/store/characters/types/main'
 
 const searchForm = useForm('search')
 const list = useList<Character>('searchCharacters', {

@@ -3,14 +3,10 @@ import debounce from 'lodash/debounce'
 import axios from 'axios'
 import deepEqual from 'fast-deep-equal'
 import {clone, ComputedGetters, dotTraverse, flatten} from '@/lib/lib.ts'
-import {FormError} from '@/store/forms/types/FormError.ts'
-import {FormState} from '@/store/forms/types/FormState.ts'
-import {ValidatorSpec} from '@/store/forms/types/ValidatorSpec.ts'
-import {RawData} from '@/store/forms/types/RawData.ts'
-import {Field} from '@/store/forms/types/Field.ts'
 import {ControllerArgs} from '@/store/controller-base.ts'
 import {ArtStore} from '@/store/index.ts'
 import {ComputedGetter, EffectScope, effectScope, ref, toValue, watch, Ref} from 'vue'
+import {Field, FormError, FormState, RawData, ValidatorSpec} from '@/store/forms/types/main'
 
 export function axiosCatch(error: Error) {
   if (axios.isCancel(error)) {

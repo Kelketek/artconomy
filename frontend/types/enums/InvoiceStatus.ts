@@ -4,5 +4,3 @@ export const InvoiceStatus = {
   PAID: 2,
   VOID: 5,
 } as const
-
-export type InvoiceStatusValue = typeof InvoiceStatus[keyof typeof InvoiceStatus]

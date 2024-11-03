@@ -1,8 +1,8 @@
-import {User} from '@/store/profiles/types/User.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {singleQ} from '@/lib/lib.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
+import {User} from '@/store/profiles/types/main'
 
 export const useAuth = () => {
   const router = useRouter()

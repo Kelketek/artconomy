@@ -201,7 +201,6 @@
 <script setup lang="ts">
 import {makeQueryParams, BASE_URL} from '@/lib/lib.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import {User} from '@/store/profiles/types/User.ts'
 const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
 import {useNav} from '@/mixins/nav.ts'
 const AcNavLinks = defineAsyncComponent(() => import('@/components/navigation/AcNavLinks.vue'))
@@ -213,6 +212,7 @@ import {ArtState} from '@/store/artState.ts'
 import {useSearchForm} from '@/components/views/search/hooks.ts'
 import {useDisplay} from 'vuetify'
 import {mdiChatQuestion, mdiMagnify, mdiPencil} from '@mdi/js'
+import {User} from '@/store/profiles/types/main'
 const AcNotificationIndicator = defineAsyncComponent(() => import('@/components/navigation/AcNotificationIndicator.vue'))
 const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/AcStatsBar.vue'))
 const MessageCenter = defineAsyncComponent(() => import('@/components/navigation/MessageCenter.vue'))

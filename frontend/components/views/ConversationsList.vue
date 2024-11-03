@@ -78,7 +78,6 @@
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -92,6 +91,7 @@ import {ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {textualize} from '@/lib/markdown.ts'
 import type {Conversation, SubjectiveProps} from '@/types/main'
+import {TerseUser} from '@/store/profiles/types/main'
 
 
 const props = defineProps<SubjectiveProps>()

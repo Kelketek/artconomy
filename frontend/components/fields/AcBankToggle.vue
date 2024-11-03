@@ -68,7 +68,6 @@
 </template>
 
 <script setup lang="ts">
-import {BankStatus, BankStatusValue} from '@/store/profiles/types/BankStatus.ts'
 import {flatten} from '@/lib/lib.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
@@ -79,6 +78,8 @@ import {useList} from '@/store/lists/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import type {StripeAccount, StripeCountryList, SubjectiveProps} from '@/types/main'
+import {BankStatus} from '@/store/profiles/types/enums.ts'
+import {BankStatusValue} from '@/store/profiles/types/main'
 
 
 const props = withDefaults(

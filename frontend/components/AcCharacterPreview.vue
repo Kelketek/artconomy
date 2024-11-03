@@ -60,9 +60,9 @@
 <script setup lang="ts">
 import AcAsset from './AcAsset.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {Character} from '@/store/characters/types/Character.ts'
 import {computed} from 'vue'
 import {useDisplay} from 'vuetify'
+import {Character} from '@/store/characters/types/main'
 
 const {smAndDown} = useDisplay()
 

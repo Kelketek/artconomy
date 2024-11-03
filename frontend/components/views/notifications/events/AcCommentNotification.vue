@@ -15,8 +15,8 @@ import AcBaseNotification from './AcBaseNotification.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {posse} from '@/lib/otherFormatters.ts'
 import {RouteLocationRaw} from 'vue-router'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {computed} from 'vue'
+import {TerseUser} from '@/store/profiles/types/main'
 
 declare interface CommentNotification extends DisplayData {
   link: RouteLocationRaw,

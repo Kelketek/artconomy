@@ -1,39 +1,36 @@
 import type {ListController} from '@/store/lists/controller.ts'
 import type {AxiosError} from 'axios'
-import type {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
 import type {ArtStore} from '@/store'
 import type {SocketManager} from '@/plugins/socket.ts'
-import type {SingleModuleOpts} from '@/store/singles/types/SingleModuleOpts.ts'
 import type {SingleController} from '@/store/singles/controller.ts'
 import type {SingleRegistry} from '@/store/singles/registry.ts'
-import type {ListModuleOpts} from '@/store/lists/types/ListModuleOpts.ts'
 import type {ListRegistry} from '@/store/lists/registry.ts'
-import type {NamelessFormSchema} from '@/store/forms/types/NamelessFormSchema.ts'
 import type {FormController} from '@/store/forms/form-controller.ts'
 import type {FormRegistry} from '@/store/forms/registry.ts'
-import type {CharacterModuleOpts} from '@/store/characters/types/CharacterModuleOpts.ts'
 import type {CharacterController} from '@/store/characters/controller.ts'
 import type {CharacterRegistry} from '@/store/characters/registry.ts'
-import type {ProfileModuleOpts} from '@/store/profiles/types/ProfileModuleOpts.ts'
 import type {ProfileController} from '@/store/profiles/controller.ts'
 import type {ProfileRegistry} from '@/store/profiles/registry.ts'
 import type {RegistryRegistry} from '@/store/registry-base.ts'
 import type {RouteLocation, RouteLocationNamedRaw, RouteLocationRaw, Router} from 'vue-router'
 import type {createApp} from 'vue'
-import type {RatingsValue} from '@/types/enums/Ratings.ts'
-import type {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import type {DeliverableStatusValue} from '@/types/enums/DeliverableStatus.ts'
 import type {Product} from '@/types/main.d.ts'
-import type {User} from '@/store/profiles/types/User.ts'
-import type {InvoiceStatusValue} from '@/types/enums/InvoiceStatus.ts'
-import type {InvoiceTypeValue} from '@/types/enums/InvoiceType.ts'
-import type {Character} from '@/store/characters/types/Character.ts'
-import type {ViewerTypeValue} from '@/types/enums/ViewerType.ts'
-import type {LineTypeValue} from '@/types/enums/LineType.ts'
-import type {ConnectionStatusValue} from '@/types/enums/ConnectionStatus.ts'
-import type {AccountTypeValue} from '@/types/enums/AccountType.ts'
-import type {TransactionStatusValue} from '@/types/enums/TransactionStatus.ts'
-import type {TransactionCategoryValue} from '@/types/enums/TransactionCategory.ts'
+import type {SingleModuleOpts} from '@/store/singles/types.d.ts'
+import {ProfileModuleOpts, RelatedUser, TerseUser, User} from '@/store/profiles/types/main'
+import {AccountType} from '@/types/enums/AccountType.ts'
+import {ConnectionStatus} from '@/types/enums/ConnectionStatus.ts'
+import {InvoiceType} from '@/types/enums/InvoiceType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
+import {LogLevels} from '@/types/enums/LogLevels.ts'
+import {Ratings} from '@/types/enums/Ratings.ts'
+import {TransactionCategory} from '@/types/enums/TransactionCategory.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
+import {InvoiceStatus} from '@/types/enums/InvoiceStatus.ts'
+import {TransactionStatus} from '@/types/enums/TransactionStatus.ts'
+import {ViewerType} from '@/types/enums/ViewerType.ts'
+import type {ListModuleOpts} from '@/store/lists/types.d.ts'
+import {NamelessFormSchema} from '@/store/forms/types/main'
+import {Character, CharacterModuleOpts} from '@/store/characters/types/main'
 
 export interface SortableModel {
   display_position: number,
@@ -71,6 +68,8 @@ export interface AcNotification<T, D> {
   id: number
 }
 export type AcServerError = AxiosError<{ detail: any } | Record<string, string[]>>
+
+export type RatingsValue = typeof Ratings[keyof typeof Ratings]
 
 export interface Submission extends Asset {
   id: number,
@@ -227,6 +226,8 @@ export interface CreditCardToken {
   type: number,
 }
 
+export type DeliverableStatusValue = typeof DeliverableStatus[keyof typeof DeliverableStatus]
+
 export interface Order {
   id: number,
   created_on: string,
@@ -293,6 +294,10 @@ export interface Inventory {
   count: number,
 }
 
+export type InvoiceTypeValue = typeof InvoiceType[keyof typeof InvoiceType]
+
+export type InvoiceStatusValue = typeof InvoiceStatus[keyof typeof InvoiceStatus]
+
 export interface Invoice {
   id: string,
   created_on: string,
@@ -315,6 +320,8 @@ export interface Journal {
   edited: boolean,
   subscribed: boolean,
 }
+
+export type LineTypeValue = typeof LineType[keyof typeof LineType]
 
 export interface LineItem {
   id: number,
@@ -360,6 +367,8 @@ export interface LinkedReference {
   reference: Reference,
   reference_id?: number,
 }
+
+export type ViewerTypeValue = typeof ViewerType[keyof typeof ViewerType]
 
 export interface DeliverableViewSettings {
   viewerType: ViewerTypeValue,
@@ -510,6 +519,8 @@ export interface ShoppingCart {
   escrow_upgrade: boolean,
 }
 
+export type ConnectionStatusValue = typeof ConnectionStatus[keyof typeof ConnectionStatus]
+
 export interface SocketState {
   status: ConnectionStatusValue,
   version: string,
@@ -550,6 +561,12 @@ export interface UserShare {
   id: number
 }
 
+export type AccountTypeValue = typeof AccountType[keyof typeof AccountType]
+
+export type TransactionCategoryValue = typeof TransactionCategory[keyof typeof TransactionCategory]
+
+export type TransactionStatusValue = typeof TransactionStatus[keyof typeof TransactionStatus]
+
 export interface Transaction {
   id: string,
   source: AccountTypeValue,
@@ -566,3 +583,19 @@ export interface Transaction {
   finalized_on: string | null,
   targets: any[],
 }
+
+export interface TGDevice {
+  id: number,
+  confirmed: boolean,
+  code?: number,
+}
+
+export interface TOTPDevice {
+  id: number,
+  name: string,
+  config_url: string,
+  confirmed: boolean,
+  code?: string
+}
+
+export type LogLevelsValue = typeof LogLevels[keyof typeof LogLevels]

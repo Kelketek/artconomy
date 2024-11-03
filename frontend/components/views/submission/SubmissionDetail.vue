@@ -266,7 +266,6 @@ import AcAvatar from '@/components/AcAvatar.vue'
 import {useEditable} from '@/mixins/editable.ts'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import AcArtistDisplay from './AcArtistDisplay.vue'
 import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
@@ -287,7 +286,7 @@ import {
   mdiPalette,
   mdiPencil,
 } from '@mdi/js'
-import {Ratings, RatingsValue} from '@/types/enums/Ratings.ts'
+import {Ratings} from '@/types/enums/Ratings.ts'
 import {formatDateTime, posse, profileLink} from '@/lib/otherFormatters.ts'
 import AcRatingButton from '@/components/AcRatingButton.vue'
 import {computed, ref, watch} from 'vue'
@@ -297,7 +296,8 @@ import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useRouter} from 'vue-router'
 import {textualize} from '@/lib/markdown.ts'
 import {useTargets} from '@/plugins/targets.ts'
-import type {ArtistTag, Comment, LinkedCharacter, Submission} from '@/types/main'
+import type {ArtistTag, Comment, LinkedCharacter, RatingsValue, Submission} from '@/types/main'
+import {TerseUser} from '@/store/profiles/types/main'
 
 const props = defineProps<{submissionId: string}>()
 

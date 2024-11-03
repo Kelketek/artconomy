@@ -12,5 +12,3 @@ export const DeliverableStatus = {
   LIMBO: 10,
   MISSED: 11,
 } as const
-
-export type DeliverableStatusValue = typeof DeliverableStatus[keyof typeof DeliverableStatus]

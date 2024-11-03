@@ -1,13 +1,12 @@
-import {User} from '@/store/profiles/types/User.ts'
+
 import {useViewer} from './viewer.ts'
 import {usePricing} from '@/mixins/PricingAware.ts'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {computed} from 'vue'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
-import {StaffPower} from '@/store/profiles/types/StaffPowers.ts'
 import type {ServicePlan, SubjectiveProps} from '@/types/main'
+import {StaffPower, TerseUser, User} from '@/store/profiles/types/main'
 
 const getIsCurrent = (username: string, rawViewerName: string, viewerName: string) => {
   return username === rawViewerName || username === viewerName

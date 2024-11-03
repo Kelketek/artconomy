@@ -75,7 +75,6 @@ import {DeliverableProps, useDeliverable} from '@/components/views/order/mixins/
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcCommentSection from '@/components/comments/AcCommentSection.vue'
 import {markRead} from '@/lib/lib.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {mdiCloudDownload, mdiCheckCircle, mdiDelete, mdiUpload, mdiArrowLeft} from '@mdi/js'
 import {useSingle} from '@/store/singles/hooks.ts'
@@ -87,6 +86,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
 import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import type {Comment, Revision} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<DeliverableProps & { revisionId: string|number }>()
 const router = useRouter()

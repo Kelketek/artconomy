@@ -1,8 +1,6 @@
 import {computed, ComputedRef} from 'vue'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import type {AcNotification, Asset, SubjectiveProps} from '@/types/main'
+import {AnonUser, TerseUser, User} from '@/store/profiles/types/main'
 
 
 export interface NotificationProps<T, D> extends SubjectiveProps {

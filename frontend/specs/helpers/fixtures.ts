@@ -1,17 +1,14 @@
 import {genShortcode} from 'short-stuff'
 import {rs} from './index.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
-import {BankStatus} from '@/store/profiles/types/BankStatus.ts'
 import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {InvoiceStatus} from '@/types/enums/InvoiceStatus.ts'
 import {InvoiceType} from '@/types/enums/InvoiceType.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {Ratings} from '@/types/enums/Ratings.ts'
-import {StaffPower, StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
 import {POWER_LIST} from '@/mixins/viewer.ts'
 import type {Deliverable, CommissionStats, CreditCardToken, Invoice, Order, Product, Reference, Revision} from '@/types/main'
+import {AnonUser, ArtistProfile, StaffPower, StaffPowers, User} from '@/store/profiles/types/main'
+import {BankStatus} from '@/store/profiles/types/enums.ts'
 
 export function genUser(overrides?: Partial<User>): User {
   return {

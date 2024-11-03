@@ -3,8 +3,7 @@ import {AnyUser, ProfileController} from '@/store/profiles/controller.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {baseCardSchema, baseInvoiceSchema, paypalTokenToUrl} from '@/lib/lib.ts'
-import {ViewerType, ViewerTypeValue} from '@/types/enums/ViewerType.ts'
-import {User} from '@/store/profiles/types/User.ts'
+import {ViewerType} from '@/types/enums/ViewerType.ts'
 import {addBusinessDays, isAfter} from 'date-fns'
 import {LocationQueryValue, useRoute} from 'vue-router'
 import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
@@ -21,9 +20,10 @@ import {
   LineItem,
   LinkedCharacter,
   LinkedReference, Order,
-  OrderProps, Submission,
+  OrderProps, Submission, ViewerTypeValue,
 } from '@/types/main'
 import type {Revision} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 export interface DeliverableProps extends OrderProps {
   deliverableId: string|number,

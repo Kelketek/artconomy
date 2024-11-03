@@ -5,17 +5,16 @@ import {VueWrapper} from '@vue/test-utils'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
 import {cleanUp, mount, rq, rs, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import flushPromises from 'flush-promises'
-import {ListModuleOpts} from '../types/ListModuleOpts.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import WS from 'vitest-websocket-mock'
-import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {buildRegistries} from '@/plugins/createRegistries.ts'
 import {buildSocketManger} from '@/plugins/socket.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import {nextTick} from 'vue'
 import {clone} from '@/lib/lib.ts'
+import type {ListModuleOpts, ListSocketSettings} from '@/store/lists/types.d.ts'
 
 let store: ArtStore
 let state: any

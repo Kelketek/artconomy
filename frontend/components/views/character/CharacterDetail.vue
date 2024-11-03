@@ -169,7 +169,6 @@
 <script setup lang="ts">
 import AcAsset from '@/components/AcAsset.vue'
 import {useSubject} from '@/mixins/subjective.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import {useEditable} from '@/mixins/editable.ts'
@@ -192,6 +191,7 @@ import {textualize} from '@/lib/markdown.ts'
 import {mdiCheckCircle, mdiAlert, mdiUpload} from '@mdi/js'
 import {useTheme} from 'vuetify'
 import type {CharacterProps, Submission} from '@/types/main'
+import {Character} from '@/store/characters/types/main'
 
 const props = defineProps<CharacterProps>()
 

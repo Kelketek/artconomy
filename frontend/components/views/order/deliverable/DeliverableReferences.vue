@@ -58,8 +58,7 @@ import AcReference from '@/components/views/order/deliverable/AcReference.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed, watch} from 'vue'
 import {useRoute} from 'vue-router'
-import {RatingsValue} from '@/types/enums/Ratings.ts'
-import type {Reference} from '@/types/main'
+import type {RatingsValue, Reference} from '@/types/main'
 
 const props = defineProps<DeliverableProps>()
 const route = useRoute()

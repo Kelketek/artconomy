@@ -166,7 +166,6 @@
 import AcConfirmation from '../../wrappers/AcConfirmation.vue'
 import AcAvatar from '../../AcAvatar.vue'
 import {useSubject} from '@/mixins/subjective.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import AcNavLinks from '@/components/navigation/AcNavLinks.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {useEditable} from '@/mixins/editable.ts'
@@ -181,6 +180,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 import {profileLink} from '@/lib/otherFormatters.ts'
 import {useDisplay} from 'vuetify'
 import type {Conversation, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = withDefaults(defineProps<SubjectiveProps & { dense?: boolean, showEdit?: boolean }>(), {
   dense: false,

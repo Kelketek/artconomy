@@ -42,13 +42,13 @@ import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcTransaction from '@/components/views/settings/payment/AcTransaction.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {RawData} from '@/store/forms/types/RawData.ts'
 import {flatten} from '@/lib/lib.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {computed, watch} from 'vue'
 import type {Balance, SubjectiveProps, Transaction} from '@/types/main'
+import {RawData} from '@/store/forms/types/main'
 
 const props = defineProps<SubjectiveProps>()
 

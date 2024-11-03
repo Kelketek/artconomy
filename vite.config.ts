@@ -7,7 +7,6 @@ import wasm from "vite-plugin-wasm"
 import vue from '@vitejs/plugin-vue'
 import vuetify, {transformAssetUrls} from 'vite-plugin-vuetify'
 import ViteFonts from 'unplugin-fonts/vite'
-import ChildProcess from 'child_process'
 import topLevelAwait from "vite-plugin-top-level-await"
 
 // Utilities
@@ -20,7 +19,6 @@ let commitHash = '00000000'
 try {
   const path = readFileSync('.git/HEAD', 'utf-8').split(': ')[1].trim()
   commitHash = readFileSync('.git/' + path, 'utf-8').slice(0, 9)
-  console.log(commitHash)
 } catch (e) {
   console.error(e)
 }

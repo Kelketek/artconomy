@@ -4,5 +4,3 @@ export const ConnectionStatus = {
   CLOSING: 2,
   CLOSED: 3,
 } as const
-
-export type ConnectionStatusValue = typeof ConnectionStatus[keyof typeof ConnectionStatus]

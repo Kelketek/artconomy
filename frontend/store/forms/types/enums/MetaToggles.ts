@@ -5,4 +5,3 @@ export const MetaToggles = {
   sending: 'sending',
 } as const
 
-export type MetaTogglesValue = typeof MetaToggles[keyof typeof MetaToggles]

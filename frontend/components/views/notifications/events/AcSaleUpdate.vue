@@ -23,10 +23,10 @@
 <script setup lang="ts">
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import {DeliverableStatus, DeliverableStatusValue} from '@/types/enums/DeliverableStatus.ts'
+import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import {computed} from 'vue'
 import {useRouter} from 'vue-router'
-import type {Deliverable} from '@/types/main'
+import type {Deliverable, DeliverableStatusValue} from '@/types/main'
 
 const ORDER_STATUSES: Record<DeliverableStatusValue, string> = {
   [DeliverableStatus.WAITING]: 'has been added to your waitlist.',

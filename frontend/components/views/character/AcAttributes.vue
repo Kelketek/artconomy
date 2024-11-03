@@ -85,7 +85,6 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {artCall} from '@/lib/lib.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {mdiContentSave, mdiDelete} from '@mdi/js'
 import {useCharacter} from '@/store/characters/hooks.ts'
@@ -93,6 +92,7 @@ import {computed, nextTick, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useEditable} from '@/mixins/editable.ts'
 import type {Attribute, CharacterProps} from '@/types/main'
+import {Character} from '@/store/characters/types/main'
 
 const props = defineProps<CharacterProps>()
 const {controls} = useSubject({ props })

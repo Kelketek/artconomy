@@ -46,9 +46,9 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import {useCharacter} from '@/store/characters/hooks.ts'
 import {useEditable} from '@/mixins/editable.ts'
 import {useForm} from '@/store/forms/hooks.ts'
-import Color from '@/store/characters/types/Color.ts'
 import {mdiPalette} from '@mdi/js'
 import type {CharacterProps} from '@/types/main'
+import {Color} from '@/store/characters/types/main'
 
 const props = defineProps<CharacterProps>()
 

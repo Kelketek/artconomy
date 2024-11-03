@@ -13,5 +13,3 @@ export const LineType = {
   PROCESSING: 11,
   RECONCILIATION: 12,
 } as const
-
-export type LineTypeValue = typeof LineType[keyof typeof LineType]

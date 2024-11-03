@@ -4,11 +4,11 @@ import mockAxios from '@/__mocks__/axios.ts'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
 import {cleanUp, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import AcAttributes from '@/components/views/character/AcAttributes.vue'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
+import {Character} from '@/store/characters/types/main'
 
 describe('AcAttributes.vue', () => {
   let store: ArtStore

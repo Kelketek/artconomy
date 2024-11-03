@@ -218,13 +218,10 @@ import {
   searchSchema as baseSearchSchema,
   setCookie, useLazyInitializer,
 } from './lib/lib.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ConnectionStatus} from '@/types/enums/ConnectionStatus.ts'
 const AcPatchField = defineAsyncComponent(() => import('@/components/fields/AcPatchField.vue'))
 const AcCookieConsent = defineAsyncComponent(() => import('@/components/AcCookieConsent.vue'))
-import {Character} from '@/store/characters/types/Character.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
@@ -236,6 +233,8 @@ import {useTargets} from '@/plugins/targets.ts'
 import {mdiHammerWrench, mdiUpdate} from '@mdi/js'
 import AcCookiedAlert from '@/components/AcCookiedAlert.vue'
 import type {Product, SocketState, Submission} from '@/types/main'
+import {TerseUser, User} from '@/store/profiles/types/main'
+import {Character} from '@/store/characters/types/main'
 
 const router = useRouter()
 const route = useRoute()

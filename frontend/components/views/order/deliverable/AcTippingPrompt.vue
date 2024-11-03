@@ -121,7 +121,7 @@
 
 <script setup lang="ts">
 import {getTotals, reckonLines, totalForTypes} from '@/lib/lineItemFunctions.ts'
-import {LineType, LineTypeValue} from '@/types/enums/LineType.ts'
+import {LineType} from '@/types/enums/LineType.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import AcPricePreview from '@/components/price_preview/AcPricePreview.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -140,7 +140,7 @@ import {computed, ref, watch, Ref} from 'vue'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
 import {useViewer} from '@/mixins/viewer.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import type {Deliverable, ClientSecret, Invoice, LineItem, SubjectiveProps} from '@/types/main'
+import type {Deliverable, ClientSecret, Invoice, LineItem, SubjectiveProps, LineTypeValue} from '@/types/main'
 
 declare interface AcTippingPromptProps {
   invoiceId: string,

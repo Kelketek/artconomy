@@ -192,8 +192,8 @@ import {useList} from '@/store/lists/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {statusOk} from '@/mixins/ErrorHandling.ts'
 import {formatDate} from '@/lib/otherFormatters.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import type {PaypalConfig, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const showPaypal = ref(false)
 const paypalWarned = ref(false)

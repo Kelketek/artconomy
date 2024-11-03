@@ -633,7 +633,6 @@ import {formatDateTerse, profileLink} from '@/lib/otherFormatters.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {listenForForm} from '@/store/forms/hooks.ts'
 import {useViewer} from '@/mixins/viewer.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {useTheme, useDisplay} from 'vuetify'
@@ -647,6 +646,7 @@ import {
   SubjectiveProps,
   Submission,
 } from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 
 const props = defineProps<SubjectiveProps & ProductProps>()

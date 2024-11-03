@@ -5,7 +5,8 @@
 <script setup lang="ts">
 import {useViewer} from '@/mixins/viewer.ts'
 import {useRoute, useRouter} from 'vue-router'
-import {User} from '@/store/profiles/types/User.ts'
+
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<{viewName: string}>()
 const router = useRouter()

@@ -46,7 +46,6 @@ import {baseCardSchema, flatten} from '@/lib/lib.ts'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
-import {User} from '@/store/profiles/types/User.ts'
 import {computed, ComputedRef, ref, defineAsyncComponent, watch} from 'vue'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useViewer} from '@/mixins/viewer.ts'
@@ -55,6 +54,7 @@ import {useList} from '@/store/lists/hooks.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import type AcCardManagerType from '@/components/views/settings/payment/AcCardManager.vue'
 import type {ClientSecret, CreditCardToken, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 const AcCardManager = defineAsyncComponent(() => import('@/components/views/settings/payment/AcCardManager.vue'))
 
 

@@ -18,11 +18,11 @@
 
 <script setup lang="ts">
 import AcRelatedManager from '../AcRelatedManager.vue'
-import {User} from '@/store/profiles/types/User.ts'
 import AcAvatar from '@/components/AcAvatar.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
+import {User} from '@/store/profiles/types/main'
 
 const demoList = useList<User>('demoList', {endpoint: '/endpoint/', paginated: false})
 const userForm = useForm('userForm', {endpoint: '/endpoint/', fields: {user_id: {value: null}}})

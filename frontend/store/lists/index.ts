@@ -2,13 +2,12 @@ import {ArtState as RootState} from '../artState.ts'
 import {ActionTree, MutationTree, Store} from 'vuex'
 import {artCall, ArtCallOptions, immediate} from '@/lib/lib.ts'
 import axios from 'axios'
-import {ListState} from './types/ListState.ts'
-import {PaginatedResponse} from '@/store/lists/types/PaginatedResponse.ts'
-import {SingleModule} from '../singles/index.ts'
+import {SingleModule} from '@/store/singles'
 import {QueryParams} from '@/store/helpers/QueryParams.ts'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
-import {ListSocketSettings} from '@/store/lists/types/ListSocketSettings.ts'
-import {SingleSocketSettings} from '@/store/singles/types/SingleSocketSettings.ts'
+
+import type {SingleSocketSettings} from '@/store/singles/types.d.ts'
+import type {ListSocketSettings, ListState, PaginatedResponse} from '@/store/lists/types.d.ts'
+import {HttpVerbs} from '@/store/forms/types/main'
 
 function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   if ((state as any).items === undefined) {

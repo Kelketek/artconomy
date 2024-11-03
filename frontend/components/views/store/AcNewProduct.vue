@@ -276,7 +276,6 @@
 </template>
 <script setup lang="ts">
 import {useDisplay} from 'vuetify'
-import {User} from '@/store/profiles/types/User.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
@@ -294,6 +293,7 @@ import {useRouter} from 'vue-router'
 import {useList} from '@/store/lists/hooks.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import type {LineItem, Pricing, Product, RawLineItemSetMap, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<{modelValue: boolean} & SubjectiveProps>()
 const emit = defineEmits<{'update:modelValue': [boolean]}>()

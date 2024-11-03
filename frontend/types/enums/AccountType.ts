@@ -13,5 +13,3 @@ export const AccountType = {
   TAXES: 311,
   CASH_DEPOSIT: 407,
 } as const
-
-export type AccountTypeValue = typeof AccountType[keyof typeof AccountType]

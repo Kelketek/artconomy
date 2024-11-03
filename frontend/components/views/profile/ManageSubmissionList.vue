@@ -47,13 +47,12 @@
 <script setup lang="ts">
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
 import {flatten} from '@/lib/lib.ts'
-import {RatingsValue} from '@/types/enums/Ratings.ts'
 import AcDraggableList from '@/components/AcDraggableList.vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {watch} from 'vue'
 import {useList} from '@/store/lists/hooks.ts'
 
-import type {LinkedSubmission, SubjectiveProps} from '@/types/main'
+import type {LinkedSubmission, RatingsValue, SubjectiveProps} from '@/types/main'
 
 const props = defineProps<{listName: string, endpoint: string} & SubjectiveProps>()
 

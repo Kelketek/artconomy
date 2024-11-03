@@ -220,7 +220,7 @@ import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcLineItemListing from '@/components/price_preview/AcLineItemListing.vue'
-import {InvoiceStatus, InvoiceStatusValue} from '@/types/enums/InvoiceStatus.ts'
+import {InvoiceStatus} from '@/types/enums/InvoiceStatus.ts'
 import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
@@ -238,7 +238,7 @@ import {useSingle} from '@/store/singles/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 
-import type {ClientSecret, Invoice, LineItem, SubjectiveProps, Transaction} from '@/types/main'
+import type {ClientSecret, Invoice, InvoiceStatusValue, LineItem, SubjectiveProps, Transaction} from '@/types/main'
 
 const props = defineProps<{invoiceId: string} & SubjectiveProps>()
 const {powers} = useViewer()

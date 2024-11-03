@@ -3,5 +3,3 @@ export const TransactionStatus = {
   FAILURE: 1,
   PENDING: 2,
 } as const
-
-export type TransactionStatusValue = typeof TransactionStatus[keyof typeof TransactionStatus]

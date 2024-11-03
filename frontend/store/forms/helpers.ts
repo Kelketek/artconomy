@@ -1,6 +1,5 @@
 import {AxiosError} from 'axios'
-import {FormError} from '@/store/forms/types/FormError.ts'
-import {FormErrorSet} from '@/store/forms/types/FormErrorSet.ts'
+import {FormError, FormErrorSet} from '@/store/forms/types/main'
 
 export function missingFieldError(errors: FormError): string[] {
   const result: string[] = []

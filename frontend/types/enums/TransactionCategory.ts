@@ -20,5 +20,3 @@ export const TransactionCategory = {
   PROCESSING_FEE: 418,
   TIP_SEND: 419,
 } as const
-
-export type TransactionCategoryValue = typeof TransactionCategory[keyof typeof TransactionCategory]

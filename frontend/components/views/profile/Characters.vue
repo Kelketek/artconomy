@@ -53,7 +53,6 @@
 </template>
 
 <script setup lang="ts">
-import {Character} from '@/store/characters/types/Character.ts'
 import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
@@ -66,6 +65,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useSubject} from '@/mixins/subjective.ts'
 import type {SubjectiveProps} from '@/types/main'
+import {Character} from '@/store/characters/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const {controls} = useSubject({ props })

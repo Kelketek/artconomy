@@ -204,7 +204,6 @@
 import {useSubject} from '@/mixins/subjective.ts'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcSetupTwoFactor from './AcSetupTwoFactor.vue'
-import {User} from '@/store/profiles/types/User.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {useAlerts} from '@/mixins/alerts.ts'
@@ -213,6 +212,7 @@ import {computed, ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {AlertCategory} from '@/store/artState.ts'
 import type {SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const showUsernameChange = ref(false)
 const showPasswordChange = ref(false)

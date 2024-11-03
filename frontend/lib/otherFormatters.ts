@@ -1,7 +1,6 @@
 import {format, parseISO as upstreamParseISO} from 'date-fns'
-import {User} from '@/store/profiles/types/User.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import {RelatedUser} from '@/store/profiles/types/RelatedUser.ts'
+
+import {RelatedUser, TerseUser, User} from '@/store/profiles/types/main'
 
 export const truncateText = (text: string, maxLength: number) => {
   if (text.length <= maxLength) {

@@ -4,5 +4,3 @@ export const LogLevels = {
     WARN: 2,
     ERROR: 3,
 } as const
-
-export type LogLevelsValue = typeof LogLevels[keyof typeof LogLevels]

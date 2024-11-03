@@ -177,7 +177,6 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {useStripeHost} from '@/components/views/order/mixins/StripeHostMixin.ts'
 import {useSubject} from '@/mixins/subjective.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {mdiCheckCircle} from '@mdi/js'
 import {computed, ref, watch} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
@@ -186,6 +185,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useTheme} from 'vuetify'
 import type {ClientSecret, Pricing, SubjectiveProps} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const {viewer} = useViewer()

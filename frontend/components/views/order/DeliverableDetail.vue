@@ -425,7 +425,6 @@ import AcForm from '@/components/wrappers/AcForm.vue'
 import {DeliverableProps, useDeliverable, ensureHandler} from './mixins/DeliverableMixin.ts'
 import AcTabNav from '@/components/navigation/AcTabNav.vue'
 import {ViewerType} from '@/types/enums/ViewerType.ts'
-import {Character} from '@/store/characters/types/Character.ts'
 import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {BASE_URL, markRead} from '@/lib/lib.ts'
@@ -444,6 +443,7 @@ import {useInvoicing} from '@/components/views/order/mixins/InvoicingMixin.ts'
 import {usePrerendering} from '@/mixins/prerendering.ts'
 import {formatDateTerse, parseISO} from '@/lib/otherFormatters.ts'
 import type {Deliverable, LinkedReference, ServicePlan, Submission} from '@/types/main'
+import {Character} from '@/store/characters/types/main'
 
 const props = defineProps<{username: string} & DeliverableProps>()
 

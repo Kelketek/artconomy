@@ -1,8 +1,5 @@
 import {differenceInYears} from 'date-fns'
-import {User} from '@/store/profiles/types/User.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {ProfileController} from '@/store/profiles/controller.ts'
-import type {RatingsValue} from '@/types/enums/Ratings.ts'
 import {useStore} from 'vuex'
 import {useProfile} from '@/store/profiles/hooks.ts'
 import {ArtState} from '@/store/artState.ts'
@@ -11,7 +8,8 @@ import {computed, watch} from 'vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
 import {Ratings} from '@/types/enums/Ratings.ts'
-import {StaffPower} from '@/store/profiles/types/StaffPowers.ts'
+import {AnonUser, StaffPower, User} from '@/store/profiles/types/main'
+import {RatingsValue} from '@/types/main'
 
 export interface AgeCheckArgs {
   value: number,

@@ -7,7 +7,6 @@ import mockAxios from '@/specs/helpers/mock-axios.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import flushPromises from 'flush-promises'
 import ErrorScrollTests from '@/specs/helpers/dummy_components/scroll-tests.vue'
-import {RootFormState} from '@/store/forms/types/RootFormState.ts'
 import {cleanUp, docTarget, vueSetup} from '@/specs/helpers/index.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick} from 'vue'
@@ -18,6 +17,7 @@ import {characterRegistry} from '@/store/characters/registry.ts'
 import {RegistryRegistry} from '@/store/registry-base.ts'
 import {profileRegistry} from '@/store/profiles/registry.ts'
 import {buildSocketManger, SocketManager} from '@/plugins/socket.ts'
+import {RootFormState} from '@/store/forms/types/main'
 
 const mockScrollIntoView = Element.prototype.scrollIntoView = vi.fn()
 

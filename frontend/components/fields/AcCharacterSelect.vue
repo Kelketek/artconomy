@@ -20,7 +20,6 @@
 </template>
 
 <script setup lang="ts">
-import {Character} from '@/store/characters/types/Character.ts'
 import {
   autocompleteDefaults,
   AutocompleteEmits,
@@ -30,6 +29,7 @@ import {
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {ref, useAttrs} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
+import {Character} from '@/store/characters/types/main'
 
 const props = withDefaults(defineProps<AutocompleteProps>(), autocompleteDefaults())
 const {rawViewerName} = useViewer()

@@ -4,5 +4,3 @@ export const Ratings = {
   ADULT: 2,
   EXTREME: 3,
 } as const
-
-export type RatingsValue = typeof Ratings[keyof typeof Ratings]

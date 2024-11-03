@@ -17,7 +17,6 @@ import {characterRegistry, createCharacters} from '@/store/characters/registry.t
 import mockAxios from '@/__mocks__/axios.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {HttpVerbs} from '@/store/forms/types/HttpVerbs.ts'
 import {Shortcuts} from '@/plugins/shortcuts.ts'
 import WS from 'vitest-websocket-mock'
 import {genPricing} from '@/lib/specs/helpers.ts'
@@ -29,13 +28,10 @@ import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
 import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router'
 import {routes} from '@/router'
-import {User} from '@/store/profiles/types/User.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
-import {TerseUser} from '@/store/profiles/types/TerseUser.ts'
-import {ArtistProfile} from '@/store/profiles/types/ArtistProfile.ts'
-import {StaffPowers} from '@/store/profiles/types/StaffPowers.ts'
 import {genArtistProfile, genPowers} from '@/specs/helpers/fixtures.ts'
 import {RenderResult} from '@testing-library/vue'
+import {AnonUser, ArtistProfile, StaffPowers, TerseUser, User} from '@/store/profiles/types/main'
+import {HttpVerbs} from '@/store/forms/types/main'
 
 export interface ExtraData {
   status?: number,

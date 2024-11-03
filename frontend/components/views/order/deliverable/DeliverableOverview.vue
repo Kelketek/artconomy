@@ -217,7 +217,6 @@ import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import AcAvatar from '@/components/AcAvatar.vue'
 import {BASE_URL, RATING_COLOR, RATINGS_SHORT} from '@/lib/lib.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {ref, watch, computed, onMounted} from 'vue'
 import {useRoute} from 'vue-router'
 import {useStore} from 'vuex'
@@ -228,6 +227,7 @@ import {mdiEyeOff, mdiPencil} from '@mdi/js'
 import {profileLink} from '@/lib/otherFormatters.ts'
 import {useDisplay, useTheme} from 'vuetify'
 import type {Order} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<DeliverableProps>()
 

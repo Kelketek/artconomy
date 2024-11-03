@@ -116,13 +116,13 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {differenceInYears} from 'date-fns'
 import {BASE_URL} from '@/lib/lib.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {parseISO} from '@/lib/otherFormatters.ts'
 import {computed, onMounted} from 'vue'
 import {ArtState} from '@/store/artState.ts'
 import {useStore} from 'vuex'
 import {useRouter} from 'vue-router'
+import {AnonUser} from '@/store/profiles/types/main'
 
 
 const {viewerHandler, theocraticBan, isRegistered, rawViewerName} = useViewer()

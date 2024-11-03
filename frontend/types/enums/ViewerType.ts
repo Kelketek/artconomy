@@ -4,5 +4,3 @@ export const ViewerType = {
   SELLER: 2,
   STAFF: 3,
 } as const
-
-export type ViewerTypeValue = typeof ViewerType[keyof typeof ViewerType]

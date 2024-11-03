@@ -95,10 +95,10 @@ import AcLink from '@/components/wrappers/AcLink.vue'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {defineAsyncComponent, ref} from 'vue'
-import {Character} from '@/store/characters/types/Character.ts'
 import {useRouter} from 'vue-router'
 import {mdiPlus} from '@mdi/js'
 import type {Deliverable, Product, SubjectiveProps} from '@/types/main'
+import {Character} from '@/store/characters/types/main'
 const AcProductPreview = defineAsyncComponent(() => import('@/components/AcProductPreview.vue'))
 const AcFormDialog = defineAsyncComponent(() => import('@/components/wrappers/AcFormDialog.vue'))
 const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))

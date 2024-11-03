@@ -225,9 +225,6 @@ import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
 import {ProfileController} from '@/store/profiles/controller.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import {artCall, makeQueryParams} from '@/lib/lib.ts'
-import {RawData} from '@/store/forms/types/RawData.ts'
-import {User} from '@/store/profiles/types/User.ts'
-import {AnonUser} from '@/store/profiles/types/AnonUser.ts'
 import {computed, ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
@@ -244,6 +241,8 @@ import {
   mdiStore, mdiStoreCogOutline, mdiStorefront,
 } from '@mdi/js'
 import {buildPowers, useViewer} from '@/mixins/viewer.ts'
+import {AnonUser, User} from '@/store/profiles/types/main'
+import {RawData} from '@/store/forms/types/main'
 
 declare interface AcNavLinksProps {
   modelValue: boolean|null,

@@ -127,8 +127,6 @@
 import AcFormDialog from './wrappers/AcFormDialog.vue'
 import AcBoundField from './fields/AcBoundField.ts'
 import {useSubject} from '../mixins/subjective.ts'
-import {Character} from '@/store/characters/types/Character.ts'
-import {User} from '@/store/profiles/types/User.ts'
 import {useUpload} from '@/mixins/upload.ts'
 import {newUploadSchema} from '@/lib/lib.ts'
 import {computed, nextTick, ref} from 'vue'
@@ -137,6 +135,8 @@ import {listenForSingle} from '@/store/singles/hooks.ts'
 import {useRouter} from 'vue-router'
 import {useViewer} from '@/mixins/viewer.ts'
 import type {SubjectiveProps, Submission} from '@/types/main'
+import {User} from '@/store/profiles/types/main'
+import {Character} from '@/store/characters/types/main'
 
 declare interface AcNewSubmissionsProps extends SubjectiveProps {
   showCharacters?: boolean,

@@ -48,10 +48,10 @@ import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcColorPrepend from '@/components/fields/AcColorPrepend.vue'
 import {useSubject} from '@/mixins/subjective.ts'
 import {SingleController} from '@/store/singles/controller.ts'
-import Color from '@/store/characters/types/Color.ts'
 import {useEditable} from '@/mixins/editable.ts'
 import {computed} from 'vue'
 import {mdiDelete} from '@mdi/js'
+import {Color} from '@/store/characters/types/main'
 
 const props = defineProps<{color: SingleController<Color>, username: string}>()
 

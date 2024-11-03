@@ -19,7 +19,8 @@ import {
   mdiPencil,
   mdiStar,
 } from '@mdi/js'
-import {DeliverableStatusValue} from '@/types/enums/DeliverableStatus.ts'
+
+import {DeliverableStatusValue} from '@/types/main'
 
 const props = defineProps<{deliverable: {status: DeliverableStatusValue}}>()
 const STATUSES = {
