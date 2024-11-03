@@ -21,11 +21,13 @@ ENV HOME /home/app
 ENV PATH $PATH:$HOME/.local/bin
 WORKDIR /home/app/artconomy/
 ADD . .
+RUN chown -R app:app /home/app
 WORKDIR /home/app/artconomy/rust/line_items
 RUN pip install maturin
 RUN maturin sdist
 WORKDIR /home/app/artconomy/
 RUN pip install --upgrade pip
+RUN pip install pip-tools
 # Needed for uwsgi to build under Alpine.
 RUN pip install -r /home/app/artconomy/requirements.txt
-# Master at the time of coding.
+USER app

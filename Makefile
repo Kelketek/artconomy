@@ -1,4 +1,4 @@
-default: install_prereqs up collectstatic migrate initial_service_plans create_anonymous_user
+default: install_prereqs up collectstatic migrate initial_service_plans create_anonymous_user install_frontend_prereqs rust build_frontend
 
 APP_COMMAND=docker compose exec web
 FRONTEND_COMMAND=docker compose exec frontend
@@ -15,6 +15,9 @@ install_frontend_prereqs:
 
 build:
 	docker compose build
+
+build_frontend:
+	${FRONTEND_COMMAND} npm run build
 
 migrate: ## run migration
 	${APP_COMMAND} ./manage.py migrate
@@ -49,8 +52,6 @@ test: test_frontend test_backend
 
 rust:
 	wasm-pack build --dev --target=bundler --out-dir=../../frontend/lib/lines rust/line_items --features=wasm
-	@# This filename might change periodically, but probably not until we upgrade the OS, or increment the rust package's
-	@# version.
 	${APP_COMMAND} cd rust/line_items && maturin build --features python && pip install --force-reinstall target/wheels/line_items-0.1.0.tar.gz
 
 test_frontend:
