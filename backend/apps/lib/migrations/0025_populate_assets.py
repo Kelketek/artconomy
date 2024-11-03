@@ -7,83 +7,6 @@ from easy_thumbnails.engine import NoSourceGenerator
 from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.files import generate_all_aliases, get_thumbnailer
 
-migrate_models = ["profiles.Submission", "sales.Revision", "sales.Product"]
-
-translate = {
-    "asset": "file",
-    "preview_asset": "preview",
-}
-
-
-def gen_subjective_thumbnails(cls, field_name, asset):
-    """
-    Gen the thumbnails for an asset as if it were a ThumbnailField on another model.
-    This allows us to use multiple thumbnail specifications for one asset, and one
-    asset for multiple model instances.
-    """
-    ref_name = f"{cls._meta.app_label}.{cls.__name__}.{translate[field_name]}"
-    all_options = aliases.all(ref_name, include_global=True)
-    if not all_options:
-        return
-    thumbnailer = get_thumbnailer(asset.file)
-    for key, options in all_options.items():
-        options["ALIAS"] = key
-        try:
-            thumbnailer.get_thumbnail(options)
-        except (OSError, InvalidImageFormatError, NoSourceGenerator) as err:
-            print(f"Could not generate for {asset.file}: {err}")
-
-
-migrated = []
-
-
-def migrate_assets(apps, schema):
-    Asset = apps.get_model("lib.Asset")
-    for model_path in migrate_models:
-        cls = apps.get_model(model_path)
-        for field, new_field in [("file", "asset"), ("preview", "preview_asset")]:
-            query_set = cls.objects.exclude(**{field: ""}).annotate(
-                migrated=Exists(Asset.objects.filter(file=OuterRef(field)))
-            )
-            for instance in query_set:
-                file = getattr(instance, field)
-                if not file:
-                    continue
-                asset = Asset.objects.filter(file=getattr(instance, field)).first()
-                if not asset:
-                    asset = Asset.objects.create(
-                        uploaded_by=instance.owner,
-                        created_on=instance.created_on,
-                        file=file.name,
-                    )
-                setattr(instance, new_field, asset)
-                instance.save()
-                if str(file) not in migrated:
-                    file.delete_thumbnails()
-                    migrated.append(str(file))
-                gen_subjective_thumbnails(cls, new_field, asset)
-
-
-def unmigrate_assets(apps, schema):
-    for model_path in migrate_models:
-        cls = apps.get_model(model_path)
-        for field, old_field in [("asset", "file"), ("preview_asset", "preview")]:
-            query_set = cls.objects.all()
-            for instance in query_set:
-                file = getattr(instance, field)
-                if not file:
-                    continue
-                file = file.file
-                cls.objects.filter(id=instance.id).update(**{old_field: file.name})
-                instance.refresh_from_db()
-                file.delete_thumbnails()
-                try:
-                    generate_all_aliases(
-                        getattr(instance, old_field), include_global=True
-                    )
-                except OSError:
-                    print(f"Could not generate for {file}")
-
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -92,4 +15,5 @@ class Migration(migrations.Migration):
         ("sales", "0050_auto_20190725_2023"),
     ]
 
-    operations = [migrations.RunPython(migrate_assets, reverse_code=unmigrate_assets)]
+    # Historical migration. Operation no longer needed.
+    operations = []

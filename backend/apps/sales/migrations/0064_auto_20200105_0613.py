@@ -3,18 +3,10 @@
 from django.db import migrations
 
 
-def set_customer_email(apps, schema):
-    Order = apps.get_model("sales", "Order")
-    for order in Order.objects.filter(buyer__guest=True):
-        order.customer_email = order.buyer.guest_email
-        order.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0063_order_trust_finalized"),
     ]
 
-    operations = [
-        migrations.RunPython(set_customer_email, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

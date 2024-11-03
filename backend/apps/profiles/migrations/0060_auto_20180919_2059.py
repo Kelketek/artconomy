@@ -7,26 +7,10 @@ from django.db import migrations
 from django.utils.encoding import force_bytes
 
 
-def set_urls(apps, schema):
-    User = apps.get_model("profiles", "User")
-    for user in User.objects.all():
-        avatar = user.avatar_set.order_by("-primary", "-date_uploaded").first()
-        if avatar:
-            avatar = Avatar.objects.get(id=avatar.id)
-            user.avatar_url = avatar.avatar_url(80)
-        else:
-            params = {"s": "80"}
-            path = "%s/?%s" % (
-                hashlib.md5(force_bytes(getattr(user, "email"))).hexdigest(),
-                urlencode(params),
-            )
-            user.avatar_url = urljoin("https://www.gravatar.com/avatar/", path)
-        user.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0059_user_avatar_url"),
     ]
 
-    operations = [migrations.RunPython(set_urls, reverse_code=lambda x, y: None)]
+    # Historical migration. Operation no longer needed.
+    operations = []

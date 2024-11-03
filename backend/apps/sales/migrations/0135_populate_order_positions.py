@@ -8,18 +8,10 @@ from apps.sales.models import (
 from django.db import migrations
 
 
-def set_positions(apps, schema):
-    Order = apps.get_model("sales", "Order")
-    for order in Order.objects.all().order_by("created_on"):
-        order.order_display_position = get_next_order_position()
-        order.sale_display_position = get_next_sale_position()
-        order.case_display_position = get_next_case_position()
-        order.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0134_auto_20220507_1147"),
     ]
 
-    operations = [migrations.RunPython(set_positions, reverse_code=lambda x, y: None)]
+    # Historical migration. Operation no longer needed.
+    operations = []

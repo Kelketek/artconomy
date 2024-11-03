@@ -4,22 +4,12 @@ import apps.sales.models
 from django.db import migrations, models
 
 
-def set_display_position(app_set, schema):
-    Product = app_set.get_model("sales", "Product")
-    for product in Product.objects.order_by("created_on"):
-        product.display_position = apps.sales.models.get_next_product_position()
-        product.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0171_product_display_position"),
     ]
 
     operations = [
-        migrations.RunPython(
-            set_display_position, reverse_code=migrations.RunPython.noop
-        ),
         migrations.AlterField(
             model_name="product",
             name="display_position",

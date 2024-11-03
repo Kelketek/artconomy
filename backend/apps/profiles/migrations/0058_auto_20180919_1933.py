@@ -3,14 +3,10 @@
 from django.db import migrations
 
 
-def set_has_products(apps, schema):
-    # Broken migration.
-    pass
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0057_user_has_products"),
     ]
 
-    operations = [migrations.RunPython(set_has_products, lambda x, y: None)]
+    # Historical migration. Operation no longer needed.
+    operations = []

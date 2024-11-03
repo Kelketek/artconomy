@@ -4,23 +4,11 @@ from django.db import migrations
 from django.conf import settings
 
 
-def set_default_site_name(apps, schema):
-    Site = apps.get_model("sites", "Site")
-    site = Site.objects.filter(id=settings.SITE_ID).first()
-    if not site:
-        # Happens during tests.
-        return
-    site.domain = settings.SITE_DOMAIN_NAME
-    site.name = settings.SITE_DISPLAY_NAME
-    site.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("lib", "0042_emailpreference"),
         ("sites", "0002_alter_domain_unique"),
     ]
 
-    operations = [
-        migrations.RunPython(set_default_site_name, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

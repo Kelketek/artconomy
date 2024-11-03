@@ -2,25 +2,11 @@
 
 from django.db import migrations
 
-WAITLIST_UPDATED = 36
-
-
-def update_email_setting(apps, value: bool):
-    Subscription = apps.get_model("lib", "Subscription")
-    Subscription.objects.filter(type=WAITLIST_UPDATED).update(email=value)
-
-
-def enable_emails(apps, schema):
-    return update_email_setting(apps, True)
-
-
-def disable_emails(apps, schema):
-    return update_email_setting(apps, False)
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0105_auto_20201230_1041"),
     ]
 
-    operations = [migrations.RunPython(enable_emails, reverse_code=disable_emails)]
+    # Historical migration. Operation no longer needed.
+    operations = []

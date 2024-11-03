@@ -2,60 +2,11 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-COMMENT = 4
-
-
-def revision_subscriptions(apps, schema):
-    Subscription = apps.get_model("lib", "Subscription")
-    apps.get_model("sales", "Deliverable")
-    Revision = apps.get_model("sales", "Revision")
-    content_type_id = ContentType.objects.get_for_model(Revision).id
-
-    for revision in Revision.objects.all():
-        subscriptions = [
-            Subscription(
-                subscriber=revision.deliverable.order.seller,
-                type=COMMENT,
-                object_id=revision.id,
-                content_type_id=content_type_id,
-                email=True,
-            )
-        ]
-        if revision.deliverable.order.buyer:
-            subscriptions.append(
-                Subscription(
-                    subscriber=revision.deliverable.order.buyer,
-                    type=COMMENT,
-                    object_id=revision.id,
-                    content_type_id=content_type_id,
-                    email=True,
-                )
-            )
-        if revision.deliverable.arbitrator:
-            subscriptions.append(
-                Subscription(
-                    subscriber=revision.deliverable.order.buyer,
-                    type=COMMENT,
-                    object_id=revision.id,
-                    content_type_id=content_type_id,
-                    email=True,
-                )
-            )
-        Subscription.objects.bulk_create(subscriptions, ignore_conflicts=True)
-
-
-def reverse_subscriptions(apps, schema):
-    Subscription = apps.get_model("lib", "Subscription")
-    Revision = apps.get_model("sales", "Revision")
-    content_type_id = ContentType.objects.get_for_model(Revision).id
-    Subscription.objects.filter(type=COMMENT, content_type_id=content_type_id).delete()
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0096_auto_20200630_1619"),
     ]
 
-    operations = [
-        migrations.RunPython(revision_subscriptions, reverse_code=reverse_subscriptions)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

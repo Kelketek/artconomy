@@ -4,19 +4,10 @@ from django.db import migrations
 from django.db.models import Q
 
 
-def forward_boolean(apps, schema):
-    Deliverable = apps.get_model("sales", "Deliverable")
-    Deliverable.objects.update(escrow_enabled=Q(escrow_disabled=False))
-
-
-def reverse_boolean(apps, schema):
-    Deliverable = apps.get_model("sales", "Deliverable")
-    Deliverable.objects.update(escrow_disabled=Q(escrow_enabled=False))
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0154_deliverable_escrow_enabled"),
     ]
 
-    operations = [migrations.RunPython(forward_boolean, reverse_code=reverse_boolean)]
+    # Historical migration. Operation no longer needed.
+    operations = []

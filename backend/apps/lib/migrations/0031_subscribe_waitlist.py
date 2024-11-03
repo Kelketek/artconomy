@@ -2,29 +2,11 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-WAITLIST_UPDATED = 36
-
-
-def add_subscription(apps, schema):
-    Subscription = apps.get_model("lib", "Subscription")
-    User = apps.get_model("profiles", "User")
-    content_type_id = ContentType.objects.get_for_model(User).id
-    for user in User.objects.all():
-        Subscription.objects.create(
-            content_type_id=content_type_id,
-            object_id=user.id,
-            type=WAITLIST_UPDATED,
-            subscriber=user,
-        )
-
-
-def remove_subscription(apps, schema):
-    pass
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("lib", "0030_comment_extra_context"),
     ]
 
-    operations = [migrations.RunPython(add_subscription, remove_subscription)]
+    # Historical migration. Operation no longer needed.
+    operations = []

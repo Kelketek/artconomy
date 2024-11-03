@@ -5,88 +5,10 @@ from django.db import migrations
 from django.utils import timezone
 from moneyed import Money
 
-QUEUED = 3
-IN_PROGRESS = 4
-REVIEW = 5
-DISPUTED = 7
-SUCCESS = 0
-BONUS = 3
-
-RESERVE = 304
-ESCROW = 302
-SHIELD_FEE = 400
-ESCROW_HOLD = 401
-UNPROCESSED_EARNINGS = 305
-
-
-def get_bonus_amount(deliverable):
-    bonus = deliverable.invoice.line_items.filter(type=BONUS).first()
-    if not bonus:
-        return Money(0, "USD")
-    return get_totals(deliverable.invoice.line_items.all())[2][bonus]
-
-
-def prefactor_reserve_fees(apps, schema):
-    TransactionRecord = apps.get_model("sales", "TransactionRecord")
-    Deliverable = apps.get_model("sales", "Deliverable")
-    GenericReference = apps.get_model("lib", "GenericReference")
-    deliverable_type_id = ContentType.objects.get_for_model(Deliverable).id
-
-    for deliverable in Deliverable.objects.filter(
-        status__in=[QUEUED, IN_PROGRESS, REVIEW, DISPUTED],
-        escrow_disabled=False,
-    ):
-        ref = GenericReference.objects.get(
-            object_id=deliverable.id, content_type_id=deliverable_type_id
-        )
-        amount = get_bonus_amount(deliverable)
-        if TransactionRecord.objects.filter(
-            amount=amount,
-            source=RESERVE,
-            targets=ref.id,
-            destination__in=[UNPROCESSED_EARNINGS, ESCROW],
-            status=SUCCESS,
-        ).exists():
-            print(f"Updated transaction already found for #{deliverable.id}!")
-            continue
-        transactions = TransactionRecord.objects.filter(
-            status=SUCCESS,
-            destination=RESERVE,
-            payee=None,
-            targets=ref.id,
-        )
-        base_record = transactions.first()
-        kwargs = dict(
-            amount=amount,
-            source=RESERVE,
-            payer=None,
-            remote_id=base_record.remote_id,
-            auth_code=base_record.auth_code,
-            status=SUCCESS,
-        )
-        if (
-            deliverable.order.seller.landscape_paid_through
-            and deliverable.order.seller.landscape_paid_through >= timezone.now().date()
-        ):
-            record = TransactionRecord.objects.create(
-                **kwargs,
-                destination=ESCROW,
-                payee=deliverable.order.seller,
-                category=ESCROW_HOLD,
-            )
-        else:
-            record = TransactionRecord.objects.create(
-                **kwargs,
-                destination=UNPROCESSED_EARNINGS,
-                payee=None,
-                category=SHIELD_FEE,
-            )
-        record.targets.add(*base_record.targets.all())
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0115_remove_lineitem_deliverable"),
     ]
 
-    operations = [migrations.RunPython(prefactor_reserve_fees, lambda x, y: None)]
+    operations = []

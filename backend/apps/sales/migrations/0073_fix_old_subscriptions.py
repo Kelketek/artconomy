@@ -2,27 +2,11 @@
 
 from django.db import migrations
 
-SUBSCRIPTION_DUES = 404
-
-
-def fix_old_subscriptions(apps, schema):
-    TransactionRecord = apps.get_model("sales", "TransactionRecord")
-    PaymentRecord = apps.get_model("sales", "PaymentRecord")
-    for record in TransactionRecord.objects.filter(category=SUBSCRIPTION_DUES):
-        old_record = PaymentRecord.objects.filter(txn_id=record.remote_id).first()
-        if not old_record:
-            continue
-        record.created_on = old_record.created_on
-        record.finalized_on = record.finalized_on or old_record.created_on
-        record.status = old_record.status
-        record.save()
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0072_auto_20200123_1537"),
     ]
 
-    operations = [
-        migrations.RunPython(fix_old_subscriptions, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

@@ -2,29 +2,11 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-ORDER_TOKEN_ISSUED = 31
-
-
-def add_order_token(apps, schema):
-    User = apps.get_model("profiles", "User")
-    Subscription = apps.get_model("lib", "Subscription")
-    # Remove any broken subscriptions from previous iteration.
-    Subscription.objects.filter(type=ORDER_TOKEN_ISSUED).delete()
-    # Need to use native model to force creation if it does not exist.
-    content_type = ContentType.objects.get_for_model(User)
-    for user in User.objects.all():
-        Subscription.objects.get_or_create(
-            subscriber=user,
-            content_type_id=content_type.id,
-            object_id=user.id,
-            type=ORDER_TOKEN_ISSUED,
-            email=True,
-        )
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0049_auto_20180718_1754"),
     ]
 
-    operations = [migrations.RunPython(add_order_token, reverse_code=lambda x, y: None)]
+    # Historical migration. Operation no longer needed.
+    operations = []

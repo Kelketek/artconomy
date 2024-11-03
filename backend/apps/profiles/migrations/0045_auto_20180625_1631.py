@@ -34,4 +34,5 @@ class Migration(migrations.Migration):
         ("profiles", "0044_auto_20180625_1540"),
     ]
 
-    operations = [migrations.RunPython(add_failure_subscription, lambda x, y: None)]
+    # Historical migration. Operation no longer needed.
+    operations = []

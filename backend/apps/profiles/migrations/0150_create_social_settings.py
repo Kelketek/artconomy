@@ -3,18 +3,11 @@
 from django.db import migrations
 
 
-def add_social_settings(apps, schema):
-    SocialSettings = apps.get_model("profiles", "SocialSettings")
-    for user in apps.get_model("profiles", "User").objects.filter(guest=False):
-        SocialSettings.objects.get_or_create(user=user)
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
         ("profiles", "0149_alter_user_email_nulled_sociallink_socialsettings"),
     ]
 
-    operations = [
-        migrations.RunPython(add_social_settings, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

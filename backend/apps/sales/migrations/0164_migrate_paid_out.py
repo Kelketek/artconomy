@@ -2,22 +2,10 @@
 
 from django.db import migrations
 
-COMPLETED = 8
-
-
-def migrate_payout_sent(apps, schema):
-    Invoice = apps.get_model("sales", "Invoice")
-    Invoice.objects.filter(deliverables__payout_sent=True).update(payout_sent=True)
-    Invoice.objects.exclude(record_only=True).filter(
-        deliverables__status=COMPLETED
-    ).update(payout_available=True)
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0163_invoice_payout_sent"),
     ]
 
-    operations = [
-        migrations.RunPython(migrate_payout_sent, reverse_code=lambda x, y: None)
-    ]
+    operations = []

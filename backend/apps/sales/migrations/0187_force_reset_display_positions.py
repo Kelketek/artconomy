@@ -3,27 +3,11 @@
 from django.db import migrations
 
 
-def update_positions(apps, schema_editor):
-    Product = apps.get_model("sales", "Product")
-    Sample = apps.get_model("sales", "Sample")
-    current = 0
-    for product in Product.objects.all().order_by("display_position"):
-        product.display_position = current
-        current += 1
-        product.save(update_fields=["display_position"])
-    current = 0
-    for sample in Sample.objects.all().order_by("display_position"):
-        sample.display_position = current
-        current += 1
-        sample.save(update_fields=["display_position"])
-
-
 class Migration(migrations.Migration):
 
     dependencies = [
         ("sales", "0186_remove_old_samples"),
     ]
 
-    operations = [
-        migrations.RunPython(update_positions, lambda x, y: None),
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

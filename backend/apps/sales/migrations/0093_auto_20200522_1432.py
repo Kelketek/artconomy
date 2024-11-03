@@ -2,43 +2,10 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-COMMENT = 4
-
-
-def revision_subscriptions(apps, schema):
-    Revision = apps.get_model("sales", "Revision")
-    Subscription = apps.get_model("lib", "Subscription")
-    revision_type_id = ContentType.objects.get_for_model(Revision).id
-    for revision in Revision.objects.all():
-        Subscription.objects.get_or_create(
-            subscriber=revision.deliverable.order.seller,
-            object_id=revision.id,
-            content_type_id=revision_type_id,
-            type=COMMENT,
-            email=True,
-        )
-        if revision.deliverable.order.buyer:
-            Subscription.objects.get_or_create(
-                subscriber=revision.deliverable.order.seller,
-                object_id=revision.id,
-                content_type_id=revision_type_id,
-                type=COMMENT,
-                email=True,
-            )
-
-
-def remove_subscriptions(apps, schema):
-    Revision = apps.get_model("sales", "Revision")
-    Subscription = apps.get_model("lib", "Subscription")
-    revision_type_id = ContentType.objects.get_for_model(Revision).id
-    Subscription.objects.filter(content_type_id=revision_type_id, type=COMMENT).delete()
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0092_default_deliverable_name"),
     ]
 
-    operations = [
-        migrations.RunPython(revision_subscriptions, reverse_code=remove_subscriptions)
-    ]
+    operations = []

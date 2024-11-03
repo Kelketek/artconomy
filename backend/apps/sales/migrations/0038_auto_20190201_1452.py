@@ -2,16 +2,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-COMMENT = 4
-
-
-def ensure_seller_emails(apps, schema):
-    Subscription = apps.get_model("lib", "Subscription")
-    Order = apps.get_model("sales", "Order")
-    Subscription.objects.filter(
-        content_type_id=ContentType.objects.get_for_model(Order).id, type=COMMENT
-    ).update(email=True)
-
 
 class Migration(migrations.Migration):
     dependencies = [
@@ -19,6 +9,5 @@ class Migration(migrations.Migration):
         ("lib", "0013_subscription_email"),
     ]
 
-    operations = [
-        migrations.RunPython(ensure_seller_emails, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

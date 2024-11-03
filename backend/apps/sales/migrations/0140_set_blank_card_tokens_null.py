@@ -3,14 +3,10 @@
 from django.db import migrations
 
 
-def set_null(apps, schema):
-    CreditCardToken = apps.get_model("sales", "CreditCardToken")
-    CreditCardToken.objects.filter(stripe_token="").update(stripe_token=None)
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0139_alter_creditcardtoken_stripe_token"),
     ]
 
-    operations = [migrations.RunPython(set_null)]
+    # Historical migration. Operation no longer needed.
+    operations = []

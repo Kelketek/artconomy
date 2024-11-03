@@ -2,30 +2,11 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import migrations
 
-CHAR_SHARED = 24
-
-
-def add_share_subscriptions(apps, schema):
-    User = apps.get_model("profiles", "User")
-    Subscription = apps.get_model("lib", "Subscription")
-    # Need to use native model to force creation if it does not exist.
-    content_type = ContentType.objects.get_for_model(User)
-    # Remove previously erroneous character share subscriptions.
-    Subscription.objects.filter(type=CHAR_SHARED).delete()
-    for user in User.objects.all():
-        Subscription.objects.get_or_create(
-            subscriber=user,
-            content_type_id=content_type.id,
-            object_id=user.id,
-            type=CHAR_SHARED,
-        )
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0031_auto_20180425_1626"),
     ]
 
-    operations = [
-        migrations.RunPython(add_share_subscriptions, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

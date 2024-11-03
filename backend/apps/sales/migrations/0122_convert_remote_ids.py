@@ -3,20 +3,6 @@
 from django.db import migrations, models
 
 
-def convert_ids(apps, schema):
-    TransactionRecord = apps.get_model("sales", "TransactionRecord")
-    for record in TransactionRecord.objects.all():
-        record.remote_ids = [item for item in record.remote_id.split(";") if item]
-        record.save()
-
-
-def reverse_convert_ids(apps, schema):
-    TransactionRecord = apps.get_model("sales", "TransactionRecord")
-    for record in TransactionRecord.objects.all():
-        record.remote_id = ";".join(record.remote_ids)
-        record.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0121_fix_stuck_fees"),
@@ -108,5 +94,4 @@ class Migration(migrations.Migration):
                 db_index=True,
             ),
         ),
-        migrations.RunPython(convert_ids, reverse_code=reverse_convert_ids),
     ]

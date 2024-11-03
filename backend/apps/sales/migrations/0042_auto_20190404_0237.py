@@ -2,25 +2,11 @@
 
 from django.db import migrations
 
-NEW = 1
-PAYMENT_PENDING = 2
-REVIEW = 5
-COMPLETED = 8
-
-
-def set_final_uploaded(apps, schema):
-    Order = apps.get_model("sales", "Order")
-    Order.objects.filter(status__in=[REVIEW, COMPLETED]).update(final_uploaded=True)
-    Order.objects.exclude(status__in=[NEW, PAYMENT_PENDING]).update(
-        revisions_hidden=False
-    )
-
 
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0041_auto_20190404_0237"),
     ]
 
-    operations = [
-        migrations.RunPython(set_final_uploaded, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

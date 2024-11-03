@@ -8,4 +8,5 @@ class Migration(migrations.Migration):
         ("sales", "0102_auto_20200724_1704"),
     ]
 
-    operations = [migrations.RunPython(fix_targets, reverse_code=lambda x, y: None)]
+    # Historical migration. Operation no longer needed.
+    operations = []

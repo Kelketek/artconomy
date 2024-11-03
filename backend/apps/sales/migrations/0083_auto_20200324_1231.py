@@ -2,41 +2,10 @@
 from django.db import migrations
 
 
-def migrate_targets(apps, schema):
-    GenericReference = apps.get_model("lib", "GenericReference")
-    TransactionRecord = apps.get_model("sales", "TransactionRecord")
-
-    def ref_for_instance(object_id: int, content_type_id: int):
-        result, _created = GenericReference.objects.get_or_create(
-            content_type_id=content_type_id,
-            object_id=object_id,
-        )
-        return result
-
-    for record in TransactionRecord.objects.all():
-        if record.object_id:
-            record.targets.add(
-                ref_for_instance(record.object_id, record.content_type_id)
-            )
-
-
-def prune_targets(apps, schema):
-    TransactionRecord = apps.get_model("sales", "TransactionRecord")
-    for record in TransactionRecord.objects.all():
-        target = (
-            record.targets.through.objects.filter(transactionrecord=record)
-            .order_by("id")
-            .first()
-        )
-        if target:
-            record.content_type_id = target.genericreference.content_type_id
-            record.object_id = target.genericreference.object_id
-            record.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0082_auto_20200324_1230"),
     ]
 
-    operations = [migrations.RunPython(migrate_targets, reverse_code=prune_targets)]
+    # Historical migration. Operation no longer needed.
+    operations = []

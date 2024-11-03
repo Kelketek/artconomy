@@ -30,6 +30,5 @@ class Migration(migrations.Migration):
         ("profiles", "0140_add_verified_adult"),
     ]
 
-    operations = [
-        migrations.RunPython(update_positions, reverse_code=lambda x, y: None)
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

@@ -3,24 +3,11 @@
 from django.db import migrations
 
 
-def reformat_ids(apps, schema):
-    """
-    Since we now store the user's profile ID and their payment ID separately, to move
-    backward we need to set the card's token to the old XXXX|XXXX format.
-    """
-    CreditCardToken = apps.get_model("sales", "CreditCardToken")
-    cards = CreditCardToken.objects.exclude(token__contains="|")
-    for card in cards:
-        card.token = card.user.authorize_token + "|" + card.token
-        card.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0047_auto_20190610_1449"),
         ("profiles", "0076_user_authorize_token"),
     ]
 
-    operations = [
-        migrations.RunPython(lambda x, y: None, reverse_code=reformat_ids),
-    ]
+    # Historical migration. Operation no longer needed.
+    operations = []

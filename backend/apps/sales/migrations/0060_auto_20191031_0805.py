@@ -3,31 +3,10 @@
 from django.db import migrations
 
 
-def guess_rating(apps, schema):
-    Order = apps.get_model("sales.Order")
-    for order in Order.objects.all():
-        submission = order.outputs.all().first()
-        if submission:
-            order.rating = submission.rating
-            order.save()
-            continue
-        revision = order.revision_set.all().last()
-        if revision:
-            order.rating = revision.rating
-            order.save()
-            continue
-        buyer = order.buyer
-        if buyer:
-            order.rating = buyer.rating
-            order.save()
-            continue
-        order.rating = order.seller.rating
-        order.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0059_auto_20191031_0805"),
     ]
 
-    operations = [migrations.RunPython(guess_rating, lambda x, y: None)]
+    # Historical migration. Operation no longer needed.
+    operations = []

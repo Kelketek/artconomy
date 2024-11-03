@@ -3,17 +3,10 @@
 from django.db import migrations
 
 
-def annotate_invoices(apps, schema):
-    Deliverable = apps.get_model("sales", "Deliverable")
-    for deliverable in Deliverable.objects.all():
-        if deliverable.invoice:
-            deliverable.invoice.issued_by = deliverable.order.seller
-            deliverable.invoice.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0146_auto_20221101_0956"),
     ]
 
-    operations = [migrations.RunPython(annotate_invoices)]
+    # Historical migration. Operation no longer needed.
+    operations = []

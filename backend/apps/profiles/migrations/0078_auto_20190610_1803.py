@@ -3,37 +3,10 @@
 from django.db import migrations
 
 
-def get_transfer_fields(model):
-    return [
-        field.name for field in model._meta.fields if field.name not in ["user", "id"]
-    ]
-
-
-def load_artist_profiles(apps, schema):
-    User = apps.get_model("profiles", "User")
-    ArtistProfile = apps.get_model("profiles", "ArtistProfile")
-    transfer = get_transfer_fields(ArtistProfile)
-    profiles = []
-    for user in User.objects.all():
-        profile = ArtistProfile(user=user)
-        for name in transfer:
-            setattr(profile, name, getattr(user, name))
-        profiles.append(profile)
-    ArtistProfile.objects.bulk_create(profiles)
-
-
-def offload_artist_profiles(apps, schema):
-    ArtistProfile = apps.get_model("profiles", "ArtistProfile")
-    transfer = get_transfer_fields(ArtistProfile)
-    for profile in ArtistProfile.objects.all():
-        for name in transfer:
-            setattr(profile.user, name, getattr(profile, name))
-        profile.user.save()
-
-
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0077_artistprofile"),
     ]
 
-    operations = [migrations.RunPython(load_artist_profiles, offload_artist_profiles)]
+    # Historical migration. Operation no longer needed.
+    operations = []
