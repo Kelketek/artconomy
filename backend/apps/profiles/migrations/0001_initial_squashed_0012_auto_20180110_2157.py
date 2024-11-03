@@ -11,18 +11,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    replaces = [
-        ("profiles", "0001_initial"),
-        ("profiles", "0003_auto_20171212_2143"),
-        ("profiles", "0004_auto_20171212_2302"),
-        ("profiles", "0005_auto_20171218_1734"),
-        ("profiles", "0007_auto_20180102_2215"),
-        ("profiles", "0008_user_favorites"),
-        ("profiles", "0009_permrequest"),
-        ("profiles", "0010_auto_20180110_2117"),
-        ("profiles", "0011_auto_20180110_2147"),
-        ("profiles", "0012_auto_20180110_2157"),
-    ]
 
     dependencies = [
         ("auth", "0008_alter_user_username_max_length"),

@@ -8,18 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    replaces = [
-        ("lib", "0001_initial"),
-        ("lib", "0002_auto_20171020_1521"),
-        ("lib", "0003_comment_edited"),
-        ("lib", "0004_comment_deleted"),
-        ("lib", "0005_auto_20171212_2302"),
-        ("lib", "0006_auto_20171219_2223"),
-        ("lib", "0007_auto_20180105_1850"),
-        ("lib", "0008_event_recalled"),
-        ("lib", "0009_auto_20180105_1855"),
-        ("lib", "0010_auto_20180105_1858"),
-    ]
 
     initial = True
 

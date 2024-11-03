@@ -13,35 +13,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    replaces = [
-        ("sales", "0001_initial"),
-        ("sales", "0002_auto_20170922_1835"),
-        ("sales", "0003_remove_product_upfront_percentage"),
-        ("sales", "0004_auto_20171006_1551"),
-        ("sales", "0005_auto_20171019_1623"),
-        ("sales", "0006_creditcardtoken"),
-        ("sales", "0007_auto_20171111_2026"),
-        ("sales", "0008_auto_20171111_2115"),
-        ("sales", "0009_auto_20171111_2301"),
-        ("sales", "0010_auto_20171112_0005"),
-        ("sales", "0011_revision"),
-        ("sales", "0012_auto_20171212_2302"),
-        ("sales", "0013_auto_20171227_1923"),
-        ("sales", "0014_auto_20171229_2114"),
-        ("sales", "0015_order_stream_link"),
-        ("sales", "0016_auto_20180102_1759"),
-        ("sales", "0017_auto_20180102_2215"),
-        ("sales", "0018_auto_20180103_1903"),
-        ("sales", "0019_auto_20180103_1904"),
-        ("sales", "0020_product_active"),
-        ("sales", "0021_order_disputed_on"),
-        ("sales", "0022_auto_20180108_2145"),
-        ("sales", "0023_auto_20180110_1155"),
-    ]
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("profiles", "0001_initial"),
+        ("profiles", "0001_initial_squashed_0012_auto_20180110_2157"),
         ("contenttypes", "0002_remove_content_type_name"),
     ]
 
