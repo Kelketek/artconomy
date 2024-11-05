@@ -12,9 +12,6 @@ import short_stuff.lib
 class Migration(migrations.Migration):
 
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("profiles", "0143_remove_user_mailchimp_id_and_more"),
-        ("lib", "0044_create_shopping_cart"),
         ("sales", "0188_unique_display_positions"),
     ]
 

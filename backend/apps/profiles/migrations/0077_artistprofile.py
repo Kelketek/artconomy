@@ -9,7 +9,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0076_user_authorize_token"),
-        ("sales", "0048_auto_20190610_1837"),
     ]
 
     operations = [

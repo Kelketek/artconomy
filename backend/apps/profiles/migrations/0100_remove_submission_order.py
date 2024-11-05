@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0099_submission_deliverable"),
-        ("sales", "0089_deliverable_data_copy"),
     ]
 
     operations = [

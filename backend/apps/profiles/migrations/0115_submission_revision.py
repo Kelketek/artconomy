@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("sales", "0123_remove_transactionrecord_remote_id"),
         ("profiles", "0114_remove_portrait"),
     ]
 

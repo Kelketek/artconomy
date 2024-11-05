@@ -7,14 +7,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    replaces = [
-        ("profiles", "0002_user_primary_card"),
-        ("profiles", "0006_user_notifications"),
-    ]
-
     dependencies = [
-        ("lib", "0006_auto_20180115_1537"),
-        ("sales", "0001_initial_squashed_0023_auto_20180110_1155"),
         ("profiles", "0001_initial_squashed_0012_auto_20180110_2157"),
     ]
 

@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("lib", "0036_auto_20220106_1410"),
         ("sales", "0125_set_initial_product_ratings"),
     ]
 

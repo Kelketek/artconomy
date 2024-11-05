@@ -11,8 +11,6 @@ from easy_thumbnails.files import generate_all_aliases, get_thumbnailer
 class Migration(migrations.Migration):
     dependencies = [
         ("lib", "0024_auto_20190725_2023"),
-        ("profiles", "0089_auto_20190725_2023"),
-        ("sales", "0050_auto_20190725_2023"),
     ]
 
     # Historical migration. Operation no longer needed.

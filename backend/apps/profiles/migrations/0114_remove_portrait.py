@@ -6,7 +6,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0113_artistprofile_public_queue"),
-        ("lib", "0035_remove_portrait_subscriptions"),
     ]
 
     operations = [

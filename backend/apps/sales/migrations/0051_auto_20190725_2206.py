@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("lib", "0025_populate_assets"),
         ("sales", "0050_auto_20190725_2023"),
     ]
 

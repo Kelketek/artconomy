@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0115_submission_revision"),
-        ("sales", "0123_remove_transactionrecord_remote_id"),
     ]
 
     # Historical migration. Operation no longer needed.

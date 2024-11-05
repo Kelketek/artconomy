@@ -7,7 +7,6 @@ from django.conf import settings
 class Migration(migrations.Migration):
     dependencies = [
         ("lib", "0042_emailpreference"),
-        ("sites", "0002_alter_domain_unique"),
     ]
 
     # Historical migration. Operation no longer needed.

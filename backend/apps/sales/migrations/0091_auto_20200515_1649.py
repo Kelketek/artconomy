@@ -9,8 +9,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("lib", "0029_auto_20200324_1542"),
         ("sales", "0090_auto_20200315_1128"),
     ]
 

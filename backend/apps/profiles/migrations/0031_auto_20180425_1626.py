@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0030_auto_20180424_1832"),
-        ("lib", "0011_auto_20180402_1755"),
     ]
 
     # Historical migration. Operation no longer needed.

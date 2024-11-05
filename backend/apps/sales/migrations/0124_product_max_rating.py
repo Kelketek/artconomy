@@ -6,7 +6,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0123_remove_transactionrecord_remote_id"),
-        ("profiles", "0116_migrate_submission_order_inputs"),
     ]
 
     operations = [

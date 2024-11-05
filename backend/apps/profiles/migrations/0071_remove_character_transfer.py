@@ -8,10 +8,6 @@ class Migration(migrations.Migration):
         ("profiles", "0070_message_edited"),
     ]
 
-    run_before = [
-        ("sales", "0043_auto_20190701_1331"),
-    ]
-
     operations = [
         migrations.RemoveField(
             model_name="character",

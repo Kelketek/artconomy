@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0072_auto_20190507_1726"),
-        ("lib", "0021_asset"),
     ]
 
     operations = [

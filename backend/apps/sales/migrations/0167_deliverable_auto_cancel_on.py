@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("sales", "0166_deliverable_term_billed_alter_invoice_type_and_more"),
     ]
 

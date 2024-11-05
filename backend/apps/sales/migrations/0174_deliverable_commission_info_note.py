@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("lib", "0041_note"),
         ("sales", "0173_alter_lineitem_amount_currency_and_more"),
     ]
 

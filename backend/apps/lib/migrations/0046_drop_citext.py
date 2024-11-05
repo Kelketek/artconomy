@@ -7,7 +7,6 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("lib", "0045_case_insensitive_collation"),
-        ("profiles", "0148_alter_user_username"),
     ]
 
     operations = [

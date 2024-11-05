@@ -7,7 +7,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("lib", "0027_auto_20191125_1734"),
         ("profiles", "0096_user_notes"),
     ]
 

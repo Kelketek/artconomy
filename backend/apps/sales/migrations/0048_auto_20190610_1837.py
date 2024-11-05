@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0047_auto_20190610_1449"),
-        ("profiles", "0076_user_authorize_token"),
     ]
 
     # Historical migration. Operation no longer needed.

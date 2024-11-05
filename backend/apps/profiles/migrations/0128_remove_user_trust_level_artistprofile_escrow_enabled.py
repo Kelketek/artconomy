@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("lib", "0038_alter_tag_name"),
         ("profiles", "0127_user_discord_id"),
     ]
 

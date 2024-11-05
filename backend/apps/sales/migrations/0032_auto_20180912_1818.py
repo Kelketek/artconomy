@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("profiles", "0054_user_escrow_disabled"),
         ("sales", "0031_auto_20180821_1929"),
     ]
 

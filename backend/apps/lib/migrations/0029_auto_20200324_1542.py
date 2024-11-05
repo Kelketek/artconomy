@@ -5,7 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("contenttypes", "0002_remove_content_type_name"),
         ("lib", "0028_genericreference"),
     ]
 

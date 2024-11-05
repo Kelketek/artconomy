@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0037_product_featured"),
-        ("lib", "0013_subscription_email"),
     ]
 
     # Historical migration. Operation no longer needed.

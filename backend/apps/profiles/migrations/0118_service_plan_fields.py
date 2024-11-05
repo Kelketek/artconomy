@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("sales", "0129_service_plan"),
         ("profiles", "0117_remove_artistprofile_max_rating"),
     ]
 

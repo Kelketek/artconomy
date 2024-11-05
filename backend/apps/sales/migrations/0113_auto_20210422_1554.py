@@ -16,8 +16,6 @@ INVOICE_TYPES = (
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("lib", "0033_auto_20210422_1554"),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("sales", "0112_auto_20210415_1506"),
     ]
 

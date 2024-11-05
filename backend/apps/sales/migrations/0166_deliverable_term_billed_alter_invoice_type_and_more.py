@@ -6,8 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("lib", "0039_alter_event_type_alter_subscription_type"),
         ("sales", "0165_remove_deliverable_payout_sent_alter_invoice_type_and_more"),
     ]
 

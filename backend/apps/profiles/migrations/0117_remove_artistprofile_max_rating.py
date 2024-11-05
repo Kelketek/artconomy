@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0116_migrate_submission_order_inputs"),
-        ("sales", "0125_set_initial_product_ratings"),
     ]
 
     operations = [

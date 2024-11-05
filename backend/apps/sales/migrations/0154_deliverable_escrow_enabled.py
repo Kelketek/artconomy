@@ -6,8 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("lib", "0038_alter_tag_name"),
         ("sales", "0153_auto_20230103_1759"),
     ]
 

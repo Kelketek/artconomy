@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("sales", "0088_auto_20200314_1937"),
         ("profiles", "0097_auto_20200317_1659"),
     ]
 

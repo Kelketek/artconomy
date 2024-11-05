@@ -8,7 +8,6 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("lib", "0045_case_insensitive_collation"),
         ("profiles", "0147_staffpowers"),
     ]
 

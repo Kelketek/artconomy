@@ -14,11 +14,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("profiles", "0001_initial_squashed_0012_auto_20180110_2157"),
-        ("contenttypes", "0002_remove_content_type_name"),
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(

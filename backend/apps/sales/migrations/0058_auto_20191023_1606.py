@@ -9,7 +9,6 @@ from easy_thumbnails.files import get_thumbnailer
 class Migration(migrations.Migration):
     dependencies = [
         ("sales", "0057_auto_20191023_1605"),
-        ("lib", "0025_populate_assets"),
     ]
 
     # Historical migration. Operation no longer needed.

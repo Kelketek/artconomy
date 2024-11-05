@@ -11,7 +11,6 @@ import short_stuff.lib
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("profiles", "0139_alter_character_options_alter_journal_options_and_more"),
         ("sales", "0182_deliverable_notes_alter_lineitem_amount_currency_and_more"),
     ]
 

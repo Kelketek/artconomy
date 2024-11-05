@@ -8,8 +8,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("lib", "0040_alter_event_type_alter_subscription_type"),
         ("sales", "0169_populate_revision_subscriptions"),
     ]
 

@@ -9,9 +9,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("contenttypes", "0002_remove_content_type_name"),
-        ("sales", "0100_remove_order_product"),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("lib", "0031_subscribe_waitlist"),
     ]
 

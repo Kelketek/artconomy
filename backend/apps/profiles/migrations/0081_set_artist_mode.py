@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
     dependencies = [
         ("profiles", "0080_user_artist_mode"),
-        ("sales", "0048_auto_20190610_1837"),
     ]
 
     # Historical migration. Operation no longer needed.

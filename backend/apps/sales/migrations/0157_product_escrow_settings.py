@@ -6,8 +6,6 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("lib", "0038_alter_tag_name"),
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
         ("sales", "0156_remove_deliverable_escrow_disabled_and_more"),
     ]
 

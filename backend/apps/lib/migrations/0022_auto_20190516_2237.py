@@ -4,7 +4,7 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [("lib", "0021_asset"), ("profiles", "0075_auto_20190516_2201")]
+    dependencies = [("lib", "0021_asset")]
 
     # Historical migration. Operation no longer needed.
     operations = []
