@@ -17,41 +17,6 @@ class Migration(migrations.Migration):
         ("sales", "0001_initial"),
     ]
 
-    replaces = [
-        ("profiles", "0120_auto_20220507_0409"),
-        ("profiles", "0121_replace_tags"),
-        ("profiles", "0122_remove_submission_artists"),
-        ("profiles", "0123_auto_20220507_0643"),
-        ("profiles", "0124_auto_20220603_2013"),
-        ("profiles", "0125_auto_20220930_0941"),
-        ("profiles", "0125_correct_profile_hitcount"),
-        ("profiles", "0126_merge_20221103_1021"),
-        ("profiles", "0127_user_discord_id"),
-        ("profiles", "0128_remove_user_trust_level_artistprofile_escrow_enabled"),
-        ("profiles", "0129_flip_escrow"),
-        ("profiles", "0130_remove_artistprofile_escrow_disabled"),
-        ("profiles", "0131_user_verified_email_and_delinquent"),
-        ("profiles", "0132_alter_artistprofile_commission_info_and_more"),
-        ("profiles", "0133_favorite_user_new_favorites"),
-        ("profiles", "0134_populate_favorites"),
-        ("profiles", "0135_rename_favorites_user_old_favorites"),
-        ("profiles", "0136_alter_favorite_options_remove_user_old_favorites_and_more"),
-        ("profiles", "0137_nsfw_blocked_tags"),
-        ("profiles", "0138_user_email_nulled_alter_character_name"),
-        ("profiles", "0139_alter_character_options_alter_journal_options_and_more"),
-        ("profiles", "0140_add_verified_adult"),
-        ("profiles", "0141_force_reset_display_positions"),
-        ("profiles", "0142_unique_display_positions"),
-        ("profiles", "0143_remove_user_mailchimp_id_and_more"),
-        ("profiles", "0144_remove_character_taggable"),
-        ("profiles", "0145_alter_submission_created_on"),
-        ("profiles", "0146_user_featured"),
-        ("profiles", "0147_staffpowers"),
-        ("profiles", "0148_alter_user_username"),
-        ("profiles", "0149_alter_user_email_nulled_sociallink_socialsettings"),
-        ("profiles", "0150_create_social_settings"),
-    ]
-
     operations = [
         migrations.AddField(
             model_name="user",

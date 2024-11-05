@@ -12,30 +12,6 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = []
-
-    replaces = [
-        ("lib", "0001_squashed_0010_auto_20180105_1858"),
-        ("lib", "0002_subscription_removed"),
-        ("lib", "0003_event_data"),
-        ("lib", "0004_auto_20180107_1548"),
-        ("lib", "0005_auto_20180108_2145"),
-        ("lib", "0006_auto_20180115_1537"),
-        ("lib", "0007_auto_20180116_1602"),
-        ("lib", "0008_auto_20180118_1516"),
-        ("lib", "0009_auto_20180125_1512"),
-        ("lib", "0010_auto_20180220_1624"),
-        ("lib", "0011_auto_20180402_1755"),
-        ("lib", "0012_auto_20180510_1417"),
-        ("lib", "0013_subscription_email"),
-        ("lib", "0014_auto_20180529_2025"),
-        ("lib", "0015_auto_20180619_2013"),
-        ("lib", "0016_auto_20180709_1457"),
-        ("lib", "0017_auto_20180719_1406"),
-        ("lib", "0018_auto_20180723_1528"),
-        ("lib", "0019_auto_20180921_1841"),
-    ]
-
     operations = [
         migrations.CreateModel(
             name="Asset",

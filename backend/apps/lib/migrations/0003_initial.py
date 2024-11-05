@@ -16,11 +16,6 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
-    replaces = [
-        ("lib", "0045_case_insensitive_collation"),
-        ("lib", "0046_drop_citext"),
-    ]
-
     operations = [
         migrations.AddField(
             model_name="modifiedmarker",

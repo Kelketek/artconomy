@@ -14,13 +14,6 @@ class Migration(migrations.Migration):
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
-    replaces = [
-        ("tg_bot", "0001_initial"),
-        ("tg_bot", "0002_auto_20180727_1817"),
-        ("tg_bot", "0003_telegramdevice"),
-        ("tg_bot", "0004_auto_20190725_2023"),
-    ]
-
     operations = [
         migrations.CreateModel(
             name="TelegramDevice",

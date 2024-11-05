@@ -9,35 +9,6 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    replaces = [
-        ("lib", "0020_auto_20190314_1134"),
-        ("lib", "0021_asset"),
-        ("lib", "0022_auto_20190516_2237"),
-        ("lib", "0023_recursive_comments"),
-        ("lib", "0024_auto_20190725_2023"),
-        ("lib", "0025_populate_assets"),
-        ("lib", "0026_auto_20191125_1734"),
-        ("lib", "0027_auto_20191125_1734"),
-        ("lib", "0028_genericreference"),
-        ("lib", "0029_auto_20200324_1542"),
-        ("lib", "0030_comment_extra_context"),
-        ("lib", "0031_subscribe_waitlist"),
-        ("lib", "0032_auto_20200722_1419"),
-        ("lib", "0033_auto_20210422_1554"),
-        ("lib", "0033_auto_20210721_1001"),
-        ("lib", "0034_merge_0033_auto_20210422_1554_0033_auto_20210721_1001"),
-        ("lib", "0035_remove_portrait_subscriptions"),
-        ("lib", "0036_auto_20220106_1410"),
-        ("lib", "0037_auto_20221030_1740"),
-        ("lib", "0038_alter_tag_name"),
-        ("lib", "0039_alter_event_type_alter_subscription_type"),
-        ("lib", "0040_alter_event_type_alter_subscription_type"),
-        ("lib", "0041_note"),
-        ("lib", "0042_emailpreference"),
-        ("lib", "0043_set_site_name"),
-        ("lib", "0044_create_shopping_cart"),
-    ]
-
     dependencies = [
         ("contenttypes", "0002_remove_content_type_name"),
         ("lib", "0001_initial"),
