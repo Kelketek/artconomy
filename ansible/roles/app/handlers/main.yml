@@ -75,7 +75,7 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py ensure_invoice_annotations && touch {{home}}/.ensure_invoice_annotations"
   args:
     executable: "/bin/bash"
-    creates: "{{ home }}/.ensure-invoice-annotations"
+    creates: "{{ home }}/.ensure_invoice_annotations"
 
 - name: Bump all prices
   become: yes
