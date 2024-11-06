@@ -8,6 +8,7 @@
   "scripts": {
     "serve": "vite --host",
     "build": "wasm-pack build --out-dir=../../frontend/lib/lines rust/line_items --features=wasm && vue-tsc --noEmit && vite build",
+    "build:quick": "vue-tsc --noEmit && vite build",
     "supportedBrowsers": "echo \"export default $(browserslist-useragent-regexp --allowHigherVersions);\" > frontend/supportedBrowsers.js",
     "lint": "eslint . --ignore-path .gitignore",
     "lint:fix": "eslint . --fix --ignore-path .gitignore",

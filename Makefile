@@ -1,4 +1,4 @@
-default: install_prereqs up collectstatic migrate initial_service_plans create_anonymous_user install_frontend_prereqs rust build_frontend
+default: stop install_prereqs install_frontend_prereqs up rust.frontend collectstatic migrate initial_service_plans create_anonymous_user
 
 APP_COMMAND=docker compose exec web
 FRONTEND_COMMAND=docker compose exec frontend
@@ -11,13 +11,13 @@ install_prereqs:
 	sudo apt install -y docker docker-ce
 
 install_frontend_prereqs:
-	${FRONTEND_COMMAND} npm install
+	docker compose run --rm frontend npm --prefix /app/ install
 
 build:
 	docker compose build
 
 build_frontend:
-	${FRONTEND_COMMAND} npm run build
+	${FRONTEND_COMMAND} npm --prefix /app/ run build:quick
 
 migrate: ## run migration
 	${APP_COMMAND} ./manage.py migrate
@@ -27,6 +27,9 @@ collectstatic: ## run collectstatic
 
 initial_service_plans:
 	${APP_COMMAND} ./manage.py initial_service_plans
+
+set_default_site_name:
+	${APP_COMMAND} ./manage.py set_default_site_name
 
 create_anonymous_user:
 	${APP_COMMAND} ./manage.py create_anonymous_user
@@ -50,18 +53,22 @@ shell:
 
 test: test_frontend test_backend
 
-rust:
-	wasm-pack build --dev --target=bundler --out-dir=../../frontend/lib/lines rust/line_items --features=wasm
+rust.frontend:
+	${APP_COMMAND} /home/app/.cargo/bin/wasm-pack build --dev --target=bundler --out-dir=../../frontend/lib/lines rust/line_items --features=wasm
+
+rust.backend:
 	${APP_COMMAND} bash -lc "cd rust/line_items && maturin sdist && pip install --force-reinstall target/wheels/line_items-0.1.0.tar.gz"
 
+rust: rust.frontend rust.backend
+
 test_frontend:
-	${APP_COMMAND} npm run test
+	${APP_COMMAND} npm --prefix /app/ run test
 
 test_backend:
 	${APP_COMMAND} ./manage.py test --keepdb --parallel=${TEST_THREADS}
 
 format:
-	${FRONTEND_COMMAND} npm run lint:fix
+	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
 	${APP_COMMAND} black backend
 	${APP_COMMAND} ruff --fix backend
 

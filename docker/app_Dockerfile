@@ -8,7 +8,7 @@ ARG GROUP_GID=1000
 EXPOSE 8001
 EXPOSE 8002
 # Install essential packages, plus a few packages for live diagnosis if needed.
-RUN apk add bash cargo elfutils-dev geoip gettext git libc-dev linux-headers libmaxminddb-dev libmaxminddb musl-dev ncurses-dev postgresql14-client postgresql14-dev vim
+RUN apk add bash elfutils-dev geoip gettext git libc-dev linux-headers libmaxminddb-dev libmaxminddb musl-dev ncurses-dev postgresql14-client postgresql14-dev vim
 RUN addgroup -S app -g ${GROUP_GID}
 RUN adduser -S app -G app -h /home/app -s /bin/bash -u ${USER_UID}
 # Main dependencies
@@ -18,7 +18,11 @@ RUN mkdir /home/app/media
 WORKDIR /home/app
 ENV LANG C.UTF-8
 ENV HOME /home/app
-ENV PATH $PATH:$HOME/.local/bin
+ENV PATH $PATH:$HOME/.local/bin:$HOME/.cargo/bin
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup
+RUN chmod 755 rustup
+RUN ./rustup -y
+RUN rm rustup
 WORKDIR /home/app/artconomy/
 ADD . .
 RUN chown -R app:app /home/app
@@ -28,6 +32,6 @@ RUN maturin sdist
 WORKDIR /home/app/artconomy/
 RUN pip install --upgrade pip
 RUN pip install pip-tools
-# Needed for uwsgi to build under Alpine.
 RUN pip install -r /home/app/artconomy/requirements.txt
+RUN cargo install wasm-pack
 USER app
