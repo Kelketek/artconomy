@@ -127,7 +127,7 @@ export default defineConfig({
     sourcemap: true,
   },
   optimizeDeps: {
-    exclude: ['@date-io/date-fns'],
+    exclude: ['@date-io/date-fns', 'vuetify', '../node_modules', 'node_modules'],
     include: ['@hcaptcha/vue3-hcaptcha'],
   },
   define: {

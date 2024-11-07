@@ -11,7 +11,7 @@ install_prereqs:
 	sudo apt install -y docker docker-ce
 
 install_frontend_prereqs:
-	docker compose run --rm frontend npm --prefix /app/ install
+	docker compose run -u $$(id -u):$$(id -g) --rm frontend npm --prefix /app/ install
 
 build:
 	docker compose build
