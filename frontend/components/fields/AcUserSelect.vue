@@ -34,5 +34,5 @@ const props = withDefaults(defineProps<{itemValue?: string} & AutocompleteProps>
 const input = ref<null|typeof VAutocomplete>(null)
 const fieldAttrs = useAttrs()
 const emit = defineEmits<{'update:modelValue': [AutocompleteEmits]}>()
-const {tags, query, items, itemFilter} = useAutocomplete(props, emit, input, '/api/profiles/search/user/', props.itemValue)
+const {tags, query, items, itemFilter} = useAutocomplete({ props, emit, input, endpoint: '/api/profiles/search/user/', itemValue: props.itemValue })
 </script>

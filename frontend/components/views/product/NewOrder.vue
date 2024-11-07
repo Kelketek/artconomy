@@ -74,6 +74,7 @@
                   no characters are in this piece, you may leave this blank."
                               v-if="showCharacters"
                               autocomplete="off"
+                              :new-order="true"
                               :init-items="initCharacters"
                           />
                         </v-col>
@@ -399,7 +400,7 @@ const orderForm = useForm('newOrder', {
     },
     characters: {
       value: cartDefaults.characters,
-      step: 2,
+      step: 1,
     },
     rating: {
       value: cartDefaults.rating,

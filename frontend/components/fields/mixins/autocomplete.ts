@@ -2,7 +2,7 @@ import axios from 'axios'
 import debounce from 'lodash/debounce'
 import {artCall, clone} from '@/lib/lib.ts'
 import deepEqual from 'fast-deep-equal'
-import {computed, ref, Ref, watch} from 'vue'
+import {computed, ComputedRef, ref, Ref, watch} from 'vue'
 import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
 import {isNumber} from 'lodash'
 import {RawData} from '@/store/forms/types/main'
@@ -33,11 +33,7 @@ export const autocompleteDefaults = () => ({
 })
 
 export const useAutocomplete = (
-  props: AutocompleteProps,
-  emit: (name: 'update:modelValue', payload: number[] | number | null | string) => void,
-  input: Ref<null|typeof VAutocomplete>,
-  endpoint: string,
-  itemValue: string = 'id',
+    { props, emit, input, endpoint, extraParams, itemValue = 'id' }: { props: AutocompleteProps; emit: (name: 'update:modelValue', payload: number[] | number | null | string) => void; input: Ref<null | typeof VAutocomplete>; endpoint: string; itemValue?: string, extraParams?: ComputedRef<RawData> },
 ) => {
   // Made undefined by child component at times.
   // Must be set as v-model:search on VAutocomplete.
@@ -56,7 +52,7 @@ export const useAutocomplete = (
   const _searchTags = (val: string) => {
     cancelSource.value.abort()
     cancelSource.value = new AbortController()
-    const params: RawData = {q: val}
+    const params: RawData = {q: val, ...extraParams && extraParams.value}
     if (props.tagging) {
       params.tagging = true
     }
