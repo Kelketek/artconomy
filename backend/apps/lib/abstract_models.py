@@ -220,7 +220,11 @@ class ImageModel(AssetThumbnailMixin, models.Model):
                 options = aliases.get(thumb, target=self.ref_name("file"))
                 if not options:
                     continue
-                return make_url(self.file.file.get_thumbnail(options).url)
+                try:
+                    url = self.file.file.get_thumbnail(options).url
+                except (EOFError, IOError):
+                    return None
+                return make_url(url)
             except OSError:
                 break
             except (InvalidImageFormatError, ValueError, NoSourceGenerator, KeyError):
