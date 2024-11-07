@@ -131,11 +131,11 @@ describe('Settings.vue', () => {
     await waitFor(() => expect((wrapper.findComponent(Settings)!.vm as any).drawer).toBe(false))
     // Upstream Type is missing an annotation here.
     // @ts-ignore
-    expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(-110%)')
+    expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(-300px)')
     await wrapper.find('#more-settings-button').trigger('click')
     await nextTick()
     // @ts-ignore
-    expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(0%)')
+    expect(wrapper.find('.v-navigation-drawer').element.style.getPropertyValue('transform')).toEqual('translateX(0px)')
   })
   test('Adds Options to the route if missing', async() => {
     setViewer({ store, user: genUser() })

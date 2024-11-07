@@ -1,13 +1,13 @@
-import {cleanUp, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, createTestRouter, flushPromises, mount, rs, vueSetup} from '@/specs/helpers/index.ts'
 import {Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {deliverableRouter} from '@/components/views/order/specs/helpers.ts'
 import {genDeliverable, genRevision, genUser} from '@/specs/helpers/fixtures.ts'
 import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
 import RevisionDetail from '@/components/views/order/deliverable/RevisionDetail.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
+import {nextTick} from 'vue'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import type {Revision} from '@/types/main'
@@ -20,7 +20,7 @@ describe('DeliverableOverview.vue', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     store = createStore()
-    router = deliverableRouter()
+    router = createTestRouter()
   })
   afterEach(() => {
     cleanUp(wrapper)
@@ -47,22 +47,22 @@ describe('DeliverableOverview.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     const revision = genRevision({id: 3})
     vm.revisions.setList([])
     vm.fetching = false
     vm.ready = true
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     vm.revision.makeReady(revision)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     vm.revisions.push(genRevision({id: 5}))
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     vm.revisions.push(revision)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(true)
   })
   test('Determines if the revision is the final', async() => {
@@ -87,17 +87,17 @@ describe('DeliverableOverview.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     const revision = genRevision({id: 3})
     vm.revisions.setList([revision])
     vm.fetching = false
     vm.ready = true
     vm.revision.makeReady(revision)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isFinal).toBe(false)
     vm.deliverable.updateX({final_uploaded: true})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isFinal).toBe(true)
   })
   test('Determines if the revision has a submission in the current user\'s gallery', async() => {
@@ -122,7 +122,7 @@ describe('DeliverableOverview.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     const revision = genRevision({
       id: 3,
@@ -130,7 +130,7 @@ describe('DeliverableOverview.vue', () => {
     })
     vm.revisions.makeReady([revision])
     vm.revision.makeReady(revision)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.gallerySubmissionId).toBe(null)
     expect(vm.isSubmitted).toBe(false)
     expect(vm.galleryLink).toBe(null)
@@ -140,7 +140,7 @@ describe('DeliverableOverview.vue', () => {
         id: 5,
       }],
     })
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.gallerySubmissionId).toBe(5)
     expect(vm.isSubmitted).toBe(true)
     expect(vm.galleryLink).toEqual({
@@ -148,7 +148,7 @@ describe('DeliverableOverview.vue', () => {
       params: {submissionId: '5'},
     })
     vm.deliverable.updateX({final_uploaded: true})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isFinal).toBe(true)
   })
   test('Shows the submission button to a buyer only once the deliverable is completed', async() => {
@@ -173,7 +173,7 @@ describe('DeliverableOverview.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable()
     vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     const revision = genRevision({
       id: 3,
@@ -181,10 +181,10 @@ describe('DeliverableOverview.vue', () => {
     })
     vm.revisions.makeReady([revision])
     vm.revision.makeReady(revision)
-    await vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('.prep-submission-button').exists()).toBe(false)
     vm.deliverable.updateX({status: DeliverableStatus.COMPLETED})
-    await vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('.prep-submission-button').exists()).toBe(true)
   })
   test('Prepares a revision for publication to gallery', async() => {
@@ -209,7 +209,7 @@ describe('DeliverableOverview.vue', () => {
     const vm = wrapper.vm as any
     const deliverable = genDeliverable({status: DeliverableStatus.COMPLETED})
     vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     const revision = genRevision({
       id: 3,
@@ -217,11 +217,11 @@ describe('DeliverableOverview.vue', () => {
     })
     vm.revisions.makeReady([revision])
     vm.revision.makeReady(revision)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.addSubmission.fields.revision.value).toBe(null)
     expect(vm.viewSettings.patchers.showAddSubmission.model).toBe(false)
     await wrapper.find('.prep-submission-button').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.addSubmission.fields.revision.value).toBe(3)
     expect(vm.viewSettings.patchers.showAddSubmission.model).toBe(true)
   })
@@ -248,23 +248,23 @@ describe('DeliverableOverview.vue', () => {
     const deliverable = genDeliverable()
     deliverable.status = DeliverableStatus.IN_PROGRESS
     vm.deliverable.makeReady(deliverable)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.isLast).toBe(false)
     const revision = genRevision({id: 3})
     vm.revisions.setList([revision])
     vm.fetching = false
     vm.ready = true
     vm.revision.makeReady(revision)
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.archived).toBe(false)
     vm.deliverable.updateX({status: DeliverableStatus.COMPLETED})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.archived).toBe(true)
     vm.deliverable.updateX({status: DeliverableStatus.CANCELLED})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.archived).toBe(true)
     vm.deliverable.updateX({status: DeliverableStatus.REFUNDED})
-    await vm.$nextTick()
+    await nextTick()
     expect(vm.archived).toBe(true)
   })
   test('Deletes a revision and removes it from the list of revisions', async() => {
@@ -299,15 +299,15 @@ describe('DeliverableOverview.vue', () => {
     vm.revision.makeReady(revision)
     const otherRevisions = [genRevision({id: 2}), genRevision({id: 3})]
     vm.revisions.makeReady([...otherRevisions, revision])
-    await vm.$nextTick()
+    await nextTick()
     await flushPromises()
     mockAxios.reset()
     await wrapper.find('.delete-revision').trigger('click')
-    await vm.$nextTick()
+    await nextTick()
     const lastRequest = mockAxios.lastReqGet()
     expect(lastRequest.method).toBe('delete')
     mockAxios.mockResponse(rs({}))
-    await vm.$nextTick()
+    await nextTick()
     const remaining = vm.revisions.list.map((rev: SingleController<Revision>) => ({...rev.x}))
     expect(remaining).toEqual(otherRevisions)
   })

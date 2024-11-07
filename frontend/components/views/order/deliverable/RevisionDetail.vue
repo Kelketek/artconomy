@@ -80,7 +80,7 @@ import {mdiCloudDownload, mdiCheckCircle, mdiDelete, mdiUpload, mdiArrowLeft} fr
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import {useRouter} from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 import {computed} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
@@ -106,7 +106,7 @@ const {
   archived,
   is,
 } = useDeliverable(props)
-const {viewer, isRegistered} = useViewer()
+const {viewer, isRegistered, viewerName} = useViewer()
 
 const revision = useSingle<Revision>(`${prefix.value}__revision${props.revisionId}`, {
   endpoint: `${url.value}revisions/${props.revisionId}/`,
@@ -134,6 +134,7 @@ const backUrl = computed(() => {
     params: {
       deliverableId: props.deliverableId,
       orderId: props.orderId,
+      username: viewerName.value,
     },
   }
 })

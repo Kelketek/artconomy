@@ -1,18 +1,20 @@
 <template>
-  <v-navigation-drawer location="right" temporary v-model="drawer" :width="width" fixed class="message-center">
-    <v-toolbar prominent>
-      <v-btn icon variant="plain" @click="drawer = false">
-        <v-icon :icon="mdiChevronRight"></v-icon>
-      </v-btn>
-      <v-tabs fixed-tabs v-model="section">
-        <v-tab :value="0">Community<span
-            v-if="counts.community_count">&nbsp;({{ counts.community_count }})</span>
-        </v-tab>
-        <v-tab :value="1">Sales/Orders<span
-            v-if="counts.sales_count">&nbsp;({{ counts.sales_count }})</span>
-        </v-tab>
-      </v-tabs>
-    </v-toolbar>
+  <v-navigation-drawer location="right" temporary v-model="drawer" :width="width" class="message-center">
+    <template v-slot:prepend>
+      <v-toolbar prominent>
+        <v-btn icon variant="plain" @click="drawer = false">
+          <v-icon :icon="mdiChevronRight"></v-icon>
+        </v-btn>
+        <v-tabs fixed-tabs v-model="section">
+          <v-tab :value="0">Community<span
+              v-if="counts.community_count">&nbsp;({{ counts.community_count }})</span>
+          </v-tab>
+          <v-tab :value="1">Sales/Orders<span
+              v-if="counts.sales_count">&nbsp;({{ counts.sales_count }})</span>
+          </v-tab>
+        </v-tabs>
+      </v-toolbar>
+    </template>
     <v-window v-model="section">
       <v-window-item :value="0">
         <notifications-list subset="community" :username="username" :auto-read="isCurrent" />
@@ -42,7 +44,11 @@ const props = defineProps<SubjectiveProps>()
 const {subject, isCurrent} = useSubject({ props })
 const section = ref(0)
 const width = computed(() => {
-  if (display.width.value < 600) {
+  if (!drawer.value) {
+    // Bug in upstream causes any value to be used for forcing the tray open on mobile.
+    return undefined
+  }
+  if (display.width.value < 800) {
     return '100%'
   }
   return '500'
