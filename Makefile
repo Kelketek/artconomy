@@ -68,9 +68,9 @@ test_backend:
 	${APP_COMMAND} ./manage.py test --keepdb --parallel=${TEST_THREADS}
 
 format:
-	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
 	${APP_COMMAND} black backend
 	${APP_COMMAND} ruff --fix backend
+	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
 
 upgrade:
 	rm -f requirements.txt && ${APP_COMMAND} pip-compile --resolver=backtracking requirements.in constraints.in --output-file=requirements.txt

@@ -1,6 +1,7 @@
 """
 Idempotently create email preferences for all users.
 """
+
 from apps.profiles.models import User, create_email_preferences
 from django.core.management import BaseCommand
 
