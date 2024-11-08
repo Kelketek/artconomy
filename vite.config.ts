@@ -14,10 +14,9 @@ import {defineConfig} from 'vite'
 import {fileURLToPath, URL} from 'node:url'
 import checker from 'vite-plugin-checker'
 
-let commitHash = '00000000'
 
 const path = readFileSync('.git/HEAD', 'utf-8').split(': ')[1].trim()
-commitHash = readFileSync('.git/' + path, 'utf-8').slice(0, 8)
+const commitHash = readFileSync('.git/' + path, 'utf-8').slice(0, 8)
 
 
 const productionMode = process.env.NODE_ENV === 'production'
