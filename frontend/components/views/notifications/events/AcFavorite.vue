@@ -1,7 +1,10 @@
 <template>
   <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
     <template v-slot:title>
-      Your piece <router-link :to="assetLink">{{event.target.title}}</router-link> has been favorited by
+      Your piece has been favorited!
+    </template>
+    <template v-slot:subtitle>
+      <router-link :to="assetLink">{{event.target.title}}</router-link> has been favorited by
       <router-link :to="{name: 'Profile', params: {username: event.data.user.username}}">{{event.data.user.username}}!
       </router-link>
     </template>
