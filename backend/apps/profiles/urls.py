@@ -131,6 +131,16 @@ urlpatterns = [
         name="social_settings",
     ),
     path(
+        "account/<username>/social-links/",
+        views.SocialLinks.as_view(),
+        name="social_settings",
+    ),
+    path(
+        "account/<username>/social-links/<int:link>/",
+        views.SocialLinkManager.as_view(),
+        name="social_settings",
+    ),
+    path(
         "account/<username>/auth/credentials/",
         views.CredentialsAPI.as_view(),
         name="credentials",

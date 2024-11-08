@@ -75,6 +75,7 @@ from apps.profiles.models import (
     trigger_reconnect,
     StaffPowers,
     SocialSettings,
+    SocialLink,
 )
 from apps.profiles.permissions import (
     AccountAge,
@@ -93,6 +94,7 @@ from apps.profiles.permissions import (
     ViewFavorites,
     staff_power,
     IsSuperuser,
+    SocialsVisible,
 )
 from apps.profiles.serializers import (
     ArtistProfileSerializer,
@@ -128,6 +130,7 @@ from apps.profiles.serializers import (
     UnreadNotificationsSerializer,
     StaffPowersSerializer,
     SocialSettingsSerializer,
+    SocialLinkSerializer,
 )
 from apps.profiles.tasks import drip_subscribe
 from apps.profiles.utils import (
@@ -2309,3 +2312,42 @@ class SocialSettingsManager(RetrieveUpdateAPIView):
         )
         self.check_object_permissions(self.request, social_settings)
         return social_settings
+
+
+class SocialLinks(ListCreateAPIView):
+    serializer_class = SocialLinkSerializer
+    queryset = SocialLink.objects.all()
+    permission_classes = [
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+        )
+    ]
+
+    def filter_queryset(self, queryset):
+        user = self.get_object()
+        return queryset.filter(user=user)
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs["username"])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def perform_create(self, serializer):
+        user = self.get_object()
+        serializer.save(user=user)
+
+
+class SocialLinkManager(RetrieveUpdateDestroyAPIView):
+    serializer_class = SocialLinkSerializer
+    permission_classes = [
+        ObjectControls,
+        All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+    ]
+
+    def get_object(self):
+        user = get_object_or_404(
+            SocialLink, username=self.kwargs["username"], id=self.kwargs["link"]
+        )
+        self.check_object_permissions(self.request, user)
+        return user

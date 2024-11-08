@@ -40,6 +40,7 @@ from apps.profiles.tests.factories import (
     TOTPDeviceFactory,
     UserFactory,
     SocialSettingsFactory,
+    SocialLinkFactory,
 )
 from apps.profiles.tests.helpers import gen_characters
 from apps.profiles.views import ArtistProfileSettings
@@ -2201,3 +2202,55 @@ class TestSocialSettings(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["allow_promotion"], True)
+
+
+class TestSocialLinks(APITestCase):
+    """
+    Test the retrieval and creation of social links.
+    """
+
+    def test_get_social_links(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user)
+        self.login(social_link.user)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertIDInList(social_link.id, response.data["results"])
+
+    def test_get_social_links_staff(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user)
+        staff = create_staffer("view_social_data")
+        self.login(staff)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertIDInList(social_link.id, response.data["results"])
+
+    def test_not_permitted(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user, display_socials=False)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_permitted(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user, display_socials=True)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertIDInList(social_link.id, response.data["results"])
+
+    def test_create_social_link(self):
+        settings = SocialSettingsFactory()
+        self.login(settings.user)
+        response = self.client.post(
+            f"/api/profiles/account/{settings.user.username}/social-links/",
+            {"site_name": "Artconomy", "identifier": "Fox", "comment": "Pure awesome."},
+        )
+        self.assertEqual(response.data["site_name"], "Artconomy")
+        self.assertEqual(response.data["identifier"], "Fox")
+        self.assertEqual(response.data["comment"], "Pure awesome.")

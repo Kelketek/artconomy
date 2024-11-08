@@ -676,6 +676,9 @@ class SocialLink(Model):
         default="",
     )
 
+    class Meta:
+        ordering = ("id",)
+
 
 @receiver(pre_save, sender=ArtistProfile)
 def sync_escrow_status(sender, instance, **kwargs):

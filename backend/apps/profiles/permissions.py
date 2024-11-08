@@ -281,4 +281,6 @@ class SocialsVisible(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         obj = derive_user(obj)
+        if not hasattr(obj, "social_settings"):
+            return False
         return obj.social_settings.display_socials

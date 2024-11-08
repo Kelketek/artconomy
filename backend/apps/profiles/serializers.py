@@ -1245,7 +1245,9 @@ class SocialLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialLink
         fields = (
+            "id",
             "site_name",
             "identifier",
             "comment",
         )
+        read_only_fields = ("id",)
