@@ -56,7 +56,7 @@
         </v-row>
       </v-col>
     </v-row>
-    <ac-paginated :list="list">
+    <ac-paginated :list="list" :track-pages="true">
       <template v-slot:default>
         <v-container fluid class="pa-0">
           <v-data-table :headers="headers" :items="orderItems" hide-default-footer v-if="dataMode" dense>
@@ -103,11 +103,11 @@ import {computed, ref} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useRoute} from 'vue-router'
 import {useList} from '@/store/lists/hooks.ts'
-import {useSearchField} from '@/components/views/search/mixins/SearchField.ts'
 import {deriveDisplayName, formatDateTime} from '@/lib/otherFormatters.ts'
 import {mdiDelete, mdiListBox, mdiMagnify, mdiShopping} from '@mdi/js'
 import {profileLink} from '@/lib/otherFormatters.ts'
 import type {Order, Product, SubjectiveProps} from '@/types/main'
+import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
 
 declare interface OrderListProps {
   type: string,
@@ -153,7 +153,7 @@ if (searchForm.fields.product.value) {
 const list = useList<Order>(`orders__${flatten(props.username)}__${props.type}__${props.category}`, {
   endpoint: `/api/sales/account/${props.username}/${props.type}/${props.category}/`,
 })
-useSearchField(searchForm, list)
+useSearchList(searchForm, list)
 const headers = [
   {
     value: 'id',

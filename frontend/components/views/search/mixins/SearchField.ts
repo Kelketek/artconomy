@@ -21,7 +21,7 @@ export const useSearchField = (searchForm: FormController, list: ListController<
     if (newValue === undefined) {
       return
     }
-    searchForm.fields.size.update(newValue)
+    searchForm.fields.size.update(parseInt(newValue + '', 10))
   })
 
   const rawUpdate = (newData: RawData) => {
