@@ -8,6 +8,7 @@ from apps.profiles.models import (
     Journal,
     Submission,
     SocialSettings,
+    SocialLink,
 )
 from avatar.models import Avatar
 from django.conf import settings
@@ -105,3 +106,12 @@ class SocialSettingsFactory(DjangoModelFactory):
 
     class Meta:
         model = SocialSettings
+
+
+class SocialLinkFactory(DjangoModelFactory):
+    user = SubFactory(UserFactory)
+    site_name = Sequence(lambda n: f"Site {n}")
+    identifier = Sequence(lambda n: f"Account {n}")
+
+    class Meta:
+        model = SocialLink

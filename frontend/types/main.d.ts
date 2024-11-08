@@ -598,4 +598,22 @@ export interface TOTPDevice {
   code?: string
 }
 
+export interface SocialSettings {
+  id: number,
+  allow_promotion: boolean,
+  allow_site_promotion: boolean,
+  nsfw_promotion: boolean,
+  quick_description: string,
+  promotion_notes: string,
+  display_socials: boolean,
+}
+
+export interface SocialLink {
+  id: number,
+  url: string,
+  site_name: string,
+  identifier: string,
+  comment: string,
+}
+
 export type LogLevelsValue = typeof LogLevels[keyof typeof LogLevels]

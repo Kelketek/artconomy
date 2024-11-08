@@ -51,7 +51,7 @@
       </v-list-item>
       <v-list-group
           value="Reports"
-          v-if="isLoggedIn && subject.is_superuser"
+          v-if="isLoggedIn && subject.is_staff"
           nav
           role="listitem"
       >
@@ -66,11 +66,17 @@
           </template>
           <v-list-item-title>Financial</v-list-item-title>
         </v-list-item>
-        <v-list-item :to="{name: 'TroubledDeliverables'}" role="listitem" tabindex="0">
+        <v-list-item v-if="powers.handle_disputes" :to="{name: 'TroubledDeliverables'}" role="listitem" tabindex="0">
           <template v-slot:prepend>
             <v-icon :icon="mdiAlert"/>
           </template>
           <v-list-item-title>Troubled Deliverables</v-list-item-title>
+        </v-list-item>
+        <v-list-item v-if="powers.view_social_data" :to="{name: 'Promotable'}" role="listitem" tabindex="0">
+          <template v-slot:prepend>
+            <v-icon :icon="mdiBullhorn"/>
+          </template>
+          <v-list-item-title>Promotable Artists</v-list-item-title>
         </v-list-item>
       </v-list-group>
       <v-list-item :to="{name: 'Reports', params: {username: subject.username}}"
@@ -230,7 +236,7 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useRouter} from 'vue-router'
 import {
   mdiAlert,
-  mdiArrowUp, mdiBasket, mdiCashMultiple, mdiChartBoxOutline,
+  mdiArrowUp, mdiBasket, mdiBullhorn, mdiCashMultiple, mdiChartBoxOutline,
   mdiCity, mdiClose, mdiCog, mdiEmail,
   mdiEye,
   mdiForum, mdiGavel, mdiHome,

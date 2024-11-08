@@ -90,6 +90,7 @@ urlpatterns = [
         views.SubmissionSearch.as_view(),
         name="submission_search",
     ),
+    path("resource/promotable/", views.PromotableArtists.as_view(), name="promotable"),
     path(
         "account/<username>/notifications/unread/",
         views.UnreadNotifications.as_view(),
@@ -128,6 +129,21 @@ urlpatterns = [
     path(
         "account/<username>/social-settings/",
         views.SocialSettingsManager.as_view(),
+        name="social_settings",
+    ),
+    path(
+        "account/<username>/social-links/",
+        views.SocialLinks.as_view(),
+        name="social_settings",
+    ),
+    path(
+        "account/<username>/social-links/from-url/",
+        views.LinkToSocial.as_view(),
+        name="link_from_url",
+    ),
+    path(
+        "account/<username>/social-links/<int:link>/",
+        views.SocialLinkManager.as_view(),
         name="social_settings",
     ),
     path(

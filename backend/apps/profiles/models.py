@@ -88,7 +88,7 @@ from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
-from django.core.validators import MinValueValidator, RegexValidator
+from django.core.validators import MinValueValidator, RegexValidator, URLValidator
 from django.db import ProgrammingError, models
 from django.db.models import (
     CASCADE,
@@ -642,16 +642,21 @@ class SocialSettings(Model):
         max_length=150,
         help_text="A quick description of your art/style/offerings, for use by our social media specialist when promoting you.",
         default="",
+        blank=True,
     )
     promotion_notes = TextField(
         max_length=500,
         help_text="Any notes/requests/conditions on using your content in promotions.",
+        blank=True,
     )
     display_socials = BooleanField(
         default=True,
         db_index=True,
         help_text="Whether to display your socials on your profile.",
     )
+
+    class Meta:
+        ordering = ("-id",)
 
 
 class SocialLink(Model):
@@ -664,17 +669,25 @@ class SocialLink(Model):
     site_name = CharField(
         max_length=25,
         db_index=True,
-        default="",
+        blank=False,
         help_text="The name of the site your account is on.",
     )
     identifier = CharField(
-        max_length=100, default="", help_text="Username or URL of account on site."
+        max_length=100, default="", blank=True, help_text="Username on this site."
+    )
+    url = URLField(
+        help_text="URL of account on site.",
+        validators=[URLValidator(schemes=("https",))],
     )
     comment = CharField(
         max_length=30,
         help_text="Short comment, such as 'Cat Photo Account'.",
         default="",
+        blank=True,
     )
+
+    class Meta:
+        ordering = ("id",)
 
 
 @receiver(pre_save, sender=ArtistProfile)

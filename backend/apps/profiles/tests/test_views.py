@@ -19,7 +19,6 @@ from apps.lib.test_resources import (
     APITestCase,
     MethodAccessMixin,
     PermissionsTestCase,
-    SignalsDisabledMixin,
 )
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.factories_interdepend import CommentFactory
@@ -31,6 +30,7 @@ from apps.profiles.models import (
     ConversationParticipant,
     Submission,
     User,
+    SocialSettings,
 )
 from apps.profiles.tests.factories import (
     AttributeFactory,
@@ -40,6 +40,7 @@ from apps.profiles.tests.factories import (
     TOTPDeviceFactory,
     UserFactory,
     SocialSettingsFactory,
+    SocialLinkFactory,
 )
 from apps.profiles.tests.helpers import gen_characters
 from apps.profiles.views import ArtistProfileSettings
@@ -2201,3 +2202,96 @@ class TestSocialSettings(APITestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["allow_promotion"], True)
+
+
+class TestSocialLinks(APITestCase):
+    """
+    Test the retrieval and creation of social links.
+    """
+
+    def test_get_social_links(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user)
+        self.login(social_link.user)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertIDInList(social_link.id, response.data)
+
+    def test_get_social_links_staff(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user)
+        staff = create_staffer("view_social_data")
+        self.login(staff)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertIDInList(social_link.id, response.data)
+
+    def test_not_permitted(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user, display_socials=False)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_permitted(self):
+        social_link = SocialLinkFactory.create()
+        SocialSettingsFactory(user=social_link.user, display_socials=True)
+        response = self.client.get(
+            f"/api/profiles/account/{social_link.user.username}/social-links/",
+        )
+        self.assertIDInList(social_link.id, response.data)
+
+    def test_create_social_link(self):
+        settings = SocialSettingsFactory()
+        self.login(settings.user)
+        response = self.client.post(
+            f"/api/profiles/account/{settings.user.username}/social-links/",
+            {
+                "site_name": "Artconomy",
+                "identifier": "Fox",
+                "comment": "Pure awesome.",
+                "url": "https://artconomy.com/profile/Fox/",
+            },
+        )
+        print(response.data)
+        self.assertEqual(response.data["site_name"], "Artconomy")
+        self.assertEqual(response.data["identifier"], "Fox")
+        self.assertEqual(response.data["comment"], "Pure awesome.")
+
+
+class TestPromotableUsers(APITestCase):
+    """
+    Test the listing of promotable users.
+    """
+
+    def test_promotable_users_listing(self):
+        settings_excluded = SocialSettingsFactory(user__artist_mode=True)
+        settings_also_excluded = SocialSettingsFactory(allow_promotion=True)
+        settings_included_main = SocialSettingsFactory(
+            allow_promotion=True, user__artist_mode=True
+        )
+        settings_included_also_visible = SocialSettingsFactory(
+            allow_site_promotion=True,
+            user__artist_mode=True,
+        )
+        staff = create_staffer("view_social_data")
+        self.login(staff)
+        response = self.client.get("/api/profiles/resource/promotable/")
+        ids = [entry["id"] for entry in response.data["results"]]
+        self.assertIn(settings_included_main.id, ids)
+        self.assertIn(settings_included_also_visible.id, ids)
+        self.assertNotIn(settings_excluded.id, ids)
+        self.assertNotIn(settings_also_excluded.id, ids)
+
+    def test_not_logged_in(self):
+        response = self.client.get("/api/profiles/resource/promotable/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_wrong_staff_power(self):
+        staff = create_staffer()
+        self.login(staff)
+        response = self.client.get("/api/profiles/resource/promotable/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

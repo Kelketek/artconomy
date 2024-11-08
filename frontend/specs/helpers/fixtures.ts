@@ -6,8 +6,18 @@ import {InvoiceStatus} from '@/types/enums/InvoiceStatus.ts'
 import {InvoiceType} from '@/types/enums/InvoiceType.ts'
 import {Ratings} from '@/types/enums/Ratings.ts'
 import {POWER_LIST} from '@/mixins/viewer.ts'
-import type {Deliverable, CommissionStats, CreditCardToken, Invoice, Order, Product, Reference, Revision} from '@/types/main'
-import {AnonUser, ArtistProfile, StaffPower, StaffPowers, User} from '@/store/profiles/types/main'
+import type {
+  Deliverable,
+  CommissionStats,
+  CreditCardToken,
+  Invoice,
+  Order,
+  Product,
+  Reference,
+  Revision,
+  SocialSettings,
+} from '@/types/main'
+import {AnonUser, ArtistProfile, StaffPower, StaffPowers, TerseUser, User} from '@/store/profiles/types/main'
 import {BankStatus} from '@/store/profiles/types/enums.ts'
 
 export function genUser(overrides?: Partial<User>): User {
@@ -318,4 +328,17 @@ export function genAnon(overrides?: Partial<AnonUser>): AnonUser {
 
 export function genPowers(overrides?: Partial<Record<StaffPower, boolean>>): StaffPowers {
   return {id: 1, ...Object.fromEntries(POWER_LIST.map((entry) => [entry, false])), ...overrides} as StaffPowers
+}
+
+export function genSocialSettings(overrides?: Partial<SocialSettings>): SocialSettings {
+  return {
+    id: 1,
+    allow_promotion: false,
+    allow_site_promotion: false,
+    nsfw_promotion: false,
+    quick_description: '',
+    promotion_notes: '',
+    display_socials: false,
+    ...overrides,
+  }
 }

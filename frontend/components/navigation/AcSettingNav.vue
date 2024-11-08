@@ -30,6 +30,12 @@
         <v-icon :icon="mdiAccount"/>
       </template>
     </v-list-item>
+    <v-list-item v-if="isArtist" :to="{name: 'Social', params: {username}}" role="listitem" tabindex="0">
+      <v-list-item-title>Social</v-list-item-title>
+      <template v-slot:append>
+        <v-icon :icon="mdiShare"/>
+      </template>
+    </v-list-item>
     <v-list-item :to="{name: 'Premium', params: {username}}" role="listitem" tabindex="0">
       <v-list-item-title>Premium</v-list-item-title>
       <template v-slot:append>
@@ -83,7 +89,7 @@ import {
   mdiLock,
   mdiPalette,
   mdiReceiptText,
-  mdiSend,
+  mdiSend, mdiShare,
   mdiStar,
   mdiWallet, mdiWrench,
 } from '@mdi/js'
@@ -97,6 +103,9 @@ const {subjectHandler, subject} = useSubject({ props })
 const inSupportedCountry = computed(() => {
   const profile = subjectHandler.artistProfile
   return profile.x && (profile.x.bank_account_status === BankStatus.IN_SUPPORTED_COUNTRY)
+})
+const isArtist = computed(() => {
+  return (subject.value as User).artist_mode
 })
 const showPayout = computed(() => {
   return (subject.value as User).artist_mode || inSupportedCountry.value

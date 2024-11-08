@@ -1,5 +1,6 @@
 """artconomy URL Configuration
 """
+
 from apps.profiles import views
 from apps.sales.views import main as sales_views
 from django.urls import path

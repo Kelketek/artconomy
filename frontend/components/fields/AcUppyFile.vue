@@ -46,7 +46,7 @@
 </style>
 
 <script setup lang="ts">
-import Uppy, {Meta, UppyFile, Body, State} from '@uppy/core'
+import Uppy, {Meta, UppyFile, Body} from '@uppy/core'
 import {toRaw, markRaw, ref, watch, onMounted, useAttrs} from 'vue'
 import Dashboard from '@uppy/dashboard'
 import XHRUpload from '@uppy/xhr-upload'
@@ -111,7 +111,7 @@ class ArtconomyUppyStore<T extends GenericState = GenericState> {
 
 declare interface AcUppyFileProps extends ExtendedInputProps {
   endpoint?: string,
-  modelValue: string|string[]|null,
+  modelValue?: string|string[]|null,
   inForm?: boolean,
   showReset?: boolean,
   showClear?: boolean,

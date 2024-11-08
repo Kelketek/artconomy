@@ -729,6 +729,10 @@ USER_AGENT = get_env("USER_AGENT", "Artconomy (fox@artconomy.com)")
 
 DEDUPLICATE_ASSETS = get_env("DEDUPLICATE_ASSETS", not DEBUG)
 
+# Favicon service provider-- used for social links. If needed, we can run this
+# ourselves by standing up a copy of the provider, available here:
+# https://github.com/twentyhq/favicon
+FAVICON_BASE_URL = get_env("FAVICON_BASE_URL", "https://favicon.twenty.com/")
 
 # CSP Content settings
 
@@ -743,6 +747,8 @@ CSP_IMG_SRC = tuple(
             # Blog post images on the front page won't load without this.
             "https://artconomy.com/",
             "https://www.facebook.com/",
+            # For Favicons
+            FAVICON_BASE_URL,
             # Uppy freaks out without these :/
             "blob:",
             "data:",

@@ -75,6 +75,7 @@ from apps.profiles.models import (
     trigger_reconnect,
     StaffPowers,
     SocialSettings,
+    SocialLink,
 )
 from apps.profiles.permissions import (
     AccountAge,
@@ -93,6 +94,7 @@ from apps.profiles.permissions import (
     ViewFavorites,
     staff_power,
     IsSuperuser,
+    SocialsVisible,
 )
 from apps.profiles.serializers import (
     ArtistProfileSerializer,
@@ -128,7 +130,11 @@ from apps.profiles.serializers import (
     UnreadNotificationsSerializer,
     StaffPowersSerializer,
     SocialSettingsSerializer,
+    SocialLinkSerializer,
+    LinkToSocialSerializer,
+    SocialSettingsWithUserSerializer,
 )
+from apps.profiles.social_matchers import link_to_social
 from apps.profiles.tasks import drip_subscribe
 from apps.profiles.utils import (
     UserClearException,
@@ -2309,3 +2315,84 @@ class SocialSettingsManager(RetrieveUpdateAPIView):
         )
         self.check_object_permissions(self.request, social_settings)
         return social_settings
+
+
+class LinkToSocial(GenericAPIView):
+    serializer_class = LinkToSocialSerializer
+    permission_classes = [
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+        )
+    ]
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs["username"])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def post(self, *_args, **_kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
+        social_link_kwargs = link_to_social(serializer.validated_data["url"])
+        instance = SocialLink.objects.create(
+            user=self.get_object(), **social_link_kwargs
+        )
+        return Response(
+            status=status.HTTP_201_CREATED,
+            data=SocialLinkSerializer(
+                instance=instance, context=self.get_serializer_context()
+            ).data,
+        )
+
+
+class SocialLinks(ListCreateAPIView):
+    serializer_class = SocialLinkSerializer
+    queryset = SocialLink.objects.all()
+    pagination_class = None
+    permission_classes = [
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+        )
+    ]
+
+    def filter_queryset(self, queryset):
+        user = self.get_object()
+        return queryset.filter(user=user)
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs["username"])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def perform_create(self, serializer):
+        user = self.get_object()
+        serializer.save(user=user)
+
+
+class SocialLinkManager(RetrieveUpdateDestroyAPIView):
+    serializer_class = SocialLinkSerializer
+    permission_classes = [
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+        ),
+    ]
+
+    def get_object(self):
+        link = get_object_or_404(
+            SocialLink, user__username=self.kwargs["username"], id=self.kwargs["link"]
+        )
+        self.check_object_permissions(self.request, link)
+        return link
+
+
+class PromotableArtists(ListAPIView):
+    serializer_class = SocialSettingsWithUserSerializer
+    permission_classes = [StaffPower("view_social_data")]
+
+    def get_queryset(self):
+        return SocialSettings.objects.filter(
+            Q(allow_promotion=True) | Q(allow_site_promotion=True)
+        ).filter(user__artist_mode=True)

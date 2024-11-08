@@ -70,8 +70,8 @@ const CharacterDetail = () => import('@/components/views/character/CharacterDeta
 const Purchase = () => import('@/components/views/settings/payment/Purchase.vue')
 const TransactionHistory = () => import('@/components/views/settings/payment/TransactionHistory.vue')
 const Payout = () => import('@/components/views/settings/payment/Payout.vue')
-const NotificationsList = () => import('@/components/views/notifications/NotificationsList.vue')
 const Settings = () => import('@/components/views/settings/Settings.vue')
+const Social = () => import('@/components/views/settings/Social.vue')
 const Options = () => import('@/components/views/settings/Options.vue')
 const Email = () => import('@/components/views/settings/Email.vue')
 const Artist = () => import('@/components/views/settings/Artist.vue')
@@ -103,6 +103,7 @@ const TableOrders = () => import('@/components/views/table/TableOrders.vue')
 const TableInvoices = () => import('@/components/views/table/TableInvoices.vue')
 const Invoices = () => import('@/components/views/settings/payment/Invoices.vue')
 const TroubledDeliverables = () => import('@/components/views/TroubledDeliverables.vue')
+const Promotable = () => import('@/components/views/Promotable.vue')
 const ProductGallery = () => import('@/components/views/product/ProductGallery.vue')
 const AcInvoiceProductSelection = () => import('@/components/views/orders/AcInvoiceProductSelection.vue')
 
@@ -375,6 +376,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'Avatar',
         path: 'avatar/',
         component: Avatar,
+        props: true,
+      },
+      {
+        name: 'Social',
+        path: 'social/',
+        component: Social,
         props: true,
       },
       {
@@ -708,6 +715,11 @@ export const routes: RouteRecordRaw[] = [
     path: '/reports/troubled-deliverables/',
     name: 'TroubledDeliverables',
     component: TroubledDeliverables,
+  },
+  {
+    path: '/reports/promotable/',
+    name: 'Promotable',
+    component: Promotable,
   },
   {
     path: '/table/',

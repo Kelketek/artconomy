@@ -10,7 +10,7 @@
   >
     <template v-slot:activator="{ props }">
       <div v-bind="props">
-        <v-text-field :model-value="modelValue" v-bind="attrs" v-on="props" prepend-icon="mdi-event"
+        <v-text-field :model-value="modelValue" v-bind="{...attrs, ...props}" prepend-icon="mdi-event"
                       readonly>
           <template v-for="name in slotNames" #[name]>
             <slot :name="name"/>

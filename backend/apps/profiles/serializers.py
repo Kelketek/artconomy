@@ -1227,6 +1227,7 @@ class SocialSettingsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialSettings
         fields = (
+            "id",
             "allow_promotion",
             "allow_site_promotion",
             "nsfw_promotion",
@@ -1234,6 +1235,29 @@ class SocialSettingsSerializer(serializers.ModelSerializer):
             "promotion_notes",
             "display_socials",
         )
+        read_only_fields = ("id",)
+
+
+class SocialSettingsWithUserSerializer(serializers.ModelSerializer):
+    """
+    Serializer
+    """
+
+    user = RelatedUserSerializer()
+
+    class Meta:
+        model = SocialSettings
+        fields = (
+            "user",
+            "id",
+            "allow_promotion",
+            "allow_site_promotion",
+            "nsfw_promotion",
+            "quick_description",
+            "promotion_notes",
+            "display_socials",
+        )
+        read_only_fields = fields
 
 
 @register_serializer
@@ -1245,7 +1269,19 @@ class SocialLinkSerializer(serializers.ModelSerializer):
     class Meta:
         model = SocialLink
         fields = (
+            "id",
             "site_name",
             "identifier",
+            "url",
             "comment",
         )
+        read_only_fields = ("id",)
+
+
+class LinkToSocialSerializer(serializers.Serializer):
+    """
+    Simple serializer that handles a single URL and is used for conversion into
+    the basics of a SocialLink.
+    """
+
+    url = serializers.URLField()

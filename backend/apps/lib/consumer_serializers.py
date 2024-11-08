@@ -2,6 +2,7 @@
 Serializers for consumer commands. Separate from normal serializers to prevent circular
 imports.
 """
+
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
 from rest_framework import serializers
