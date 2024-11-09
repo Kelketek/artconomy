@@ -70,8 +70,8 @@ const CharacterDetail = () => import('@/components/views/character/CharacterDeta
 const Purchase = () => import('@/components/views/settings/payment/Purchase.vue')
 const TransactionHistory = () => import('@/components/views/settings/payment/TransactionHistory.vue')
 const Payout = () => import('@/components/views/settings/payment/Payout.vue')
-const NotificationsList = () => import('@/components/views/notifications/NotificationsList.vue')
 const Settings = () => import('@/components/views/settings/Settings.vue')
+const Social = () => import('@/components/views/settings/Social.vue')
 const Options = () => import('@/components/views/settings/Options.vue')
 const Email = () => import('@/components/views/settings/Email.vue')
 const Artist = () => import('@/components/views/settings/Artist.vue')
@@ -375,6 +375,12 @@ export const routes: RouteRecordRaw[] = [
         name: 'Avatar',
         path: 'avatar/',
         component: Avatar,
+        props: true,
+      },
+      {
+        name: 'Social',
+        path: 'social/',
+        component: Social,
         props: true,
       },
       {

@@ -8,6 +8,8 @@ from apps.profiles.models import (
     Submission,
     User,
     StaffPowers,
+    SocialSettings,
+    SocialLink,
 )
 from custom_user.admin import EmailUserAdmin
 from django.contrib import admin
@@ -19,6 +21,14 @@ from apps.profiles.utils import user_query
 
 class StaffPowersInline(StackedInline):
     model = StaffPowers
+
+
+class SocialSettingsInline(StackedInline):
+    model = SocialSettings
+
+
+class SocialLinkInline(StackedInline):
+    model = SocialLink
 
 
 class ArtconomyUserAdmin(EmailUserAdmin):
@@ -82,9 +92,11 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         )
 
     def get_inlines(self, request, obj):
+        inlines = []
         if hasattr(obj, "staff_powers"):
-            return [StaffPowersInline]
-        return []
+            inlines.append(StaffPowersInline)
+        inlines.extend([SocialSettingsInline, SocialLinkInline])
+        return inlines
 
     def get_queryset(self, request):
         return user_query()

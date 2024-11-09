@@ -30,6 +30,12 @@
         <v-icon :icon="mdiAccount"/>
       </template>
     </v-list-item>
+    <v-list-item :to="{name: 'Social', params: {username}}" role="listitem" tabindex="0">
+      <v-list-item-title>Social</v-list-item-title>
+      <template v-slot:append>
+        <v-icon :icon="mdiShare"/>
+      </template>
+    </v-list-item>
     <v-list-item :to="{name: 'Premium', params: {username}}" role="listitem" tabindex="0">
       <v-list-item-title>Premium</v-list-item-title>
       <template v-slot:append>
@@ -83,7 +89,7 @@ import {
   mdiLock,
   mdiPalette,
   mdiReceiptText,
-  mdiSend,
+  mdiSend, mdiShare,
   mdiStar,
   mdiWallet, mdiWrench,
 } from '@mdi/js'

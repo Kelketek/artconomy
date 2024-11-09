@@ -49,6 +49,7 @@ def build_initial_plans():
             """,
             # Zero means 'infinite'
             max_simultaneous_orders=0,
+            paypal_invoicing=True,
             per_deliverable_price=Money("1.35", "USD"),
             shield_static_price=Money("2.75", "USD"),
             shield_percentage_price=Decimal("5.75"),
@@ -66,6 +67,7 @@ def build_initial_plans():
                 "Optional Shield protection protects you from fraud",
                 "No order limit-- pay as you go!",
                 "Discount on shield protection",
+                "PayPal Invoicing",
             ],
         ),
     )
@@ -95,6 +97,7 @@ def build_initial_plans():
                 "PostyBirb Integration",
                 "Optional Shield protection protects you from fraud",
                 "No order limit-- pay as you go!",
+                "PayPal Invoicing",
                 "Big discount on shield protection!",
                 "Special Discord Role",
                 "First consideration for Virtual Table Events -- "
