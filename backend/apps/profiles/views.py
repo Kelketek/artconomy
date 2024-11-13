@@ -131,7 +131,9 @@ from apps.profiles.serializers import (
     StaffPowersSerializer,
     SocialSettingsSerializer,
     SocialLinkSerializer,
+    LinkToSocialSerializer,
 )
+from apps.profiles.social_matchers import link_to_social
 from apps.profiles.tasks import drip_subscribe
 from apps.profiles.utils import (
     UserClearException,
@@ -2312,6 +2314,25 @@ class SocialSettingsManager(RetrieveUpdateAPIView):
         )
         self.check_object_permissions(self.request, social_settings)
         return social_settings
+
+
+class LinkToSocial(GenericAPIView):
+    serializer_class = LinkToSocialSerializer
+    permission_classes = [
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+        )
+    ]
+
+    def get_object(self):
+        user = get_object_or_404(User, username=self.kwargs["username"])
+        self.check_object_permissions(self.request, user)
+        return user
+
+    def perform_create(self, serializer):
+        social_link_kwargs = link_to_social(serializer.validated_data["url"])
+        SocialLink.objects.create(user=self.get_object(), **social_link_kwargs)
 
 
 class SocialLinks(ListCreateAPIView):

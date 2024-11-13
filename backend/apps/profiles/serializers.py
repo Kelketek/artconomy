@@ -1247,7 +1247,16 @@ class SocialLinkSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "site_name",
-            "identifier",
+            "url",
             "comment",
         )
         read_only_fields = ("id",)
+
+
+class LinkToSocialSerializer(serializers.Serializer):
+    """
+    Simple serializer that handles a single URL and is used for conversion into
+    the basics of a SocialLink.
+    """
+
+    url = serializers.URLField()
