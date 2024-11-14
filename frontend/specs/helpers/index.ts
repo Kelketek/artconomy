@@ -3,7 +3,7 @@ import type {AxiosRequestConfig, AxiosResponse} from 'axios'
 import {AxiosHeaders} from 'axios'
 import {expect, vi} from 'vitest'
 import VueMask from '@devindex/vue-mask'
-import {csrfSafeMethod, genId, getCookie, immediate, setViewer} from '@/lib/lib.ts'
+import {csrfSafeMethod, genId, getCookie, immediate} from '@/lib/lib.ts'
 import {mount as upstreamMount, VueWrapper} from '@vue/test-utils'
 import {ComponentPublicInstance, defineComponent, ref, useAttrs} from 'vue'
 import {FieldController} from '@/store/forms/field-controller.ts'
@@ -28,9 +28,7 @@ import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
 import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router'
 import {routes} from '@/router'
-import {genArtistProfile, genPowers} from '@/specs/helpers/fixtures.ts'
-import {RenderResult} from '@testing-library/vue'
-import {AnonUser, ArtistProfile, StaffPowers, TerseUser, User} from '@/store/profiles/types/main'
+import {cleanup as renderCleanUp, RenderResult} from '@testing-library/vue'
 import {HttpVerbs} from '@/store/forms/types/main'
 
 export interface ExtraData {
@@ -161,7 +159,7 @@ export type MountOverrideOptions = {
   components?: Record<string, ReturnType<typeof defineComponent> | object>,
 }
 
-export function vueSetup(overrides?: MountOverrideOptions): VueMountOptions {
+export const vueSetup = (overrides?: MountOverrideOptions): VueMountOptions => {
   overrides = overrides || {}
   // Create a localVue with the most common parameters needed for testing our components.
   const store = overrides.store || createStore()
@@ -193,7 +191,11 @@ export function vueSetup(overrides?: MountOverrideOptions): VueMountOptions {
   }
 }
 
-export function cleanUp(wrapper?: VueWrapper<any>|RenderResult) {
+export const cloneSetup = (options: VueMountOptions) => {
+  return {...options, attachTo: docTarget()}
+}
+
+export const cleanUp = (wrapper?: VueWrapper<any>|RenderResult) => {
   mockAxios.reset()
   vi.clearAllTimers()
   if (wrapper) {
@@ -211,6 +213,9 @@ export function cleanUp(wrapper?: VueWrapper<any>|RenderResult) {
   formRegistry.reset()
   characterRegistry.reset()
   localStorage.clear()
+  // Clean items created by Vue testing library
+  renderCleanUp()
+  // Absolutely empty the body.
   clearBody()
 }
 

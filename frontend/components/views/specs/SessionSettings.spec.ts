@@ -62,7 +62,7 @@ describe('SessionSettings.vue', () => {
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(store.state.showCookieDialog).toBe(false)
-    wrapper.find('.cookie-settings-button').trigger('click')
+    await wrapper.find('.cookie-settings-button').trigger('click')
     await vm.$nextTick()
     expect(store.state.showCookieDialog).toBe(true)
   })

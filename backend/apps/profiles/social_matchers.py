@@ -106,7 +106,9 @@ def instagram_parse(parsed_url: ParseResult) -> SocialLinkSpec:
 
 def deviantart_parse(parsed_url: ParseResult) -> SocialLinkSpec:
     """Parse a DeviantArt link."""
-    return normalized_direct("https://www.deviantart.com", "DeviantArt", parsed_url)
+    return normalized_direct(
+        "https://www.deviantart.com", "DeviantArt", parsed_url, trailing_slash=True
+    )
 
 
 def toyhouse_parse(parsed_url: ParseResult) -> SocialLinkSpec:
@@ -130,9 +132,11 @@ def bsky_parse(parsed_url: ParseResult) -> SocialLinkSpec:
 
 def weasyl_parse(parsed_url: ParseResult) -> SocialLinkSpec:
     """Parse a weasyl Link"""
-    if not parsed_url.path.startswith("/~"):
+    # Weasyl allows both /profile/ and ~/
+    path = parsed_url.path.replace("/profile/", "/~", 1)
+    if not path.startswith("/~"):
         return fallback(parsed_url)
-    identifier = truncate_path(parsed_url.path.split("/")[1][1:])
+    identifier = truncate_path(path.split("/")[1][1:])
     return {
         "site_name": "Weasyl",
         "url": f"https://weasyl.com/~{identifier}",

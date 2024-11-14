@@ -609,6 +609,7 @@ export interface SocialSettings {
 
 export interface SocialLink {
   id: number,
+  url: string,
   site_name: string,
   identifier: string,
   comment: string,

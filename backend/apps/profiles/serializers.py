@@ -1247,6 +1247,7 @@ class SocialLinkSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "site_name",
+            "identifier",
             "url",
             "comment",
         )

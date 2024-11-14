@@ -85,9 +85,26 @@
                 <p>Add links to your social media accounts! We'll reference these to ping you when promoting you on social media.</p>
               </v-col>
               <v-col cols="12">
-                <ac-load-section :controller="socialLinks">
-                  
-                </ac-load-section>
+                <v-row>
+                  <v-col cols="12" md="6" offset-md="3">
+                    <ac-load-section :controller="socialLinks">
+                      <ac-form-container v-bind="socialLinkForm.bind">
+                        <ac-form :form="socialLinkForm" @submit.prevent="socialLinkForm.submitThen(socialLinks.push)">
+                          <ac-bound-field :field="socialLinkForm.fields.url" label="Profile URL" hint="Enter the URL of your social media profile. We'll link it to your account.">
+                            <template v-slot:append>
+                              <v-btn icon color="green" type="submit" aria-label="Submit">
+                                <v-icon>{{mdiPlus}}</v-icon>
+                              </v-btn>
+                            </template>
+                          </ac-bound-field>
+                        </ac-form>
+                      </ac-form-container>
+                      <v-list>
+                        <ac-social-link :link="link" :controls="controls" v-for="link in socialLinks.list" :key="link.x.id"/>
+                      </v-list>
+                    </ac-load-section>
+                  </v-col>
+                </v-row>
               </v-col>
               <v-col cols="12" md="6">
                 <p>
@@ -98,7 +115,7 @@
                 <ac-patch-field
                     field-type="ac-checkbox"
                     label="Display Media Links"
-                    :patcher="socialSettings.patchers.allow_site_promotion"
+                    :patcher="socialSettings.patchers.display_socials"
                 />
                 <v-divider />
               </v-col>
@@ -121,9 +138,17 @@ import {useList} from '@/store/lists/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import AcSocialLink from '@/components/views/settings/social/AcSocialLink.vue'
+import {useSubject} from '@/mixins/subjective.ts'
+import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
+import {useForm} from '@/store/forms/hooks.ts'
+import AcForm from '@/components/wrappers/AcForm.vue'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
+import {mdiPlus} from '@mdi/js'
 
 const props = defineProps<SubjectiveProps>()
 const {setError} = useErrorHandling()
+const {controls} = useSubject({props})
 
 const socialSettings = useSingle<SocialSettings>(
     `${props.username}__socialPrefs`,
@@ -132,7 +157,11 @@ const socialSettings = useSingle<SocialSettings>(
 socialSettings.get().catch(setError)
 const socialLinks = useList<SocialLink>(
     `${props.username}__socialLinks`,
-    {endpoint: `/api/profiles/account/${props.username}/social-links/`},
+    {endpoint: `/api/profiles/account/${props.username}/social-links/`, paginated: false},
 )
 socialLinks.firstRun()
+const socialLinkForm = useForm(`${props.username}__newSocialLink`, {
+  fields: {url: {value: ''}},
+  endpoint: `/api/profiles/account/${props.username}/social-links/from-url/`,
+})
 </script>

@@ -2330,14 +2330,25 @@ class LinkToSocial(GenericAPIView):
         self.check_object_permissions(self.request, user)
         return user
 
-    def perform_create(self, serializer):
+    def post(self, *_args, **_kwargs):
+        serializer = self.get_serializer(data=self.request.data)
+        serializer.is_valid(raise_exception=True)
         social_link_kwargs = link_to_social(serializer.validated_data["url"])
-        SocialLink.objects.create(user=self.get_object(), **social_link_kwargs)
+        instance = SocialLink.objects.create(
+            user=self.get_object(), **social_link_kwargs
+        )
+        return Response(
+            status=status.HTTP_201_CREATED,
+            data=SocialLinkSerializer(
+                instance=instance, context=self.get_serializer_context()
+            ).data,
+        )
 
 
 class SocialLinks(ListCreateAPIView):
     serializer_class = SocialLinkSerializer
     queryset = SocialLink.objects.all()
+    pagination_class = None
     permission_classes = [
         Any(
             ObjectControls,
@@ -2362,13 +2373,15 @@ class SocialLinks(ListCreateAPIView):
 class SocialLinkManager(RetrieveUpdateDestroyAPIView):
     serializer_class = SocialLinkSerializer
     permission_classes = [
-        ObjectControls,
-        All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+        Any(
+            ObjectControls,
+            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+        ),
     ]
 
     def get_object(self):
-        user = get_object_or_404(
-            SocialLink, username=self.kwargs["username"], id=self.kwargs["link"]
+        link = get_object_or_404(
+            SocialLink, user__username=self.kwargs["username"], id=self.kwargs["link"]
         )
-        self.check_object_permissions(self.request, user)
-        return user
+        self.check_object_permissions(self.request, link)
+        return link

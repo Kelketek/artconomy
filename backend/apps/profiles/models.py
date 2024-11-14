@@ -642,10 +642,12 @@ class SocialSettings(Model):
         max_length=150,
         help_text="A quick description of your art/style/offerings, for use by our social media specialist when promoting you.",
         default="",
+        blank=True,
     )
     promotion_notes = TextField(
         max_length=500,
         help_text="Any notes/requests/conditions on using your content in promotions.",
+        blank=True,
     )
     display_socials = BooleanField(
         default=True,
@@ -678,6 +680,7 @@ class SocialLink(Model):
         max_length=30,
         help_text="Short comment, such as 'Cat Photo Account'.",
         default="",
+        blank=True,
     )
 
     class Meta:

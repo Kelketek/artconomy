@@ -34,6 +34,14 @@ LINK_TO_SOCIAL_SCENARIOS: tuple[tuple[str, SocialLinkSpec], ...] = (
         },
     ),
     (
+        "https://m.wEaSYL.com/profile/booper",
+        {
+            "site_name": "Weasyl",
+            "url": "https://weasyl.com/~booper",
+            "identifier": "booper",
+        },
+    ),
+    (
         "https://toyhou.se/beep",
         {
             "site_name": "ToyHou.se",
@@ -79,6 +87,14 @@ LINK_TO_SOCIAL_SCENARIOS: tuple[tuple[str, SocialLinkSpec], ...] = (
             "url": "https://dorkworld.com/profile/Herp",
             "site_name": "dorkworld.com",
             "identifier": "Herp",
+        },
+    ),
+    (
+        "https://www.deviantart.com/Blorp/about/",
+        {
+            "url": "https://www.deviantart.com/Blorp/",
+            "site_name": "DeviantArt",
+            "identifier": "Blorp",
         },
     ),
     (

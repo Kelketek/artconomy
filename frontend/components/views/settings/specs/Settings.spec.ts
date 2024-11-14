@@ -18,6 +18,7 @@ import Email from '@/components/views/settings/Email.vue'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
+import Social from '@/components/views/settings/Social.vue'
 
 vi.useFakeTimers()
 
@@ -96,6 +97,12 @@ const settingRoutes = [{
       component: Email,
       props: true,
     },
+    {
+      name: 'Social',
+      path: 'social',
+      component: Social,
+      props: true,
+    }
   ],
 }]
 

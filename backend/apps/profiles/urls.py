@@ -136,6 +136,11 @@ urlpatterns = [
         name="social_settings",
     ),
     path(
+        "account/<username>/social-links/from-url/",
+        views.LinkToSocial.as_view(),
+        name="link_from_url",
+    ),
+    path(
         "account/<username>/social-links/<int:link>/",
         views.SocialLinkManager.as_view(),
         name="social_settings",
