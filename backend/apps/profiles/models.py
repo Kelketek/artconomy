@@ -633,7 +633,7 @@ class SocialSettings(Model):
         "sense-- such as using screenshots with your content",
     )
     nsfw_promotion = BooleanField(
-        default=True,
+        default=False,
         db_index=True,
         help_text="Whether we may promote your NSFW content on social media which "
         "allows such content, if applicable.",
