@@ -200,6 +200,14 @@ class Product(ImageModel, HitsMixin):
         null=True,
         blank=True,
     )
+    compare_at_price = MoneyField(
+        max_digits=6,
+        decimal_places=2,
+        default_currency="USD",
+        db_index=True,
+        null=True,
+        blank=True,
+    )
     tags = ManyToManyField("lib.Tag", related_name="products", blank=True)
     tags__max = 200
     hidden = BooleanField(

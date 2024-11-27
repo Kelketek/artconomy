@@ -11,7 +11,15 @@
             <v-col cols="6" sm="12" lg="8">
               <ac-link :to="{name: 'Product', params: {productId: `${product.id}`, username: product.user.username}}">
                 <ac-hidden-flag :value="product.table_product || product.hidden"/>
-                <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :alt="productAltText" :eager="eager"/>
+                <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :alt="productAltText" :eager="eager">
+                  <template v-slot:overlay>
+                    <div class="sale-outer" v-if="showDiscount">
+                      <div class="sale-inner">
+                        <v-chip color="red" variant="elevated">Sale!</v-chip>
+                      </div>
+                    </div>
+                  </template>
+                </ac-asset>
               </ac-link>
             </v-col>
           </v-row>
@@ -68,7 +76,7 @@
                 <v-col cols="6" class="hidden-sm-and-down">
                   <v-col cols="12" class="pb-1 no-underline">
                     <ac-link :to="productLink" v-if="product.name_your_price">Name Your Price!</ac-link>
-                    <ac-link :to="productLink" v-else>Starting at</ac-link>
+                    <ac-link :to="productLink" v-else>Starting at <span v-if="showDiscount" class="compare-at-price">${{product.compare_at_price}}</span></ac-link>
                   </v-col>
                   <v-col cols="12" class="no-underline" v-if="!product.name_your_price">
                     <ac-link :to="productLink">
@@ -99,7 +107,15 @@
             <ac-link :to="productLink">
               <ac-hidden-flag :value="product.table_product || product.hidden"/>
               <ac-asset :text="false" :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1"
-                        :allow-preview="false" :alt="productAltText"/>
+                        :allow-preview="false" :alt="productAltText">
+                <template v-slot:overlay>
+                  <div class="sale-outer" v-if="showDiscount">
+                    <div class="sale-inner">
+                      <v-chip color="red" size="small" density="compact" variant="elevated">Sale!</v-chip>
+                    </div>
+                  </div>
+                </template>
+              </ac-asset>
             </ac-link>
           </v-col>
         </v-row>
@@ -108,10 +124,10 @@
             <ac-link :to="productLink">{{product.name}}</ac-link>
           </v-col>
           <v-col cols="12">
-            <v-row no-gutters>
-              <v-col class="grow" v-if="product.name_your_price"><small>Name Your Price!</small></v-col>
-              <v-col class="grow" v-else><small>From</small> ${{product.starting_price}}</v-col>
-              <v-col class="no-underline shrink">
+            <div class="d-flex">
+              <div class="flex-grow-1" v-if="product.name_your_price"><small>Name Your Price!</small></div>
+              <div class="flex-grow-1" v-else><small>From</small><span v-if="showDiscount">&nbsp;</span><span v-if="showDiscount" class="compare-at-price">${{product.compare_at_price}}</span> ${{product.starting_price}}</div>
+              <div class="no-underline shrink">
                 <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
                   <v-tooltip bottom v-if="product.escrow_enabled || product.escrow_upgradable" aria-label="Tooltip for shield status indicator">
                     <template v-slot:activator="{props}">
@@ -122,8 +138,8 @@
                     <span v-else>Shield upgrade available for this product</span>
                   </v-tooltip>
                 </ac-link>
-              </v-col>
-            </v-row>
+              </div>
+            </div>
           </v-col>
         </v-row>
       </v-container>
@@ -132,7 +148,15 @@
   <v-card class="product-preview" :class="{unavailable}" v-else>
     <ac-link :to="productLink">
       <ac-hidden-flag :value="product.table_product || product.hidden"/>
-      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :allow-preview="false" :alt="productAltText"/>
+      <ac-asset :asset="product.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :allow-preview="false" :alt="productAltText">
+        <template v-slot:overlay>
+          <div class="sale-outer" v-if="showDiscount">
+            <div class="sale-inner">
+              <v-chip color="red" variant="elevated">Sale!</v-chip>
+            </div>
+          </div>
+        </template>
+      </ac-asset>
     </ac-link>
     <v-card-text class="pt-2">
       <v-row no-gutters>
@@ -196,7 +220,7 @@
           <ac-link :to="productLink">
             <v-row no-gutters>
               <v-col cols="12" class="pb-1">
-                Starting at
+                Starting at <span v-if="showDiscount" class="compare-at-price">${{product.compare_at_price}}</span>
               </v-col>
               <v-col cols="12">
                 <span class="currency-notation" v-if="product.starting_price">$</span>
@@ -213,6 +237,25 @@
 <style scoped>
 .days-turnaround, .price-display {
   font-size: 2.5rem;
+}
+
+.compare-at-price {
+  text-decoration: line-through;
+  font-size: 70%;
+}
+
+.sale-outer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.sale-inner {
+  position: absolute;
+  right: 5px;
+  bottom: 15%;
 }
 
 .unavailable {
@@ -263,6 +306,17 @@ const startingPrice = computed(() => {
     return props.product.shield_price
   }
   return props.product.starting_price
+})
+
+const showDiscount = computed(() => {
+  if (!props.product.compare_at_price) {
+    return false
+  }
+  let comparison = props.product.starting_price
+  if (props.forceShield) {
+    comparison = props.product.shield_price
+  }
+  return parseFloat(props.product.compare_at_price) > parseFloat(comparison)
 })
 
 const shieldColor = computed(() => {

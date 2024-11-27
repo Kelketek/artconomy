@@ -108,6 +108,7 @@ from apps.sales.constants import (
     VOID,
     WAITING,
     LINE_ITEM_TYPES_TABLE,
+    PRIORITY_MAP,
 )
 from apps.sales.line_item_funcs import (
     ceiling_context,
@@ -1647,7 +1648,7 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
                 LineItemSim(
                     id=300,
                     percentage=settings.TABLE_PERCENTAGE_FEE,
-                    priority=300,
+                    priority=PRIORITY_MAP[TABLE_SERVICE],
                     amount=settings.TABLE_STATIC_FEE,
                     type=TABLE_SERVICE,
                     cascade_percentage=product.cascade_fees,
@@ -1657,7 +1658,7 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
                 LineItemSim(
                     id=600,
                     percentage=settings.TABLE_TAX,
-                    priority=600,
+                    priority=PRIORITY_MAP[TAX],
                     type=TAX,
                     cascade_percentage=product.cascade_fees,
                     cascade_amount=product.cascade_fees,
@@ -1673,19 +1674,27 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
             cascade_fees = False
         else:
             cascade_fees = product.cascade_fees
-        lines.extend(
-            [
-                LineItemSim(
-                    id=200,
-                    amount=plan.shield_static_price,
-                    percentage=plan.shield_percentage_price,
-                    priority=300,
-                    type=SHIELD,
-                    cascade_percentage=cascade_fees,
-                    cascade_amount=cascade_fees,
-                    back_into_percentage=not cascade_fees,
-                ),
-            ]
+        lines.append(
+            LineItemSim(
+                id=200,
+                amount=plan.shield_static_price,
+                percentage=plan.shield_percentage_price,
+                priority=PRIORITY_MAP[SHIELD],
+                type=SHIELD,
+                cascade_percentage=cascade_fees,
+                cascade_amount=cascade_fees,
+                back_into_percentage=not cascade_fees,
+            ),
+        )
+    if not (product.escrow_enabled or force_shield) and plan.per_deliverable_price:
+        lines.append(
+            LineItemSim(
+                id=250,
+                amount=plan.per_deliverable_price,
+                type=PRIORITY_MAP[DELIVERABLE_TRACKING],
+                cascade_amount=product.cascade_fees,
+                priority=250,
+            )
         )
     return lines
 

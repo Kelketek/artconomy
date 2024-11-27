@@ -459,6 +459,7 @@ export interface Product {
   base_price: string,
   starting_price: string,
   shield_price: string,
+  compare_at_price: string|null,
   tags: string[],
   available: boolean,
   featured: boolean,

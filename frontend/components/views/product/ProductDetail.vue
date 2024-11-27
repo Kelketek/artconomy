@@ -273,16 +273,18 @@
           <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
-                <v-col class="text-h4" cols="12">
-                  <span v-if="product.patchers.name_your_price.model">Name Your Price!</span>
+                <v-col cols="12">
+                  <span v-if="product.patchers.name_your_price.model" class="text-h4">Name Your Price!</span>
                   <template v-else>
+                    <div v-if="showDiscount"><span class="compare-at-price">${{product.x.compare_at_price}}</span></div>
                     <span itemprop="offers" itemscope itemtype="http://schema.org/Offer"
                           v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable">
-                      <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price"
+                      <span itemprop="priceCurrency" content="USD" class="text-h4">$</span><span class="text-h4" itemprop="price"
                                                                                  :content="product.x.shield_price">{{product.x.shield_price}}</span>
                     </span>
-                    <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" v-else>
+                    <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" class="text-h4" v-else>
                       <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price"
+                                                                                 class="text-h4"
                                                                                  :content="product.x.starting_price">{{product.x.starting_price}}</span>
                     </span>
                   </template>
@@ -292,15 +294,30 @@
                   <ac-expanded-property v-model="showTerms" :large="true" v-if="controls" aria-label="Edit terms">
                     <template v-slot:title>Edit Terms</template>
                     <v-row>
-                      <v-col cols="12" md="6" lg="4">
+                      <v-col cols="12" md="6">
                         <v-row>
-                          <v-col cols="12" sm="6" lg="12">
+                          <v-col cols="12">
+                            <v-row>
+                              <v-col cols="12" md="6">
+                                <v-checkbox v-model="saleMode" label="Sale mode" hint="Check this to mark the item as on sale." />
+                              </v-col>
+                              <v-col cols="12" md="6">
+                                <ac-patch-field :patcher="product.patchers.compare_at_price" label="Compare at price"
+                                                field-type="ac-price-field"
+                                                :persistent-hint="true"
+                                                :disabled="!saleMode"
+                                                hint="The price the sale price is compared to."
+                                />
+                              </v-col>
+                            </v-row>
+                          </v-col>
+                          <v-col cols="12">
                             <ac-patch-field :patcher="product.patchers.base_price" :label="basePriceLabel"
                                             field-type="ac-price-field"
                                             :hint="priceHint"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6">
+                          <v-col cols="12" md="6">
                             <ac-patch-field
                                 :patcher="product.patchers.cascade_fees" field-type="v-switch" label="Absorb fees"
                                 :persistent-hint="true"
@@ -312,7 +329,7 @@
                                 color="primary"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6">
+                          <v-col cols="12" md="6">
                             <ac-patch-field
                                 :patcher="product.patchers.name_your_price" field-type="v-switch"
                                 label="Name Your Price" :persistent-hint="true"
@@ -325,7 +342,7 @@
                                 color="primary"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6" v-if="fullSubject.paypal_configured">
+                          <v-col cols="12" md="6" v-if="fullSubject.paypal_configured">
                             <ac-patch-field
                                 :patcher="product.patchers.paypal"
                                 field-type="v-switch"
@@ -364,7 +381,7 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <v-col cols="12" md="6" lg="8">
+                      <v-col cols="12" md="6">
                         <ac-price-comparison
                             :username="username" :line-item-set-maps="lineItemSetMaps"
                         />
@@ -577,6 +594,10 @@
   -webkit-box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62);
   box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62); }
 
+.compare-at-price {
+  text-decoration: line-through;
+}
+
 .edit-overlay {
   position: absolute;
   width: 100%;
@@ -682,6 +703,38 @@ const route = useRoute()
 const router = useRouter()
 const {menuTarget} = useTargets()
 const fullSubject = subject as ComputedRef<User>
+const saleMode = computed({
+  get: () => {
+    if (!product.x) {
+      return false
+    }
+    return !!product.patchers.compare_at_price.model
+  },
+  set: (value) => {
+    if (!product.x) {
+      return
+    }
+    if (!value) {
+      product.patchers.compare_at_price.model = null
+      return
+    }
+    if (product.patchers.compare_at_price.model) {
+      return
+    }
+    product.patchers.compare_at_price.model = product.x.starting_price
+  },
+})
+
+const showDiscount = computed(() => {
+  if (!product.x?.compare_at_price) {
+    return false
+  }
+  let comparison = product.x.starting_price
+  if (forceShield.value) {
+    comparison = product.x.shield_price
+  }
+  return parseFloat(product.x.compare_at_price) > parseFloat(comparison)
+})
 
 const assetAltText = (sample: Submission) => {
   const title = sample.title

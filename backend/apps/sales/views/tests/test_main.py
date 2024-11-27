@@ -692,7 +692,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result["revisions"], 2)
         self.assertEqual(result["task_weight"], 2)
         self.assertEqual(result["expected_turnaround"], 3.00)
-        self.assertEqual(result["base_price"], "0.0")
+        self.assertEqual(result["base_price"], "0.00")
         self.assertCountEqual(result["tags"], ["a", "b", "c", "d"])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
@@ -820,7 +820,7 @@ class TestProduct(APITestCase):
             },
         )
         result = response.data
-        self.assertEqual(result["base_price"], "0.5")
+        self.assertEqual(result["base_price"], "0.50")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_product_not_logged_in(self):
@@ -883,7 +883,7 @@ class TestProduct(APITestCase):
         self.assertEqual(result["revisions"], 2)
         self.assertEqual(result["task_weight"], 2)
         self.assertEqual(result["expected_turnaround"], 3.00)
-        self.assertEqual(result["base_price"], "2.5")
+        self.assertEqual(result["base_price"], "2.50")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_product_listing_not_logged_in(self):
@@ -2779,7 +2779,7 @@ class TestInvoiceLineItems(APITestCase):
             f"/api/sales/invoice/{deliverable.invoice.id}/line-items/",
             {"description": "Stuff", "amount": 5, "percentage": 0, "type": EXTRA},
         )
-        self.assertEqual(response.data["amount"], "5.0")
+        self.assertEqual(response.data["amount"], "5.00")
 
     def test_modify_base_line_item(self):
         staff = create_staffer("table_seller")

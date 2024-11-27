@@ -1,5 +1,8 @@
 import os
+from decimal import Decimal
 from typing import List, Union
+
+from moneyed import Money
 
 from apps.lib.abstract_models import THUMBNAIL_IMAGE_EXTENSIONS
 from apps.lib.consumers import register_serializer
@@ -1056,10 +1059,17 @@ class MoneyToString(serializers.FloatField):
     """
     String values are unable to be misinterpreted by approximations and can be turned
     into fixed point values on the other end.
+
+    TODO: Make this properly currency aware.
     """
 
     def to_representation(self, value):
-        return str(value.amount)
+        if isinstance(value, Money):
+            value = value.amount
+        return str(Decimal(value).quantize(Decimal("0.00")))
+
+    def to_internal_value(self, data):
+        return Money(data, settings.DEFAULT_CURRENCY)
 
 
 class CookieConsent(serializers.Serializer):

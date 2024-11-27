@@ -154,6 +154,7 @@ export function genProduct(overrides?: Partial<Product>): Product {
     primary_submission: genSubmission(),
     base_price: '10.00',
     starting_price: '10.00',
+    compare_at_price: null,
     shield_price: '10.00',
     tags: [],
     available: true,

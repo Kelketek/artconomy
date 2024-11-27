@@ -148,7 +148,7 @@
       <ac-markdown-explanation v-model="showMarkdownHelp" v-if="loadMarkdownHelp" />
       <v-snackbar
           :timeout="-1"
-          v-if="socketState.x"
+          v-if="socketState.x && !devMode"
           :model-value="!!(socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion))"
           color="primary"
           shaped

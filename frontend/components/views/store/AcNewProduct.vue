@@ -98,8 +98,23 @@
               </v-stepper-window-item>
               <v-stepper-window-item :value="2">
                 <v-row>
-                  <v-col cols="12" md="6" lg="4">
+                  <v-col cols="12" md="6">
                     <v-row>
+                      <v-col cols="12">
+                        <v-row>
+                          <v-col cols="12" md="6">
+                            <v-checkbox v-model="saleMode" label="Sale mode" hint="Check this to mark the item as on sale." />
+                          </v-col>
+                          <v-col cols="12" md="6">
+                            <ac-bound-field :field="newProduct.fields.compare_at_price" label="Compare at price"
+                                            field-type="ac-price-field"
+                                            :persistent-hint="true"
+                                            :disabled="!saleMode"
+                                            hint="The price the sale price is compared to."
+                            />
+                          </v-col>
+                        </v-row>
+                      </v-col>
                       <v-col cols="12" sm="6" lg="12">
                         <ac-bound-field :field="newProduct.fields.base_price" :label="basePriceLabel"
                                         field-type="ac-price-field"
@@ -116,6 +131,31 @@
                             :true-value="true"
                             :false-value="false"
                             color="primary"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6">
+                        <ac-bound-field
+                            :field="newProduct.fields.name_your_price" field-type="v-switch" label="Name Your Price"
+                            :persistent-hint="true"
+                            hint="If turned on, the base price is treated as a minimum price to cover costs,
+                                     and the client is prompted to put in their own price. This is useful for 'Pay
+                                     What You Want' commissions. You should note whatever impact the price has on the
+                                     commission in the product details in order to avoid any dispute issues."
+                            :true-value="true"
+                            :false-value="false"
+                            color="primary"
+                        />
+                      </v-col>
+                      <v-col cols="12" sm="6" v-if="(subject as User)!.paypal_configured">
+                        <ac-bound-field
+                            :field="newProduct.fields.paypal"
+                            field-type="v-switch"
+                            color="primary"
+                            label="PayPal Invoicing"
+                            :persistent-hint="true"
+                            hint="If the order is marked unshielded, generate a PayPal invoice upon acceptance."
+                            :true-value="true"
+                            :false-value="false"
                         />
                       </v-col>
                       <v-col cols="12" sm="6" v-if="escrow">
@@ -145,39 +185,13 @@
                       </v-col>
                     </v-row>
                   </v-col>
-                  <v-col cols="12" md="6" lg="8">
+                  <v-col cols="12" md="6">
                     <ac-price-comparison
                         :username="username" :line-item-set-maps="lineItemSetMaps"
                     />
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col cols="12" sm="6">
-                    <ac-bound-field
-                        :field="newProduct.fields.name_your_price" field-type="v-switch" label="Name Your Price"
-                        :persistent-hint="true"
-                        hint="If turned on, the base price is treated as a minimum price to cover costs,
-                                     and the client is prompted to put in their own price. This is useful for 'Pay
-                                     What You Want' commissions. You should note whatever impact the price has on the
-                                     commission in the product details in order to avoid any dispute issues."
-                        :true-value="true"
-                        :false-value="false"
-                        color="primary"
-                    />
-                  </v-col>
-                  <v-col cols="12" sm="6" v-if="(subject as User)!.paypal_configured">
-                    <ac-bound-field
-                        :field="newProduct.fields.paypal"
-                        field-type="v-switch"
-                        color="primary"
-                        label="PayPal Invoicing"
-                        :persistent-hint="true"
-                        hint="If the order is marked unshielded, generate a PayPal invoice upon acceptance."
-                        :true-value="true"
-                        :false-value="false"
-                    />
-                  </v-col>
-                  <v-col sm="6" v-else-if="smAndUp"></v-col>
                   <v-col cols="12" sm="6">
                     <ac-bound-field :field="newProduct.fields.expected_turnaround" number
                                     label="Expected Days Turnaround"
@@ -275,15 +289,14 @@
   </ac-form-dialog>
 </template>
 <script setup lang="ts">
-import {useDisplay} from 'vuetify'
 import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import {useSubject} from '@/mixins/subjective.ts'
-import {flatten} from '@/lib/lib.ts'
+import {flatten, min} from '@/lib/lib.ts'
 import {Ratings} from '@/types/enums/Ratings.ts'
-import {deliverableLines} from '@/lib/lineItemFunctions.ts'
+import {deliverableLines, getTotals} from '@/lib/lineItemFunctions.ts'
 import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
@@ -297,7 +310,6 @@ import {User} from '@/store/profiles/types/main'
 
 const props = defineProps<{modelValue: boolean} & SubjectiveProps>()
 const emit = defineEmits<{'update:modelValue': [boolean]}>()
-const {smAndUp} = useDisplay()
 const router = useRouter()
 const {subjectHandler, subject} = useSubject({ props })
 const {setError} = useErrorHandling()
@@ -313,6 +325,10 @@ const newProduct = useForm(`${flatten(props.username)}__newProduct`, {
     name: {value: ''},
     description: {value: ''},
     details_template: {value: ''},
+    compare_at_price: {
+      value: null,
+      step: 2,
+    },
     base_price: {
       value: '25.00',
       step: 2,
@@ -363,6 +379,31 @@ const newProduct = useForm(`${flatten(props.username)}__newProduct`, {
       value: false,
       step: 2,
     },
+  },
+})
+
+const startingAt = computed(() => {
+  return min(
+      lineItemSetMaps.value.map(
+          (lineItemSetMap) => parseFloat(
+              getTotals(lineItemSetMap.lineItems.list.map((entry) => entry.x!)).total,
+          ),
+      )) || 0
+})
+
+const saleMode = computed({
+  get: () => {
+    return !!newProduct.fields.compare_at_price.model
+  },
+  set: (value) => {
+    if (!value) {
+      newProduct.fields.compare_at_price.model = null
+      return
+    }
+    if (newProduct.fields.compare_at_price.model) {
+      return
+    }
+    newProduct.fields.compare_at_price.model = startingAt.value.toFixed(2)
   },
 })
 
@@ -458,7 +499,7 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
   if (appendPreferred) {
     // eslint-disable-next-line camelcase
     sets.push({
-      name: '__preferred',
+      name: pricing.x?.preferred_plan + '',
       lineItems: preferredLines,
       offer: true,
     })

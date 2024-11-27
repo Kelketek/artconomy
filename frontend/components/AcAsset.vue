@@ -83,6 +83,7 @@
         </v-responsive>
       </v-col>
     </v-row>
+    <slot name="overlay" />
     <slot v-if="editing" name="edit-menu">
 
     </slot>

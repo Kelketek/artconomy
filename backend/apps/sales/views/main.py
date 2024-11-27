@@ -541,6 +541,7 @@ class PlaceOrder(CreateAPIView):
             rating=serializer.validated_data["rating"],
             processor=STRIPE,
             created_by=user,
+            cascade_fees=product.cascade_fees,
             details=serializer.validated_data["details"],
         )
         deliverable.characters.set(serializer.validated_data.get("characters", []))

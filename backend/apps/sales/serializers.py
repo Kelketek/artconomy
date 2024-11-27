@@ -115,6 +115,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
     primary_submission = SubmissionSerializer(required=False, allow_null=True)
     tags = TagListField(min=3, hints=PRODUCT_HINTS)
     base_price = MoneyToString()
+    compare_at_price = MoneyToString(allow_null=True, required=False)
     starting_price = MoneyToString(read_only=True)
     shield_price = MoneyToString(read_only=True)
     expected_turnaround = FloatField()
@@ -148,9 +149,9 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             self.fields["wait_list"].read_only = False
 
     def validate_base_price(self, value):
-        if value < 0:
+        if value < Money(0, settings.DEFAULT_CURRENCY):
             raise ValidationError("Price cannot be negative.")
-        return Money(value, settings.DEFAULT_CURRENCY)
+        return value
 
     def validate_primary_submission(self, value):
         if value is None:
@@ -202,6 +203,14 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
                 f"Value too small to have shield upgrade available. Raise until the "
                 f"total is at least {minimum}."
             )
+        if revised.compare_at_price and revised.compare_at_price < total:
+            errors["compare_at_price"].append(
+                "Starting price cannot be higher than compare-at price."
+            )
+            errors["base_price"].append(
+                "Compare-at price cannot be lower starting price. "
+                "Check total in preview calculator."
+            )
         if errors:
             raise ValidationError(errors)
         return data
@@ -220,6 +229,7 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             "expected_turnaround",
             "user",
             "base_price",
+            "compare_at_price",
             "starting_price",
             "shield_price",
             "tags",
@@ -367,10 +377,10 @@ class ProductNewOrderSerializer(
 
     def validate_named_price(self, value):
         if value is None:
-            value = 0
-        if value < 0:
+            value = Money(0, settings.DEFAULT_CURRENCY)
+        if value < Money(0, settings.DEFAULT_CURRENCY):
             raise ValidationError("Price cannot be negative.")
-        return Money(value, settings.DEFAULT_CURRENCY)
+        return value
 
     def validate_email(self, value):
         if not value:
@@ -909,11 +919,11 @@ class LineItemSerializer(serializers.ModelSerializer):
             setattr(revised, field, getattr(instance, field, None))
         revised.update(data)
         if revised.type == TIP:
-            if revised.amount < settings.MINIMUM_TIP.amount:
+            if revised.amount < settings.MINIMUM_TIP:
                 errors["amount"].append(
                     f"Tip may not be less than {settings.MINIMUM_TIP}."
                 )
-            if revised.amount > settings.MAXIMUM_TIP.amount:
+            if revised.amount > settings.MAXIMUM_TIP:
                 errors["amount"].append(
                     f"Tip may not be more than {settings.MAXIMUM_TIP}."
                 )

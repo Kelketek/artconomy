@@ -70,7 +70,9 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             CharacterFactory.create(user=user2, open_requests=True),
         ]
         character_ids = [character.id for character in characters]
-        product = ProductFactory.create(task_weight=5, expected_turnaround=3)
+        product = ProductFactory.create(
+            task_weight=5, expected_turnaround=3, cascade_fees=True
+        )
         response = self.client.post(
             "/api/sales/v1/account/{}/products/{}/order/".format(
                 product.user.username, product.id
@@ -97,6 +99,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.task_weight, 0)
         self.assertEqual(deliverable.expected_turnaround, 0)
         self.assertEqual(deliverable.created_by, user)
+        self.assertTrue(deliverable.cascade_fees)
 
     def test_place_order_references(self):
         user = UserFactory.create()
@@ -121,6 +124,27 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             self.assertTrue(
                 deliverable.reference_set.filter(file__id=asset_id).exists()
             )
+
+    def test_no_cascade_fees(self):
+        user = UserFactory.create()
+        self.login(user)
+        product = ProductFactory.create(
+            task_weight=5, expected_turnaround=3, cascade_fees=False
+        )
+        response = self.client.post(
+            "/api/sales/v1/account/{}/products/{}/order/".format(
+                product.user.username, product.id
+            ),
+            {
+                "details": "Draw me some porn!",
+                "rating": ADULT,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        deliverable = Deliverable.objects.get(
+            id=response.data["default_path"]["params"]["deliverableId"]
+        )
+        self.assertFalse(deliverable.cascade_fees)
 
     def test_place_order_unowned_references(self):
         user = UserFactory.create()
