@@ -3,6 +3,12 @@
   <v-app dark>
     <nav-bar/>
     <v-main class="main-content">
+      <ac-cookied-alert cookie="artist2024BlackFriday" type="warning" :expires="new Date(2024, 11, 5)" v-if="viewer && viewer.artist_mode">
+        <template v-slot:default>
+          Time is running out for holiday listings! Tag <router-link :to="{name: 'Products', params: {username: viewer.username}}">your products</router-link> that can be delivered in time for
+          Christmas with the <strong>blackfriday2024</strong> tag!
+        </template>
+      </ac-cookied-alert>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-error v-else/>
       <ac-form-dialog
