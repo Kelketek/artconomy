@@ -9,6 +9,12 @@
           Christmas with the <strong>blackfriday2024</strong> tag!
         </template>
       </ac-cookied-alert>
+      <!-- Remember to remove the special functions for this. -->
+      <ac-cookied-alert cookie="2024BlackFriday" type="info" :expires="new Date(2024, 11, 8)" v-else-if="viewer">
+        <template v-slot:default>
+          Grab a deal for the holidays! Check our <router-link @click="search({q: 'blackfriday2024'})" :to="{name: 'SearchProducts', query: {q: 'blackfriday2024'}}">holiday listings</router-link>!
+        </template>
+      </ac-cookied-alert>
       <router-view v-if="displayRoute" :key="routeKey"/>
       <ac-error v-else/>
       <ac-form-dialog
@@ -215,7 +221,7 @@ import {
   fallback,
   fallbackBoolean,
   genId,
-  getCookie,
+  getCookie, makeQueryParams,
   paramsKey,
   RATINGS_SHORT,
   searchSchema as baseSearchSchema,
@@ -238,6 +244,7 @@ import AcCookiedAlert from '@/components/AcCookiedAlert.vue'
 import type {Product, SocketState, Submission} from '@/types/main'
 import {TerseUser, User} from '@/store/profiles/types/main'
 import {Character} from '@/store/characters/types/main'
+import {RawData} from '@/store/forms/types/main'
 
 const router = useRouter()
 const route = useRoute()
@@ -282,6 +289,23 @@ searchSchema.fields.page.value = fallback(query, 'page', 1)
 // This variable is accessed in the tests to verify it's set up correctly, even though it does not appear to be used.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const searchForm = useForm('search', searchSchema)
+
+// These next two functions stolen from Home-- remove when we no longer have the Black Friday banner or else
+// refactor.
+const searchReplace = (data: RawData) => {
+  searchForm.reset()
+  for (const key of Object.keys(data)) {
+    searchForm.fields[key].update(data[key])
+  }
+}
+
+const search = (data: RawData) => {
+  searchReplace(data)
+  router.push({
+    name: 'SearchProducts',
+    query: makeQueryParams(searchForm.rawData),
+  })
+}
 
 watch(() => route.fullPath, (newPath: string) => {
   supportForm.fields.referring_url.update(newPath)
