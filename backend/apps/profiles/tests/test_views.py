@@ -2256,7 +2256,6 @@ class TestSocialLinks(APITestCase):
                 "url": "https://artconomy.com/profile/Fox/",
             },
         )
-        print(response.data)
         self.assertEqual(response.data["site_name"], "Artconomy")
         self.assertEqual(response.data["identifier"], "Fox")
         self.assertEqual(response.data["comment"], "Pure awesome.")

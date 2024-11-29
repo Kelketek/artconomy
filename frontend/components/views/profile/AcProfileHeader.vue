@@ -16,6 +16,10 @@
         <v-icon left :icon="mdiMenu"/>
         Menu
       </v-btn>
+      <v-btn color="info" @click="showNotifications=!showNotifications" v-if="powers.view_as && !isCurrent" variant="flat">
+        <v-icon left :icon="mdiMenu"/>
+        Notifications
+      </v-btn>
       <v-btn color="primary" class="message-button" @click="showNew = true" v-if="!isCurrent" variant="flat">
         <v-icon left :icon="mdiMessage"/>
         Message
@@ -69,6 +73,12 @@
             <v-icon :icon="mdiMenu"/>
           </template>
           <v-list-item-title>Menu</v-list-item-title>
+        </v-list-item>
+        <v-list-item v-if="powers.view_as && !isCurrent" @click="showNotifications=true">
+          <template v-slot:prepend>
+            <v-icon :icon="mdiMenu"/>
+          </template>
+          <v-list-item-title>Notifications</v-list-item-title>
         </v-list-item>
         <v-list-item class="message-button" @click="showNew = true" v-if="!isCurrent">
           <template v-slot:prepend>
@@ -159,6 +169,7 @@
         </v-row>
       </v-col>
     </ac-form-dialog>
+    <message-center :username="username" :model-value="showNotifications" v-if="powers.view_as && !isCurrent"/>
   </v-toolbar>
 </template>
 
@@ -181,6 +192,7 @@ import {profileLink} from '@/lib/otherFormatters.ts'
 import {useDisplay} from 'vuetify'
 import type {Conversation, SubjectiveProps} from '@/types/main'
 import {User} from '@/store/profiles/types/main'
+import MessageCenter from '@/components/navigation/MessageCenter.vue'
 
 const props = withDefaults(defineProps<SubjectiveProps & { dense?: boolean, showEdit?: boolean }>(), {
   dense: false,
@@ -202,6 +214,7 @@ const newConversation = useForm('new-conversation', {
 const showNew = ref(false)
 const showMenu = ref(false)
 const display = useDisplay()
+const showNotifications = ref(false)
 
 const blockToggle = () => {
   (subjectHandler.user as SingleController<User>).patch({blocking: subject.value!.blocking})

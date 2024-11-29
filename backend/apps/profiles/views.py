@@ -1164,9 +1164,14 @@ class SalesNotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsRegistered]
 
+    def get_object(self):
+        return get_object_or_404(User, username=self.kwargs["username"])
+
     def get_queryset(self):
+        user = self.get_object()
+        self.check_object_permissions(self.request, user)
         qs = (
-            Notification.objects.filter(user=self.request.user)
+            Notification.objects.filter(user=user)
             .exclude(event__recalled=True)
             .filter(
                 Q(event__type__in=ORDER_NOTIFICATION_TYPES)
