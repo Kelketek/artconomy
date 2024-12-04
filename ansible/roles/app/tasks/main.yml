@@ -298,6 +298,11 @@
     - reload systemd
     - restart companion
 
+- name: Set up logrotate for app log
+  template:
+    src: "templates/logrotate/artconomy"
+    dest: "/etc/logrotate.d/artconomy"
+
 - name: Enable uwsgi service
   service: name=uwsgi enabled=true
 

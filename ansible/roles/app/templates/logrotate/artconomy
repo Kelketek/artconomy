@@ -1,0 +1,9 @@
+"/home/{{ env_prefix }}/logs/*.log" {
+  copytruncate
+  weekly
+  rotate 10
+  compress
+  delaycompress
+  missingok
+  notifempty
+}
