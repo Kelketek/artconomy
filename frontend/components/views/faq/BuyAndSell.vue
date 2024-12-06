@@ -7,8 +7,8 @@
       <template #default>
         <v-card-text>
           <iframe
-              width="560"
-              height="315"
+              :width="videoWidth"
+              :height="videoHeight"
               src="https://www.youtube-nocookie.com/embed/1PyT9JgcDDo?si=Nsp7eYiCS9h3-KmX"
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -74,8 +74,8 @@
       <template #default>
         <v-card-text>
           <iframe
-              width="560"
-              height="315"
+              :width="videoWidth"
+              :height="videoHeight"
               src="https://www.youtube-nocookie.com/embed/1PyT9JgcDDo?si=Nsp7eYiCS9h3-KmX"
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -552,8 +552,8 @@
       <template #default>
         <v-card-text>
           <iframe
-              width="560"
-              height="315"
+              :width="videoWidth"
+              :height="videoHeight"
               src="https://www.youtube-nocookie.com/embed/MMTyxXjN1ko?si=f9DKB3mr4TfregSw"
               title="YouTube video player"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -908,8 +908,9 @@ import {useStore} from 'vuex'
 import {ArtState} from '@/store/artState.ts'
 import AcQuestion from '@/components/views/faq/AcQuestion.vue'
 import {mdiShieldHalfFull} from '@mdi/js'
-import {defineAsyncComponent} from 'vue'
+import {defineAsyncComponent, computed} from 'vue'
 import type {StripeCountryList} from '@/types/main'
+import {useDisplay} from 'vuetify'
 const AcLoadSection = defineAsyncComponent(() => import('@/components/wrappers/AcLoadSection.vue'))
 
 const router = useRouter()
@@ -935,4 +936,15 @@ const searchOpen = () => {
   searchForm.reset()
   router.push({name: 'SearchProducts'})
 }
+const display = useDisplay()
+
+const videoWidth = computed(() => {
+  if ((display.width.value * .8) < 560) {
+    return Math.round(display.width.value * .8)
+  }
+  return 560
+})
+const videoHeight = computed(() => {
+  return Math.round(videoWidth.value / (16 / 9))
+})
 </script>
