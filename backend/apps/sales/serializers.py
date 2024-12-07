@@ -205,10 +205,10 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
             )
         if revised.compare_at_price and revised.compare_at_price < total:
             errors["compare_at_price"].append(
-                "Starting price cannot be higher than compare-at price."
+                f"Starting price ({total}) cannot be higher than compare-at price."
             )
             errors["base_price"].append(
-                "Compare-at price cannot be lower starting price. "
+                f"Compare-at price cannot be lower than the starting price ({total}). "
                 "Check total in preview calculator."
             )
         if errors:

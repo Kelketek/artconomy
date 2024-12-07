@@ -1,5 +1,5 @@
 import os
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from typing import List, Union
 
 from moneyed import Money
@@ -1063,13 +1063,45 @@ class MoneyToString(serializers.FloatField):
     TODO: Make this properly currency aware.
     """
 
+    default_error_messages = {
+        "invalid": "A valid number is required.",
+        "max_value": "Ensure this value is less than or equal to {max_value}.",
+        "min_value": "Ensure this value is greater than or equal to {min_value}.",
+        "max_string_length": "String value too large.",
+        "too_precise": "Too much precision. Reduce the number of decimal places.",
+        "overflow": "Too many digits. Try a smaller number.",
+    }
+
     def to_representation(self, value):
         if isinstance(value, Money):
             value = value.amount
         return str(Decimal(value).quantize(Decimal("0.00")))
 
     def to_internal_value(self, data):
-        return Money(data, settings.DEFAULT_CURRENCY)
+        try:
+            data = Money(data, settings.DEFAULT_CURRENCY)
+        except (TypeError, ValueError, InvalidOperation):
+            self.fail("invalid")
+        except OverflowError:
+            self.fail("overflow")
+        # I feel like there should be some more 'proper' way to do this, not reliant on
+        # locale, but nothing obvious arises in the decimal docs.
+        stringified = str(data.amount)
+        segments = stringified.split(".")
+        if len(segments) > 1:
+            if len(segments[1]) > 2:
+                # Throws exception.
+                self.fail("too_precise")
+        # Now we re-quantize to force the use of two places for precision.
+        # These values are hard-coded for the moment since we shouldn't expect to see
+        # values like '$10,000' be valid any time soon, but that may change with
+        # inflation or when currency support is expanded.
+        data = Money(data.amount.quantize(Decimal("0.00")), data.currency)
+        stringified = str(data.amount)
+        segments = stringified.split(".")
+        if sum([len(segment) for segment in segments]) > 6:
+            self.fail("overflow")
+        return data
 
 
 class CookieConsent(serializers.Serializer):
