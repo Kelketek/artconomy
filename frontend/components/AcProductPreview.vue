@@ -173,7 +173,7 @@
         <v-col>
           <v-row no-gutters>
             <ac-link :to="{name: 'Ratings', params: {username: product.user.username}}" v-if="product.user.stars">
-              <v-rating density="compact" size="small" half-increments :model-value="product.user.stars" color="primary"/>
+              <v-rating density="compact" size="small" half-increments :model-value="starRound(product.user.stars)" color="primary"/>
             </ac-link>
             <v-spacer v-else/>
             <ac-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
@@ -278,6 +278,7 @@ import {RouteLocationRaw} from 'vue-router'
 import {mdiShieldHalfFull} from '@mdi/js'
 import {computed} from 'vue'
 import {useDisplay} from 'vuetify'
+import {starRound} from '@/lib/lib.ts'
 import type {Product} from '@/types/main'
 
 declare interface AcProductPreviewProps {
