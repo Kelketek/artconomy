@@ -218,7 +218,7 @@
                   <v-col cols="12">
                     <h2>AWOO Workload Settings</h2>
                     <v-divider/>
-                    <p>You can set these settings to help the Artconomy Workdload Organization and Overview tool manage
+                    <p>You can set these settings to help the Artconomy Workload Organization and Overview tool manage
                       your workload for you.</p>
                     <p><strong>If you're not sure what to do here, or would like to set these settings later, the
                       defaults should be safe.</strong></p>
