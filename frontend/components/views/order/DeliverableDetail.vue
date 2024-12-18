@@ -390,7 +390,7 @@
           </v-col>
           <v-col cols="12" class="pt-2">
             <v-row no-gutters>
-              <v-col v-if="powers.table_seller || powers.handle_disputes">isStaff
+              <v-col v-if="powers.table_seller || powers.handle_disputes">
                 <v-select
                     v-model="viewMode"
                     :items="viewerItems"

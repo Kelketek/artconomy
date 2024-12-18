@@ -718,6 +718,17 @@ class DeliverableManager(RetrieveUpdateAPIView):
         self.check_object_permissions(self.request, deliverable)
         return deliverable
 
+    @transaction.atomic
+    def perform_update(self, serializer):
+        escrow_changed = serializer.instance.escrow_enabled
+        cascade_fees_changed = serializer.instance.cascade_fees
+        deliverable = serializer.save()
+        escrow_changed = escrow_changed != deliverable.escrow_enabled
+        cascade_fees_changed = cascade_fees_changed != serializer.instance.cascade_fees
+        field_name = "escrow_enabled" if escrow_changed else "amount"
+        field_name = "cascade_fees" if cascade_fees_changed else field_name
+        verify_total(deliverable, field_name)
+
 
 class DeliverableInvite(GenericAPIView):
     permission_classes = [OrderSellerPermission, LimboCheck]

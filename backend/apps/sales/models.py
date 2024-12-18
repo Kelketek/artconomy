@@ -854,9 +854,12 @@ def idempotent_lines(instance: Deliverable):
         instance.invoice.status = OPEN
     if instance.product:
         line = main_qs.update_or_create(
-            defaults={"amount": instance.product.base_price},
+            # We can use the amount for a creation default, but we won't adjust the
+            # base price if it already exists. Doing so can (and has) resulted in
+            # negative payout amounts if the customer lowers their price to something
+            # that shield can't support.
+            create_defaults={"amount": instance.product.base_price},
             invoice=instance.invoice,
-            amount=instance.product.base_price,
             type=BASE_PRICE,
             destination_user=instance.order.seller,
             destination_account=ESCROW,
@@ -1088,19 +1091,6 @@ def update_product_availability(sender, instance, **kwargs):
 @transaction.atomic
 def update_user_availability(sender, instance, **kwargs):
     update_availability(instance.user, instance.load, instance.commissions_disabled)
-
-
-@receiver(post_save, sender=Product)
-def update_deliverable_line_items(sender, instance, **kwargs):
-    invoices = Deliverable.objects.filter(
-        product=instance, status__in=[NEW, PAYMENT_PENDING]
-    ).values_list(
-        "invoice",
-        flat=True,
-    )
-    LineItem.objects.filter(invoice__in=invoices, type=BASE_PRICE).update(
-        amount=instance.base_price
-    )
 
 
 @receiver(post_save, sender=InventoryTracker)

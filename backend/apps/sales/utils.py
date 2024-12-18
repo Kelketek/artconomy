@@ -724,7 +724,7 @@ def fetch_prefixed(prefix: str, values: Iterator[str]) -> str:
     raise ValueError(f"Could not find an entry starting with {prefix} in {values}")
 
 
-def verify_total(deliverable: "Deliverable"):
+def verify_total(deliverable: "Deliverable", field_name="amount"):
     """
     Verifies the total amount on a deliverable is within permitted ranges.
 
@@ -733,13 +733,13 @@ def verify_total(deliverable: "Deliverable"):
     """
     total = deliverable.invoice.total()
     if total < Money(0, "USD"):
-        raise ValidationError({"amount": ["Total cannot end up less than $0."]})
+        raise ValidationError({field_name: ["Total cannot end up less than $0."]})
     if total == Money(0, "USD"):
         return
     if deliverable.escrow_enabled and total < settings.MINIMUM_PRICE:
         raise ValidationError(
             {
-                "amount": [
+                field_name: [
                     f"Total cannot end up less than ${settings.MINIMUM_PRICE.amount}."
                 ]
             }
