@@ -545,6 +545,19 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.auto_cancel_on, None)
 
+    def test_no_product_update(self):
+        """
+        Verify that updating the product's price doesn't affect existing invoices.
+        """
+        deliverable = DeliverableFactory.create(product__base_price=Money(10, "USD"))
+        total = deliverable.invoice.total()
+        assert total >= Money(10, "USD")
+        deliverable.product.base_price = Money(1, "USD")
+        deliverable.product.save()
+        deliverable.refresh_from_db()
+        deliverable.save()
+        assert total == deliverable.invoice.total()
+
 
 class TestCreditCardToken(EnsurePlansMixin, TestCase):
     def test_string(self):

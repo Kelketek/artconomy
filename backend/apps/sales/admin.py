@@ -61,6 +61,8 @@ class DeliverableAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "name",
+        "total",
+        "tip_total",
         "product",
         "buyer",
         "seller",
@@ -76,6 +78,13 @@ class DeliverableAdmin(admin.ModelAdmin):
 
     def seller(self, obj):
         return obj.order.seller
+
+    def total(self, obj):
+        return obj.invoice.total()
+
+    def tip_total(self, obj):
+        if obj.tip_invoice:
+            return f"{obj.tip_invoice.total(), obj.tip_invoice.get_status_display()}"
 
     def link(self, obj):
         return format_html(

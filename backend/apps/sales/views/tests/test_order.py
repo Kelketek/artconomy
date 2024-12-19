@@ -44,7 +44,6 @@ from apps.sales.tests.factories import (
     RevisionFactory,
     StripeAccountFactory,
     add_adjustment,
-    PaypalConfigFactory,
 )
 from apps.sales.tests.test_utils import TransactionCheckMixin
 from ddt import data, ddt
@@ -870,6 +869,57 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(line_item.amount, Money("2.03", "USD"))
         self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user)
+
+    def test_cascade_fees_too_low(self):
+        user = StripeAccountFactory.create(
+            user__artist_mode=True,
+            active=True,
+            user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+        ).user
+        deliverable = DeliverableFactory.create(
+            order__seller=user,
+            product__base_price=Money(4, "USD"),
+            product__cascade_fees=False,
+            product__user=user,
+            escrow_enabled=True,
+            cascade_fees=False,
+        )
+        self.login(user)
+        response = self.client.patch(
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
+            {
+                "cascade_fees": True,
+            },
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("cascade_fees", response.data)
+
+    def test_shield_fees_too_low(self):
+        user = StripeAccountFactory.create(
+            user__artist_mode=True,
+            active=True,
+            user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
+        ).user
+        deliverable = DeliverableFactory.create(
+            order__seller=user,
+            product__base_price=Money(1, "USD"),
+            product__cascade_fees=False,
+            product__user=user,
+            escrow_enabled=False,
+            cascade_fees=False,
+        )
+        self.login(user)
+        response = self.client.patch(
+            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
+            f"{deliverable.id}/",
+            {
+                "escrow_enabled": True,
+            },
+        )
+        deliverable.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("escrow_enabled", response.data)
 
     def test_add_extra_item_staff(self):
         staffer = create_staffer("table_seller")
