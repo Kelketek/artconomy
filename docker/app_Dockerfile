@@ -8,7 +8,9 @@ ARG GROUP_GID=1000
 EXPOSE 8001
 EXPOSE 8002
 # Install essential packages, plus a few packages for live diagnosis if needed.
-RUN apk add bash elfutils-dev geoip gettext git libc-dev linux-headers libmaxminddb-dev libmaxminddb musl-dev ncurses-dev postgresql14-client postgresql14-dev vim
+# Note: Currently, postgres15 is a version ahead of production, since we're on an LTS, but alpine doesn't have
+# 14 anymore.
+RUN apk add bash elfutils-dev geoip gettext git libc-dev linux-headers libmaxminddb-dev libmaxminddb musl-dev ncurses-dev postgresql15-client postgresql15-dev vim
 RUN addgroup -S app -g ${GROUP_GID}
 RUN adduser -S app -G app -h /home/app -s /bin/bash -u ${USER_UID}
 # Main dependencies
