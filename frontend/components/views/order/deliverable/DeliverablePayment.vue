@@ -149,7 +149,7 @@
                            cols="12">
                       <ac-confirmation :action="statusEndpoint('refund')">
                         <template v-slot:default="{on}">
-                          <v-btn v-on="on" variant="flat">
+                          <v-btn v-on="on" variant="flat" color="red">
                             <span v-if="escrow">Refund</span>
                             <span v-else>Mark Refunded</span>
                           </v-btn>

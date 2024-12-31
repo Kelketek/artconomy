@@ -12,7 +12,7 @@ cffi==1.17.1
     # via cryptography
 cryptography==44.0.0
     # via ansible-core
-jinja2==3.1.4
+jinja2==3.1.5
     # via ansible-core
 markupsafe==3.0.2
     # via jinja2

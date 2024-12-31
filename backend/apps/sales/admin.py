@@ -63,7 +63,7 @@ class DeliverableAdmin(admin.ModelAdmin):
         "name",
         "total",
         "tip_total",
-        "product",
+        "product_name",
         "buyer",
         "seller",
         "created_on",
@@ -84,7 +84,12 @@ class DeliverableAdmin(admin.ModelAdmin):
 
     def tip_total(self, obj):
         if obj.tip_invoice:
-            return f"{obj.tip_invoice.total(), obj.tip_invoice.get_status_display()}"
+            return f"{obj.tip_invoice.total()}, {obj.tip_invoice.get_status_display()}"
+
+    def product_name(self, obj):
+        if not obj.product:
+            return ""
+        return obj.product.name
 
     def link(self, obj):
         return format_html(

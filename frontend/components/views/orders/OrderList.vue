@@ -3,23 +3,25 @@
     <v-row v-if="salesWaiting" class="justify-content fill-height" align="center">
       <v-col cols="12" md="6" lg="4" offset-lg="2">
         <v-row class="justify-content fill-height" align="center">
-          <v-col class="grow">
+          <div class="flex-grow-1">
             <ac-bound-field
                 :field="searchForm.fields.product"
                 field-type="ac-product-select"
                 :multiple="false"
                 :username="username"
                 :init-items="productInitItems"
+                :immediate-search="true"
                 v-if="showProduct"
                 label="Filter by product"
                 :prepend-icon="mdiShopping"
             />
-          </v-col>
-          <v-col class="shrink">
+          </div>
+          <div class="flex-shrink-0">
             <ac-confirmation :action="clearWaitlist">
               <template v-slot:default="{on}">
-                <v-btn class="clear-waitlist" color="red" :disabled="(!searchForm.fields.product.value) || inProgress"
-                       v-on="on" aria-label="Clear waitlist">
+                <v-btn class="clear-waitlist ml-2" color="red" :disabled="(!searchForm.fields.product.value) || inProgress"
+                       v-on="on" aria-label="Clear waitlist"
+                >
                   <v-icon :icon="mdiDelete"/>
                 </v-btn>
               </template>
@@ -33,17 +35,17 @@
                 </v-col>
               </template>
             </ac-confirmation>
-          </v-col>
+          </div>
         </v-row>
       </v-col>
       <v-col cols="12" md="6" lg="4" class="text-center">
         <v-row class="justify-content fill-height" align="center">
-          <v-col class="grow">
+          <div class="flex-grow-1">
             <ac-bound-field :field="searchForm.fields.q" :prepend-icon="mdiMagnify" auto-focus
                             label="Search by username or email"
             />
-          </v-col>
-          <v-col class="shrink">
+          </div>
+          <div class="flex-shrink-0">
             <v-tooltip top>
               <template v-slot:activator="{props}">
                 <v-btn v-bind="props" @click="dataMode = true">
@@ -52,7 +54,7 @@
               </template>
               <span>Show orders in 'list mode'.</span>
             </v-tooltip>
-          </v-col>
+          </div>
         </v-row>
       </v-col>
     </v-row>

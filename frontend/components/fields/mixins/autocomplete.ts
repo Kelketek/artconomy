@@ -21,6 +21,8 @@ export interface AutocompleteProps {
   initItems?: IdModel[],
   multiple?: boolean,
   tagging?: boolean,
+  // If this is true, then an empty search value will still be used for a search, allowing a default set of items.
+  immediateSearch?: boolean,
   filter?: (item: IdModel, queryText: string, itemText: string) => boolean,
   allowRaw?: boolean,
 }
@@ -78,7 +80,7 @@ export const useAutocomplete = (
   }
   const items = computed<IdModel[]>({
     get: (): IdModel[] => {
-      if (!query.value && !tags.value) {
+      if (!query.value && !tags.value && !props.immediateSearch) {
         return []
       }
       return [...Object.values({...itemStore.value, ...initMap.value, ...cachedItems.value})]
@@ -124,13 +126,13 @@ export const useAutocomplete = (
       return items.value.filter((val) => (tags.value as number) !== val[itemValue])
     }
   })
-  const searchTags= debounce(_searchTags, 100, {trailing: true})
+  const searchTags = debounce(_searchTags, 100, {trailing: true})
   const itemFilter = (item: IdModel, queryText: string, itemText: string) => {
     if (props.filter) {
       return props.filter(item, queryText, itemText)
     }
     if ((!queryText) || (!queryText.trim())) {
-      return false
+      return !!props.immediateSearch
     }
     if (props.multiple) {
       if (props.modelValue && (props.modelValue as number[]).indexOf(item[itemValue]) !== -1) {
@@ -142,7 +144,8 @@ export const useAutocomplete = (
     return itemText.toLocaleLowerCase().indexOf(queryText.toLocaleLowerCase()) > -1
   }
   watch(query, (val) => {
-    if (!val) {
+    val = val || ''
+    if (!val && !props.immediateSearch) {
       items.value = []
       return
     }
@@ -218,5 +221,6 @@ export const useAutocomplete = (
     cachedItems,
     initMap,
     itemFilter,
+    searchTags,
   }
 }

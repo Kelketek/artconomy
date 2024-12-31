@@ -34,7 +34,10 @@ const input = ref<null|typeof VAutocomplete>(null)
 const fieldAttrs = useAttrs()
 const emit = defineEmits<{'update:modelValue': [AutocompleteEmits]}>()
 const url = `/api/sales/search/product/${props.username}/`
-const {tags, query, items, itemFilter} = useAutocomplete({ props, emit, input, endpoint: url })
+const {tags, query, items, itemFilter, searchTags} = useAutocomplete({ props, emit, input, endpoint: url })
+if (props.immediateSearch) {
+  searchTags(query.value || '')
+}
 
 const formatName = (item: Product|number|unknown[]) => {
   /* istanbul ignore if */
