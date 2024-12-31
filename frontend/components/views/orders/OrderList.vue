@@ -1,6 +1,6 @@
 <template>
-  <v-container fluid :class="{'pa-0': !salesWaiting}">
-    <v-row v-if="salesWaiting" class="justify-content fill-height" align="center">
+  <v-container fluid :class="{'pa-0': !salesSearchable}">
+    <v-row v-if="salesSearchable" class="justify-content fill-height" align="center">
       <v-col cols="12" md="6" lg="4" offset-lg="2">
         <v-row class="justify-content fill-height" align="center">
           <div class="flex-grow-1">
@@ -42,7 +42,8 @@
         <v-row class="justify-content fill-height" align="center">
           <div class="flex-grow-1">
             <ac-bound-field :field="searchForm.fields.q" :prepend-icon="mdiMagnify" auto-focus
-                            label="Search by username or email"
+                            label="Search orders"
+                            hint="Searches client email, username, order description and artist notes."
             />
           </div>
           <div class="flex-shrink-0">
@@ -192,8 +193,8 @@ const orderItems = computed(() => list.list.map((x) => {
   }
 }))
 
-const salesWaiting = computed(() => {
-  return (props.type === 'sales') && (props.category === 'waiting')
+const salesSearchable = computed(() => {
+  return (props.type === 'sales') && (['waiting', 'current'].includes(props.category))
 })
 
 const clearWaitlist = async () => {

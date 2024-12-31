@@ -6,6 +6,7 @@ from typing import Dict, Optional
 from uuid import uuid4
 
 from authlib.integrations.base_client import MissingTokenError
+from django.contrib.postgres.search import SearchVector
 from django.db.models.functions import Collate
 from django.urls import reverse
 from rest_framework.renderers import JSONRenderer
@@ -1906,7 +1907,35 @@ class SalesListBase(ListAPIView):
         return get_object_or_404(User, username=self.kwargs["username"])
 
     def get_queryset(self):
-        return self.extra_filter(self.user.sales.all())
+        qs = self.extra_filter(self.user.sales.all())
+        self.check_object_permissions(self.request, self.get_object())
+        query = self.request.GET.get("q", "").strip()
+        try:
+            kwargs = {
+                "deliverables__product_id": int(self.request.GET.get("product", ""))
+            }
+        except (ValueError, TypeError):
+            kwargs = {}
+        qs = qs.filter(**kwargs)
+        if not query:
+            return qs.distinct().order_by("-created_on")
+        qs = qs.annotate(
+            buyer_username_case=Collate("buyer__username", "und-x-icu"),
+        )
+        qs = qs.annotate(
+            search=SearchVector("deliverables__details", "deliverables__notes")
+        )
+        return (
+            qs.filter(
+                Q(buyer_username_case__startswith=query)
+                | Q(buyer__email__istartswith=query)
+                | Q(customer_email__istartswith=query)
+                | Q(buyer__guest=True, buyer__guest_email__istartswith=query)
+                | Q(search=query)
+            )
+            .distinct()
+            .order_by("created_on")
+        )
 
     def get(self, *args, **kwargs):
         # noinspection PyAttributeOutsideInit
@@ -1927,7 +1956,11 @@ class CancelledSalesList(CancelledMixin, SalesListBase):
     pass
 
 
-class PublicSalesQueue(SalesListBase):
+class WaitingSalesList(WaitingMixin, SalesListBase):
+    pass
+
+
+class PublicSalesQueue(ListAPIView):
     serializer_class = OrderPreviewSerializer
     permission_classes = [Any(ObjectControls, StaffPower("view_as"), PublicQueue)]
 
@@ -1938,6 +1971,9 @@ class PublicSalesQueue(SalesListBase):
         context = super().get_serializer_context()
         context["public"] = True
         return context
+
+    def get_queryset(self):
+        return self.extra_filter(self.user.sales.all())
 
     @staticmethod
     def extra_filter(qs):  # pragma: no cover
@@ -1955,6 +1991,12 @@ class PublicSalesQueue(SalesListBase):
             .order_by("-created_on")
         )
 
+    # noinspection PyAttributeOutsideInit
+    def get(self, *args, **kwargs):
+        self.user = self.get_object()
+        self.check_object_permissions(self.request, self.user)
+        return super().get(*args, **kwargs)
+
 
 class SearchWaiting(ListAPIView):
     permission_classes = [IsRegistered, Any(ObjectControls, StaffPower("table_seller"))]
@@ -1964,34 +2006,6 @@ class SearchWaiting(ListAPIView):
         user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
         return user
-
-    def get_queryset(self):
-        self.check_object_permissions(self.request, self.get_object())
-        query = self.request.GET.get("q", "").strip()
-        try:
-            kwargs = {
-                "deliverables__product_id": int(self.request.GET.get("product", ""))
-            }
-        except (ValueError, TypeError):
-            kwargs = {}
-        qs = Order.objects.filter(
-            deliverables__status=WAITING, seller=self.request.subject, **kwargs
-        )
-        if not query:
-            return qs.distinct().order_by("created_on")
-        qs = qs.annotate(
-            buyer_username_case=Collate("buyer__username", "und-x-icu"),
-        )
-        return (
-            qs.filter(
-                Q(buyer_username_case__startswith=query)
-                | Q(buyer__email__istartswith=query)
-                | Q(customer_email__istartswith=query)
-                | Q(buyer__guest=True, buyer__guest_email__istartswith=query)
-            )
-            .distinct()
-            .order_by("created_on")
-        )
 
 
 class CasesListBase(ListAPIView):

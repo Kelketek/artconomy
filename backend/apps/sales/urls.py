@@ -353,7 +353,7 @@ urlpatterns = [
     ),
     path(
         "account/<username>/sales/waiting/",
-        main.SearchWaiting.as_view(),
+        main.WaitingSalesList.as_view(),
         name="waiting_sales",
     ),
     path(

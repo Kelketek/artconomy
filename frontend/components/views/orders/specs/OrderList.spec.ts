@@ -28,7 +28,7 @@ describe('OrderList.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Recognizes when it is on the waiting list page.', async() => {
+  test('Recognizes when it should show search functionality.', async() => {
     wrapper = mount(OrderList, {
         ...vueSetup({
         router,
@@ -40,13 +40,13 @@ describe('OrderList.vue', () => {
       },
     })
     const vm = wrapper.vm
-    expect(vm.salesWaiting).toBe(true)
-    await wrapper.setProps({category: 'current'})
+    expect(vm.salesSearchable).toBe(true)
+    await wrapper.setProps({category: 'archived'})
     await nextTick()
-    expect(vm.salesWaiting).toBe(false)
+    expect(vm.salesSearchable).toBe(false)
     await wrapper.setProps({category: 'orders'})
     await nextTick()
-    expect(vm.salesWaiting).toBe(false)
+    expect(vm.salesSearchable).toBe(false)
   })
   test('Loads state from query', async() => {
     await router.replace({
