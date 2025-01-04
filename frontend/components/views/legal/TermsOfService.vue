@@ -11,7 +11,7 @@
         </div>
       </v-col>
       <v-col cols="12">
-        <p><strong>Last updated: March 29, 2024</strong></p>
+        <p><strong>Last updated: January 4, 2024</strong></p>
 
         <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
           the https://artconomy.com/ website (the "Service") operated by
@@ -177,6 +177,7 @@
 
         <ul>
           <li>Sale or display of pornographic artwork that contains or is photography of real persons</li>
+          <li>Sale or display of artwork whose contents violates the laws of Texas and/or the United States of America.</li>
           <li>Use of Artconomy's escrow service to perform any illegal transaction</li>
           <li>Use of the site to circumvent or violate Intellectual Property laws</li>
         </ul>
