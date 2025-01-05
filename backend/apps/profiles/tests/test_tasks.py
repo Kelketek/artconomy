@@ -68,6 +68,7 @@ class SubmissionRemovalTestCase(EnsurePlansMixin, TestCase):
         submission_stays_2 = SubmissionFactory.create(
             removed_on=make_aware(datetime(year=2019, month=7, day=15))
         )
+        submission_stays_3 = SubmissionFactory.create()
         submission_removed = SubmissionFactory.create(
             removed_on=make_aware(datetime(year=2019, month=6, day=1))
         )
@@ -76,6 +77,7 @@ class SubmissionRemovalTestCase(EnsurePlansMixin, TestCase):
             submission_removed.refresh_from_db()
         submission_stays.refresh_from_db()
         submission_stays_2.refresh_from_db()
+        submission_stays_3.refresh_from_db()
 
 
 @patch("apps.profiles.tasks.drip")
