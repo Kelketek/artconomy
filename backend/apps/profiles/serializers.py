@@ -4,6 +4,7 @@ from urllib.parse import quote_plus
 from django.db.models import Q
 
 from apps.lib.abstract_models import RATINGS
+from apps.lib.constants import FLAG_REASONS
 from apps.lib.consumers import register_serializer
 from apps.lib.serializers import (
     CharacterListField,
@@ -225,6 +226,8 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
             "comment_count",
             "favorite_count",
             "comments_disabled",
+            "removed_on",
+            "removed_reason",
             "tags",
             "characters",
             "artists",
@@ -232,7 +235,7 @@ class SubmissionSerializer(IdWritable, RelatedAtomicMixin, serializers.ModelSeri
             "display_position",
             "preview",
         )
-        read_only_fields = ("tags",)
+        read_only_fields = ("tags", "removed_on", "removed_reason")
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -265,6 +268,8 @@ class SubmissionNotificationSerializer(serializers.ModelSerializer):
             "created_on",
             "owner",
             "favorite_count",
+            "removed_on",
+            "removed_reason",
             "comments_disabled",
             "tags",
             "preview",
@@ -1060,6 +1065,14 @@ def user_value_taken(property_name):
 class ContactSerializer(serializers.Serializer):
     email = serializers.EmailField()
     body = serializers.CharField(max_length=10000)
+    referring_url = serializers.CharField(max_length=1000, required=False)
+
+
+# noinspection PyAbstractClass
+class ReportSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    body = serializers.CharField(max_length=10000)
+    flag = serializers.ChoiceField(choices=FLAG_REASONS)
     referring_url = serializers.CharField(max_length=1000, required=False)
 
 

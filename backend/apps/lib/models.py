@@ -3,7 +3,12 @@ from uuid import uuid4
 
 import reversion
 from apps.lib.abstract_models import ALLOWED_EXTENSIONS
-from apps.lib.constants import EVENT_TYPES, COMMENT, ORDER_NOTIFICATION_TYPES
+from apps.lib.constants import (
+    EVENT_TYPES,
+    COMMENT,
+    ORDER_NOTIFICATION_TYPES,
+    FLAG_REASONS,
+)
 from apps.lib.permissions import CommentViewPermission, Any, StaffPower
 from apps.lib.tasks import check_asset_associations, generate_thumbnails
 from django.conf import settings
@@ -324,13 +329,27 @@ def generate_thumbnails_async(sender, fieldfile, **kwargs):
 class Asset(Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     uploaded_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="uploaded_assets",
     )
     file = ThumbnailerImageField(
         upload_to="art/%Y/%m/%d/",
         validators=[FileExtensionValidator(allowed_extensions=ALLOWED_EXTENSIONS)],
     )
     hash = models.BinaryField(max_length=32, default=b"", db_index=True)
+    redacted_on = models.DateTimeField(null=True, db_index=True, blank=True)
+    redacted_by = models.ForeignKey(
+        "profiles.User",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assets_redacted",
+    )
+    redacted_reason = models.IntegerField(
+        choices=FLAG_REASONS, null=True, blank=True, db_index=True
+    )
     created_on = DateTimeField(default=timezone.now)
     edited_on = DateTimeField(auto_now=True)
 
@@ -351,6 +370,15 @@ class Asset(Model):
             if getattr(item, "can_reference_asset", lambda x: False)(user):
                 return True
         return False
+
+    def redact(self, *, reason, by):
+        """
+        Delete the associated file and blacklist it from being uploaded ever again.
+        """
+        self.file.delete()
+        self.redacted_by = by
+        self.redacted_reason = reason
+        self.save()
 
     def delete(self, using=None, keep_parents=False, cleanup=False):
         if not cleanup:

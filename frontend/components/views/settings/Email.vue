@@ -155,6 +155,15 @@
                   color="primary"
                   hint="Staffers may contact you directly if we detect an issue with your account"/>
             </v-col>
+            <v-col cols="12" sm="6" md="4">
+              <v-switch
+                  label="Terms of Service Violations"
+                  :disabled="true"
+                  :model-value="true"
+                  :persistent-hint="true"
+                  color="primary"
+                  hint="We may notify you if we have to take action on your account or content due to terms of service violations."/>
+            </v-col>
           </v-row>
         </v-card-text>
       </v-card>

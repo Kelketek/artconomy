@@ -35,6 +35,9 @@ from apps.lib.constants import (
     WAITLIST_UPDATED,
     TIP_RECEIVED,
     REVISION_APPROVED,
+    FLAG_REASONS,
+    SUBMISSION_KILLED,
+    PRODUCT_KILLED,
 )
 from apps.lib.utils import add_check, set_tags, tag_list_cleaner
 from apps.profiles.models import (
@@ -687,6 +690,20 @@ def commissions_open(obj, context):
     }
 
 
+def submission_killed(obj, context):
+    return {
+        "display": notification_display(obj.target.owner, context),
+        "comment": obj.data["comment"],
+    }
+
+
+def product_killed(obj, context):
+    return {
+        "display": notification_display(obj.target.user, context),
+        "comment": obj.data["comment"],
+    }
+
+
 NOTIFICATION_TYPE_MAP = {
     CHAR_TAG: char_tag,
     ORDER_UPDATE: order_update,
@@ -708,6 +725,8 @@ NOTIFICATION_TYPE_MAP = {
     TIP_RECEIVED: order_update,
     REVISION_APPROVED: revision_approved,
     COMMISSIONS_OPEN: commissions_open,
+    SUBMISSION_KILLED: submission_killed,
+    PRODUCT_KILLED: product_killed,
 }
 
 
@@ -1139,3 +1158,10 @@ class AssetSerializer(serializers.ModelSerializer):
         model = Asset
         fields = ("id", "hash", "created_on", "uploaded_by", "file")
         read_only_fields = fields
+
+
+class KillSerializer(serializers.Serializer):
+    flag = serializers.ChoiceField(choices=FLAG_REASONS)
+    comment = serializers.CharField(
+        max_length=1024, allow_blank=True, required=False, default=""
+    )

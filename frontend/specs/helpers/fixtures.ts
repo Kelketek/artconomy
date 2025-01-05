@@ -138,6 +138,8 @@ export function genProduct(overrides?: Partial<Product>): Product {
     table_product: false,
     international: false,
     escrow_enabled: true,
+    removed_on: null,
+    removed_reason: null,
     user: {
       id: 1,
       username: 'Fox',

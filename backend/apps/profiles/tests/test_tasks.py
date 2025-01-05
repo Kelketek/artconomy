@@ -4,15 +4,17 @@ from unittest.mock import patch
 from apps.lib.abstract_models import ADULT, MATURE
 from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
-from apps.profiles.models import Conversation
+from apps.profiles.models import Conversation, Submission
 from apps.profiles.tasks import (
     clear_blank_conversations,
     drip_tag,
+    remove_expired_submissions,
 )
 from apps.profiles.tests.factories import (
     ConversationFactory,
     UserFactory,
     CharacterFactory,
+    SubmissionFactory,
 )
 from apps.sales.constants import COMPLETED
 from django.contrib.contenttypes.models import ContentType
@@ -54,6 +56,26 @@ class MessageClearTestCase(EnsurePlansMixin, TestCase):
         )
         clear_blank_conversations()
         conversation.refresh_from_db()
+
+
+class SubmissionRemovalTestCase(EnsurePlansMixin, TestCase):
+    @freeze_time("2019-08-01")
+    @override_settings(EVIDENCE_DAYS=30)
+    def test_remove_only_past_cutoff(self):
+        submission_stays = SubmissionFactory.create(
+            removed_on=make_aware(datetime(year=2019, month=8, day=1))
+        )
+        submission_stays_2 = SubmissionFactory.create(
+            removed_on=make_aware(datetime(year=2019, month=7, day=15))
+        )
+        submission_removed = SubmissionFactory.create(
+            removed_on=make_aware(datetime(year=2019, month=6, day=1))
+        )
+        remove_expired_submissions()
+        with self.assertRaises(Submission.DoesNotExist):
+            submission_removed.refresh_from_db()
+        submission_stays.refresh_from_db()
+        submission_stays_2.refresh_from_db()
 
 
 @patch("apps.profiles.tasks.drip")

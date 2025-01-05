@@ -31,6 +31,7 @@ import {ViewerType} from '@/types/enums/ViewerType.ts'
 import type {ListModuleOpts} from '@/store/lists/types.d.ts'
 import {NamelessFormSchema} from '@/store/forms/types/main'
 import {Character, CharacterModuleOpts} from '@/store/characters/types/main'
+import {ReportFlags} from '@/types/enums/ReportFlags.ts'
 
 export interface SortableModel {
   display_position: number,
@@ -71,6 +72,8 @@ export type AcServerError = AxiosError<{ detail: any } | Record<string, string[]
 
 export type RatingsValue = typeof Ratings[keyof typeof Ratings]
 
+export type ReportFlagsValue = typeof ReportFlags[keyof typeof ReportFlags]
+
 export interface Submission extends Asset {
   id: number,
   title: string,
@@ -80,6 +83,8 @@ export interface Submission extends Asset {
   owner: RelatedUser,
   comment_count: number,
   favorite_count: number,
+  removed_on: string|null,
+  removed_reason: ReportFlagsValue|null,
   rating: RatingsValue,
   tags: string[],
   favorites: boolean,
@@ -150,15 +155,17 @@ export interface AssetProps {
   alt: string,
 }
 
-export interface FileSpec {
+declare interface FileSpecBase {
   [key: string]: string
 }
+
+export type FileSpec = FileSpecBase | null
 
 export interface Asset {
   file: FileSpec,
   tags?: string[],
   rating: RatingsValue,
-  preview?: FileSpec | null,
+  preview?: FileSpec,
 }
 
 export interface Attribute {
@@ -398,7 +405,8 @@ export interface NotificationSettings {
   new_comment__deliverable: Boolean,
   commissions_automatically_closed: Boolean,
   new_comment__conversation: Boolean,
-  referral_landscape_credit: Boolean
+  referral_landscape_credit: Boolean,
+  submission_killed: Boolean,
 }
 
 export declare interface NotificationStats {
@@ -451,6 +459,8 @@ export interface Product {
   hidden: boolean,
   max_parallel: number,
   max_rating: RatingsValue,
+  removed_on: string|null,
+  removed_reason: ReportFlagsValue|null,
   hits: number,
   task_weight: number
   expected_turnaround: number,

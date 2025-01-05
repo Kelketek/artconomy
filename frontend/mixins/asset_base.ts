@@ -47,7 +47,10 @@ export function extPreview(filename: string) {
   return `/static/icons/${ext}.png`
 }
 
-export function thumbFromSpec(thumbName: string, spec: FileSpec) {
+export function thumbFromSpec(thumbName: string, spec: FileSpec, fallback: string) {
+  if (!spec) {
+    return
+  }
   if ((['gallery', 'full', 'preview'].indexOf(thumbName) !== -1) && getExt(spec.full) === 'GIF') {
     return spec.full
   }
@@ -63,13 +66,13 @@ const getDisplayImage = (asset: Asset|null, thumbName: string, isImage: boolean,
   }
   if (['gallery', 'full', 'preview'].indexOf(thumbName) === -1) {
     if (asset.preview) {
-      return thumbFromSpec('thumbnail', asset.preview)
+      return thumbFromSpec('thumbnail', asset.preview, fallbackImage)
     }
   }
   if (!isImage) {
     return extPreview(asset.file.full)
   }
-  return thumbFromSpec(thumbName, asset.file)
+  return thumbFromSpec(thumbName, asset.file, fallbackImage)
 }
 
 const getIsImage = (asset: Asset|null) => {
@@ -156,11 +159,13 @@ export const useAssetHelpers = (props: AssetProps) => {
   }
 }
 
+export const defaultFallbackImage = '/static/images/default-avatar.png'
+
 export const assetDefaults = () => ({
   compact: false,
   terse: false,
   popOut: false,
   contain: false,
-  fallbackImage: '/static/images/default-avatar.png',
+  fallbackImage: defaultFallbackImage,
 })
 

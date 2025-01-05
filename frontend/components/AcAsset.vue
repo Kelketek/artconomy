@@ -192,6 +192,9 @@ const displayComponent = computed(() => {
   if (!props.asset) {
     return null
   }
+  if (!props.asset.file) {
+    return null
+  }
   const ext = getExt(props.asset.file.full)
   if (['gallery', 'full', 'preview'].indexOf(props.thumbName) === -1) {
     return null

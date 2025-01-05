@@ -266,3 +266,12 @@ class PermittedAsset(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return obj.can_reference(request)
+
+
+class Living(BasePermission):
+    message = "This resource has been removed for legal reasons."
+
+    def has_object_permission(self, request, view, obj):
+        if obj.removed_on and not request.user.is_superuser:
+            return False
+        return True

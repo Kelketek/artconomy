@@ -68,6 +68,7 @@ import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlis
 import AcTipReceived from '@/components/views/notifications/events/AcTipReceived.vue'
 import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.vue'
 import AcRevisionApproved from '@/components/views/notifications/events/AcRevisionApproved.vue'
+import AcSubmissionKilled from '@/components/views/notifications/events/AcSubmissionKilled.vue'
 import {useList} from '@/store/lists/hooks.ts'
 import {useSubject} from '@/mixins/subjective.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
@@ -101,6 +102,7 @@ const components = {
   37: AcTipReceived,
   38: AcAutoClosed,
   39: AcRevisionApproved,
+  40: AcSubmissionKilled,
 }
 
 declare interface NotificationsListProps extends SubjectiveProps {

@@ -28,6 +28,8 @@ from apps.lib.constants import (
     REFERENCE_UPLOADED,
     TIP_RECEIVED,
     REVISION_APPROVED,
+    FLAG_REASONS,
+    PRODUCT_KILLED,
 )
 from apps.lib.permissions import Any, StaffPower
 from apps.lib.utils import (
@@ -233,6 +235,11 @@ class Product(ImageModel, HitsMixin):
         blank=True,
         through="sales.Sample",
     )
+    removed_on = DateTimeField(null=True, db_index=True, blank=True)
+    removed_by = ForeignKey("profiles.User", null=True, blank=True, on_delete=SET_NULL)
+    removed_reason = IntegerField(
+        choices=FLAG_REASONS, db_index=True, null=True, blank=True
+    )
     created_on = DateTimeField(default=timezone.now, db_index=True)
     edited_on = DateTimeField(db_index=True, auto_now=True)
     shippable = BooleanField(default=False)
@@ -368,6 +375,19 @@ class Sample(models.Model):
     )
 
 
+@receiver(post_save, sender=Product)
+def auto_subscribe_product(sender, instance, created=False, **kwargs):
+    if not created:
+        return
+    Subscription.objects.create(
+        subscriber=instance.owner,
+        content_type=ContentType.objects.get_for_model(sender),
+        object_id=instance.id,
+        type=PRODUCT_KILLED,
+        email=True,
+    )
+
+
 # noinspection PyUnusedLocal
 @receiver(post_delete, sender=Product)
 @disable_on_load
@@ -378,6 +398,9 @@ def auto_remove_product_notifications(sender, instance, **kwargs):
     ).delete()
 
 
+clear_product_events = receiver(post_save, sender=Product)(
+    disable_on_load(clear_events)
+)
 product_thumbnailer = receiver(post_save, sender=Product)(thumbnail_hook)
 
 

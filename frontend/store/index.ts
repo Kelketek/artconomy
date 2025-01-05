@@ -15,6 +15,7 @@ export function storeDefaults(): StoreOptions<ArtState> {
     state: {
       projectName: 'Artconomy',
       showSupport: false,
+      showReport: false,
       markdownHelp: false,
       uploadVisible: false,
       iFrame: false,
@@ -29,6 +30,9 @@ export function storeDefaults(): StoreOptions<ArtState> {
     mutations: {
       supportDialog(state, value: boolean) {
         state.showSupport = value
+      },
+      reportDialog(state, value: boolean) {
+        state.showReport = value
       },
       pushAlert(state, alert: Alert) {
         const defaults = {

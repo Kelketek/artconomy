@@ -53,6 +53,9 @@ def check_asset_associations(self, asset_id: str):
         try:
             asset.file.delete_thumbnails()
             asset.file.delete()
+            if asset.redacted_on:
+                # Preserve this hash.
+                return
             asset.delete(cleanup=True)
         except Exception as err:
             self.retry(

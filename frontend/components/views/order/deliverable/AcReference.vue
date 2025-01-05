@@ -3,7 +3,7 @@
     <v-col cols="12">
       <ac-unread-marker :read="reference.read">
         <div class="pop-out-container">
-          <v-btn icon absolute left color="secondary" variant="flat" class="pop-out-button" @click="refTab">
+          <v-btn icon absolute left color="secondary" variant="flat" class="pop-out-button" @click="refTab" v-if="props.reference.file">
             <v-icon :icon="mdiTab"/>
           </v-btn>
           <ac-link
@@ -38,5 +38,10 @@ import type {Reference} from '@/types/main'
 
 const route = useRoute()
 const props = defineProps<{reference: Reference, baseName: string}>()
-const refTab = () => window.open(props.reference.file.full, '_blank')
+const refTab = () => {
+  if (!props.reference.file) {
+    return
+  }
+  window.open(props.reference.file.full, '_blank')
+}
 </script>

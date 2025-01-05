@@ -29,6 +29,7 @@ from apps.lib.constants import (
     REFERENCE_UPLOADED,
     WAITLIST_UPDATED,
     REVISION_APPROVED,
+    PRODUCT_KILLED,
 )
 from apps.lib.permissions import (
     All,
@@ -38,7 +39,7 @@ from apps.lib.permissions import (
     StaffPower,
     SessionKeySet,
 )
-from apps.lib.serializers import CommentSerializer, UserInfoSerializer
+from apps.lib.serializers import CommentSerializer, UserInfoSerializer, KillSerializer
 from apps.lib.utils import (
     count_hit,
     create_comment,
@@ -349,6 +350,38 @@ class ProductManager(RetrieveUpdateDestroyAPIView):
         HitCountMixin.hit_count(self.request, hit_count)
         self.check_object_permissions(self.request, product)
         return product
+
+
+class KillProduct(GenericAPIView):
+    serializer = KillSerializer
+    permission_classes = [StaffPower("moderate_content")]
+
+    def get_object(self):
+        product = get_object_or_404(
+            Product,
+            user__username=self.kwargs["username"],
+            id=self.kwargs["product"],
+            active=True,
+        )
+        self.check_object_permissions(self.request, product)
+        return product
+
+    def post(self, request, **kwargs):
+        product = self.get_object()
+        self.check_object_permissions(self.request, product)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reason = serializer.validated_data["flag"]
+        product.removed_on = timezone.now()
+        product.removed_by = request.user
+        product.remove_reason = reason
+        notify(
+            PRODUCT_KILLED,
+            product,
+            data={"comment": serializer.validated_data["comment"]},
+            unique=True,
+        )
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ProductInventoryManager(RetrieveUpdateAPIView):

@@ -19,6 +19,7 @@ urlpatterns = [
     ),
     path("countries/", views.CountryListing.as_view(), name="country_listing"),
     path("support/request/", views.SupportRequest.as_view(), name="support_request"),
+    path("support/report/", views.Report.as_view(), name="support_request"),
     path("asset/<uuid:pk>/", views.AssetDetail.as_view(), name="asset_detail"),
     path("asset/", views.AssetUpload.as_view(), name="asset_upload"),
     path("noop/", views.NoOp.as_view(), name="no_op"),

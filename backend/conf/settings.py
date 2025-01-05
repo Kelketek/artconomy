@@ -446,6 +446,7 @@ TIP_DAYS = int(get_env("TIP_DAYS", "5"))
 # Number of days an order will stay in Limbo before it is automatically cancelled.
 LIMBO_DAYS = int(get_env("LIMBO_DAYS", "10"))
 
+EVIDENCE_DAYS = int(get_env("EVIDENCE_DAYS", "15"))
 # Number of days until an order marked 'NEW' will automatically cancel and close the
 # artist's commissions.
 # NOTE: This will only affect new/newly commented on orders.
@@ -647,6 +648,10 @@ CELERYBEAT_SCHEDULE = {
     "promote_top_sellers": {
         "task": "apps.sales.tasks.promote_top_sellers",
         "schedule": crontab(hour=10, minute=30, day_of_month=1),
+    },
+    "removed_expired_submissions": {
+        "task": "apps.profiles.tasks.remove_expired_submissions",
+        "schedule": crontab(hour=3, minute=15),
     },
 }
 

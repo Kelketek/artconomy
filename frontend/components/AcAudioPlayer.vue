@@ -5,7 +5,7 @@
     </v-col>
     <v-col class="text-center" cols="12">
       <audio controls>
-        <source :src="asset.file.full" :type="type">
+        <source :src="asset.file!.full" :type="type">
       </audio>
     </v-col>
   </v-row>
@@ -17,5 +17,5 @@ import {computed} from 'vue'
 import type {Asset} from '@/types/main'
 
 const props = defineProps<{asset: Asset, alt: string}>()
-const type = computed(() =>  'audio/' + getExt(props.asset.file.full).toLowerCase())
+const type = computed(() =>  'audio/' + getExt(props.asset.file!.full).toLowerCase())
 </script>

@@ -24,6 +24,7 @@ export interface Alert {
 export interface ArtState {
   projectName: string,
   showSupport: boolean,
+  showReport: boolean,
   markdownHelp: boolean,
   uploadVisible: boolean,
   iFrame: boolean,

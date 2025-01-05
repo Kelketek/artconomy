@@ -2,7 +2,7 @@
   <v-row no-gutters class="ac-video-player">
     <v-col class="text-center" cols="12">
       <video controls :width="width" style="max-width: 100%">
-        <source :src="asset.file.full" :type="type">
+        <source :src="asset.file!.full" :type="type">
       </video>
     </v-col>
   </v-row>
@@ -22,6 +22,6 @@ const VID_TYPES = {
 
 const props = defineProps<{asset: Asset}>()
 // @ts-expect-error
-const type = computed(() => VID_TYPES[getExt(props.asset.file.full)] || 'type/unknown')
+const type = computed(() => VID_TYPES[getExt(props.asset.file!.full)] || 'type/unknown')
 const width = 800
 </script>

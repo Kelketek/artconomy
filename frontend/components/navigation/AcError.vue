@@ -28,6 +28,9 @@
         <p v-else-if="code === 403">
           Access to this page is restricted. Please make sure you're logged into an account that has access to it.
         </p>
+        <p v-else-if="code === 451">
+          Access to this content is removed for legal or administrative reasons.
+        </p>
         <p v-else>
           Something weird happened. Could you please contact support and tell us about it?
         </p>

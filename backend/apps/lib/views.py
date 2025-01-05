@@ -2,6 +2,7 @@ from collections import OrderedDict
 
 from django.urls import reverse
 
+from apps.lib.constants import FLAG_LOOKUP
 from apps.lib.middleware import OlderThanPagination
 from apps.lib.models import Asset, Comment
 from apps.lib.permissions import (
@@ -38,7 +39,11 @@ from apps.lib.utils import (
 )
 from apps.profiles.models import User
 from apps.profiles.permissions import IsRegistered, ObjectControls, staff_power
-from apps.profiles.serializers import ContactSerializer, PositionShiftSerializer
+from apps.profiles.serializers import (
+    ContactSerializer,
+    PositionShiftSerializer,
+    ReportSerializer,
+)
 from django.apps import apps
 from django.conf import settings
 from django.core.cache import cache
@@ -390,10 +395,39 @@ class SupportRequest(APIView):
             "body": serializer.validated_data["body"],
             "ip": get_client_ip(request),
             "username": username,
-            "path": serializer.validated_data["referring_url"],
+            "path": make_url(serializer.validated_data["referring_url"]),
             "user_agent": request.META.get("HTTP_USER_AGENT"),
         }
         message = get_template("support_email.txt").render(ctx)
+        msg = EmailMessage(
+            subject,
+            message,
+            to=[settings.ADMINS[0][1]],
+            headers={"Reply-To": from_email},
+        )
+        msg.send()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class Report(APIView):
+    # noinspection PyMethodMayBeStatic
+    def post(self, request):
+        serializer = ReportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        subject = "Content Report"
+        from_email = serializer.validated_data["email"]
+        username = "<Anonymous>"
+        if request.user.is_authenticated:
+            username = request.user.username
+        ctx = {
+            "body": serializer.validated_data["body"],
+            "ip": get_client_ip(request),
+            "username": username,
+            "path": make_url(serializer.validated_data["referring_url"]),
+            "user_agent": request.META.get("HTTP_USER_AGENT"),
+            "flag": FLAG_LOOKUP[serializer.validated_data["flag"]],
+        }
+        message = get_template("report_email.txt").render(ctx)
         msg = EmailMessage(
             subject,
             message,
@@ -428,7 +462,15 @@ class AssetUpload(APIView):
         else:
             asset = None
         # If we already have a file with this hash, there's no need to store it again.
-        if not asset:
+        if asset and asset.redacted_on:
+            raise ValidationError(
+                {
+                    "files[]": [
+                        f"Detected non-permitted file. Reason: {asset.get_redacted_reason_display()}"
+                    ]
+                }
+            )
+        elif not asset:
             asset = Asset(file=file_obj, uploaded_by=user, hash=digest)
             asset.clean()
             asset.save()

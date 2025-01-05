@@ -1,0 +1,12 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Removed.{% endblock %}
+{% block message %}
+<p>Your product with ID {{target.id}} named "{{target.name}}" has been removed. Reason: {{raw_target.get_removed_reason_display}}</p>
+{% if event.data.comment %}
+<p>The following comment was added by the staffer who removed this product: {{event.data.comment}}</p>
+{% endif %}
+{% endblock message %}
+
+{% block action %}
+<a href="/profiles/{{target.user.username}}/">Review your profile here.</a>
+{% endblock %}

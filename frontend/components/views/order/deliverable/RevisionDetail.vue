@@ -11,7 +11,7 @@
             <ac-form-container v-bind="approveForm.bind" v-if="revision.x">
               <v-row>
                 <v-col class="text-center" cols="12" :lg="isBuyer && !isFinal ? '6' : '12'" v-if="isBuyer || archived">
-                  <v-btn color="green" :href="revision.x.file.full" variant="flat" download>
+                  <v-btn color="green" :href="revision.x.file.full" variant="flat" download v-if="revision.x.file">
                     <v-icon left :icon="mdiCloudDownload"/>
                     Download
                   </v-btn>
@@ -29,6 +29,7 @@
                 </v-col>
                 <v-col class="text-center" cols="6" lg="3" v-else-if="isSeller">
                   <v-btn icon small color="green" :href="revision.x.file.full" variant="flat" download
+                         v-if="revision.x.file"
                          aria-label="Download">
                     <v-icon :icon="mdiCloudDownload"/>
                   </v-btn>

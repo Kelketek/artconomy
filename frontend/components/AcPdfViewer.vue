@@ -19,5 +19,5 @@ import type {Asset} from '@/types/main'
 
 const page = ref(1)
 
-const { pdf, pages } = usePDF(props.asset.file.full)
+const { pdf, pages } = usePDF(props.asset.file!.full)
 </script>

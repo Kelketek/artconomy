@@ -2,7 +2,7 @@ from requests import HTTPError
 from rest_framework import status
 
 from apps.lib.abstract_models import ADULT, MATURE
-from apps.profiles.models import Conversation, User, Character
+from apps.profiles.models import Conversation, User, Character, Submission
 from apps.sales.constants import PURCHASED_STATUSES
 from apps.sales.mail_campaign import drip
 from apps.sales.stripe import stripe
@@ -142,3 +142,11 @@ def create_or_update_stripe_user(user_id, force=False):
         response = stripe_api.Customer.create(**kwargs)
         user.stripe_token = response["id"]
         user.save(update_fields=["stripe_token"])
+
+
+@celery_app.task
+def remove_expired_submissions():
+    for submission in Submission.objects.exclude(removed_on__isnull=True).filter(
+        removed_on__lte=timezone.now() - relativedelta(days=settings.EVIDENCE_DAYS)
+    ):
+        submission.delete()

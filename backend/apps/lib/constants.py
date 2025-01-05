@@ -40,6 +40,8 @@ WAITLIST_UPDATED = 36
 TIP_RECEIVED = 37
 AUTO_CLOSED = 38
 REVISION_APPROVED = 39
+SUBMISSION_KILLED = 40
+PRODUCT_KILLED = 41
 EVENT_TYPES = (
     (NEW_CHARACTER, "New Character"),
     (WATCHING, "New Watcher"),
@@ -75,6 +77,8 @@ EVENT_TYPES = (
     (TIP_RECEIVED, "Tip Received"),
     (AUTO_CLOSED, "Commissions automatically closed"),
     (REVISION_APPROVED, "WIP Approved"),
+    (SUBMISSION_KILLED, "Submission Killed"),
+    (PRODUCT_KILLED, "Product Killed"),
 )
 ORDER_NOTIFICATION_TYPES = (
     DISPUTE,
@@ -91,6 +95,7 @@ ORDER_NOTIFICATION_TYPES = (
     TIP_RECEIVED,
     AUTO_CLOSED,
     REVISION_APPROVED,
+    PRODUCT_KILLED,
 )
 EMAIL_SUBJECTS = {
     COMMISSIONS_OPEN: "Commissions are open for {{ target.username }}!",
@@ -115,4 +120,34 @@ EMAIL_SUBJECTS = {
     REVISION_APPROVED: "Your WIP/Revision for Sale "
     "#{{ raw_target.deliverable.order.id }} "
     "[{{raw_target.deliverable.name}}] has been approved!",
+    SUBMISSION_KILLED: "Your submission was removed.",
+    PRODUCT_KILLED: "Your product was removed.",
 }
+IMPROPERLY_TAGGED = 0
+IMPROPERLY_RATED = 1
+SPAM_OR_NOT_ART = 2
+COPYRIGHT_CLAIMED = 3
+EXPLICIT_PHOTOGRAPHS = 4
+ILLEGAL_CONTENT = 5
+
+FLAG_REASONS = (
+    (IMPROPERLY_TAGGED, "Improperly tagged"),
+    (IMPROPERLY_RATED, "Improperly rated"),
+    (SPAM_OR_NOT_ART, "Spammy Content"),
+    (COPYRIGHT_CLAIMED, "Copyright Claimed"),
+    (EXPLICIT_PHOTOGRAPHS, "Explicit Photographs"),
+    (ILLEGAL_CONTENT, "Illegal Content"),
+)
+
+FLAG_LOOKUP = dict(FLAG_REASONS)
+
+# Reasons that will get content purged, with a hash kept in order to prevent re-upload.
+PURGE_REASONS = {ILLEGAL_CONTENT, EXPLICIT_PHOTOGRAPHS}
+
+# Reasons that aren't grounds for removal in and of themselves, but which can
+# result in disciplinary action.
+RESTORABLE_REASONS = {SPAM_OR_NOT_ART, COPYRIGHT_CLAIMED}
+
+# Reasons that won't get content removed, but may result in disciplinary action if
+# multiple or flagrant issues arise for a user.
+CATEGORIZATION_REASONS = {IMPROPERLY_TAGGED, IMPROPERLY_RATED}

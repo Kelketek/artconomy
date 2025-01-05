@@ -1,0 +1,9 @@
+New report from: {{ username|safe }}
+
+IP: {{ ip }} (Unverified)
+User Agent: {{ user_agent|safe }}
+
+URL: {{ path|safe }}
+
+
+{{ body|safe }}

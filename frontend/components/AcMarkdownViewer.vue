@@ -68,7 +68,7 @@ const loadFile = (responseText: string) => {
 }
 
 artCall({
-  url: props.asset.file.full,
+  url: props.asset.file!.full,
   method: 'get',
 }).then(loadFile)
 </script>

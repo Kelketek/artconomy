@@ -20,7 +20,7 @@
       <ac-form-dialog
           :modelValue="store.state.showSupport"
           @update:modelValue="(val: boolean) => store.commit('supportDialog', val)"
-          @submit="supportForm.submitThen(showSuccess)"
+          @submit="supportForm.submitThen(showSupportSuccess)"
           v-bind="supportForm.bind"
           v-if="loadSupport"
           title="Get Support or Give Feedback!"
@@ -44,6 +44,48 @@
           </v-col>
         </v-row>
       </ac-form-dialog>
+      <ac-form-dialog
+          :modelValue="store.state.showReport"
+          @update:modelValue="(val: boolean) => store.commit('reportDialog', val)"
+          @submit="reportForm.submitThen(showReportSuccess)"
+          v-bind="reportForm.bind"
+          v-if="loadReport"
+          title="Report Content"
+      >
+        <v-row no-gutters>
+          <v-col cols="12" class="text-center">
+            <span class="headline">Please fill in these details for your report.</span>
+          </v-col>
+          <v-col cols="12">
+            <v-text-field
+                label="Your email"
+                placeholder="test@example.com"
+                v-bind="reportForm.fields.email.bind"
+            />
+          </v-col>
+          <v-col cols="12">
+            <v-col cols="12">
+              <v-select
+                  label="Reason"
+                  :items="reportReasons"
+                  :item-props="true"
+                  :persistent-hint="true"
+                  hint="Please select a reason. Pick the most applicable if there's more than one."
+                  v-bind="reportForm.fields.flag.bind"
+              />
+            </v-col>
+          </v-col>
+          <v-col cols="12">
+            <ac-report-flag-explanations :flag="reportForm.fields.flag.model" />
+          </v-col>
+          <v-col cols="12">
+            <v-textarea
+                label="Please add any context that will help our staff make a decision."
+                v-bind="reportForm.fields.body.bind"
+            />
+          </v-col>
+        </v-row>
+      </ac-form-dialog>
       <v-dialog
           v-model="showTicketSuccess"
           width="500"
@@ -51,9 +93,8 @@
       >
         <v-card id="supportSuccess">
           <v-card-text>
-            Your support request has been received, and our team has been contacted! If you do not receive a reply
-            soon, try emailing <a href="mailto:support@artconomy.com">support@artconomy.com</a>. Requests are
-            responded to on the same day they are received.
+            Your request has been received, and our team has been contacted! If you do not receive a reply
+            soon, try emailing <a href="mailto:support@artconomy.com">support@artconomy.com</a>.
           </v-card-text>
 
           <v-divider />
@@ -219,7 +260,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 const AcMarkdownExplanation = defineAsyncComponent(() => import('@/components/fields/AcMarkdownExplination.vue'))
 import {
   fallback,
-  fallbackBoolean,
+  fallbackBoolean, FLAGS_SHORT,
   genId,
   getCookie, makeQueryParams,
   paramsKey,
@@ -231,6 +272,7 @@ import {SingleController} from '@/store/singles/controller.ts'
 import {ConnectionStatus} from '@/types/enums/ConnectionStatus.ts'
 const AcPatchField = defineAsyncComponent(() => import('@/components/fields/AcPatchField.vue'))
 const AcCookieConsent = defineAsyncComponent(() => import('@/components/AcCookieConsent.vue'))
+const AcReportFlagExplanations = defineAsyncComponent(() => import('@/components/AcReportFlagExplanations.vue'))
 import {useRoute, useRouter} from 'vue-router'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
@@ -257,9 +299,21 @@ const showTicketSuccess = ref(false)
 
 const supportForm = useForm('supportRequest', {
   endpoint: '/api/lib/support/request/',
+  reset: false,
   fields: {
     body: {value: '', validators: [{name: 'required'}]},
     email: {value: '', validators: [{name: 'email'}, {name: 'required'}]},
+    referring_url: {value: route.fullPath},
+  },
+})
+
+const reportForm = useForm('report', {
+  endpoint: '/api/lib/support/report/',
+  reset: false,
+  fields: {
+    body: {value: '', validators: [{name: 'required'}]},
+    email: {value: '', validators: [{name: 'email'}, {name: 'required'}]},
+    flag: {value: null, validators: [{name: 'required'}]},
     referring_url: {value: route.fullPath},
   },
 })
@@ -309,6 +363,7 @@ const search = (data: RawData) => {
 
 watch(() => route.fullPath, (newPath: string) => {
   supportForm.fields.referring_url.update(newPath)
+  reportForm.fields.referring_url.update(newPath)
 })
 
 const forceRecompute = ref(0)
@@ -329,6 +384,7 @@ const socketState = useSingle<SocketState>('socketState', {
 })
 
 const loadSupport = useLazyInitializer(() => store.state.showSupport)
+const loadReport = useLazyInitializer(() => store.state.showReport)
 const loadAgeVerification = useLazyInitializer(() => store.state.showAgeVerification)
 
 watch(() => viewer.value?.username, (newName: string, oldName: string) => {
@@ -375,10 +431,20 @@ const closeAgeVerification = () => {
   store.commit('setShowAgeVerification', false)
 }
 
-const showSuccess = () => {
+const showSupportSuccess = () => {
   store.commit('supportDialog', false)
+  supportForm.fields.body.update('', false)
   showTicketSuccess.value = true
 }
+
+const showReportSuccess = () => {
+  store.commit('reportDialog', false)
+  reportForm.fields.body.update('', false)
+  reportForm.fields.flag.update(null, false)
+  showTicketSuccess.value = true
+}
+
+const reportReasons = computed(() => Object.entries(FLAGS_SHORT).map(([value, title]) => ({title, value})))
 
 const mode = () => {
   return process.env.NODE_ENV
@@ -466,14 +532,16 @@ watch(() => (viewer.value as User)?.email, (val?: string) => {
     return
   }
   supportForm.fields.email.update(val || '', false)
-})
+  reportForm.fields.email.update(val || '', false)
+}, {immediate: true})
 
 watch(() => (viewer.value as User)?.guest_email, (val?: string) => {
   if (!val) {
     return
   }
   supportForm.fields.email.update(val, false)
-})
+  reportForm.fields.email.update(val, false)
+}, {immediate: true})
 
 watch(() => route.fullPath, (newPath: string, oldPath?: string) => {
     nextTick(() => {

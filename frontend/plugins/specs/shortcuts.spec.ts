@@ -2,6 +2,7 @@ import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import {describe, expect, test} from 'vitest'
 import {deriveImage} from '@/plugins/shortcuts.ts'
 import {Ratings} from '@/types/enums/Ratings.ts'
+import {defaultFallbackImage} from '@/mixins/asset_base.ts'
 
 
 describe('shortcuts.ts', () => {
@@ -20,7 +21,7 @@ describe('shortcuts.ts', () => {
     const adultSubmission = genSubmission()
     adultSubmission.rating = 3
     expect(deriveImage(adultSubmission, 'thumbnail', true, Ratings.ADULT)).toBe(
-      '/static/images/default-avatar.png',
+      defaultFallbackImage,
     )
     expect(deriveImage(adultSubmission, 'thumbnail', false, Ratings.ADULT)).toBe(
       '',
@@ -40,14 +41,14 @@ describe('shortcuts.ts', () => {
   })
   test('Handles an SVG', async() => {
     const submission = genSubmission()
-    submission.file.full = '/test/image.svg'
+    submission.file!.full = '/test/image.svg'
     expect(deriveImage(submission, 'thumbnail', true, Ratings.ADULT)).toBe(
       '/test/image.svg',
     )
   })
   test('Handles a non-image file thumbnail', async() => {
     const submission = genSubmission()
-    submission.file.full = '/test/image.mp4'
+    submission.file!.full = '/test/image.mp4'
     expect(deriveImage(submission, 'thumbnail', true, Ratings.ADULT)).toBe(
       '/static/icons/MP4.png',
     )

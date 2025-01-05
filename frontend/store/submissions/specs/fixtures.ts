@@ -14,6 +14,8 @@ export function genSubmission(overrides?: Partial<Submission>): Submission {
       __type__: 'data:image',
     },
     private: false,
+    removed_on: null,
+    removed_reason: null,
     created_on: '2019-07-26T15:04:41.078424-05:00',
     owner: {
       id: 1,

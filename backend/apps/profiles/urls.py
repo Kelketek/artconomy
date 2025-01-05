@@ -305,6 +305,11 @@ urlpatterns = [
         name="submission_recommendations",
     ),
     path(
+        "submission/<int:submission_id>/kill/",
+        views.KillSubmission.as_view(),
+        name="submission_kill",
+    ),
+    path(
         "submission/<int:submission_id>/",
         views.SubmissionManager.as_view(),
         name="submission_manager",

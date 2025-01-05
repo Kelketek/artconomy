@@ -1,0 +1,12 @@
+{% extends 'email_base.html' %}
+{% block header_message %}Submission Removed.{% endblock %}
+{% block message %}
+<p>Hello, {{target.owner.username}}. Your submission with ID {{target.id}} titled "{{target.title}}" has been removed. Reason: {{raw_target.get_removed_reason_display}}</p>
+{% if event.data.comment %}
+<p>The following comment was added by the staffer who removed this submission: {{event.data.comment}}</p>
+{% endif %}
+{% endblock message %}
+
+{% block action %}
+<a href="/legal-and-policies/terms-of-service/">Review our terms of service here.</a>
+{% endblock %}

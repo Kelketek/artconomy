@@ -59,7 +59,7 @@
                     Fav
                   </v-btn>
                 </v-col>
-                <v-col cols="7" sm="6" md="12" lg="7" :class="{sm4: commissionLink, sm6: !commissionLink}" v-if="!restrictedDownload">
+                <v-col cols="7" sm="6" md="12" lg="7" :class="{sm4: commissionLink, sm6: !commissionLink}" v-if="!restrictedDownload && submission.x!.file">
                   <v-row no-gutters>
                     <v-col cols="6" class="pr-1">
                       <v-btn color="primary" variant="flat" block :href="submission.x!.file.full" download>
@@ -233,6 +233,10 @@
                       <v-col class="text-center" cols="12">
                         <ac-rating-button class="mx-0" :controls="controls" :patcher="submission.patchers.rating" variant="flat" size="small" :editing="editing" />
                       </v-col>
+                      <v-col class="text-center" cols="12">
+                        <ac-report-button v-if="!isCurrent" />
+                        <ac-kill-button v-if="powers.moderate_content" :controller="submission" />
+                      </v-col>
                     </v-row>
                   </v-col>
                 </v-row>
@@ -298,6 +302,8 @@ import {textualize} from '@/lib/markdown.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import type {ArtistTag, Comment, LinkedCharacter, RatingsValue, Submission} from '@/types/main'
 import {TerseUser} from '@/store/profiles/types/main'
+import AcReportButton from '@/components/AcReportButton.vue'
+import AcKillButton from '@/components/AcKillButton.vue'
 
 const props = defineProps<{submissionId: string}>()
 
@@ -376,15 +382,22 @@ const restrictedDownload = computed(() => {
   if (!submission.x) {
     return false
   }
+  if (!submission.x.file) {
+    return false
+  }
   return (theocraticBan.value && !viewer.value?.verified_adult) && submission.x.rating > Ratings.GENERAL;
 })
 
-const controls = computed(() => {
+const isCurrent = computed(() => {
   // istanbul ignore if
   if (!submission.x) {
     return false
   }
-  return powers.value.moderate_content || (submission.x.owner.username === rawViewerName.value)
+  return submission.x.owner.username === rawViewerName.value
+})
+
+const controls = computed(() => {
+  return powers.value.moderate_content || isCurrent.value
 })
 
 const {editing} = useEditable(controls)

@@ -1,9 +1,8 @@
-import {cleanUp, createTestRouter, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import AcReference from '@/components/views/order/deliverable/AcReference.vue'
 import {genReference} from '@/specs/helpers/fixtures.ts'
 import {afterEach, beforeAll, describe, expect, MockedFunction, test, vi} from 'vitest'
-import {Router} from 'vue-router'
 
 let wrapper: VueWrapper<any>
 let mockOpen: MockedFunction<any>
@@ -19,7 +18,7 @@ describe('AcReference.vue', () => {
   })
   test('Pops into a new window', async() => {
     const reference = genReference()
-    reference.file.full = 'https://example.com/stuff.jpg'
+    reference.file!.full = 'https://example.com/stuff.jpg'
     const mockOpen = vi.spyOn(window, 'open')
     wrapper = mount(AcReference, {
       ...vueSetup({

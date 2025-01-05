@@ -50,6 +50,9 @@ from apps.lib.constants import (
     WAITLIST_UPDATED,
     AUTO_CLOSED,
     REVISION_APPROVED,
+    FLAG_REASONS,
+    SUBMISSION_KILLED,
+    PRODUCT_KILLED,
 )
 from apps.lib.permissions import Any, StaffPower
 from apps.lib.utils import (
@@ -744,6 +747,17 @@ class Submission(ImageModel, HitsMixin):
         "User", related_name="art", blank=True, through="ArtistTag"
     )
     artists__max = 10
+    removed_on = DateTimeField(null=True, db_index=True, blank=True)
+    removed_reason = IntegerField(
+        choices=FLAG_REASONS, db_index=True, null=True, blank=True
+    )
+    removed_by = ForeignKey(
+        "profiles.User",
+        null=True,
+        blank=True,
+        on_delete=SET_NULL,
+        related_name="submission_removals",
+    )
     deliverable = ForeignKey(
         "sales.Deliverable",
         null=True,
@@ -822,6 +836,7 @@ def auto_subscribe_image(sender, instance, created=False, **_kwargs):
                     SUBMISSION_CHAR_TAG,
                     SUBMISSION_ARTIST_TAG,
                     COMMENT,
+                    SUBMISSION_KILLED,
                 ]
             ],
             ignore_conflicts=True,
@@ -841,14 +856,10 @@ def auto_remove_image_subscriptions(sender, instance, **kwargs):
             SUBMISSION_CHAR_TAG,
             SUBMISSION_ARTIST_TAG,
             COMMENT,
+            SUBMISSION_KILLED,
         ],
     ).delete()
     Event.objects.filter(data__submission=instance.id).delete()
-    Event.objects.filter(
-        content_type=ContentType.objects.get_for_model(model=sender),
-        object_id=instance.id,
-        type=COMMENT,
-    ).delete()
 
 
 remove_submission_events = receiver(pre_delete, sender=Submission)(clear_events)
@@ -1500,13 +1511,16 @@ def create_email_preferences(user: User):
     """
     Creates email preferences for a user.
     """
-    from apps.sales.models import Deliverable, Reference, Revision
+    from apps.sales.models import Deliverable, Reference, Revision, Product
+    from apps.profiles.models import Submission
 
     user_content_type = ContentType.objects.get_for_model(User)
     conversation_content_type = ContentType.objects.get_for_model(Conversation)
     deliverable_content_type = ContentType.objects.get_for_model(Deliverable)
     revision_content_type = ContentType.objects.get_for_model(Revision)
     reference_content_type = ContentType.objects.get_for_model(Reference)
+    product_content_type = ContentType.objects.get_for_model(Product)
+    submission_content_type = ContentType.objects.get_for_model(Submission)
     preferences = [
         EmailPreference(
             user=user,
@@ -1542,6 +1556,18 @@ def create_email_preferences(user: User):
             user=user,
             content_type=deliverable_content_type,
             type=REFERENCE_UPLOADED,
+            enabled=True,
+        ),
+        EmailPreference(
+            user=user,
+            content_type=submission_content_type,
+            type=SUBMISSION_KILLED,
+            enabled=True,
+        ),
+        EmailPreference(
+            user=user,
+            content_type=product_content_type,
+            type=PRODUCT_KILLED,
             enabled=True,
         ),
     ]

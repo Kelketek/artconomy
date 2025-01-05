@@ -109,6 +109,7 @@ class SubmissionAdmin(ModelAdmin):
         "owner",
         "artists",
         "shared_with",
+        "removed_by",
         "file",
         "preview",
         "revision",

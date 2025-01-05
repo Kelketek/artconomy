@@ -2,6 +2,8 @@ import logging
 from datetime import date
 from unittest.mock import patch
 
+from django.core import mail
+
 from apps.lib.abstract_models import ADULT, EXTREME, GENERAL, MATURE
 from apps.lib.models import (
     Notification,
@@ -14,6 +16,9 @@ from apps.lib.constants import (
     NEW_PRODUCT,
     SUBMISSION_SHARED,
     CHAR_SHARED,
+    SPAM_OR_NOT_ART,
+    ILLEGAL_CONTENT,
+    SUBMISSION_KILLED,
 )
 from apps.lib.test_resources import (
     APITestCase,
@@ -2293,4 +2298,53 @@ class TestPromotableUsers(APITestCase):
         staff = create_staffer()
         self.login(staff)
         response = self.client.get("/api/profiles/resource/promotable/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestKillSubmission(APITestCase):
+    def test_kill_submission(self):
+        staffer = create_staffer("moderate_content")
+        submission = SubmissionFactory.create()
+        self.login(staffer)
+        response = self.client.post(
+            f"/api/profiles/submission/{submission.id}/kill/", {"flag": SPAM_OR_NOT_ART}
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        submission.refresh_from_db()
+        self.assertEqual(submission.removed_by, staffer)
+        self.assertTrue(submission.removed_on)
+        self.assertTrue(submission.removed_reason, SPAM_OR_NOT_ART)
+        self.assertTrue(submission.file.file)
+        Notification.objects.get(user=submission.owner, event__type=SUBMISSION_KILLED)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Your submission was removed.")
+        raise AssertionError("Forced failure.")
+
+    def test_kill_submission_and_redact_asset(self):
+        staffer = create_staffer("moderate_content")
+        submission = SubmissionFactory.create()
+        self.login(staffer)
+        response = self.client.post(
+            f"/api/profiles/submission/{submission.id}/kill/", {"flag": ILLEGAL_CONTENT}
+        )
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        submission.refresh_from_db()
+        self.assertEqual(submission.removed_by, staffer)
+        self.assertTrue(submission.removed_on)
+        self.assertTrue(submission.removed_reason, ILLEGAL_CONTENT)
+        self.assertIsNone(submission.file.file)
+        self.assertEqual(submission.file.removed_by, staffer)
+        self.assertEqual(submission.file.removed_reason, ILLEGAL_CONTENT)
+        self.assertTrue(submission.file.removed_on)
+        Notification.objects.get(user=submission.owner, event__type=SUBMISSION_KILLED)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(mail.outbox[0].subject, "Your submission was removed.")
+        raise AssertionError("Forced failure.")
+
+    def test_kill_submission_not_permitted(self):
+        submission = SubmissionFactory.create()
+        self.login(UserFactory.create())
+        response = self.client.post(
+            f"/api/profiles/submission/{submission.id}/kill/", {"flag": ILLEGAL_CONTENT}
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

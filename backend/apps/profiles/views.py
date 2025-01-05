@@ -34,6 +34,9 @@ from apps.lib.constants import (
     REFERENCE_UPLOADED,
     REVISION_APPROVED,
     ORDER_NOTIFICATION_TYPES,
+    PURGE_REASONS,
+    SUBMISSION_KILLED,
+    PRODUCT_KILLED,
 )
 from apps.lib.permissions import (
     All,
@@ -43,13 +46,16 @@ from apps.lib.permissions import (
     IsMethod,
     IsSafeMethod,
     StaffPower,
+    Living,
 )
 from apps.lib.serializers import (
     BulkNotificationSerializer,
     NotificationSerializer,
     RelatedUserSerializer,
     UserInfoSerializer,
+    KillSerializer,
 )
+from apps.lib.tasks import check_asset_associations
 from apps.lib.utils import (
     add_check,
     count_hit,
@@ -524,11 +530,13 @@ class SubmissionManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [
         Any(
             All(
+                Living,
                 Any(IsSafeMethod, All(IsMethod("PATCH"), IsRegistered)),
                 SubmissionViewPermission,
             ),
-            SubmissionControls,
-        )
+            StaffPower("moderate_content"),
+            ObjectControls,
+        ),
     ]
     queryset = Submission.objects.all()
     cached_submission = None
@@ -557,6 +565,52 @@ class SubmissionManager(RetrieveUpdateDestroyAPIView):
         submission = self.get_object()
         self.check_object_permissions(request, submission)
         submission.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class KillSubmission(GenericAPIView):
+    permission_classes = [
+        StaffPower("moderate_content"),
+    ]
+    serializer_class = KillSerializer
+
+    def get_object(self):
+        return get_object_or_404(
+            Submission,
+            id=self.kwargs["submission_id"],
+        )
+
+    def post(self, request, **kwargs):
+        submission = self.get_object()
+        self.check_object_permissions(self.request, submission)
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        reason = serializer.validated_data["flag"]
+        submission.removed_on = timezone.now()
+        submission.removed_by = request.user
+        submission.removed_reason = reason
+        submission.save()
+        thumbnail = submission.preview
+        if reason in PURGE_REASONS:
+            if submission.file:
+                submission.file.redact(reason=reason, by=request.user)
+                submission.file = None
+            # Thumbnails typically aren't an issue-- if they're included at all,
+            # they usually contain a content warning.
+            if thumbnail:
+                submission.preview = None
+            submission.save()
+        if thumbnail:
+            # But we do want them removed anyhow, just not necessarily redacted in case
+            # the user has shared the preview asset with non-violating assets.
+            check_asset_associations(thumbnail.id)
+        notify(
+            SUBMISSION_KILLED,
+            submission,
+            data={"comment": serializer.validated_data["comment"]},
+            unique=True,
+            mark_unread=True,
+        )
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -1482,7 +1536,9 @@ class CollectionManagementList(ListAPIView):
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
-        return user.owned_profiles_submission.exclude(artists=user)
+        return user.owned_profiles_submission.exclude(artists=user).exclude(
+            removed_on__isnull=True
+        )
 
 
 class ArtRelationList(ListAPIView):
@@ -2283,6 +2339,7 @@ class NotificationSettings(RetrieveUpdateAPIView):
                     REVISION_UPLOADED,
                     REFERENCE_UPLOADED,
                     REVISION_APPROVED,
+                    PRODUCT_KILLED,
                 ]
             )
             .order_by("id")

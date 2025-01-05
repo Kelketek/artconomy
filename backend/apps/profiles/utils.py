@@ -115,6 +115,7 @@ def available_artists(requester):
 def available_submissions(request, requester, show_all=False):
     exclude = Q(private=True)
     exclude |= Q(owner__is_active=False)
+    exclude |= Q(removed_on__isnull=False)
     if (
         not staff_power(request.user, "moderate_content")
         and request.user.is_authenticated

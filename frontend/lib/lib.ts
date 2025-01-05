@@ -19,7 +19,7 @@ import {ProfileModule} from '@/store/profiles'
 import {SingleModule} from '@/store/singles'
 import {ArtStore} from '@/store'
 import {AnonUser, ArtistProfile, StaffPowers, TerseUser, User} from '@/store/profiles/types/main'
-import {InvoiceTypeValue, LogLevelsValue, RatingsValue} from '@/types/main'
+import {InvoiceTypeValue, LogLevelsValue, RatingsValue, ReportFlagsValue} from '@/types/main'
 import {HttpVerbs, NamelessFormSchema} from '@/store/forms/types/main'
 import {Character} from '@/store/characters/types/main'
 
@@ -151,6 +151,15 @@ export const RATINGS_SHORT: Record<RatingsValue, string> = {
   1: 'Risque',
   2: 'Adult content',
   3: 'Offensive/Disturbing',
+}
+
+export const FLAGS_SHORT: Record<ReportFlagsValue, string> = {
+  0: 'Improperly Tagged',
+  1: 'Improperly Rated',
+  2: 'Spam or Not Art',
+  3: 'Copyright Claim',
+  4: 'Explicit Photographs',
+  5: 'Illegal Content',
 }
 
 export function genOptions(enumerable: { [key: number]: string }) {
