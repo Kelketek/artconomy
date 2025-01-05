@@ -100,7 +100,7 @@
               permission to upload
             </li>
             <li>Incitement to imminent lawless action</li>
-            <li>Visual art which appears to depict minors (human or plausibly human characters such as elves, dwarves,
+            <li>Visual or written art which appears to depict minors (human or plausibly human characters such as elves, dwarves,
               merfolk, etc characters whose apparent age is younger than 18) with
               <a href="https://www.law.cornell.edu/uscode/text/18/2256#2_A">sexually explicit conduct</a>, or depicted
               in situations of masochistic or sadistic abuse, even if these are not depictions of real persons.</li>
