@@ -1578,7 +1578,7 @@ def create_email_preferences(user: User):
                     user=user,
                     content_type=user_content_type,
                     type=COMMISSIONS_OPEN,
-                    enabled=False,
+                    enabled=True,
                 ),
                 EmailPreference(
                     user=user,
