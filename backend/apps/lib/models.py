@@ -378,6 +378,7 @@ class Asset(Model):
         self.file.delete()
         self.redacted_by = by
         self.redacted_reason = reason
+        self.redacted_on = timezone.now()
         self.save()
 
     def delete(self, using=None, keep_parents=False, cleanup=False):

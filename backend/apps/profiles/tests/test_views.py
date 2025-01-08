@@ -2318,7 +2318,6 @@ class TestKillSubmission(APITestCase):
         Notification.objects.get(user=submission.owner, event__type=SUBMISSION_KILLED)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, "Your submission was removed.")
-        raise AssertionError("Forced failure.")
 
     def test_kill_submission_and_redact_asset(self):
         staffer = create_staffer("moderate_content")
@@ -2328,18 +2327,19 @@ class TestKillSubmission(APITestCase):
             f"/api/profiles/submission/{submission.id}/kill/", {"flag": ILLEGAL_CONTENT}
         )
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        asset = submission.file
         submission.refresh_from_db()
         self.assertEqual(submission.removed_by, staffer)
         self.assertTrue(submission.removed_on)
         self.assertTrue(submission.removed_reason, ILLEGAL_CONTENT)
-        self.assertIsNone(submission.file.file)
-        self.assertEqual(submission.file.removed_by, staffer)
-        self.assertEqual(submission.file.removed_reason, ILLEGAL_CONTENT)
-        self.assertTrue(submission.file.removed_on)
+        self.assertIsNone(submission.file)
+        asset.refresh_from_db()
+        self.assertEqual(asset.redacted_by, staffer)
+        self.assertEqual(asset.redacted_reason, ILLEGAL_CONTENT)
+        self.assertTrue(asset.redacted_on)
         Notification.objects.get(user=submission.owner, event__type=SUBMISSION_KILLED)
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].subject, "Your submission was removed.")
-        raise AssertionError("Forced failure.")
 
     def test_kill_submission_not_permitted(self):
         submission = SubmissionFactory.create()
