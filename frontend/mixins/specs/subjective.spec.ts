@@ -8,6 +8,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
+import {StaffPower} from '@/store/profiles/types/main'
 
 const mockError = vi.spyOn(console, 'error')
 
@@ -133,7 +134,7 @@ describe('Subjective.ts', () => {
     await waitFor(() => expect(router.currentRoute.value.name).toBe('Login'))
     expect(router.currentRoute.value.query).toEqual({next: '/place'})
   })
-  test('Allows the user to see if they are not the subject and the view is private but they are a staffer',
+  test('Allows the user to see if they are not the subject and the view is private but they are a staffer with the right powers',
     async() => {
       await router.push('/place')
       expect((store.state as any).errors.code).toBe(0)
@@ -149,6 +150,7 @@ describe('Subjective.ts', () => {
         props: {
           username: 'Vulpes',
           isPrivate: true,
+          hasControlPowers: ['administrate_users'] as StaffPower[],
         },
       })
       await nextTick()
@@ -169,7 +171,7 @@ describe('Subjective.ts', () => {
         props: {
           username: 'Vulpes',
           isPrivate: true,
-          isProtected: true,
+          hasControlPowers: ['administrate_users'] as StaffPower[],
         },
       })
       await nextTick()

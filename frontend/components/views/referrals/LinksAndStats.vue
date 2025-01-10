@@ -73,9 +73,10 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import {flatten} from '@/lib/lib.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import type {ReferralStats, SubjectiveProps} from '@/types/main'
+import type {StaffPower} from '@/store/profiles/types/main'
 
 const props = defineProps<SubjectiveProps>()
-useSubject({ props, privateView: true })
+useSubject({ props, privateView: true, controlPowers: ['view_as'] as StaffPower[] })
 
 const stats = useSingle<ReferralStats>(`ReferralStats__${flatten(props.username)}`, {endpoint: `/api/profiles/account/${props.username}/referral_stats/`})
 stats.get()

@@ -28,7 +28,7 @@ describe('AcCharacterSelect.vue', () => {
     })
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     mockAxios.mockResponse(rs({
         results: [
           {

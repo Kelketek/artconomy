@@ -45,7 +45,7 @@ import type {SubjectiveProps} from '@/types/main'
 
 const props = defineProps<SubjectiveProps>()
 
-const {subjectHandler, subject, isCurrent} = useSubject({ props, privateView: true })
+const {subjectHandler, subject, isCurrent} = useSubject({ props })
 
 const drawer = ref(false)
 

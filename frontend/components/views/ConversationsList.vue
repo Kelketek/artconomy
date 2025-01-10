@@ -91,14 +91,14 @@ import {ref} from 'vue'
 import {useRouter} from 'vue-router'
 import {textualize} from '@/lib/markdown.ts'
 import type {Conversation, SubjectiveProps} from '@/types/main'
-import {TerseUser} from '@/store/profiles/types/main'
+import type {StaffPower, TerseUser} from '@/store/profiles/types/main'
 
 
 const props = defineProps<SubjectiveProps>()
 const router = useRouter()
 const {rawViewerName} = useViewer()
 const {setError} = useErrorHandling()
-const {isCurrent} = useSubject({ props, privateView: true })
+const {isCurrent} = useSubject({ props, privateView: true, controlPowers: ['view_as'] as StaffPower[] })
 const showNew = ref(false)
 
 const conversations = useList<Conversation>('conversations-' + props.username, {

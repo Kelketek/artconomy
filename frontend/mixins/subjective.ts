@@ -20,7 +20,7 @@ const getSubjectPlan = (subject: TerseUser | User | null, getPlan: (planName: st
   return getPlan(subject.service_plan)
 }
 
-export const useSubject = <T extends SubjectiveProps>({ props, privateView = false, controlPowers = [] }: { props: T; privateView?: boolean; protectedView?: boolean, controlPowers?: StaffPower[] }) => {
+export const useSubject = <T extends SubjectiveProps>({ props, privateView = false, controlPowers = [] }: { props: T; privateView?: boolean; controlPowers?: StaffPower[] }) => {
   const {
     viewerName,
     rawViewerName,
@@ -31,6 +31,12 @@ export const useSubject = <T extends SubjectiveProps>({ props, privateView = fal
   const subjectHandler = useProfile(props.username)
 
   const subject = computed(() => subjectHandler.user.x as TerseUser | User)
+  const allRelevantPowers = computed(() => {
+    if (!controlPowers.length) {
+      return isSuperuser.value
+    }
+    return controlPowers.length == controlPowers.filter((value) => powers.value[value]).length
+  })
   const isCurrent = computed(() => getIsCurrent(props.username, rawViewerName.value, viewerName.value))
   const controls = computed(() => {
     if (isCurrent.value) {
@@ -56,7 +62,7 @@ export const useSubject = <T extends SubjectiveProps>({ props, privateView = fal
       name: 'Login',
       query: {next: useRoute().fullPath},
     }).then()
-  } else if (privateView && !controls.value) {
+  } else if (privateView && !(controls.value || allRelevantPowers.value)) {
     store.commit('errors/setError', {response: {status: 403}})
   }
   const promise = subjectHandler.user.get()

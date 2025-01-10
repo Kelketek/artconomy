@@ -7,10 +7,11 @@ import {useSubject} from '@/mixins/subjective.ts'
 import {computed} from 'vue'
 import {useRoute} from 'vue-router'
 import type {SubjectiveProps} from '@/types/main'
+import {StaffPower} from '@/store/profiles/types/main'
 
-const props = withDefaults(defineProps<SubjectiveProps & {isPrivate?: boolean, isProtected?: boolean}>(), {isPrivate: false, isProtected: false})
+const props = withDefaults(defineProps<SubjectiveProps & {isPrivate?: boolean, isProtected?: boolean, hasControlPowers?: StaffPower[]}>(), {isPrivate: false, isProtected: false, hasControlPowers: () => [] as StaffPower[]})
 const route = useRoute()
-const subjectValues = useSubject({ props, privateView: props.isPrivate, controlPowers: ['administrate_users']})
+const subjectValues = useSubject({ props, privateView: props.isPrivate, controlPowers: props.hasControlPowers })
 defineExpose(subjectValues)
 
 const id = computed(() => {

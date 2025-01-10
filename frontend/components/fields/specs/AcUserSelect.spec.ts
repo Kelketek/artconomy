@@ -21,7 +21,7 @@ describe('AcUserSelect.vue', () => {
     })
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     expect(mockAxios.request).toHaveBeenCalled()
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/search/user/',
@@ -47,7 +47,7 @@ describe('AcUserSelect.vue', () => {
     )
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     expect(mockAxios.request).toHaveBeenCalled()
     expect(mockAxios.request).toHaveBeenCalledWith(rq(
       '/api/profiles/search/user/',
@@ -71,7 +71,7 @@ describe('AcUserSelect.vue', () => {
     })
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     mockAxios.mockResponse(rs({
       results: [{
         username: 'Test',
@@ -101,7 +101,7 @@ describe('AcUserSelect.vue', () => {
     )
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     mockAxios.mockResponse(rs({
       results: [{
         username: 'Test',
@@ -115,7 +115,7 @@ describe('AcUserSelect.vue', () => {
     await wrapper.vm.$nextTick()
     wrapper.vm.query = 'Test '
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     expect((wrapper.vm as any).tags).toEqual([1])
     expect((wrapper.vm as any).query).toBe('')
   })
@@ -131,7 +131,7 @@ describe('AcUserSelect.vue', () => {
     )
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     mockAxios.mockResponse(rs({
       results: [{
         username: 'Test',
@@ -158,7 +158,7 @@ describe('AcUserSelect.vue', () => {
     )
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     mockAxios.mockResponse(rs({results: []}))
     await flushPromises()
     await wrapper.vm.$nextTick()
@@ -212,7 +212,7 @@ describe('AcUserSelect.vue', () => {
     )
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     await wrapper.setProps({modelValue: [1, 2]})
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).query).toBe('')
@@ -236,7 +236,7 @@ describe('AcUserSelect.vue', () => {
     )
     wrapper.vm.query = 'Test'
     await wrapper.vm.$nextTick()
-    vi.runAllTimers()
+    vi.advanceTimersByTime(1000)
     await wrapper.setProps({modelValue: [1]})
     await wrapper.vm.$nextTick()
     expect((wrapper.vm as any).query).toBe('Test')

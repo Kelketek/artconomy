@@ -91,13 +91,13 @@ import {useForm} from '@/store/forms/hooks.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import type {Balance, StripeAccount, SubjectiveProps} from '@/types/main'
 import {BankStatus} from '@/store/profiles/types/enums.ts'
-import {User} from '@/store/profiles/types/main'
+import type {StaffPower, User} from '@/store/profiles/types/main'
 
 const props = defineProps<SubjectiveProps>()
 
 const {viewer, powers} = useViewer()
 const userViewer = viewer as Ref<User>
-const {subjectHandler} = useSubject({ props, privateView: true })
+const {subjectHandler} = useSubject({ props, privateView: true, controlPowers: ['view_financials'] as StaffPower[] })
 
 const {setError} = useErrorHandling()
 

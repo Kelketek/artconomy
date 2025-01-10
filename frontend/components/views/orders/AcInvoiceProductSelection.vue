@@ -99,6 +99,7 @@ import {useRouter} from 'vue-router'
 import {mdiPlus} from '@mdi/js'
 import type {Deliverable, Product, SubjectiveProps} from '@/types/main'
 import {Character} from '@/store/characters/types/main'
+import {StaffPower} from '@/store/profiles/types/main'
 const AcProductPreview = defineAsyncComponent(() => import('@/components/AcProductPreview.vue'))
 const AcFormDialog = defineAsyncComponent(() => import('@/components/wrappers/AcFormDialog.vue'))
 const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
@@ -107,7 +108,7 @@ const AcPaginated = defineAsyncComponent(() => import('@/components/wrappers/AcP
 const props = defineProps<SubjectiveProps>()
 const router = useRouter()
 
-useSubject({ props, privateView: true })
+useSubject({ props, privateView: true, controlPowers: ['table_seller'] as StaffPower[] })
 
 const products = useList<Product>(`${flatten(props.username)}-products`, {endpoint: `/api/sales/account/${props.username}/products/`})
 products.firstRun()

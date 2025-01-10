@@ -185,11 +185,11 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useRoute, useRouter} from 'vue-router'
 import {useTheme} from 'vuetify'
 import type {ClientSecret, Pricing, SubjectiveProps} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
+import type {StaffPower, User} from '@/store/profiles/types/main'
 
 const props = defineProps<SubjectiveProps>()
 const {viewer} = useViewer()
-const {subject} = useSubject({ props, privateView: true })
+const {subject} = useSubject({ props, privateView: true, controlPowers: ['view_as'] as StaffPower[] })
 const route = useRoute()
 const router = useRouter()
 const selection = ref<null|string>(null)
