@@ -21,16 +21,16 @@
       </v-toolbar>
       <v-card-text>
         <v-container fluid class="py-0">
-          <v-row no-gutters v-if="display" class="markdown-rendered-help">
+          <v-row dense v-if="display" class="markdown-rendered-help">
             <v-col class="text-center" cols="12">
               <h1>Artconomy uses Markdown!</h1>
               <p>Markdown is a language for enhancing your posts with links, lists, and other goodies. Here are some
                 examples!</p>
             </v-col>
             <v-col cols="12" md="6" lg="5" offset-lg="1">
-              <v-row no-gutters>
+              <v-row dense>
                 <v-col cols="12">
-                  <span class="title">Basics</span>
+                  <h3>Basics</h3>
                   <v-divider></v-divider>
                 </v-col>
                 <v-col cols="6">
@@ -41,7 +41,7 @@
                 </v-col>
                 <template v-for="(item, index) in basicsItems" :key="index">
                   <v-col cols="12">
-                    <v-row no-gutters>
+                    <v-row dense>
                       <v-col cols="12" class="py-0">
                         <v-divider></v-divider>
                       </v-col>
@@ -53,9 +53,9 @@
               </v-row>
             </v-col>
             <v-col cols="12" md="6" lg="5">
-              <v-row no-gutters>
+              <v-row dense>
                 <v-col cols="12">
-                  <span class="title">Links</span>
+                  <h3>Links</h3>
                   <v-divider></v-divider>
                 </v-col>
                 <v-col cols="7" md="8" lg="7">
@@ -66,7 +66,7 @@
                 </v-col>
                 <template v-for="(item, index) in linksItems" :key="index">
                   <v-col cols="12">
-                    <v-row no-gutters>
+                    <v-row dense>
                       <v-col cols="12" class="py-0">
                         <v-divider></v-divider>
                       </v-col>
@@ -81,15 +81,15 @@
               <v-divider></v-divider>
             </v-col>
             <v-col cols="12" md="6" lg="5" offset-lg="1">
-              <v-row no-gutters>
+              <v-row dense class="mt-3">
                 <v-col cols="12">
-                  <span class="title">Blocks</span>
+                  <h3>Blocks</h3>
                   <v-divider></v-divider>
                 </v-col>
                 <v-col cols="12">
-                  <p>You can create paragraphs and other 'blocks' of text. Paragraphs should be separated by two
+                  <p>You can create paragraphs and other 'blocks' of text. Blocks should be separated by two
                     newlines.
-                    <strong>One new line is not enough!</strong>
+                    <strong>One new line is not always enough!</strong> See below.
                   </p>
                 </v-col>
                 <v-col cols="6">
@@ -100,11 +100,11 @@
                 </v-col>
                 <template v-for="(item, index) in blocksItems" :key="index">
                   <v-col cols="12">
-                    <v-row no-gutters>
+                    <v-row dense>
                       <v-col cols="12" class="py-0">
                         <v-divider></v-divider>
                       </v-col>
-                      <v-col cols="6"><kbd>{{item.input}}</kbd></v-col>
+                      <v-col cols="6"><kbd v-html="item.display" /></v-col>
                       <v-col cols="6" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
@@ -112,9 +112,9 @@
               </v-row>
             </v-col>
             <v-col cols="12" md="6" lg="4" offset-lg="1">
-              <v-row no-gutters>
+              <v-row dense class="mt-3">
                 <v-col cols="12">
-                  <span class="title">Lists</span>
+                  <h3>Lists</h3>
                   <v-divider></v-divider>
                 </v-col>
                 <v-col cols="12">
@@ -130,28 +130,28 @@
                 </v-col>
                 <template v-for="(item, index) in listsItems" :key="index">
                   <v-col cols="12">
-                    <v-row no-gutters>
+                    <v-row dense>
                       <v-col cols="12" class="py-0">
                         <v-divider></v-divider>
                       </v-col>
-                      <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
+                      <v-col cols="7" md="8" lg="7"><kbd v-html="item.display" /></v-col>
                       <v-col cols="5" md="4" lg="5" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
               </v-row>
             </v-col>
-            <v-col cols="12" md="5" offset-lg="1">
-              <v-row no-gutters>
-                <v-col cols="12">
-                  <span class="title">Headers</span>
+            <v-col cols="12">
+              <v-row dense class="mt-3">
+                <v-col cols="12" lg="11" offset-lg="1">
+                  <h3>Headers</h3>
                   <v-divider></v-divider>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="12" lg="11" offset-lg="1">
                   <p>You can add headers to your post. Please use these sparingly.
                     <strong>You must start a header at the beginning of a line for this to work.</strong></p>
                 </v-col>
-                <v-col cols="7" md="8" lg="7">
+                <v-col cols="7" md="8" lg="5" offset-lg="1">
                   <v-list-subheader class="markdown-table-header">Write</v-list-subheader>
                 </v-col>
                 <v-col cols="5" md="4" lg="5">
@@ -159,40 +159,42 @@
                 </v-col>
                 <template v-for="(item, index) in headersItems" :key="index">
                   <v-col cols="12">
-                    <v-row no-gutters>
+                    <v-row dense>
                       <v-col cols="12" class="py-0">
                         <v-divider></v-divider>
                       </v-col>
-                      <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
+                      <v-col cols="7" md="8" lg="5" offset-lg="1"><kbd>{{item.input}}</kbd></v-col>
                       <v-col cols="5" md="4" lg="5" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
               </v-row>
             </v-col>
-            <v-col cols="12" md="5">
-              <v-row no-gutters>
-                <v-col cols="12">
-                  <span class="title">Extras</span>
+            <v-col cols="12">
+              <v-row dense>
+                <v-col cols="12" lg="11" offset-lg="1">
+                  <h3>Extras</h3>
                   <v-divider></v-divider>
                 </v-col>
-                <v-col cols="12">
+                <v-col cols="12" lg="11" offset-lg="1">
                   <p>Here are a few extra tricks you might find handy!</p>
                 </v-col>
-                <v-col cols="7" md="8" lg="7">
+                <v-col cols="7" md="8" lg="5" offset-lg="1" class="hidden-md-and-down">
                   <v-list-subheader class="markdown-table-header">Write</v-list-subheader>
                 </v-col>
-                <v-col cols="5" md="4" lg="5">
+                <v-col cols="5" md="4" lg="5" class="hidden-md-and-down">
                   <v-list-subheader class="markdown-table-header">...and get</v-list-subheader>
                 </v-col>
                 <template v-for="(item, index) in extrasItems" :key="index">
                   <v-col cols="12">
-                    <v-row no-gutters>
+                    <v-row dense>
                       <v-col cols="12" class="py-0">
                         <v-divider></v-divider>
                       </v-col>
-                      <v-col cols="7" md="8" lg="7"><kbd>{{item.input}}</kbd></v-col>
-                      <v-col cols="5" md="4" lg="5" v-html="md.render(item.input)"></v-col>
+                      <v-col cols="12" class="hidden-lg-and-up"><v-list-subheader class="markdown-table-header">Write</v-list-subheader></v-col>
+                      <v-col cols="12" lg="5" offset-lg="1"><pre>{{item.input}}</pre></v-col>
+                      <v-col cols="12" class="hidden-lg-and-up"><v-list-subheader class="markdown-table-header">...and get</v-list-subheader></v-col>
+                      <v-col cols="12" lg="5" v-html="md.render(item.input)"></v-col>
                     </v-row>
                   </v-col>
                 </template>
@@ -254,20 +256,22 @@ const linksItems = [
 ]
 
 const blocksItems = [
-  {input: 'This is a test.\nThis is only a test.'},
-  {input: 'This is a test.\n\nThis is only a test.'},
-  {input: '> This is a block quote.\nIt continues on the next line.\n\nYou need two lines to stop here, too!'},
-  {input: '> This is another block quote.\n> \n> We can add blank lines to quotes this way.'},
-  {input: '```\n# This is a code block.\n\nfunction greet():\n    print("Hello, world!")\n\ngreet()\n```'},
+  {input: 'This is a test.\nThis is only a test.', display: 'This is a test.<br>This is only a test.'},
+  {input: 'This is a test.\n\nThis is only a test.', display: 'This is a test<br><br>This is only a test.'},
+  {input: '> This is a block quote.\nIt continues on the next line.\n\nYou need two lines to stop here, too!', display: '&gt; This is a block quote.<br>It continues on the next line.<br><br>You need two lines to stop here, too!'},
+  {input: '> This is another block quote.\n> \n> We can add blank lines to quotes this way.', display: '&gt; This is another block quote.<br>&gt; <br>&gt; We can add blank lines to quotes this way.'},
+  {input: '```\n# This is a code block.\n\nfunction greet():\n    print("Hello, world!")\n\ngreet()\n```', display: '```<br># This is a code block.<br><br>function greet():<br>&nbsp;&nbsp;&nbsp;&nbsp;print("Hello, world!")<br><br>greet()<br />```'},
 ]
 
 const listsItems = [
-  {input: '1. Put on shoes\n1. Tie laces\n1. Grab keys\n1. Forget wallet'},
-  {input: '* Fox\n* Wolf\n* Human\n* Elf'},
-  {input: '- Fox\n+ Wolf\n+ Human\n- Elf'},
+  {input: '1. Put on shoes\n1. Tie laces\n1. Grab keys\n1. Forget wallet', display: '1. Put on shoes<br>1. Tie laces<br>1. Grab keys<br>1. Forget wallet'},
+  {input: '* Fox\n* Wolf\n* Human\n* Elf', display: '* Fox<br>* Wolf<br>* Human<br>* Elf'},
+  {input: '- Fox\n+ Wolf\n+ Human\n- Elf', display: '- Fox<br>+ Wolf<br>+ Human<br>- Elf'},
   {
     input: '1. First item\n    * Sub item\n    * Sub item 2\n2. Second item\n\n    ' +
         'This is a test paragraph.\n\n1. Third item',
+    display: '1. First item<br>&nbsp;&nbsp;&nbsp;&nbsp;* Sub item<br/>&nbsp;&nbsp;&nbsp;&nbsp;* Sub item 2<br>2. ' +
+        'Second item<br><br>&nbsp;&nbsp;&nbsp;&nbsp;This is a test paragraph.<br><br>1. Third item'
   },
 ]
 
