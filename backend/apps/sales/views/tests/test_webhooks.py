@@ -687,6 +687,7 @@ class TestPaymentAttached(EnsurePlansMixin, TestCase):
         card = user.credit_cards.get()
         self.assertEqual(card.last_four, "1234")
         self.assertEqual(user.primary_card, card)
+        self.assertTrue(user.verified_adult)
 
     def test_payment_attached_has_existing_primary(self):
         event = base_payment_method_attached_event()

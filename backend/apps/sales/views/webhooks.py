@@ -287,9 +287,12 @@ def payment_method_attached(event):
         type=TYPE_TRANSLATION[card_info["card"]["brand"]],
         defaults={"cvv_verified": True},
     )
+    updated_fields = ["verified_adult"]
+    user.verified_adult = True
     if not user.primary_card:
         user.primary_card = card
-        user.save(update_fields=["primary_card"])
+        updated_fields.append("primary_card")
+    user.save(update_fields=updated_fields)
 
 
 REPORT_ROUTES = {
