@@ -47,6 +47,7 @@ from apps.sales.constants import (
     UNPROCESSED_EARNINGS,
     WAITING,
     WEIGHTED_STATUSES,
+    FUND,
 )
 from apps.sales.line_item_funcs import get_totals, reckon_lines
 from apps.sales.models import (
@@ -1510,7 +1511,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             Q(
                 payer=obj.order.buyer,
                 payee=None,
-                source__in=[CARD, CASH_DEPOSIT],
+                source=FUND,
                 destination__in=[UNPROCESSED_EARNINGS],
             )
             | Q(

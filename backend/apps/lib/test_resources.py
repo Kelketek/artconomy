@@ -6,13 +6,15 @@ from multiprocessing import Queue
 from pprint import pformat
 from subprocess import call
 from tempfile import TemporaryDirectory
+from typing import Literal
 from unittest.mock import Mock, patch
 
 import coverage
 import signal_disabler
 
 from apps.profiles.constants import POWER, POWER_LIST
-from apps.sales.models import ServicePlan
+from apps.sales.constants import CARD, CASH_DEPOSIT
+from apps.sales.models import ServicePlan, Deliverable
 from ddt import data, ddt
 from django.conf import settings
 from django.db import connections
@@ -23,6 +25,9 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import GenericAPIView
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import APITestCase as BaseAPITestCase
+
+from apps.sales.utils import invoice_post_payment, refund_deliverable
+from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 
 MIDDLEWARE = ["apps.lib.test_resources.DisableCSRF"] + settings.MIDDLEWARE
 
@@ -79,6 +84,52 @@ class APITestCase(EnsurePlansMixin, BaseAPITestCase):
                     "[" + ",\n".join([pformat(item) for item in container]) + "]",
                 )
             )
+
+
+class DeliverableChargeMixin:
+    def stripe_payment_event(self, deliverable: Deliverable):
+        event = base_charge_succeeded_event()["data"]["object"]
+        event["metadata"]["invoice_id"] = deliverable.invoice.id
+        return event
+
+    def charge_transaction(
+        self, deliverable: Deliverable, source: Literal[CARD, CASH_DEPOSIT] = CARD
+    ):
+        """
+        Simulate the payment of a deliverable.
+        """
+        from apps.lib.tests.test_utils import create_staffer
+
+        attempt = {
+            "amount": deliverable.invoice.total(),
+            "card_id": None,
+            "cash": source == CASH_DEPOSIT,
+            "stripe_event": (
+                self.stripe_payment_event(deliverable) if source == CARD else None
+            ),
+            "remote_ids": ["pi_12345"] if source == CARD else "",
+        }
+        requesting_user = deliverable.order.buyer
+        if source == CASH_DEPOSIT:
+            requesting_user = create_staffer("table_seller")
+        records = invoice_post_payment(
+            deliverable.invoice,
+            context={
+                "amount": attempt["amount"],
+                "successful": True,
+                "requesting_user": requesting_user,
+                "attempt": attempt,
+            },
+        )
+        deliverable.refresh_from_db()
+        return records
+
+    @patch("apps.sales.utils.refund_payment_intent")
+    def refund_transaction(self, deliverable: Deliverable, mock_refund_payment_intent):
+        mock_refund_payment_intent.return_value = {"id": "refund_token"}
+        refunded, message = refund_deliverable(deliverable)
+        if not refunded:
+            raise AssertionError(message)
 
 
 _worker_id = 0

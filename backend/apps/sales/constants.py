@@ -223,11 +223,17 @@ MONEY_HOLE_STAGE = 310
 # Where taxes go
 MONEY_HOLE = 311
 
-# Similar to money hole, when money is stolen and there's no getting it back :/
+# Similar to money hole, when money is stolen and there's no getting it back,
+# but a private actor instead of a public one. :/
 FRAUD_LOSS = 312
+
+# Staging account where the actual transaction coming in (like a card payment) is sent
+# before splitting into different accounts from there.
+FUND = 313
 
 # For when a customer gives us cash, like at an event.
 CASH_DEPOSIT = 407
+
 
 # These next accounts are used to generate reports about what money was actually
 # deposited into the payee's currency for tax purposes.
@@ -240,6 +246,7 @@ PAYOUT_MIRROR_SOURCE = 500
 PAYOUT_MIRROR_DESTINATION = 501
 
 ACCOUNT_TYPES = (
+    (FUND, "Fund"),
     (CARD, "Credit Card"),
     (BANK, "Bank Account"),
     (ESCROW, "Escrow"),
@@ -292,8 +299,11 @@ PROCESSING_FEE = 418
 # For tips. Given a slightly different name to make sure it's a distinct value from the
 # TIP and TIPPING consts.
 TIP_SEND = 419
+# Client charges a card or sends cash as one transaction before forking elsewhere.
+FUNDING = 420
 
 CATEGORIES = (
+    (FUNDING, "Funding"),
     (SHIELD_FEE, "Artconomy Service Fee"),
     (ESCROW_HOLD, "Escrow hold"),
     (ESCROW_RELEASE, "Escrow release"),

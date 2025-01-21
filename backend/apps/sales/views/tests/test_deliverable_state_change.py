@@ -14,7 +14,7 @@ from apps.lib.constants import (
     REVISION_UPLOADED,
     REVISION_APPROVED,
 )
-from apps.lib.test_resources import APITestCase
+from apps.lib.test_resources import APITestCase, DeliverableChargeMixin
 from apps.lib.tests.test_utils import create_staffer
 from apps.lib.utils import utc
 from apps.profiles.tests.factories import (
@@ -48,6 +48,7 @@ from apps.sales.constants import (
     TABLE_HANDLING,
     UNPROCESSED_EARNINGS,
     WAITING,
+    FUND,
 )
 from apps.sales.models import Deliverable, TransactionRecord, idempotent_lines
 from apps.sales.tests.factories import (
@@ -71,7 +72,7 @@ from stripe.error import InvalidRequestError
 
 
 @patch("apps.sales.views.main.notify")
-class TestDeliverableStatusChange(APITestCase):
+class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
     fixture_list = ["deliverable-state-change"]
 
     def setUp(self):
@@ -114,7 +115,6 @@ class TestDeliverableStatusChange(APITestCase):
             adjustment_expected_turnaround=2,
             product__task_weight=3,
             product__expected_turnaround=4,
-            processor=AUTHORIZE,
         )
         self.deliverable.characters.add(*characters)
         self.final = RevisionFactory.create(
@@ -475,30 +475,30 @@ class TestDeliverableStatusChange(APITestCase):
         self.assertEqual(TransactionRecord.objects.all().count(), 0)
 
     def test_refund_cash_staffer(self, _mock_stripe):
-        record = TransactionRecordFactory.create(
-            payee=self.deliverable.order.seller,
-            payer=self.deliverable.order.buyer,
-            amount=Money("15.00", "USD"),
-            source=CASH_DEPOSIT,
-            destination=ESCROW,
-            remote_ids=[],
-        )
+        self.charge_transaction(self.deliverable, source=CASH_DEPOSIT)
         targets = [
             ref_for_instance(self.deliverable),
             ref_for_instance(self.deliverable.invoice),
         ]
-        record.targets.set(targets)
         self.state_assertion("staffer", "refund/", initial_status=DISPUTED)
+        fund_transaction = TransactionRecord.objects.get(
+            status=SUCCESS,
+            payee=self.deliverable.order.buyer,
+            payer=self.deliverable.order.buyer,
+            source=CASH_DEPOSIT,
+            destination=FUND,
+        )
         refund_transaction = TransactionRecord.objects.get(
             status=SUCCESS,
             payee=self.deliverable.order.buyer,
-            payer=self.deliverable.order.seller,
-            source=ESCROW,
+            payer=self.deliverable.order.buyer,
+            source=FUND,
             destination=CASH_DEPOSIT,
         )
-        self.assertEqual(refund_transaction.amount, Money("15.00", "USD"))
+        self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertEqual(refund_transaction.remote_ids, [])
+        self.assertCountEqual(list(fund_transaction.targets.all()), targets)
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
 
     @freeze_time("2023-01-01")
@@ -510,38 +510,38 @@ class TestDeliverableStatusChange(APITestCase):
         mock_stripe.__enter__.return_value.Refund.create.return_value = {
             "id": "refund123"
         }
-        card = CreditCardTokenFactory.create()
-        record = TransactionRecordFactory.create(
-            card=card,
-            payee=self.deliverable.order.seller,
-            payer=self.deliverable.order.buyer,
-            amount=Money("15.00", "USD"),
-            source=CARD,
-            destination=ESCROW,
-            remote_ids=["pi_1234"],
+        self.charge_transaction(self.deliverable, source=CARD)
+        self.state_assertion(
+            "seller", "refund/", initial_status=DISPUTED, target_status=REFUNDED
         )
         targets = [
             ref_for_instance(self.deliverable),
             ref_for_instance(self.deliverable.invoice),
         ]
-        record.targets.set(targets)
-        self.state_assertion(
-            "seller", "refund/", initial_status=DISPUTED, target_status=REFUNDED
+        fund_transaction = TransactionRecord.objects.get(
+            status=SUCCESS,
+            payee=self.deliverable.order.buyer,
+            payer=self.deliverable.order.buyer,
+            source=CARD,
+            destination=FUND,
         )
         refund_transaction = TransactionRecord.objects.get(
             status=SUCCESS,
             payee=self.deliverable.order.buyer,
-            payer=self.deliverable.order.seller,
-            source=ESCROW,
+            payer=self.deliverable.order.buyer,
+            source=FUND,
             destination=CARD,
         )
+        self.assertLess(refund_transaction.amount, fund_transaction.amount)
         self.assertEqual(self.deliverable.refunded_on, timezone.now())
-        self.assertEqual(refund_transaction.amount, Money("15.00", "USD"))
+        self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
-        self.assertCountEqual(refund_transaction.remote_ids, ["pi_1234", "refund123"])
+        self.assertCountEqual(
+            refund_transaction.remote_ids, ["pi_12345", "refund123", "txn_test_balance"]
+        )
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
         mock_stripe.__enter__.return_value.Refund.create.assert_called_with(
-            amount=1500, payment_intent="pi_1234"
+            amount=385, payment_intent="pi_12345"
         )
 
     @patch("apps.sales.utils.stripe")
@@ -552,21 +552,11 @@ class TestDeliverableStatusChange(APITestCase):
         mock_stripe.__enter__.return_value.Refund.create.side_effect = (
             InvalidRequestError("Failed!", param=["test"])
         )
-        card = CreditCardTokenFactory.create()
-        record = TransactionRecordFactory.create(
-            card=card,
-            payee=self.deliverable.order.seller,
-            payer=self.deliverable.order.buyer,
-            amount=Money("15.00", "USD"),
-            source=CARD,
-            destination=ESCROW,
-            remote_ids=["pi_1234"],
-        )
+        self.charge_transaction(self.deliverable, source=CARD)
         targets = [
             ref_for_instance(self.deliverable),
             ref_for_instance(self.deliverable.invoice),
         ]
-        record.targets.set(targets)
         self.state_assertion(
             "seller",
             "refund/",
@@ -578,15 +568,25 @@ class TestDeliverableStatusChange(APITestCase):
             payee=self.deliverable.order.buyer,
             payer=self.deliverable.order.seller,
             source=ESCROW,
-            destination=CARD,
+            destination=FUND,
         )
-        self.assertEqual(refund_transaction.amount, Money("15.00", "USD"))
+        self.assertEqual(
+            TransactionRecord.objects.filter(
+                payee=self.deliverable.order.buyer,
+                payer=self.deliverable.order.seller,
+                status=SUCCESS,
+            ).count(),
+            0,
+        )
+        self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
-        self.assertEqual(refund_transaction.remote_ids, ["pi_1234"])
+        self.assertEqual(
+            sorted(refund_transaction.remote_ids), ["pi_12345", "txn_test_balance"]
+        )
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
         self.assertEqual(refund_transaction.response_message, "Failed!")
         mock_stripe.__enter__.return_value.Refund.create.assert_called_with(
-            amount=1500, payment_intent="pi_1234"
+            amount=385, payment_intent="pi_12345"
         )
 
     def test_refund_card_buyer(self, _mock_notify):
@@ -600,20 +600,15 @@ class TestDeliverableStatusChange(APITestCase):
         )
 
     @patch("apps.sales.utils.refund_payment_intent")
-    def test_refund_card_staffer_stripe(self, mock_refund_transaction, _mock_notify):
+    def test_refund_card_staffer(self, mock_refund_transaction, _mock_notify):
         card = CreditCardTokenFactory.create()
-        self.deliverable.processor = STRIPE
         self.deliverable.save()
-        record = TransactionRecordFactory.create(
-            payee=self.deliverable.order.seller,
-            payer=self.deliverable.order.buyer,
-            card=card,
-            remote_ids=["pi_123546"],
-        )
-        record.targets.add(ref_for_instance(self.deliverable))
+        self.charge_transaction(self.deliverable)
         mock_refund_transaction.return_value = {"id": "123456"}
-        self.state_assertion("staffer", "refund/", initial_status=DISPUTED)
-        record.refresh_from_db()
+        self.state_assertion(
+            "staffer", "refund/", initial_status=DISPUTED, target_status=REFUNDED
+        )
+        self.deliverable.refresh_from_db()
 
     def test_approve_deliverable_seller_fail(self, _mock_notify):
         self.state_assertion(

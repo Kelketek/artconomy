@@ -7,7 +7,7 @@ from unittest.mock import patch
 from dateutil.relativedelta import relativedelta
 
 from apps.lib.models import ref_for_instance
-from apps.lib.test_resources import APITestCase
+from apps.lib.test_resources import APITestCase, DeliverableChargeMixin
 from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
@@ -756,7 +756,7 @@ class TestSubscriptionReport(APITestCase):
 
 @freeze_time("2022-03-25")
 @override_settings(TABLE_TAX=Decimal("8.25"))
-class TestOrderValues(APITestCase):
+class TestOrderValues(APITestCase, DeliverableChargeMixin):
     def setUp(self):
         super().setUp()
         self.staff = UserFactory.create(is_superuser=True, is_staff=True)
@@ -766,45 +766,6 @@ class TestOrderValues(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         reader = DictReader(StringIO(response.content.decode("utf-8")))
         return [line for line in reader]
-
-    def stripe_payment_event(self, deliverable: Deliverable):
-        event = base_charge_succeeded_event()["data"]["object"]
-        event["metadata"]["invoice_id"] = deliverable.invoice.id
-        return event
-
-    def charge_transaction(
-        self, deliverable: Deliverable, source: Literal[CARD, CASH_DEPOSIT] = CARD
-    ):
-        """
-        Simulate the payment of a deliverable.
-        """
-        attempt = {
-            "amount": deliverable.invoice.total(),
-            "card_id": None,
-            "cash": source == CASH_DEPOSIT,
-            "stripe_event": (
-                self.stripe_payment_event(deliverable) if source == CARD else None
-            ),
-            "remote_ids": ["pi_12345"] if source == CARD else "",
-        }
-        records = invoice_post_payment(
-            deliverable.invoice,
-            context={
-                "amount": attempt["amount"],
-                "successful": True,
-                "requesting_user": deliverable.order.buyer,
-                "attempt": attempt,
-            },
-        )
-        deliverable.refresh_from_db()
-        return records
-
-    @patch("apps.sales.utils.refund_payment_intent")
-    def refund_transaction(self, deliverable: Deliverable, mock_refund_payment_intent):
-        mock_refund_payment_intent.return_value = {"id": "refund_token"}
-        refunded, message = refund_deliverable(deliverable)
-        if not refunded:
-            raise AssertionError(message)
 
     @patch("apps.sales.tasks.stripe")
     def payout_transactions(

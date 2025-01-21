@@ -395,14 +395,14 @@ COUNTRIES_ARTCONOMY_OUTPUT = {
 
 def base_charge_succeeded_event():
     return {
-        "id": "evt_1Icyh5AhlvPza3BKV9A13pSj",
+        "id": "evt_test",
         "object": "event",
         "api_version": "2019-12-03",
         "created": 1617653203,
         "type": "charge.succeeded",
         "data": {
             "object": {
-                "id": "ch_1Icyh4AhlvPza3BK7ZkPN95S",
+                "id": "ch_test",
                 "object": "charge",
                 "amount": 1500,
                 "amount_captured": 1500,
@@ -410,7 +410,7 @@ def base_charge_succeeded_event():
                 "application": None,
                 "application_fee": None,
                 "application_fee_amount": None,
-                "balance_transaction": "txn_1Icyh5AhlvPza3BKKv8oUs3e",
+                "balance_transaction": "txn_test_balance",
                 "billing_details": {
                     "address": {
                         "city": None,
@@ -450,8 +450,8 @@ def base_charge_succeeded_event():
                     "type": "authorized",
                 },
                 "paid": True,
-                "payment_intent": "pi_asrdfo8uyv7234",
-                "payment_method": "card_1Icyh4AhlvPza3BKKfHLWtEW",
+                "payment_intent": "pi_test",
+                "payment_method": "card_test",
                 "payment_method_details": {
                     "card": {
                         "brand": "visa",
@@ -476,20 +476,20 @@ def base_charge_succeeded_event():
                 "receipt_email": None,
                 "receipt_number": None,
                 "receipt_url": "https://pay.stripe.com/receipts/acct_1Fu0KSAhlvPza3BK/"
-                "ch_1Icyh4AhlvPza3BK7ZkPN95S/"
-                "rcpt_JFTe7703FypdF9BO3C6kfZcrouVJ2Wm",
+                "ch_test/"
+                "rcpt_test",
                 "refunded": False,
                 "refunds": {
                     "object": "list",
                     "data": [],
                     "has_more": False,
                     "total_count": 0,
-                    "url": "/v1/charges/ch_1Icyh4AhlvPza3BK7ZkPN95S/refunds",
+                    "url": "/v1/charges/ch_test/refunds",
                 },
                 "review": None,
                 "shipping": None,
                 "source": {
-                    "id": "card_1Icyh4AhlvPza3BKKfHLWtEW",
+                    "id": "card_test",
                     "object": "card",
                     "address_city": None,
                     "address_country": None,
@@ -523,7 +523,7 @@ def base_charge_succeeded_event():
         },
         "livemode": False,
         "pending_webhooks": 1,
-        "request": {"id": "req_jcqQXmSfMGTwR2", "idempotency_key": None},
+        "request": {"id": "req_test", "idempotency_key": None},
     }
 
 
