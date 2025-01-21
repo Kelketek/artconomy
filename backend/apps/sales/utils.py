@@ -17,7 +17,7 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Iterator,
+    Iterable,
     List,
     Optional,
     Tuple,
@@ -109,6 +109,8 @@ from apps.sales.constants import (
     WAITING,
     LINE_ITEM_TYPES_TABLE,
     PRIORITY_MAP,
+    FUND,
+    FUNDING,
 )
 from apps.sales.line_item_funcs import (
     ceiling_context,
@@ -687,7 +689,7 @@ def cancel_deliverable(deliverable, requested_by, skip_remote=False):
 
 
 @down_context
-def lines_to_transaction_specs(lines: Iterator["LineItem"]) -> "TransactionSpecMap":
+def lines_to_transaction_specs(lines: Iterable["LineItem"]) -> "TransactionSpecMap":
     type_map = {
         BONUS: SHIELD_FEE,
         SHIELD: SHIELD_FEE,
@@ -712,7 +714,7 @@ def lines_to_transaction_specs(lines: Iterator["LineItem"]) -> "TransactionSpecM
     return transaction_specs
 
 
-def fetch_prefixed(prefix: str, values: Iterator[str]) -> str:
+def fetch_prefixed(prefix: str, values: Iterable[str]) -> str:
     """
     Stripe transaction IDs all have prefixes like 'py_', or 'ch_'.
     Given a list of transaction ID strings, find the first with
@@ -746,48 +748,65 @@ def verify_total(deliverable: "Deliverable", field_name="amount"):
         )
 
 
+def refund_transaction_from(
+    record: "TransactionRecord", category: int, amount: Optional[Money] = None
+):
+    """
+    Creates a reversed transaction with an optionally overwritten amount.
+
+    TODO: Don't we already have a transaction reversing function? This may be partly
+    redundant.
+    """
+    from apps.sales.models import TransactionRecord
+
+    if amount is None:
+        amount = record.amount
+    return TransactionRecord.objects.create(
+        source=record.destination,
+        destination=record.source,
+        status=FAILURE,
+        category=category,
+        payer=record.payee,
+        payee=record.payer,
+        card=record.card,
+        amount=amount,
+        remote_ids=record.remote_ids,
+        response_message="Failed when contacting payment processor.",
+    )
+
+
 def issue_refund(
-    transaction_set: Iterator["TransactionRecord"], category: int, processor: str
+    fund_transaction: "TransactionRecord",
+    transaction_set: Iterable["TransactionRecord"],
+    category: int,
+    processor: str,
 ) -> List["TransactionRecord"]:
     """
     Performs all accounting and API calls to refund a set of transactions.
     """
     from apps.sales.models import TransactionRecord
 
-    last_four = None
-    remote_ids = []
+    assert (
+        fund_transaction.destination == FUND
+    ), "fund_transaction does not have destination as FUND!"
+    last_four = fund_transaction.card and fund_transaction.card.last_four
     transactions = [*transaction_set]
-    cash_transactions = [
-        record for record in transaction_set if record.source == CASH_DEPOSIT
-    ]
-    card_transactions = [record for record in transaction_set if record.source == CARD]
-    for record in card_transactions:
-        remote_ids.extend(record.remote_ids)
-        if last_four is None:
-            last_four = record.card and record.card.last_four
-    if not len(cash_transactions) == len(transactions):
+    remote_ids = [*fund_transaction.remote_ids]
+    if not fund_transaction.source == CASH_DEPOSIT:
         assert remote_ids, "Could not find a remote transaction ID to refund."
         assert (
             processor == STRIPE
         ) or last_four, "Could not determine the last four digits of the relevant card."
     refund_transactions = []
     for record in transactions:
-        new_record = TransactionRecord.objects.create(
-            source=record.destination,
-            destination=record.source,
-            status=FAILURE,
-            category=category,
-            payer=record.payee,
-            payee=record.payer,
-            card=record.card,
-            amount=record.amount,
-            remote_ids=record.remote_ids,
-            response_message="Failed when contacting payment processor.",
-        )
+        new_record = refund_transaction_from(record, category)
         new_record.targets.set(record.targets.all())
         refund_transactions.append(new_record)
-    amount = sum(record.amount for record in card_transactions)
-    if card_transactions:
+    amount = sum(record.amount for record in transactions) or Money("0.00", "USD")
+    payment_refund = refund_transaction_from(fund_transaction, category, amount=amount)
+    payment_refund.targets.set(fund_transaction.targets.all())
+    refund_transactions.append(payment_refund)
+    if fund_transaction.source == CARD:
         try:
             auth_code = "******"
             try:
@@ -815,14 +834,11 @@ def issue_refund(
         finally:
             for record in refund_transactions:
                 record.save()
-    # TODO: Return the value of cash to refund so we can show it to the operator.
-    cash_refund_transactions = [
-        record for record in refund_transactions if record.destination == CASH_DEPOSIT
-    ]
-    for record in cash_refund_transactions:
-        record.status = SUCCESS
-        record.response_message = ""
-        record.save()
+    elif fund_transaction.source == CASH_DEPOSIT:
+        for record in refund_transactions:
+            record.status = SUCCESS
+            record.response_message = ""
+            record.save()
     return refund_transactions
 
 
@@ -852,7 +868,7 @@ def ensure_buyer(order: "Order"):
 def update_order_payments(deliverable: "Deliverable"):
     """
     Find existing payment actions for an order, and sets the payer to the current buyer.
-    This is useful when a order was once created by a guest but later chowned over to a
+    This is useful when an order was once created by a guest but later chowned over to a
     registered user.
     """
     from apps.sales.models import TransactionRecord
@@ -1032,7 +1048,6 @@ def perform_charge(
     amount: Money,
     user: User,
     requesting_user: User,
-    initiate_transactions: TransactionInitiator,
     post_success: TransactionMutator = dummy_mutator,
     post_save: TransactionMutator = dummy_mutator,
     context: dict,
@@ -1049,7 +1064,6 @@ def perform_charge(
             attempt=attempt,
             amount=amount,
             user=user,
-            initiate_transactions=initiate_transactions,
             post_save=post_save,
             post_success=post_success,
             context=context,
@@ -1062,7 +1076,6 @@ def perform_charge(
             amount=amount,
             user=user,
             remote_ids=attempt.get("remote_ids"),
-            initiate_transactions=initiate_transactions,
             post_save=post_save,
             post_success=post_success,
             context=context,
@@ -1076,7 +1089,6 @@ def from_cash(
     attempt: PaymentAttempt,
     amount: Money,
     user: User,
-    initiate_transactions: TransactionInitiator,
     post_success: TransactionMutator,
     post_save: TransactionMutator,
     context: dict,
@@ -1086,10 +1098,9 @@ def from_cash(
     permission checked staffchannels because we're essentially telling the system
     'trust me, this has been paid for' and to just move the transaction along.
     """
-    transactions = initiate_transactions(attempt, amount, user, context)
+    transactions = invoice_initiate_transactions(attempt, amount, user, context)
     for record in transactions:
         record.status = SUCCESS
-        record.source = CASH_DEPOSIT
     post_success(transactions, attempt, user, context)
     for record in transactions:
         record.save()
@@ -1103,7 +1114,6 @@ def from_remote_id(
     amount: Money,
     user: User,
     remote_ids: List[str],
-    initiate_transactions: TransactionInitiator,
     post_success: TransactionMutator,
     post_save: TransactionMutator,
     context: dict,
@@ -1139,7 +1149,7 @@ def from_remote_id(
             ),
             error,
         )
-    transactions = initiate_transactions(attempt, amount, user, context)
+    transactions = invoice_initiate_transactions(attempt, amount, user, context)
     if stripe_event["status"] == "failed":
         error = f'{stripe_event["failure_code"]}: {stripe_event["failure_message"]}'
         return (
@@ -1369,12 +1379,12 @@ def post_pay_hook(
     return to_call(billable=billable, target=target, context=context, records=records)
 
 
-def paired_iterator(always: Any, iterator: Iterator):
+def paired_iterator(always: Any, iterable: Iterable):
     """
     Generator function that always returns a tuple with the first value as it iterates
     over the second value.
     """
-    for item in iterator:
+    for item in iterable:
         yield always, item
 
 
@@ -1407,12 +1417,25 @@ def invoice_initiate_transactions(
         source = CASH_DEPOSIT
     else:
         source = CARD
+    # First, the funding transaction.
+    funding_record = TransactionRecord(
+        payer=invoice.bill_to,
+        status=FAILURE,
+        payee=invoice.bill_to,
+        category=FUNDING,
+        source=source,
+        destination=FUND,
+        amount=amount,
+        response_message="Failed when contacting payment processor.",
+    )
+    if not context["successful"]:
+        return [funding_record]
     transactions = [
         TransactionRecord(
             payer=invoice.bill_to,
             status=FAILURE,
             category=category,
-            source=source,
+            source=FUND,
             payee=destination_user,
             destination=destination_account,
             amount=value,
@@ -1430,6 +1453,7 @@ def invoice_initiate_transactions(
                 amount=amount, stripe_event=attempt["stripe_event"]
             )
         )
+    transactions.insert(0, funding_record)
     return transactions
 
 
@@ -1455,8 +1479,7 @@ def post_payment_transaction_creator(invoice: "Invoice", context: dict):
         user=invoice.bill_to,
         requesting_user=context.get("requesting_user", invoice.bill_to),
         post_save=invoice_post_save,
-        context={"invoice": invoice},
-        initiate_transactions=invoice_initiate_transactions,
+        context={"invoice": invoice, "successful": context["successful"]},
     )
     return records
 
@@ -1565,22 +1588,25 @@ def refund_deliverable(deliverable: "Deliverable", requesting_user=None) -> (boo
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return True, ""
     target = ref_for_instance(deliverable)
-    # Sanity check. Should only return one transaction.
-    TransactionRecord.objects.get(
+    fund_transaction = TransactionRecord.objects.get(
         source__in=[CARD, CASH_DEPOSIT],
         targets=target,
         payer=deliverable.order.buyer,
-        payee=deliverable.order.seller,
-        destination=ESCROW,
+        payee=deliverable.order.buyer,
+        destination=FUND,
         status=SUCCESS,
     )
     transaction_set = TransactionRecord.objects.filter(
-        source__in=[CARD, CASH_DEPOSIT],
+        source=FUND,
+        payer=deliverable.order.buyer,
         targets=target,
         status=SUCCESS,
     ).exclude(category=SHIELD_FEE)
     record = issue_refund(
-        transaction_set, ESCROW_REFUND, processor=deliverable.processor
+        fund_transaction,
+        transaction_set,
+        ESCROW_REFUND,
+        processor=deliverable.processor,
     )[0]
     if record.status == FAILURE:
         return False, record.response_message
