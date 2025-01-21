@@ -43,6 +43,7 @@ from apps.sales.constants import (
     UNPROCESSED_EARNINGS,
     CANCELLED,
     REFUNDED,
+    FUND,
 )
 from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord
 from apps.sales.stripe import money_to_stripe
@@ -230,8 +231,15 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         handle_stripe_event(connect=False, event=event)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, QUEUED)
-        transaction = TransactionRecord.objects.get(
+        fund_transaction = TransactionRecord.objects.get(
             source=CARD,
+            destination=FUND,
+            payer=deliverable.order.buyer,
+            payee=deliverable.order.buyer,
+            status=SUCCESS,
+        )
+        escrow_transaction = TransactionRecord.objects.get(
+            source=FUND,
             destination=ESCROW,
             payer=deliverable.order.buyer,
             payee=deliverable.order.seller,
@@ -242,10 +250,11 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             destination=CARD_TRANSACTION_FEES,
         )
         self.assertEqual(fee.amount, Money("0.74", "USD"))
-        targets = list(transaction.targets.all())
-        self.assertIn(ref_for_instance(deliverable), targets)
-        self.assertIn(ref_for_instance(deliverable.invoice), targets)
-        self.assertEqual(transaction.targets.count(), 2)
+        for transaction in [fund_transaction, escrow_transaction, fee]:
+            targets = list(transaction.targets.all())
+            self.assertIn(ref_for_instance(deliverable), targets)
+            self.assertIn(ref_for_instance(deliverable.invoice), targets)
+            self.assertEqual(transaction.targets.count(), 2)
 
     def test_manual_invoice(self):
         event = base_charge_succeeded_event()
@@ -304,9 +313,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         handle_stripe_event(connect=False, event=event)
         transaction = TransactionRecord.objects.get(
             source=CARD,
-            destination=ESCROW,
+            destination=FUND,
             payer=deliverable.order.buyer,
-            payee=deliverable.order.seller,
+            payee=deliverable.order.buyer,
             status=FAILURE,
         )
         deliverable.refresh_from_db()
@@ -638,7 +647,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         self.assertEqual(invoice.status, OPEN)
         self.assertEqual(user.service_plan, self.free)
         self.assertEqual(user.service_plan_paid_through, current_date)
-        self.assertEqual(TransactionRecord.objects.filter(status=FAILURE).count(), 2)
+        self.assertEqual(TransactionRecord.objects.filter(status=FAILURE).count(), 1)
         self.assertEqual(TransactionRecord.objects.filter(status=SUCCESS).count(), 0)
 
     def test_service_extension(self):

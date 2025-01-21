@@ -27,6 +27,7 @@ from apps.sales.constants import (
     UNPROCESSED_EARNINGS,
     VOID,
     MISSED,
+    FUND,
 )
 from apps.sales.models import LineItem, TransactionRecord, Deliverable
 from apps.sales.tests.factories import (
@@ -313,8 +314,13 @@ class TransactionCheckMixin:
         source=CARD,
         landscape=False,
     ):
-        escrow_transactions = TransactionRecord.objects.filter(
+        fund_transaction = TransactionRecord.objects.get(
             source=source,
+            destination=FUND,
+        )
+        self.assertEqual(fund_transaction.amount, Money("12.00", "USD"))
+        escrow_transactions = TransactionRecord.objects.filter(
+            source=FUND,
             destination=ESCROW,
         )
         if remote_id:
@@ -340,7 +346,7 @@ class TransactionCheckMixin:
         self.assertEqual(escrow.payee, deliverable.order.seller)
 
         shield_fee_candidates = TransactionRecord.objects.filter(
-            source=source,
+            source=FUND,
             destination=UNPROCESSED_EARNINGS,
         )
         if remote_id:
@@ -369,7 +375,7 @@ class TransactionCheckMixin:
         self.assertEqual(shield_fee.payer, user)
         self.assertIsNone(shield_fee.payee)
         self.assertEqual(
-            TransactionRecord.objects.all()
+            TransactionRecord.objects.exclude(id=fund_transaction.id)
             .exclude(Q(payer=None) & Q(payee=None))
             .aggregate(total=Sum("amount"))["total"],
             Decimal("12.00"),
@@ -518,12 +524,12 @@ class TestDefaultDeliverable(EnsurePlansMixin, TestCase):
 
 class TestFromRemoteID(EnsurePlansMixin, TestCase):
     # Most cases are covered in other tests, so we'll just check this one here:
-    def test_unsupported_status(self):
+    @patch("apps.sales.utils.invoice_initiate_transactions")
+    def test_unsupported_status(self, mock_initiation):
         event = base_charge_succeeded_event()["data"]["object"]
         event["status"] = "pending"
         post_success = MagicMock()
         post_save = MagicMock()
-        initiate_transactions = MagicMock()
         attempt = {"stripe_event": event, "amount": Money("10.00", "USD")}
         success, transactions, message = from_remote_id(
             amount=Money("10.00", "USD"),
@@ -533,17 +539,16 @@ class TestFromRemoteID(EnsurePlansMixin, TestCase):
             user=UserFactory.create(),
             post_success=post_success,
             post_save=post_save,
-            initiate_transactions=initiate_transactions,
         )
         self.assertFalse(success)
         self.assertEqual(transactions, [])
         self.assertEqual(
             message,
             "Unhandled charge status, pending for remote_ids "
-            "['1234', 'txn_1Icyh5AhlvPza3BKKv8oUs3e']",
+            "['1234', 'txn_test_balance']",
         )
         post_success.assert_not_called()
-        initiate_transactions.assert_not_called()
+        mock_initiation.assert_not_called()
 
 
 class TestMarkAdult(EnsurePlansMixin, TestCase):
