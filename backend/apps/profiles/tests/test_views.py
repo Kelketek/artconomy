@@ -46,6 +46,7 @@ from apps.profiles.tests.factories import (
     UserFactory,
     SocialSettingsFactory,
     SocialLinkFactory,
+    ArtistProfileFactory,
 )
 from apps.profiles.tests.helpers import gen_characters
 from apps.profiles.views import ArtistProfileSettings
@@ -2348,3 +2349,23 @@ class TestKillSubmission(APITestCase):
             f"/api/profiles/submission/{submission.id}/kill/", {"flag": ILLEGAL_CONTENT}
         )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestArtistProfile(APITestCase):
+    def test_fetch_profile(self):
+        user = UserFactory.create()
+        response = self.client.get(
+            f"/api/profiles/account/{user.username}/artist-profile/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["commissions_closed"], user.artist_profile.commissions_closed
+        )
+
+    def test_fetch_non_existent(self):
+        user = UserFactory.create(artist_profile=None)
+        response = self.client.get(
+            f"/api/profiles/account/{user.username}/artist-profile/",
+        )
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
