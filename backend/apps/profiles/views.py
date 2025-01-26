@@ -296,9 +296,11 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
 
     @lru_cache()
     def get_object(self):
-        user = get_object_or_404(User, username=self.kwargs["username"], guest=False)
-        self.check_object_permissions(self.request, user)
-        return user.artist_profile
+        profile = get_object_or_404(
+            ArtistProfile, user__username=self.kwargs["username"], user__guest=False
+        )
+        self.check_object_permissions(self.request, profile.user)
+        return profile
 
     def patch(self, *args, **kwargs):
         return self.base_update("patch", *args, **kwargs)
