@@ -25,4 +25,7 @@ class Command(BaseCommand):
         body = sys.stdin.read()
         output = handle_stripe_event(body=body, connect=options["connect"])
         output.render()
-        print(output.content.decode("utf-8"))
+        if 200 <= output.status_code <= 300:
+            self.stdout.write(output.content.decode("utf-8"))
+        else:
+            self.stderr.write(output.content.decode("utf-8"))

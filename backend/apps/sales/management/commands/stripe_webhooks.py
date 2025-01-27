@@ -1,4 +1,6 @@
 import stripe as stripe_api
+from django.core.management.base import OutputWrapper
+
 from apps.sales.models import WebhookRecord
 from apps.sales.stripe import stripe
 from apps.sales.views.webhooks import (
@@ -10,7 +12,7 @@ from django.urls import reverse
 from shortcuts import make_url
 
 
-def setup_webhook(url: str, connect: bool, api: stripe_api):
+def setup_webhook(url: str, connect: bool, api: stripe_api, stderr: OutputWrapper):
     routes = STRIPE_CONNECT_WEBHOOK_ROUTES if connect else STRIPE_DIRECT_WEBHOOK_ROUTES
     try:
         webhook = WebhookRecord.objects.get(connect=connect)
@@ -24,7 +26,7 @@ def setup_webhook(url: str, connect: bool, api: stripe_api):
                 webhook = WebhookRecord.objects.create(
                     key=hook["id"], connect=connect, secret=""
                 )
-                print(
+                stderr.write(
                     "WARNING: Created webhook from API lookup. "
                     "Calls will fail until you manually set the secret field."
                 )
@@ -62,7 +64,7 @@ class Command(BaseCommand):
         )
         account_url = make_url(reverse("sales:stripe_webhooks"), overrides=overrides)
         with stripe as api:
-            webhook_connect = setup_webhook(connect_url, True, api)
-            webhook_account = setup_webhook(account_url, False, api)
-        print(f"Account webhook created with ID {webhook_account.key}")
-        print(f"Connect webhook created with ID {webhook_connect.key}")
+            webhook_connect = setup_webhook(connect_url, True, api, self.stderr)
+            webhook_account = setup_webhook(account_url, False, api, self.stderr)
+        self.stdout.write(f"Account webhook created with ID {webhook_account.key}")
+        self.stdout.write(f"Connect webhook created with ID {webhook_connect.key}")

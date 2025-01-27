@@ -19,4 +19,4 @@ class Command(BaseCommand):
             users = User.objects.filter(is_active=True, guest=False, stripe_token="")
         for user in users:
             create_or_update_stripe_user.delay(user.id, force=force)
-        print("Update tasks scheduled.")
+        self.stdout.write("Update tasks scheduled.")
