@@ -14,4 +14,4 @@ class Command(BaseCommand):
                 user.drip_id = result.json()["subscribers"][0]["id"]
                 user.save(update_fields=["drip_id"])
             except Exception as err:
-                print(user, user.email, err)
+                self.stderr.write(f"Failed for: {(user, user.email, err)}")
