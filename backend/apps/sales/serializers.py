@@ -44,7 +44,7 @@ from apps.sales.constants import (
     STRIPE,
     SUCCESS,
     TIP,
-    UNPROCESSED_EARNINGS,
+    FUND,
     WAITING,
     WEIGHTED_STATUSES,
     FUND,
@@ -1495,7 +1495,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
                 payer=None,
                 payee=None,
                 status=SUCCESS,
-                source=UNPROCESSED_EARNINGS,
+                source=FUND,
                 destination=CARD_TRANSACTION_FEES,
             ),
             self.qs_filters(obj),
@@ -1512,13 +1512,13 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
                 payer=obj.order.buyer,
                 payee=None,
                 source=FUND,
-                destination__in=[UNPROCESSED_EARNINGS],
+                destination__in=[FUND],
             )
             | Q(
                 payer=None,
                 payee=None,
                 source=RESERVE,
-                destination=UNPROCESSED_EARNINGS,
+                destination=FUND,
             )
         )
         return transactions.aggregate(total=Sum("amount"))["total"]
@@ -1541,7 +1541,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             payer=None,
             payee=None,
             status=SUCCESS,
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
             targets__content_type=ContentType.objects.get_for_model(transaction),
             targets__object_id=unslugify(transaction.id),
@@ -1691,7 +1691,7 @@ class TipValuesSerializer(serializers.ModelSerializer):
             payer=None,
             payee=None,
             status=SUCCESS,
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
             **self.qs_kwargs(obj),
         ).aggregate(total=Sum("amount"))["total"]
@@ -1706,7 +1706,7 @@ class TipValuesSerializer(serializers.ModelSerializer):
                 payer=obj.bill_to,
                 payee=None,
                 source__in=[CARD, CASH_DEPOSIT],
-                destination__in=[UNPROCESSED_EARNINGS],
+                destination__in=[FUND],
             )
         )
         return transactions.aggregate(total=Sum("amount"))["total"]
@@ -1727,7 +1727,7 @@ class TipValuesSerializer(serializers.ModelSerializer):
             payer=None,
             payee=None,
             status=SUCCESS,
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
             targets__content_type=ContentType.objects.get_for_model(transaction),
             targets__object_id=unslugify(transaction.id),
@@ -1814,7 +1814,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
     def get_fees(self, obj):
         return TransactionRecord.objects.filter(
             targets=ref_for_instance(obj),
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             status=SUCCESS,
             destination=ACH_TRANSACTION_FEES,
         ).aggregate(total=Sum("amount"))["total"] or Decimal("0")

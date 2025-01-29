@@ -32,7 +32,8 @@ from apps.sales.constants import (
     THIRD_PARTY_FEE,
     TIP_SEND,
     TIPPING,
-    UNPROCESSED_EARNINGS,
+    FUND,
+    FUND,
 )
 from apps.sales.models import Deliverable, StripeAccount, TransactionRecord
 from apps.sales.tasks import annotate_connect_fees_for_year_month
@@ -71,7 +72,7 @@ class TestCustomerHoldings(APITestCase):
         )
         TransactionRecordFactory.create(
             payer=None,
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=HOLDINGS,
             payee=deliverable.order.seller,
             amount=Money("50.00", "USD"),
@@ -79,7 +80,7 @@ class TestCustomerHoldings(APITestCase):
         # Pending, so shouldn't be counted.
         TransactionRecordFactory.create(
             payer=None,
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=HOLDINGS,
             payee=deliverable.order.seller,
             status=PENDING,
@@ -236,7 +237,7 @@ class TestPayoutReport(APITestCase):
             status=SUCCESS,
         )
         fee = TransactionRecordFactory.create(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
             amount=Money("2.00", "USD"),
         )
@@ -382,7 +383,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=PROCESSING_FEE,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -394,7 +395,7 @@ class TestTipReport(APITestCase):
         )
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
             created_on=utc_now().replace(day=5),
@@ -420,7 +421,7 @@ class TestTipReport(APITestCase):
         )
         transaction.targets.set([ref_for_instance(invoice)])
         transaction_fee = TransactionRecordFactory.create(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
             created_on=utc_now().replace(day=5),
@@ -481,7 +482,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=PROCESSING_FEE,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -531,7 +532,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=PROCESSING_FEE,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -587,7 +588,7 @@ class TestSubscriptionReport(APITestCase):
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -606,7 +607,7 @@ class TestSubscriptionReport(APITestCase):
         old_invoice.save()
         old_transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(month=1),
             finalized_on=utc_now().replace(month=1),
@@ -650,7 +651,7 @@ class TestSubscriptionReport(APITestCase):
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -668,7 +669,7 @@ class TestSubscriptionReport(APITestCase):
         old_invoice.save()
         old_record = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(year=2021),
             finalized_on=utc_now().replace(year=2021),
@@ -706,7 +707,7 @@ class TestSubscriptionReport(APITestCase):
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -724,7 +725,7 @@ class TestSubscriptionReport(APITestCase):
         old_invoice.save()
         old_transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(year=2021),
             finalized_on=utc_now().replace(year=2021),

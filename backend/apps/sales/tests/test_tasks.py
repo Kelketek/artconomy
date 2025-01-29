@@ -32,7 +32,7 @@ from apps.sales.constants import (
     PENDING,
     REVIEW,
     SUCCESS,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VOID,
     QUEUED,
 )
@@ -760,7 +760,7 @@ class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
         record.targets.add(ref_for_instance(account))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_record = TransactionRecord.objects.get(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
         )
         self.assertEqual(fee_record.amount, Money("2.50", "USD"))
@@ -790,7 +790,7 @@ class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
         record2.targets.add(ref_for_instance(account))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
@@ -842,7 +842,7 @@ class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
         record4.targets.add(ref_for_instance(account2))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
@@ -909,7 +909,7 @@ class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
         overseas_record2.targets.add(ref_for_instance(record2))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
@@ -949,7 +949,7 @@ class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
         overseas_record1.targets.add(ref_for_instance(record1))
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
@@ -994,7 +994,7 @@ class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
         annotate_connect_fees_for_year_month(month=8, year=2021)
         annotate_connect_fees_for_year_month(month=8, year=2021)
         fee_records = TransactionRecord.objects.filter(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])
@@ -1038,7 +1038,7 @@ class TestAnnotatePayouts(EnsurePlansMixin, TestCase):
         overseas_record1.targets.add(ref_for_instance(record1))
         annotate_connect_fees()
         fee_records = TransactionRecord.objects.filter(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
         )
         fee_total = sum([fee_record.amount for fee_record in fee_records])

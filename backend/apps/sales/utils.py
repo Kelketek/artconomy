@@ -104,7 +104,7 @@ from apps.sales.constants import (
     TIP,
     TIP_SEND,
     TIPPING,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VOID,
     WAITING,
     LINE_ITEM_TYPES_TABLE,
@@ -299,7 +299,7 @@ def term_charge(deliverable: "Deliverable"):
             line = LineItem.objects.create(
                 invoice=term_invoice,
                 amount=plan.per_deliverable_price,
-                destination_account=UNPROCESSED_EARNINGS,
+                destination_account=FUND,
                 type=DELIVERABLE_TRACKING,
             )
             line.targets.add(ref_for_instance(deliverable))
@@ -458,7 +458,7 @@ def finalize_table_fees(deliverable: "Deliverable"):
     )
     service_fee = TransactionRecord.objects.create(
         source=RESERVE,
-        destination=UNPROCESSED_EARNINGS,
+        destination=FUND,
         amount=record.amount,
         payer=None,
         payee=None,
@@ -521,7 +521,7 @@ def initialize_tip_invoice(deliverable):
         cascade_percentage=True,
         invoice=invoice,
         destination_user=None,
-        destination_account=UNPROCESSED_EARNINGS,
+        destination_account=FUND,
     )
     amount = max(deliverable.invoice.total() * Decimal(".10"), settings.MINIMUM_TIP)
     line = LineItem.objects.create(
@@ -1254,7 +1254,7 @@ def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
         fee += settings.STRIPE_CHARGE_STATIC
     return [
         TransactionRecord(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
             amount=fee,
@@ -1299,7 +1299,7 @@ def add_service_plan_line(invoice: "Invoice", service_plan: "ServicePlan"):
             "amount": amount,
             "description": f"{service_plan.name} plan monthly dues",
         },
-        destination_account=UNPROCESSED_EARNINGS,
+        destination_account=FUND,
         type=PREMIUM_SUBSCRIPTION,
         destination_user=None,
     )

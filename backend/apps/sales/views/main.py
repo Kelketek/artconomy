@@ -105,7 +105,7 @@ from apps.sales.constants import (
     TAX,
     TIP,
     TIPPING,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VOID,
     WAITING,
     WEIGHTED_STATUSES,
@@ -1106,9 +1106,7 @@ class InvoiceLineItems(ListCreateAPIView):
             raise ValidationError(
                 {"type": "Manual creation of this line-item type not supported."}
             )
-        serializer.save(
-            invoice=self.get_object(), destination_account=UNPROCESSED_EARNINGS
-        )
+        serializer.save(invoice=self.get_object(), destination_account=FUND)
 
 
 class InvoiceLineItemManager(RetrieveUpdateDestroyAPIView):
@@ -1196,8 +1194,8 @@ class DeliverableLineItems(ListCreateAPIView):
             ADD_ON: ESCROW,
             TIP: ESCROW,
             BASE_PRICE: ESCROW,
-            TABLE_SERVICE: UNPROCESSED_EARNINGS,
-            EXTRA: UNPROCESSED_EARNINGS,
+            TABLE_SERVICE: FUND,
+            EXTRA: FUND,
         }
         destination_account = accounts[item_type]
         with transaction.atomic():
