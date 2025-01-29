@@ -95,6 +95,12 @@
         </template>
         <v-list-item-title>Table Dashboard</v-list-item-title>
       </v-list-item>
+      <v-list-item :to="{name: 'VendorInvoices'}" v-if="isLoggedIn && powers.view_financials" role="listitem" tabindex="0">
+        <template v-slot:prepend>
+          <v-icon :icon="mdiInvoice"/>
+        </template>
+        <v-list-item-title>Vendor Invoices</v-list-item-title>
+      </v-list-item>
       <v-divider aria-hidden="true"/>
     </v-list>
     <v-list v-if="powers.handle_disputes" nav density="compact" role="list" tabindex="0">
@@ -241,7 +247,7 @@ import {
   mdiEye,
   mdiForum, mdiGavel, mdiHome,
   mdiImageMultiple,
-  mdiInformation,
+  mdiInformation, mdiInvoice,
   mdiLogout,
   mdiStar,
   mdiStore, mdiStoreCogOutline, mdiStorefront,

@@ -162,6 +162,7 @@ class LineItemFactory(DjangoModelFactory):
     amount = Money("15.00", "USD")
     destination_user = None
     destination_account = ESCROW
+    category = ESCROW_HOLD
 
     class Meta:
         model = LineItem
@@ -205,6 +206,7 @@ def add_adjustment(deliverable, amount: Money):
     return LineItem.objects.create(
         invoice=deliverable.invoice,
         destination_user=deliverable.order.seller,
+        category=ESCROW_HOLD,
         destination_account=ESCROW,
         amount=amount,
         type=ADD_ON,

@@ -2368,4 +2368,3 @@ class TestArtistProfile(APITestCase):
             f"/api/profiles/account/{user.username}/artist-profile/",
         )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-

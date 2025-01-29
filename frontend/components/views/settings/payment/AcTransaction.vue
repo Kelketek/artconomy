@@ -4,7 +4,10 @@
       <v-list-item-title>
         {{STATUS_COMMENTS[transaction.status]}} {{amount}}
       </v-list-item-title>
-      <v-list-item-subtitle>
+      <v-list-item-subtitle v-if="objective">
+        {{displayName(transaction.payer)}} ([{{ACCOUNT_TYPES[transaction.source]}}]) to {{displayName(transaction.payee)}} ([{{ACCOUNT_TYPES[transaction.destination]}}])
+      </v-list-item-subtitle>
+      <v-list-item-subtitle v-else>
         <span v-if="outbound">to</span>
         <span v-else>from</span>&nbsp;
         {{displayName(other)}}&nbsp;
@@ -67,7 +70,6 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {ISSUERS} from '@/components/views/settings/payment/issuers.ts'
 import {mdiClose, mdiDotsHorizontal} from '@mdi/js'
@@ -78,7 +80,6 @@ import {useTargets} from '@/plugins/targets.ts'
 import {useDisplay} from 'vuetify'
 import type {
   AccountTypeValue,
-  SubjectiveProps,
   Transaction,
   TransactionCategoryValue,
   TransactionStatusValue,
@@ -86,10 +87,9 @@ import type {
 import {RelatedUser} from '@/store/profiles/types/main'
 
 
-const props = defineProps<SubjectiveProps & {transaction: Transaction, currentAccount: number}>()
+const props = withDefaults(defineProps<{username: string|null, transaction: Transaction, asAccount: number, objective: boolean}>(), {objective: false})
 
 const {isSuperuser} = useViewer()
-const {subject} = useSubject({props})
 const {modalTarget} = useTargets()
 const {mdAndUp} = useDisplay()
 
@@ -143,19 +143,26 @@ const ACCOUNT_TYPES: Record<AccountTypeValue, string> = {
   309: 'Other ACH fees',
   310: 'Tax staging',
   311: 'Taxes',
+  313: 'Fund',
   407: 'Cash deposit',
 }
 
 const isPayer = computed(() => {
-  return (props.transaction.payer && props.transaction.payer.username === subject.value.username)
+  if (props.username === null && props.transaction.payer === null) {
+    return true
+  }
+  return (props.transaction.payer && props.transaction.payer.username === props.username)
 })
 
 const isPayee = computed(() => {
-  return (props.transaction.payee && props.transaction.payee.username === subject.value.username)
+  if (props.username === null && props.transaction.payee === null) {
+    return true
+  }
+  return (props.transaction.payee && props.transaction.payee.username === props.username)
 })
 
 const outbound = computed(() => {
-  return isPayer.value && ((!isPayee.value) || (props.transaction.destination !== props.currentAccount))
+  return isPayer.value && ((!isPayee.value) || (props.transaction.destination !== props.asAccount))
 })
 
 const other = computed(() => {

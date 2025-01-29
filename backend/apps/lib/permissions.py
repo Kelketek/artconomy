@@ -275,3 +275,22 @@ class Living(BasePermission):
         if obj.removed_on and not request.user.is_superuser:
             return False
         return True
+
+
+def Not(perm: Type[BasePermission], *, check_view: bool = True, check_obj: bool = True):
+    base_perm = perm()
+
+    class NegatedPermission(BasePermission):
+        def has_permission(self, request, view):
+            upstream = base_perm.has_permission(request, view)
+            if not check_obj:
+                return upstream
+            return not upstream
+
+        def has_object_permission(self, request, view, obj):
+            upstream = base_perm.has_object_permission(request, view, obj)
+            if not check_view:
+                return upstream
+            return not upstream
+
+    return NegatedPermission

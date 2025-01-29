@@ -265,6 +265,8 @@ def staff_power(user: "User", *powers: Iterable["POWER"]):
     """
     Return true if this user is a staffer and has the specified power.
     """
+    if user.is_superuser:
+        return True
     if not hasattr(user, "staff_powers"):
         return False
     if not user.is_staff:

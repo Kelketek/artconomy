@@ -34,7 +34,7 @@ from apps.sales.constants import (
     REVIEW,
     SHIELD,
     TIP,
-    UNPROCESSED_EARNINGS,
+    FUND,
 )
 from apps.sales.models import Deliverable, Order, Revision
 from apps.sales.tests.factories import (
@@ -939,7 +939,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         line_item = deliverable.invoice.line_items.get(type=EXTRA)
         self.assertEqual(line_item.amount, Money("2.03", "USD"))
-        self.assertEqual(line_item.destination_account, UNPROCESSED_EARNINGS)
+        self.assertEqual(line_item.destination_account, FUND)
         self.assertEqual(line_item.destination_user, None)
 
     def test_edit_line_item(self):

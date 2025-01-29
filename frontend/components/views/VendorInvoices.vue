@@ -2,16 +2,23 @@
   <v-container class="pa-0" v-if="currentRoute">
     <v-row>
       <v-col cols="12" class="text-center py-8">
-        <ac-form-container v-bind="invoiceForm.bind">
-          <ac-form @submit.prevent="invoiceForm.submitThen(goToInvoice)">
-            <v-btn color="green" block type="submit" variant="flat">
-              <v-icon :icon="mdiReceiptText"/>
-              New invoice
-            </v-btn>
-          </ac-form>
-        </ac-form-container>
+        <v-btn color="green" block type="submit" variant="flat"  @click="showNewInvoice = true">
+          <v-icon :icon="mdiReceiptText"/>
+          New invoice
+        </v-btn>
       </v-col>
     </v-row>
+    <ac-form-dialog v-model="showNewInvoice" v-bind="invoiceForm.bind" @submit.prevent="invoiceForm.submitThen(goToInvoice)">
+      <v-row>
+        <v-col cols="12" md="6" offset-md="3">
+          <ac-bound-field
+              :field="invoiceForm.fields.issued_by_id" field-type="ac-user-select"
+              :multiple="false"
+              label="User we're paying"
+          />
+        </v-col>
+      </v-row>
+    </ac-form-dialog>
     <ac-paginated :list="invoices" class="py-8">
       <template v-slot:default>
         <v-col cols="12" md="6" lg="4" offset-md="3" offset-lg="4">
@@ -21,7 +28,7 @@
           <v-list>
             <v-list-item v-for="invoice in invoices.list" :key="invoice.x!.id">
               <v-list-item-title>
-                <ac-link :to="linkFor(invoice.x!)">{{ invoice.x!.id }}</ac-link>
+                <ac-link :to="linkFor(invoice.x!)">{{ invoice.x!.id }} to {{ invoice.x.issued_by?.username}}</ac-link>
               </v-list-item-title>
               <v-list-item-subtitle>
                 {{ formatDateTime(invoice.x!.created_on) }}
@@ -69,34 +76,30 @@
 </style>
 
 <script setup lang="ts">
-import {useViewer} from '@/mixins/viewer.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {initDrawerValue} from '@/lib/lib.ts'
 import {mdiArrowLeftThick, mdiPrinter, mdiReceiptText} from '@mdi/js'
 import {useRoute, useRouter} from 'vue-router'
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 import {useDisplay} from 'vuetify'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
 import type {Invoice, NavSettings} from '@/types/main'
+import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
+import AcBoundField from '@/components/fields/AcBoundField.ts'
 
 const props = withDefaults(defineProps<{initialState?: null|boolean}>(), {initialState: initDrawerValue()})
 
 const route = useRoute()
 const router = useRouter()
 const display = useDisplay()
-const {viewer} = useViewer()
 
-const currentRoute = computed(() => route.name === 'TableInvoices')
+const currentRoute = computed(() => route.name === 'VendorInvoices')
 
-const usernameFor = (invoice: Invoice) => {
-  return (invoice.bill_to && invoice.bill_to.username) || viewer.value!.username
-}
+const showNewInvoice = ref(false)
 
 const goToInvoice = (invoice: Invoice) => {
   invoices.push(invoice)
@@ -105,9 +108,8 @@ const goToInvoice = (invoice: Invoice) => {
 
 const linkFor = (invoice: Invoice) => {
   return {
-    name: 'TableInvoice',
+    name: 'VendorInvoice',
     params: {
-      username: usernameFor(invoice),
       invoiceId: invoice.id,
     },
   }
@@ -133,9 +135,9 @@ const navSettings = useSingle<NavSettings>('navSettings', {
   x: {drawer},
 })
 const invoiceForm = useForm('new_invoice_button', {
-  endpoint: '/api/sales/create-anonymous-invoice/',
-  fields: {},
+  endpoint: '/api/sales/create-vendor-invoice/',
+  fields: {issued_by_id: {value: null}},
 })
-const invoices = useList<Invoice>('table_invoices', {endpoint: '/api/sales/table-invoices/'})
+const invoices = useList<Invoice>('vendor_invoices', {endpoint: '/api/sales/vendor-invoices/'})
 invoices.firstRun()
 </script>

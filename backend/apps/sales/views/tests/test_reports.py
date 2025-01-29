@@ -1,7 +1,6 @@
 from csv import DictReader
 from decimal import Decimal
 from io import StringIO
-from typing import Literal
 from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
@@ -32,7 +31,7 @@ from apps.sales.constants import (
     THIRD_PARTY_FEE,
     TIP_SEND,
     TIPPING,
-    UNPROCESSED_EARNINGS,
+    FUND,
 )
 from apps.sales.models import Deliverable, StripeAccount, TransactionRecord
 from apps.sales.tasks import annotate_connect_fees_for_year_month
@@ -47,10 +46,7 @@ from apps.sales.tests.factories import (
 from apps.sales.utils import (
     finalize_deliverable,
     get_term_invoice,
-    invoice_post_payment,
-    refund_deliverable,
 )
-from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.parser import parse
 from django.test import override_settings
 from freezegun import freeze_time
@@ -71,7 +67,7 @@ class TestCustomerHoldings(APITestCase):
         )
         TransactionRecordFactory.create(
             payer=None,
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=HOLDINGS,
             payee=deliverable.order.seller,
             amount=Money("50.00", "USD"),
@@ -79,7 +75,7 @@ class TestCustomerHoldings(APITestCase):
         # Pending, so shouldn't be counted.
         TransactionRecordFactory.create(
             payer=None,
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=HOLDINGS,
             payee=deliverable.order.seller,
             status=PENDING,
@@ -236,7 +232,7 @@ class TestPayoutReport(APITestCase):
             status=SUCCESS,
         )
         fee = TransactionRecordFactory.create(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
             amount=Money("2.00", "USD"),
         )
@@ -382,7 +378,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=PROCESSING_FEE,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -394,7 +390,7 @@ class TestTipReport(APITestCase):
         )
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
             created_on=utc_now().replace(day=5),
@@ -420,7 +416,7 @@ class TestTipReport(APITestCase):
         )
         transaction.targets.set([ref_for_instance(invoice)])
         transaction_fee = TransactionRecordFactory.create(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
             created_on=utc_now().replace(day=5),
@@ -481,7 +477,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=PROCESSING_FEE,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -531,7 +527,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=PROCESSING_FEE,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -587,7 +583,7 @@ class TestSubscriptionReport(APITestCase):
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -606,7 +602,7 @@ class TestSubscriptionReport(APITestCase):
         old_invoice.save()
         old_transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(month=1),
             finalized_on=utc_now().replace(month=1),
@@ -650,7 +646,7 @@ class TestSubscriptionReport(APITestCase):
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -668,7 +664,7 @@ class TestSubscriptionReport(APITestCase):
         old_invoice.save()
         old_record = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(year=2021),
             finalized_on=utc_now().replace(year=2021),
@@ -706,7 +702,7 @@ class TestSubscriptionReport(APITestCase):
         term_invoice.save()
         transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -724,7 +720,7 @@ class TestSubscriptionReport(APITestCase):
         old_invoice.save()
         old_transaction = TransactionRecordFactory.create(
             source=CARD,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
             category=SUBSCRIPTION_DUES,
             created_on=utc_now().replace(year=2021),
             finalized_on=utc_now().replace(year=2021),

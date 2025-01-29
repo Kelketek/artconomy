@@ -24,7 +24,7 @@ from apps.sales.constants import (
     RESERVE,
     SHIELD,
     SUCCESS,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VOID,
     MISSED,
     FUND,
@@ -347,7 +347,7 @@ class TransactionCheckMixin:
 
         shield_fee_candidates = TransactionRecord.objects.filter(
             source=FUND,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
         )
         if remote_id:
             shield_fee_candidates = shield_fee_candidates.filter(

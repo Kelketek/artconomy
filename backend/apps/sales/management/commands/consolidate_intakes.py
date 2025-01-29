@@ -3,8 +3,16 @@ from django.db import transaction
 from moneyed import Money
 
 from apps.lib.models import ref_for_instance
-from apps.sales.constants import CARD, FUND, SUCCESS, CASH_DEPOSIT, FUNDING
-from apps.sales.models import TransactionRecord, Invoice
+from apps.sales.constants import (
+    CARD,
+    UNPROCESSED_EARNINGS,
+    SUCCESS,
+    CASH_DEPOSIT,
+    FUNDING,
+    FUND,
+    DEFAULT_TYPE_TO_CATEGORY_MAP,
+)
+from apps.sales.models import TransactionRecord, Invoice, LineItem
 from django.core.management import BaseCommand
 
 
@@ -48,3 +56,16 @@ class Command(BaseCommand):
             for record in successful:
                 record.source = FUND
                 record.save()
+
+        TransactionRecord.objects.filter(source=UNPROCESSED_EARNINGS).update(
+            source=FUND
+        )
+        TransactionRecord.objects.filter(destination=UNPROCESSED_EARNINGS).update(
+            destination=FUND
+        )
+        LineItem.objects.filter(destination_account=UNPROCESSED_EARNINGS).update(
+            destination_account=FUND
+        )
+        for line_item in LineItem.objects.filter(category__isnull=True):
+            line_item.category = DEFAULT_TYPE_TO_CATEGORY_MAP[line_item.type]
+            line_item.save()

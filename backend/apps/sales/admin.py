@@ -1,4 +1,5 @@
 from apps.lib.admin import CommentInline
+from apps.profiles.utils import get_anonymous_user
 from apps.sales.models import (
     CreditCardToken,
     Deliverable,
@@ -150,17 +151,27 @@ class LineItemInline(admin.StackedInline):
 
 class InvoiceAdmin(admin.ModelAdmin):
     raw_id_fields = ["bill_to", "issued_by", "targets"]
-    list_display = ("id", "bill_to", "status", "total", "link")
-    list_filter = ["status"]
+    list_display = ("id", "type", "issuer", "payer", "status", "total", "link")
+    list_filter = ("type", "status")
     inlines = [LineItemInline]
 
     def link(self, obj):
-        from apps.profiles.models import User
-
-        target_user = obj.bill_to or User.objects.first()
+        target_user = obj.bill_to or get_anonymous_user()
         return format_html(
             f'<a href="/profile/{target_user.username}/invoice/{obj.id}/">visit</a>',
         )
+
+    def payer(self, obj):
+        if obj.bill_to:
+            return obj.bill_to.username
+        else:
+            return "(Artconomy)"
+
+    def issuer(self, obj):
+        if obj.issued_by:
+            return obj.issued_by.username
+        else:
+            return "(Artconomy)"
 
 
 def safe_display(record):

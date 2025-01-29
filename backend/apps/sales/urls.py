@@ -33,7 +33,8 @@ urlpatterns = [
     path("who-is-open/", main.WhoIsOpen.as_view(), name="who_is_open"),
     path("pricing-info/", main.PricingInfo.as_view(), name="pricing_info"),
     path("service-plans/", main.Plans.as_view(), name="service_plans"),
-    path("recent-invoices/", main.TableInvoices.as_view(), name="recent_invoice"),
+    path("vendor-invoices/", main.VendorInvoices.as_view(), name="vendor_invoices"),
+    path("table-invoices/", main.TableInvoices.as_view(), name="table_invoices"),
     path("references/", main.References.as_view(), name="references"),
     path("table/products/", main.TableProducts.as_view(), name="table_products"),
     path("table/orders/", main.TableOrders.as_view(), name="table_orders"),
@@ -47,6 +48,11 @@ urlpatterns = [
         "paypal-webhooks/<short_code:config_id>/",
         webhooks.PaypalWebhooks.as_view(),
         name="paypal_webhooks",
+    ),
+    path(
+        "create-vendor-invoice/",
+        main.CreateVendorInvoice.as_view(),
+        name="create_vendor_invoice",
     ),
     path(
         "create-anonymous-invoice/",

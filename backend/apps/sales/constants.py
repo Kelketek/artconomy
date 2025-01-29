@@ -92,12 +92,17 @@ TERM = 2
 # Used for tips, which are made after the main invoice
 # has already been closed, or else independently.
 TIPPING = 3
+# Vendor invoices are invoices where we (as the platform) are paying a vendor for a
+# service unrelated to commissions. NOTE: These invoices should not be paid by card,
+# per Stripe's terms of service. They must be paid with Stripe funds.
+VENDOR = 4
 
 INVOICE_TYPES = (
     (SALE, "Sale"),
     (SUBSCRIPTION, "Subscription"),
     (TERM, "Term"),
     (TIPPING, "Tip"),
+    (VENDOR, "Vendor"),
 )
 
 ####
@@ -205,7 +210,8 @@ HOLDINGS = 303
 # reserve until an order is complete. When complete, these amounts are deposited into
 # either the cash account of Artconomy, or added to the user's holdings.
 RESERVE = 304
-# Earnings for which we have not yet subtracted card/bank transfer fees.
+# Earnings for which we have not yet subtracted card/bank transfer fees. DEPRECATED:
+# Use FUND instead.
 UNPROCESSED_EARNINGS = 305
 # These two fee types will be used to keep track of fees that have been paid out to card
 # processors.
@@ -257,7 +263,6 @@ ACCOUNT_TYPES = (
     ),
     (PAYOUT_MIRROR_DESTINATION, "(Local Currency) Bank Account"),
     (RESERVE, "Contingency reserve"),
-    (UNPROCESSED_EARNINGS, "Unannotated earnings"),
     (CARD_TRANSACTION_FEES, "Card transaction fees"),
     (CARD_MISC_FEES, "Other card fees"),
     (CASH_DEPOSIT, "Cash deposit"),
@@ -290,9 +295,9 @@ TAXES = 414
 # For things like inventory items sold at tables alongside the commission, like a pop
 # socket.
 EXTRA_ITEM = 415
-# For times when we're manually sending money to others-- such as cases where we don't
-# yet have code to manage something, but we need to be able to pay using Dwolla.
-MANUAL_PAYOUT = 416
+# For times when we're manually sending money to others for specific services that the
+# platform itself is paying for.
+VENDOR_PAYMENT = 416
 PAYOUT_REVERSAL = 417
 # Used on items where we collect a slight processing fee, but not shield-level.
 PROCESSING_FEE = 418
@@ -305,6 +310,7 @@ FUNDING = 420
 CATEGORIES = (
     (FUNDING, "Funding"),
     (SHIELD_FEE, "Artconomy Service Fee"),
+    (PROCESSING_FEE, "Processing fee (non-shield)"),
     (ESCROW_HOLD, "Escrow hold"),
     (ESCROW_RELEASE, "Escrow release"),
     (ESCROW_REFUND, "Escrow refund"),
@@ -319,7 +325,23 @@ CATEGORIES = (
     (CORRECTION, "Correction"),
     (TABLE_SERVICE, "Table Service"),
     (TAXES, "Taxes"),
-    (MANUAL_PAYOUT, "Manual Payout"),
+    (VENDOR_PAYMENT, "Vendor Payment"),
     (PAYOUT_REVERSAL, "Payout Reversal"),
     (TIP_SEND, "Tip"),
 )
+
+
+DEFAULT_TYPE_TO_CATEGORY_MAP = {
+    BONUS: SHIELD_FEE,
+    SHIELD: SHIELD_FEE,
+    PROCESSING: PROCESSING_FEE,
+    OTHER_FEE: THIRD_PARTY_FEE,
+    TABLE_SERVICE: TABLE_HANDLING,
+    TAX: TAXES,
+    ADD_ON: ESCROW_HOLD,
+    BASE_PRICE: ESCROW_HOLD,
+    TIP: TIP_SEND,
+    EXTRA: EXTRA_ITEM,
+    PREMIUM_SUBSCRIPTION: SUBSCRIPTION_DUES,
+    DELIVERABLE_TRACKING: SUBSCRIPTION_DUES,
+}

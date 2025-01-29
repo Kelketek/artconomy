@@ -68,7 +68,7 @@
                   <v-col>
                     <ac-load-section :controller="lineItems">
                       <template v-slot:default>
-                        <ac-line-item-listing :editable="editable" :line-items="lineItems" :edit-extras="editable"/>
+                        <ac-line-item-listing :editable="editable" :line-items="lineItems" :edit-extras="editable" :edit-base="editBase"/>
                       </template>
                     </ac-load-section>
                   </v-col>
@@ -200,7 +200,7 @@
                   <v-col cols="12">
                     <v-list three-line>
                       <template v-for="transaction, index in transactions.list" :key="transaction.x!.id">
-                        <ac-transaction :transaction="transaction.x!" :username="username" :current-account="300"/>
+                        <ac-transaction :transaction="transaction.x!" :username="username || null" :as-account="AccountType.FUND" :objective="true"/>
                         <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
                       </template>
                     </v-list>
@@ -237,10 +237,12 @@ import {useForm} from '@/store/forms/hooks.ts'
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
 import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
+import {AccountType} from '@/types/enums/AccountType.ts'
+import {InvoiceType} from '@/types/enums/InvoiceType.ts'
 
-import type {ClientSecret, Invoice, InvoiceStatusValue, LineItem, SubjectiveProps, Transaction} from '@/types/main'
+import type {ClientSecret, Invoice, InvoiceStatusValue, LineItem, Transaction} from '@/types/main'
 
-const props = defineProps<{invoiceId: string} & SubjectiveProps>()
+const props = defineProps<{invoiceId: string, username?: string}>()
 const {powers} = useViewer()
 
 const showPayment = ref(false)
@@ -265,6 +267,7 @@ schema.reset = false
 
 const prefix = computed(() => `invoice__${props.invoiceId}`)
 const editable = computed(() => powers.value.table_seller && (invoice.x?.status === InvoiceStatus.DRAFT))
+const editBase = computed(() => invoice.x?.type === InvoiceType.VENDOR)
 const paymentForm = useForm(`${prefix.value}__payment`, schema)
 const clientSecret = useSingle<ClientSecret>(`${prefix.value}__clientSecret`, {endpoint: `${url.value}payment-intent/`})
 const stateChange = useForm(`${prefix.value}__stateChange`, {
@@ -376,4 +379,5 @@ watch(() => invoice.x, (invoice: null | Invoice) => {
     showPayment.value = false
   }
 })
+console.log(editable.value)
 </script>

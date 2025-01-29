@@ -104,13 +104,14 @@ from apps.sales.constants import (
     TIP,
     TIP_SEND,
     TIPPING,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VOID,
     WAITING,
     LINE_ITEM_TYPES_TABLE,
     PRIORITY_MAP,
     FUND,
     FUNDING,
+    VENDOR,
 )
 from apps.sales.line_item_funcs import (
     ceiling_context,
@@ -127,7 +128,7 @@ from apps.sales.stripe import (
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import MultipleObjectsReturned
+from django.core.exceptions import MultipleObjectsReturned, SuspiciousOperation
 from django.db import IntegrityError, transaction
 from django.db.models import Case, F, IntegerField, Model, Q, Sum, When
 from django.db.transaction import atomic
@@ -299,7 +300,8 @@ def term_charge(deliverable: "Deliverable"):
             line = LineItem.objects.create(
                 invoice=term_invoice,
                 amount=plan.per_deliverable_price,
-                destination_account=UNPROCESSED_EARNINGS,
+                destination_account=FUND,
+                category=SUBSCRIPTION_DUES,
                 type=DELIVERABLE_TRACKING,
             )
             line.targets.add(ref_for_instance(deliverable))
@@ -458,7 +460,7 @@ def finalize_table_fees(deliverable: "Deliverable"):
     )
     service_fee = TransactionRecord.objects.create(
         source=RESERVE,
-        destination=UNPROCESSED_EARNINGS,
+        destination=FUND,
         amount=record.amount,
         payer=None,
         payee=None,
@@ -515,17 +517,19 @@ def initialize_tip_invoice(deliverable):
         percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
     LineItem.objects.create(
         type=PROCESSING,
+        category=PROCESSING_FEE,
         percentage=percentage,
         amount=settings.PROCESSING_STATIC,
         cascade_amount=True,
         cascade_percentage=True,
         invoice=invoice,
         destination_user=None,
-        destination_account=UNPROCESSED_EARNINGS,
+        destination_account=FUND,
     )
     amount = max(deliverable.invoice.total() * Decimal(".10"), settings.MINIMUM_TIP)
     line = LineItem.objects.create(
         type=TIP,
+        category=TIP_SEND,
         percentage=0,
         amount=amount,
         cascade_amount=False,
@@ -690,26 +694,13 @@ def cancel_deliverable(deliverable, requested_by, skip_remote=False):
 
 @down_context
 def lines_to_transaction_specs(lines: Iterable["LineItem"]) -> "TransactionSpecMap":
-    type_map = {
-        BONUS: SHIELD_FEE,
-        SHIELD: SHIELD_FEE,
-        PROCESSING: PROCESSING_FEE,
-        TABLE_SERVICE: TABLE_HANDLING,
-        TAX: TAXES,
-        ADD_ON: ESCROW_HOLD,
-        BASE_PRICE: ESCROW_HOLD,
-        TIP: TIP_SEND,
-        EXTRA: EXTRA_ITEM,
-        PREMIUM_SUBSCRIPTION: SUBSCRIPTION_DUES,
-        DELIVERABLE_TRACKING: SUBSCRIPTION_DUES,
-    }
     total, __, subtotals = get_totals(lines)
     transaction_specs = defaultdict(lambda: Money("0.00", "USD"))
     for line_item, subtotal in subtotals.items():
         transaction_specs[
             line_item.destination_user,
             line_item.destination_account,
-            type_map[line_item.type],
+            line_item.category,
         ] += subtotal
     return transaction_specs
 
@@ -1254,7 +1245,7 @@ def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
         fee += settings.STRIPE_CHARGE_STATIC
     return [
         TransactionRecord(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
             amount=fee,
@@ -1297,9 +1288,10 @@ def add_service_plan_line(invoice: "Invoice", service_plan: "ServicePlan"):
     item, _created = invoice.line_items.update_or_create(
         defaults={
             "amount": amount,
+            "category": SUBSCRIPTION_DUES,
             "description": f"{service_plan.name} plan monthly dues",
         },
-        destination_account=UNPROCESSED_EARNINGS,
+        destination_account=FUND,
         type=PREMIUM_SUBSCRIPTION,
         destination_user=None,
     )
@@ -1411,24 +1403,29 @@ def invoice_initiate_transactions(
 ) -> List["TransactionRecord"]:
     from apps.sales.models import TransactionRecord
 
+    funding_record: Optional[TransactionRecord] = None
+
     invoice = context["invoice"]
     transaction_specs = lines_to_transaction_specs(invoice.line_items.all())
     if attempt.get("cash"):
         source = CASH_DEPOSIT
     else:
         source = CARD
-    # First, the funding transaction.
-    funding_record = TransactionRecord(
-        payer=invoice.bill_to,
-        status=FAILURE,
-        payee=invoice.bill_to,
-        category=FUNDING,
-        source=source,
-        destination=FUND,
-        amount=amount,
-        response_message="Failed when contacting payment processor.",
-    )
+    # TODO: Make pay from fund an option some day, rather than adding this special case.
+    if not ((invoice.type == VENDOR) and (source == CASH_DEPOSIT)):
+        # First, the funding transaction.
+        funding_record = TransactionRecord(
+            payer=invoice.bill_to,
+            status=FAILURE,
+            payee=invoice.bill_to,
+            category=FUNDING,
+            source=source,
+            destination=FUND,
+            amount=amount,
+            response_message="Failed when contacting payment processor.",
+        )
     if not context["successful"]:
+        assert funding_record, "Somehow failed to pay from cash. There must be a bug!"
         return [funding_record]
     transactions = [
         TransactionRecord(
@@ -1453,7 +1450,8 @@ def invoice_initiate_transactions(
                 amount=amount, stripe_event=attempt["stripe_event"]
             )
         )
-    transactions.insert(0, funding_record)
+    if funding_record:
+        transactions.insert(0, funding_record)
     return transactions
 
 

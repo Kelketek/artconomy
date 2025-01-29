@@ -97,6 +97,7 @@ const ManageSubmissionList = () => import('@/components/views/profile/ManageSubm
 const ManageArtList = () => import('@/components/views/profile/ManageArtList.vue')
 const Queue = () => import('@/components/views/Queue.vue')
 const InvoiceDetail = () => import('@/components/views/invoice/InvoiceDetail.vue')
+const VendorInvoices = () => import('@/components/views/VendorInvoices.vue')
 const TableDashboard = () => import('@/components/views/table/TableDashboard.vue')
 const TableProducts = () => import('@/components/views/table/TableProducts.vue')
 const TableOrders = () => import('@/components/views/table/TableOrders.vue')
@@ -720,6 +721,19 @@ export const routes: RouteRecordRaw[] = [
     path: '/reports/promotable/',
     name: 'Promotable',
     component: Promotable,
+  },
+  {
+    path: '/vendor-invoices/',
+    name: 'VendorInvoices',
+    component: VendorInvoices,
+    children: [
+      {
+        path: ':invoiceId/',
+        name: 'VendorInvoice',
+        component: InvoiceDetail,
+        props: true,
+      }
+    ],
   },
   {
     path: '/table/',

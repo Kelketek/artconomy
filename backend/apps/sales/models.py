@@ -80,10 +80,15 @@ from apps.sales.constants import (
     TAX,
     TIP,
     TRANSACTION_STATUSES,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VISA,
     WAITING,
     WEIGHTED_STATUSES,
+    ESCROW_HOLD,
+    TABLE_HANDLING,
+    TAXES,
+    SHIELD_FEE,
+    SUBSCRIPTION_DUES,
 )
 from apps.sales.line_item_funcs import reckon_lines
 from apps.sales.permissions import (
@@ -881,7 +886,10 @@ def idempotent_lines(instance: Deliverable):
             # base price if it already exists. Doing so can (and has) resulted in
             # negative payout amounts if the customer lowers their price to something
             # that shield can't support.
-            create_defaults={"amount": instance.product.base_price},
+            create_defaults={
+                "amount": instance.product.base_price,
+                "category": ESCROW_HOLD,
+            },
             invoice=instance.invoice,
             type=BASE_PRICE,
             destination_user=instance.order.seller,
@@ -900,6 +908,7 @@ def idempotent_lines(instance: Deliverable):
                 "percentage": settings.TABLE_PERCENTAGE_FEE,
                 "cascade_percentage": instance.cascade_fees,
                 "amount": settings.TABLE_STATIC_FEE,
+                "category": TABLE_HANDLING,
                 # We don't cascade this flat amount for table products. Might revisit
                 # this later.
                 "cascade_amount": False,
@@ -913,6 +922,7 @@ def idempotent_lines(instance: Deliverable):
         line = main_qs.update_or_create(
             defaults={
                 "percentage": settings.TABLE_TAX,
+                "category": TAXES,
                 "cascade_percentage": instance.cascade_fees,
                 "cascade_amount": instance.cascade_fees,
                 "back_into_percentage": instance.cascade_fees,
@@ -933,13 +943,14 @@ def idempotent_lines(instance: Deliverable):
             defaults={
                 "percentage": percentage,
                 "amount": plan.shield_static_price,
+                "category": SHIELD_FEE,
                 "cascade_percentage": instance.cascade_fees,
                 "cascade_amount": instance.cascade_fees,
                 "back_into_percentage": not instance.cascade_fees,
             },
             invoice=instance.invoice,
             destination_user=None,
-            destination_account=UNPROCESSED_EARNINGS,
+            destination_account=FUND,
             type=SHIELD,
         )[0]
         line.annotate(instance)
@@ -968,12 +979,13 @@ def idempotent_lines(instance: Deliverable):
             line = main_qs.update_or_create(
                 defaults={
                     "amount": plan.per_deliverable_price,
+                    "category": SUBSCRIPTION_DUES,
                     "cascade_amount": instance.cascade_fees,
                 },
                 invoice=instance.invoice,
                 destination_user=None,
                 type=DELIVERABLE_TRACKING,
-                destination_account=UNPROCESSED_EARNINGS,
+                destination_account=FUND,
             )[0]
             line.annotate(instance)
         instance.invoice.record_only = True
@@ -1431,6 +1443,7 @@ class LineItem(Model):
     # be run after lower numbers. If two items have the same priority, they will both be
     # run as if the other had not been run.
     priority = IntegerField(db_index=True)
+    category = IntegerField(choices=CATEGORIES, null=True, db_index=True)
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
     back_into_percentage = BooleanField(db_index=True, default=False)
@@ -1482,6 +1495,7 @@ class LineItem(Model):
 
     def save(self, *args, **kwargs):
         self.priority = PRIORITY_MAP[self.type]
+        assert self.category
         super().save(*args, **kwargs)
 
 
