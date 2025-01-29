@@ -92,12 +92,17 @@ TERM = 2
 # Used for tips, which are made after the main invoice
 # has already been closed, or else independently.
 TIPPING = 3
+# Vendor invoices are invoices where we (as the platform) are paying a vendor for a
+# service unrelated to commissions. NOTE: These invoices should not be paid by card,
+# per Stripe's terms of service. They must be paid with Stripe funds.
+VENDOR = 4
 
 INVOICE_TYPES = (
     (SALE, "Sale"),
     (SUBSCRIPTION, "Subscription"),
     (TERM, "Term"),
     (TIPPING, "Tip"),
+    (VENDOR, "Vendor"),
 )
 
 ####
@@ -205,7 +210,8 @@ HOLDINGS = 303
 # reserve until an order is complete. When complete, these amounts are deposited into
 # either the cash account of Artconomy, or added to the user's holdings.
 RESERVE = 304
-# Earnings for which we have not yet subtracted card/bank transfer fees.
+# Earnings for which we have not yet subtracted card/bank transfer fees. DEPRECATED:
+# Use FUND instead.
 UNPROCESSED_EARNINGS = 305
 # These two fee types will be used to keep track of fees that have been paid out to card
 # processors.
@@ -257,7 +263,6 @@ ACCOUNT_TYPES = (
     ),
     (PAYOUT_MIRROR_DESTINATION, "(Local Currency) Bank Account"),
     (RESERVE, "Contingency reserve"),
-    (UNPROCESSED_EARNINGS, "Unannotated earnings"),
     (CARD_TRANSACTION_FEES, "Card transaction fees"),
     (CARD_MISC_FEES, "Other card fees"),
     (CASH_DEPOSIT, "Cash deposit"),
@@ -305,6 +310,7 @@ FUNDING = 420
 CATEGORIES = (
     (FUNDING, "Funding"),
     (SHIELD_FEE, "Artconomy Service Fee"),
+    (PROCESSING_FEE, "Processing fee (non-shield)"),
     (ESCROW_HOLD, "Escrow hold"),
     (ESCROW_RELEASE, "Escrow release"),
     (ESCROW_REFUND, "Escrow refund"),

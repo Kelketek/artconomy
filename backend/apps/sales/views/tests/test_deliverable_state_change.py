@@ -46,7 +46,7 @@ from apps.sales.constants import (
     STRIPE,
     SUCCESS,
     TABLE_HANDLING,
-    UNPROCESSED_EARNINGS,
+    FUND,
     WAITING,
     FUND,
 )
@@ -456,7 +456,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
             payee__isnull=True,
             payer__isnull=True,
             source=RESERVE,
-            destination=UNPROCESSED_EARNINGS,
+            destination=FUND,
         )
         self.assertEqual(service_fee.amount, Money("2.00", "USD"))
         self.assertEqual(service_fee.category, TABLE_HANDLING)

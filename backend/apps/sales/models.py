@@ -80,7 +80,7 @@ from apps.sales.constants import (
     TAX,
     TIP,
     TRANSACTION_STATUSES,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VISA,
     WAITING,
     WEIGHTED_STATUSES,
@@ -939,7 +939,7 @@ def idempotent_lines(instance: Deliverable):
             },
             invoice=instance.invoice,
             destination_user=None,
-            destination_account=UNPROCESSED_EARNINGS,
+            destination_account=FUND,
             type=SHIELD,
         )[0]
         line.annotate(instance)
@@ -973,7 +973,7 @@ def idempotent_lines(instance: Deliverable):
                 invoice=instance.invoice,
                 destination_user=None,
                 type=DELIVERABLE_TRACKING,
-                destination_account=UNPROCESSED_EARNINGS,
+                destination_account=FUND,
             )[0]
             line.annotate(instance)
         instance.invoice.record_only = True

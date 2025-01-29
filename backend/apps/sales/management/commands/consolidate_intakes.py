@@ -3,7 +3,14 @@ from django.db import transaction
 from moneyed import Money
 
 from apps.lib.models import ref_for_instance
-from apps.sales.constants import CARD, FUND, SUCCESS, CASH_DEPOSIT, FUNDING
+from apps.sales.constants import (
+    CARD,
+    UNPROCESSED_EARNINGS,
+    SUCCESS,
+    CASH_DEPOSIT,
+    FUNDING,
+    FUND,
+)
 from apps.sales.models import TransactionRecord, Invoice
 from django.core.management import BaseCommand
 
@@ -48,3 +55,10 @@ class Command(BaseCommand):
             for record in successful:
                 record.source = FUND
                 record.save()
+
+        TransactionRecord.objects.filter(source=UNPROCESSED_EARNINGS).update(
+            source=FUND
+        )
+        TransactionRecord.objects.filter(destination=UNPROCESSED_EARNINGS).update(
+            destination=FUND
+        )

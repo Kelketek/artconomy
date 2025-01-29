@@ -40,7 +40,7 @@ from apps.sales.constants import (
     TERM,
     TIP,
     TIPPING,
-    UNPROCESSED_EARNINGS,
+    FUND,
     CANCELLED,
     REFUNDED,
     FUND,
@@ -246,7 +246,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             status=SUCCESS,
         )
         fee = TransactionRecord.objects.get(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
         self.assertEqual(fee.amount, Money("0.74", "USD"))
@@ -294,7 +294,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, QUEUED)
         fee = TransactionRecord.objects.get(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
         self.assertEqual(fee.amount, Money("0.46", "USD"))
@@ -339,7 +339,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, QUEUED)
         fee = TransactionRecord.objects.get(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
         self.assertEqual(fee.amount, Money("0.96", "USD"))

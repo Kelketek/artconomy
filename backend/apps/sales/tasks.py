@@ -37,7 +37,7 @@ from apps.sales.constants import (
     REVIEW,
     SUCCESS,
     THIRD_PARTY_FEE,
-    UNPROCESSED_EARNINGS,
+    FUND,
     VOID,
     WEIGHTED_STATUSES,
     COMPLETED,
@@ -504,14 +504,14 @@ def annotate_connect_fees_for_year_month(*, year: int, month: int) -> None:
         # Can't use update_or_create here since we are looking around the 'targets'
         # many-to-many table.
         fee_record = TransactionRecord.objects.filter(
-            source=UNPROCESSED_EARNINGS,
+            source=FUND,
             destination=ACH_TRANSACTION_FEES,
             category=THIRD_PARTY_FEE,
             targets=ref_for_instance(record),
         ).first()
         if not fee_record:
             fee_record = TransactionRecord(
-                source=UNPROCESSED_EARNINGS,
+                source=FUND,
                 destination=ACH_TRANSACTION_FEES,
                 category=THIRD_PARTY_FEE,
             )
