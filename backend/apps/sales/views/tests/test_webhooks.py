@@ -375,6 +375,36 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         self.assertEqual(card.stripe_token, "weo8r7gfb348g")
         self.assertEqual(card.user.primary_card, card)
 
+    def test_deliverable_add_card_numbers_changed(self):
+        event = base_charge_succeeded_event()
+        deliverable = DeliverableFactory.create(
+            status=PAYMENT_PENDING,
+            invoice__current_intent=event["data"]["object"]["payment_intent"],
+            order__buyer__stripe_token="beep",
+        )
+        CreditCardToken.objects.all().delete()
+        CreditCardTokenFactory(
+            user=deliverable.invoice.bill_to,
+            last_four=9999,
+            stripe_token="weo8r7gfb348g",
+        )
+        event["data"]["object"]["metadata"] = {
+            "deliverable_id": deliverable.id,
+            "order_id": deliverable.order.id,
+            "invoice_id": deliverable.invoice.id,
+            "save_card": "True",
+            "make_primary": "True",
+        }
+        event["data"]["object"]["payment_method"] = "weo8r7gfb348g"
+        event["data"]["object"]["payment_method_details"]["card"]["last4"] = "7483"
+        event["data"]["object"]["customer"] = "beep"
+        handle_stripe_event(connect=False, event=event)
+        cards = CreditCardToken.objects.all()
+        self.assertEqual(cards.count(), 1)
+        card = cards[0]
+        self.assertEqual(card.stripe_token, "weo8r7gfb348g")
+        self.assertEqual(card.last_four, "7483")
+
     def test_pay_order_landscape(self):
         event = base_charge_succeeded_event()
         user = UserFactory.create()

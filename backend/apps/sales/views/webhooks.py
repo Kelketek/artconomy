@@ -105,12 +105,14 @@ def handle_charge_event(event, successful=True):
     if successful and metadata.get("save_card") == "True":
         user = User.objects.get(stripe_token=charge_event["customer"])
         details = charge_event["payment_method_details"]["card"]
-        card, _created = CreditCardToken.objects.get_or_create(
-            user=user,
-            last_four=details["last4"],
+        card, _created = CreditCardToken.objects.update_or_create(
             stripe_token=charge_event["payment_method"],
-            type=TYPE_TRANSLATION[details["brand"]],
-            defaults={"cvv_verified": True},
+            defaults={
+                "cvv_verified": True,
+                "type": TYPE_TRANSLATION[details["brand"]],
+                "last_four": details["last4"],
+            },
+            create_defaults={"user": user},
         )
         if not user.primary_card or (metadata.get("make_primary") == "True"):
             user.primary_card_id = card.id
