@@ -39,6 +39,7 @@ const style = {
     fontFamily: 'Roboto, sans-serif',
     fontSmoothing: 'antialiased',
     fontSize: '16px',
+    backgroundColor: 'rgba(33, 33, 33, 1)',
     borderBottom: 'solid white 1px',
     '::placeholder': {
       color: 'rgba(255, 255, 255, 0.4)',
