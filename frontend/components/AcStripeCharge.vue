@@ -40,7 +40,7 @@ const style = {
     fontSmoothing: 'antialiased',
     fontSize: '16px',
     backgroundColor: 'rgba(33, 33, 33, 1)',
-    '-webkit-autofill': {
+    ':-webkit-autofill': {
       color: '#ffffff',
     },
     '::placeholder': {
