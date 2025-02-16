@@ -39,7 +39,10 @@ const style = {
     fontFamily: 'Roboto, sans-serif',
     fontSmoothing: 'antialiased',
     fontSize: '16px',
-    borderBottom: 'solid white 1px',
+    backgroundColor: 'rgba(33, 33, 33, 1)',
+    ':-webkit-autofill': {
+      color: '#ffffff',
+    },
     '::placeholder': {
       color: 'rgba(255, 255, 255, 0.4)',
     },
@@ -47,7 +50,7 @@ const style = {
 }
 
 const card = elements.create('card', {
-  style: style,
+  style,
   iconStyle: 'solid',
   classes,
 })
