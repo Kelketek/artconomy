@@ -143,6 +143,7 @@ const ACCOUNT_TYPES: Record<AccountTypeValue, string> = {
   309: 'Other ACH fees',
   310: 'Tax staging',
   311: 'Taxes',
+  313: 'Fund',
   407: 'Cash deposit',
 }
 

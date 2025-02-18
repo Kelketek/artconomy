@@ -11,7 +11,7 @@ from apps.sales.constants import (
     FUNDING,
     FUND,
 )
-from apps.sales.models import TransactionRecord, Invoice
+from apps.sales.models import TransactionRecord, Invoice, LineItem
 from django.core.management import BaseCommand
 
 
@@ -61,4 +61,7 @@ class Command(BaseCommand):
         )
         TransactionRecord.objects.filter(destination=UNPROCESSED_EARNINGS).update(
             destination=FUND
+        )
+        LineItem.objects.filter(destination_account=UNPROCESSED_EARNINGS).update(
+            destination_account=FUND
         )

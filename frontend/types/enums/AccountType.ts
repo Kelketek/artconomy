@@ -11,5 +11,6 @@ export const AccountType = {
   OTHER_ACH_FEES: 309,
   TAX_STAGING: 310,
   TAXES: 311,
+  FUND: 313,
   CASH_DEPOSIT: 407,
 } as const
