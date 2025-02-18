@@ -190,6 +190,7 @@ export const INVOICE_TYPES: Record<InvoiceTypeValue, string> = {
   1: 'Subscription',
   2: 'Term',
   3: 'Tip',
+  4: 'Vendor',
 }
 
 export function clearMetaTag(tagname: string) {

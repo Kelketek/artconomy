@@ -1,7 +1,6 @@
 from csv import DictReader
 from decimal import Decimal
 from io import StringIO
-from typing import Literal
 from unittest.mock import patch
 
 from dateutil.relativedelta import relativedelta
@@ -33,7 +32,6 @@ from apps.sales.constants import (
     TIP_SEND,
     TIPPING,
     FUND,
-    FUND,
 )
 from apps.sales.models import Deliverable, StripeAccount, TransactionRecord
 from apps.sales.tasks import annotate_connect_fees_for_year_month
@@ -48,10 +46,7 @@ from apps.sales.tests.factories import (
 from apps.sales.utils import (
     finalize_deliverable,
     get_term_invoice,
-    invoice_post_payment,
-    refund_deliverable,
 )
-from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.parser import parse
 from django.test import override_settings
 from freezegun import freeze_time
