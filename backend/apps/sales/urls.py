@@ -49,6 +49,11 @@ urlpatterns = [
         name="paypal_webhooks",
     ),
     path(
+        "create-vendor-invoice/<username>/",
+        main.CreateVendorInvoice.as_view(),
+        name="create_vendor_invoice",
+    ),
+    path(
         "create-anonymous-invoice/",
         main.CreateAnonymousInvoice.as_view(),
         name="create_anonymous_invoice",

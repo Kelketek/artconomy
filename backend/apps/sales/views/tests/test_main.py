@@ -55,6 +55,7 @@ from apps.sales.constants import (
     TIPPING,
     VOID,
     WAITING,
+    VENDOR,
 )
 from apps.sales.models import (
     Deliverable,
@@ -63,6 +64,7 @@ from apps.sales.models import (
     Reference,
     PaypalConfig,
     ShoppingCart,
+    Invoice,
 )
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -2702,6 +2704,40 @@ class TestQueue(APITestCase):
         self.assertEqual(first, {"id": deliverable_hidden.order.id, "private": True})
         self.assertEqual(second, {"id": deliverable_private.order.id, "private": True})
         self.assertEqual(third["seller"]["username"], deliverable.order.seller.username)
+
+
+class TestVendorInvoice(APITestCase):
+    def test_invoice_created(self):
+        beep = UserFactory.create(username="Beep")
+        user = UserFactory.create(is_superuser=True)
+        self.login(user)
+        response = self.client.post("/api/sales/create-vendor-invoice/beep/")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        invoice = Invoice.objects.get(id=response.data["id"])
+        self.assertEqual(invoice.type, VENDOR)
+        self.assertEqual(invoice.status, DRAFT)
+        self.assertEqual(invoice.issued_by, beep)
+        self.assertIsNone(invoice.bill_to)
+        self.assertEqual(invoice.total(), Money("0.00", "USD"))
+        self.assertEqual(invoice.line_items.count(), 1)
+        line_item = invoice.line_items.get()
+        self.assertEqual(line_item.type, BASE_PRICE)
+        self.assertEqual(line_item.priority, 0)
+        self.assertEqual(line_item.destination_user, beep)
+        self.assertEqual(line_item.destination_account, HOLDINGS)
+
+    def test_non_existent(self):
+        user = UserFactory.create(is_superuser=True)
+        self.login(user)
+        response = self.client.post("/api/sales/create-vendor-invoice/beep/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_fail_non_superuser(self):
+        UserFactory.create(username="Beep")
+        user = create_staffer("table_seller", "view_financials")
+        self.login(user)
+        response = self.client.post("/api/sales/create-vendor-invoice/beep/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
 class TestAnonymousInvoice(APITestCase):

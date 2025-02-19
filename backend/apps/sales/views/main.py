@@ -110,6 +110,8 @@ from apps.sales.constants import (
     WAITING,
     WEIGHTED_STATUSES,
     WORK_IN_PROGRESS_STATUSES,
+    VENDOR,
+    HOLDINGS,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -3290,6 +3292,40 @@ class TableOrders(ListAPIView):
         )
         qs = qs.distinct().order_by("seller", "-created_on")
         return qs
+
+
+class CreateVendorInvoice(GenericAPIView):
+    """
+    Creates an 'outvoice' for the platform to send money to a user.
+    """
+
+    permission_classes = [IsSuperuser]
+    serializer_class = InvoiceSerializer
+
+    @transaction.atomic
+    def post(self, request, username):
+        self.check_permissions(request)
+        user = get_object_or_404(User, username=username)
+        invoice = Invoice.objects.create(
+            bill_to=None,
+            issued_by=user,
+            status=DRAFT,
+            manually_created=True,
+            type=VENDOR,
+        )
+        invoice.line_items.create(
+            destination_user=user,
+            destination_account=HOLDINGS,
+            type=BASE_PRICE,
+            priority=0,
+            amount=Money("0.00", settings.DEFAULT_CURRENCY),
+        )
+        return Response(
+            data=self.get_serializer(
+                context=self.get_serializer_context(), instance=invoice
+            ).data,
+            status=status.HTTP_201_CREATED,
+        )
 
 
 class CreateAnonymousInvoice(GenericAPIView):
