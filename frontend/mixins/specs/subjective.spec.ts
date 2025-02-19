@@ -50,7 +50,6 @@ describe('Subjective.ts', () => {
   })
   test('Updates the subject', async() => {
     setViewer({ store, user: genUser() })
-    store.commit('profiles/saveUser', genUser())
     wrapper = mount(
       SubjectiveComponent, {
         ...vueSetup({

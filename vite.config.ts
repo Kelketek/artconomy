@@ -67,6 +67,7 @@ if (productionMode) {
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'false',
   plugins,
   test: {
     globals: true,
@@ -104,7 +105,7 @@ export default defineConfig({
         manualChunks: {
           vueCore: ['vue', 'vuetify', 'vuex', 'vue-router'],
           vueStyles: ['vuetify/styles'],
-          captcha: ['@hcaptcha/vue3-hcaptcha', '@/components/fields/AcCaptchaField.vue'],
+          captcha: ['@/components/fields/hcaptcha/VueHcaptcha.vue', '@/components/fields/hcaptcha/hcaptchaScript.js', '@/components/fields/AcCaptchaField.vue'],
           navAssist: ['@/components/navigation/AcTabs.vue', '@/components/AcTab.vue', '@/components/wrappers/AcLoadSection.vue', '@/components/wrappers/AcLoadingSpinner.vue'],
           dataProcessing: ['decimal.js', 'lodash', 'date-fns'],
           qrCode: ['qrcode'],

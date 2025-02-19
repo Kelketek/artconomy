@@ -15,7 +15,7 @@
 </template>
 
 <script setup lang="ts">
-import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
+import VueHcaptcha from './hcaptcha/VueHcaptcha.vue'
 import {computed, useAttrs} from 'vue'
 
 const attributes = useAttrs()

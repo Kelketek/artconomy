@@ -18,19 +18,21 @@
           </v-row>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
-          <v-card-text>
-            <template v-for="(color, index) in colors.list" :key="color.x!.id">
-              <ac-ref-color :color="color" :username="username"/>
-              <v-divider v-if="index + 1 < colors.list.length" :key="`color-${index}-divider`"/>
-            </template>
-            <ac-form @submit.prevent="newColor.submitThen(colors.push)" v-if="editing && colors.list.length < 24">
-              <ac-form-container v-bind="newColor.bind">
-                <v-row>
-                  <v-col><v-btn color="green" block @click="newColor.submitThen(postAdd)">Add Color</v-btn></v-col>
-                </v-row>
-              </ac-form-container>
-            </ac-form>
-          </v-card-text>
+          <template v-slot:default>
+            <v-card-text>
+              <template v-for="(color, index) in colors.list" :key="color.x!.id">
+                <ac-ref-color :color="color" :username="username"/>
+                <v-divider v-if="index + 1 < colors.list.length" :key="`color-${index}-divider`"/>
+              </template>
+              <ac-form @submit.prevent="newColor.submitThen(colors.push)" v-if="editing && colors.list.length < 24">
+                <ac-form-container v-bind="newColor.bind">
+                  <v-row>
+                    <v-col><v-btn color="green" block @click="newColor.submitThen(postAdd)">Add Color</v-btn></v-col>
+                  </v-row>
+                </ac-form-container>
+              </ac-form>
+            </v-card-text>
+          </template>
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>

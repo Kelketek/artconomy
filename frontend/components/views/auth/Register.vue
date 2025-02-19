@@ -80,12 +80,12 @@ import {useAuth} from '@/components/views/auth/mixins/Auth.ts'
 import AcBoundField from '@/components/fields/AcBoundField.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import VueHcaptcha from '@hcaptcha/vue3-hcaptcha'
+import VueHcaptcha from '@/components/fields/hcaptcha/VueHcaptcha.vue'
 import {computed, ref, watch} from 'vue'
 
 const siteKey = computed(() => window.RECAPTCHA_SITE_KEY || 'undefined')
 const {registerForm, loginForm, loginHandler} = useAuth()
-const recaptcha = ref<null|VueHcaptcha>()
+const recaptcha = ref<null|typeof VueHcaptcha>()
 watch(() => registerForm.sending, (newVal, oldVal) => {
   if (oldVal && !newVal) {
     recaptcha.value?.reset();
