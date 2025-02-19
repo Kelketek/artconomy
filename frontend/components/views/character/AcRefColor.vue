@@ -5,9 +5,9 @@
     </v-col>
     <v-col cols="4" v-show="!editing">{{color.x.note}}</v-col>
     <v-col cols="12" sm="4" md="2" offset-sm="1" v-if="controls" v-show="editing">
-      <ac-patch-field :patcher="patchers.color" density="compact">
+      <ac-patch-field :patcher="color.patchers.color" :instant="true" density="compact">
         <template v-slot:prepend>
-          <ac-color-prepend v-model="patchers.color.model"/>
+          <ac-patch-field :instant="true" field-type="ac-color-prepend" :patcher="color.patchers.color"/>
         </template>
       </ac-patch-field>
     </v-col>
@@ -45,7 +45,6 @@
 <script setup lang="ts">
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcColorPrepend from '@/components/fields/AcColorPrepend.vue'
 import {useSubject} from '@/mixins/subjective.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {useEditable} from '@/mixins/editable.ts'
@@ -58,8 +57,7 @@ const props = defineProps<{color: SingleController<Color>, username: string}>()
 const {controls} = useSubject({ props })
 const {editing} = useEditable(controls)
 
-const patchers = props.color.patchers
 const width = '100%'
-const modelStyle = computed(() => ({'background-color': patchers.color.model, width}))
-const savedStyle = computed(() => ({'background-color': patchers.color.rawValue, width}))
+const modelStyle = computed(() => ({'background-color': props.color.patchers.color.model, width}))
+const savedStyle = computed(() => ({'background-color': props.color.patchers.color.rawValue, width}))
 </script>

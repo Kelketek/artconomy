@@ -72,6 +72,7 @@ const componentMap: Record<string, Component> = {
   AcStarField: defineAsyncComponent(() => import('@/components/fields/AcStarField.vue')),
   AcBirthdayField: defineAsyncComponent(() => import('@/components/fields/AcBirthdayField.vue')),
   AcCheckbox: defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue')),
+  AcColorPrepend: defineAsyncComponent(() => import('@/components/fields/AcColorPrepend.vue')),
   VCheckbox,
   VSwitch,
   VTextField,
