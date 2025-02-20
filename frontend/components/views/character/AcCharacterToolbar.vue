@@ -25,7 +25,8 @@
                            :character-init-items="preloadedCharacter"
                            v-model="showUpload"
                            :username="username"
-                           v-if="controls"
+                           :visit="visit"
+                           v-if="controls && preloadedCharacter"
                            :allow-multiple="true"
                            ref="submissionDialog"
                            @success="success"
@@ -105,8 +106,8 @@ import type {CharacterProps, Submission} from '@/types/main'
 const AcNewSubmission = defineAsyncComponent(() => import('@/components/AcNewSubmission.vue'))
 
 const props = withDefaults(
-    defineProps<{characterAvatar?: boolean, showEdit?: boolean} & CharacterProps>(),
-    {characterAvatar: true, showEdit: false},
+    defineProps<{characterAvatar?: boolean, showEdit?: boolean, visit?: boolean} & CharacterProps>(),
+    {characterAvatar: true, showEdit: false, visit: true},
 )
 const {controls} = useSubject({ props })
 const {editing} = useEditable(controls)

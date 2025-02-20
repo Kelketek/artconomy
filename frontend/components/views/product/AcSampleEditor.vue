@@ -111,33 +111,19 @@ localSamples.firstRun().then(() => {
     tab.value = 'tab-add-new'
   }
 })
+
 const newSubmission = useForm(`${flatten(props.username)}-newSubmission`, newUploadSchema(subjectHandler.user))
 const art = useList<Submission>(`${flatten(props.username)}-art`, {
   endpoint: `/api/profiles/account/${props.username}/submissions/sample-options/`,
 })
 art.firstRun().catch(() => {})
 
-watch(() => props.modelValue, (value: boolean) => {
+watch(newSubmissionForm, (value) => {
   if (!value) {
-    newUpload.value = false
     return
   }
-  nextTick(() => {
-    if (newSubmissionForm.value) {
-      newSubmissionForm.value.isArtist = true
-    }
-  })
+  value.isArtist = true
 }, {immediate: true})
-
-watch(newUpload, (value: boolean) => {
-  if (value) {
-    nextTick(() => {
-      if (newSubmissionForm.value) {
-        newSubmissionForm.value.isArtist = true
-      }
-    })
-  }
-})
 
 const firstUpload = computed(() => {
   const product = props.product.x as Product
@@ -167,6 +153,9 @@ const addSample = (value: Submission) => {
   tab.value = 'tab-pick-sample'
   newSubmission.reset()
   newUpload.value = false
+  if (newSubmissionForm.value) {
+    newSubmissionForm.value!.isArtist = true
+  }
   if (props.product.x!.primary_submission) {
     return
   }

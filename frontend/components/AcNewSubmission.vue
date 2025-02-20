@@ -166,6 +166,11 @@ const addThumbnail = ref(false)
 const multiple = ref(false)
 
 const newUpload = useForm('newUpload', newUploadSchema(subjectHandler.user))
+nextTick(() => {
+  if (props.characterInitItems.length) {
+    newUpload.fields.characters.model = props.characterInitItems.map((x) => x.id)
+  }
+})
 
 const preloadedUser = computed(() => {
   return [subject.value]

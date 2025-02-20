@@ -246,6 +246,7 @@ const addSubmission = (submission: Submission) => {
   }
   submissionList.unshift(submission)
   character.submissions.unshift(submission)
+  return false
 }
 
 const primarySubmissionText = computed(() => {
