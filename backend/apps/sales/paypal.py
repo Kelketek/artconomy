@@ -20,6 +20,8 @@ from apps.sales.constants import (
     HOLDINGS,
     TAX,
     MONEY_HOLE,
+    TAXES,
+    CORRECTION,
 )
 from apps.sales.line_item_funcs import get_totals, digits, down_context
 
@@ -315,6 +317,7 @@ def reconcile_invoices(
         LineItem.objects.create(
             invoice=deliverable.invoice,
             type=TAX,
+            category=TAXES,
             description="Tax",
             amount=tax_total,
             frozen_value=tax_total,
@@ -337,6 +340,7 @@ def reconcile_invoices(
         LineItem.objects.update_or_create(
             invoice=deliverable.invoice,
             type=RECONCILIATION,
+            category=CORRECTION,
             description=description,
             amount=difference,
             frozen_value=difference,

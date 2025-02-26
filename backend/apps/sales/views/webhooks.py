@@ -28,6 +28,7 @@ from apps.sales.constants import (
     SUCCESS,
     TYPE_TRANSLATION,
     TIP,
+    TIP_SEND,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -390,6 +391,7 @@ def paypal_invoice_paid(event_data: dict, invoice: Invoice):
             defaults={
                 "amount": tip,
                 "frozen_value": tip,
+                "category": TIP_SEND,
                 # Not used, but required by DB schema.
                 "destination_account": HOLDINGS,
                 "destination_user": invoice.issued_by,

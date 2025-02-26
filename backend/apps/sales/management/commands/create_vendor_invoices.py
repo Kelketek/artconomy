@@ -4,7 +4,7 @@ from django.db import transaction
 
 from apps.lib.models import ref_for_instance
 from apps.sales.constants import (
-    MANUAL_PAYOUT,
+    VENDOR_PAYMENT,
     FUND,
     SUCCESS,
     VENDOR,
@@ -24,7 +24,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         content_type = ContentType.objects.get_for_model(Invoice)
         records = TransactionRecord.objects.filter(
-            status=SUCCESS, category=MANUAL_PAYOUT, source=FUND, payer=None
+            status=SUCCESS, category=VENDOR_PAYMENT, source=FUND, payer=None
         ).exclude(targets__content_type=content_type)
         for transaction_record in records:
             invoice = Invoice.objects.create(

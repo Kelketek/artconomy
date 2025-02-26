@@ -868,6 +868,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             "amount",
             "frozen_value",
             "type",
+            "category",
             "destination_account",
             "destination_user",
             "description",
@@ -1294,6 +1295,10 @@ class NewInvoiceSerializer(serializers.Serializer, ReferencesMixin):
                 "User with that username not found, or they are blocking you."
             )
         return user
+
+
+class VendorInvoiceCreationSerializer(serializers.Serializer):
+    issued_by_id = serializers.IntegerField()
 
 
 class HoldingsSummarySerializer(serializers.ModelSerializer):

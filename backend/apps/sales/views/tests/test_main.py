@@ -2711,7 +2711,9 @@ class TestVendorInvoice(APITestCase):
         beep = UserFactory.create(username="Beep")
         user = UserFactory.create(is_superuser=True)
         self.login(user)
-        response = self.client.post("/api/sales/create-vendor-invoice/beep/")
+        response = self.client.post(
+            "/api/sales/create-vendor-invoice/", {"issued_by_id": beep.id}
+        )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         invoice = Invoice.objects.get(id=response.data["id"])
         self.assertEqual(invoice.type, VENDOR)
@@ -2729,14 +2731,18 @@ class TestVendorInvoice(APITestCase):
     def test_non_existent(self):
         user = UserFactory.create(is_superuser=True)
         self.login(user)
-        response = self.client.post("/api/sales/create-vendor-invoice/beep/")
+        response = self.client.post(
+            "/api/sales/create-vendor-invoice/", {"issued_by_id": 0}
+        )
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_fail_non_superuser(self):
-        UserFactory.create(username="Beep")
+        beep = UserFactory.create(username="Beep")
         user = create_staffer("table_seller", "view_financials")
         self.login(user)
-        response = self.client.post("/api/sales/create-vendor-invoice/beep/")
+        response = self.client.post(
+            "/api/sales/create-vendor-invoice/", {"issued_by_id": beep.id}
+        )
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -2755,7 +2761,35 @@ class TestAnonymousInvoice(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
-class TestRecentInvoices(APITestCase):
+class TestVendorInvoices(APITestCase):
+    def test_show_recent(self):
+        newest = InvoiceFactory.create(
+            created_on=timezone.now().replace(year=2022, month=8, day=1),
+            type=VENDOR,
+        )
+        oldest = InvoiceFactory.create(
+            created_on=timezone.now().replace(year=2020, month=8, day=1),
+            type=VENDOR,
+        )
+        middle = InvoiceFactory.create(
+            created_on=timezone.now().replace(year=2021, month=8, day=1),
+            type=VENDOR,
+        )
+        self.login(create_staffer("view_financials"))
+        response = self.client.get("/api/sales/vendor-invoices/")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        target_list = [newest.id, middle.id, oldest.id]
+        self.assertEqual(
+            target_list, [invoice["id"] for invoice in response.data["results"]]
+        )
+
+    def test_fail_non_staff(self):
+        self.login(UserFactory.create())
+        response = self.client.get("/api/sales/vendor-invoices/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+
+class TestTableInvoices(APITestCase):
     def test_show_recent(self):
         newest = InvoiceFactory.create(
             created_on=timezone.now().replace(year=2022, month=8, day=1),
@@ -2770,7 +2804,7 @@ class TestRecentInvoices(APITestCase):
             manually_created=True,
         )
         self.login(create_staffer("table_seller"))
-        response = self.client.get("/api/sales/recent-invoices/")
+        response = self.client.get("/api/sales/table-invoices/")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         target_list = [newest.id, middle.id, oldest.id]
         self.assertEqual(
@@ -2779,7 +2813,7 @@ class TestRecentInvoices(APITestCase):
 
     def test_fail_non_staff(self):
         self.login(UserFactory.create())
-        response = self.client.get("/api/sales/recent-invoices/")
+        response = self.client.get("/api/sales/table-invoices/")
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
@@ -2836,7 +2870,7 @@ class TestInvoiceLineItems(APITestCase):
         self.assertEqual(line_item.percentage, 0)
 
     def test_create_line_item_wrong_type(self):
-        staff = UserFactory.create(is_staff=True)
+        staff = create_staffer("table_seller")
         deliverable = DeliverableFactory.create(
             product__base_price=Money("10.00", "USD")
         )
@@ -2855,9 +2889,9 @@ class TestInvoiceLineItems(APITestCase):
         self.login(deliverable.order.seller)
         response = self.client.post(
             f"/api/sales/invoice/{deliverable.invoice.id}/line-items/",
-            {"description": "Stuff", "amount": 5, "type": ADD_ON},
+            {"description": "Stuff", "amount": 5, "percentage": 0, "type": ADD_ON},
         )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_update_tip_buyer(self):
         deliverable = DeliverableFactory.create(

@@ -112,6 +112,9 @@ from apps.sales.constants import (
     WORK_IN_PROGRESS_STATUSES,
     VENDOR,
     HOLDINGS,
+    ESCROW_HOLD,
+    VENDOR_PAYMENT,
+    DEFAULT_TYPE_TO_CATEGORY_MAP, TAXES,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -190,6 +193,7 @@ from apps.sales.serializers import (
     PaypalConfigSerializer,
     SalesStatsSerializer,
     ShoppingCartSerializer,
+    VendorInvoiceCreationSerializer,
 )
 from apps.sales.utils import (
     PENDING,
@@ -589,6 +593,7 @@ class PlaceOrder(CreateAPIView):
             if difference:
                 LineItem.objects.create(
                     type=ADD_ON,
+                    category=ESCROW_HOLD,
                     invoice=deliverable.invoice,
                     description="Offer",
                     amount=difference,
@@ -720,6 +725,7 @@ class OrderDeliverables(ListCreateAPIView):
             type=BASE_PRICE,
             amount=facts["price"],
             priority=0,
+            category=ESCROW_HOLD,
             destination_account=ESCROW,
             destination_user=order.seller,
         )
@@ -730,6 +736,7 @@ class OrderDeliverables(ListCreateAPIView):
                 amount=facts["adjustment"],
                 priority=1,
                 destination_account=ESCROW,
+                category=ESCROW_HOLD,
                 destination_user=order.seller,
             )
             line.annotate(deliverable)
@@ -1078,12 +1085,10 @@ class ClearWaitlist(GenericAPIView):
 class InvoiceLineItems(ListCreateAPIView):
     permission_classes = [
         Any(
-            Any(
-                All(IsSafeMethod, Any(BillTo, IssuedBy)),
-                StaffPower("table_seller"),
-            ),
-            Any(IsSafeMethod, InvoiceStatus(DRAFT, OPEN)),
-        )
+            All(IsSafeMethod, Any(BillTo, IssuedBy)),
+            StaffPower("table_seller"),
+        ),
+        Any(IsSafeMethod, InvoiceStatus(DRAFT, OPEN)),
     ]
     pagination_class = None
     serializer_class = LineItemSerializer
@@ -1108,7 +1113,11 @@ class InvoiceLineItems(ListCreateAPIView):
             raise ValidationError(
                 {"type": "Manual creation of this line-item type not supported."}
             )
-        serializer.save(invoice=self.get_object(), destination_account=FUND)
+        serializer.save(
+            invoice=self.get_object(),
+            destination_account=FUND,
+            category=DEFAULT_TYPE_TO_CATEGORY_MAP[serializer.validated_data["type"]],
+        )
 
 
 class InvoiceLineItemManager(RetrieveUpdateDestroyAPIView):
@@ -1205,6 +1214,7 @@ class DeliverableLineItems(ListCreateAPIView):
                 destination_user=destination_user,
                 destination_account=destination_account,
                 invoice=deliverable.invoice,
+                category=accounts[item_type],
             )
             line.annotate(deliverable)
             deliverable.save()
@@ -2903,6 +2913,7 @@ class CreateInvoice(GenericAPIView):
             type=BASE_PRICE,
             amount=facts["price"],
             priority=0,
+            category=ESCROW_HOLD,
             destination_account=ESCROW,
             destination_user=order.seller,
         )
@@ -3303,9 +3314,13 @@ class CreateVendorInvoice(GenericAPIView):
     serializer_class = InvoiceSerializer
 
     @transaction.atomic
-    def post(self, request, username):
+    def post(self, request):
         self.check_permissions(request)
-        user = get_object_or_404(User, username=username)
+        serializer = VendorInvoiceCreationSerializer(
+            context=self.get_serializer_context(), data=request.data
+        )
+        serializer.is_valid(raise_exception=True)
+        user = get_object_or_404(User, id=serializer.validated_data["issued_by_id"])
         invoice = Invoice.objects.create(
             bill_to=None,
             issued_by=user,
@@ -3316,6 +3331,7 @@ class CreateVendorInvoice(GenericAPIView):
         invoice.line_items.create(
             destination_user=user,
             destination_account=HOLDINGS,
+            category=VENDOR_PAYMENT,
             type=BASE_PRICE,
             priority=0,
             amount=Money("0.00", settings.DEFAULT_CURRENCY),
@@ -3350,6 +3366,7 @@ class CreateAnonymousInvoice(GenericAPIView):
             cascade_amount=True,
             destination_user=None,
             destination_account=MONEY_HOLE,
+            category=TAXES,
             type=TAX,
         )
         return Response(
@@ -3357,6 +3374,22 @@ class CreateAnonymousInvoice(GenericAPIView):
                 context=self.get_serializer_context(), instance=invoice
             ).data,
             status=status.HTTP_201_CREATED,
+        )
+
+
+class VendorInvoices(ListAPIView):
+    permission_classes = [StaffPower("view_financials")]
+    serializer_class = InvoiceSerializer
+
+    def get_queryset(self) -> QuerySet:
+        return (
+            Invoice.objects.filter(
+                targets__isnull=True,
+                type=VENDOR,
+                record_only=False,
+            )
+            .all()
+            .order_by("-created_on")
         )
 
 

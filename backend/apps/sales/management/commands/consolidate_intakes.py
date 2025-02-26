@@ -10,6 +10,7 @@ from apps.sales.constants import (
     CASH_DEPOSIT,
     FUNDING,
     FUND,
+    DEFAULT_TYPE_TO_CATEGORY_MAP,
 )
 from apps.sales.models import TransactionRecord, Invoice, LineItem
 from django.core.management import BaseCommand
@@ -65,3 +66,6 @@ class Command(BaseCommand):
         LineItem.objects.filter(destination_account=UNPROCESSED_EARNINGS).update(
             destination_account=FUND
         )
+        for line_item in LineItem.objects.filter(category__isnull=True):
+            line_item.category = DEFAULT_TYPE_TO_CATEGORY_MAP[line_item.type]
+            line_item.save()

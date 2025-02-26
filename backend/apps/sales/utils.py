@@ -300,6 +300,7 @@ def term_charge(deliverable: "Deliverable"):
                 invoice=term_invoice,
                 amount=plan.per_deliverable_price,
                 destination_account=FUND,
+                category=SUBSCRIPTION_DUES,
                 type=DELIVERABLE_TRACKING,
             )
             line.targets.add(ref_for_instance(deliverable))
@@ -515,6 +516,7 @@ def initialize_tip_invoice(deliverable):
         percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
     LineItem.objects.create(
         type=PROCESSING,
+        category=PROCESSING_FEE,
         percentage=percentage,
         amount=settings.PROCESSING_STATIC,
         cascade_amount=True,
@@ -526,6 +528,7 @@ def initialize_tip_invoice(deliverable):
     amount = max(deliverable.invoice.total() * Decimal(".10"), settings.MINIMUM_TIP)
     line = LineItem.objects.create(
         type=TIP,
+        category=TIP_SEND,
         percentage=0,
         amount=amount,
         cascade_amount=False,
@@ -690,26 +693,13 @@ def cancel_deliverable(deliverable, requested_by, skip_remote=False):
 
 @down_context
 def lines_to_transaction_specs(lines: Iterable["LineItem"]) -> "TransactionSpecMap":
-    type_map = {
-        BONUS: SHIELD_FEE,
-        SHIELD: SHIELD_FEE,
-        PROCESSING: PROCESSING_FEE,
-        TABLE_SERVICE: TABLE_HANDLING,
-        TAX: TAXES,
-        ADD_ON: ESCROW_HOLD,
-        BASE_PRICE: ESCROW_HOLD,
-        TIP: TIP_SEND,
-        EXTRA: EXTRA_ITEM,
-        PREMIUM_SUBSCRIPTION: SUBSCRIPTION_DUES,
-        DELIVERABLE_TRACKING: SUBSCRIPTION_DUES,
-    }
     total, __, subtotals = get_totals(lines)
     transaction_specs = defaultdict(lambda: Money("0.00", "USD"))
     for line_item, subtotal in subtotals.items():
         transaction_specs[
             line_item.destination_user,
             line_item.destination_account,
-            type_map[line_item.type],
+            line_item.category,
         ] += subtotal
     return transaction_specs
 
@@ -1297,6 +1287,7 @@ def add_service_plan_line(invoice: "Invoice", service_plan: "ServicePlan"):
     item, _created = invoice.line_items.update_or_create(
         defaults={
             "amount": amount,
+            "category": SUBSCRIPTION_DUES,
             "description": f"{service_plan.name} plan monthly dues",
         },
         destination_account=FUND,
