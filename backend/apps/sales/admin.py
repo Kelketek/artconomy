@@ -64,6 +64,7 @@ class DeliverableAdmin(admin.ModelAdmin):
         "total",
         "tip_total",
         "product_name",
+        "magic_link",
         "buyer",
         "seller",
         "created_on",
@@ -90,6 +91,13 @@ class DeliverableAdmin(admin.ModelAdmin):
         if not obj.product:
             return ""
         return obj.product.name
+
+    def magic_link(self, obj):
+        if obj.order.buyer and obj.order.buyer.guest:
+            return format_html(
+                f'<a href="/claim-order/{obj.order.id}/'
+                f'{obj.order.claim_token}/{obj.id}/">MAGIC LINK</a>'
+            )
 
     def link(self, obj):
         return format_html(
