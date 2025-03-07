@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 from datetime import datetime
 from decimal import ROUND_CEILING, localcontext
-from typing import Dict, Union, Optional
+from typing import Dict, Union, Optional, Any
 
 from dateutil.parser import parse
 from django.urls import reverse
@@ -72,7 +72,7 @@ from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.cache import cache
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import Q, Count
 from django.utils import timezone
 from moneyed import Money
@@ -275,7 +275,7 @@ def auto_finalize_run():
         auto_finalize.delay(deliverable.id)
 
 
-RecordMap = Dict[Union[Deliverable, None], TransactionRecord]
+RecordMap = Dict[Invoice, TransactionRecord]
 
 
 @require_lock(TransactionRecord, "ACCESS EXCLUSIVE")
@@ -316,46 +316,31 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
         record_map[invoice] = record
     if not amount:
         return record_map
-    # TODO: Add tools for invoicing out at the company level. All payouts should be tied
-    # to an invoice.
-    record = TransactionRecord.objects.create(
-        amount=amount,
-        source=HOLDINGS,
-        payee=user,
-        payer=user,
-        category=CASH_WITHDRAW,
-        destination=BANK,
-        status=PENDING,
-        note="Remaining amount, not connected to any invoice. May need annotations "
-        "later.",
+    raise IntegrityError(
+        f"Amount of {amount} found unconnected to any invoice for {user}!",
     )
-    record.targets.add(bank_ref)
-    record_map[None] = record
-    return record_map
 
 
 @celery_app.task
-def stripe_transfer(record_id, stripe_id, invoice_id=None):
-    base_settings = {"metadata": {}}
+def stripe_transfer(record_id: str, stripe_id: str, invoice_id: str) -> None:
+    base_settings: dict[str, Any] = {"metadata": {}}
     stripe_account = StripeAccount.objects.get(id=stripe_id)
-    invoice = None
-    if invoice_id:
-        invoice = Invoice.objects.get(id=invoice_id)
-        base_settings["metadata"] = {"invoice_id": invoice.id}
-        base_settings["transfer_group"] = f"ACInvoice#{invoice.id}"
-        source_record = TransactionRecord.objects.filter(
-            source=CARD,
-            targets=ref_for_instance(invoice),
-            status=SUCCESS,
-        ).first()
-        if source_record:
-            try:
-                base_settings["source_transaction"] = fetch_prefixed(
-                    "ch_", source_record.remote_ids
-                )
-            except ValueError:
-                pass
-        assert invoice.issued_by == stripe_account.user
+    invoice = Invoice.objects.get(id=invoice_id)
+    base_settings["metadata"] = {"invoice_id": invoice.id}
+    base_settings["transfer_group"] = f"ACInvoice#{invoice.id}"
+    source_record = TransactionRecord.objects.filter(
+        source=CARD,
+        targets=ref_for_instance(invoice),
+        status=SUCCESS,
+    ).first()
+    if source_record:
+        try:
+            base_settings["source_transaction"] = fetch_prefixed(
+                "ch_", source_record.remote_ids
+            )
+        except ValueError:
+            pass
+    assert invoice.issued_by == stripe_account.user
     record = TransactionRecord.objects.get(id=record_id)
     base_settings["amount"], base_settings["currency"] = money_to_stripe(record.amount)
     base_settings["destination"] = stripe_account.token
@@ -401,10 +386,9 @@ def withdraw_all(user_id):
         with transaction.atomic():
             record_map = record_to_invoice_map(user, banks[0], Money(balance, "USD"))
             for invoice, record in record_map.items():
-                if invoice:
-                    invoice.payout_sent = True
-                    invoice.save()
-                stripe_transfer.delay(record.id, banks[0].id, invoice and invoice.id)
+                invoice.payout_sent = True
+                invoice.save()
+                stripe_transfer.delay(record.id, banks[0].id, invoice.id)
 
 
 @celery_app.task

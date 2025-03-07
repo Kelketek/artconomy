@@ -77,7 +77,7 @@ from apps.sales.tests.factories import (
 from apps.sales.utils import add_service_plan_line, get_term_invoice
 from dateutil.relativedelta import relativedelta
 from django.core import mail
-from django.db import connection
+from django.db import connection, IntegrityError
 from django.test import TestCase, TransactionTestCase, override_settings
 from django.utils import timezone
 from djmoney.money import Money
@@ -415,21 +415,21 @@ def wrapped_withdraw(user_id):
 
 
 class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
-    @patch("apps.sales.tasks.account_balance")
     @patch("apps.sales.tasks.stripe_transfer.delay")
-    def test_withdraw_all(self, stripe_transfer, mock_balance):
+    def test_withdraw_all(self, stripe_transfer):
         user = UserFactory.create()
-        # Avoid initial call in post-creation hook.
-        mock_balance.return_value = Decimal("0.00")
+        invoice = InvoiceFactory(issued_by=user, status=PAID, payout_available=True)
+        target = ref_for_instance(invoice)
+        record = TransactionRecordFactory(
+            payee=user, destination=HOLDINGS, amount=Money("10.00", "USD")
+        )
+        record.targets.add(target)
         bank = StripeAccountFactory.create(user=user)
         stripe_transfer.assert_not_called()
-        mock_balance.return_value = Decimal("25.00")
         stripe_transfer.return_value = None, Deliverable.objects.none()
         withdraw_all(user.id)
-        # Normally, three dollars would be removed here for the connection fee,
-        # but we're always returning a balance of $25.
         record = TransactionRecord.objects.get(category=CASH_WITHDRAW)
-        stripe_transfer.assert_called_with(record.id, bank.id, None)
+        stripe_transfer.assert_called_with(record.id, bank.id, invoice.id)
 
     @patch("apps.sales.tasks.account_balance")
     @patch("apps.sales.tasks.stripe_transfer.delay")
@@ -444,17 +444,35 @@ class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
         withdraw_all(user.id)
         stripe_transfer.assert_not_called()
 
+    @patch("apps.sales.tasks.account_balance")
+    @patch("apps.sales.tasks.stripe_transfer.delay")
+    def test_withdraw_all_no_source_fails(self, stripe_transfer, mock_balance):
+        user = UserFactory.create()
+        user.artist_profile.save()
+        mock_balance.return_value = Decimal("0.00")
+        StripeAccountFactory.create(user=user)
+        stripe_transfer.assert_not_called()
+        mock_balance.return_value = Decimal("25.00")
+        with self.assertRaises(IntegrityError) as err:
+            withdraw_all(user.id)
+        self.assertIn("found unconnected to any invoice", str(err.exception))
+        stripe_transfer.assert_not_called()
+
     @patch("apps.sales.tasks.stripe_transfer.delay")
     def test_withdraw_mutex(self, stripe_transfer):
         user = UserFactory.create()
         StripeAccountFactory(user=user)
-        TransactionRecordFactory(
+        target = ref_for_instance(
+            InvoiceFactory(issued_by=user, status=PAID, payout_available=True)
+        )
+        record = TransactionRecordFactory(
             payee=user, destination=HOLDINGS, amount=Money("10.00", "USD")
         )
+        record.targets.add(target)
 
         def side_effect(x, y, z):
             sleep(0.25)
-            return None, Deliverable.objects.none()
+            return None
 
         stripe_transfer.side_effect = side_effect
         pool = ThreadPool(processes=4)
@@ -529,7 +547,7 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
             destination="foo",
         )
 
-    def test_send_transfer_failed_with_invoice(self, mock_stripe):
+    def test_send_transfer_failed(self, mock_stripe):
         deliverable = DeliverableFactory.create(invoice__payout_sent=True)
         record = TransactionRecordFactory.create(
             payee=deliverable.order.seller,
@@ -614,45 +632,6 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
             currency="usd",
             destination="foo",
         )
-
-    def test_send_transfer_no_invoice(self, mock_stripe):
-        user = UserFactory.create()
-        record = TransactionRecordFactory.create(
-            payee=user,
-            amount=Money("10.00", "USD"),
-            status=FAILURE,
-        )
-        account = StripeAccountFactory.create(user=user, token="foo")
-        mock_stripe.__enter__.return_value.Transfer.create.return_value = {
-            "id": "beep",
-            "destination_payment": "boop",
-            "balance_transaction": "1234",
-        }
-        stripe_transfer(record.id, account.id)
-        record.refresh_from_db()
-        self.assertEqual(record.status, PENDING)
-        mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
-            metadata={"reference_transaction": record.id},
-            amount=1000,
-            currency="usd",
-            destination="foo",
-        )
-
-    def test_send_transfer_fails_no_deliverable(self, mock_stripe):
-        user = UserFactory.create()
-        record = TransactionRecordFactory.create(
-            payee=user,
-            amount=Money("10.00", "USD"),
-            status=FAILURE,
-        )
-        account = StripeAccountFactory.create(user=user, token="foo")
-        mock_stripe.__enter__.return_value.Transfer.create.side_effect = ValueError(
-            "Failed!"
-        )
-        stripe_transfer(record.id, account.id)
-        record.refresh_from_db()
-        self.assertEqual(record.status, FAILURE)
-        self.assertEqual(record.response_message, "Failed!")
 
 
 class TestReminders(EnsurePlansMixin, TestCase):
