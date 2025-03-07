@@ -52,7 +52,7 @@ class Command(BaseCommand):
                 - relativedelta(seconds=1),
                 remote_ids=reference.remote_ids,
             )
-            funding_record.targets.set(funding_record.targets.all())
+            funding_record.targets.set(reference.targets.all())
             for record in successful:
                 record.source = FUND
                 record.save()
