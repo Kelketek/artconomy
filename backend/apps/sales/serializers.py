@@ -44,7 +44,6 @@ from apps.sales.constants import (
     STRIPE,
     SUCCESS,
     TIP,
-    FUND,
     WAITING,
     WEIGHTED_STATUSES,
     FUND,
@@ -57,7 +56,6 @@ from apps.sales.models import (
     InventoryTracker,
     Invoice,
     LineItem,
-    LineItemSim,
     Order,
     Product,
     Rating,
@@ -1411,8 +1409,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     sales_tax_collected = serializers.SerializerMethodField()
     our_fees = serializers.SerializerMethodField()
     card_fees = serializers.SerializerMethodField()
-    ach_fees = serializers.SerializerMethodField()
-    profit = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
     extra = serializers.SerializerMethodField()
     remote_ids = serializers.SerializerMethodField()
@@ -1528,68 +1524,6 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
         )
         return transactions.aggregate(total=Sum("amount"))["total"]
 
-    @lru_cache(4)
-    def get_ach_fees(self, obj):
-        transaction = multi_filter(
-            TransactionRecord.objects.filter(
-                payer=obj.order.seller,
-                payee=obj.order.seller,
-                status=SUCCESS,
-                source=HOLDINGS,
-                destination=BANK,
-            ),
-            self.qs_filters(obj),
-        ).first()
-        if not transaction:
-            return None
-        fee = TransactionRecord.objects.filter(
-            payer=None,
-            payee=None,
-            status=SUCCESS,
-            source=FUND,
-            destination=ACH_TRANSACTION_FEES,
-            targets__content_type=ContentType.objects.get_for_model(transaction),
-            targets__object_id=unslugify(transaction.id),
-        ).first()
-        if not fee:
-            # Something's wrong here. Will need to find out why this transaction was not
-            # annotated.
-            return
-        invoices = []
-        invoice_type = ContentType.objects.get_for_model(Deliverable)
-        for target in transaction.targets.all():
-            if target.content_type == invoice_type:
-                invoices.append(target.target)
-        lines = {}
-        for index, invoice in enumerate(invoices):
-            lines[invoice] = LineItemSim(
-                id=index,
-                amount=Money(
-                    multi_filter(
-                        TransactionRecord.objects.filter(
-                            destination=HOLDINGS,
-                        ),
-                        self.qs_filters(obj),
-                    ).aggregate(total=Sum("amount"))["total"],
-                    settings.DEFAULT_CURRENCY,
-                ),
-                priority=0,
-            )
-        lines[None] = LineItemSim(
-            id=-1, amount=fee.amount, cascade_amount=True, priority=1
-        )
-        _total, _discount, subtotals = get_totals(lines.values())
-        return (lines[obj].amount - subtotals[lines[obj]]).amount
-
-    def get_profit(self, obj):
-        base = self.get_our_fees(obj)
-        ach_fees = self.get_ach_fees(obj) or Decimal("0")
-        card_fees = self.get_card_fees(obj)
-        refunded = self.get_refunded_on(obj)
-        if not all([base, (ach_fees or refunded), card_fees]):
-            return
-        return base - ach_fees - card_fees
-
     @lru_cache
     def get_refunded_on(self, obj):
         if refund := multi_filter(
@@ -1625,10 +1559,8 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             "sales_tax_collected",
             "refunded_on",
             "extra",
-            "ach_fees",
             "our_fees",
             "card_fees",
-            "profit",
             "remote_ids",
         )
 
@@ -1646,8 +1578,6 @@ class TipValuesSerializer(serializers.ModelSerializer):
     artist_earnings = serializers.SerializerMethodField()
     our_fees = serializers.SerializerMethodField()
     card_fees = serializers.SerializerMethodField()
-    ach_fees = serializers.SerializerMethodField()
-    profit = serializers.SerializerMethodField()
     remote_ids = serializers.SerializerMethodField()
 
     def get_deliverable_id(self, obj):
@@ -1716,63 +1646,6 @@ class TipValuesSerializer(serializers.ModelSerializer):
         )
         return transactions.aggregate(total=Sum("amount"))["total"]
 
-    @lru_cache(4)
-    def get_ach_fees(self, obj):
-        transaction = TransactionRecord.objects.filter(
-            payer=obj.issued_by,
-            payee=obj.issued_by,
-            status=SUCCESS,
-            source=HOLDINGS,
-            destination=BANK,
-            **self.qs_kwargs(obj),
-        ).first()
-        if not transaction:
-            return None
-        fee = TransactionRecord.objects.filter(
-            payer=None,
-            payee=None,
-            status=SUCCESS,
-            source=FUND,
-            destination=ACH_TRANSACTION_FEES,
-            targets__content_type=ContentType.objects.get_for_model(transaction),
-            targets__object_id=unslugify(transaction.id),
-        ).first()
-        if not fee:
-            # Something's wrong here. Will need to find out why this transaction was not
-            # annotated.
-            return
-        invoices = []
-        invoice_type = ContentType.objects.get_for_model(Invoice)
-        for target in transaction.targets.all():
-            if target.content_type == invoice_type:
-                invoices.append(target.target)
-        lines = {}
-        for index, invoice in enumerate(invoices):
-            lines[invoice] = LineItemSim(
-                id=index,
-                amount=Money(
-                    TransactionRecord.objects.filter(
-                        destination=HOLDINGS,
-                        **self.qs_kwargs(obj),
-                    ).aggregate(total=Sum("amount"))["total"],
-                    settings.DEFAULT_CURRENCY,
-                ),
-                priority=0,
-            )
-        lines[-1] = LineItemSim(
-            id=-1, amount=fee.amount, cascade_amount=True, priority=1
-        )
-        _total, _discount, subtotals = get_totals(lines.values())
-        return (lines[obj].amount - subtotals[lines[obj]]).amount
-
-    def get_profit(self, obj):
-        base = self.get_our_fees(obj)
-        ach_fees = self.get_ach_fees(obj) or Decimal("0")
-        card_fees = self.get_card_fees(obj)
-        if not all([base, ach_fees, card_fees]):
-            return
-        return base - ach_fees - card_fees
-
     def get_remote_ids(self, obj):
         records = TransactionRecord.objects.filter(**self.qs_kwargs(obj))
         remote_ids = set(list(chain(*(record.remote_ids for record in records))))
@@ -1791,10 +1664,8 @@ class TipValuesSerializer(serializers.ModelSerializer):
             "paid_on",
             "payment_type",
             "artist_earnings",
-            "ach_fees",
             "our_fees",
             "card_fees",
-            "profit",
             "remote_ids",
         )
 

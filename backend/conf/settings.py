@@ -621,10 +621,6 @@ CELERYBEAT_SCHEDULE = {
         "task": "apps.sales.tasks.clear_cancelled_deliverables",
         "schedule": crontab(hour=3, minute=10),
     },
-    "annotate_payouts": {
-        "task": "apps.sales.tasks.annotate_connect_fees",
-        "schedule": crontab(hour=1, minute=30),
-    },
     "destroy_abandoned_tips": {
         "task": "apps.sales.tasks.destroy_abandoned_tips",
         "schedule": crontab(hour=1, minute=45),

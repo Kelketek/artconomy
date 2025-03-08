@@ -34,7 +34,6 @@ from apps.sales.constants import (
     FUND,
 )
 from apps.sales.models import Deliverable, StripeAccount, TransactionRecord
-from apps.sales.tasks import annotate_connect_fees_for_year_month
 from apps.sales.tests.factories import (
     BankAccountFactory,
     DeliverableFactory,
@@ -447,9 +446,7 @@ class TestTipReport(APITestCase):
         self.assertEqual(lines[0]["remote_ids"], "1234, 5678")
         self.assertEqual(lines[0]["status"], "Paid")
         self.assertEqual(Decimal(lines[0]["artist_earnings"]), Decimal("20.00"))
-        self.assertEqual(Decimal(lines[0]["ach_fees"]), Decimal(".5"))
         self.assertEqual(Decimal(lines[0]["card_fees"]), Decimal("1"))
-        self.assertEqual(Decimal(lines[0]["profit"]), Decimal("3.5"))
         self.assertEqual(parse(lines[0]["paid_on"]), invoice.paid_on)
 
     @freeze_time("2022-03-25")
@@ -502,8 +499,6 @@ class TestTipReport(APITestCase):
         self.assertEqual(len(lines), 1)
         self.assertEqual(lines[0]["id"], invoice.id)
         self.assertEqual(lines[0]["bill_to"], f"Guest #{invoice.bill_to.id}")
-        self.assertEqual(lines[0]["profit"], "")
-        self.assertEqual(lines[0]["ach_fees"], "")
 
     @freeze_time("2022-03-25")
     def test_tip_report_fees_not_yet_calculated(self):
@@ -565,8 +560,6 @@ class TestTipReport(APITestCase):
         self.assertEqual(len(lines), 1)
         self.assertEqual(lines[0]["id"], invoice.id)
         self.assertEqual(lines[0]["bill_to"], invoice.bill_to.username)
-        self.assertEqual(lines[0]["profit"], "")
-        self.assertEqual(lines[0]["ach_fees"], "")
 
 
 class TestSubscriptionReport(APITestCase):
@@ -765,7 +758,10 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
 
     @patch("apps.sales.tasks.stripe")
     def payout_transactions(
-        self, deliverable: Deliverable, mock_stripe, success=True, annotate_fees=True
+        self,
+        deliverable: Deliverable,
+        mock_stripe,
+        success=True,
     ):
         try:
             deliverable.order.seller.stripe_account
@@ -784,11 +780,6 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
             )
             record.status = SUCCESS
             record.save()
-        if annotate_fees:
-            annotate_connect_fees_for_year_month(
-                year=deliverable.paid_on.year,
-                month=deliverable.paid_on.month,
-            )
 
     def test_participant_display(self):
         deliverable_normal = DeliverableFactory.create(
@@ -827,29 +818,9 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
         )
         self.assertEqual(len(lines), 1)
         line = lines[0]
-        self.assertEqual(Decimal(line["ach_fees"]), Decimal("2.29"))
         self.assertEqual(Decimal(line["our_fees"]), Decimal("1.95"))
         self.assertEqual(Decimal(line["card_fees"]), Decimal("0.74"))
-        self.assertEqual(Decimal(line["profit"]), Decimal("-1.08"))
         self.assertEqual(Decimal(line["price"]), Decimal("15.00"))
-
-    def test_annotate_failure(self):
-        deliverable = DeliverableFactory.create(
-            created_on=utc_now().replace(day=1),
-            status=PAYMENT_PENDING,
-            product__base_price=Money("15.00", "USD"),
-        )
-        self.charge_transaction(deliverable)
-        self.payout_transactions(deliverable, annotate_fees=False)
-        lines = self.get_lines(
-            self.client.get("/api/sales/v1/reports/order-values/csv/")
-        )
-        self.assertEqual(len(lines), 1)
-        line = lines[0]
-        self.assertEqual(line["ach_fees"], "")
-        self.assertEqual(line["our_fees"], "1.95")
-        self.assertEqual(line["profit"], "")
-        self.assertEqual(line["price"], "15.00")
 
     def test_refunded_transaction(self):
         deliverable = DeliverableFactory.create(
@@ -864,7 +835,5 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
         )
         self.assertEqual(len(lines), 1)
         line = lines[0]
-        self.assertEqual(line["ach_fees"], "")
         self.assertEqual(Decimal(line["our_fees"]), Decimal("1.95"))
-        self.assertEqual(Decimal(line["profit"]), Decimal("1.21"))
         self.assertEqual(Decimal(line["price"]), Decimal("15.00"))
