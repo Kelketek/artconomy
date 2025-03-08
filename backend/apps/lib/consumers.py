@@ -232,7 +232,7 @@ async def viewer(consumer, payload):
     )
     consumer.scope["socket_key"] = payload["socket_key"]
     await consumer.channel_layer.group_add(
-        f'client.socket_key.{payload["socket_key"]}',
+        f"client.socket_key.{payload['socket_key']}",
         consumer.channel_name,
     )
     return {"command": "viewer", "payload": user_info}
@@ -349,7 +349,7 @@ async def watch(consumer, payload: Dict):
 
 def flatten_errors(serializer: Serializer):
     return ",".join(
-        f'{key}: {",".join(value)}' for key, value in serializer.errors.items()
+        f"{key}: {','.join(value)}" for key, value in serializer.errors.items()
     )
 
 
@@ -501,8 +501,8 @@ class EventConsumer(AsyncJsonWebsocketConsumer):
         )
         await self.send_json(
             {
-                "command": f'{contents["app_label"]}.{contents["model_name"]}.update.'
-                f'{contents["serializer"]}.{contents["pk"]}',
+                "command": f"{contents['app_label']}.{contents['model_name']}.update."
+                f"{contents['serializer']}.{contents['pk']}",
                 "payload": data,
                 "exclude": event.get("exclude", []),
             },
@@ -516,8 +516,8 @@ class EventConsumer(AsyncJsonWebsocketConsumer):
         contents = event["contents"]
         await self.send_json(
             {
-                "command": f'{contents["app_label"]}.{contents["model_name"]}.delete.'
-                f'{contents["pk"]}',
+                "command": f"{contents['app_label']}.{contents['model_name']}.delete."
+                f"{contents['pk']}",
                 "payload": {},
                 "exclude": event.get("exclude", []),
             },

@@ -9,7 +9,6 @@ from django.contrib.postgres.operations import CreateCollation
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     operations = [

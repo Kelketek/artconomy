@@ -1,4 +1,4 @@
-from apps.lib.permissions import StaffPower, Any
+from apps.lib.permissions import StaffPower, Or
 from apps.profiles.models import User
 from apps.profiles.permissions import IsRegistered, ObjectControls, BillTo
 from apps.profiles.tasks import create_or_update_stripe_user
@@ -60,7 +60,7 @@ def create_account(*, user: User, country: str):
 
 
 class StripeAccountLink(GenericAPIView):
-    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
+    permission_classes = [Or(ObjectControls, StaffPower("administrate_users"))]
     serializer_class = StripeBankSetupSerializer
 
     def get_serializer_context(self):
@@ -108,7 +108,7 @@ class StripeAccounts(ListAPIView):
     command.
     """
 
-    permission_classes = [Any(ObjectControls, StaffPower("view_financials"))]
+    permission_classes = [Or(ObjectControls, StaffPower("view_financials"))]
     serializer_class = StripeAccountSerializer
     pagination_class = None
 
@@ -156,7 +156,7 @@ class PremiumPaymentIntent(APIView):
 
 
 class SetupIntent(APIView):
-    permission_classes = [Any(ObjectControls, StaffPower("table_seller"))]
+    permission_classes = [Or(ObjectControls, StaffPower("table_seller"))]
 
     def get_object(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -184,7 +184,7 @@ class InvoicePaymentIntent(APIView):
     """
 
     permission_classes = [
-        Any(BillTo, StaffPower("table_seller")),
+        Or(BillTo, StaffPower("table_seller")),
         InvoiceStatus(OPEN),
     ]
 
@@ -229,7 +229,7 @@ class ProcessPresentCard(APIView):
     """
 
     permission_classes = [
-        Any(BillTo, StaffPower("table_seller")),
+        Or(BillTo, StaffPower("table_seller")),
         InvoiceStatus(OPEN),
     ]
     serializer_class = TerminalProcessSerializer
@@ -297,7 +297,7 @@ class StripeDashboardLink(GenericAPIView):
     Generate an express Dashboard Link
     """
 
-    permission_classes = [Any(ObjectControls, StaffPower("view_financials"))]
+    permission_classes = [Or(ObjectControls, StaffPower("view_financials"))]
     serializer_class = DashboardLinkSerializer
 
     def get_object(self):

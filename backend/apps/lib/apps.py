@@ -7,4 +7,4 @@ class LibConfig(AppConfig):
     def ready(self) -> None:
         # Make sure serializers are imported so that they're registered with the webhook
         # consumer.
-        import apps.lib.serializers
+        import apps.profiles.serializers  # noqa: F401

@@ -24,7 +24,6 @@ from apps.sales.constants import (
     RESERVE,
     SHIELD,
     SUCCESS,
-    FUND,
     VOID,
     MISSED,
     FUND,

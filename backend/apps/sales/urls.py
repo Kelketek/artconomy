@@ -1,5 +1,4 @@
-"""artconomy URL Configuration
-"""
+"""artconomy URL Configuration"""
 
 from apps.sales.views import main, reports, stripe_views, webhooks
 from django.urls import path, register_converter

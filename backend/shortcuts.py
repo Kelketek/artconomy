@@ -44,7 +44,7 @@ def strip_tags(html):
         if not link.text.strip():
             link.decompose()
             continue
-        link.string = f'{link.text}: {link["href"]}'
+        link.string = f"{link.text}: {link['href']}"
         link.name = "span"
     return soup
 

@@ -870,7 +870,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         )
 
     @override_settings()
-    def test_cart_created(self, mock_drip):
+    def test_cart_sync(self, mock_drip):
         now = timezone.now()
         cart = ShoppingCartFactory.create(edited_on=now, last_synced=now)
         drip_sync_cart(cart.id, now.isoformat())

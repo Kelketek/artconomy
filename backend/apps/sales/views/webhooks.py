@@ -82,7 +82,7 @@ def handle_charge_event(event, successful=True):
             if invoice.current_intent != charge_event["payment_intent"]:
                 raise UserPaymentException(
                     f"Mismatched intent ID! What happened? Received ID was "
-                    f'{charge_event["payment_intent"]} while current intent is '
+                    f"{charge_event['payment_intent']} while current intent is "
                     f"{invoice.current_intent}"
                 )
 
@@ -187,10 +187,10 @@ def pull_and_reconcile_payout_report(event, report):
             )
         except TransactionRecord.DoesNotExist:
             raise TransactionRecord.DoesNotExist(
-                f'Could not find corresponding record for {row["source_id"]}.'
+                f"Could not find corresponding record for {row['source_id']}."
                 f" It may need to be added manually or may be malformed. Please check "
-                f'https://dashboard.stripe.com/{parameters["connected_account"]}/'
-                f'payouts/{parameters["payout"]}'
+                f"https://dashboard.stripe.com/{parameters['connected_account']}/"
+                f"payouts/{parameters['payout']}"
             )
         if row["automatic_payout_effective_at_utc"]:
             timestamp = dateutil.parser.isoparse(
@@ -354,7 +354,7 @@ def dummy_report_processor(event):
 
 
 def invoice_centric(
-    wrapped: Callable[[dict, Invoice], None]
+    wrapped: Callable[[dict, Invoice], None],
 ) -> Callable[[dict, PaypalConfig], None]:
     def wrapper(event_data: dict, config: PaypalConfig):
         invoice = Invoice.objects.filter(

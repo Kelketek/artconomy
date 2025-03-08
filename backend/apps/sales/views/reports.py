@@ -4,7 +4,7 @@ from typing import Union
 from moneyed import Money
 from pytz import UTC
 
-from apps.lib.permissions import StaffPower, Any
+from apps.lib.permissions import StaffPower, Or
 from apps.lib.utils import utc_now, utc
 from apps.profiles.models import User
 from apps.profiles.permissions import IsSuperuser, ObjectControls
@@ -375,7 +375,7 @@ class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
 
 class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = UserPayoutTransactionSerializer
-    permission_classes = [Any(StaffPower("view_financials"), ObjectControls)]
+    permission_classes = [Or(StaffPower("view_financials"), ObjectControls)]
     pagination_class = None
     date_fields = ["finalized_on"]
     report_name = "user-payout-report"
@@ -413,7 +413,7 @@ class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
 
 class TroubledDeliverables(ListAPIView):
     permission_classes = [
-        Any(StaffPower("handle_disputes"), StaffPower("view_financials"))
+        Or(StaffPower("handle_disputes"), StaffPower("view_financials"))
     ]
     serializer_class = DeliverableSerializer
 

@@ -191,7 +191,7 @@ def reverse_message(source: TransactionRecord, destination: TransactionRecord):
     return (
         f"<p>{safe_display(source)} was reversed in "
         f'<a href="'
-        f'{reverse("admin:sales_transactionrecord_change", args=[destination.id])}'
+        f"{reverse('admin:sales_transactionrecord_change', args=[destination.id])}"
         f'">{destination.id}</a></p>'
     )
 
@@ -218,7 +218,7 @@ def reverse_transactions(modeladmin, request, queryset):
         ]
         message = (
             f"<p>The following reversions were created successfully:</p>"
-            f'{"".join(entries)}'
+            f"{''.join(entries)}"
         )
         modeladmin.message_user(
             request, mark_safe(message), level=messages.SUCCESS, extra_tags="safe"
@@ -228,7 +228,7 @@ def reverse_transactions(modeladmin, request, queryset):
             reverse_message(source, destination)
             for source, destination in existing.items()
         ]
-        message = f'<p>The following reversions already existed:</p>{"".join(entries)}'
+        message = f"<p>The following reversions already existed:</p>{''.join(entries)}"
         modeladmin.message_user(
             request, mark_safe(message), level=messages.WARNING, extra_tags="safe"
         )
@@ -239,7 +239,7 @@ def reverse_transactions(modeladmin, request, queryset):
         ]
         message = (
             f"<p>The following records could not be reversed, "
-            f'as they were in the wrong status:</p>{"".join(entries)}'
+            f"as they were in the wrong status:</p>{''.join(entries)}"
         )
         modeladmin.message_user(request, mark_safe(message), level=messages.ERROR)
 
@@ -336,9 +336,9 @@ class PaypalConfigAdminForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.id:
-            self.fields["secret"].help_text = (
-                "Secret not displayed. Enter a new secret to overwrite."
-            )
+            self.fields[
+                "secret"
+            ].help_text = "Secret not displayed. Enter a new secret to overwrite."
             self.fields["secret"].required = False
 
     def clean_secret(self):

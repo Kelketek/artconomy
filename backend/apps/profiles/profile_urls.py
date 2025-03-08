@@ -1,5 +1,4 @@
-"""artconomy URL Configuration
-"""
+"""artconomy URL Configuration"""
 
 from apps.profiles import views
 from apps.sales.views import main as sales_views

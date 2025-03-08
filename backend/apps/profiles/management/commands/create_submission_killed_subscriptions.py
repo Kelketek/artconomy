@@ -5,8 +5,6 @@ from apps.lib.models import Subscription, EmailPreference
 from apps.profiles.models import Submission, User
 from django.core.management import BaseCommand
 
-from apps.sales.models import Product
-
 
 class Command(BaseCommand):
     def handle(self, *args, **options):

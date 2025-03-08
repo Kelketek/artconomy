@@ -1,5 +1,4 @@
-"""artconomy URL Configuration
-"""
+"""artconomy URL Configuration"""
 
 from apps.sales.views.main import (
     ProductPreview,

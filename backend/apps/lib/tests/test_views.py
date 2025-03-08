@@ -99,7 +99,7 @@ class TestAssetUpload(APITestCase):
         response = self.do_upload()
         self.assertEqual(response.status_code, 201)
         mock_cache.set.assert_called_with(
-            f'upload_grant_{self.client.session.session_key}-to-{response.data["id"]}',
+            f"upload_grant_{self.client.session.session_key}-to-{response.data['id']}",
             True,
             timeout=3600,
         )

@@ -42,7 +42,7 @@ def half_even_context(wrapped: Callable):
 
 
 def lines_by_priority(
-    lines: Iterator[Union["LineItem", "LineItemSim"]]
+    lines: Iterator[Union["LineItem", "LineItemSim"]],
 ) -> List[List[Union["LineItem", "LineItemSim"]]]:
     """
     Groups line items by priority.

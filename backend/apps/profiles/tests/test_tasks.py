@@ -91,7 +91,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         with self.captureOnCommitCallbacks(execute=True):
             user.save()
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -109,7 +109,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         with self.captureOnCommitCallbacks(execute=True):
             user.save()
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -137,7 +137,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         )
         drip_tag(user.id)
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -160,7 +160,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         DeliverableFactory(order__buyer=user, status=COMPLETED)
         drip_tag(user.id)
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -184,7 +184,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         ProductFactory.create(user=user, max_rating=ADULT)
         drip_tag(user.id)
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -208,7 +208,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         ProductFactory.create(user=user, max_rating=MATURE)
         drip_tag(user.id)
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -235,7 +235,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         )
         drip_tag(user.id)
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -261,7 +261,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         )
         drip_tag(user.id)
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {
@@ -289,7 +289,7 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         character.attributes.filter(key="species").update(value="Dork")
         drip_tag(user.id)
         mock_drip.post.assert_called_with(
-            f"/v2/bork/subscribers",
+            "/v2/bork/subscribers",
             json={
                 "subscribers": [
                     {

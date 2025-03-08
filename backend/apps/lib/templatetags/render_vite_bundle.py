@@ -20,7 +20,7 @@ def markup_from_entry(entry: dict) -> str:
     file_name = entry["file"]
     string = ""
     if file_name.lower().endswith(".js"):
-        string += f"""<script type="module" src="/static/dist/{entry['file']}" crossOrigin="anonymous" async></script>"""
+        string += f"""<script type="module" src="/static/dist/{entry["file"]}" crossOrigin="anonymous" async></script>"""
     elif file_name.lower().endswith(".css"):
         string += css_line(entry["file"])
     if "css" in entry:
@@ -65,10 +65,10 @@ def render_vite_bundle():
     try:
         fd = open(f"{settings.VITE_APP_DIR}/dist/manifest.json", "r")
         manifest = json.load(fd)
-    except:
+    except Exception as err:
         raise Exception(
             f"Vite manifest file not found or invalid. Maybe your {settings.VITE_APP_DIR}/dist/manifest.json file is empty?"
-        )
+        ) from err
     return mark_safe(
         "".join(
             chain(

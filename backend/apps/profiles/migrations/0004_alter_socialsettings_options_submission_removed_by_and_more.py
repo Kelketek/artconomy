@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("profiles", "0003_alter_sociallink_options_sociallink_url_and_more"),
     ]

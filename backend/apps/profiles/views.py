@@ -39,8 +39,8 @@ from apps.lib.constants import (
     PRODUCT_KILLED,
 )
 from apps.lib.permissions import (
-    All,
-    Any,
+    And,
+    Or,
     BlockedCheckPermission,
     IsAnonymous,
     IsMethod,
@@ -94,7 +94,6 @@ from apps.profiles.permissions import (
     MessageReadPermission,
     ObjectControls,
     SharedWith,
-    SubmissionControls,
     SubmissionTagPermission,
     SubmissionViewPermission,
     ViewFavorites,
@@ -151,7 +150,7 @@ from apps.profiles.utils import (
     empty_user,
     user_query,
 )
-from apps.sales.models import Deliverable, Order, Reference, Revision
+from apps.sales.models import Reference, Revision
 from apps.sales.serializers import SearchQuerySerializer
 from apps.sales.tasks import withdraw_all
 from apps.sales.utils import claim_order_by_token
@@ -273,7 +272,7 @@ class Register(CreateAPIView):
             context=self.get_serializer_context(),
         )
 
-    def create(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+    def create(self, request: Request, *args: Or, **kwargs: Or) -> Response:
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
@@ -287,8 +286,8 @@ class Register(CreateAPIView):
 class ArtistProfileSettings(RetrieveUpdateAPIView):
     serializer_class = ArtistProfileSerializer
     permission_classes = [
-        Any(
-            All(Any(ObjectControls, StaffPower("administrate_users")), IsRegistered),
+        Or(
+            And(Or(ObjectControls, StaffPower("administrate_users")), IsRegistered),
             IsSafeMethod,
         )
     ]
@@ -326,7 +325,7 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
 
 class RetrieveStaffPowers(RetrieveAPIView):
     serializer_class = StaffPowersSerializer
-    permission_classes = [Any(ObjectControls, IsSuperuser)]
+    permission_classes = [Or(ObjectControls, IsSuperuser)]
 
     def get_object(self):
         powers = get_object_or_404(StaffPowers, user__username=self.kwargs["username"])
@@ -336,7 +335,7 @@ class RetrieveStaffPowers(RetrieveAPIView):
 
 class CredentialsAPI(GenericAPIView):
     serializer_class = CredentialsSerializer
-    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
+    permission_classes = [Or(ObjectControls, StaffPower("administrate_users"))]
 
     def get_object(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -470,9 +469,9 @@ class CharacterListAPI(ListCreateAPIView):
 class CharacterSubmissions(ListAPIView):
     serializer_class = SubmissionSerializer
     permission_classes = [
-        Any(
+        Or(
             SharedWith,
-            Any(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
+            Or(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
         )
     ]
 
@@ -489,14 +488,14 @@ class CharacterSubmissions(ListAPIView):
 class CharacterManager(RetrieveUpdateDestroyAPIView):
     serializer_class = CharacterManagementSerializer
     permission_classes = [
-        Any(
-            All(
+        Or(
+            And(
                 IsSafeMethod,
-                Any(SharedWith, StaffPower("view_as"), StaffPower("moderate_content")),
+                Or(SharedWith, StaffPower("view_as"), StaffPower("moderate_content")),
             ),
-            All(
+            And(
                 IsRegistered,
-                Any(SharedWith, ObjectControls, StaffPower("moderate_content")),
+                Or(SharedWith, ObjectControls, StaffPower("moderate_content")),
             ),
         )
     ]
@@ -515,9 +514,9 @@ class CharacterManager(RetrieveUpdateDestroyAPIView):
 class CharacterById(RetrieveAPIView):
     serializer_class = CharacterManagementSerializer
     permission_classes = [
-        Any(
-            All(IsRegistered, SharedWith),
-            Any(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
+        Or(
+            And(IsRegistered, SharedWith),
+            Or(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
         )
     ]
 
@@ -530,10 +529,10 @@ class CharacterById(RetrieveAPIView):
 class SubmissionManager(RetrieveUpdateDestroyAPIView):
     serializer_class = SubmissionManagementSerializer
     permission_classes = [
-        Any(
-            All(
+        Or(
+            And(
                 Living,
-                Any(IsSafeMethod, All(IsMethod("PATCH"), IsRegistered)),
+                Or(IsSafeMethod, And(IsMethod("PATCH"), IsRegistered)),
                 SubmissionViewPermission,
             ),
             StaffPower("moderate_content"),
@@ -619,7 +618,7 @@ class KillSubmission(GenericAPIView):
 class SetAvatar(APIView):
     parser_classes = (MultiPartParser,)
     permission_classes = [
-        Any(
+        Or(
             ObjectControls,
             StaffPower("administrate_users"),
             StaffPower("moderate_content"),
@@ -649,10 +648,10 @@ class SetAvatar(APIView):
 class UserInfo(APIView):
     # Serializers are the primary permission barrier here.
     permission_classes = [
-        Any(
+        Or(
             IsSafeMethod,
             IsRegistered,
-            All(IsAuthenticated, Any(ObjectControls, StaffPower("administrate_users"))),
+            And(IsAuthenticated, Or(ObjectControls, StaffPower("administrate_users"))),
         )
     ]
 
@@ -891,9 +890,9 @@ class SubmissionSearch(ListAPIView):
 class SubmissionArtistList(ListCreateAPIView):
     permission_classes = [
         SubmissionViewPermission,
-        Any(
+        Or(
             IsSafeMethod,
-            All(
+            And(
                 IsMethod("POST"),
                 IsRegistered,
                 SubmissionTagPermission,
@@ -961,9 +960,9 @@ class SubmissionArtistList(ListCreateAPIView):
 class SubmissionCharacterList(ListCreateAPIView):
     permission_classes = [
         SubmissionViewPermission,
-        Any(
+        Or(
             IsSafeMethod,
-            All(
+            And(
                 IsMethod("POST"),
                 IsRegistered,
                 SubmissionTagPermission,
@@ -1087,9 +1086,9 @@ class SubmissionCharacterManager(DestroyAPIView):
 
 class AttributeList(ListCreateAPIView):
     permission_classes = [
-        Any(
-            All(IsSafeMethod, SharedWith),
-            All(IsRegistered, Any(ObjectControls, StaffPower("moderate_content"))),
+        Or(
+            And(IsSafeMethod, SharedWith),
+            And(IsRegistered, Or(ObjectControls, StaffPower("moderate_content"))),
         )
     ]
     serializer_class = AttributeListSerializer
@@ -1133,7 +1132,7 @@ class AttributeList(ListCreateAPIView):
 class AttributeManager(RetrieveUpdateDestroyAPIView):
     permission_classes = [
         IsRegistered,
-        Any(ObjectControls, StaffPower("moderate_content")),
+        Or(ObjectControls, StaffPower("moderate_content")),
     ]
     serializer_class = AttributeSerializer
     queryset = Attribute.objects.all()
@@ -1167,7 +1166,7 @@ class UserSerializerView:
 
 
 class UnreadNotifications(RetrieveAPIView):
-    permission_classes = [IsRegistered, Any(ObjectControls, StaffPower("view_as"))]
+    permission_classes = [IsRegistered, Or(ObjectControls, StaffPower("view_as"))]
     serializer_class = UnreadNotificationsSerializer
 
     def get_object(self):
@@ -1176,25 +1175,9 @@ class UnreadNotifications(RetrieveAPIView):
         return user
 
 
-ORDER_COMMENT_TYPES_STORE = None
-
-
-def order_comment_types():
-    global ORDER_COMMENT_TYPES_STORE
-    if ORDER_COMMENT_TYPES_STORE is not None:
-        return ORDER_COMMENT_TYPES_STORE
-    ORDER_COMMENT_TYPES_STORE = (
-        ContentType.objects.get_for_model(Order),
-        ContentType.objects.get_for_model(Reference),
-        ContentType.objects.get_for_model(Revision),
-        ContentType.objects.get_for_model(Deliverable),
-    )
-    return ORDER_COMMENT_TYPES_STORE
-
-
 class CommunityNotificationsList(ListAPIView):
     serializer_class = NotificationSerializer
-    permission_classes = [IsRegistered, Any(ObjectControls, StaffPower("view_as"))]
+    permission_classes = [IsRegistered, Or(ObjectControls, StaffPower("view_as"))]
 
     def get_object(self):
         return get_object_or_404(User, username=self.kwargs["username"])
@@ -1242,7 +1225,7 @@ class SalesNotificationsList(ListAPIView):
 class RefColorList(ListCreateAPIView):
     serializer_class = RefColorSerializer
     permission_classes = [
-        Any(All(IsSafeMethod, SharedWith), All(ColorControls, ColorLimit))
+        Or(And(IsSafeMethod, SharedWith), And(ColorControls, ColorLimit))
     ]
     pagination_class = None
 
@@ -1282,7 +1265,7 @@ class RefColorManager(RetrieveUpdateDestroyAPIView):
 class MarkNotificationsRead(BulkUpdateAPIView):
     permission_classes = [
         IsRegistered,
-        Any(ObjectControls, StaffPower("administrate_users")),
+        Or(ObjectControls, StaffPower("administrate_users")),
     ]
     serializer_class = BulkNotificationSerializer
     queryset = Notification.objects.all()
@@ -1479,9 +1462,9 @@ class FavoritesList(ListAPIView):
 class SubmissionList(ListCreateAPIView):
     serializer_class = SubmissionSerializer
     permission_classes = [
-        Any(
+        Or(
             ObjectControls,
-            All(IsSafeMethod, StaffPower("view_as")),
+            And(IsSafeMethod, StaffPower("view_as")),
             StaffPower("moderate_content"),
         ),
         AccountCurrentPermission,
@@ -1521,7 +1504,7 @@ class FilteredSubmissionList(ListAPIView):
 
 class RawArtistSubmissionList(FilteredSubmissionList):
     permission_classes = [
-        Any(ObjectControls, StaffPower("moderate_content"), StaffPower("view_as"))
+        Or(ObjectControls, StaffPower("moderate_content"), StaffPower("view_as"))
     ]
 
 
@@ -1533,7 +1516,7 @@ class CollectionManagementList(ListAPIView):
     """
 
     serializer_class = SubmissionSerializer
-    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
+    permission_classes = [Or(ObjectControls, StaffPower("moderate_content"))]
 
     def get_queryset(self):
         user = get_object_or_404(User, username=self.kwargs["username"])
@@ -1573,10 +1556,10 @@ class ArtRelationManager(RetrieveUpdateDestroyAPIView):
     """
 
     serializer_class = ArtistTagSerializer
-    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
+    permission_classes = [Or(ObjectControls, StaffPower("moderate_content"))]
     queryset = ArtistTag.objects.all()
 
-    def get_object(self) -> Any:
+    def get_object(self) -> Or:
         tag = get_object_or_404(
             ArtistTag, user__username=self.kwargs["username"], id=self.kwargs["tag_id"]
         )
@@ -1586,9 +1569,9 @@ class ArtRelationManager(RetrieveUpdateDestroyAPIView):
 
 class ArtRelationShift(PositionShift):
     serializer_class = ArtistTagSerializer
-    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
+    permission_classes = [Or(ObjectControls, StaffPower("moderate_content"))]
 
-    def get_object(self) -> Any:
+    def get_object(self) -> Or:
         return get_object_or_404(
             ArtistTag, user__username=self.kwargs["username"], id=self.kwargs["tag_id"]
         )
@@ -1596,18 +1579,18 @@ class ArtRelationShift(PositionShift):
 
 class CollectionShift(PositionShift):
     serializer_class = SubmissionSerializer
-    permission_classes = [Any(ObjectControls, StaffPower("moderate_content"))]
+    permission_classes = [Or(ObjectControls, StaffPower("moderate_content"))]
 
-    def get_object(self) -> Any:
+    def get_object(self) -> Or:
         return get_object_or_404(Submission, id=self.kwargs["submission_id"])
 
 
 class SubmissionSharedList(ListCreateAPIView):
     permission_classes = [
         IsRegistered,
-        Any(
+        Or(
             ObjectControls,
-            All(IsSafeMethod, StaffPower("view_as")),
+            And(IsSafeMethod, StaffPower("view_as")),
             StaffPower("moderate_content"),
         ),
     ]
@@ -1656,9 +1639,9 @@ class SubmissionSharedList(ListCreateAPIView):
 class SubmissionSharedManager(DestroyAPIView):
     permission_classes = [
         IsRegistered,
-        Any(
+        Or(
             ObjectControls,
-            All(IsSafeMethod, StaffPower("view_as")),
+            And(IsSafeMethod, StaffPower("view_as")),
             StaffPower("moderate_content"),
         ),
     ]
@@ -1686,7 +1669,7 @@ class SubmissionSharedManager(DestroyAPIView):
 
 
 class CharacterSharedList(ListCreateAPIView):
-    permission_classes = [IsRegistered, Any(ObjectControls)]
+    permission_classes = [IsRegistered, Or(ObjectControls)]
     serializer_class = CharacterSharedSerializer
     pagination_class = None
 
@@ -1734,9 +1717,9 @@ class CharacterSharedList(ListCreateAPIView):
 class CharacterSharedManager(DestroyAPIView):
     permission_classes = [
         IsRegistered,
-        Any(
+        Or(
             ObjectControls,
-            All(IsSafeMethod, StaffPower("view_as")),
+            And(IsSafeMethod, StaffPower("view_as")),
             StaffPower("moderate_content"),
         ),
     ]
@@ -1781,7 +1764,7 @@ class Watching(ListAPIView):
 class Conversations(ListCreateAPIView):
     permission_classes = [
         IsSubject,
-        Any(AccountAge(relativedelta(days=5)), IsSafeMethod),
+        Or(AccountAge(relativedelta(days=5)), IsSafeMethod),
     ]
     serializer_class = ConversationSerializer
 
@@ -1988,12 +1971,12 @@ class Journals(ListCreateAPIView):
 class JournalManager(RetrieveUpdateDestroyAPIView):
     serializer_class = JournalSerializer
     permission_classes = [
-        Any(
+        Or(
             IsSafeMethod,
-            All(IsMethod("PUT"), IsRegistered),
-            All(
+            And(IsMethod("PUT"), IsRegistered),
+            And(
                 IsRegistered,
-                Any(
+                Or(
                     ObjectControls,
                     StaffPower("view_as"),
                     StaffPower("moderate_content"),
@@ -2029,9 +2012,9 @@ def perform_logout(request):
 
 class CharacterPreview(BasePreview):
     permission_classes = [
-        Any(
-            All(IsSafeMethod, SharedWith),
-            All(IsRegistered, All(ObjectControls, StaffPower("view_as"))),
+        Or(
+            And(IsSafeMethod, SharedWith),
+            And(IsRegistered, And(ObjectControls, StaffPower("view_as"))),
         )
     ]
 
@@ -2129,7 +2112,7 @@ class SubmissionPreview(BasePreview):
 
 
 class ReferralStats(APIView):
-    permission_classes = [Any(ObjectControls, StaffPower("view_as"))]
+    permission_classes = [Or(ObjectControls, StaffPower("view_as"))]
 
     # noinspection PyUnusedLocal
     def get(self, request, **kwargs):
@@ -2213,9 +2196,9 @@ class RecommendedSubmissions(ListAPIView):
 class RecommendedCharacters(ListAPIView):
     serializer_class = CharacterSerializer
     permission_classes = [
-        Any(
-            All(IsSafeMethod, SharedWith),
-            Any(ObjectControls, StaffPower("view_as")),
+        Or(
+            And(IsSafeMethod, SharedWith),
+            Or(ObjectControls, StaffPower("view_as")),
         )
     ]
 
@@ -2248,14 +2231,14 @@ class RecommendedCharacters(ListAPIView):
 
 class DestroyAccount(GenericAPIView):
     serializer_class = DeleteUserSerializer
-    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
+    permission_classes = [Or(ObjectControls, StaffPower("administrate_users"))]
 
     def get_object(self) -> User:
         user = get_object_or_404(User, username=self.kwargs["username"])
         self.check_object_permissions(self.request, user)
         return user
 
-    def get_serializer_context(self) -> Dict[str, Any]:
+    def get_serializer_context(self) -> Dict[str, Or]:
         context = super().get_serializer_context()
         context["user"] = self.get_object()
         return context
@@ -2275,7 +2258,7 @@ class DestroyAccount(GenericAPIView):
 
 class NotificationSettings(RetrieveUpdateAPIView):
     serializer_class = EmailPreferencesSerializer
-    permission_classes = [Any(ObjectControls, StaffPower("administrate_users"))]
+    permission_classes = [Or(ObjectControls, StaffPower("administrate_users"))]
     queryset = User.objects.all()
 
     @property
@@ -2324,7 +2307,7 @@ class NotificationSettings(RetrieveUpdateAPIView):
             ).update(enabled=revised_value)
         return result
 
-    def get_serializer_context(self) -> Dict[str, Any]:
+    def get_serializer_context(self) -> Dict[str, Or]:
         context = super().get_serializer_context()
         context["user"] = self.get_object()
         context["preferences"] = (
@@ -2370,7 +2353,7 @@ class CommunitySubmissions(ListAPIView):
 class SocialSettingsManager(RetrieveUpdateAPIView):
     serializer_class = SocialSettingsSerializer
     permission_classes = [
-        Any(ObjectControls, All(IsSafeMethod, StaffPower("view_social_data")))
+        Or(ObjectControls, And(IsSafeMethod, StaffPower("view_social_data")))
     ]
 
     def get_object(self):
@@ -2384,9 +2367,9 @@ class SocialSettingsManager(RetrieveUpdateAPIView):
 class LinkToSocial(GenericAPIView):
     serializer_class = LinkToSocialSerializer
     permission_classes = [
-        Any(
+        Or(
             ObjectControls,
-            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+            And(IsSafeMethod, Or(StaffPower("view_social_data"), SocialsVisible)),
         )
     ]
 
@@ -2415,9 +2398,9 @@ class SocialLinks(ListCreateAPIView):
     queryset = SocialLink.objects.all()
     pagination_class = None
     permission_classes = [
-        Any(
+        Or(
             ObjectControls,
-            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+            And(IsSafeMethod, Or(StaffPower("view_social_data"), SocialsVisible)),
         )
     ]
 
@@ -2438,9 +2421,9 @@ class SocialLinks(ListCreateAPIView):
 class SocialLinkManager(RetrieveUpdateDestroyAPIView):
     serializer_class = SocialLinkSerializer
     permission_classes = [
-        Any(
+        Or(
             ObjectControls,
-            All(IsSafeMethod, Any(StaffPower("view_social_data"), SocialsVisible)),
+            And(IsSafeMethod, Or(StaffPower("view_social_data"), SocialsVisible)),
         ),
     ]
 

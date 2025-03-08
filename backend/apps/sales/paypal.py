@@ -208,7 +208,7 @@ def clear_existing_invoice(paypal: PayPal, invoice: "Invoice") -> bool:
         return True
     if data["items"][0]["status"] not in ["DRAFT", "CANCELLED"]:
         return False
-    paypal.delete(f'v2/invoicing/invoices/{data["items"][0]["id"]}')
+    paypal.delete(f"v2/invoicing/invoices/{data['items'][0]['id']}")
     return True
 
 
@@ -476,7 +476,7 @@ def validate_paypal_request(request, config: "PaypalConfig"):
             "transmission_sig": "{transmission_sig}",
             "transmission_time": "{transmission_time}",
             "webhook_id": "{config.webhook_id}",
-            "webhook_event": {request.body.decode('utf-8')}
+            "webhook_event": {request.body.decode("utf-8")}
             """
             "}"
         )

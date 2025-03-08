@@ -9,8 +9,8 @@ from apps.lib.constants import FLAG_LOOKUP
 from apps.lib.middleware import OlderThanPagination
 from apps.lib.models import Asset, Comment
 from apps.lib.permissions import (
-    All,
-    Any,
+    And,
+    Or,
     CanComment,
     CanListComments,
     CommentDepthPermission,
@@ -78,10 +78,10 @@ from views import bad_request, base_template
 class CommentUpdate(RetrieveUpdateDestroyAPIView):
     serializer_class = CommentSerializer
     permission_classes = [
-        Any(
+        Or(
             CommentEditPermission,
-            All(IsMethod("PUT"), CommentViewPermission, IsAuthenticatedObj),
-            All(IsSafeMethod, CommentViewPermission),
+            And(IsMethod("PUT"), CommentViewPermission, IsAuthenticatedObj),
+            And(IsSafeMethod, CommentViewPermission),
         )
     ]
     queryset = Comment.objects.all()
@@ -144,9 +144,9 @@ class UniversalViewMixin:
 
 class Comments(UniversalViewMixin, ListCreateAPIView):
     permission_classes = [
-        Any(
-            All(IsSafeMethod, CanListComments),
-            All(IsMethod("POST"), IsAuthenticated, CanComment, CommentDepthPermission),
+        Or(
+            And(IsSafeMethod, CanListComments),
+            And(IsMethod("POST"), IsAuthenticated, CanComment, CommentDepthPermission),
         ),
     ]
     serializer_class = CommentSerializer
@@ -206,7 +206,7 @@ class VersionHistoryQuerySet(VersionQuerySet):
 class CommentHistory(ListAPIView):
     serializer_class = CommentSerializer
     permission_classes = [
-        Any(StaffPower("handle_disputes"), StaffPower("moderate_discussion"))
+        Or(StaffPower("handle_disputes"), StaffPower("moderate_discussion"))
     ]
 
     def get_object(self):
@@ -235,7 +235,7 @@ class BaseUserTagView(GenericAPIView):
     field_name = "shared_with"
     permission_classes = [
         IsRegistered,
-        Any(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
+        Or(ObjectControls, StaffPower("view_as"), StaffPower("moderate_content")),
     ]
 
     def get_target(self):

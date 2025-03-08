@@ -79,7 +79,7 @@ def celery_task_failure_email(**kwargs):
         "{exception}".format(
             queue_name="celery",  # `sender.queue` doesn't exist in 4.1?
             host=socket.gethostname(),
-            **kwargs
+            **kwargs,
         )
     )
     message = """Task {sender.name} with id {task_id} raised exception:
@@ -88,7 +88,5 @@ def celery_task_failure_email(**kwargs):
 Task was called with args: {args} kwargs: {kwargs}.
 
 The contents of the full traceback was:{einfo}
-    """.format(
-        **kwargs
-    )
+    """.format(**kwargs)
     mail_admins(subject, message)

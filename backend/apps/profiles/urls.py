@@ -1,5 +1,4 @@
-"""artconomy URL Configuration
-"""
+"""artconomy URL Configuration"""
 
 from apps.profiles import views
 from django.urls import path, register_converter

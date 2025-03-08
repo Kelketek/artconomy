@@ -9,7 +9,7 @@ from apps.lib.constants import (
     ORDER_NOTIFICATION_TYPES,
     FLAG_REASONS,
 )
-from apps.lib.permissions import CommentViewPermission, Any, StaffPower
+from apps.lib.permissions import CommentViewPermission, Or, StaffPower
 from apps.lib.tasks import check_asset_associations, generate_thumbnails
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
@@ -152,7 +152,7 @@ class Notification(models.Model):
     event = models.ForeignKey(Event, on_delete=CASCADE, related_name="notifications")
     read = models.BooleanField(default=False, db_index=True)
     watch_permissions = {
-        "NotificationSerializer": [Any(StaffPower("view_as"), ObjectControls)]
+        "NotificationSerializer": [Or(StaffPower("view_as"), ObjectControls)]
     }
 
     def announce_channels(self):

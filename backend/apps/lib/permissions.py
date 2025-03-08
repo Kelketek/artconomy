@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Any, Type
+from typing import Type
 
 from django.views import View
 from rest_framework.permissions import SAFE_METHODS, BasePermission, IsAuthenticated
@@ -101,7 +101,7 @@ def StaffPower(power: POWER):
                 return True
             return getattr(request.user.staff_powers, power)
 
-        def has_object_permission(self, request: Request, view: View, obj: Any) -> bool:
+        def has_object_permission(self, request: Request, view: View, obj: Or) -> bool:
             if not request.user.is_staff:
                 return False
             if request.user.is_superuser:
@@ -156,7 +156,7 @@ class ComboPermission(BasePermission):
         return result
 
 
-def Any(*perms: Type[BasePermission]) -> Type[ComboPermission]:
+def Or(*perms: Type[BasePermission]) -> Type[ComboPermission]:
     perms = [perm() for perm in perms]
 
     class AnyPerm(ComboPermission):
@@ -175,7 +175,7 @@ def Any(*perms: Type[BasePermission]) -> Type[ComboPermission]:
     return AnyPerm
 
 
-def All(*perms: Type[BasePermission]) -> Type[ComboPermission]:
+def And(*perms: Type[BasePermission]) -> Type[ComboPermission]:
     perms = [perm() for perm in perms]
 
     class AllPerms(ComboPermission):

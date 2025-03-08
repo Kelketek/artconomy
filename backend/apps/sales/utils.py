@@ -48,14 +48,13 @@ from apps.lib.constants import (
     REVISION_APPROVED,
 )
 from apps.lib.signals import broadcast_update
-from apps.lib.utils import multi_filter, notify, recall_notification, utc
+from apps.lib.utils import multi_filter, notify, recall_notification
 from apps.profiles.models import User
 from apps.profiles.permissions import staff_power
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.sales.constants import (
     ADD_ON,
     BASE_PRICE,
-    BONUS,
     CANCELLED,
     CARD,
     CARD_TRANSACTION_FEES,
@@ -66,11 +65,8 @@ from apps.sales.constants import (
     DISPUTED,
     DRAFT,
     ESCROW,
-    ESCROW_HOLD,
     ESCROW_REFUND,
     ESCROW_RELEASE,
-    EXTRA,
-    EXTRA_ITEM,
     FAILURE,
     HOLDINGS,
     IN_PROGRESS,
@@ -98,13 +94,11 @@ from apps.sales.constants import (
     TABLE_HANDLING,
     TABLE_SERVICE,
     TAX,
-    TAXES,
     TERM,
     THIRD_PARTY_FEE,
     TIP,
     TIP_SEND,
     TIPPING,
-    FUND,
     VOID,
     WAITING,
     LINE_ITEM_TYPES_TABLE,
@@ -128,7 +122,7 @@ from apps.sales.stripe import (
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import MultipleObjectsReturned, SuspiciousOperation
+from django.core.exceptions import MultipleObjectsReturned
 from django.db import IntegrityError, transaction
 from django.db.models import Case, F, IntegerField, Model, Q, Sum, When
 from django.db.transaction import atomic
@@ -775,19 +769,18 @@ def issue_refund(
     """
     Performs all accounting and API calls to refund a set of transactions.
     """
-    from apps.sales.models import TransactionRecord
 
-    assert (
-        fund_transaction.destination == FUND
-    ), "fund_transaction does not have destination as FUND!"
+    assert fund_transaction.destination == FUND, (
+        "fund_transaction does not have destination as FUND!"
+    )
     last_four = fund_transaction.card and fund_transaction.card.last_four
     transactions = [*transaction_set]
     remote_ids = [*fund_transaction.remote_ids]
     if not fund_transaction.source == CASH_DEPOSIT:
         assert remote_ids, "Could not find a remote transaction ID to refund."
-        assert (
-            processor == STRIPE
-        ) or last_four, "Could not determine the last four digits of the relevant card."
+        assert (processor == STRIPE) or last_four, (
+            "Could not determine the last four digits of the relevant card."
+        )
     refund_transactions = []
     for record in transactions:
         new_record = refund_transaction_from(record, category)
@@ -1124,7 +1117,7 @@ def from_remote_id(
         remote_ids.append(stripe_event["balance_transaction"])
     if stripe_event["status"] not in ["succeeded", "failed"]:
         error = (
-            f'Unhandled charge status, {stripe_event["status"]} for remote_ids '
+            f"Unhandled charge status, {stripe_event['status']} for remote_ids "
             f"{remote_ids}"
         )
         return (
@@ -1142,7 +1135,7 @@ def from_remote_id(
         )
     transactions = invoice_initiate_transactions(attempt, amount, user, context)
     if stripe_event["status"] == "failed":
-        error = f'{stripe_event["failure_code"]}: {stripe_event["failure_message"]}'
+        error = f"{stripe_event['failure_code']}: {stripe_event['failure_message']}"
         return (
             False,
             annotate_error(

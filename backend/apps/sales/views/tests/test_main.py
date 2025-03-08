@@ -2860,8 +2860,7 @@ class TestInvoiceLineItems(APITestCase):
         self.login(staff)
         line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
         response = self.client.patch(
-            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/"
-            f"{line_item.id}/",
+            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/{line_item.id}/",
             {"amount": "5", "percentage": 5},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -3434,7 +3433,7 @@ class TestProductRecommendations(APITestCase):
     def test_product_recommendations(self):
         product = ProductFactory.create()
         set_tags(product, "tags", ["beep", "boop", "bap", "bloop"])
-        unrelated = ProductFactory.create()
+        ProductFactory.create()
         most_related = ProductFactory.create()
         set_tags(most_related, "tags", ["beep", "bap", "bloop", "blargh"])
         least_related = ProductFactory.create()
@@ -3766,7 +3765,7 @@ class TestShoppingCart(APITestCase):
         self.login(user)
         product = ProductFactory.create()
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {"details": "", "product": product.id},
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -3778,7 +3777,7 @@ class TestShoppingCart(APITestCase):
         self.client.session.session_key
         product = ProductFactory.create()
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {"details": "", "product": product.id},
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -3793,7 +3792,7 @@ class TestShoppingCart(APITestCase):
         character = CharacterFactory.create()
         asset = AssetFactory.create()
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {
                 "details": "",
                 "product": product.id,
@@ -3813,13 +3812,13 @@ class TestShoppingCart(APITestCase):
         self.login(user)
         product = ProductFactory.create()
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {"details": "", "product": product.id},
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         first_id = ShoppingCart.objects.get().id
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {"details": "Boop", "product": product.id},
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -3833,13 +3832,13 @@ class TestShoppingCart(APITestCase):
         self.client.session.session_key
         product = ProductFactory.create()
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {"details": "", "product": product.id},
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         first_id = ShoppingCart.objects.get().id
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {"details": "Boop", "product": product.id},
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -3852,7 +3851,7 @@ class TestShoppingCart(APITestCase):
         # Ensure session key is set.
         self.client.session.session_key
         resp = self.client.patch(
-            f"/api/sales/cart/",
+            "/api/sales/cart/",
             {"details": "", "product": 5},
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)

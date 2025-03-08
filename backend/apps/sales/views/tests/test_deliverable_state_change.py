@@ -16,14 +16,12 @@ from apps.lib.constants import (
 )
 from apps.lib.test_resources import APITestCase, DeliverableChargeMixin
 from apps.lib.tests.test_utils import create_staffer
-from apps.lib.utils import utc
 from apps.profiles.tests.factories import (
     CharacterFactory,
     SubmissionFactory,
     UserFactory,
 )
 from apps.sales.constants import (
-    AUTHORIZE,
     CARD,
     CASH_DEPOSIT,
     COMPLETED,
@@ -43,10 +41,8 @@ from apps.sales.constants import (
     REFUNDED,
     RESERVE,
     REVIEW,
-    STRIPE,
     SUCCESS,
     TABLE_HANDLING,
-    FUND,
     WAITING,
     FUND,
 )
@@ -601,7 +597,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
 
     @patch("apps.sales.utils.refund_payment_intent")
     def test_refund_card_staffer(self, mock_refund_transaction, _mock_notify):
-        card = CreditCardTokenFactory.create()
+        CreditCardTokenFactory.create()
         self.deliverable.save()
         self.charge_transaction(self.deliverable)
         mock_refund_transaction.return_value = {"id": "123456"}

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sales", "0003_product_removed_by_product_removed_on_and_more"),
     ]

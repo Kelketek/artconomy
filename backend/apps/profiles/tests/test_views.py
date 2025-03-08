@@ -35,7 +35,6 @@ from apps.profiles.models import (
     ConversationParticipant,
     Submission,
     User,
-    SocialSettings,
 )
 from apps.profiles.tests.factories import (
     AttributeFactory,
@@ -46,7 +45,6 @@ from apps.profiles.tests.factories import (
     UserFactory,
     SocialSettingsFactory,
     SocialLinkFactory,
-    ArtistProfileFactory,
 )
 from apps.profiles.tests.helpers import gen_characters
 from apps.profiles.views import ArtistProfileSettings
@@ -749,9 +747,9 @@ class ValidatorChecks(APITestCase):
 
 class TestUserSearch(APITestCase):
     def test_search_users(self):
-        user1 = UserFactory.create(username="person")
-        user2 = UserFactory.create(username="Personal")
-        user3 = UserFactory.create(username="Dude")
+        UserFactory.create(username="person")
+        UserFactory.create(username="Personal")
+        UserFactory.create(username="Dude")
         response = self.client.get("/api/profiles/v1/search/user/?q=person")
         results = [user["username"] for user in response.data["results"]]
         results.sort()

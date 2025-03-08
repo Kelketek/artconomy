@@ -31,7 +31,7 @@ from apps.lib.constants import (
     FLAG_REASONS,
     PRODUCT_KILLED,
 )
-from apps.lib.permissions import Any, StaffPower
+from apps.lib.permissions import Or, StaffPower
 from apps.lib.utils import (
     clear_events,
     clear_events_subscriptions_and_comments,
@@ -299,7 +299,7 @@ class Product(ImageModel, HitsMixin):
         price = self.starting_price
         if price:
             price = str(price).replace("US$", "$")
-        price = f'[Starts at {price or "FREE"}] - '
+        price = f"[Starts at {price or 'FREE'}] - "
         return price + demark(self.description)
 
     def proto_delete(self, *args, **kwargs):
@@ -1205,7 +1205,7 @@ class CreditCardToken(Model):
     cvv_verified = BooleanField(default=False, db_index=True)
     created_on = DateTimeField(auto_now_add=True, db_index=True)
     watch_permissions = {
-        "CardSerializer": [Any(ObjectControls, StaffPower("view_financials"))]
+        "CardSerializer": [Or(ObjectControls, StaffPower("view_financials"))]
     }
 
     def __str__(self):
@@ -1296,8 +1296,8 @@ class TransactionRecord(Model):
         return (
             f"{self.get_status_display()} [{self.get_category_display()}]: "
             f"{self.amount} from "
-            f'{self.payer or "(Artconomy)"} [{self.get_source_display()}] to '
-            f'{self.payee or "(Artconomy)"} [{self.get_destination_display()}] for '
+            f"{self.payer or '(Artconomy)'} [{self.get_source_display()}] to "
+            f"{self.payee or '(Artconomy)'} [{self.get_destination_display()}] for "
             f"{self.target_string}"
         )
 
@@ -1323,9 +1323,9 @@ class Invoice(models.Model):
     status = models.IntegerField(default=DRAFT, choices=INVOICE_STATUSES)
     watch_permissions = {
         "InvoiceSerializer": [
-            Any(ObjectControls, StaffPower("view_financials"), BillTo, IssuedBy)
+            Or(ObjectControls, StaffPower("view_financials"), BillTo, IssuedBy)
         ],
-        None: [Any(ObjectControls, StaffPower("view_financials"), BillTo, IssuedBy)],
+        None: [Or(ObjectControls, StaffPower("view_financials"), BillTo, IssuedBy)],
     }
     type = models.IntegerField(default=SALE, choices=INVOICE_TYPES)
     bill_to = models.ForeignKey(
@@ -1455,7 +1455,7 @@ class LineItem(Model):
     description = CharField(max_length=250, blank=True, default="")
     watch_permissions = {
         "LineItemSerializer": [
-            Any(
+            Or(
                 OrderViewPermission,
                 BillTo,
                 IssuedBy,
@@ -1611,7 +1611,7 @@ class Reference(ImageModel):
     """
 
     comment_permissions = [
-        Any(
+        Or(
             ReferenceViewPermission,
             StaffPower("handle_disputes"),
             StaffPower("table_seller"),
@@ -1775,7 +1775,7 @@ class WebhookRecord(Model):
     secret = CharField(max_length=250)
 
     def __str__(self):
-        return f'Webhook {self.id}{" (Connect)" if self.connect else ""}'
+        return f"Webhook {self.id}{' (Connect)' if self.connect else ''}"
 
 
 class StripeAccount(Model):
@@ -1787,7 +1787,7 @@ class StripeAccount(Model):
     processor = "stripe"
     watch_permissions = {
         "StripeAccountSerializer": [
-            Any(ObjectControls, StaffPower("administrate_users"))
+            Or(ObjectControls, StaffPower("administrate_users"))
         ]
     }
 

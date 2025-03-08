@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("sales", "0002_add_compare_at_price"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

@@ -40,7 +40,6 @@ from apps.sales.constants import (
     TERM,
     TIP,
     TIPPING,
-    FUND,
     CANCELLED,
     REFUNDED,
     FUND,

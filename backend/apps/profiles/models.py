@@ -54,7 +54,7 @@ from apps.lib.constants import (
     SUBMISSION_KILLED,
     PRODUCT_KILLED,
 )
-from apps.lib.permissions import Any, StaffPower
+from apps.lib.permissions import Or, StaffPower
 from apps.lib.utils import (
     clear_events,
     clear_events_subscriptions_and_comments,
@@ -229,9 +229,6 @@ class User(AbstractEmailUser, HitsMixin):
     watching = ManyToManyField(
         "User", symmetrical=False, related_name="watched_by", blank=True
     )
-    # Don't create the migration for removing these until service plans have been
-    # created and are active in production.
-    landscape_enabled = BooleanField(default=False, db_index=True, null=True)
     # Used for the users where we have received bounce notifications for their email
     # address. Prevents us from sending email to them.
     email_nulled = BooleanField(
@@ -239,9 +236,6 @@ class User(AbstractEmailUser, HitsMixin):
         db_index=True,
         help_text="Drop all emails that would otherwise be sent to this user. Will "
         "reset to off if the email address is updated by the user.",
-    )
-    landscape_paid_through = DateField(
-        null=True, default=None, blank=True, db_index=True
     )
     next_service_plan = ForeignKey(
         "sales.ServicePlan",
@@ -345,13 +339,13 @@ class User(AbstractEmailUser, HitsMixin):
     )
     drip_id = models.CharField(max_length=32, db_index=True, default="")
     watch_permissions = {
-        "UserSerializer": [Any(ObjectControls, StaffPower("administrate_users"))],
+        "UserSerializer": [Or(ObjectControls, StaffPower("administrate_users"))],
         "UserInfoSerializer": [],
         "UnreadNotificationsSerializer": [
             IsRegistered,
-            Any(ObjectControls, StaffPower("view_as")),
+            Or(ObjectControls, StaffPower("view_as")),
         ],
-        None: [Any(ObjectControls, StaffPower("administrate_users"))],
+        None: [Or(ObjectControls, StaffPower("administrate_users"))],
     }
 
     @property
@@ -604,7 +598,7 @@ class ArtistProfile(Model):
     watch_permissions = {
         "ArtistProfileSerializer": [],
         "SalesStatsSerializer": [
-            Any(StaffPower("view_financials"), StaffPower("view_as"), ObjectControls)
+            Or(StaffPower("view_financials"), StaffPower("view_as"), ObjectControls)
         ],
     }
 
@@ -619,7 +613,7 @@ class SocialSettings(Model):
 
     watch_permissions = {
         "SocialSettingsSerializer": [
-            Any(ObjectControls, StaffPower("view_social_data"), SocialsVisible)
+            Or(ObjectControls, StaffPower("view_social_data"), SocialsVisible)
         ],
     }
     user = OneToOneField(User, on_delete=CASCADE, related_name="social_settings")
@@ -665,7 +659,7 @@ class SocialSettings(Model):
 class SocialLink(Model):
     watch_permissions = {
         "SocialLinkSerializer": [
-            Any(ObjectControls, StaffPower("view_social_data"), SocialsVisible)
+            Or(ObjectControls, StaffPower("view_social_data"), SocialsVisible)
         ]
     }
     user = ForeignKey(User, on_delete=CASCADE, related_name="social_links")
@@ -1431,9 +1425,6 @@ for power in POWER_LIST:
 
 @receiver(post_save, sender=StaffPowers)
 def power_subscriptions(sender, instance, **kwargs):
-    from apps.profiles.serializers import UserSerializer
-    from apps.lib.consumers import send_updated
-
     user = instance.user
     if user.is_superuser or (user.is_staff and instance.handle_disputes):
         Subscription.objects.get_or_create(

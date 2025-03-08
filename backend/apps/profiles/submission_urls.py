@@ -1,5 +1,4 @@
-"""artconomy URL Configuration
-"""
+"""artconomy URL Configuration"""
 
 from apps.profiles.views import SubmissionPreview
 from django.urls import path

@@ -2,7 +2,6 @@ from datetime import date
 from unittest.mock import patch
 from uuid import UUID
 
-from django.utils import timezone
 
 from apps.lib.abstract_models import ADULT, GENERAL
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin

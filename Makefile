@@ -69,7 +69,7 @@ test_backend:
 
 format:
 	${APP_COMMAND} black backend
-	${APP_COMMAND} ruff --fix backend
+	${APP_COMMAND} ruff check --fix backend
 	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
 
 upgrade:
