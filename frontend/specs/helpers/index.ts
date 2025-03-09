@@ -251,7 +251,7 @@ export function qMount<V>(component: ComponentPublicInstance<V>, options?: any):
 // At one point it looked like everything needed to be moved over to a wrapped version of the upstream mount
 // function. This turned out not to be the case, but it was not easy to roll back and I might need it eventually,
 // so it's reexported here.
-export const mount = <T>(component: ReturnType<typeof defineComponent>, options: any): VueWrapper<any> => upstreamMount(component, options)
+export const mount = (component: ReturnType<typeof defineComponent>, options: any): VueWrapper<any> => upstreamMount(component, options)
 
 export const mockCardMount = vi.fn()
 export const mockCardCreate = vi.fn()

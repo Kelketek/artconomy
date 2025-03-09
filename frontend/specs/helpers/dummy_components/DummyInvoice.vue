@@ -36,4 +36,5 @@ const {invoiceLineItems, invoiceProduct, goToOrder} = useInvoicing({
   international,
   invoiceEscrowEnabled: computedInvoiceEscrowEnabled,
 })
+defineExpose({invoiceLineItems, invoiceProduct, goToOrder})
 </script>

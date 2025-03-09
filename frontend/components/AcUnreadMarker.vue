@@ -26,5 +26,5 @@
 <script setup lang="ts">
 import {mdiAlertDecagram} from '@mdi/js'
 
-const props = defineProps<{read: boolean}>()
+defineProps<{read: boolean}>()
 </script>

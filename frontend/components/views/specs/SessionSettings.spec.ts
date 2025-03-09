@@ -3,7 +3,7 @@ import {cleanUp, createTestRouter, mount, vueSetup, waitFor} from '@/specs/helpe
 import {VueWrapper} from '@vue/test-utils'
 import SessionSettings from '@/components/views/SessionSettings.vue'
 import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
-import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {Router} from 'vue-router'
 

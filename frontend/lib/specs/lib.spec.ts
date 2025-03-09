@@ -37,7 +37,7 @@ import {
   truncateText,
 } from '@/lib/otherFormatters.ts'
 import {md, textualize} from '@/lib/markdown.ts'
-import {defaultFallbackImage, extPreview, getExt, isImage, thumbFromSpec} from '@/mixins/asset_base.ts'
+import {extPreview, getExt, isImage, thumbFromSpec} from '@/mixins/asset_base.ts'
 import {posse} from '@/lib/otherFormatters.ts'
 
 describe('artCall', () => {
@@ -467,11 +467,11 @@ describe('dotTraverse', () => {
 describe('thumbFromSpec', () => {
   test('Returns the full image by default if the thumbnail is not present', () => {
     const file = {full: '/thing/wat.jpg', type: 'data:image'}
-    expect(thumbFromSpec('thumbnail', file, defaultFallbackImage)).toBe('/thing/wat.jpg')
+    expect(thumbFromSpec('thumbnail', file)).toBe('/thing/wat.jpg')
   })
   test('Returns the correct thumbnail', () => {
     const file = {full: '/thing/wat.jpg', thumbnail: '/stuff/things.jpg', type: 'data:image'}
-    expect(thumbFromSpec('thumbnail', file, defaultFallbackImage)).toBe('/stuff/things.jpg')
+    expect(thumbFromSpec('thumbnail', file)).toBe('/stuff/things.jpg')
   })
 })
 

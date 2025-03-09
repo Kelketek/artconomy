@@ -14,5 +14,5 @@
 </template>
 
 <script setup lang="ts">
-const props = withDefaults(defineProps<{minHeight?: string}>(), {minHeight: '50vh'})
+withDefaults(defineProps<{minHeight?: string}>(), {minHeight: '50vh'})
 </script>

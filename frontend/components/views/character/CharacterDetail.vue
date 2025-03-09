@@ -233,7 +233,7 @@ const primarySubmissionLink = computed(() => {
 
 const showChangePrimary = ref(false)
 
-watch(() => character.profile.x?.primary_submission?.id, (newValue, oldValue) => {
+watch(() => character.profile.x?.primary_submission?.id, () => {
   showChangePrimary.value = false
 })
 

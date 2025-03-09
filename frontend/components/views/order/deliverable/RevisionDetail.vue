@@ -81,7 +81,7 @@ import {mdiCloudDownload, mdiCheckCircle, mdiDelete, mdiUpload, mdiArrowLeft} fr
 import {useSingle} from '@/store/singles/hooks.ts'
 import {useForm} from '@/store/forms/hooks.ts'
 import {useList} from '@/store/lists/hooks.ts'
-import {useRoute, useRouter} from 'vue-router'
+import {useRouter} from 'vue-router'
 import {computed} from 'vue'
 import {useViewer} from '@/mixins/viewer.ts'
 import {formatDateTime} from '@/lib/otherFormatters.ts'
@@ -202,4 +202,6 @@ const galleryLink = computed(() => {
 const isSubmitted = computed(() => {
   return !!gallerySubmissionId.value
 })
+
+defineExpose({isSubmitted})
 </script>

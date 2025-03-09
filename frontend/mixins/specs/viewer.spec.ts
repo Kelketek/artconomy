@@ -30,7 +30,6 @@ describe('Viewer.ts', () => {
     user.sfw_mode = true
     setViewer({ store, user })
     wrapper = mount(ViewerComponent, vueSetup({store}))
-    const rating = store.getters['profiles/rating']
     expect(wrapper.vm.rating).toBe(Ratings.GENERAL)
   })
   test('Sets the rating to general if not logged in', async() => {

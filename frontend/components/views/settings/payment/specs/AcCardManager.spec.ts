@@ -5,30 +5,24 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   createTestRouter,
-  createVuetify,
-  docTarget,
   flushPromises,
   mount,
   rq,
-  rs,
   vueSetup,
 } from '@/specs/helpers/index.ts'
-import {ListController} from '@/store/lists/controller.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {genCard, genUser} from '@/specs/helpers/fixtures.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {baseCardSchema, setViewer} from '@/lib/lib.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {nextTick} from 'vue'
 import {getStripe} from '@/components/views/order/mixins/StripeMixin.ts'
-import type {CreditCardToken} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let vm: any
 let ccForm: FormController
-let cards: ListController<CreditCardToken>
 
 describe('AcCardManager.vue Stripe', () => {
   beforeEach(() => {
@@ -48,7 +42,6 @@ describe('AcCardManager.vue Stripe', () => {
     vm = wrapper.vm
     // @ts-expect-error
     getStripe()!.setupValue = {}
-    cards = (wrapper.vm as any).cards
   })
   test('Fetches the initial data', async() => {
     expect(mockAxios.request.mock.calls[1][0]).toEqual(

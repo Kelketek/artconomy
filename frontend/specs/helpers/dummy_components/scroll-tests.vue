@@ -22,5 +22,5 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps<{test?: string}>()
+defineProps<{test?: string}>()
 </script>

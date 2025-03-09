@@ -20,7 +20,7 @@ describe('AcSettingNav.vue', () => {
     cleanUp(wrapper)
   })
   test('Shows artist panel when artist mode is on', async() => {
-    const wrapper = mount(
+    wrapper = mount(
       AcSettingNav, {
         ...vueSetup({
           store,
@@ -35,7 +35,7 @@ describe('AcSettingNav.vue', () => {
     expect(wrapper.find('.artist-panel-link').exists()).toBe(true)
   })
   test('Hides artist panel when artist mode is off', async() => {
-    const wrapper = mount(
+    wrapper = mount(
       AcSettingNav, {
         ...vueSetup({
           store,
@@ -54,7 +54,7 @@ describe('AcSettingNav.vue', () => {
     expect(wrapper.find('.payout-link').exists()).toBe(false)
   })
   test('Shows payout panel if banking is configured, even if not an artist', async() => {
-    const wrapper = mount(
+    wrapper = mount(
       AcSettingNav, {
         ...vueSetup({
           store,

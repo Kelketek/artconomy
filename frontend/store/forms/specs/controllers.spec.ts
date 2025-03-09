@@ -34,7 +34,7 @@ async function alwaysFail(field: FieldController, signal: AbortSignal, arg: stri
 }
 
 // noinspection JSUnusedLocalSymbols
-async function alwaysSucceed(field: FieldController, signal: AbortSignal) {
+async function alwaysSucceed() {
   return new Promise<string[]>((resolve) => resolve([]))
 }
 

@@ -1,5 +1,5 @@
 import {createRouter, createWebHistory, Router} from 'vue-router'
-import {cleanUp, flushPromises, mount, sleep, vueSetup, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, flushPromises, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import Search from '@/components/views/search/Search.vue'
@@ -18,9 +18,8 @@ import {FormController} from '@/store/forms/form-controller.ts'
 import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
 import {Ratings} from '@/types/enums/Ratings.ts'
 import SubmissionExtra from '@/components/views/search/extra/SubmissionExtra.vue'
-import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
-import {nextTick} from 'vue'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

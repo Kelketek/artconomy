@@ -41,6 +41,6 @@
 import {useRangeReport} from '@/components/views/reports/mixins/RangeReport.ts'
 
 import type {SubjectiveProps} from '@/types/main'
-const props = defineProps<SubjectiveProps>()
+defineProps<SubjectiveProps>()
 const {startDate, endDate, rangeString} = useRangeReport()
 </script>

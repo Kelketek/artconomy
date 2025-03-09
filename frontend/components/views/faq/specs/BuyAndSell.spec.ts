@@ -1,5 +1,4 @@
-import {createRouter, Router} from 'vue-router'
-import {faqRoutes} from './helpers.ts'
+import {Router} from 'vue-router'
 import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import BuyAndSell from '@/components/views/faq/BuyAndSell.vue'
@@ -15,13 +14,10 @@ import {
 import searchSchema from '@/components/views/search/specs/fixtures.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {SingleController} from '@/store/singles/controller.ts'
 import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {nextTick} from 'vue'
-import type {StripeCountryList} from '@/types/main'
 
 let searchForm: FormController
-let countryList: SingleController<StripeCountryList>
 
 describe('BuyAndSell.vue', () => {
   let router: Router
@@ -44,7 +40,8 @@ describe('BuyAndSell.vue', () => {
       ...options,
       attachTo: '',
     }).vm.$getForm('search', searchSchema())
-    countryList = mount(Empty, {
+    // Configure country list so the page will render.
+    mount(Empty, {
       ...options,
       attachTo: '',
     }).vm.$getSingle('stripeCountries', {

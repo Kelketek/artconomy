@@ -2,7 +2,7 @@ import {VueWrapper} from '@vue/test-utils'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import AcRatingField from '@/components/fields/AcRatingField.vue'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

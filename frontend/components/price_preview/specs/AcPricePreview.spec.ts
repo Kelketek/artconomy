@@ -7,7 +7,7 @@ import {createRouter, createWebHistory, Router} from 'vue-router'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {dummyLineItems} from '@/lib/specs/helpers.ts'
 import {ListController} from '@/store/lists/controller.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
 import type {LineItem} from '@/types/main'
@@ -44,7 +44,7 @@ describe('AcPricePreview.vue', () => {
   })
   test('Integrates add-on forms', async() => {
     setViewer({ store, user })
-    const wrapper = mount(AcPricePreview, {
+    wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
         router,
@@ -67,7 +67,7 @@ describe('AcPricePreview.vue', () => {
   })
   test('Calculates hourly rate for escrow', async() => {
     setViewer({ store, user })
-    const wrapper = mount(AcPricePreview, {
+    wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
         router,
@@ -86,7 +86,7 @@ describe('AcPricePreview.vue', () => {
   })
   test('Calculates hourly rate for non-escrow', async() => {
     setViewer({ store, user })
-    const wrapper = mount(AcPricePreview, {
+    wrapper = mount(AcPricePreview, {
       ...vueSetup({
         store,
         router,

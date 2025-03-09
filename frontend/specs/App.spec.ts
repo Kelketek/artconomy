@@ -21,10 +21,8 @@ import {WS} from 'vitest-websocket-mock'
 import {socketNameSpace} from '@/plugins/socket.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick, reactive} from 'vue'
-import {Router} from 'vue-router'
 
 let wrapper: VueWrapper<typeof App>
-let router: Router
 
 // @ts-ignore
 window.__COMMIT_HASH__ = 'bogusHash'

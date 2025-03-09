@@ -87,7 +87,7 @@ import type {
 import {RelatedUser} from '@/store/profiles/types/main'
 
 
-const props = withDefaults(defineProps<{username: string|null, transaction: Transaction, asAccount: number, objective: boolean}>(), {objective: false})
+const props = withDefaults(defineProps<{username: string|null, transaction: Transaction, asAccount: number, objective?: boolean}>(), {objective: false})
 
 const {isSuperuser} = useViewer()
 const {modalTarget} = useTargets()

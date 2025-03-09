@@ -47,7 +47,7 @@ export function extPreview(filename: string) {
   return `/static/icons/${ext}.png`
 }
 
-export function thumbFromSpec(thumbName: string, spec: FileSpec, fallback: string) {
+export function thumbFromSpec(thumbName: string, spec: FileSpec) {
   if (!spec) {
     return
   }
@@ -66,13 +66,13 @@ const getDisplayImage = (asset: Asset|null, thumbName: string, isImage: boolean,
   }
   if (['gallery', 'full', 'preview'].indexOf(thumbName) === -1) {
     if (asset.preview) {
-      return thumbFromSpec('thumbnail', asset.preview, fallbackImage)
+      return thumbFromSpec('thumbnail', asset.preview)
     }
   }
   if (!isImage) {
     return extPreview(asset.file.full)
   }
-  return thumbFromSpec(thumbName, asset.file, fallbackImage)
+  return thumbFromSpec(thumbName, asset.file)
 }
 
 const getIsImage = (asset: Asset|null) => {

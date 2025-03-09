@@ -4,14 +4,13 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {RouteLocationRaw, Router} from 'vue-router'
+import {Router} from 'vue-router'
 import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {nextTick} from 'vue'
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
 let router: Router
-let route: Partial<RouteLocationRaw>
 
 describe('AcPaginated.vue', () => {
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import {VueWrapper} from '@vue/test-utils'
 import Editable from '@/specs/helpers/dummy_components/editable.vue'
 import {cleanUp, createTestRouter, mount, vueSetup, waitFor} from '@/specs/helpers/index.ts'
-import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import {afterEach, beforeEach, describe, expect, test} from 'vitest'
 import {Router} from 'vue-router'
 
 let router: Router

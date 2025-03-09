@@ -68,8 +68,8 @@ test_backend:
 	${APP_COMMAND} ./manage.py test --keepdb --parallel=${TEST_THREADS}
 
 format:
-	${APP_COMMAND} black backend
 	${APP_COMMAND} ruff check --fix backend
+	${APP_COMMAND} ruff format backend
 	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
 
 upgrade:

@@ -1,6 +1,5 @@
 import {
   cleanUp,
-  createTestRouter,
   mount,
   vueSetup,
   waitFor,
@@ -13,7 +12,6 @@ import mockAxios from '@/__mocks__/axios.ts'
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
-import {Router} from 'vue-router'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>

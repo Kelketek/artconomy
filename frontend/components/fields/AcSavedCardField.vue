@@ -25,7 +25,7 @@ import {ListController} from '@/store/lists/controller.ts'
 import type {CreditCardToken} from '@/types/main'
 
 
-const props = defineProps<{modelValue: number|null, cards: ListController<CreditCardToken>}>()
+defineProps<{modelValue: number|null, cards: ListController<CreditCardToken>}>()
 const emit = defineEmits<{'update:modelValue': [number|null]}>()
 const sendInput = (value: number|null) => emit('update:modelValue', value)
 </script>

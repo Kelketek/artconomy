@@ -4,7 +4,7 @@ import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
 describe('AcLoadSection.vue', () => {
   let wrapper: VueWrapper<any>

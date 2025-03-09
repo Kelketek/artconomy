@@ -9,5 +9,5 @@ import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProduc
 
 import type {SubjectiveProps} from '@/types/main'
 
-const props = defineProps<SubjectiveProps>()
+defineProps<SubjectiveProps>()
 </script>

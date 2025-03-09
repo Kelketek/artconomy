@@ -6,16 +6,12 @@ import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
 describe('AcRendered.ts', () => {
   let wrapper: VueWrapper<any>
-  let anchored: VueWrapper<any>
   let store: ArtStore
   beforeEach(() => {
     store = createStore()
   })
   afterEach(() => {
     cleanUp(wrapper)
-    if (anchored) {
-      anchored.unmount()
-    }
   })
   test('Truncates text at a specific length', () => {
     wrapper = mount(AcRendered, {

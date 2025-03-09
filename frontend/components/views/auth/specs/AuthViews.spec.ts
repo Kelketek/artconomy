@@ -12,9 +12,7 @@ import AuthViews from '@/components/views/auth/AuthViews.vue'
 import Register from '@/components/views/auth/Register.vue'
 import Forgot from '@/components/views/auth/Forgot.vue'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {UserStoreState} from '@/store/profiles/types/main'
 
-let profiles: UserStoreState
 let wrapper: VueWrapper<any>
 let router: Router
 
@@ -72,7 +70,6 @@ describe('AuthViews.vue', () => {
     })
     store = createStore()
     deleteCookie('csrftoken')
-    profiles = (store.state as any).profiles as UserStoreState
   })
   afterEach(() => {
     cleanUp(wrapper)

@@ -16,7 +16,6 @@ import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.
 import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
-import {router} from '@/router'
 import {Character} from '@/store/characters/types/main'
 
 describe('AcCharacterToolbar.vue', () => {

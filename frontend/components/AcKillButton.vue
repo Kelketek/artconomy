@@ -44,7 +44,7 @@ const router = useRouter()
 
 const killForm = useForm(`killForm${props.controller.name.value}`, {endpoint: url.value, fields: {flag: {value: null, validators: [{name: 'required'}]}, comment: {value: ''}}})
 const killReasons = computed(() => {
-  const options = Object.entries(FLAGS_SHORT).filter(([value, _]) => parseInt(value, 10) > ReportFlags.IMPROPERLY_RATED)
+  const options = Object.entries(FLAGS_SHORT).filter(([value]) => parseInt(value, 10) > ReportFlags.IMPROPERLY_RATED)
   return options.map(([value, title]) => ({title, value}))
 })
 const goBack = () => {

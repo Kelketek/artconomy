@@ -20,7 +20,7 @@ export interface DisplayUser {
 export const useEvent = <T, D>(props: NotificationProps<T, D>) => computed(() => props.notification.event)
 
 // Workaround for the notifications image. Sometimes we use a user as the image reference, with their avatar URL.
-export const useNotificationAvatar = (asset: Asset|TerseUser, viewer: ComputedRef<User|AnonUser>) => {
+export const useNotificationAvatar = (asset: Asset|TerseUser) => {
   if ((asset as TerseUser).avatar_url) {
     return computed(() => (asset as TerseUser).avatar_url)
   }

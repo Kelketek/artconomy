@@ -22,7 +22,7 @@ import {
 
 import {DeliverableStatusValue} from '@/types/main'
 
-const props = defineProps<{deliverable: {status: DeliverableStatusValue}}>()
+defineProps<{deliverable: {status: DeliverableStatusValue}}>()
 const STATUSES = {
   0: {
     text: 'Waiting',

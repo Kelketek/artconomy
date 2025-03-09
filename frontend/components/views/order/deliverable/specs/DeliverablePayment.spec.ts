@@ -7,7 +7,7 @@ import {
   mount,
   rs,
   vueSetup,
-  VuetifyWrapped, waitFor,
+  waitFor,
 } from '@/specs/helpers/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import DeliverablePayment from '@/components/views/order/deliverable/DeliverablePayment.vue'

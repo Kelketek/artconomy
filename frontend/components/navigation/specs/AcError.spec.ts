@@ -1,8 +1,9 @@
 import {shallowMount, VueWrapper} from '@vue/test-utils'
 import AcError from '../AcError.vue'
 import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, createVuetify, vueSetup} from '@/specs/helpers/index.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {cleanUp, vueSetup} from '@/specs/helpers/index.ts'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
+import {nextTick} from 'vue'
 
 describe('ac-error', () => {
   let store: ArtStore
@@ -18,7 +19,7 @@ describe('ac-error', () => {
       store,
     }))
     store.commit('errors/setError', {response: {status: 500}})
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(
       wrapper.find('.error-container img').attributes().src).toBe('/static/images/500.png',
     )
@@ -29,7 +30,7 @@ describe('ac-error', () => {
       store,
     }))
     store.commit('errors/clearError')
-    await wrapper.vm.$nextTick()
+    await nextTick()
     expect(wrapper.find('.error-container').exists()).toBe(false)
   })
 })

@@ -197,4 +197,5 @@ const closed = computed(() => {
 })
 // Used by tests.
 const {pricing} = usePricing()
+defineExpose({pricing})
 </script>

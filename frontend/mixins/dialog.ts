@@ -37,6 +37,7 @@ export const useDialog = (props: DialogPropsResolved, emit: (evt: 'update:modelV
       case 'md': return '80vw'
       case 'lg': return props.large ? '80vw' : '60vw'
       case 'xl': return props.large ? '60vw' : '40vw'
+      default: return '100vw'
     }
   })
   return {

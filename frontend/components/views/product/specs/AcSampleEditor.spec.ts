@@ -10,7 +10,7 @@ import {
   setPricing,
   vueSetup,
   VuetifyWrapped,
-  waitFor, waitForSelector,
+  waitForSelector,
 } from '@/specs/helpers/index.ts'
 import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
@@ -26,7 +26,6 @@ import type {LinkedSubmission, Product, Submission} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
-let form: FormController
 let product: SingleController<Product>
 let samplesList: ListController<LinkedSubmission>
 let localSamples: ListController<LinkedSubmission>
@@ -38,7 +37,7 @@ describe('AcSampleEditor.vue', () => {
   beforeEach(() => {
     store = createStore()
     const empty = mount(Empty, vueSetup({store})).vm
-    form = empty.$getForm('search', searchSchema())
+    empty.$getForm('search', searchSchema())
     setPricing(store)
     product = empty.$getSingle('product', {endpoint: '/product/'})
     product.setX(genProduct())

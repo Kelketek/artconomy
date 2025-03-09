@@ -5,5 +5,5 @@
 <script setup lang="ts">
 import {mdiCheckCircle, mdiCloseCircle} from '@mdi/js'
 
-const props = defineProps<{value: boolean}>()
+defineProps<{value: boolean}>()
 </script>

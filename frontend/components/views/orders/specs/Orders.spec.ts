@@ -1,4 +1,4 @@
-import {cleanUp, mount, vueSetup, VuetifyWrapped, waitFor} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup, waitFor} from '@/specs/helpers/index.ts'
 import {createRouter, createWebHistory, Router} from 'vue-router'
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
@@ -106,7 +106,7 @@ describe('Orders.vue', () => {
   })
   test('Sets up the order list', async() => {
     setViewer({ store, user: genUser() })
-    const wrapper = mount(Orders, {
+    wrapper = mount(Orders, {
       ...vueSetup({
         store,
         router,
@@ -125,7 +125,7 @@ describe('Orders.vue', () => {
   })
   test('Handles commission stats', async() => {
     setViewer({ store, user: genUser() })
-    const wrapper = mount(Orders, {
+    wrapper = mount(Orders, {
       ...vueSetup({
         store,
         router,
@@ -144,7 +144,7 @@ describe('Orders.vue', () => {
   })
   test('Sends the user to the invoicing page', async() => {
     setViewer({ store, user: genUser() })
-    const wrapper = mount(Orders, {
+    wrapper = mount(Orders, {
       ...vueSetup({
         store,
         router,
@@ -170,7 +170,7 @@ describe('Orders.vue', () => {
     })
     const mockPush = vi.spyOn(router, 'replace')
     setViewer({ store, user: genUser() })
-    const wrapper = mount(Orders, {
+    wrapper = mount(Orders, {
       ...vueSetup({
         store,
         router,
@@ -190,7 +190,7 @@ describe('Orders.vue', () => {
   test('Does not ask for unneeded info if this is for orders instead of sales', async() => {
     setViewer({ store, user: genUser() })
     mockAxios.reset()
-    const wrapper = mount(Orders, {
+    wrapper = mount(Orders, {
       ...vueSetup({
         store,
         router,

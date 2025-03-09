@@ -15,7 +15,7 @@ import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {genSubmission} from '@/store/submissions/specs/fixtures.ts'
 import SubmissionDetail from '@/components/views/submission/SubmissionDetail.vue'
 import {searchSchema, setViewer} from '@/lib/lib.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {nextTick} from 'vue'
 import {RelatedUser, User} from '@/store/profiles/types/main'
 

@@ -32,9 +32,8 @@
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
 import AcLink from '@/components/wrappers/AcLink.vue'
 import {RouteLocationRaw} from 'vue-router'
-import {useViewer} from '@/mixins/viewer.ts'
 import {useImg} from '@/plugins/shortcuts.ts'
-import {formatDateTime} from '../../../../lib/otherFormatters.ts'
+import {formatDateTime} from '@/lib/otherFormatters.ts'
 
 const props = defineProps<{assetLink?: RouteLocationRaw, hrefLink?: RouteLocationRaw} & NotificationProps<T, D>>()
 const event = useEvent(props)

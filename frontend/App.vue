@@ -402,7 +402,7 @@ const socketStart = () => {
   sock.addListener('version', 'App', getVersion)
   sock.addListener('viewer', 'App', viewerHandler.user.makeReady)
   sock.addListener('error', 'App', console.error)
-  sock.addListener('reset', 'App', (payload: {exclude?: string[]}) => {
+  sock.addListener('reset', 'App', () => {
     sock.socket!.close()
     // Wait a second to reconnect to give a chance for all outstanding requests to complete.
     // We'll probably want to find a better way to handle this later.

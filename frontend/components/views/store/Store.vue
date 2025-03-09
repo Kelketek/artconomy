@@ -19,7 +19,7 @@ import {ArtState} from '@/store/artState.ts'
 import type {SubjectiveProps} from '@/types/main'
 
 
-const props = defineProps<SubjectiveProps>()
+defineProps<SubjectiveProps>()
 const store = useStore<ArtState>()
 const route = useRoute()
 const currentRoute = computed(() => ['Store', 'StoreiFrame', 'ManageStore'].indexOf(String(route!.name) + '') !== -1)

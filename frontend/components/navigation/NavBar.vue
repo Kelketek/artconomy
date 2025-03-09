@@ -23,16 +23,16 @@
               <v-row>
                 <v-col class="bottom-button">
                   <a
-                      href="https://twitter.com/ArtconomyArt/"
+                      href="https://bsky.app/profile/artconomy.bsky.social"
                       rel="nofollow noopener"
                       target="_blank"
                   >
                     <v-row no-gutters>
                       <v-col cols="12" class="text-center">
-                        <v-icon size="default" :icon="siTwitter.path"/>
+                        <v-icon size="default" :icon="siBluesky.path"/>
                       </v-col>
                       <v-col cols="12" class="text-center">
-                        <small>Twitter</small>
+                        <small>Bluesky</small>
                       </v-col>
                     </v-row>
                   </a>
@@ -204,7 +204,7 @@ import {useViewer} from '@/mixins/viewer.ts'
 const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
 import {useNav} from '@/mixins/nav.ts'
 const AcNavLinks = defineAsyncComponent(() => import('@/components/navigation/AcNavLinks.vue'))
-import {siDiscord, siTwitter} from 'simple-icons'
+import {siDiscord, siBluesky} from 'simple-icons'
 import {computed, defineAsyncComponent, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {useStore} from 'vuex'
@@ -259,7 +259,6 @@ const {
   isRegistered,
   viewerHandler,
   isLoggedIn,
-  isStaff,
   isSuperuser,
   rawViewerName,
 } = useViewer()

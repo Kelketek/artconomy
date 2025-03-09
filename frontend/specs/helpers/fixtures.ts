@@ -17,7 +17,7 @@ import type {
   Revision,
   SocialSettings,
 } from '@/types/main'
-import {AnonUser, ArtistProfile, StaffPower, StaffPowers, TerseUser, User} from '@/store/profiles/types/main'
+import {AnonUser, ArtistProfile, StaffPower, StaffPowers, User} from '@/store/profiles/types/main'
 import {BankStatus} from '@/store/profiles/types/enums.ts'
 
 export function genUser(overrides?: Partial<User>): User {

@@ -15,7 +15,6 @@ import ProductDetail from '@/components/views/product/ProductDetail.vue'
 import {genAnon, genArtistProfile, genProduct, genUser} from '@/specs/helpers/fixtures.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import {searchSchema, setViewer} from '@/lib/lib.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {Router} from 'vue-router'
 
@@ -30,7 +29,6 @@ import type {LineItem} from '@/types/main'
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
-let form: FormController
 let router: Router
 
 function prepData() {
@@ -61,7 +59,7 @@ describe('ProductDetail.vue', () => {
   beforeEach(() => {
     store = createStore()
     router = createTestRouter()
-    form = mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
+    mount(Empty, vueSetup({store})).vm.$getForm('search', searchSchema())
     setPricing(store)
   })
   afterEach(() => {
@@ -290,7 +288,6 @@ describe('ProductDetail.vue', () => {
         productId: 1,
       },
     })
-    const vm = wrapper.vm as any
     await nextTick()
     let description = document.querySelector('meta[name="description"]')
     expect(description).toBeTruthy()

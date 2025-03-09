@@ -34,7 +34,7 @@
 <script setup lang="ts">
 import {mdiAlert, mdiShieldHalfFull} from '@mdi/js'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{escrow: boolean, upgradeAvailable?: boolean, name: string}>(),
   {upgradeAvailable: false},
 )

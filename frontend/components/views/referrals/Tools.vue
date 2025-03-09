@@ -41,7 +41,7 @@ import {computed} from 'vue'
 
 import type {SubjectiveProps} from '@/types/main'
 
-const props = defineProps<SubjectiveProps>()
+defineProps<SubjectiveProps>()
 const host = computed(() => window.location.hostname)
 const protocol = computed(() => window.location.protocol)
 </script>

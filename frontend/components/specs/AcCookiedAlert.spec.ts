@@ -14,7 +14,7 @@ describe('AcCookiedAlert.vue', () => {
     cleanUp(wrapper)
   })
   it('Displays an alert when there is no cookie.', async () => {
-    const wrapper = render(AcCookiedAlert, {...vueSetup(), slots: {default: 'This is test text.'}, props: {cookie: 'boop'}})
+    wrapper = render(AcCookiedAlert, {...vueSetup(), slots: {default: 'This is test text.'}, props: {cookie: 'boop'}})
     wrapper.getByText('This is test text.')
     const closeButton = wrapper.getByRole('button')
     await fireEvent.click(closeButton)
@@ -22,13 +22,13 @@ describe('AcCookiedAlert.vue', () => {
     expect(getCookie('boop')).toBe('read')
   })
   it('Does not display an alert when the time has expired.', () => {
-    const wrapper = render(AcCookiedAlert, {...vueSetup(), slots: {default: 'This is test text.'}, props: {cookie: 'boop', expires: new Date(2000, 10, 1)}})
+    wrapper = render(AcCookiedAlert, {...vueSetup(), slots: {default: 'This is test text.'}, props: {cookie: 'boop', expires: new Date(2000, 10, 1)}})
     expect(() => wrapper.getByText('This is test text.')).throws()
   })
   it('Displays an alert when the time has not expired.', () => {
     const futureDate = new Date()
     futureDate.setDate(futureDate.getDate() + 5)
-    const wrapper = render(AcCookiedAlert, {...vueSetup(), slots: {default: 'This is test text.'}, props: {cookie: 'boop', expires: futureDate}})
+    wrapper = render(AcCookiedAlert, {...vueSetup(), slots: {default: 'This is test text.'}, props: {cookie: 'boop', expires: futureDate}})
     wrapper.getByText('This is test text.')
   })
 })

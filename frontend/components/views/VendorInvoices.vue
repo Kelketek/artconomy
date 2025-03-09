@@ -28,7 +28,7 @@
           <v-list>
             <v-list-item v-for="invoice in invoices.list" :key="invoice.x!.id">
               <v-list-item-title>
-                <ac-link :to="linkFor(invoice.x!)">{{ invoice.x!.id }} to {{ invoice.x.issued_by?.username}}</ac-link>
+                <ac-link :to="linkFor(invoice.x!)">{{ invoice.x!.id }} to {{ invoice.x!.issued_by?.username}}</ac-link>
               </v-list-item-title>
               <v-list-item-subtitle>
                 {{ formatDateTime(invoice.x!.created_on) }}

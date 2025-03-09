@@ -4,7 +4,6 @@ import {ArtStore, createStore} from '@/store/index.ts'
 import {
   cleanUp,
   confirmAction,
-  flushPromises,
   mount,
   rq,
   rs,

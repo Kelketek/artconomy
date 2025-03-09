@@ -120,7 +120,7 @@ export const buildPowers = (handler: ProfileController) => computed((): Record<S
     return Object.fromEntries(POWER_LIST.map((key) => [key, true])) as Record<StaffPower, boolean>
   }
   return Object.fromEntries(
-    Object.entries(handler.staffPowers.x).filter(([_key, value]) => typeof value === 'boolean')
+    Object.entries(handler.staffPowers.x).filter((item) => typeof item[1] === 'boolean')
   ) as Record<StaffPower, boolean>
 })
 

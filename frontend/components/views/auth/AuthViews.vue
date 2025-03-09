@@ -60,4 +60,5 @@ forms.loginForm.clearErrors()
 forms.registerForm.clearErrors()
 // Used by tests.
 const {viewer} = useViewer()
+defineExpose({viewer})
 </script>

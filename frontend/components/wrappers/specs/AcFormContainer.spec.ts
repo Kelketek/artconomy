@@ -18,17 +18,17 @@ describe('AcFormContainer.vue', () => {
   })
   test('Sets default properties', async() => {
     // Needed for that last bit of code coverage.
-    const wrapper = mount(FormContainer, vueSetup({store}))
+    wrapper = mount(FormContainer, vueSetup({store}))
     expect((wrapper.vm as any).$refs.defaultForm.errors).toEqual([])
     expect((wrapper.vm as any).$refs.defaultForm.sending).toEqual(false)
   })
   test('Displays dismissible errors', async() => {
-    const wrapper = mount(FormContainer, vueSetup({store}))
+    wrapper = mount(FormContainer, vueSetup({store}))
     const vm = wrapper.vm as any
     mockTrace.mockImplementationOnce(() => undefined)
     vm.basicForm.setErrors({} as AxiosError)
     await vm.$nextTick()
-    wrapper.find('.v-alert__close button').trigger('click')
+    await wrapper.find('.v-alert__close button').trigger('click')
     await vm.$nextTick()
   })
 })

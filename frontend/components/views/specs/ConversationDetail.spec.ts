@@ -34,7 +34,7 @@ describe('ConversationDetail.vue', () => {
     const user = genUser()
     user.username = 'Dude'
     setViewer({ store, user })
-    const wrapper = mount(ConversationDetail, {
+    wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
         router,
@@ -54,7 +54,7 @@ describe('ConversationDetail.vue', () => {
   test('Does not load a lock toggle for an inside user', async() => {
     const user = genUser()
     setViewer({ store, user })
-    const wrapper = mount(ConversationDetail, {
+    wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
         router,
@@ -74,7 +74,7 @@ describe('ConversationDetail.vue', () => {
   test('Leaves a conversation', async() => {
     const user = genUser()
     setViewer({ store, user })
-    const wrapper = mount(ConversationDetail, {
+    wrapper = mount(ConversationDetail, {
       ...vueSetup({
         store,
         router,

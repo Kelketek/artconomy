@@ -20,5 +20,5 @@
 
 <script setup lang="ts">
 import {mdiEyeOff} from '@mdi/js'
-const props = defineProps<{value: boolean}>()
+defineProps<{value: boolean}>()
 </script>

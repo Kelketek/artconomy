@@ -1,5 +1,5 @@
 import {VueWrapper} from '@vue/test-utils'
-import {createVuetify, docTarget, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {mount, vueSetup} from '@/specs/helpers/index.ts'
 import mockAxios from '@/__mocks__/axios.ts'
 import AcProductSelect from '@/components/fields/AcProductSelect.vue'
 import {genUser} from '@/specs/helpers/fixtures.ts'

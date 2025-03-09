@@ -1,12 +1,10 @@
 import {ArtStore, createStore} from '@/store/index.ts'
 import {VueWrapper} from '@vue/test-utils'
 import {genCharacter} from '@/store/characters/specs/fixtures.ts'
-import {cleanUp, createVuetify, mount, vueSetup} from '@/specs/helpers/index.ts'
+import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {genUser} from '@/specs/helpers/fixtures.ts'
 import AcColors from '@/components/views/character/AcColors.vue'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
-import {createRouter, createWebHistory, Router} from 'vue-router'
-import Empty from '@/specs/helpers/dummy_components/empty.ts'
+import {describe,  beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {Character} from '@/store/characters/types/main'
 
@@ -14,14 +12,9 @@ describe('AcColors.vue', () => {
   let store: ArtStore
   let wrapper: VueWrapper<any>
   let character: Character
-  let router: Router
   beforeEach(() => {
     store = createStore()
     character = genCharacter()
-    router = createRouter({
-      history: createWebHistory(),
-      routes: [{path: '/', component: Empty, name: 'Home'}],
-    })
   })
   afterEach(() => {
     cleanUp(wrapper)
