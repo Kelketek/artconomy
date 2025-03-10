@@ -49,4 +49,5 @@ watch(() => props.fieldController.value, (newVal) => {
   }
   props.fieldController.form.submitThen(props.listController.uniquePush).then()
 })
+defineExpose({filter})
 </script>
