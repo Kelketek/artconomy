@@ -4,7 +4,11 @@
     <v-row>
       <v-col cols="12">
         <div class="col-12 text-center">
-          <img class="legal-logo" :src="logo" alt="Artconomy.com"/>
+          <img
+            class="legal-logo"
+            :src="logo"
+            alt="Artconomy.com"
+          >
         </div>
         <div class="col-12 text-center home-title">
           <h1>Refund Policy</h1>
@@ -19,8 +23,11 @@
         </p>
         <h2>Refund Qualifications</h2>
         <h3>Commissioned, Digitally Delivered Art</h3>
-        <p>Artconomy will issue a refund on art which its staff has determined to not meet the requirements of the
-          <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement</router-link>
+        <p>
+          Artconomy will issue a refund on art which its staff has determined to not meet the requirements of the
+          <router-link :to="{name: 'CommissionAgreement'}">
+            Commission Agreement
+          </router-link>
           on the part of the artist, if the commission is covered by Artconomy Shield
         </p>
         <p>

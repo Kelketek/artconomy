@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <nav-bar ref="nav"></nav-bar>
+    <nav-bar ref="nav" />
   </v-app>
 </template>
 

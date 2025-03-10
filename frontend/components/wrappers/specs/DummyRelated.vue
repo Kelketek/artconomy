@@ -1,16 +1,32 @@
 <template>
   <v-col>
-    <ac-related-manager ref="manager" :list-controller="demoList" :field-controller="userForm.fields.user_id"
-                        item-key="user">
-      <template v-slot:preview="{item}">
-        <v-col cols="4" sm="3" md="2" lg="1">
-          <ac-avatar :user="item.x.user"
-                     :removable="true" @remove="item.delete().catch(userForm.setErrors)"/>
+    <ac-related-manager
+      ref="manager"
+      :list-controller="demoList"
+      :field-controller="userForm.fields.user_id"
+      item-key="user"
+    >
+      <template #preview="{item}">
+        <v-col
+          cols="4"
+          sm="3"
+          md="2"
+          lg="1"
+        >
+          <ac-avatar
+            :user="item.x.user"
+            :removable="true"
+            @remove="item.delete().catch(userForm.setErrors)"
+          />
         </v-col>
       </template>
-      <template v-slot:default="{filter}">
+      <template #default="{filter}">
         <ac-bound-field
-            :field="userForm.fields.user_id" field-type="ac-user-select" :multiple="false" :filter="filter"/>
+          :field="userForm.fields.user_id"
+          field-type="ac-user-select"
+          :multiple="false"
+          :filter="filter"
+        />
       </template>
     </ac-related-manager>
   </v-col>

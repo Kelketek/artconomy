@@ -57,7 +57,7 @@ export function invoiceLines(
   const extraLines = []
   let addOnPrice = parseFloat(value)
   let basePrice: string
-  // eslint-disable-next-line camelcase
+   
   const tableProduct = !!product?.table_product
   if (product) {
     addOnPrice = addOnPrice - parseFloat(product.starting_price)

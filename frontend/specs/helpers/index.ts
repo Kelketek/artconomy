@@ -286,11 +286,10 @@ export function VuetifyWrapped(component: ReturnType<typeof defineComponent>) {
   return defineComponent({
     components: {wrapped: component},
     inheritAttrs: false,
+    props: ['id'],
     setup() {
       return {vm: ref(null), attrs: useAttrs()}
     },
-    template: '<v-app><wrapped v-bind="{...attrs, ...additional}" ref="vm"/><div id="modal-target" /><div id="snackbar-target" /><div id="menu-target" /></v-app>',
-    props: ['id'],
     computed: {
       $vm() {
         return this.vm
@@ -298,7 +297,8 @@ export function VuetifyWrapped(component: ReturnType<typeof defineComponent>) {
       additional() {
         return this.id ? {id: this.id} : {}
       }
-    }
+    },
+    template: '<v-app><wrapped v-bind="{...attrs, ...additional}" ref="vm"/><div id="modal-target" /><div id="snackbar-target" /><div id="menu-target" /></v-app>'
   })
 }
 
@@ -321,7 +321,7 @@ export const realTimerScope = (): () => void => {
 export async function waitFor(func: () => any, timeout = 2000) {
   const restoreFakes = realTimerScope()
   const startTime = Date.now()
-  // eslint-disable-next-line no-constant-condition
+   
   while (true) {
     try {
       const result = await func()

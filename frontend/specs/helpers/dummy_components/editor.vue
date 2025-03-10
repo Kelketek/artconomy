@@ -1,7 +1,17 @@
 <template>
   <div>
-    <ac-editor v-model="stuff" id="editor" ref="auto"></ac-editor>
-    <ac-editor v-model="things" id="editor-manual" :auto-save="false" :save-comparison="base" ref="manual"></ac-editor>
+    <ac-editor
+      id="editor"
+      ref="auto"
+      v-model="stuff"
+    />
+    <ac-editor
+      id="editor-manual"
+      ref="manual"
+      v-model="things"
+      :auto-save="false"
+      :save-comparison="base"
+    />
   </div>
 </template>
 

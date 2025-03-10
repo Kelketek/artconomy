@@ -1,6 +1,9 @@
 <template>
   <v-app>
-    <ac-form-dialog v-model="expanded" ref="dialog"/>
+    <ac-form-dialog
+      ref="dialog"
+      v-model="expanded"
+    />
   </v-app>
 </template>
 

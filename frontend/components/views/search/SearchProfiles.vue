@@ -1,6 +1,17 @@
 <template>
-  <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-    <v-col cols="4" sm="3" md="2" lg="1" v-for="user in list.list" :key="user.x!.id">
+  <ac-paginated
+    :list="list"
+    :track-pages="true"
+    :auto-run="false"
+  >
+    <v-col
+      v-for="user in list.list"
+      :key="user.x!.id"
+      cols="4"
+      sm="3"
+      md="2"
+      lg="1"
+    >
       <ac-avatar :user="user.x" />
     </v-col>
   </ac-paginated>

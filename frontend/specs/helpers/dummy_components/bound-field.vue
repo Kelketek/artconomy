@@ -1,5 +1,5 @@
 <template>
-  <ac-bound-field :field="form.fields.name"></ac-bound-field>
+  <ac-bound-field :field="form.fields.name" />
 </template>
 
 <script setup lang="ts">

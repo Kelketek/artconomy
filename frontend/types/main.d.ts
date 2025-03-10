@@ -397,16 +397,16 @@ export interface NavSettings {
 }
 
 export interface NotificationSettings {
-  bank_transfer_failed: Boolean,
-  wait_list_updated: Boolean,
-  renewal_failure: Boolean,
-  order_update: Boolean,
-  commission_slots_available: Boolean,
-  new_comment__deliverable: Boolean,
-  commissions_automatically_closed: Boolean,
-  new_comment__conversation: Boolean,
-  referral_landscape_credit: Boolean,
-  submission_killed: Boolean,
+  bank_transfer_failed: boolean,
+  wait_list_updated: boolean,
+  renewal_failure: boolean,
+  order_update: boolean,
+  commission_slots_available: boolean,
+  new_comment__deliverable: boolean,
+  commissions_automatically_closed: boolean,
+  new_comment__conversation: boolean,
+  referral_landscape_credit: boolean,
+  submission_killed: boolean,
 }
 
 export declare interface NotificationStats {

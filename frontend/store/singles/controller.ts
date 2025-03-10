@@ -15,7 +15,7 @@ export class SingleController<T extends object> extends BaseController<SingleMod
 
   public typeName: 'Single' = 'Single'
 
-  // eslint-disable-next-line camelcase
+   
   public single_controller__ = true
 
   constructor(args: ControllerArgs<SingleModuleOpts<T>>) {
@@ -173,13 +173,13 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public get model(): T {
-    // eslint-disable-next-line no-unused-expressions
+     
     this.forceRecomputeCounter.value
     return this.getModel() as unknown as T
   }
 
   public get patchers(): SinglePatchers<T> {
-    // eslint-disable-next-line no-unused-expressions
+     
     this.forceRecomputeCounter.value
     return this.getPatcher() as unknown as SinglePatchers<T>
   }

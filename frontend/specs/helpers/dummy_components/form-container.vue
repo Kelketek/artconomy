@@ -1,7 +1,11 @@
 <template>
   <v-col>
     <ac-form-container ref="defaultForm" />
-    <ac-form-container ref="errorForm" :errors="basicForm.errors" :sending="basicForm.sending" />
+    <ac-form-container
+      ref="errorForm"
+      :errors="basicForm.errors"
+      :sending="basicForm.sending"
+    />
   </v-col>
 </template>
 

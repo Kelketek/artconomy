@@ -1,5 +1,5 @@
 <template>
-  <div></div>
+  <div />
 </template>
 <script setup lang="ts">
 import {useRoute, useRouter} from 'vue-router'

@@ -4,7 +4,11 @@
     <v-row>
       <v-col cols="12">
         <div class="col-12 text-center">
-          <img class="legal-logo" :src="logo" alt="Artconomy.com"/>
+          <img
+            class="legal-logo"
+            :src="logo"
+            alt="Artconomy.com"
+          >
         </div>
         <div class="col-12 text-center home-title">
           <h1>Terms of Service</h1>
@@ -13,75 +17,106 @@
       <v-col cols="12">
         <p><strong>Last updated: January 4, 2024</strong></p>
 
-        <p>Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
+        <p>
+          Please read these Terms of Service ("Terms", "Terms of Service") carefully before using
           the https://artconomy.com/ website (the "Service") operated by
-          Artconomy ("us", "we", or "our").</p>
+          Artconomy ("us", "we", or "our").
+        </p>
 
-        <p>Your access to and use of the Service is conditioned on your acceptance of and compliance
-          with these Terms. These Terms apply to all visitors, users and others who access or use the Service.</p>
+        <p>
+          Your access to and use of the Service is conditioned on your acceptance of and compliance
+          with these Terms. These Terms apply to all visitors, users and others who access or use the Service.
+        </p>
 
-        <p>By accessing or using the Service you agree to be bound by these Terms. If you disagree
-          with any part of the terms then you may not access the Service.</p>
+        <p>
+          By accessing or using the Service you agree to be bound by these Terms. If you disagree
+          with any part of the terms then you may not access the Service.
+        </p>
 
         <h2>Accounts</h2>
 
-        <p>When you create an account with us, you must provide us information that is accurate,
+        <p>
+          When you create an account with us, you must provide us information that is accurate,
           and non-fraudulent at all times. Failure to do so constitutes a breach of the Terms,
-          which may result in immediate termination of your account on our Service.</p>
+          which may result in immediate termination of your account on our Service.
+        </p>
 
-        <p>You are responsible for safeguarding the password that you use to access the Service
+        <p>
+          You are responsible for safeguarding the password that you use to access the Service
           and for any activities or actions under your password, whether your password is with our
-          Service or a third-party service.</p>
+          Service or a third-party service.
+        </p>
 
-        <p>You agree not to disclose your password to any third party. You must notify us immediately upon
-          becoming aware of any breach of security or unauthorized use of your account.</p>
+        <p>
+          You agree not to disclose your password to any third party. You must notify us immediately upon
+          becoming aware of any breach of security or unauthorized use of your account.
+        </p>
 
         <h2>Links To Other Web Sites</h2>
 
-        <p>Our Service may contain links to third-party web sites or services that are not owned or controlled by
-          Artconomy.</p>
+        <p>
+          Our Service may contain links to third-party web sites or services that are not owned or controlled by
+          Artconomy.
+        </p>
 
-        <p>Artconomy has no control over, and assumes no responsibility for, the content, privacy policies, or practices
+        <p>
+          Artconomy has no control over, and assumes no responsibility for, the content, privacy policies, or practices
           of any third party web sites or services. You further acknowledge and agree that Artconomy shall not be
           responsible or liable, directly or indirectly, for any damage or loss caused or alleged to be caused by or in
           connection with use of or reliance on any such content, goods or services available on or through any such web
-          sites or services.</p>
+          sites or services.
+        </p>
 
-        <p>We strongly advise you to read the terms and conditions and privacy policies of any third-party web sites or
-          services that you visit.</p>
+        <p>
+          We strongly advise you to read the terms and conditions and privacy policies of any third-party web sites or
+          services that you visit.
+        </p>
 
         <h2>Termination</h2>
 
-        <p>We may terminate or suspend access to our Service immediately, without prior notice or liability, for any
+        <p>
+          We may terminate or suspend access to our Service immediately, without prior notice or liability, for any
           reason whatsoever,
-          including without limitation if you breach the Terms.</p>
+          including without limitation if you breach the Terms.
+        </p>
 
-        <p>All provisions of the Terms which by their nature should survive termination shall survive termination,
+        <p>
+          All provisions of the Terms which by their nature should survive termination shall survive termination,
           including, without limitation, ownership provisions, warranty disclaimers, indemnity and limitations
-          of liability.</p>
+          of liability.
+        </p>
 
-        <p>We may terminate or suspend your account immediately, without prior notice or liability, for any reason
+        <p>
+          We may terminate or suspend your account immediately, without prior notice or liability, for any reason
           whatsoever,
-          including without limitation if you breach the Terms.</p>
+          including without limitation if you breach the Terms.
+        </p>
 
-        <p>Upon termination, your right to use the Service will immediately cease.
-          If you wish to terminate your account, you may simply discontinue using the Service.</p>
+        <p>
+          Upon termination, your right to use the Service will immediately cease.
+          If you wish to terminate your account, you may simply discontinue using the Service.
+        </p>
 
-        <p>All provisions of the Terms which by their nature should survive termination shall survive termination,
+        <p>
+          All provisions of the Terms which by their nature should survive termination shall survive termination,
           including, without limitation, ownership provisions, warranty disclaimers, indemnity and limitations of
-          liability.</p>
+          liability.
+        </p>
 
         <h2>Intellectual Property</h2>
 
-        <p>Artconomy is a publicly accessible platform where users may upload content. We cannot prevent all instances
+        <p>
+          Artconomy is a publicly accessible platform where users may upload content. We cannot prevent all instances
           of intellectual property violations that may occur on our platform, and do not actively police intellectual
-          property matters. Artconomy will respond to properly formed and formatted DMCA requests.</p>
+          property matters. Artconomy will respond to properly formed and formatted DMCA requests.
+        </p>
 
         <p>Properly formed and formatted DMCA requests must contain:</p>
         <ul>
           <li>The URL of the item in question</li>
           <li>A description of the content which is in violation</li>
-          <li>An identification of the material that is claimed to be infringing, and information reasonably sufficient
+          <li>
+            An identification of the material that is claimed to be infringing, and information reasonably sufficient
             to permit Artconomy to locate the material (for example, by providing a URL to the material); or, if
             applicable, identification of the reference or link to material or activity claimed to be infringing, and
             information reasonably sufficient to permit Artconomy to locate that reference or link
@@ -94,24 +129,31 @@
             perjury, that the person claiming infringement is the rights holder or is authorized to act on the behalf
             of the rights holder.
           </li>
-          <li>Electronic or physical signature of the rights holder or the person authorized to act on behalf of that
+          <li>
+            Electronic or physical signature of the rights holder or the person authorized to act on behalf of that
             person
           </li>
         </ul>
         <p>DMCA takedown requests must be sent to abuse@artconomy.com</p>
 
-        <p>By using Artconomy, you agree not to upload/submit material for which you do not have the appropriate
-          rights.</p>
+        <p>
+          By using Artconomy, you agree not to upload/submit material for which you do not have the appropriate
+          rights.
+        </p>
 
         <h2>Purchases</h2>
 
         <p>
           Commissions are bound by their own agreement, the
-          <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
+          <router-link :to="{name: 'CommissionAgreement'}">
+            Commission Agreement.
+          </router-link>
         </p>
-        <p>By buying or selling works on Artconomy, you agree to pay all listed fees upon point of sale, and that
+        <p>
+          By buying or selling works on Artconomy, you agree to pay all listed fees upon point of sale, and that
           Artconomy will be entitled to these fees even if a refund is issued from or to the other party or a court
-          assigns damages as a result of a dispute arising from the sale.</p>
+          assigns damages as a result of a dispute arising from the sale.
+        </p>
 
         <p>
           Subscription services will be billed monthly, or at another explicitly agreed upon interval. The specific
@@ -122,53 +164,73 @@
 
         <h3>Auctions</h3>
 
-        <p>Artconomy may provide auction listings. If you bid in an auction, you commit to purchasing the offered
+        <p>
+          Artconomy may provide auction listings. If you bid in an auction, you commit to purchasing the offered
           product or service from the seller at the bid price. Sellers commit to sell at the bid price, so long as any
-          pre-specified reserve price has been met.</p>
+          pre-specified reserve price has been met.
+        </p>
 
-        <p>Failure to honor these commitments can result in disciplinary action including suspension or removal of
-          your account.</p>
+        <p>
+          Failure to honor these commitments can result in disciplinary action including suspension or removal of
+          your account.
+        </p>
 
-        <p>Attempts to manipulate bid pricing, even unsuccessful attempts, may also result in similar disciplinary
-          action, and potential referral to law enforcement.</p>
+        <p>
+          Attempts to manipulate bid pricing, even unsuccessful attempts, may also result in similar disciplinary
+          action, and potential referral to law enforcement.
+        </p>
 
-        <p>Refunds are covered by our
-          <router-link :to="{name: 'RefundPolicy'}">Refund Policy.</router-link>
+        <p>
+          Refunds are covered by our
+          <router-link :to="{name: 'RefundPolicy'}">
+            Refund Policy.
+          </router-link>
         </p>
 
         <h2>Governing Law</h2>
 
-        <p>These Terms shall be governed and construed in accordance with the laws of Texas, United States,
-          without regard to its conflict of law provisions.</p>
+        <p>
+          These Terms shall be governed and construed in accordance with the laws of Texas, United States,
+          without regard to its conflict of law provisions.
+        </p>
 
-        <p>Our failure to enforce any right or provision of these Terms will not be considered a waiver of those
+        <p>
+          Our failure to enforce any right or provision of these Terms will not be considered a waiver of those
           rights. If any provision of these Terms is held to be invalid or unenforceable by a court, the remaining
           provisions of these Terms will remain in effect. These Terms constitute the entire agreement between us
           regarding our Service, and supersede and replace any prior agreements we might have between us regarding
-          the Service.</p>
+          the Service.
+        </p>
 
         <h2>Changes</h2>
 
-        <p>We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision
+        <p>
+          We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision
           is material we will try to provide at least 30 days notice prior to any new terms taking effect. What
-          constitutes a material change will be determined at our sole discretion.</p>
+          constitutes a material change will be determined at our sole discretion.
+        </p>
 
-        <p>By continuing to access or use our Service after those revisions become effective, you agree to be
-          bound by the revised terms. If you do not agree to the new terms, please stop using the Service.</p>
+        <p>
+          By continuing to access or use our Service after those revisions become effective, you agree to be
+          bound by the revised terms. If you do not agree to the new terms, please stop using the Service.
+        </p>
 
         <h2>Conduct</h2>
         <p>
           You agree not to use Artconomy to harass other users, including the following activities:
         </p>
         <ul>
-          <li>Creation of multiple accounts to circumvent blocks from other users or restrictions placed on your main
+          <li>
+            Creation of multiple accounts to circumvent blocks from other users or restrictions placed on your main
             account
           </li>
           <li>Threats of violence against another person or their property</li>
-          <li>Distributing the private information of other persons, including address, phone, and real names,
+          <li>
+            Distributing the private information of other persons, including address, phone, and real names,
             especially for the purpose of harassment
           </li>
-          <li>Any activity which compromises the integrity or security of Artconomy's services. (We do favor responsible
+          <li>
+            Any activity which compromises the integrity or security of Artconomy's services. (We do favor responsible
             disclosure of vulnerabilities-- please contact support@artconomy.com if one is found)
           </li>
         </ul>

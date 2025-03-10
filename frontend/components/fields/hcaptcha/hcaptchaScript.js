@@ -47,7 +47,7 @@ export function loadApiEndpointIfNotAlready(config) {
   script.async = true;
   script.defer = true;
   script.onerror = (event) => {
-    // eslint-disable-next-line no-console
+     
     console.error('Failed to load api: ' + scriptSrc, event);
     rejectFn('Failed to load api.js');
   };

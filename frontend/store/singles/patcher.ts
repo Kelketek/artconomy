@@ -47,7 +47,7 @@ export class Patch<T = any> {
   public silent: boolean
   public refresh: boolean
   public errors!: Ref<string[]>
-  public cached!: Ref<Symbol|T>
+  public cached!: Ref<symbol|T>
   public patching!: Ref<boolean>
 
   constructor(args: PatcherArgs) {
@@ -116,7 +116,7 @@ export class Patch<T = any> {
     val = toValue(val)
     // Broken out into its own function so that we can force retry as needed.
     this.cached.value = toValue(val)
-    // eslint-disable-next-line no-useless-call
+     
     this.debouncedSet.apply(this, [val])
   }
 

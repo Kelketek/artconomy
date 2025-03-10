@@ -108,7 +108,7 @@ const Promotable = () => import('@/components/views/Promotable.vue')
 const ProductGallery = () => import('@/components/views/product/ProductGallery.vue')
 const AcInvoiceProductSelection = () => import('@/components/views/orders/AcInvoiceProductSelection.vue')
 
-const Empty = defineComponent({render: () => h('div'), data: () => ({})})
+const Empty = defineComponent({ data: () => ({}),render: () => h('div')})
 
 function orderViews() {
   const orderRoutes: RouteRecordRaw[] = []

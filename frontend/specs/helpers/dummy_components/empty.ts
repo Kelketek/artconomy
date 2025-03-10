@@ -1,4 +1,4 @@
 import {defineComponent, h} from 'vue'
 
-const Empty = defineComponent({render: () => h('div'), data: () => ({})})
+const Empty = defineComponent({ data: () => ({}),render: () => h('div')})
 export default Empty

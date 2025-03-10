@@ -105,7 +105,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
     }
     try {
       this.$store.registerModule(
-        // eslint-disable-next-line new-cap
+         
         path, new this.baseClass({...this.schema, ...data, ...{name: path.join('/')}}),
       )
     } catch (err) {

@@ -3,7 +3,11 @@
     <v-row>
       <v-col cols="12">
         <div class="col-12 text-center">
-          <img class="legal-logo" :src="logo" alt="Artconomy.com"/>
+          <img
+            class="legal-logo"
+            :src="logo"
+            alt="Artconomy.com"
+          >
         </div>
         <div class="col-12 text-center home-title">
           <h1>Commission Agreement</h1>
@@ -49,7 +53,8 @@
         <h2>Disputes</h2>
         <p>For works covered by Artconomy Shield, a dispute may be filed by the commissioner:</p>
         <ul>
-          <li>At a time equal to 1.25x times the estimated turnaround time, (in business days), rounded up to the next
+          <li>
+            At a time equal to 1.25x times the estimated turnaround time, (in business days), rounded up to the next
             day, after the order is placed
           </li>
           <li>After the final Deliverable is delivered to the commissioner</li>
@@ -59,7 +64,8 @@
         </p>
         <ul>
           <li>Artist has taken longer than is reasonable to complete Deliverables</li>
-          <li>The Deliverables deviate from the product's description and the Commissioner provided reasonably
+          <li>
+            The Deliverables deviate from the product's description and the Commissioner provided reasonably
             understandable details for the order.
           </li>
         </ul>

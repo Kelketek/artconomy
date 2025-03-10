@@ -59,8 +59,8 @@ if (!productionMode) {
 }
 
 const app = createApp({
-  render: () => h(App),
   components: {App, VCol, VRow},
+  render: () => h(App),
 })
 const store = createStore()
 const loadHandler = loadErrorHandler(store)

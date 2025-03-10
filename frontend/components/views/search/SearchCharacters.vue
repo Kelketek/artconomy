@@ -1,11 +1,23 @@
 <template>
-  <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-    <template v-slot:default>
-      <v-col class="pa-2" sm="6" md="4" lg="3" xl="2" v-for="character in list.list" :key="character.x!.id">
+  <ac-paginated
+    :list="list"
+    :track-pages="true"
+    :auto-run="false"
+  >
+    <template #default>
+      <v-col
+        v-for="character in list.list"
+        :key="character.x!.id"
+        class="pa-2"
+        sm="6"
+        md="4"
+        lg="3"
+        xl="2"
+      >
         <ac-character-preview :character="character.x!" />
       </v-col>
     </template>
-    <template v-slot:empty>
+    <template #empty>
       <v-col class="text-center">
         <v-card>
           <v-card-text>

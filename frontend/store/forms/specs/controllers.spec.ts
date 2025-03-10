@@ -447,7 +447,7 @@ describe('Form and field controllers', () => {
       },
 
     })
-    // eslint-disable-next-line no-new
+     
     new FormController({
       $store: store,
       initName: 'example2',
@@ -518,7 +518,7 @@ describe('Form and field controllers', () => {
       },
 
     })
-    // eslint-disable-next-line no-new
+     
     new FormController({
       $store: store,
       initName: 'example2',
