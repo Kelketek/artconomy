@@ -1,8 +1,18 @@
 <template>
-  <v-text-field :model-value="modelValue" @update:model-value="update" v-bind="attrs" prefix="$" ref="input" @blur="blur"
-                class="price-input">
-    <template v-for="name in slotNames" #[name]>
-      <slot :name="name"/>
+  <v-text-field
+    v-bind="attrs"
+    ref="input"
+    :model-value="modelValue"
+    prefix="$"
+    class="price-input"
+    @update:model-value="update"
+    @blur="blur"
+  >
+    <template
+      v-for="name in slotNames"
+      #[name]
+    >
+      <slot :name="name" />
     </template>
   </v-text-field>
 </template>

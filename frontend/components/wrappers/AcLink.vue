@@ -1,11 +1,20 @@
 <template>
-  <router-link v-bind="$props" v-if="to && !newTab" :to="to" @click.capture="navigate">
-    <slot/>
+  <router-link
+    v-if="to && !newTab"
+    v-bind="$props"
+    :to="to"
+    @click.capture="navigate"
+  >
+    <slot />
   </router-link>
-  <a :href="`${to}`" v-else-if="newTab && to" target="_blank">
-    <slot/>
+  <a
+    v-else-if="newTab && to"
+    :href="`${to}`"
+    target="_blank"
+  >
+    <slot />
   </a>
-  <slot v-else/>
+  <slot v-else />
 </template>
 
 <script setup lang="ts">

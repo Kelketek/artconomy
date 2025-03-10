@@ -1,6 +1,9 @@
 <template>
-  <v-form v-bind="attrs" ref="root">
-    <slot/>
+  <v-form
+    v-bind="attrs"
+    ref="root"
+  >
+    <slot />
   </v-form>
 </template>
 

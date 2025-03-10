@@ -1,92 +1,177 @@
 <template>
-  <ac-load-section :controller="pricing" class="py-2" ref="el">
+  <ac-load-section
+    ref="el"
+    :controller="pricing"
+    class="py-2"
+  >
     <ac-load-section :controller="subjectHandler.user">
-      <template v-slot:default>
-        <ac-load-section :controller="lineItems" v-if="!!pricing.x" class="compact-fields">
-          <template v-slot:default>
+      <template #default>
+        <ac-load-section
+          v-if="!!pricing.x"
+          :controller="lineItems"
+          class="compact-fields"
+        >
+          <template #default>
             <template v-if="editable && editBase">
               <ac-line-item-editor
-                  :line="line" v-for="(line, index) in baseItems"
-                  :key="line.x!.id"
-                  :price-data="priceData"
-                  :disabled="disabled"
-                  :editing="editable"
-                  @new-line="postSubmitAdd(addOnForm)"
-                  :enable-new-line="(index === baseItems.length - 1) && !addOns.length"
+                v-for="(line, index) in baseItems"
+                :key="line.x!.id"
+                :line="line"
+                :price-data="priceData"
+                :disabled="disabled"
+                :editing="editable"
+                :enable-new-line="(index === baseItems.length - 1) && !addOns.length"
+                @new-line="postSubmitAdd(addOnForm)"
               />
             </template>
             <template v-else>
-              <ac-line-item-preview :line="line.x!" v-for="line in baseItems" :key="line.x!.id" :price-data="priceData"
-                                    :editing="editable" :transfer="transfer"/>
+              <ac-line-item-preview
+                v-for="line in baseItems"
+                :key="line.x!.id"
+                :line="line.x!"
+                :price-data="priceData"
+                :editing="editable"
+                :transfer="transfer"
+              />
             </template>
             <template v-if="editable">
               <ac-line-item-editor
-                  :line="line" v-for="(line, index) in addOns"
-                  :key="line.x!.id"
-                  :price-data="priceData"
-                  :editing="editable"
-                  :disabled="disabled"
-                  @new-line="postSubmitAdd(addOnForm)"
-                  :enable-new-line="index === addOns.length - 1"
+                v-for="(line, index) in addOns"
+                :key="line.x!.id"
+                :line="line"
+                :price-data="priceData"
+                :editing="editable"
+                :disabled="disabled"
+                :enable-new-line="index === addOns.length - 1"
+                @new-line="postSubmitAdd(addOnForm)"
               />
-              <ac-new-line-skeleton v-if="addOnForm.sending"/>
-              <ac-form-container v-bind="addOnForm.bind" :show-spinner="false">
+              <ac-new-line-skeleton v-if="addOnForm.sending" />
+              <ac-form-container
+                v-bind="addOnForm.bind"
+                :show-spinner="false"
+              >
                 <ac-form @submit.prevent="postSubmitAdd(addOnForm)">
-                  <ac-new-line-item :form="addOnForm"/>
+                  <ac-new-line-item :form="addOnForm" />
                 </ac-form>
               </ac-form-container>
             </template>
             <template v-else>
-              <ac-line-item-preview :line="line.x!" v-for="line in addOns" :key="line.x!.id" :price-data="priceData"
-                                    :transfer="transfer"/>
+              <ac-line-item-preview
+                v-for="line in addOns"
+                :key="line.x!.id"
+                :line="line.x!"
+                :price-data="priceData"
+                :transfer="transfer"
+              />
             </template>
-            <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData"
-                                  :editing="editable" :transfer="transfer"/>
+            <ac-line-item-preview
+              v-for="line in modifiers"
+              :key="line.id"
+              :line="line"
+              :price-data="priceData"
+              :editing="editable"
+              :transfer="transfer"
+            />
             <template v-if="editable && powers.table_seller">
               <ac-line-item-editor
-                  :line="line"
-                  v-for="(line, index) in extras"
-                  :key="line.x!.id"
-                  :price-data="priceData"
-                  :editing="editable"
-                  :disabled="disabled"
-                  @new-line="postSubmitAdd(extraForm)"
-                  :enable-new-line="index === extras.length - 1"/>
-              <ac-new-line-skeleton v-if="extraForm.sending"/>
-              <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
+                v-for="(line, index) in extras"
+                :key="line.x!.id"
+                :line="line"
+                :price-data="priceData"
+                :editing="editable"
+                :disabled="disabled"
+                :enable-new-line="index === extras.length - 1"
+                @new-line="postSubmitAdd(extraForm)"
+              />
+              <ac-new-line-skeleton v-if="extraForm.sending" />
+              <ac-form-container
+                v-bind="extraForm.bind"
+                :show-spinner="false"
+              >
                 <ac-form @submit.prevent="extraForm.submitThen(lineItems.uniquePush)">
-                  <ac-new-line-item :form="extraForm"/>
+                  <ac-new-line-item :form="extraForm" />
                 </ac-form>
               </ac-form-container>
             </template>
             <template v-else>
-              <ac-line-item-preview :line="line.x!" v-for="line in extras" :key="line.x!.id" :price-data="priceData"/>
+              <ac-line-item-preview
+                v-for="line in extras"
+                :key="line.x!.id"
+                :line="line.x!"
+                :price-data="priceData"
+              />
             </template>
-            <ac-line-item-preview :line="line" v-for="line in taxes" :key="line.id" :price-data="priceData"
-                                  :editing="editable" :transfer="transfer"/>
+            <ac-line-item-preview
+              v-for="line in taxes"
+              :key="line.id"
+              :line="line"
+              :price-data="priceData"
+              :editing="editable"
+              :transfer="transfer"
+            />
             <v-row no-gutters>
-              <v-col class="text-right pr-1" cols="6">
+              <v-col
+                class="text-right pr-1"
+                cols="6"
+              >
                 <strong v-if="transfer">Total Charge:</strong>
                 <strong v-else>Total Price:</strong>
               </v-col>
-              <v-col class="text-left pl-1" cols="6">
-                <v-chip color="blue" variant="flat" v-if="isSeller">${{rawPrice}}</v-chip>
-                <span v-else>${{rawPrice}}</span>
+              <v-col
+                class="text-left pl-1"
+                cols="6"
+              >
+                <v-chip
+                  v-if="isSeller"
+                  color="blue"
+                  variant="flat"
+                >
+                  ${{ rawPrice }}
+                </v-chip>
+                <span v-else>${{ rawPrice }}</span>
               </v-col>
             </v-row>
             <v-row>
-              <v-col class="text-right pr-1" cols="6" v-if="isSeller && escrow">
+              <v-col
+                v-if="isSeller && escrow"
+                class="text-right pr-1"
+                cols="6"
+              >
                 <strong>Your Payout:</strong>
               </v-col>
-              <v-col class="text-left pl-1" align-self="center" cols="6" v-if="isSeller && escrow">
-                <v-chip color="green" variant="flat"><strong>${{payout}}</strong></v-chip>
+              <v-col
+                v-if="isSeller && escrow"
+                class="text-left pl-1"
+                align-self="center"
+                cols="6"
+              >
+                <v-chip
+                  color="green"
+                  variant="flat"
+                >
+                  <strong>${{ payout }}</strong>
+                </v-chip>
               </v-col>
-              <v-col cols="12" md="6" v-if="isSeller && !hideHourlyForm">
-                <ac-bound-field :field="hourlyForm.fields.hours" type="number"
-                                label="If I worked for this many hours..." min="0" step="1"/>
+              <v-col
+                v-if="isSeller && !hideHourlyForm"
+                cols="12"
+                md="6"
+              >
+                <ac-bound-field
+                  :field="hourlyForm.fields.hours"
+                  type="number"
+                  label="If I worked for this many hours..."
+                  min="0"
+                  step="1"
+                />
               </v-col>
-              <v-col v-if="isSeller" cols="12" :class="{transparent: !hourly}" :aria-hidden="!hourly">
-                I would earn <strong>${{hourly}}/hour.</strong>
+              <v-col
+                v-if="isSeller"
+                cols="12"
+                :class="{transparent: !hourly}"
+                :aria-hidden="!hourly"
+              >
+                I would earn <strong>${{ hourly }}/hour.</strong>
               </v-col>
             </v-row>
           </template>
@@ -95,12 +180,6 @@
     </ac-load-section>
   </ac-load-section>
 </template>
-
-<style scoped>
-.transparent {
-  opacity: 0;
-}
-</style>
 
 <script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -219,3 +298,9 @@ const postSubmitAdd = (form: FormController) => {
   })
 }
 </script>
+
+<style scoped>
+.transparent {
+  opacity: 0;
+}
+</style>

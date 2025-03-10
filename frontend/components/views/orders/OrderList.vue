@@ -1,56 +1,93 @@
 <template>
-  <v-container fluid :class="{'pa-0': !salesSearchable}">
-    <v-row v-if="salesSearchable" class="justify-content fill-height" align="center">
-      <v-col cols="12" md="6" lg="4" offset-lg="2">
-        <v-row class="justify-content fill-height" align="center">
+  <v-container
+    fluid
+    :class="{'pa-0': !salesSearchable}"
+  >
+    <v-row
+      v-if="salesSearchable"
+      class="justify-content fill-height"
+      align="center"
+    >
+      <v-col
+        cols="12"
+        md="6"
+        lg="4"
+        offset-lg="2"
+      >
+        <v-row
+          class="justify-content fill-height"
+          align="center"
+        >
           <div class="flex-grow-1">
             <ac-bound-field
-                :field="searchForm.fields.product"
-                field-type="ac-product-select"
-                :multiple="false"
-                :username="username"
-                :init-items="productInitItems"
-                :immediate-search="true"
-                v-if="showProduct"
-                label="Filter by product"
-                :prepend-icon="mdiShopping"
+              v-if="showProduct"
+              :field="searchForm.fields.product"
+              field-type="ac-product-select"
+              :multiple="false"
+              :username="username"
+              :init-items="productInitItems"
+              :immediate-search="true"
+              label="Filter by product"
+              :prepend-icon="mdiShopping"
             />
           </div>
           <div class="flex-shrink-0">
             <ac-confirmation :action="clearWaitlist">
-              <template v-slot:default="{on}">
-                <v-btn class="clear-waitlist ml-2" color="red" :disabled="(!searchForm.fields.product.value) || inProgress"
-                       v-on="on" aria-label="Clear waitlist"
+              <template #default="{on}">
+                <v-btn
+                  class="clear-waitlist ml-2"
+                  color="red"
+                  :disabled="(!searchForm.fields.product.value) || inProgress"
+                  aria-label="Clear waitlist"
+                  v-on="on"
                 >
-                  <v-icon :icon="mdiDelete"/>
+                  <v-icon :icon="mdiDelete" />
                 </v-btn>
               </template>
-              <template v-slot:confirmation-text>
+              <template #confirmation-text>
                 <v-col>
-                  <p><strong class="danger-text">WARNING!</strong> This will cancel <strong>ALL</strong> orders in the
+                  <p>
+                    <strong class="danger-text">WARNING!</strong> This will cancel <strong>ALL</strong> orders in the
                     waitlist for this
-                    product, even any not shown in search due to user/email filtering.</p>
-                  <p>Make sure your customers know <strong class="danger-text">why</strong> you are doing this before
-                    you do it!</p>
+                    product, even any not shown in search due to user/email filtering.
+                  </p>
+                  <p>
+                    Make sure your customers know <strong class="danger-text">why</strong> you are doing this before
+                    you do it!
+                  </p>
                 </v-col>
               </template>
             </ac-confirmation>
           </div>
         </v-row>
       </v-col>
-      <v-col cols="12" md="6" lg="4" class="text-center">
-        <v-row class="justify-content fill-height" align="center">
+      <v-col
+        cols="12"
+        md="6"
+        lg="4"
+        class="text-center"
+      >
+        <v-row
+          class="justify-content fill-height"
+          align="center"
+        >
           <div class="flex-grow-1">
-            <ac-bound-field :field="searchForm.fields.q" :prepend-icon="mdiMagnify" auto-focus
-                            label="Search orders"
-                            hint="Searches client email, username, order description and artist notes."
+            <ac-bound-field
+              :field="searchForm.fields.q"
+              :prepend-icon="mdiMagnify"
+              auto-focus
+              label="Search orders"
+              hint="Searches client email, username, order description and artist notes."
             />
           </div>
           <div class="flex-shrink-0">
             <v-tooltip top>
-              <template v-slot:activator="{props}">
-                <v-btn v-bind="props" @click="dataMode = true">
-                  <v-icon :icon="mdiListBox"/>
+              <template #activator="{props}">
+                <v-btn
+                  v-bind="props"
+                  @click="dataMode = true"
+                >
+                  <v-icon :icon="mdiListBox" />
                 </v-btn>
               </template>
               <span>Show orders in 'list mode'.</span>
@@ -59,23 +96,53 @@
         </v-row>
       </v-col>
     </v-row>
-    <ac-paginated :list="list" :track-pages="true">
-      <template v-slot:default>
-        <v-container fluid class="pa-0">
-          <v-data-table :headers="headers" :items="orderItems" hide-default-footer v-if="dataMode" dense>
+    <ac-paginated
+      :list="list"
+      :track-pages="true"
+    >
+      <template #default>
+        <v-container
+          fluid
+          class="pa-0"
+        >
+          <v-data-table
+            v-if="dataMode"
+            :headers="headers"
+            :items="orderItems"
+            hide-default-footer
+            dense
+          >
             <!-- eslint-disable vue/valid-v-slot -->
-            <template v-slot:item.id="{item}">
-              <router-link :to="item.default_path">#{{ item.id }}</router-link>
+            <template #item.id="{item}">
+              <router-link :to="item.default_path">
+                #{{ item.id }}
+              </router-link>
             </template>
-            <template v-slot:item.username="{item}">
-              <ac-link :to="profileLink(item.buyer)">{{ item.username }}</ac-link>
+            <template #item.username="{item}">
+              <ac-link :to="profileLink(item.buyer)">
+                {{ item.username }}
+              </ac-link>
             </template>
           </v-data-table>
           <!-- eslint-enable vue/valid-v-slot -->
-          <v-row no-gutters v-else>
-            <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x!.id">
+          <v-row
+            v-else
+            no-gutters
+          >
+            <v-col
+              v-for="order in list.list"
+              :key="order.x!.id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="2"
+            >
               <ac-unread-marker :read="order.x!.read">
-                <ac-order-preview :order="order" :type="type" :username="username"/>
+                <ac-order-preview
+                  :order="order"
+                  :type="type"
+                  :username="username"
+                />
               </ac-unread-marker>
             </v-col>
           </v-row>
@@ -84,15 +151,6 @@
     </ac-paginated>
   </v-container>
 </template>
-
-<style scoped>
-.danger-text {
-  background-color: red;
-  padding-left: 3px;
-  padding-right: 3px;
-  border-radius: 3px;
-}
-</style>
 
 <script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -209,3 +267,12 @@ const clearWaitlist = async () => {
   })
 }
 </script>
+
+<style scoped>
+.danger-text {
+  background-color: red;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-radius: 3px;
+}
+</style>

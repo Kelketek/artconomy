@@ -1,382 +1,697 @@
 <template>
   <ac-load-section :controller="deliverable">
-    <template v-slot:default>
+    <template #default>
       <v-container v-if="deliverable.x && order.x">
         <v-row>
           <v-col>
             <v-card>
               <v-card-title><h3>Now what?</h3></v-card-title>
               <ac-form>
-                <ac-form-container @submit.prevent="stateChange.submitThen(updateDeliverable)"
-                                   :errors="stateChange.errors" :sending="stateChange.sending">
+                <ac-form-container
+                  :errors="stateChange.errors"
+                  :sending="stateChange.sending"
+                  @submit.prevent="stateChange.submitThen(updateDeliverable)"
+                >
                   <v-card-text>
                     <v-row dense>
-                      <v-col v-if="is(DeliverableStatus.LIMBO) && isBuyer" cols="12">
+                      <v-col
+                        v-if="is(DeliverableStatus.LIMBO) && isBuyer"
+                        cols="12"
+                      >
                         <p>The artist has been informed about your order and should respond soon.</p>
                       </v-col>
-                      <v-col v-if="is(DeliverableStatus.WAITING) && isBuyer" cols="12">
-                        <p>Your order has been placed in the artist's waitlist. Waitlisted orders are not guaranteed by
+                      <v-col
+                        v-if="is(DeliverableStatus.WAITING) && isBuyer"
+                        cols="12"
+                      >
+                        <p>
+                          Your order has been placed in the artist's waitlist. Waitlisted orders are not guaranteed by
                           Artconomy to be accepted in any order and every artist's policy is different in how they are
                           handled.
                           If your artist has not listed their waitlist policy for this commission in the product
                           details,
                           or in their commission info under the Overview tab, you may want to message them for
-                          clarification.</p>
+                          clarification.
+                        </p>
                       </v-col>
-                      <v-col v-if="is(DeliverableStatus.WAITING) && isSeller && seller" cols="12">
-                        <p>This order is in your waitlist. You should put your waitlist policy in your commission info
+                      <v-col
+                        v-if="is(DeliverableStatus.WAITING) && isSeller && seller"
+                        cols="12"
+                      >
+                        <p>
+                          This order is in your waitlist. You should put your waitlist policy in your commission info
                           in your
-                          <router-link :to="{name: 'Artist', params: {username: seller.username}}">Artist Settings
+                          <router-link :to="{name: 'Artist', params: {username: seller.username}}">
+                            Artist Settings
                           </router-link>
                           if you have not already, or else add it to the details of the product this order is associated
                           with.
                         </p>
-                        <p>Hit the <strong>Select for Consideration</strong> button if you'd like to treat this as a
-                          freshly placed order rather than having it chill in the waitlist.</p>
+                        <p>
+                          Hit the <strong>Select for Consideration</strong> button if you'd like to treat this as a
+                          freshly placed order rather than having it chill in the waitlist.
+                        </p>
                       </v-col>
-                      <v-col v-if="is(DeliverableStatus.NEW) && isBuyer" cols="12">
-                        <p>Your order has been placed and is awaiting the artist's review. You will receive an email
+                      <v-col
+                        v-if="is(DeliverableStatus.NEW) && isBuyer"
+                        cols="12"
+                      >
+                        <p>
+                          Your order has been placed and is awaiting the artist's review. You will receive an email
                           when the
-                          artist has accepted or rejected the order, or if they have any comments.</p>
+                          artist has accepted or rejected the order, or if they have any comments.
+                        </p>
                         <p>You may add additional comments or questions below!</p>
                       </v-col>
-                      <v-col v-if="is(DeliverableStatus.NEW) && isSeller" cols="12">
-                        <p>This order is pending your review. Please make any pricing adjustments and accept the order,
+                      <v-col
+                        v-if="is(DeliverableStatus.NEW) && isSeller"
+                        cols="12"
+                      >
+                        <p>
+                          This order is pending your review. Please make any pricing adjustments and accept the order,
                           or
-                          reject the order if you are unwilling or unable to complete the piece.</p>
+                          reject the order if you are unwilling or unable to complete the piece.
+                        </p>
                         <p>You may add comments to ask the commissioner questions.</p>
                       </v-col>
-                      <v-col class="text-center" v-if="!is(DeliverableStatus.COMPLETED) && !isRegistered" cols="12">
-                        <v-btn color="green" variant="flat" :to="registerLink" class="link-account">Link an Account</v-btn>
+                      <v-col
+                        v-if="!is(DeliverableStatus.COMPLETED) && !isRegistered"
+                        class="text-center"
+                        cols="12"
+                      >
+                        <v-btn
+                          color="green"
+                          variant="flat"
+                          :to="registerLink"
+                          class="link-account"
+                        >
+                          Link an Account
+                        </v-btn>
                       </v-col>
-                      <v-col v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer" cols="12">
-                        <v-divider/>
+                      <v-col
+                        v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer"
+                        cols="12"
+                      >
+                        <v-divider />
                         <p>
                           <strong>Congratulations!</strong> Your artist has accepted your order. Please submit payment
                           so that it can be added to their work queue.
                           <span v-if="paypalUrl">
                             <a :href="paypalUrl">Payment is done via PayPal.</a> This order is not protected by <router-link
-                              :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield.</router-link>
+                              :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
+                            >Artconomy Shield.</router-link>
                           </span>
                           <span
-                              v-if="!deliverable.x.escrow_enabled">Your artist will inform you on how to pay them.</span>
+                            v-if="!deliverable.x.escrow_enabled"
+                          >Your artist will inform you on how to pay them.</span>
                         </p>
                         <p v-if="deliverable.x.escrow_enabled">
                           <strong class="danger">WARNING:</strong> Only send payment using the <strong>'Send
-                          Payment'</strong> button in the '<strong>Payment</strong>' <span
-                            v-if="mdAndUp">tab</span><span v-else>dropdown option</span> directly below
+                            Payment'</strong> button in the '<strong>Payment</strong>' <span
+                            v-if="mdAndUp"
+                          >tab</span><span v-else>dropdown option</span> directly below
                           this section.
                           Do not use any other method, button, or link, or we will not be able to protect you from
                           fraud. If your
                           artist asks for payment using another method, or if you are getting errors, please <a
-                            @click="store.commit('supportDialog', true)">contact support.</a>
+                            @click="store.commit('supportDialog', true)"
+                          >contact support.</a>
                         </p>
                       </v-col>
                       <v-col
-                          v-if="isBuyer && deliverable.x.stream_link && !(is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED))"
-                          cols="12">
-                        <p><a :href="deliverable.x.stream_link" target="_blank">Your artist is streaming your commission
-                          here!</a></p>
+                        v-if="isBuyer && deliverable.x.stream_link && !(is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED))"
+                        cols="12"
+                      >
+                        <p>
+                          <a
+                            :href="deliverable.x.stream_link"
+                            target="_blank"
+                          >Your artist is streaming your commission
+                            here!</a>
+                        </p>
                       </v-col>
-                      <v-col v-if="is(DeliverableStatus.PAYMENT_PENDING) && isSeller" cols="12">
-                        <p>The commissioner has been informed that they must now pay in order for you to work on the
+                      <v-col
+                        v-if="is(DeliverableStatus.PAYMENT_PENDING) && isSeller"
+                        cols="12"
+                      >
+                        <p>
+                          The commissioner has been informed that they must now pay in order for you to work on the
                           order.
                           You may continue to comment and tweak pricing in the interim, or you may cancel the order if
-                          you need to.</p>
+                          you need to.
+                        </p>
                         <p v-if="!deliverable.x.escrow_enabled && !paypalUrl">
                           <strong>REMEMBER:</strong> As we are not handling payment for this order, you MUST tell your
                           commissioner how to pay you. Leave a comment telling them how if you have not done so already.
-                          When the customer has paid, click the 'Mark Paid' button.</p>
+                          When the customer has paid, click the 'Mark Paid' button.
+                        </p>
                         <p v-else-if="!deliverable.x.table_order">
                           You may mark this order as paid, if the customer has paid you through an outside method, or
                           you wish to waive payment for this commission.
                         </p>
-                        <v-col class="text-center" v-if="!deliverable.x.escrow_enabled">
-                          <v-btn color="primary" variant="flat" @click="statusEndpoint('mark-paid')()">Mark Paid</v-btn>
+                        <v-col
+                          v-if="!deliverable.x.escrow_enabled"
+                          class="text-center"
+                        >
+                          <v-btn
+                            color="primary"
+                            variant="flat"
+                            @click="statusEndpoint('mark-paid')()"
+                          >
+                            Mark Paid
+                          </v-btn>
                         </v-col>
-                        <ac-confirmation :action="statusEndpoint('mark-paid')" v-else-if="!deliverable.x.table_order">
-                          <template v-slot:default="{on}">
-                            <v-col class="text-center" cols="12">
-                              <v-btn color="primary" variant="flat" v-on="on">Mark Paid</v-btn>
+                        <ac-confirmation
+                          v-else-if="!deliverable.x.table_order"
+                          :action="statusEndpoint('mark-paid')"
+                        >
+                          <template #default="{on}">
+                            <v-col
+                              class="text-center"
+                              cols="12"
+                            >
+                              <v-btn
+                                color="primary"
+                                variant="flat"
+                                v-on="on"
+                              >
+                                Mark Paid
+                              </v-btn>
                             </v-col>
                           </template>
-                          <template v-slot:confirmation-text>
+                          <template #confirmation-text>
                             <v-col>
-                              <p>Artconomy will not be able to protect you from fraud if your customer has paid through
+                              <p>
+                                Artconomy will not be able to protect you from fraud if your customer has paid through
                                 an outside
-                                method.</p>
+                                method.
+                              </p>
                               <p><strong>Don't do this unless you really know what you're doing!</strong></p>
                               <p>If you are having trouble, please contact support.</p>
                             </v-col>
                           </template>
                         </ac-confirmation>
                       </v-col>
-                      <v-col v-if="isSeller && is(DeliverableStatus.REVIEW)" cols="12">
-                        <p>The commissioner has been informed that the final is ready for their review. Please stand by
-                          for final approval!</p>
+                      <v-col
+                        v-if="isSeller && is(DeliverableStatus.REVIEW)"
+                        cols="12"
+                      >
+                        <p>
+                          The commissioner has been informed that the final is ready for their review. Please stand by
+                          for final approval!
+                        </p>
                       </v-col>
-                      <v-col v-if="is(DeliverableStatus.REVIEW) && deliverable.x.auto_finalize_on" cols="12">
-                        <p>This order will auto-finalize on
-                          <strong>{{ formatDateTerse(deliverable.x.auto_finalize_on) }}</strong>.</p>
+                      <v-col
+                        v-if="is(DeliverableStatus.REVIEW) && deliverable.x.auto_finalize_on"
+                        cols="12"
+                      >
+                        <p>
+                          This order will auto-finalize on
+                          <strong>{{ formatDateTerse(deliverable.x.auto_finalize_on) }}</strong>.
+                        </p>
                       </v-col>
                       <template v-if="isBuyer && is(DeliverableStatus.REVIEW)">
                         <v-col cols="12">
-                          <p>Your artist has completed the piece! If all is well, please hit approve. Otherwise, if
+                          <p>
+                            Your artist has completed the piece! If all is well, please hit approve. Otherwise, if
                             there is an
-                            issue you cannot resolve with the artist, please hit the dispute button.</p>
+                            issue you cannot resolve with the artist, please hit the dispute button.
+                          </p>
                         </v-col>
                         <v-row>
                           <v-col class="text-center">
-                            <v-btn color="primary" @click="statusEndpoint('approve')()" variant="flat">Approve Final</v-btn>
+                            <v-btn
+                              color="primary"
+                              variant="flat"
+                              @click="statusEndpoint('approve')()"
+                            >
+                              Approve Final
+                            </v-btn>
                           </v-col>
                           <v-col class="text-center">
-                            <v-btn color="danger" @click="statusEndpoint('dispute')()" variant="flat">File Dispute</v-btn>
+                            <v-btn
+                              color="danger"
+                              variant="flat"
+                              @click="statusEndpoint('dispute')()"
+                            >
+                              File Dispute
+                            </v-btn>
                           </v-col>
                         </v-row>
                       </template>
-                      <v-col class="text-center pt-2" cols="12" v-if="isBuyer && is(DeliverableStatus.DISPUTED)">
-                        <p><strong>Your dispute has been filed.</strong> Please stand by for further instructions.
+                      <v-col
+                        v-if="isBuyer && is(DeliverableStatus.DISPUTED)"
+                        class="text-center pt-2"
+                        cols="12"
+                      >
+                        <p>
+                          <strong>Your dispute has been filed.</strong> Please stand by for further instructions.
                           If you are able to work out your disagreement with the artist, please approve the order using
                           the
-                          button below.</p>
+                          button below.
+                        </p>
                       </v-col>
-                      <v-col class="text-center" v-if="(isBuyer || isArbitrator) && is(DeliverableStatus.DISPUTED)" cols="12">
+                      <v-col
+                        v-if="(isBuyer || isArbitrator) && is(DeliverableStatus.DISPUTED)"
+                        class="text-center"
+                        cols="12"
+                      >
                         <ac-confirmation :action="statusEndpoint('approve')">
-                          <template v-slot:default="{on}">
-                            <v-btn color="primary" v-on="on">Approve Final</v-btn>
+                          <template #default="{on}">
+                            <v-btn
+                              color="primary"
+                              v-on="on"
+                            >
+                              Approve Final
+                            </v-btn>
                           </template>
                         </ac-confirmation>
                       </v-col>
                       <v-row v-if="is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW) || is(DeliverableStatus.PAYMENT_PENDING)">
-                        <v-col class="text-center" v-if="is(DeliverableStatus.NEW) && canWaitlist && isSeller">
-                          <v-btn color="secondary" @click="statusEndpoint('waitlist')()" variant="flat">Add to Waitlist</v-btn>
+                        <v-col
+                          v-if="is(DeliverableStatus.NEW) && canWaitlist && isSeller"
+                          class="text-center"
+                        >
+                          <v-btn
+                            color="secondary"
+                            variant="flat"
+                            @click="statusEndpoint('waitlist')()"
+                          >
+                            Add to Waitlist
+                          </v-btn>
                         </v-col>
-                        <v-col class="text-center" v-if="is(DeliverableStatus.WAITING) && isSeller">
-                          <v-btn color="secondary" @click="statusEndpoint('make-new')()" variant="flat">Select for Consideration</v-btn>
+                        <v-col
+                          v-if="is(DeliverableStatus.WAITING) && isSeller"
+                          class="text-center"
+                        >
+                          <v-btn
+                            color="secondary"
+                            variant="flat"
+                            @click="statusEndpoint('make-new')()"
+                          >
+                            Select for Consideration
+                          </v-btn>
                         </v-col>
                         <v-col class="text-center">
                           <ac-confirmation :action="statusEndpoint('cancel')">
-                            <template v-slot:default="{on}">
-                              <v-btn v-on="on" variant="elevated" color="black">Cancel Order</v-btn>
+                            <template #default="{on}">
+                              <v-btn
+                                variant="elevated"
+                                color="black"
+                                v-on="on"
+                              >
+                                Cancel Order
+                              </v-btn>
                             </template>
                           </ac-confirmation>
                         </v-col>
                         <v-col class="text-center">
                           <v-btn
-                              color="primary" v-if="route.params.deliverableId"
-                              :to="{name: `${baseName}DeliverablePayment`,
-                            params: {...route.params}}"
-                              @click="scrollToSection"
-                              variant="flat"
-                              class="review-terms-button"
-                          >Review Terms/Pricing<span v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer">/Pay</span><span
-                              v-else-if="(is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW)) && isSeller">/Accept</span></v-btn>
+                            v-if="route.params.deliverableId"
+                            color="primary"
+                            :to="{name: `${baseName}DeliverablePayment`,
+                                  params: {...route.params}}"
+                            variant="flat"
+                            class="review-terms-button"
+                            @click="scrollToSection"
+                          >
+                            Review Terms/Pricing<span v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer">/Pay</span><span
+                              v-else-if="(is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW)) && isSeller"
+                            >/Accept</span>
+                          </v-btn>
                         </v-col>
-                        <v-col v-if="isBuyer" class="text-center">
-                          <v-btn color="secondary" v-if="route.params.deliverableId"
-                                 variant="flat"
-                                 :to="{name: `${baseName}DeliverableReferences`, params: {...route.params}}">Add
+                        <v-col
+                          v-if="isBuyer"
+                          class="text-center"
+                        >
+                          <v-btn
+                            v-if="route.params.deliverableId"
+                            color="secondary"
+                            variant="flat"
+                            :to="{name: `${baseName}DeliverableReferences`, params: {...route.params}}"
+                          >
+                            Add
                             References
                           </v-btn>
                         </v-col>
                       </v-row>
-                      <v-col v-if="is(DeliverableStatus.QUEUED) && isBuyer" cols="12">
-                        <p>Your order has been added to the artists queue. We will notify you when they have begun
-                          work!</p>
-                      </v-col>
-                      <v-col v-if="is(DeliverableStatus.QUEUED) && isSeller" cols="12">
-                        <p><strong>Excellent!</strong> The commissioner has paid<span v-if="escrow"> and the money is being held in safekeeping</span>.
-                          When you've started work, hit the 'Mark In Progress' button to let the customer know.
-                          You can also set the order's streaming link (if applicable) here:</p>
+                      <v-col
+                        v-if="is(DeliverableStatus.QUEUED) && isBuyer"
+                        cols="12"
+                      >
+                        <p>
+                          Your order has been added to the artists queue. We will notify you when they have begun
+                          work!
+                        </p>
                       </v-col>
                       <v-col
-                          v-if="deliverable.x.dispute_available_on && !(is(DeliverableStatus.DISPUTED) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
-                          cols="12">
-                        <p v-if="disputeTimeElapsed">You may file dispute for non-completion if needed.</p>
-                        <p v-else>This order may be disputed for non-completion on:
-                          <br/><strong>{{ formatDateTerse(deliverable.x.dispute_available_on) }}.</strong></p>
+                        v-if="is(DeliverableStatus.QUEUED) && isSeller"
+                        cols="12"
+                      >
+                        <p>
+                          <strong>Excellent!</strong> The commissioner has paid<span v-if="escrow"> and the money is being held in safekeeping</span>.
+                          When you've started work, hit the 'Mark In Progress' button to let the customer know.
+                          You can also set the order's streaming link (if applicable) here:
+                        </p>
+                      </v-col>
+                      <v-col
+                        v-if="deliverable.x.dispute_available_on && !(is(DeliverableStatus.DISPUTED) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
+                        cols="12"
+                      >
+                        <p v-if="disputeTimeElapsed">
+                          You may file dispute for non-completion if needed.
+                        </p>
+                        <p v-else>
+                          This order may be disputed for non-completion on:
+                          <br><strong>{{ formatDateTerse(deliverable.x.dispute_available_on) }}.</strong>
+                        </p>
                         <v-col class="text-center">
-                          <v-btn v-if="disputeTimeElapsed && isBuyer" @click="statusEndpoint('dispute')()"
-                                 color="danger" variant="flat">File Dispute
+                          <v-btn
+                            v-if="disputeTimeElapsed && isBuyer"
+                            color="danger"
+                            variant="flat"
+                            @click="statusEndpoint('dispute')()"
+                          >
+                            File Dispute
                           </v-btn>
                         </v-col>
                       </v-col>
-                      <v-col v-if="isSeller && (is(DeliverableStatus.QUEUED) || is(DeliverableStatus.IN_PROGRESS) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.DISPUTED))" cols="12">
+                      <v-col
+                        v-if="isSeller && (is(DeliverableStatus.QUEUED) || is(DeliverableStatus.IN_PROGRESS) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.DISPUTED))"
+                        cols="12"
+                      >
                         <v-alert v-if="order.x.private">
                           <strong>NOTE:</strong> This user has asked that this commission be private. Please do not use
                           a public streaming link!
                         </v-alert>
                         <ac-patch-field
-                            :patcher="deliverable.patchers.stream_link" label="Stream URL">
-                        </ac-patch-field>
+                          :patcher="deliverable.patchers.stream_link"
+                          label="Stream URL"
+                        />
                       </v-col>
                       <v-col v-if="isBuyer && is(DeliverableStatus.IN_PROGRESS)">
                         <p>The artist has begun work on your order. You'll be notified as they make progress!</p>
                       </v-col>
-                      <v-col class="text-center" v-if="is(DeliverableStatus.QUEUED) && isSeller" cols="12">
-                        <v-btn color="primary" @click="statusEndpoint('start')()" variant="flat">Mark In Progress</v-btn>
+                      <v-col
+                        v-if="is(DeliverableStatus.QUEUED) && isSeller"
+                        class="text-center"
+                        cols="12"
+                      >
+                        <v-btn
+                          color="primary"
+                          variant="flat"
+                          @click="statusEndpoint('start')()"
+                        >
+                          Mark In Progress
+                        </v-btn>
                       </v-col>
                       <v-col v-if="is(DeliverableStatus.DISPUTED) && isSeller">
-                        <p><strong>This order is under dispute.</strong> One of our staff will be along soon to give
+                        <p>
+                          <strong>This order is under dispute.</strong> One of our staff will be along soon to give
                           further
                           instruction. If you wish, you may refund the customer. Otherwise, please wait for our staff to
                           work
-                          with you and the commissioner on a resolution.</p>
+                          with you and the commissioner on a resolution.
+                        </p>
                       </v-col>
-                      <v-col class="text-center" v-if="is(DeliverableStatus.COMPLETED)" cols="12">
+                      <v-col
+                        v-if="is(DeliverableStatus.COMPLETED)"
+                        class="text-center"
+                        cols="12"
+                      >
                         <p>This order has been completed! <strong>Thank you for using Artconomy!</strong></p>
                       </v-col>
-                      <v-col class="text-center" v-if="is(DeliverableStatus.COMPLETED) && disputeWindow && isBuyer && deliverable.x.auto_finalize_on" cols="12">
-                        <v-alert :value="true" type="info">If there is an issue with this order, please <a href="#"
-                          @click.prevent="store.commit('supportDialog', true)">contact
-                          support</a>
+                      <v-col
+                        v-if="is(DeliverableStatus.COMPLETED) && disputeWindow && isBuyer && deliverable.x.auto_finalize_on"
+                        class="text-center"
+                        cols="12"
+                      >
+                        <v-alert
+                          :value="true"
+                          type="info"
+                        >
+                          If there is an issue with this order, please <a
+                            href="#"
+                            @click.prevent="store.commit('supportDialog', true)"
+                          >contact
+                            support</a>
                           on or before {{ formatDateTerse(deliverable.x.auto_finalize_on) }}.
                         </v-alert>
                       </v-col>
-                      <v-col class="text-center" v-if="is(DeliverableStatus.REFUNDED)" cols="12">
+                      <v-col
+                        v-if="is(DeliverableStatus.REFUNDED)"
+                        class="text-center"
+                        cols="12"
+                      >
                         <p>This order has been refunded and is now archived.</p>
                       </v-col>
-                      <v-col class="text-center" v-if="isSeller && escrow && is(DeliverableStatus.COMPLETED)" cols="12">
+                      <v-col
+                        v-if="isSeller && escrow && is(DeliverableStatus.COMPLETED)"
+                        class="text-center"
+                        cols="12"
+                      >
                         <p>
                           <router-link :to="{name: 'Payout', params: {username: seller!.username}}">
                             If you have not already, please add your bank account in your payout settings.
                           </router-link>
                         </p>
-                        <p>A transfer will automatically be initiated to your bank account.
-                          Please wait up to five business days for payment to post.</p>
+                        <p>
+                          A transfer will automatically be initiated to your bank account.
+                          Please wait up to five business days for payment to post.
+                        </p>
                       </v-col>
-                      <v-col cols="12" v-if="deliverable.x.tip_invoice">
+                      <v-col
+                        v-if="deliverable.x.tip_invoice"
+                        cols="12"
+                      >
                         <ac-tipping-prompt
-                            :invoice-id="deliverable.x.tip_invoice"
-                            :source-lines="lineItems"
-                            :username="buyer!.username"
-                            :deliverable="deliverable"
-                            :key="deliverable.x.tip_invoice"
-                            :is-buyer="isBuyer"
+                          :key="deliverable.x.tip_invoice"
+                          :invoice-id="deliverable.x.tip_invoice"
+                          :source-lines="lineItems"
+                          :username="buyer!.username"
+                          :deliverable="deliverable"
+                          :is-buyer="isBuyer"
                         />
                       </v-col>
-                      <v-col cols="12" v-if="isBuyer && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))">
-                        <ac-deliverable-rating end="seller" :order-id="orderId" :deliverable-id="deliverableId"
-                                               key="seller"/>
+                      <v-col
+                        v-if="isBuyer && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
+                        cols="12"
+                      >
+                        <ac-deliverable-rating
+                          key="seller"
+                          end="seller"
+                          :order-id="orderId"
+                          :deliverable-id="deliverableId"
+                        />
                       </v-col>
-                      <v-col cols="12" v-if="buyer && isSeller && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))">
-                        <ac-deliverable-rating end="buyer" :order-id="orderId" :deliverable-id="deliverableId"
-                                               key="buyer"/>
+                      <v-col
+                        v-if="buyer && isSeller && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
+                        cols="12"
+                      >
+                        <ac-deliverable-rating
+                          key="buyer"
+                          end="buyer"
+                          :order-id="orderId"
+                          :deliverable-id="deliverableId"
+                        />
                       </v-col>
-                      <v-col class="text-center" v-if="isSeller && is(DeliverableStatus.COMPLETED) && !order.x.private" cols="12">
-                        <v-img :src="fridge" max-height="20vh" alt="" contain :eager="prerendering"/>
-                        <v-btn v-if="sellerSubmission" color="primary"
-                               variant="flat"
-                               :to="{name: 'Submission', params: {submissionId: sellerSubmission.id}}">Visit in
+                      <v-col
+                        v-if="isSeller && is(DeliverableStatus.COMPLETED) && !order.x.private"
+                        class="text-center"
+                        cols="12"
+                      >
+                        <v-img
+                          :src="fridge"
+                          max-height="20vh"
+                          alt=""
+                          contain
+                          :eager="prerendering"
+                        />
+                        <v-btn
+                          v-if="sellerSubmission"
+                          color="primary"
+                          variant="flat"
+                          :to="{name: 'Submission', params: {submissionId: sellerSubmission.id}}"
+                        >
+                          Visit in
                           Gallery
                         </v-btn>
-                        <v-btn color="green" v-else @click="addToGallery" class="gallery-add" variant="elevated">Add to my Gallery</v-btn>
+                        <v-btn
+                          v-else
+                          color="green"
+                          class="gallery-add"
+                          variant="elevated"
+                          @click="addToGallery"
+                        >
+                          Add to my Gallery
+                        </v-btn>
                       </v-col>
-                      <v-col class="text-center" v-if="isBuyer && is(DeliverableStatus.COMPLETED)" cols="12">
-                        <v-img :src="fridge" max-height="20vh" alt="" contain :eager="prerendering"/>
-                        <v-btn v-if="buyerSubmission" color="primary"
-                               variant="flat"
-                               :to="{name: 'Submission', params: {submissionId: buyerSubmission.id}}">Visit in
+                      <v-col
+                        v-if="isBuyer && is(DeliverableStatus.COMPLETED)"
+                        class="text-center"
+                        cols="12"
+                      >
+                        <v-img
+                          :src="fridge"
+                          max-height="20vh"
+                          alt=""
+                          contain
+                          :eager="prerendering"
+                        />
+                        <v-btn
+                          v-if="buyerSubmission"
+                          color="primary"
+                          variant="flat"
+                          :to="{name: 'Submission', params: {submissionId: buyerSubmission.id}}"
+                        >
+                          Visit in
                           Collection
                         </v-btn>
-                        <v-btn color="green" v-else variant="elevated" @click="addToCollection" class="collection-add">Add to Collection
+                        <v-btn
+                          v-else
+                          color="green"
+                          variant="elevated"
+                          class="collection-add"
+                          @click="addToCollection"
+                        >
+                          Add to Collection
                         </v-btn>
                       </v-col>
                       <v-col v-if="is(DeliverableStatus.CANCELLED) && isBuyer">
-                        <p>This order has been cancelled. You will have to create a new order if you want a
-                          commission.</p>
+                        <p>
+                          This order has been cancelled. You will have to create a new order if you want a
+                          commission.
+                        </p>
                       </v-col>
                       <v-col v-if="is(DeliverableStatus.CANCELLED) && isSeller">
                         <p>This order has been cancelled. There is nothing more to do.</p>
                       </v-col>
-                      <v-col v-if="!(is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED) || is(DeliverableStatus.COMPLETED)) && escrow" cols="12">
-                        <p><strong class="danger">WARNING:</strong> Any conversations made off-site, such as over
+                      <v-col
+                        v-if="!(is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED) || is(DeliverableStatus.COMPLETED)) && escrow"
+                        cols="12"
+                      >
+                        <p>
+                          <strong class="danger">WARNING:</strong> Any conversations made off-site, such as over
                           instant messanger or text, cannot be viewed or verified by Artconomy staff and will not be
                           considered in the case of a dispute. For your safety, any material discussion should be made
                           via comments on this order. If you must use instant messanger, copy a summary here of your
-                          discussion for record, and have the other person affirm it is accurate.</p>
+                          discussion for record, and have the other person affirm it is accurate.
+                        </p>
                       </v-col>
                       <ac-form-dialog
-                          v-if="is(DeliverableStatus.COMPLETED) || isSeller"
-                          @submit.prevent="addSubmission.submitThen(visitSubmission)"
-                          v-model="viewSettings.patchers.showAddSubmission.model"
-                          v-bind="addSubmission.bind"
-                          :sending="addSubmission.sending"
-                          :errors="addSubmission.errors"
-                          :large="true"
-                          :eager="true"
-                          :title="isSeller ? 'Add to Gallery' : 'Add to Collection'"
+                        v-if="is(DeliverableStatus.COMPLETED) || isSeller"
+                        v-model="viewSettings.patchers.showAddSubmission.model"
+                        v-bind="addSubmission.bind"
+                        :sending="addSubmission.sending"
+                        :errors="addSubmission.errors"
+                        :large="true"
+                        :eager="true"
+                        :title="isSeller ? 'Add to Gallery' : 'Add to Collection'"
+                        @submit.prevent="addSubmission.submitThen(visitSubmission)"
                       >
                         <v-container class="pa-0 add-submission-dialog">
                           <v-row no-gutters>
                             <v-col cols="12">
-                              <ac-bound-field :field="addSubmission.fields.title" label="Title"/>
-                            </v-col>
-                            <v-col cols="12">
                               <ac-bound-field
-                                  :field="addSubmission.fields.caption"
-                                  field-type="ac-editor" :save-indicator="false"
-                                  label="Caption"
-                                  hint="Tell viewers a little about the piece."
-                                  :persistent-hint="true"
+                                :field="addSubmission.fields.title"
+                                label="Title"
                               />
                             </v-col>
                             <v-col cols="12">
                               <ac-bound-field
-                                  :field="addSubmission.fields.tags" field-type="ac-tag-field" label="Tags"
-                                  hint="Add some tags to make this submission easier to manage. We've added all the tags of
+                                :field="addSubmission.fields.caption"
+                                field-type="ac-editor"
+                                :save-indicator="false"
+                                label="Caption"
+                                hint="Tell viewers a little about the piece."
+                                :persistent-hint="true"
+                              />
+                            </v-col>
+                            <v-col cols="12">
+                              <ac-bound-field
+                                :field="addSubmission.fields.tags"
+                                field-type="ac-tag-field"
+                                label="Tags"
+                                hint="Add some tags to make this submission easier to manage. We've added all the tags of
                           the characters attached to this piece (if any) to help!"
-                                  :persistent-hint="true"
+                                :persistent-hint="true"
                               />
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <ac-bound-field :field="addSubmission.fields.private" label="Private"
-                                              field-type="ac-checkbox"
-                                              hint="If checked, will not show this submission to anyone you've not explicitly shared it with."
+                            <v-col
+                              cols="12"
+                              sm="6"
+                            >
+                              <ac-bound-field
+                                :field="addSubmission.fields.private"
+                                label="Private"
+                                field-type="ac-checkbox"
+                                hint="If checked, will not show this submission to anyone you've not explicitly shared it with."
                               />
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <ac-bound-field :field="addSubmission.fields.comments_disabled" label="Comments Disabled"
-                                              field-type="ac-checkbox"
-                                              hint="If checked, prevents others from commenting on this submission."
+                            <v-col
+                              cols="12"
+                              sm="6"
+                            >
+                              <ac-bound-field
+                                :field="addSubmission.fields.comments_disabled"
+                                label="Comments Disabled"
+                                field-type="ac-checkbox"
+                                hint="If checked, prevents others from commenting on this submission."
                               />
                             </v-col>
                           </v-row>
                         </v-container>
                       </ac-form-dialog>
                       <ac-form-dialog
-                          v-if="isSeller && seller"
-                          @submit.prevent="newInvoice.submitThen(visitDeliverable)"
-                          v-model="viewSettings.patchers.showAddDeliverable.model"
-                          v-bind="newInvoice.bind"
-                          :large="true"
-                          :eager="true"
-                          class="add-deliverable-dialog"
-                          :title="'Add new Deliverable to Order.'"
+                        v-if="isSeller && seller"
+                        v-model="viewSettings.patchers.showAddDeliverable.model"
+                        v-bind="newInvoice.bind"
+                        :large="true"
+                        :eager="true"
+                        class="add-deliverable-dialog"
+                        :title="'Add new Deliverable to Order.'"
+                        @submit.prevent="newInvoice.submitThen(visitDeliverable)"
                       >
                         <v-container class="pa-0">
-                          <ac-invoice-form :new-invoice="newInvoice" :username="seller.username"
-                                           :line-items="invoiceLineItems" :escrow-enabled="invoiceEscrowEnabled">
-                            <template v-slot:second>
-                              <v-col cols="12" sm="6">
+                          <ac-invoice-form
+                            :new-invoice="newInvoice"
+                            :username="seller.username"
+                            :line-items="invoiceLineItems"
+                            :escrow-enabled="invoiceEscrowEnabled"
+                          >
+                            <template #second>
+                              <v-col
+                                cols="12"
+                                sm="6"
+                              >
                                 <ac-bound-field
-                                    :field="newInvoice.fields.name"
-                                    label="Deliverable Name"
-                                    hint="Give this deliverable a name, like 'Page 2' or 'Inks'. This will help distinguish it from the other deliverables in the order."
+                                  :field="newInvoice.fields.name"
+                                  label="Deliverable Name"
+                                  hint="Give this deliverable a name, like 'Page 2' or 'Inks'. This will help distinguish it from the other deliverables in the order."
                                 />
                               </v-col>
-                              <v-col cols="12" sm="6">
-                                <v-checkbox v-model="keepReferences"
-                                            label="Keep References"
-                                            hint="Carries the references from the current deliverable over to the next one."
-                                            :persistent-hint="true"
+                              <v-col
+                                cols="12"
+                                sm="6"
+                              >
+                                <v-checkbox
+                                  v-model="keepReferences"
+                                  label="Keep References"
+                                  hint="Carries the references from the current deliverable over to the next one."
+                                  :persistent-hint="true"
                                 />
                               </v-col>
-                              <v-col cols="12" sm="6">
-                                <ac-bound-field :field="newInvoice.fields.characters"
-                                                :init-items="viewSettings.patchers.characterInitItems.model"
-                                                field-type="ac-character-select" label="Characters"
-                                                hint="Tag the character(s) to be referenced in this deliverable. If they're not listed on Artconomy, you can skip this step."/>
+                              <v-col
+                                cols="12"
+                                sm="6"
+                              >
+                                <ac-bound-field
+                                  :field="newInvoice.fields.characters"
+                                  :init-items="viewSettings.patchers.characterInitItems.model"
+                                  field-type="ac-character-select"
+                                  label="Characters"
+                                  hint="Tag the character(s) to be referenced in this deliverable. If they're not listed on Artconomy, you can skip this step."
+                                />
                               </v-col>
                             </template>
                           </ac-invoice-form>
@@ -388,25 +703,31 @@
               </ac-form>
             </v-card>
           </v-col>
-          <v-col cols="12" class="pt-2">
+          <v-col
+            cols="12"
+            class="pt-2"
+          >
             <v-row no-gutters>
               <v-col v-if="powers.table_seller || powers.handle_disputes">
                 <v-select
-                    v-model="viewMode"
-                    :items="viewerItems"
-                    label="View as..."
-                    outline
-                    class="view-mode-select"
+                  v-model="viewMode"
+                  :items="viewerItems"
+                  label="View as..."
+                  outline
+                  class="view-mode-select"
                 />
               </v-col>
             </v-row>
           </v-col>
         </v-row>
         <v-card>
-          <ac-tab-nav :items="navItems" label="See more" />
+          <ac-tab-nav
+            :items="navItems"
+            label="See more"
+          />
         </v-card>
-        <div class="section-scroll-target"></div>
-        <router-view></router-view>
+        <div class="section-scroll-target" />
+        <router-view />
       </v-container>
     </template>
   </ac-load-section>
@@ -563,7 +884,7 @@ const visitSubmission = (submission: Submission) => {
 const sellerName = computed(() => seller.value?.username || '')
 
 const planName = computed(() => {
-  // eslint-disable-next-line camelcase
+   
   return seller.value?.service_plan
 })
 

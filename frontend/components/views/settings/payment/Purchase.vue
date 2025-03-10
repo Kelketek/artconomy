@@ -1,31 +1,44 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
-    <template v-slot:default>
+    <template #default>
       <v-row no-gutters>
         <v-col cols="12">
           <v-card>
             <v-card-text>
-              <v-col class="text-center" cols="12">
+              <v-col
+                class="text-center"
+                cols="12"
+              >
                 <p><strong>Your default card will be charged for subscription services.</strong></p>
               </v-col>
               <ac-load-section :controller="clientSecret">
-                <template v-slot:default>
+                <template #default>
                   <ac-form @submit.prevent="submitNewCard">
                     <ac-form-container v-bind="ccForm.bind">
                       <ac-card-manager
-                          :username="username"
-                          :cc-form="ccForm"
-                          :show-save="false"
-                          :field-mode="false"
-                          ref="cardManager"
-                          :show-all="true"
-                          :save-only="true"
-                          @cardAdded="fetchSecret"
-                          :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
+                        ref="cardManager"
+                        :username="username"
+                        :cc-form="ccForm"
+                        :show-save="false"
+                        :field-mode="false"
+                        :show-all="true"
+                        :save-only="true"
+                        :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
+                        @card-added="fetchSecret"
                       >
-                        <template v-slot:new-card-button>
-                          <v-col class="text-center" cols="12">
-                            <v-btn color="primary" type="submit" class="add-card-button" variant="flat">Add Card</v-btn>
+                        <template #new-card-button>
+                          <v-col
+                            class="text-center"
+                            cols="12"
+                          >
+                            <v-btn
+                              color="primary"
+                              type="submit"
+                              class="add-card-button"
+                              variant="flat"
+                            >
+                              Add Card
+                            </v-btn>
                           </v-col>
                         </template>
                       </ac-card-manager>

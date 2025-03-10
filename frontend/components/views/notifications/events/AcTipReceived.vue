@@ -1,7 +1,13 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
-    <template v-slot:title>
-      <router-link :to="assetLink">{{buyerName}} sent you a tip!</router-link>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="assetLink"
+    :username="username"
+  >
+    <template #title>
+      <router-link :to="assetLink">
+        {{ buyerName }} sent you a tip!
+      </router-link>
     </template>
   </ac-base-notification>
 </template>

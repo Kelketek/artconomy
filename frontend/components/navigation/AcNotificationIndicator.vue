@@ -1,12 +1,24 @@
 <template>
-  <v-btn variant="plain" class="notifications-button" aria-label="Notifications">
+  <v-btn
+    variant="plain"
+    class="notifications-button"
+    aria-label="Notifications"
+  >
     <template #default>
-      <v-badge overlap right color="red" :model-value="!!counts.count">
-        <template v-slot:badge>
-          <span v-if="counts.count && counts.count < 1000">{{counts.count}}</span>
+      <v-badge
+        overlap
+        right
+        color="red"
+        :model-value="!!counts.count"
+      >
+        <template #badge>
+          <span v-if="counts.count && counts.count < 1000">{{ counts.count }}</span>
           <span v-else>*</span>
         </template>
-        <v-icon size="x-large" :icon="mdiBell"/>
+        <v-icon
+          size="x-large"
+          :icon="mdiBell"
+        />
       </v-badge>
     </template>
   </v-btn>

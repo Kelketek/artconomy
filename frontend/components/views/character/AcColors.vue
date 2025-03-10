@@ -1,33 +1,67 @@
 <template>
-  <ac-load-section :controller="colors" class="color-section">
-    <v-row no-gutters class="mt-3" v-if="colors.list.length || editing">
+  <ac-load-section
+    :controller="colors"
+    class="color-section"
+  >
+    <v-row
+      v-if="colors.list.length || editing"
+      no-gutters
+      class="mt-3"
+    >
       <v-col
-          v-for="color in colors.list"
-          :key="color.x!.id"
-          :style="'background-color: ' + color.x!.color + ';' + 'height: 3rem;'"/>
+        v-for="color in colors.list"
+        :key="color.x!.id"
+        :style="'background-color: ' + color.x!.color + ';' + 'height: 3rem;'"
+      />
     </v-row>
-    <v-row no-gutters v-else/>
+    <v-row
+      v-else
+      no-gutters
+    />
     <v-expansion-panels v-if="colors.list.length || editing">
       <v-expansion-panel>
         <v-expansion-panel-title>
           <v-row no-gutters>
             <v-col class="text-center">
-              <v-icon left :icon="mdiPalette"/>
+              <v-icon
+                left
+                :icon="mdiPalette"
+              />
               Color References
             </v-col>
           </v-row>
         </v-expansion-panel-title>
         <v-expansion-panel-text>
-          <template v-slot:default>
+          <template #default>
             <v-card-text>
-              <template v-for="(color, index) in colors.list" :key="color.x!.id">
-                <ac-ref-color :color="color" :username="username"/>
-                <v-divider v-if="index + 1 < colors.list.length" :key="`color-${index}-divider`"/>
+              <template
+                v-for="(color, index) in colors.list"
+                :key="color.x!.id"
+              >
+                <ac-ref-color
+                  :color="color"
+                  :username="username"
+                />
+                <v-divider
+                  v-if="index + 1 < colors.list.length"
+                  :key="`color-${index}-divider`"
+                />
               </template>
-              <ac-form @submit.prevent="newColor.submitThen(colors.push)" v-if="editing && colors.list.length < 24">
+              <ac-form
+                v-if="editing && colors.list.length < 24"
+                @submit.prevent="newColor.submitThen(colors.push)"
+              >
                 <ac-form-container v-bind="newColor.bind">
                   <v-row>
-                    <v-col><v-btn color="green" block @click="newColor.submitThen(postAdd)">Add Color</v-btn></v-col>
+                    <v-col>
+                      <v-btn
+                        color="green"
+                        block
+                        @click="newColor.submitThen(postAdd)"
+                      >
+                        Add Color
+                      </v-btn>
+                    </v-col>
                   </v-row>
                 </ac-form-container>
               </ac-form>

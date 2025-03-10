@@ -1,33 +1,82 @@
 <template>
-  <v-container class="pa-0" :fluid="fluid">
-    <v-container class="pa-0 loading-spinner-container" v-if="controller.fetching && growPermitting" :fluid="fluid">
+  <v-container
+    class="pa-0"
+    :fluid="fluid"
+  >
+    <v-container
+      v-if="controller.fetching && growPermitting"
+      class="pa-0 loading-spinner-container"
+      :fluid="fluid"
+    >
       <slot name="loading-spinner">
-        <ac-loading-spinner/>
+        <ac-loading-spinner />
       </slot>
     </v-container>
-    <v-container class="pa-0" :fluid="fluid" v-if="forceRender || (controller.ready && (!controller.fetching || grow))">
+    <v-container
+      v-if="forceRender || (controller.ready && (!controller.fetching || grow))"
+      class="pa-0"
+      :fluid="fluid"
+    >
       <!-- Always use a template tag with v-slot:default to fill this slot or else it will be evaluated by the parent. -->
-      <slot></slot>
+      <slot />
     </v-container>
-    <v-container class="pa-0" v-else-if="controller.failed">
+    <v-container
+      v-else-if="controller.failed"
+      class="pa-0"
+    >
       <slot name="failure">
-        <v-row class="failure-prompt" justify="center" align-content="center" align="center">
-          <v-col class="text-center shrink" align-self="center" cols="12">
+        <v-row
+          class="failure-prompt"
+          justify="center"
+          align-content="center"
+          align="center"
+        >
+          <v-col
+            class="text-center shrink"
+            align-self="center"
+            cols="12"
+          >
             <slot name="failure-header">
               <p>
-                <slot name="error-text">Whoops! We had an issue grabbing the information that goes here.</slot>
+                <slot name="error-text">
+                  Whoops! We had an issue grabbing the information that goes here.
+                </slot>
               </p>
             </slot>
           </v-col>
-          <v-col cols="12" align-self="center" class="shrink text-center">
-            <v-btn variant="elevated" @click="controller.retryGet" color="primary" class="retry-button">
-              <v-icon left :icon="mdiRefresh"/>
+          <v-col
+            cols="12"
+            align-self="center"
+            class="shrink text-center"
+          >
+            <v-btn
+              variant="elevated"
+              color="primary"
+              class="retry-button"
+              @click="controller.retryGet"
+            >
+              <v-icon
+                left
+                :icon="mdiRefresh"
+              />
               Retry
             </v-btn>
           </v-col>
-          <v-col cols="12" align-self="center" class="shrink text-center">
-            <v-btn variant="elevated" color="orange" @click="showSupport" class="support-button">
-              <v-icon left :icon="mdiHelpCircleOutline"/>
+          <v-col
+            cols="12"
+            align-self="center"
+            class="shrink text-center"
+          >
+            <v-btn
+              variant="elevated"
+              color="orange"
+              class="support-button"
+              @click="showSupport"
+            >
+              <v-icon
+                left
+                :icon="mdiHelpCircleOutline"
+              />
               Contact Support
             </v-btn>
           </v-col>
@@ -36,12 +85,6 @@
     </v-container>
   </v-container>
 </template>
-
-<style>
-.failure-prompt {
-  min-height: 50vh;
-}
-</style>
 
 <script setup lang="ts">
 import AcLoadingSpinner from './AcLoadingSpinner.vue'
@@ -83,3 +126,9 @@ const growPermitting = computed(() => {
   return true
 })
 </script>
+
+<style>
+.failure-prompt {
+  min-height: 50vh;
+}
+</style>

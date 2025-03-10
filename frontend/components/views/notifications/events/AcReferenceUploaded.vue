@@ -1,12 +1,18 @@
 <template>
-  <ac-base-notification :asset-link="url" :notification="notification" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :asset-link="url"
+    :notification="notification"
+    :username="username"
+  >
+    <template #title>
       <router-link :to="url">
-        Order #{{event.target.order.id}} [{{event.target.name}}]
+        Order #{{ event.target.order.id }} [{{ event.target.name }}]
       </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="url">A new reference has been added!</router-link>
+    <template #subtitle>
+      <router-link :to="url">
+        A new reference has been added!
+      </router-link>
     </template>
   </ac-base-notification>
 </template>

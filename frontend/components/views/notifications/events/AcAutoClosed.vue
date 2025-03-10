@@ -1,7 +1,13 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
-    <template v-slot:title>
-      <router-link :to="assetLink">Your sales have been automatically closed for inactivity.</router-link>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="assetLink"
+    :username="username"
+  >
+    <template #title>
+      <router-link :to="assetLink">
+        Your sales have been automatically closed for inactivity.
+      </router-link>
     </template>
   </ac-base-notification>
 </template>

@@ -1,38 +1,95 @@
 <template>
-  <v-col class="saved-card-container" cols="12" v-if="card.x">
-    <v-row no-gutters align="center">
-      <v-col class="shrink px-2" v-if="fieldMode">
-        <v-radio :value="card.x.id"></v-radio>
+  <v-col
+    v-if="card.x"
+    class="saved-card-container"
+    cols="12"
+  >
+    <v-row
+      no-gutters
+      align="center"
+    >
+      <v-col
+        v-if="fieldMode"
+        class="shrink px-2"
+      >
+        <v-radio :value="card.x.id" />
       </v-col>
       <v-col class="text-center fill-height shrink px-2">
-        <v-icon size="large" :icon="cardIcon" :class="`ac-${cardType}`"/>
+        <v-icon
+          size="large"
+          :icon="cardIcon"
+          :class="`ac-${cardType}`"
+        />
       </v-col>
       <v-col class="text-center fill-height shrink px-2">
-        <v-row no-gutters justify="center" align="center">
-          <v-col class="text-center">x{{card.x!.last_four}}</v-col>
+        <v-row
+          no-gutters
+          justify="center"
+          align="center"
+        >
+          <v-col class="text-center">
+            x{{ card.x!.last_four }}
+          </v-col>
         </v-row>
       </v-col>
       <v-col class="text-right fill-height grow">
-        <v-tooltip v-if="card.x.primary" top>
-          <template v-slot:activator="{props}">
-            <v-btn color="green" v-bind="props" icon size="x-small" class="default-indicator">
-              <v-icon :icon="mdiStar" size="x-large"/>
+        <v-tooltip
+          v-if="card.x.primary"
+          top
+        >
+          <template #activator="{props}">
+            <v-btn
+              color="green"
+              v-bind="props"
+              icon
+              size="x-small"
+              class="default-indicator"
+            >
+              <v-icon
+                :icon="mdiStar"
+                size="x-large"
+              />
             </v-btn>
           </template>
           <span>Default Card</span>
         </v-tooltip>
-        <v-tooltip v-else top>
-          <template v-slot:activator="{props}">
-            <v-btn v-bind="props" size="x-small" icon @click="makePrimary" color="black" class="make-default">
-              <v-icon :icon="mdiStarOutline" size="x-large"/>
+        <v-tooltip
+          v-else
+          top
+        >
+          <template #activator="{props}">
+            <v-btn
+              v-bind="props"
+              size="x-small"
+              icon
+              color="black"
+              class="make-default"
+              @click="makePrimary"
+            >
+              <v-icon
+                :icon="mdiStarOutline"
+                size="x-large"
+              />
             </v-btn>
           </template>
           <span>Set Default</span>
         </v-tooltip>
-        <ac-confirmation :action="deleteCard" card-class="delete-confirm">
-          <template v-slot:default="{on}">
-            <v-btn v-on="on" icon size="x-small" color="error" class="delete-card">
-              <v-icon :icon="mdiDelete" size="x-large"/>
+        <ac-confirmation
+          :action="deleteCard"
+          card-class="delete-confirm"
+        >
+          <template #default="{on}">
+            <v-btn
+              icon
+              size="x-small"
+              color="error"
+              class="delete-card"
+              v-on="on"
+            >
+              <v-icon
+                :icon="mdiDelete"
+                size="x-large"
+              />
             </v-btn>
           </template>
         </ac-confirmation>
@@ -40,14 +97,6 @@
     </v-row>
   </v-col>
 </template>
-
-<style>
-.saved-card-container .v-radio {
-  margin: 0; }
-  .saved-card-container .v-radio .v-input--selection-controls__input {
-    margin: 0; }
-
-</style>
 
 <script setup lang="ts">
 import {SingleController} from '@/store/singles/controller.ts'
@@ -91,3 +140,11 @@ const cardIcon = computed(() => {
   return ISSUERS[props.card.x!.type]?.icon?.path || mdiCreditCard
 })
 </script>
+
+<style>
+.saved-card-container .v-radio {
+  margin: 0; }
+  .saved-card-container .v-radio .v-input--selection-controls__input {
+    margin: 0; }
+
+</style>

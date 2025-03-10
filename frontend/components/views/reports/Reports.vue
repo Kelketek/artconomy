@@ -1,8 +1,8 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
-    <template v-slot:default>
-      <ac-site-financials v-if="subject!.is_superuser"/>
-      <ac-tax-reports :username="username"/>
+    <template #default>
+      <ac-site-financials v-if="subject!.is_superuser" />
+      <ac-tax-reports :username="username" />
     </template>
   </ac-load-section>
 </template>

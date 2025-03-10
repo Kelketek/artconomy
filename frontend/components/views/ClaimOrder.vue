@@ -1,26 +1,74 @@
 <template>
   <v-container>
-    <ac-form-container :sending="claimForm.sending" :errors="claimForm.errors">
+    <ac-form-container
+      :sending="claimForm.sending"
+      :errors="claimForm.errors"
+    >
       <v-row no-gutters>
-        <v-col class="text-center" cols="12">
+        <v-col
+          class="text-center"
+          cols="12"
+        >
           <h1>Your Order is waiting!</h1>
         </v-col>
-        <v-col class="text-center" cols="12">
-          <v-img :src="cheering" max-height="30vh" :contain="true"></v-img>
+        <v-col
+          class="text-center"
+          cols="12"
+        >
+          <v-img
+            :src="cheering"
+            max-height="30vh"
+            :contain="true"
+          />
         </v-col>
-        <v-col class="text-center" cols="12" v-if="isRegistered">
-          <p>You are currently logged in as <strong>{{viewerName}}</strong>. Would you like to claim this order as
-            {{viewerName}} or continue as a guest?</p>
+        <v-col
+          v-if="isRegistered"
+          class="text-center"
+          cols="12"
+        >
+          <p>
+            You are currently logged in as <strong>{{ viewerName }}</strong>. Would you like to claim this order as
+            {{ viewerName }} or continue as a guest?
+          </p>
         </v-col>
-        <v-col class="text-center text-sm-right" cols="12" sm="6" v-if="isRegistered">
-          <v-btn color="green" @click="claimAsUser" variant="flat">Claim as {{viewerName}}!</v-btn>
+        <v-col
+          v-if="isRegistered"
+          class="text-center text-sm-right"
+          cols="12"
+          sm="6"
+        >
+          <v-btn
+            color="green"
+            variant="flat"
+            @click="claimAsUser"
+          >
+            Claim as {{ viewerName }}!
+          </v-btn>
         </v-col>
-        <v-col class="text-center text-sm-left" cols="12" sm="6" v-if="isRegistered">
-          <v-btn @click="becomeGuest" variant="flat">Continue as guest</v-btn>
+        <v-col
+          v-if="isRegistered"
+          class="text-center text-sm-left"
+          cols="12"
+          sm="6"
+        >
+          <v-btn
+            variant="flat"
+            @click="becomeGuest"
+          >
+            Continue as guest
+          </v-btn>
         </v-col>
-        <v-col cols="12" v-for="field of claimForm.fields" :key="field.fieldName">
-          <v-alert v-for="(error, index) of field.errors" :key="index" :value="true">
-            {{error}}
+        <v-col
+          v-for="field of claimForm.fields"
+          :key="field.fieldName"
+          cols="12"
+        >
+          <v-alert
+            v-for="(error, index) of field.errors"
+            :key="index"
+            :value="true"
+          >
+            {{ error }}
           </v-alert>
         </v-col>
       </v-row>

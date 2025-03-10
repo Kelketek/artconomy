@@ -1,53 +1,113 @@
 <template>
-  <ac-new-submission v-if="firstUpload || newUpload" :username="username" @success="addSample" :visit="false" title="Upload a Sample"
-                     :model-value="modelValue" @update:model-value="toggle" ref="newSubmissionForm" :allow-multiple="true"/>
-  <ac-expanded-property :model-value="modelValue" :large="true" @update:model-value="toggle" class="sample-editor"
-                        ref="sampleEditor" v-else>
-    <template v-slot:title>
+  <ac-new-submission
+    v-if="firstUpload || newUpload"
+    ref="newSubmissionForm"
+    :username="username"
+    :visit="false"
+    title="Upload a Sample"
+    :model-value="modelValue"
+    :allow-multiple="true"
+    @success="addSample"
+    @update:model-value="toggle"
+  />
+  <ac-expanded-property
+    v-else
+    ref="sampleEditor"
+    :model-value="modelValue"
+    :large="true"
+    class="sample-editor"
+    @update:model-value="toggle"
+  >
+    <template #title>
       <span>Change Samples</span>
     </template>
-    <template v-slot:default>
-      <div class="stuff"></div>
+    <template #default>
+      <div class="stuff" />
       <v-row no-gutters>
         <v-col cols="12">
-          <v-tabs v-model="tab" centered>
-            <v-tab value="tab-pick-sample" class="pick-sample-tab">Manage Samples</v-tab>
-            <v-tab value="tab-add-new" class="add-new-tab">Add Sample</v-tab>
+          <v-tabs
+            v-model="tab"
+            centered
+          >
+            <v-tab
+              value="tab-pick-sample"
+              class="pick-sample-tab"
+            >
+              Manage Samples
+            </v-tab>
+            <v-tab
+              value="tab-add-new"
+              class="add-new-tab"
+            >
+              Add Sample
+            </v-tab>
           </v-tabs>
         </v-col>
         <v-col cols="12">
           <v-window v-model="tab">
-            <v-window-item value="tab-pick-sample" eager>
+            <v-window-item
+              value="tab-pick-sample"
+              eager
+            >
               <ac-patch-field
-                  field-type="ac-submission-select"
-                  :patcher="product.patchers.primary_submission"
-                  :list="localSamples"
-                  v-if="localSamples"
-                  :save-comparison="product.x!.primary_submission"
-                  :related="true"
-                  :show-progress="true"
-                  :removable="true"
-                  @remove="unlinkSubmission"
-              >
-              </ac-patch-field>
+                v-if="localSamples"
+                field-type="ac-submission-select"
+                :patcher="product.patchers.primary_submission"
+                :list="localSamples"
+                :save-comparison="product.x!.primary_submission"
+                :related="true"
+                :show-progress="true"
+                :removable="true"
+                @remove="unlinkSubmission"
+              />
             </v-window-item>
-            <v-window-item value="tab-add-new" eager>
+            <v-window-item
+              value="tab-add-new"
+              eager
+            >
               <v-row no-gutters>
-                <v-col class="text-center" cols="12">
-                  <v-btn @click="newUpload = true" color="primary" variant="flat">
-                    <v-icon left :icon="mdiUpload"/>
+                <v-col
+                  class="text-center"
+                  cols="12"
+                >
+                  <v-btn
+                    color="primary"
+                    variant="flat"
+                    @click="newUpload = true"
+                  >
+                    <v-icon
+                      left
+                      :icon="mdiUpload"
+                    />
                     Upload New Sample
                   </v-btn>
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="!art.empty">
+                <v-col
+                  v-if="!art.empty"
+                  class="text-center"
+                  cols="12"
+                >
                   <p><strong>OR</strong></p>
                   <p>Select one of the pieces from your gallery below!</p>
                 </v-col>
-                <v-col cols="12" v-if="!art.empty">
+                <v-col
+                  v-if="!art.empty"
+                  cols="12"
+                >
                   <ac-paginated :list="art">
-                    <v-col class="px-1" cols="6" sm="6" md="3" v-for="submission in art.list" :key="submission.x!.id"
-                           @click.capture.stop.prevent="artToSample(submission.x!)">
-                      <ac-gallery-preview :submission="submission.x!" class="product-sample-option"/>
+                    <v-col
+                      v-for="submission in art.list"
+                      :key="submission.x!.id"
+                      class="px-1"
+                      cols="6"
+                      sm="6"
+                      md="3"
+                      @click.capture.stop.prevent="artToSample(submission.x!)"
+                    >
+                      <ac-gallery-preview
+                        :submission="submission.x!"
+                        class="product-sample-option"
+                      />
                     </v-col>
                   </ac-paginated>
                 </v-col>
@@ -57,15 +117,26 @@
         </v-col>
       </v-row>
     </template>
-    <template v-slot:actions>
-      <v-spacer/>
-      <v-btn color="danger" v-if="product.x!.primary_submission" @click="product.patch({primary_submission: null})"
-             class="clear-showcased"
-             variant="flat"
-      >Clear Showcased Sample
+    <template #actions>
+      <v-spacer />
+      <v-btn
+        v-if="product.x!.primary_submission"
+        color="danger"
+        class="clear-showcased"
+        variant="flat"
+        @click="product.patch({primary_submission: null})"
+      >
+        Clear Showcased Sample
       </v-btn>
-      <v-btn color="primary" @click="toggle(false)" v-if="mdAndUp" variant="flat">Done</v-btn>
-      <v-spacer v-if="smAndDown"/>
+      <v-btn
+        v-if="mdAndUp"
+        color="primary"
+        variant="flat"
+        @click="toggle(false)"
+      >
+        Done
+      </v-btn>
+      <v-spacer v-if="smAndDown" />
     </template>
   </ac-expanded-property>
 </template>

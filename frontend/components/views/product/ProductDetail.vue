@@ -1,20 +1,50 @@
 <template>
-  <ac-load-section :controller="product" itemscope itemtype="http://schema.org/Product" v-if="currentRoute"
-                   class="pt-3">
-    <template v-slot:default>
+  <ac-load-section
+    v-if="currentRoute"
+    :controller="product"
+    itemscope
+    itemtype="http://schema.org/Product"
+    class="pt-3"
+  >
+    <template #default>
       <v-row v-if="product.x">
         <template v-if="smAndDown">
-          <v-col class="hidden-md-and-up" cols="12" style="position: relative">
-            <ac-sample-editor v-model="showChangePrimary" :large="true" :username="username" :product="product"
-                              :product-id="productId" :samples="samples"/>
-            <div class="edit-overlay" v-if="editing" v-ripple="{ center: true }" @click="showChangePrimary = true">
-              <v-container fluid class="pa-0 edit-container">
+          <v-col
+            class="hidden-md-and-up"
+            cols="12"
+            style="position: relative"
+          >
+            <ac-sample-editor
+              v-model="showChangePrimary"
+              :large="true"
+              :username="username"
+              :product="product"
+              :product-id="productId"
+              :samples="samples"
+            />
+            <div
+              v-if="editing"
+              v-ripple="{ center: true }"
+              class="edit-overlay"
+              @click="showChangePrimary = true"
+            >
+              <v-container
+                fluid
+                class="pa-0 edit-container"
+              >
                 <v-col class="edit-layout justify-content d-flex">
                   <v-col class="d-flex">
-                    <v-row no-gutters class="justify-content" align="center">
+                    <v-row
+                      no-gutters
+                      class="justify-content"
+                      align="center"
+                    >
                       <v-col class="edit-cta text-center">
                         <slot name="edit-prompt">
-                          <v-icon large :icon="mdiCameraBurst"/>
+                          <v-icon
+                            large
+                            :icon="mdiCameraBurst"
+                          />
                           <p>Edit</p>
                         </slot>
                       </v-col>
@@ -22,102 +52,200 @@
                   </v-col>
                 </v-col>
               </v-container>
-              <div class="backdrop"></div>
+              <div class="backdrop" />
             </div>
-            <v-carousel height="60vh" :cycle="false" :show-arrows="slides.length > 1"
-                        :hide-delimiters="slides.length <= 1">
+            <v-carousel
+              height="60vh"
+              :cycle="false"
+              :show-arrows="slides.length > 1"
+              :hide-delimiters="slides.length <= 1"
+            >
               <v-carousel-item v-if="product.x.primary_submission === null">
-                <ac-asset thumb-name="thumbnail" :aspect-ratio="1" :asset="null" :contain="true" :terse="true" :alt="productAltText" :transition="false"/>
+                <ac-asset
+                  thumb-name="thumbnail"
+                  :aspect-ratio="1"
+                  :asset="null"
+                  :contain="true"
+                  :terse="true"
+                  :alt="productAltText"
+                  :transition="false"
+                />
               </v-carousel-item>
-              <v-carousel-item v-for="sample in slides" :key="sample.id">
-                <ac-gallery-preview :submission="sample"
-                                    :aspect-ratio="1"
-                                    thumb-name="thumbnail" :terse="true"
-                                    :text="false" :show-footer="false"
+              <v-carousel-item
+                v-for="sample in slides"
+                :key="sample.id"
+              >
+                <ac-gallery-preview
+                  :submission="sample"
+                  :aspect-ratio="1"
+                  thumb-name="thumbnail"
+                  :terse="true"
+                  :text="false"
+                  :show-footer="false"
                 />
               </v-carousel-item>
             </v-carousel>
           </v-col>
-          <v-col class="hidden-md-and-up" cols="12" v-if="more">
-            <v-btn color="primary" block :to="{name: 'ProductGallery', params: {productId, username}}" variant="flat">Show full
+          <v-col
+            v-if="more"
+            class="hidden-md-and-up"
+            cols="12"
+          >
+            <v-btn
+              color="primary"
+              block
+              :to="{name: 'ProductGallery', params: {productId, username}}"
+              variant="flat"
+            >
+              Show full
               gallery
             </v-btn>
           </v-col>
         </template>
-        <v-col v-else md="4" lg="5">
+        <v-col
+          v-else
+          md="4"
+          lg="5"
+        >
           <v-responsive max-height="80vh">
             <v-row no-gutters>
-              <v-col cols="2" v-if="showExtra">
+              <v-col
+                v-if="showExtra"
+                cols="2"
+              >
                 <v-col>
-                  <v-col class="pa-1" v-for="sample in slides" @click.capture.stop.prevent="shown = sample"
-                         @mouseover="shown = sample"
-                         :key="sample.id"
+                  <v-col
+                    v-for="sample in slides"
+                    :key="sample.id"
+                    class="pa-1"
+                    @click.capture.stop.prevent="shown = sample"
+                    @mouseover="shown = sample"
                   >
-                    <ac-asset :asset="sample"
-                              thumb-name="thumbnail" :terse="true"
-                              :text="false"
-                              :aspect-ratio="1"
-                              :alt="assetAltText(sample)"
-                              :class="{submissionSelected: (shown && shown.id === sample.id)}"
+                    <ac-asset
+                      :asset="sample"
+                      thumb-name="thumbnail"
+                      :terse="true"
+                      :text="false"
+                      :aspect-ratio="1"
+                      :alt="assetAltText(sample)"
+                      :class="{submissionSelected: (shown && shown.id === sample.id)}"
                     />
                   </v-col>
                 </v-col>
               </v-col>
               <v-col :class="{md10: showExtra, md12: !showExtra}">
                 <ac-link :to="shownSubmissionLink">
-                  <ac-asset :asset="shown"
-                            thumb-name="gallery" :terse="true"
-                            :editing="editing"
-                            :alt="productAltText"
-                            v-model="showChangePrimary"
+                  <ac-asset
+                    v-model="showChangePrimary"
+                    :asset="shown"
+                    thumb-name="gallery"
+                    :terse="true"
+                    :editing="editing"
+                    :alt="productAltText"
                   >
-                    <template v-slot:edit-prompt>
-                      <v-icon size="x-large" large :icon="mdiCameraBurst"/>
+                    <template #edit-prompt>
+                      <v-icon
+                        size="x-large"
+                        large
+                        :icon="mdiCameraBurst"
+                      />
                       <p>Add/Edit Samples</p>
                     </template>
-                    <template v-slot:edit-menu>
-                      <ac-sample-editor v-model="showChangePrimary" :large="true" :username="username"
-                                        :product="product" :product-id="productId" :samples="samples"/>
+                    <template #edit-menu>
+                      <ac-sample-editor
+                        v-model="showChangePrimary"
+                        :large="true"
+                        :username="username"
+                        :product="product"
+                        :product-id="productId"
+                        :samples="samples"
+                      />
                     </template>
                   </ac-asset>
                 </ac-link>
               </v-col>
-              <v-col cols="12" v-if="more" class="pl-4 pt-2">
-                <v-btn color="primary" block :to="{name: 'ProductGallery', params: {productId, username}}" variant="flat">Show full
+              <v-col
+                v-if="more"
+                cols="12"
+                class="pl-4 pt-2"
+              >
+                <v-btn
+                  color="primary"
+                  block
+                  :to="{name: 'ProductGallery', params: {productId, username}}"
+                  variant="flat"
+                >
+                  Show full
                   gallery
                 </v-btn>
               </v-col>
             </v-row>
           </v-responsive>
         </v-col>
-        <v-col cols="12" md="5" lg="5" :class="{'px-2': mdAndUp}">
-          <v-toolbar dense color="black">
-            <ac-avatar :username="username" :show-name="false" class="ml-3"/>
+        <v-col
+          cols="12"
+          md="5"
+          lg="5"
+          :class="{'px-2': mdAndUp}"
+        >
+          <v-toolbar
+            dense
+            color="black"
+          >
+            <ac-avatar
+              :username="username"
+              :show-name="false"
+              class="ml-3"
+            />
             <v-toolbar-title class="ml-1">
-              <ac-link :to="profileLink(subject)">{{username}}</ac-link>
+              <ac-link :to="profileLink(subject)">
+                {{ username }}
+              </ac-link>
             </v-toolbar-title>
-            <v-spacer/>
+            <v-spacer />
             <v-toolbar-items>
-              <v-menu offset-x left :close-on-content-click="false" :attach="menuTarget" v-if="controls">
-                <template v-slot:activator="{props}">
-                  <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-                    <v-icon :icon="mdiDotsHorizontal"/>
+              <v-menu
+                v-if="controls"
+                offset-x
+                left
+                :close-on-content-click="false"
+                :attach="menuTarget"
+              >
+                <template #activator="{props}">
+                  <v-btn
+                    icon
+                    v-bind="props"
+                    class="more-button"
+                    aria-label="Actions"
+                  >
+                    <v-icon :icon="mdiDotsHorizontal" />
                   </v-btn>
                 </template>
                 <v-list dense>
                   <v-list-item @click="editing = !editing">
-                    <template v-slot:prepend>
-                      <v-icon v-if="editing" :icon="mdiLock"/>
-                      <v-icon v-else :icon="mdiPencil"/>
+                    <template #prepend>
+                      <v-icon
+                        v-if="editing"
+                        :icon="mdiLock"
+                      />
+                      <v-icon
+                        v-else
+                        :icon="mdiPencil"
+                      />
                     </template>
-                    <v-list-item-title v-if="editing">Lock</v-list-item-title>
-                    <v-list-item-title v-else>Edit</v-list-item-title>
+                    <v-list-item-title v-if="editing">
+                      Lock
+                    </v-list-item-title>
+                    <v-list-item-title v-else>
+                      Edit
+                    </v-list-item-title>
                   </v-list-item>
                   <v-list-item>
-                    <template v-slot:prepend>
-                      <v-switch v-model="product.patchers.hidden.model"
-                                :hide-details="true"
-                                color="primary"
+                    <template #prepend>
+                      <v-switch
+                        v-model="product.patchers.hidden.model"
+                        :hide-details="true"
+                        color="primary"
                       />
                     </template>
                     <v-list-item-title>
@@ -125,10 +253,13 @@
                     </v-list-item-title>
                   </v-list-item>
                   <ac-confirmation :action="deleteProduct">
-                    <template v-slot:default="confirmContext">
+                    <template #default="confirmContext">
                       <v-list-item v-on="confirmContext.on">
-                        <template v-slot:prepend>
-                          <v-icon class="delete-button" :icon="mdiDelete"/>
+                        <template #prepend>
+                          <v-icon
+                            class="delete-button"
+                            :icon="mdiDelete"
+                          />
                         </template>
                         <v-list-item-title>Delete</v-list-item-title>
                       </v-list-item>
@@ -142,93 +273,189 @@
             <v-card-text>
               <v-row no-gutters>
                 <v-col cols="12">
-                  <ac-patch-field label="Title" :patcher="product.patchers.name"
-                                  v-if="controls" v-show="editing"/>
-                  <h1 v-show="!editing" itemprop="name">{{product.x.name}}</h1>
+                  <ac-patch-field
+                    v-if="controls"
+                    v-show="editing"
+                    label="Title"
+                    :patcher="product.patchers.name"
+                  />
+                  <h1
+                    v-show="!editing"
+                    itemprop="name"
+                  >
+                    {{ product.x.name }}
+                  </h1>
                 </v-col>
                 <v-col cols="12">
-                  <v-row dense class="py-3">
+                  <v-row
+                    dense
+                    class="py-3"
+                  >
                     <div class="d-inline-flex mr-1">
-                      <router-link :to="{name: 'Ratings', params: {username}}" itemprop="aggregateRating"
-                                   itemscope itemtype="http://schema.org/AggregateRating" v-if="product.x.user.stars">
-                        <span itemprop="ratingValue" :content="product.x.user.stars"></span>
-                        <span itemprop="ratingCount" :content="product.x.user.rating_count"></span>
-                        <v-rating :model-value="starRound(product.x.user.stars)" density="compact" size="small" half-increments readonly
-                                  color="primary"
-                                  v-if="product.x.user.stars"/>
+                      <router-link
+                        v-if="product.x.user.stars"
+                        :to="{name: 'Ratings', params: {username}}"
+                        itemprop="aggregateRating"
+                        itemscope
+                        itemtype="http://schema.org/AggregateRating"
+                      >
+                        <span
+                          itemprop="ratingValue"
+                          :content="product.x.user.stars"
+                        />
+                        <span
+                          itemprop="ratingCount"
+                          :content="product.x.user.rating_count"
+                        />
+                        <v-rating
+                          v-if="product.x.user.stars"
+                          :model-value="starRound(product.x.user.stars)"
+                          density="compact"
+                          size="small"
+                          half-increments
+                          readonly
+                          color="primary"
+                        />
                       </router-link>
                     </div>
-                    <div class="d-inline-flex mr-1" v-if="product.x.user.stars">
-                      <v-divider vertical/>
+                    <div
+                      v-if="product.x.user.stars"
+                      class="d-inline-flex mr-1"
+                    >
+                      <v-divider vertical />
                     </div>
                     <div class="d-inline-flex mr-1">
-                      <v-chip size="small"  variant="flat">
-                        <v-icon left :icon="mdiEye"/>
-                        {{product.x.hits}}
+                      <v-chip
+                        size="small"
+                        variant="flat"
+                      >
+                        <v-icon
+                          left
+                          :icon="mdiEye"
+                        />
+                        {{ product.x.hits }}
                       </v-chip>
                     </div>
-                    <div class="d-inline-flex mr-1" v-if="product.x.featured">
-                      <v-chip size="small" color="success" variant="flat">
+                    <div
+                      v-if="product.x.featured"
+                      class="d-inline-flex mr-1"
+                    >
+                      <v-chip
+                        size="small"
+                        color="success"
+                        variant="flat"
+                      >
                         <v-avatar>
-                          <v-icon :icon="mdiStar"/>
+                          <v-icon :icon="mdiStar" />
                         </v-avatar>
                         Featured!
                       </v-chip>
                     </div>
                   </v-row>
-                  <v-divider/>
+                  <v-divider />
                 </v-col>
-                <v-col cols="12" class="pt-2">
-                  <ac-rendered :value="product.x.description" v-show="!editing" itemprop="description"/>
+                <v-col
+                  cols="12"
+                  class="pt-2"
+                >
+                  <ac-rendered
+                    v-show="!editing"
+                    :value="product.x.description"
+                    itemprop="description"
+                  />
                   <ac-patch-field
-                      field-type="ac-editor"
-                      :patcher="product.patchers.description"
-                      v-if="controls"
-                      v-show="editing"
-                      label="Description"
-                      hint="Tell the customer more about what you're offering."
-                      :counter="5000"
-                      :save-comparison="product.x.description"/>
+                    v-if="controls"
+                    v-show="editing"
+                    field-type="ac-editor"
+                    :patcher="product.patchers.description"
+                    label="Description"
+                    hint="Tell the customer more about what you're offering."
+                    :counter="5000"
+                    :save-comparison="product.x.description"
+                  />
                 </v-col>
-                <v-col cols="12" class="my-2">
-                  <v-divider/>
+                <v-col
+                  cols="12"
+                  class="my-2"
+                >
+                  <v-divider />
                 </v-col>
                 <v-col cols="12">
-                  <ac-tag-display :patcher="product.patchers.tags"
-                                  :editable="controls"
-                                  :username="username"
-                                  scope="Products"
+                  <ac-tag-display
+                    :patcher="product.patchers.tags"
+                    :editable="controls"
+                    :username="username"
+                    scope="Products"
                   />
                 </v-col>
                 <v-col cols="12">
                   <ac-load-section :controller="subjectHandler.artistProfile">
-                    <template v-slot:default>
-                      <v-row no-gutters v-if="subjectHandler.artistProfile.x">
-                        <v-col cols="12" class="my-2">
+                    <template #default>
+                      <v-row
+                        v-if="subjectHandler.artistProfile.x"
+                        no-gutters
+                      >
+                        <v-col
+                          cols="12"
+                          class="my-2"
+                        >
                           <strong>Maximum Content Ratings:</strong>
-                          <v-btn class="mx-2 rating-button" size="x-small" :color="RATING_COLOR[product.x.max_rating]"
-                                 @click="showRating" :ripple="editing" :variant="editing ? 'elevated' : 'flat'">
-                            <v-icon left v-if="editing" :icon="mdiPencil"/>
-                            {{RATINGS_SHORT[product.x.max_rating]}}
+                          <v-btn
+                            class="mx-2 rating-button"
+                            size="x-small"
+                            :color="RATING_COLOR[product.x.max_rating]"
+                            :ripple="editing"
+                            :variant="editing ? 'elevated' : 'flat'"
+                            @click="showRating"
+                          >
+                            <v-icon
+                              v-if="editing"
+                              left
+                              :icon="mdiPencil"
+                            />
+                            {{ RATINGS_SHORT[product.x.max_rating] }}
                           </v-btn>
-                          <ac-expanded-property v-model="ratingDialog" v-if="controls" aria-label="Edit rating">
-                            <ac-patch-field field-type="ac-rating-field" :patcher="product.patchers.max_rating"/>
+                          <ac-expanded-property
+                            v-if="controls"
+                            v-model="ratingDialog"
+                            aria-label="Edit rating"
+                          >
+                            <ac-patch-field
+                              field-type="ac-rating-field"
+                              :patcher="product.patchers.max_rating"
+                            />
                           </ac-expanded-property>
                         </v-col>
                         <v-col cols="12">
-                          <v-list-subheader v-if="subjectHandler.artistProfile.x.commission_info || editing">Commission
+                          <v-list-subheader v-if="subjectHandler.artistProfile.x.commission_info || editing">
+                            Commission
                             Info
                           </v-list-subheader>
-                          <div class="text-center" v-if="editing">
-                            <v-btn color="primary" :to="{name: 'Artist', params: {username}}" variant="flat">
+                          <div
+                            v-if="editing"
+                            class="text-center"
+                          >
+                            <v-btn
+                              color="primary"
+                              :to="{name: 'Artist', params: {username}}"
+                              variant="flat"
+                            >
                               <span
-                                  v-if="subjectHandler.artistProfile.x.commission_info">Edit your Commission Info</span>
+                                v-if="subjectHandler.artistProfile.x.commission_info"
+                              >Edit your Commission Info</span>
                               <span v-else>Set your commission info</span>
                             </v-btn>
                           </div>
-                          <ac-rendered :value="subjectHandler.artistProfile.x.commission_info" :truncate="500"/>
+                          <ac-rendered
+                            :value="subjectHandler.artistProfile.x.commission_info"
+                            :truncate="500"
+                          />
                         </v-col>
-                        <v-col cols="12" v-if="editing" class="pt-3">
+                        <v-col
+                          v-if="editing"
+                          cols="12"
+                          class="pt-3"
+                        >
                           <v-expansion-panels>
                             <v-expansion-panel>
                               <v-expansion-panel-title>Details Template</v-expansion-panel-title>
@@ -243,17 +470,18 @@
                                   </v-col>
                                   <v-col cols="6">
                                     <blockquote>
-                                      Preferred colors:<br/><br/>
-                                      Do you want shading? (yes/no):<br/><br/>
+                                      Preferred colors:<br><br>
+                                      Do you want shading? (yes/no):<br><br>
                                       What are your social media accounts you'd like me to tag when the piece is done?:
                                     </blockquote>
                                   </v-col>
                                   <v-col cols="12">
                                     <ac-patch-field
-                                        :patcher="product.patchers.details_template" label="Details Template"
-                                        field-type="ac-editor"
-                                        :persistent-hint="true"
-                                        :counter="500"
+                                      :patcher="product.patchers.details_template"
+                                      label="Details Template"
+                                      field-type="ac-editor"
+                                      :persistent-hint="true"
+                                      :counter="500"
                                     />
                                   </v-col>
                                 </v-row>
@@ -269,138 +497,235 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3" lg="2">
+        <v-col
+          cols="12"
+          md="3"
+          lg="2"
+        >
           <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
                 <v-col cols="12">
-                  <span v-if="product.patchers.name_your_price.model" class="text-h4">Name Your Price!</span>
+                  <span
+                    v-if="product.patchers.name_your_price.model"
+                    class="text-h4"
+                  >Name Your Price!</span>
                   <template v-else>
-                    <div v-if="showDiscount"><span class="compare-at-price">${{product.x.compare_at_price}}</span></div>
-                    <span itemprop="offers" itemscope itemtype="http://schema.org/Offer"
-                          v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable">
-                      <span itemprop="priceCurrency" content="USD" class="text-h4">$</span><span class="text-h4" itemprop="price"
-                                                                                 :content="product.x.shield_price">{{product.x.shield_price}}</span>
+                    <div v-if="showDiscount">
+                      <span class="compare-at-price">${{ product.x.compare_at_price }}</span>
+                    </div>
+                    <span
+                      v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable"
+                      itemprop="offers"
+                      itemscope
+                      itemtype="http://schema.org/Offer"
+                    >
+                      <span
+                        itemprop="priceCurrency"
+                        content="USD"
+                        class="text-h4"
+                      >$</span><span
+                        class="text-h4"
+                        itemprop="price"
+                        :content="product.x.shield_price"
+                      >{{ product.x.shield_price }}</span>
                     </span>
-                    <span itemprop="offers" itemscope itemtype="http://schema.org/Offer" class="text-h4" v-else>
-                      <span itemprop="priceCurrency" content="USD">$</span><span itemprop="price"
-                                                                                 class="text-h4"
-                                                                                 :content="product.x.starting_price">{{product.x.starting_price}}</span>
+                    <span
+                      v-else
+                      itemprop="offers"
+                      itemscope
+                      itemtype="http://schema.org/Offer"
+                      class="text-h4"
+                    >
+                      <span
+                        itemprop="priceCurrency"
+                        content="USD"
+                      >$</span><span
+                        itemprop="price"
+                        class="text-h4"
+                        :content="product.x.starting_price"
+                      >{{ product.x.starting_price }}</span>
                     </span>
                   </template>
-                  <v-btn v-show="editing" icon variant="plain" color="primary" @click="showTerms = true">
-                    <v-icon :icon="mdiPencil"/>
+                  <v-btn
+                    v-show="editing"
+                    icon
+                    variant="plain"
+                    color="primary"
+                    @click="showTerms = true"
+                  >
+                    <v-icon :icon="mdiPencil" />
                   </v-btn>
-                  <ac-expanded-property v-model="showTerms" :large="true" v-if="controls" aria-label="Edit terms">
-                    <template v-slot:title>Edit Terms</template>
+                  <ac-expanded-property
+                    v-if="controls"
+                    v-model="showTerms"
+                    :large="true"
+                    aria-label="Edit terms"
+                  >
+                    <template #title>
+                      Edit Terms
+                    </template>
                     <v-row>
-                      <v-col cols="12" md="6">
+                      <v-col
+                        cols="12"
+                        md="6"
+                      >
                         <v-row>
                           <v-col cols="12">
                             <v-row>
-                              <v-col cols="12" md="6">
-                                <v-checkbox v-model="saleMode" label="Sale mode" hint="Check this to mark the item as on sale." />
+                              <v-col
+                                cols="12"
+                                md="6"
+                              >
+                                <v-checkbox
+                                  v-model="saleMode"
+                                  label="Sale mode"
+                                  hint="Check this to mark the item as on sale."
+                                />
                               </v-col>
-                              <v-col cols="12" md="6">
-                                <ac-patch-field :patcher="product.patchers.compare_at_price" label="Compare at price"
-                                                field-type="ac-price-field"
-                                                :persistent-hint="true"
-                                                :disabled="!saleMode"
-                                                hint="The price the sale price is compared to."
+                              <v-col
+                                cols="12"
+                                md="6"
+                              >
+                                <ac-patch-field
+                                  :patcher="product.patchers.compare_at_price"
+                                  label="Compare at price"
+                                  field-type="ac-price-field"
+                                  :persistent-hint="true"
+                                  :disabled="!saleMode"
+                                  hint="The price the sale price is compared to."
                                 />
                               </v-col>
                             </v-row>
                           </v-col>
                           <v-col cols="12">
-                            <ac-patch-field :patcher="product.patchers.base_price" :label="basePriceLabel"
-                                            field-type="ac-price-field"
-                                            :hint="priceHint"
+                            <ac-patch-field
+                              :patcher="product.patchers.base_price"
+                              :label="basePriceLabel"
+                              field-type="ac-price-field"
+                              :hint="priceHint"
                             />
                           </v-col>
-                          <v-col cols="12" md="6">
+                          <v-col
+                            cols="12"
+                            md="6"
+                          >
                             <ac-patch-field
-                                :patcher="product.patchers.cascade_fees" field-type="v-switch" label="Absorb fees"
-                                :persistent-hint="true"
-                                hint="If turned on, the price you set is the price your commissioner will see, and you
+                              :patcher="product.patchers.cascade_fees"
+                              field-type="v-switch"
+                              label="Absorb fees"
+                              :persistent-hint="true"
+                              hint="If turned on, the price you set is the price your commissioner will see, and you
                           will pay all fees from that price. If turned off, the price you set is the amount you
                           take home, and the total the customer pays includes the fees."
-                                :true-value="true"
-                                :false-value="false"
-                                color="primary"
+                              :true-value="true"
+                              :false-value="false"
+                              color="primary"
                             />
                           </v-col>
-                          <v-col cols="12" md="6">
+                          <v-col
+                            cols="12"
+                            md="6"
+                          >
                             <ac-patch-field
-                                :patcher="product.patchers.name_your_price" field-type="v-switch"
-                                label="Name Your Price" :persistent-hint="true"
-                                hint="If turned on, the base price is treated as a minimum price to cover costs,
+                              :patcher="product.patchers.name_your_price"
+                              field-type="v-switch"
+                              label="Name Your Price"
+                              :persistent-hint="true"
+                              hint="If turned on, the base price is treated as a minimum price to cover costs,
                                      and the client is prompted to put in their own price. This is useful for 'Pay
                                      What You Want' commissions. You should note whatever impact the price has on the
                                      commission in the product details in order to avoid any dispute issues."
-                                :true-value="true"
-                                :false-value="false"
-                                color="primary"
+                              :true-value="true"
+                              :false-value="false"
+                              color="primary"
                             />
                           </v-col>
-                          <v-col cols="12" md="6" v-if="fullSubject.paypal_configured">
+                          <v-col
+                            v-if="fullSubject.paypal_configured"
+                            cols="12"
+                            md="6"
+                          >
                             <ac-patch-field
-                                :patcher="product.patchers.paypal"
-                                field-type="v-switch"
-                                label="PayPal Invoicing"
-                                :persistent-hint="true"
-                                hint="If the order is marked unshielded, generate a PayPal invoice upon acceptance."
-                                :true-value="true"
-                                :false-value="false"
-                                color="primary"
+                              :patcher="product.patchers.paypal"
+                              field-type="v-switch"
+                              label="PayPal Invoicing"
+                              :persistent-hint="true"
+                              hint="If the order is marked unshielded, generate a PayPal invoice upon acceptance."
+                              :true-value="true"
+                              :false-value="false"
+                              color="primary"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6" v-if="escrow">
+                          <v-col
+                            v-if="escrow"
+                            cols="12"
+                            sm="6"
+                          >
                             <ac-patch-field
-                                :patcher="product.patchers.escrow_enabled"
-                                field-type="v-switch"
-                                label="Shield enabled"
-                                :persistent-hint="true"
-                                hint="Enable shield protection for this product."
-                                :true-value="true"
-                                :false-value="false"
-                                color="primary"
+                              :patcher="product.patchers.escrow_enabled"
+                              field-type="v-switch"
+                              label="Shield enabled"
+                              :persistent-hint="true"
+                              hint="Enable shield protection for this product."
+                              :true-value="true"
+                              :false-value="false"
+                              color="primary"
                             />
                           </v-col>
-                          <v-col cols="12" sm="6" v-if="escrow">
+                          <v-col
+                            v-if="escrow"
+                            cols="12"
+                            sm="6"
+                          >
                             <ac-patch-field
-                                :patcher="product.patchers.escrow_upgradable"
-                                field-type="v-switch"
-                                label="Allow Shield Upgrade"
-                                :persistent-hint="true"
-                                :disabled="product.patchers.escrow_enabled.model"
-                                :false-value="false"
-                                :true-value="true"
-                                color="primary"
-                                hint="Allow user to upgrade to shield at their option, rather than requiring it. When upgrading, fee absorption is always off."
+                              :patcher="product.patchers.escrow_upgradable"
+                              field-type="v-switch"
+                              label="Allow Shield Upgrade"
+                              :persistent-hint="true"
+                              :disabled="product.patchers.escrow_enabled.model"
+                              :false-value="false"
+                              :true-value="true"
+                              color="primary"
+                              hint="Allow user to upgrade to shield at their option, rather than requiring it. When upgrading, fee absorption is always off."
                             />
                           </v-col>
                         </v-row>
                       </v-col>
-                      <v-col cols="12" md="6">
+                      <v-col
+                        cols="12"
+                        md="6"
+                      >
                         <ac-price-comparison
-                            :username="username" :line-item-set-maps="lineItemSetMaps"
+                          :username="username"
+                          :line-item-set-maps="lineItemSetMaps"
                         />
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col cols="12" sm="6">
-                        <ac-patch-field :patcher="product.patchers.expected_turnaround" number
-                                        label="Expected Days Turnaround"
-                                        hint="How many standard business days you expect this task to take (on average)."
-                                        :persistent-hint="true"
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <ac-patch-field
+                          :patcher="product.patchers.expected_turnaround"
+                          number
+                          label="Expected Days Turnaround"
+                          hint="How many standard business days you expect this task to take (on average)."
+                          :persistent-hint="true"
                         />
                       </v-col>
-                      <v-col cols="12" sm="6">
-                        <ac-patch-field :patcher="product.patchers.revisions" number
-                                        label="Included Revisions"
-                                        hint="How many revisions you're offering with this product. This does not include final
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <ac-patch-field
+                          :patcher="product.patchers.revisions"
+                          number
+                          label="Included Revisions"
+                          hint="How many revisions you're offering with this product. This does not include final
                                       delivery-- only intermediate WIP steps."
-                                        :persistent-hint="true"
+                          :persistent-hint="true"
                         />
                       </v-col>
                     </v-row>
@@ -408,140 +733,241 @@
                 </v-col>
                 <v-col>
                   <p v-if="forceShield && product.x.escrow_upgradable && !product.x.escrow_enabled">
-                    <strong>${{product.x.starting_price}}</strong> without Artconomy Shield
+                    <strong>${{ product.x.starting_price }}</strong> without Artconomy Shield
                   </p>
                   <p v-else-if="product.x.escrow_upgradable && !product.x.escrow_enabled">
-                    <strong>${{product.x.shield_price}}</strong> with Artconomy Shield
+                    <strong>${{ product.x.shield_price }}</strong> with Artconomy Shield
                   </p>
                   <p v-if="product.x.revisions">
-                    <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span>
+                    <strong>{{ product.x.revisions }}</strong> revision<span v-if="product.x.revisions > 1">s</span>
                     included.
                   </p>
-                  <p v-if="deliveryDate">Estimated completion: <strong>{{formatDateTerse(deliveryDate)}}</strong></p>
+                  <p v-if="deliveryDate">
+                    Estimated completion: <strong>{{ formatDateTerse(deliveryDate) }}</strong>
+                  </p>
                 </v-col>
-                <v-col class="text-center" cols="12">
+                <v-col
+                  class="text-center"
+                  cols="12"
+                >
                   <ac-load-section :controller="subjectHandler.artistProfile">
-                    <template v-slot:default>
-                      <ac-escrow-label :escrow="product.x.escrow_enabled"
-                                       :upgrade-available="product.x.escrow_upgradable" name="product"/>
+                    <template #default>
+                      <ac-escrow-label
+                        :escrow="product.x.escrow_enabled"
+                        :upgrade-available="product.x.escrow_upgradable"
+                        name="product"
+                      />
                     </template>
                   </ac-load-section>
                 </v-col>
                 <v-col cols="12">
                   <template v-if="product.x.available || powers.table_seller || isCurrent">
-                    <div class="text-center" v-if="inventory.x && inventory.x.count">
+                    <div
+                      v-if="inventory.x && inventory.x.count"
+                      class="text-center"
+                    >
                       <p>
                         <strong>
-                          {{inventory.x.count}} still available. Order now to get yours!
+                          {{ inventory.x.count }} still available. Order now to get yours!
                         </strong>
                       </p>
                     </div>
-                    <v-alert v-if="product.x.wait_list" :value="true" type="info">This product is waitlisted.</v-alert>
-                    <v-btn color="green" block :to="orderLink" v-if="!product.x.table_product" variant="flat">
-                      <v-icon left :icon="mdiBasket"/>
+                    <v-alert
+                      v-if="product.x.wait_list"
+                      :value="true"
+                      type="info"
+                    >
+                      This product is waitlisted.
+                    </v-alert>
+                    <v-btn
+                      v-if="!product.x.table_product"
+                      color="green"
+                      block
+                      :to="orderLink"
+                      variant="flat"
+                    >
+                      <v-icon
+                        left
+                        :icon="mdiBasket"
+                      />
                       <span v-if="isCurrent">Create Invoice</span>
                       <span v-else>Order</span>
                     </v-btn>
-                    <v-alert type="info" v-else>Visit our table to order!</v-alert>
+                    <v-alert
+                      v-else
+                      type="info"
+                    >
+                      Visit our table to order!
+                    </v-alert>
                   </template>
-                  <v-alert v-if="!product.x.available" :class="{'mt-2': isCurrent || powers.table_seller}" :value="true"
-                           type="info">This product is not currently available.
+                  <v-alert
+                    v-if="!product.x.available"
+                    :class="{'mt-2': isCurrent || powers.table_seller}"
+                    :value="true"
+                    type="info"
+                  >
+                    This product is not currently available.
                   </v-alert>
                 </v-col>
                 <v-col cols="12">
-                  <ac-share-button :title="product.x.name" :block="true" :media-url="shareMediaUrl"
-                                   :clean="shareMediaClean"/>
+                  <ac-share-button
+                    :title="product.x.name"
+                    :block="true"
+                    :media-url="shareMediaUrl"
+                    :clean="shareMediaClean"
+                  />
                 </v-col>
-                <v-col class="text-center" cols="12">
+                <v-col
+                  class="text-center"
+                  cols="12"
+                >
                   <v-col v-if="!product.x.escrow_enabled">
-                    <p>Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering
-                      without Shield is
-                      at your own
-                      risk</strong></em>. Your artist will instruct you on how to pay them.</p>
+                    <p>
+                      Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering
+                        without Shield is
+                        at your own
+                        risk</strong></em>. Your artist will instruct you on how to pay them.
+                    </p>
                   </v-col>
                   <v-col v-else>
                     Artconomy guarantees this purchase.
                   </v-col>
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="editing">
-                  <v-btn color="warning" block @click="showWorkload = true" variant="flat">
-                    <v-icon left :icon="mdiCog"/>
+                <v-col
+                  v-if="editing"
+                  class="text-center"
+                  cols="12"
+                >
+                  <v-btn
+                    color="warning"
+                    block
+                    variant="flat"
+                    @click="showWorkload = true"
+                  >
+                    <v-icon
+                      left
+                      :icon="mdiCog"
+                    />
                     Workload
                   </v-btn>
-                  <ac-expanded-property v-model="showWorkload" :large="true" v-if="controls" aria-label="Edit Workload Settings">
-                    <template v-slot:title>Edit Workload Settings</template>
+                  <ac-expanded-property
+                    v-if="controls"
+                    v-model="showWorkload"
+                    :large="true"
+                    aria-label="Edit Workload Settings"
+                  >
+                    <template #title>
+                      Edit Workload Settings
+                    </template>
                     <v-row no-gutters>
-                      <v-col cols="12" class="text-center">
+                      <v-col
+                        cols="12"
+                        class="text-center"
+                      >
                         <h2>AWOO Workload Settings</h2>
-                        <v-divider/>
-                        <p>You can set these settings to help the Artconomy Workload Organization and Overview tool
-                          manage your workload for you.</p>
-                        <p><strong>If you're not sure what to do here, or would like to set these settings later, the
-                          defaults should be safe.</strong></p>
+                        <v-divider />
+                        <p>
+                          You can set these settings to help the Artconomy Workload Organization and Overview tool
+                          manage your workload for you.
+                        </p>
+                        <p>
+                          <strong>If you're not sure what to do here, or would like to set these settings later, the
+                            defaults should be safe.</strong>
+                        </p>
                       </v-col>
-                      <v-col cols="12" sm="6">
-                        <v-checkbox v-model="limitAtOnce" :persistent-hint="true"
-                                    label="Limit Availability"
-                                    :disabled="product.patchers.wait_list.model"
-                                    hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <v-checkbox
+                          v-model="limitAtOnce"
+                          :persistent-hint="true"
+                          label="Limit Availability"
+                          :disabled="product.patchers.wait_list.model"
+                          hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
                         />
                       </v-col>
-                      <v-col cols="12" sm="6">
-                        <ac-patch-field :persistent-hint="true"
-                                        :patcher="product.patchers.max_parallel"
-                                        label="Maximum at Once"
-                                        min="1"
-                                        v-if="limitAtOnce"
-                                        :disabled="product.patchers.wait_list.model"
-                                        hint="If you already have this many orders of this product, don't allow customers to order any more."
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <ac-patch-field
+                          v-if="limitAtOnce"
+                          :persistent-hint="true"
+                          :patcher="product.patchers.max_parallel"
+                          label="Maximum at Once"
+                          min="1"
+                          :disabled="product.patchers.wait_list.model"
+                          hint="If you already have this many orders of this product, don't allow customers to order any more."
                         />
                       </v-col>
-                      <v-col cols="12" sm="6">
-                        <ac-patch-field :patcher="product.patchers.wait_list"
-                                        label="Wait List Product"
-                                        field-type="ac-checkbox"
-                                        :disabled="!(product.patchers.wait_list.model || subject!.landscape)"
-                                        hint="Marks this product as a waitlist product. Orders will be put in your
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <ac-patch-field
+                          :patcher="product.patchers.wait_list"
+                          label="Wait List Product"
+                          field-type="ac-checkbox"
+                          :disabled="!(product.patchers.wait_list.model || subject!.landscape)"
+                          hint="Marks this product as a waitlist product. Orders will be put in your
                                         waitlist queue which is separate from your normal order queue. You should specify
                                         your waitlist policy in the product description or in your commission info.
                                         This setting takes precedence over all other workload settings."
-                                        :persistent-hint="true"
+                          :persistent-hint="true"
                         />
                         <div v-if="!subject!.landscape">
                           This feature only available to
-                          <router-link :to="{name: 'Upgrade'}">Landscape</router-link>
+                          <router-link :to="{name: 'Upgrade'}">
+                            Landscape
+                          </router-link>
                           subscribers.
                         </div>
                       </v-col>
-                      <v-col cols="12" sm="6">
-                        <ac-patch-field :patcher="product.patchers.task_weight" number
-                                        label="Workload Points"
-                                        :disabled="product.patchers.wait_list.model"
-                                        hint="How many slots an order of this product should take up. If this task is
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <ac-patch-field
+                          :patcher="product.patchers.task_weight"
+                          number
+                          label="Workload Points"
+                          :disabled="product.patchers.wait_list.model"
+                          hint="How many slots an order of this product should take up. If this task is
                                         particularly big, you may want it to take up more than one slot."
-                                        :persistent-hint="true"
+                          :persistent-hint="true"
                         />
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col cols="12" sm="6">
-                        <ac-patch-field :patcher="product.patchers.track_inventory" :persistent-hint="true"
-                                        v-if="powers.table_seller || subject.landscape"
-                                        field-type="ac-checkbox"
-                                        label="Inventory"
-                                        :disabled="product.patchers.wait_list.model"
-                                        hint="Check if you only want to sell this product a limited number of times total."
+                      <v-col
+                        cols="12"
+                        sm="6"
+                      >
+                        <ac-patch-field
+                          v-if="powers.table_seller || subject.landscape"
+                          :patcher="product.patchers.track_inventory"
+                          :persistent-hint="true"
+                          field-type="ac-checkbox"
+                          label="Inventory"
+                          :disabled="product.patchers.wait_list.model"
+                          hint="Check if you only want to sell this product a limited number of times total."
                         />
                       </v-col>
-                      <v-col cols="12" sm="6" v-if="product.x.track_inventory">
+                      <v-col
+                        v-if="product.x.track_inventory"
+                        cols="12"
+                        sm="6"
+                      >
                         <ac-load-section :controller="inventory">
-                          <template v-slot:default>
-                            <ac-patch-field :persistent-hint="true"
-                                            :patcher="inventory.patchers.count"
-                                            type="number"
-                                            min="0"
-                                            :disabled="product.patchers.wait_list.model"
-                                            hint="Number of times left you'll allow this product to be ordered."
+                          <template #default>
+                            <ac-patch-field
+                              :persistent-hint="true"
+                              :patcher="inventory.patchers.count"
+                              type="number"
+                              min="0"
+                              :disabled="product.patchers.wait_list.model"
+                              hint="Number of times left you'll allow this product to be ordered."
                             />
                           </template>
                         </ac-load-section>
@@ -549,33 +975,76 @@
                     </v-row>
                   </ac-expanded-property>
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="powers.moderate_content" v-show="editing">
-                  <ac-patch-field :patcher="product.patchers.featured" field-type="v-switch" label="Featured"
-                                  color="primary"/>
+                <v-col
+                  v-if="powers.moderate_content"
+                  v-show="editing"
+                  class="text-center"
+                  cols="12"
+                >
+                  <ac-patch-field
+                    :patcher="product.patchers.featured"
+                    field-type="v-switch"
+                    label="Featured"
+                    color="primary"
+                  />
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="powers.moderate_content" v-show="editing">
-                  <ac-patch-field :patcher="product.patchers.catalog_enabled" field-type="v-switch"
-                                  label="Catalog Enabled" color="primary"/>
+                <v-col
+                  v-if="powers.moderate_content"
+                  v-show="editing"
+                  class="text-center"
+                  cols="12"
+                >
+                  <ac-patch-field
+                    :patcher="product.patchers.catalog_enabled"
+                    field-type="v-switch"
+                    label="Catalog Enabled"
+                    color="primary"
+                  />
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="powers.table_seller" v-show="editing">
-                  <ac-patch-field :patcher="product.patchers.table_product" field-type="v-switch" label="Table Product"
-                                  color="primary"/>
+                <v-col
+                  v-if="powers.table_seller"
+                  v-show="editing"
+                  class="text-center"
+                  cols="12"
+                >
+                  <ac-patch-field
+                    :patcher="product.patchers.table_product"
+                    field-type="v-switch"
+                    label="Table Product"
+                    color="primary"
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" class="pt-5">
-          <v-toolbar color="secondary" dense>
+        <v-col
+          cols="12"
+          class="pt-5"
+        >
+          <v-toolbar
+            color="secondary"
+            dense
+          >
             <v-toolbar-title>You might also like...</v-toolbar-title>
           </v-toolbar>
           <v-card :color="current.colors['well-darken-4']">
-            <v-card-text class="px-0" v-if="recommended">
+            <v-card-text
+              v-if="recommended"
+              class="px-0"
+            >
               <ac-load-section :controller="recommended">
-                <template v-slot:default>
+                <template #default>
                   <v-row no-gutters>
-                    <v-col cols="6" sm="4" md="3" v-for="product in recommended.list" :key="product.x!.id" class="pa-1">
-                      <ac-product-preview :product="product.x!"/>
+                    <v-col
+                      v-for="product in recommended.list"
+                      :key="product.x!.id"
+                      cols="6"
+                      sm="4"
+                      md="3"
+                      class="pa-1"
+                    >
+                      <ac-product-preview :product="product.x!" />
                     </v-col>
                   </v-row>
                 </template>
@@ -586,39 +1055,8 @@
       </v-row>
     </template>
   </ac-load-section>
-  <router-view v-else/>
+  <router-view v-else />
 </template>
-
-<style scoped>
-.submissionSelected {
-  -webkit-box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62);
-  box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62); }
-
-.compare-at-price {
-  text-decoration: line-through;
-}
-
-.edit-overlay {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  z-index: 1; }
-  .edit-overlay .edit-container, .edit-overlay .edit-layout {
-    height: 100%; }
-  .edit-overlay .edit-layout {
-    position: relative; }
-  .edit-overlay .backdrop {
-    background-color: #000000;
-    opacity: .40;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0; }
-  .edit-overlay .edit-cta {
-    position: relative;
-    z-index: 1; }
-
-</style>
 
 <script setup lang="ts">
 import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
@@ -768,7 +1206,7 @@ subjectHandler.artistProfile.get().catch(setError)
 listenForForm(`product${props.productId}__order`)
 
 const orderLink = computed(() => {
-  // eslint-disable-next-line camelcase
+   
   if (isCurrent.value && product.x?.over_order_limit) {
     return {
       name: 'Upgrade',
@@ -849,7 +1287,7 @@ const rawLineItemSetMaps = computed(() => {
     return []
   }
   const basePrice = product.x.base_price
-  // eslint-disable-next-line camelcase
+   
   const planName = subject.value?.service_plan
   const international = subject.value?.international
   const cascade = product.x.cascade_fees
@@ -903,7 +1341,7 @@ const rawLineItemSetMaps = computed(() => {
     })
   }
   if (appendPreferred) {
-    // eslint-disable-next-line camelcase
+     
     sets.push({
       name: pricing.x?.preferred_plan + '',
       lineItems: preferredLines,
@@ -1036,7 +1474,7 @@ const lineItemSetMaps = computed(() => {
 
 watch(rawLineItemSetMaps, (rawLineItemSetMaps: RawLineItemSetMap[]) => {
   for (const set of rawLineItemSetMaps) {
-    let name = listControllerMaps.has(set.name) ? set.name : '__preferred'
+    const name = listControllerMaps.has(set.name) ? set.name : '__preferred'
     const controller = listControllerMaps.get(name) as ListController<LineItem>
     controller.makeReady(set.lineItems)
   }
@@ -1046,3 +1484,34 @@ watch(maxSampleRating, (value: number) => {
   ageCheck({value})
 })
 </script>
+
+<style scoped>
+.submissionSelected {
+  -webkit-box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62);
+  box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62); }
+
+.compare-at-price {
+  text-decoration: line-through;
+}
+
+.edit-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 1; }
+  .edit-overlay .edit-container, .edit-overlay .edit-layout {
+    height: 100%; }
+  .edit-overlay .edit-layout {
+    position: relative; }
+  .edit-overlay .backdrop {
+    background-color: #000000;
+    opacity: .40;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0; }
+  .edit-overlay .edit-cta {
+    position: relative;
+    z-index: 1; }
+
+</style>

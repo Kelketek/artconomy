@@ -1,12 +1,20 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="paymentLink" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="paymentLink"
+    :username="username"
+  >
+    <template #title>
       <router-link
-          :to="paymentLink">There was an issue renewing your subscription.
+        :to="paymentLink"
+      >
+        There was an issue renewing your subscription.
       </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="paymentLink">The error we got was: {{event.data.error}}</router-link>
+    <template #subtitle>
+      <router-link :to="paymentLink">
+        The error we got was: {{ event.data.error }}
+      </router-link>
     </template>
   </ac-base-notification>
 </template>

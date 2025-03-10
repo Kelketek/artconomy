@@ -1,13 +1,21 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="characterLink" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="characterLink"
+    :username="username"
+  >
+    <template #title>
       <ac-link
-          :to="characterLink">New Character: {{event.data.character.name}}
+        :to="characterLink"
+      >
+        New Character: {{ event.data.character.name }}
       </ac-link>
     </template>
-    <template v-slot:subtitle>
+    <template #subtitle>
       <ac-link
-          :to="characterLink">By {{event.data.character.user.username}}
+        :to="characterLink"
+      >
+        By {{ event.data.character.user.username }}
       </ac-link>
     </template>
   </ac-base-notification>

@@ -2,32 +2,52 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
     <v-navigation-drawer
-        temporary
-        v-model="drawer"
-        right
-        absolute
-        width="300"
+      v-model="drawer"
+      temporary
+      right
+      absolute
+      width="300"
     >
       <v-list>
-        <ac-setting-nav :username="username"/>
+        <ac-setting-nav :username="username" />
       </v-list>
     </v-navigation-drawer>
     <v-container>
-      <v-toolbar v-if="!isCurrent" color="red" class="settings-nav-toolbar">
-        <v-toolbar-title>Settings for
-          <ac-link :to="profileLink(subject)">{{username}}</ac-link>
+      <v-toolbar
+        v-if="!isCurrent"
+        color="red"
+        class="settings-nav-toolbar"
+      >
+        <v-toolbar-title>
+          Settings for
+          <ac-link :to="profileLink(subject)">
+            {{ username }}
+          </ac-link>
         </v-toolbar-title>
-        <v-spacer/>
-        <ac-avatar :username="username" :show-name="false"/>
+        <v-spacer />
+        <ac-avatar
+          :username="username"
+          :show-name="false"
+        />
       </v-toolbar>
-      <v-toolbar color="secondary" class="settings-nav-toolbar">
-        <v-toolbar-title>{{route.name}}</v-toolbar-title>
-        <v-spacer/>
+      <v-toolbar
+        color="secondary"
+        class="settings-nav-toolbar"
+      >
+        <v-toolbar-title>{{ route.name }}</v-toolbar-title>
+        <v-spacer />
         <v-toolbar-items>
-          <v-btn color="primary" id="more-settings-button" @click="drawer=true" variant="flat">More Settings...</v-btn>
+          <v-btn
+            id="more-settings-button"
+            color="primary"
+            variant="flat"
+            @click="drawer=true"
+          >
+            More Settings...
+          </v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <router-view/>
+      <router-view />
     </v-container>
   </ac-load-section>
 </template>

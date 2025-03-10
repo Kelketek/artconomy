@@ -1,10 +1,23 @@
 <template>
   <v-row class="my-1">
-    <ac-pdf-nav v-model="page" :pages="pages" />
-    <v-col class="d-flex justify-center" cols="12">
-      <VuePDF :pdf="pdf" :page="page"  fit-parent />
+    <ac-pdf-nav
+      v-model="page"
+      :pages="pages"
+    />
+    <v-col
+      class="d-flex justify-center"
+      cols="12"
+    >
+      <VuePDF
+        :pdf="pdf"
+        :page="page"
+        fit-parent
+      />
     </v-col>
-    <ac-pdf-nav v-model="page" :pages="pages"/>
+    <ac-pdf-nav
+      v-model="page"
+      :pages="pages"
+    />
   </v-row>
 </template>
 

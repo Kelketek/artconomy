@@ -1,8 +1,19 @@
 <template>
-  <div class="hidden-marker-container" v-if="value">
-    <v-icon class="ml-2 mt-2 elevation-20 background-black" :icon="mdiEyeOff"/>
+  <div
+    v-if="value"
+    class="hidden-marker-container"
+  >
+    <v-icon
+      class="ml-2 mt-2 elevation-20 background-black"
+      :icon="mdiEyeOff"
+    />
   </div>
 </template>
+
+<script setup lang="ts">
+import {mdiEyeOff} from '@mdi/js'
+defineProps<{value: boolean}>()
+</script>
 
 <style scoped>
 .hidden-marker-container {
@@ -17,8 +28,3 @@
   border-radius: 20px;
 }
 </style>
-
-<script setup lang="ts">
-import {mdiEyeOff} from '@mdi/js'
-defineProps<{value: boolean}>()
-</script>

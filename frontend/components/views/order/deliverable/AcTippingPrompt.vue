@@ -1,13 +1,21 @@
 <template>
   <ac-load-section :controller="invoice">
-    <template v-slot:default>
-      <ac-load-section :controller="lineItems" v-if="invoice.x">
-        <template v-slot:default>
-          <v-card elevation="10" v-if="(invoice.x.status === InvoiceStatus.DRAFT) && isBuyer">
+    <template #default>
+      <ac-load-section
+        v-if="invoice.x"
+        :controller="lineItems"
+      >
+        <template #default>
+          <v-card
+            v-if="(invoice.x.status === InvoiceStatus.DRAFT) && isBuyer"
+            elevation="10"
+          >
             <v-card-text>
               <v-row class="text-center">
                 <v-col cols="12">
-                  <div class="text-center title">Add a tip?</div>
+                  <div class="text-center title">
+                    Add a tip?
+                  </div>
                   <ac-form-container v-bind="paymentForm.bind">
                     <ac-form @submit.prevent="statusEndpoint('finalize')()">
                       <v-row>
@@ -15,69 +23,124 @@
                           <strong>Tips are not required, as artists set their own prices,</strong> but they are always
                           appreciated.
                         </v-col>
-                        <v-col cols="4" sm="2" offset-sm="3" class="text-center">
-                          <v-btn small color="secondary" class="preset10" icon @click="setTip(.1)"><strong>10%</strong>
+                        <v-col
+                          cols="4"
+                          sm="2"
+                          offset-sm="3"
+                          class="text-center"
+                        >
+                          <v-btn
+                            small
+                            color="secondary"
+                            class="preset10"
+                            icon
+                            @click="setTip(.1)"
+                          >
+                            <strong>10%</strong>
                           </v-btn>
                         </v-col>
-                        <v-col cols="4" sm="2" class="text-center">
-                          <v-btn small color="secondary" class="preset15" icon @click="setTip(.15)"><strong>15%</strong>
+                        <v-col
+                          cols="4"
+                          sm="2"
+                          class="text-center"
+                        >
+                          <v-btn
+                            small
+                            color="secondary"
+                            class="preset15"
+                            icon
+                            @click="setTip(.15)"
+                          >
+                            <strong>15%</strong>
                           </v-btn>
                         </v-col>
-                        <v-col cols="4" sm="2" class="text-center">
-                          <v-btn small color="secondary" class="preset20" icon @click="setTip(.2)"><strong>20%</strong>
+                        <v-col
+                          cols="4"
+                          sm="2"
+                          class="text-center"
+                        >
+                          <v-btn
+                            small
+                            color="secondary"
+                            class="preset20"
+                            icon
+                            @click="setTip(.2)"
+                          >
+                            <strong>20%</strong>
                           </v-btn>
                         </v-col>
-                        <v-col cols="12" v-if="tip">
+                        <v-col
+                          v-if="tip"
+                          cols="12"
+                        >
                           <ac-patch-field
-                              :patcher="tip.patchers.amount"
-                              field-type="ac-price-field"
-                              label="Tip"
+                            :patcher="tip.patchers.amount"
+                            field-type="ac-price-field"
+                            label="Tip"
                           />
                         </v-col>
-                        <v-col cols="12" v-if="total">
-                          <v-btn @click="statusEndpoint('finalize')()" color="primary" variant="flat">Send Tip</v-btn>
+                        <v-col
+                          v-if="total"
+                          cols="12"
+                        >
+                          <v-btn
+                            color="primary"
+                            variant="flat"
+                            @click="statusEndpoint('finalize')()"
+                          >
+                            Send Tip
+                          </v-btn>
                         </v-col>
                       </v-row>
                     </ac-form>
                   </ac-form-container>
                 </v-col>
-                <v-col class="text-center" cols="12" v-if="tip">
-                  <ac-price-preview :line-items="lineItems" :username="viewer!.username" :isSeller="false"
-                                    :transfer="true" :hide-hourly-form="true"/>
+                <v-col
+                  v-if="tip"
+                  class="text-center"
+                  cols="12"
+                >
+                  <ac-price-preview
+                    :line-items="lineItems"
+                    :username="viewer!.username"
+                    :is-seller="false"
+                    :transfer="true"
+                    :hide-hourly-form="true"
+                  />
                 </v-col>
               </v-row>
             </v-card-text>
           </v-card>
           <ac-form-dialog
-              v-else-if="showSendTip && isBuyer"
-              v-model="showSendTip"
-              :persistent="true"
-              submit-text="Send Tip"
-              cancel-text="Cancel Tip"
-              v-bind="paymentForm.bind"
-              :large="true"
-              @submit.prevent="paymentSubmit"
+            v-else-if="showSendTip && isBuyer"
+            v-model="showSendTip"
+            :persistent="true"
+            submit-text="Send Tip"
+            cancel-text="Cancel Tip"
+            v-bind="paymentForm.bind"
+            :large="true"
+            @submit.prevent="paymentSubmit"
           >
             <v-card-text>
               <v-row class="text-center">
                 <v-col cols="12">
                   <ac-card-manager
-                      ref="cardManager"
-                      :payment="true"
-                      :username="username"
-                      :cc-form="paymentForm"
-                      :field-mode="true"
-                      :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
-                      v-model="paymentForm.fields.card_id.model"
+                    ref="cardManager"
+                    v-model="paymentForm.fields.card_id.model"
+                    :payment="true"
+                    :username="username"
+                    :cc-form="paymentForm"
+                    :field-mode="true"
+                    :client-secret="(clientSecret.x && clientSecret.x.secret) || ''"
                   />
                 </v-col>
                 <v-col cols="12">
                   <ac-price-preview
-                      :line-items="lineItems"
-                      :username="viewer!.username"
-                      :isSeller="false"
-                      :transfer="true"
-                      :hide-hourly-form="true"
+                    :line-items="lineItems"
+                    :username="viewer!.username"
+                    :is-seller="false"
+                    :transfer="true"
+                    :hide-hourly-form="true"
                   />
                 </v-col>
               </v-row>
@@ -87,9 +150,16 @@
             <v-card-text class="text-center">
               <ac-form-container v-bind="tipForm.bind">
                 <v-row>
-                  <v-col cols="12"><strong>You declined to tip.</strong></v-col>
                   <v-col cols="12">
-                    <v-btn color="primary" @click="tipForm.submitThen(props.deliverable.updateX)" variant="flat">I changed my
+                    <strong>You declined to tip.</strong>
+                  </v-col>
+                  <v-col cols="12">
+                    <v-btn
+                      color="primary"
+                      variant="flat"
+                      @click="tipForm.submitThen(props.deliverable.updateX)"
+                    >
+                      I changed my
                       mind
                     </v-btn>
                   </v-col>
@@ -99,17 +169,21 @@
           </v-card>
           <v-card v-else-if="invoice.x.status === InvoiceStatus.PAID">
             <v-col class="text-center">
-              <v-icon left color="green" :icon="mdiCheckCircle"/>
+              <v-icon
+                left
+                color="green"
+                :icon="mdiCheckCircle"
+              />
               <span v-if="isBuyer">Tip Sent!</span>
               <span v-else>Tip Received!</span>
             </v-col>
             <v-col cols="12">
               <ac-price-preview
-                  :line-items="lineItems"
-                  :username="viewer!.username"
-                  :isSeller="false"
-                  :transfer="true"
-                  :hide-hourly-form="true"
+                :line-items="lineItems"
+                :username="viewer!.username"
+                :is-seller="false"
+                :transfer="true"
+                :hide-hourly-form="true"
               />
             </v-col>
           </v-card>

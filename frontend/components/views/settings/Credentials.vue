@@ -2,36 +2,77 @@
 <template>
   <v-card>
     <ac-load-section :controller="subjectHandler.user">
-      <template v-slot:default>
+      <template #default>
         <v-card-text>
           <v-row dense>
             <v-col>
               <v-card-subtitle>Primary Credentials</v-card-subtitle>
             </v-col>
           </v-row>
-          <v-row no-gutters class="pb-3">
-            <v-col class="text-center" cols="12" sm="4" lg="4">
-              <v-btn color="primary" @click="showUsernameChange=true" variant="elevated">Change Username</v-btn>
-              <h3>Username: {{subject!.username}}</h3>
+          <v-row
+            no-gutters
+            class="pb-3"
+          >
+            <v-col
+              class="text-center"
+              cols="12"
+              sm="4"
+              lg="4"
+            >
+              <v-btn
+                color="primary"
+                variant="elevated"
+                @click="showUsernameChange=true"
+              >
+                Change Username
+              </v-btn>
+              <h3>Username: {{ subject!.username }}</h3>
             </v-col>
-            <v-col class="text-center" cols="12" sm="4" lg="4">
-              <v-btn color="primary" @click="showPasswordChange=true" variant="elevated">Change Password</v-btn>
+            <v-col
+              class="text-center"
+              cols="12"
+              sm="4"
+              lg="4"
+            >
+              <v-btn
+                color="primary"
+                variant="elevated"
+                @click="showPasswordChange=true"
+              >
+                Change Password
+              </v-btn>
               <h3>Password</h3>
             </v-col>
-            <v-col class="text-center" cols="12" sm="4" lg="4">
-              <v-btn color="primary" @click="showEmailChange=true" variant="elevated">Change Email</v-btn>
-              <h3>Email: {{userSubject.email}}</h3>
+            <v-col
+              class="text-center"
+              cols="12"
+              sm="4"
+              lg="4"
+            >
+              <v-btn
+                color="primary"
+                variant="elevated"
+                @click="showEmailChange=true"
+              >
+                Change Email
+              </v-btn>
+              <h3>Email: {{ userSubject.email }}</h3>
             </v-col>
           </v-row>
           <ac-form-dialog
-              v-model="showUsernameChange"
-              @submit.stop="usernameForm.submitThen(save)"
-              v-bind="usernameForm.bind"
-              title="Change Username"
+            v-model="showUsernameChange"
+            v-bind="usernameForm.bind"
+            title="Change Username"
+            @submit.stop="usernameForm.submitThen(save)"
           >
-            <template v-slot:header>
+            <template #header>
               <v-row no-gutters>
-                <v-col class="text-center" cols="12" md="6" offset-md="3">
+                <v-col
+                  class="text-center"
+                  cols="12"
+                  md="6"
+                  offset-md="3"
+                >
                   <h3>
                     Warning: Any links to your account, characters, submissions, etc, such as from search engines or
                     other
@@ -42,89 +83,121 @@
               </v-row>
             </template>
             <v-row no-gutters>
-              <v-col cols="12" md="6" offset-md="3">
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
                 <v-text-field
-                    label="New Username"
-                    v-bind="usernameForm.fields.username.bind"
+                  label="New Username"
+                  v-bind="usernameForm.fields.username.bind"
                 />
               </v-col>
-              <v-col cols="12" md="6" offset-md="3">
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
                 <v-text-field
-                    label="Password"
-                    type="password"
-                    autocomplete="off"
-                    hint="For security purposes, please enter your password to change your username."
-                    v-bind="usernameForm.fields.current_password.bind"
-                />
-              </v-col>
-            </v-row>
-          </ac-form-dialog>
-          <ac-form-dialog
-              v-model="showPasswordChange"
-              @submit.prevent="passwordForm.submitThen(save)"
-              v-bind="passwordForm.bind"
-              title="Change Password"
-              :disabled="passwordDisabled"
-          >
-            <v-row no-gutters>
-              <v-col cols="12" md="6" offset-md="3">
-                <v-text-field
-                    label="Current Password"
-                    type="password"
-                    autocomplete="off"
-                    hint="For security purposes, please enter your current password first."
-                    v-bind="passwordForm.fields.current_password.bind"
-                />
-              </v-col>
-              <v-col cols="12" md="6" offset-md="3">
-                <v-text-field
-                    label="New Password"
-                    type="password"
-                    autocomplete="off"
-                    v-bind="passwordForm.fields.new_password.bind"
-                />
-              </v-col>
-              <v-col cols="12" md="6" offset-md="3">
-                <v-text-field
-                    label="Confirm New Password"
-                    type="password"
-                    autocomplete="off"
-                    v-bind="passwordForm.fields.new_password2.bind"
+                  label="Password"
+                  type="password"
+                  autocomplete="off"
+                  hint="For security purposes, please enter your password to change your username."
+                  v-bind="usernameForm.fields.current_password.bind"
                 />
               </v-col>
             </v-row>
           </ac-form-dialog>
           <ac-form-dialog
-              v-model="showEmailChange"
-              @submit.prevent="emailForm.submitThen(save)"
-              v-bind="emailForm.bind"
-              :disabled="emailDisabled"
-              title="Change Email"
+            v-model="showPasswordChange"
+            v-bind="passwordForm.bind"
+            title="Change Password"
+            :disabled="passwordDisabled"
+            @submit.prevent="passwordForm.submitThen(save)"
           >
             <v-row no-gutters>
-              <v-col cols="12" md="6" offset-md="3">
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
                 <v-text-field
-                    label="New Email"
-                    type="email"
-                    autocomplete="off"
-                    v-bind="emailForm.fields.email.bind"
+                  label="Current Password"
+                  type="password"
+                  autocomplete="off"
+                  hint="For security purposes, please enter your current password first."
+                  v-bind="passwordForm.fields.current_password.bind"
                 />
               </v-col>
-              <v-col cols="12" md="6" offset-md="3">
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
                 <v-text-field
-                    label="Confirm New Email"
-                    type="email"
-                    autocomplete="off"
-                    v-bind="emailForm.fields.email2.bind"
+                  label="New Password"
+                  type="password"
+                  autocomplete="off"
+                  v-bind="passwordForm.fields.new_password.bind"
                 />
               </v-col>
-              <v-col cols="12" md="6" offset-md="3">
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
                 <v-text-field
-                    label="Current Password"
-                    type="password"
-                    autocomplete="off"
-                    hint="For security purposes, please enter your current password first."
-                    v-bind="emailForm.fields.current_password.bind"
+                  label="Confirm New Password"
+                  type="password"
+                  autocomplete="off"
+                  v-bind="passwordForm.fields.new_password2.bind"
+                />
+              </v-col>
+            </v-row>
+          </ac-form-dialog>
+          <ac-form-dialog
+            v-model="showEmailChange"
+            v-bind="emailForm.bind"
+            :disabled="emailDisabled"
+            title="Change Email"
+            @submit.prevent="emailForm.submitThen(save)"
+          >
+            <v-row no-gutters>
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
+                <v-text-field
+                  label="New Email"
+                  type="email"
+                  autocomplete="off"
+                  v-bind="emailForm.fields.email.bind"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
+                <v-text-field
+                  label="Confirm New Email"
+                  type="email"
+                  autocomplete="off"
+                  v-bind="emailForm.fields.email2.bind"
+                />
+              </v-col>
+              <v-col
+                cols="12"
+                md="6"
+                offset-md="3"
+              >
+                <v-text-field
+                  label="Current Password"
+                  type="password"
+                  autocomplete="off"
+                  hint="For security purposes, please enter your current password first."
+                  v-bind="emailForm.fields.current_password.bind"
                 />
               </v-col>
             </v-row>
@@ -134,62 +207,108 @@
               <v-card-subtitle>Two factor Authentication</v-card-subtitle>
             </v-col>
             <v-col cols="12">
-              <v-divider/>
+              <v-divider />
             </v-col>
             <v-col cols="12">
-              <ac-setup-two-factor :username="username"/>
+              <ac-setup-two-factor :username="username" />
             </v-col>
             <v-col cols="12">
-              <v-divider/>
+              <v-divider />
             </v-col>
           </v-row>
           <v-row>
             <v-col cols="12">
               <v-card-subtitle>Account Management</v-card-subtitle>
             </v-col>
-            <v-col cols="12" class="text-center">
-              <v-btn color="danger" @click="showDeleteAccount = true" variant="elevated">
-                <v-icon left :icon="mdiDeleteForever"/>
+            <v-col
+              cols="12"
+              class="text-center"
+            >
+              <v-btn
+                color="danger"
+                variant="elevated"
+                @click="showDeleteAccount = true"
+              >
+                <v-icon
+                  left
+                  :icon="mdiDeleteForever"
+                />
                 Delete my account.
               </v-btn>
             </v-col>
           </v-row>
           <ac-form-dialog
-              v-model="showDeleteAccount"
-              title="Delete my account."
-              @submit.prevent="deleteUserForm.submitThen(() => undefined)"
-              v-bind="deleteUserForm.bind"
+            v-model="showDeleteAccount"
+            title="Delete my account."
+            v-bind="deleteUserForm.bind"
+            @submit.prevent="deleteUserForm.submitThen(() => undefined)"
           >
-            <template v-slot:default>
+            <template #default>
               <v-row>
                 <v-col cols="12">
-                  <v-alert color="danger" :value="true" class="mt-2">
-                    <template v-slot:prepend>
-                      <v-icon :icon="mdiAlert" size="x-large" />
+                  <v-alert
+                    color="danger"
+                    :value="true"
+                    class="mt-2"
+                  >
+                    <template #prepend>
+                      <v-icon
+                        :icon="mdiAlert"
+                        size="x-large"
+                      />
                     </template>
                     Account deletion is PERMANENT. To make sure this is not a mistake, please fill in the following
                     information to confirm. You must have no open orders and no outstanding balance before removing your
                     account.
                   </v-alert>
                 </v-col>
-                <v-col cols="12" md="6" offset-md="3">
-                  <ac-bound-field :field="deleteUserForm.fields.username" label="Username"
-                                  hint="The username of this account."/>
+                <v-col
+                  cols="12"
+                  md="6"
+                  offset-md="3"
+                >
+                  <ac-bound-field
+                    :field="deleteUserForm.fields.username"
+                    label="Username"
+                    hint="The username of this account."
+                  />
                 </v-col>
-                <v-col cols="12" md="6" offset-md="3">
-                  <ac-bound-field :field="deleteUserForm.fields.email" label="Email"
-                                  hint="The email we have on file for this account."/>
+                <v-col
+                  cols="12"
+                  md="6"
+                  offset-md="3"
+                >
+                  <ac-bound-field
+                    :field="deleteUserForm.fields.email"
+                    label="Email"
+                    hint="The email we have on file for this account."
+                  />
                 </v-col>
-                <v-col cols="12" md="6" offset-md="3">
-                  <ac-bound-field :field="deleteUserForm.fields.password" type="password" label="Password"
-                                  hint="Your current password."/>
+                <v-col
+                  cols="12"
+                  md="6"
+                  offset-md="3"
+                >
+                  <ac-bound-field
+                    :field="deleteUserForm.fields.password"
+                    type="password"
+                    label="Password"
+                    hint="Your current password."
+                  />
                 </v-col>
-                <v-col cols="12" md="6" offset-md="3">
-                  <ac-bound-field :field="deleteUserForm.fields.verify" label="I Am Absolutely Sure"
-                                  field-type="v-checkbox"
-                                  :persistent-hint="true"
-                                  hint="I am absolutely sure that I want to delete my account. I understand that deletion
-                                  is permanent and my account cannot be recovered."/>
+                <v-col
+                  cols="12"
+                  md="6"
+                  offset-md="3"
+                >
+                  <ac-bound-field
+                    :field="deleteUserForm.fields.verify"
+                    label="I Am Absolutely Sure"
+                    field-type="v-checkbox"
+                    :persistent-hint="true"
+                    hint="I am absolutely sure that I want to delete my account. I understand that deletion
+                                  is permanent and my account cannot be recovered."
+                  />
                 </v-col>
               </v-row>
             </template>

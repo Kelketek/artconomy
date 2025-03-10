@@ -1,21 +1,21 @@
 <template>
   <v-autocomplete
-      :chips="true"
-      :multiple="multiple"
-      v-model="tags"
-      autocomplete
-      v-model:search="query"
-      :items="items"
-      :hide-no-data="true"
-      :auto-select-first="true"
-      closable-chips
-      :hide-selected="true"
-      cache-items
-      :filter="itemFilter"
-      item-value="id"
-      :item-title="formatName"
-      ref="input"
-      v-bind="attrs"
+    v-model="tags"
+    v-model:search="query"
+    :chips="true"
+    :multiple="multiple"
+    autocomplete
+    ref="input"
+    :items="items"
+    :hide-no-data="true"
+    :auto-select-first="true"
+    closable-chips
+    :hide-selected="true"
+    cache-items
+    :filter="itemFilter"
+    item-value="id"
+    :item-title="formatName"
+    v-bind="attrs"
   />
 </template>
 

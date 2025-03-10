@@ -1,26 +1,51 @@
 <template>
-  <v-navigation-drawer location="right" temporary v-model="drawer" :width="width" class="message-center">
-    <template v-slot:prepend>
+  <v-navigation-drawer
+    v-model="drawer"
+    location="right"
+    temporary
+    :width="width"
+    class="message-center"
+  >
+    <template #prepend>
       <v-toolbar prominent>
-        <v-btn icon variant="plain" @click="drawer = false">
-          <v-icon :icon="mdiChevronRight"></v-icon>
+        <v-btn
+          icon
+          variant="plain"
+          @click="drawer = false"
+        >
+          <v-icon :icon="mdiChevronRight" />
         </v-btn>
-        <v-tabs fixed-tabs v-model="section">
-          <v-tab :value="0">Community<span
-              v-if="counts.community_count">&nbsp;({{ counts.community_count }})</span>
+        <v-tabs
+          v-model="section"
+          fixed-tabs
+        >
+          <v-tab :value="0">
+            Community<span
+              v-if="counts.community_count"
+            >&nbsp;({{ counts.community_count }})</span>
           </v-tab>
-          <v-tab :value="1">Sales/Orders<span
-              v-if="counts.sales_count">&nbsp;({{ counts.sales_count }})</span>
+          <v-tab :value="1">
+            Sales/Orders<span
+              v-if="counts.sales_count"
+            >&nbsp;({{ counts.sales_count }})</span>
           </v-tab>
         </v-tabs>
       </v-toolbar>
     </template>
     <v-window v-model="section">
       <v-window-item :value="0">
-        <notifications-list subset="community" :username="username" :auto-read="isCurrent" />
+        <notifications-list
+          subset="community"
+          :username="username"
+          :auto-read="isCurrent"
+        />
       </v-window-item>
       <v-window-item :value="1">
-        <notifications-list subset="sales" :username="username" :auto-read="false" />
+        <notifications-list
+          subset="sales"
+          :username="username"
+          :auto-read="false"
+        />
       </v-window-item>
     </v-window>
   </v-navigation-drawer>

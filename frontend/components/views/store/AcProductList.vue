@@ -1,10 +1,25 @@
 <template>
-  <ac-paginated :list="products" :track-pages="true">
-    <v-col cols="12" sm="3" md="4" lg="3" xl="2" v-for="product in products.list" :key="product.x!.id" class="pa-1">
-      <ac-product-preview :product="product.x!" :show-username="false" :mini="mini"/>
+  <ac-paginated
+    :list="products"
+    :track-pages="true"
+  >
+    <v-col
+      v-for="product in products.list"
+      :key="product.x!.id"
+      cols="12"
+      sm="3"
+      md="4"
+      lg="3"
+      xl="2"
+      class="pa-1"
+    >
+      <ac-product-preview
+        :product="product.x!"
+        :show-username="false"
+        :mini="mini"
+      />
     </v-col>
-    <template v-slot:empty>
-    </template>
+    <template #empty />
   </ac-paginated>
 </template>
 

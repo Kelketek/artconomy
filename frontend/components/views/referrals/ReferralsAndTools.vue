@@ -1,10 +1,14 @@
 <template>
   <v-container fluid>
     <v-tabs fixed-tabs>
-      <v-tab :to="{name: 'LinksAndStats', params: {username}}">Referrals</v-tab>
-      <v-tab :to="{name: 'Tools', params: {username}}">Tools</v-tab>
+      <v-tab :to="{name: 'LinksAndStats', params: {username}}">
+        Referrals
+      </v-tab>
+      <v-tab :to="{name: 'Tools', params: {username}}">
+        Tools
+      </v-tab>
     </v-tabs>
-    <router-view></router-view>
+    <router-view />
   </v-container>
 </template>
 

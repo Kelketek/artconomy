@@ -1,11 +1,30 @@
 <template>
-  <v-btn v-bind="attrs" class="rating-button" :variant="variant" :size="size" :color="RATING_COLOR[patcher.model]"
-         @click="showRating" :ripple="editing">
-    <v-icon left v-if="editing" :icon="mdiPencil"/>
-    {{RATINGS_SHORT[patcher.model]}}
+  <v-btn
+    v-bind="attrs"
+    class="rating-button"
+    :variant="variant"
+    :size="size"
+    :color="RATING_COLOR[patcher.model]"
+    :ripple="editing"
+    @click="showRating"
+  >
+    <v-icon
+      v-if="editing"
+      left
+      :icon="mdiPencil"
+    />
+    {{ RATINGS_SHORT[patcher.model] }}
   </v-btn>
-  <ac-expanded-property v-model="ratingDialog" aria-label="Edit rating dialog" v-if="controls">
-    <ac-patch-field field-type="ac-rating-field" :patcher="patcher" class="rating-field"/>
+  <ac-expanded-property
+    v-if="controls"
+    v-model="ratingDialog"
+    aria-label="Edit rating dialog"
+  >
+    <ac-patch-field
+      field-type="ac-rating-field"
+      :patcher="patcher"
+      class="rating-field"
+    />
   </ac-expanded-property>
 </template>
 

@@ -1,49 +1,94 @@
 <template>
-  <v-input v-bind="passedProps" class="ac-rating-field">
+  <v-input
+    v-bind="passedProps"
+    class="ac-rating-field"
+  >
     <v-card-text>
       <v-row>
-        <v-col cols="12" v-if="label">
-          <label :for="attrs.id as string || undefined" class="v-label">{{label}}</label>
+        <v-col
+          v-if="label"
+          cols="12"
+        >
+          <label
+            :for="attrs.id as string || undefined"
+            class="v-label"
+          >{{ label }}</label>
         </v-col>
-        <v-col cols="12" class="text-center hidden-sm-and-down">
-          <v-btn-toggle v-model="scratch" mandatory elevation="3" variant="flat">
+        <v-col
+          cols="12"
+          class="text-center hidden-sm-and-down"
+        >
+          <v-btn-toggle
+            v-model="scratch"
+            mandatory
+            elevation="3"
+            variant="flat"
+          >
             <template v-for="(label, index) in ratingLabels">
               <v-btn
-                  :value="index"
-                  :key="label"
-                  :color="RATING_COLOR[index as RatingsValue]"
-                  :disabled="disabled"
-                  v-if="index <= max"
-                  variant="flat"
-              >{{label}}</v-btn>
+                v-if="index <= max"
+                :key="label"
+                :value="index"
+                :color="RATING_COLOR[index as RatingsValue]"
+                :disabled="disabled"
+                variant="flat"
+              >
+                {{ label }}
+              </v-btn>
             </template>
           </v-btn-toggle>
         </v-col>
-        <v-col cols="12" class="hidden-md-and-up">
+        <v-col
+          cols="12"
+          class="hidden-md-and-up"
+        >
           <v-row no-gutters>
-            <v-col cols="12" v-for="(label, index) in RATINGS_SHORT" :key="label">
+            <v-col
+              v-for="(label, index) in RATINGS_SHORT"
+              :key="label"
+              cols="12"
+            >
               <v-btn
-                  :color="(String(scratch) === String(index)) ? RATING_COLOR[index] : ''"
-                  @click="scratch = index"
-                  :disabled="disabled"
-                  block
-                  variant="flat"
-                  size="x-large"
-                  v-if="index <= max"
-              >{{label}}</v-btn>
+                :color="(String(scratch) === String(index)) ? RATING_COLOR[index] : ''"
+                v-if="index <= max"
+                :disabled="disabled"
+                block
+                variant="flat"
+                size="x-large"
+                @click="scratch = index"
+              >
+                {{ label }}
+              </v-btn>
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="12" :class="{disabled}">
+        <v-col
+          cols="12"
+          :class="{disabled}"
+        >
           <v-row>
-            <v-col class="text-center" cols="12"><h2>{{RATINGS_SHORT[scratch]}}</h2></v-col>
-            <v-col class="text-center" cols="12">
+            <v-col
+              class="text-center"
+              cols="12"
+            >
+              <h2>{{ RATINGS_SHORT[scratch] }}</h2>
+            </v-col>
+            <v-col
+              class="text-center"
+              cols="12"
+            >
               <span>
-                {{RATING_LONG_DESC[scratch]}}
+                {{ RATING_LONG_DESC[scratch] }}
               </span>
             </v-col>
-            <v-col cols="12" v-if="showWarning && scratch === Ratings.EXTREME">
-              <v-alert type="warning" class="my-2">
+            <v-col
+              v-if="showWarning && scratch === Ratings.EXTREME"
+              cols="12"
+            >
+              <v-alert
+                type="warning"
+                class="my-2"
+              >
                 What has been seen cannot be unseen. By selecting this rating you are willingly engaging with this
                 content.
               </v-alert>
@@ -54,12 +99,6 @@
     </v-card-text>
   </v-input>
 </template>
-
-<style scoped>
-.disabled {
-  opacity: .5;
-}
-</style>
 
 <script setup lang="ts">
 import {RATING_COLOR, RATING_LONG_DESC, RATINGS_SHORT} from '@/lib/lib.ts'
@@ -90,3 +129,9 @@ const {passedProps} = useExtendedInput(props)
 const attrs = useAttrs()
 const ratingLabels = Object.values(RATINGS_SHORT)
 </script>
+
+<style scoped>
+.disabled {
+  opacity: .5;
+}
+</style>

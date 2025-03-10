@@ -1,37 +1,61 @@
 <template>
-  <v-container fluid class="pa-0" :id="id">
+  <v-container
+    :id="id"
+    fluid
+    class="pa-0"
+  >
     <v-card>
-      <ac-tab-nav :items="items" label="Select gallery" />
+      <ac-tab-nav
+        :items="items"
+        label="Select gallery"
+      />
     </v-card>
-    <v-row class="d-flex align-content-end" v-if="controls">
+    <v-row
+      v-if="controls"
+      class="d-flex align-content-end"
+    >
       <v-col class="text-center mt-3 text-md-right">
-        <v-btn @click="showUpload = true" v-if="artPage || collectionPage" color="green" class="mx-2" variant="flat">
-          <v-icon left :icon="mdiPlus"/>
+        <v-btn
+          v-if="artPage || collectionPage"
+          color="green"
+          class="mx-2"
+          variant="flat"
+          @click="showUpload = true"
+        >
+          <v-icon
+            left
+            :icon="mdiPlus"
+          />
           New Submission
         </v-btn>
-        <v-btn @click="managing = !managing" color="primary" variant="flat">
-          <v-icon left :icon="mdiCog"/>
+        <v-btn
+          color="primary"
+          variant="flat"
+          @click="managing = !managing"
+        >
+          <v-icon
+            left
+            :icon="mdiCog"
+          />
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
       </v-col>
     </v-row>
-    <router-view class="pa-0 pt-3" v-if="subject" :key="`${username}-${String(route.name)}`"></router-view>
+    <router-view
+      v-if="subject"
+      :key="`${username}-${String(route.name)}`"
+      class="pa-0 pt-3"
+    />
     <ac-new-submission
-        ref="newSubmissionForm"
-        :username="username"
-        v-model="showUpload"
-        @success="postAdd"
-        :allow-multiple="true"
+      ref="newSubmissionForm"
+      v-model="showUpload"
+      :username="username"
+      :allow-multiple="true"
+      @success="postAdd"
     />
   </v-container>
 </template>
-
-<style>
-.gallery-container {
-  position: relative;
-}
-</style>
 
 <script setup lang="ts">
 import {flatten, genId} from '@/lib/lib.ts'
@@ -160,3 +184,9 @@ const postAdd = (submission: Submission | ArtistTag) => {
   }
 }
 </script>
+
+<style>
+.gallery-container {
+  position: relative;
+}
+</style>

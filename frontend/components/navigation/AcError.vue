@@ -1,10 +1,17 @@
 <template>
   <!--suppress JSUnresolvedVariable -->
-  <div v-if="code" class="container error-container">
+  <div
+    v-if="code"
+    class="container error-container"
+  >
     <div class="row">
       <div class="col-12 text-center">
         <!--suppress JSUnresolvedVariable -->
-        <img class="error-logo" :src="logo" :alt="`Error code ${code}`"/>
+        <img
+          class="error-logo"
+          :src="logo"
+          :alt="`Error code ${code}`"
+        >
       </div>
       <div class="col-12 text-center home-title">
         <h1>Whoops!</h1>

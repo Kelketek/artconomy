@@ -1,56 +1,115 @@
 <template>
   <ac-load-section :controller="character.profile">
-    <ac-subjective-toolbar :username="username" v-if="character.profile.x">
-      <template v-if="characterAvatar" v-slot:avatar>
-        <ac-mini-character :show-name="false" :character="character.profile.x" class="ml-3" :alt="character.profile.x!.name"/>
+    <ac-subjective-toolbar
+      v-if="character.profile.x"
+      :username="username"
+    >
+      <template
+        v-if="characterAvatar"
+        #avatar
+      >
+        <ac-mini-character
+          :show-name="false"
+          :character="character.profile.x"
+          class="ml-3"
+          :alt="character.profile.x!.name"
+        />
         <v-toolbar-title>
-          <ac-link :to="{name: 'Character', params: {username, characterName}}">{{characterName}}</ac-link>
+          <ac-link :to="{name: 'Character', params: {username, characterName}}">
+            {{ characterName }}
+          </ac-link>
         </v-toolbar-title>
       </template>
-      <v-toolbar-items class="text-center text-md-right" v-if="character.profile.x">
-        <ac-share-button :title="`${characterName} by ${username} - Artconomy`" :media-url="shareMediaUrl"
-                         :clean="shareMediaClean">
-          <template v-slot:title>Share {{characterName}}</template>
-          <template v-slot:footer v-if="controls">
+      <v-toolbar-items
+        v-if="character.profile.x"
+        class="text-center text-md-right"
+      >
+        <ac-share-button
+          :title="`${characterName} by ${username} - Artconomy`"
+          :media-url="shareMediaUrl"
+          :clean="shareMediaClean"
+        >
+          <template #title>
+            Share {{ characterName }}
+          </template>
+          <template
+            v-if="controls"
+            #footer
+          >
             <ac-load-section :controller="character.sharedWith">
-              <ac-share-manager :controller="character.sharedWith"/>
+              <ac-share-manager :controller="character.sharedWith" />
             </ac-load-section>
           </template>
         </ac-share-button>
-        <v-btn color="green" variant="flat" @click="showUpload = true" v-if="controls" class="upload-button">
-          <v-icon left :icon="mdiUpload"/>
+        <v-btn
+          v-if="controls"
+          color="green"
+          variant="flat"
+          class="upload-button"
+          @click="showUpload = true"
+        >
+          <v-icon
+            left
+            :icon="mdiUpload"
+          />
           Upload
         </v-btn>
-        <ac-new-submission :show-characters="!!character.profile.x"
-                           :character-init-items="preloadedCharacter"
-                           v-model="showUpload"
-                           :username="username"
-                           :visit="visit"
-                           v-if="controls && preloadedCharacter"
-                           :allow-multiple="true"
-                           ref="submissionDialog"
-                           @success="success"
+        <ac-new-submission
+          v-if="controls && preloadedCharacter"
+          ref="submissionDialog"
+          v-model="showUpload"
+          :show-characters="!!character.profile.x"
+          :character-init-items="preloadedCharacter"
+          :username="username"
+          :visit="visit"
+          :allow-multiple="true"
+          @success="success"
         />
-        <v-menu offset-x left v-if="controls" :close-on-content-click="false" :attach="menuTarget">
-          <template v-slot:activator="{props}">
-            <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-              <v-icon :icon="mdiDotsHorizontal"/>
+        <v-menu
+          v-if="controls"
+          offset-x
+          left
+          :close-on-content-click="false"
+          :attach="menuTarget"
+        >
+          <template #activator="{props}">
+            <v-btn
+              icon
+              v-bind="props"
+              class="more-button"
+              aria-label="Actions"
+            >
+              <v-icon :icon="mdiDotsHorizontal" />
             </v-btn>
           </template>
           <v-list dense>
-            <v-list-item @click.stop="editing = !editing" v-if="showEdit">
-              <template v-slot:prepend>
-                <v-icon v-if="editing" :icon="mdiLock"/>
-                <v-icon v-else :icon="mdiPencil"/>
+            <v-list-item
+              v-if="showEdit"
+              @click.stop="editing = !editing"
+            >
+              <template #prepend>
+                <v-icon
+                  v-if="editing"
+                  :icon="mdiLock"
+                />
+                <v-icon
+                  v-else
+                  :icon="mdiPencil"
+                />
               </template>
-              <v-list-item-title v-if="editing">Lock</v-list-item-title>
-              <v-list-item-title v-else>Edit</v-list-item-title>
+              <v-list-item-title v-if="editing">
+                Lock
+              </v-list-item-title>
+              <v-list-item-title v-else>
+                Edit
+              </v-list-item-title>
             </v-list-item>
             <v-list-item>
-              <template v-slot:prepend>
-                <v-switch v-model="character.profile.patchers.private.model"
-                          :hide-details="true"
-                          color="primary"
+              <template #prepend>
+                <v-switch
+                  v-model="character.profile.patchers.private.model"
+                  :hide-details="true"
+                  color="primary"
                 />
               </template>
               <v-list-item-title>
@@ -58,10 +117,11 @@
               </v-list-item-title>
             </v-list-item>
             <v-list-item>
-              <template v-slot:prepend>
-                <v-switch v-model="character.profile.patchers.nsfw.model"
-                          :hide-details="true"
-                          color="primary"
+              <template #prepend>
+                <v-switch
+                  v-model="character.profile.patchers.nsfw.model"
+                  :hide-details="true"
+                  color="primary"
                 />
               </template>
               <v-list-item-title>
@@ -69,10 +129,13 @@
               </v-list-item-title>
             </v-list-item>
             <ac-confirmation :action="deleteCharacter">
-              <template v-slot:default="confirmContext">
+              <template #default="confirmContext">
                 <v-list-item v-on="confirmContext.on">
-                  <template v-slot:prepend>
-                    <v-icon class="delete-button" :icon="mdiDelete"/>
+                  <template #prepend>
+                    <v-icon
+                      class="delete-button"
+                      :icon="mdiDelete"
+                    />
                   </template>
                   <v-list-item-title>Delete</v-list-item-title>
                 </v-list-item>

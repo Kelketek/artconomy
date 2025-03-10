@@ -1,28 +1,52 @@
 <template>
   <ac-load-section :controller="validator">
-    <template v-slot:default>
-      <v-row no-gutters class="mt-5">
-        <v-col class="text-center" cols="12" md="6" offset-md="3">
+    <template #default>
+      <v-row
+        no-gutters
+        class="mt-5"
+      >
+        <v-col
+          class="text-center"
+          cols="12"
+          md="6"
+          offset-md="3"
+        >
           <ac-form @submit.prevent="resetForm.submitThen(postReset)">
-            <ac-form-container class="mt-3" :sending="resetForm.sending" :errors="resetForm.errors" v-if="validator.x">
+            <ac-form-container
+              v-if="validator.x"
+              class="mt-3"
+              :sending="resetForm.sending"
+              :errors="resetForm.errors"
+            >
               <v-row no-gutters>
                 <v-col cols="12">
-                  <p>Reset password for {{username}}</p>
+                  <p>Reset password for {{ username }}</p>
                 </v-col>
                 <v-col cols="12">
                   <ac-bound-field
-                      :field="resetForm.fields.new_password" type="password"
-                      label="New Password"
-                  ></ac-bound-field>
+                    :field="resetForm.fields.new_password"
+                    type="password"
+                    label="New Password"
+                  />
                 </v-col>
                 <v-col cols="12">
                   <ac-bound-field
-                      :field="resetForm.fields.new_password2" type="password"
-                      label="New Password (again)"
-                  ></ac-bound-field>
+                    :field="resetForm.fields.new_password2"
+                    type="password"
+                    label="New Password (again)"
+                  />
                 </v-col>
-                <v-col class="text-center" cols="12">
-                  <v-btn type="submit" color="primary" variant="flat">Reset Password</v-btn>
+                <v-col
+                  class="text-center"
+                  cols="12"
+                >
+                  <v-btn
+                    type="submit"
+                    color="primary"
+                    variant="flat"
+                  >
+                    Reset Password
+                  </v-btn>
                 </v-col>
               </v-row>
             </ac-form-container>
@@ -30,13 +54,22 @@
         </v-col>
       </v-row>
     </template>
-    <template v-slot:failure>
+    <template #failure>
       <v-container>
         <v-row no-gutters>
-          <v-col class="text-center" cols="12" md="6" offset-md="3">
-            <v-alert value="error" type="error">
+          <v-col
+            class="text-center"
+            cols="12"
+            md="6"
+            offset-md="3"
+          >
+            <v-alert
+              value="error"
+              type="error"
+            >
               Your reset token is invalid or has expired.
-              <router-link :to="{name: 'Forgot'}">You can request a new one here!
+              <router-link :to="{name: 'Forgot'}">
+                You can request a new one here!
               </router-link>
             </v-alert>
           </v-col>

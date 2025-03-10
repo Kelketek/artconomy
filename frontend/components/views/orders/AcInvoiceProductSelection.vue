@@ -7,75 +7,114 @@
     </v-row>
     <ac-paginated :list="products">
       <v-row>
-        <v-col cols="12" sm="6" md="4" lg="3" v-for="product in products.list" :key="product.x!.id">
+        <v-col
+          v-for="product in products.list"
+          :key="product.x!.id"
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+        >
           <ac-link :to="{name: 'NewOrder', params: {username, invoiceMode: 'invoice', productId: `${product.x!.id}`}}">
-            <ac-product-preview :product="product.x!" :show-username="false" :linked="false" />
+            <ac-product-preview
+              :product="product.x!"
+              :show-username="false"
+              :linked="false"
+            />
           </ac-link>
         </v-col>
-        <v-col cols="12" sm="6" md="4" lg="3">
+        <v-col
+          cols="12"
+          sm="6"
+          md="4"
+          lg="3"
+        >
           <v-card>
             <v-card-title>Custom Project</v-card-title>
             <v-card-text>
-              <v-btn color="green" block @click="showCustom = true"><v-icon :icon="mdiPlus"/>Create Custom Invoice</v-btn>
+              <v-btn
+                color="green"
+                block
+                @click="showCustom = true"
+              >
+                <v-icon :icon="mdiPlus" />Create Custom Invoice
+              </v-btn>
             </v-card-text>
           </v-card>
         </v-col>
       </v-row>
     </ac-paginated>
-    <ac-form-dialog v-bind="customForm.bind" v-model="showCustom" @submit="customForm.submitThen(visitDeliverable)" :large="true" title="Custom invoice">
+    <ac-form-dialog
+      v-bind="customForm.bind"
+      v-model="showCustom"
+      :large="true"
+      title="Custom invoice"
+      @submit="customForm.submitThen(visitDeliverable)"
+    >
       <v-row>
-        <v-col cols="12" md="6">
+        <v-col
+          cols="12"
+          md="6"
+        >
           <ac-bound-field
-              :field="customForm.fields.buyer"
-              label="Customer username/email"
-              field-type="ac-user-select"
-              item-value="username"
-              :multiple="false"
-              :allow-raw="true"
-              hint="Enter the username or the email address of the customer this commission is for.
+            :field="customForm.fields.buyer"
+            label="Customer username/email"
+            field-type="ac-user-select"
+            item-value="username"
+            :multiple="false"
+            :allow-raw="true"
+            hint="Enter the username or the email address of the customer this commission is for.
                   This can be left blank if you only want to use this order for tracking purposes."
           />
         </v-col>
         <v-col cols="6">
           <ac-bound-field
-              field-type="ac-character-select" :field="customForm.fields.characters" label="Characters"
-              hint="Start typing a character's name to search."
-              v-if="showCharacters"
-              :init-items="initCharacters"
+            v-if="showCharacters"
+            field-type="ac-character-select"
+            :field="customForm.fields.characters"
+            label="Characters"
+            hint="Start typing a character's name to search."
+            :init-items="initCharacters"
           />
         </v-col>
         <v-col cols="12">
           <ac-bound-field
-              field-type="ac-rating-field"
-              :field="customForm.fields.rating"
+            field-type="ac-rating-field"
+            :field="customForm.fields.rating"
           />
         </v-col>
         <v-col cols="12">
           <ac-bound-field
-              label="Details"
-              :field="customForm.fields.details"
-              field-type="ac-editor"
-              :save-indicator="false"
-              hint="Enter any information you need to remember in order to complete this commission.
+            label="Details"
+            :field="customForm.fields.details"
+            field-type="ac-editor"
+            :save-indicator="false"
+            hint="Enter any information you need to remember in order to complete this commission.
                   NOTE: This information will be visible to the buyer."
           />
         </v-col>
         <v-col cols="12">
           <ac-bound-field
-              field-type="ac-uppy-file"
-              uppy-id="uppy-new-order"
-              :field="customForm.fields.references"
-              :max-number-of-files="10"
-              label="(Optional) Add some reference images!"
-              :persistent-hint="true"
-              :persist="true"
+            field-type="ac-uppy-file"
+            uppy-id="uppy-new-order"
+            :field="customForm.fields.references"
+            :max-number-of-files="10"
+            label="(Optional) Add some reference images!"
+            :persistent-hint="true"
+            :persist="true"
           />
         </v-col>
-        <v-col cols="12" md="4" offset-md="4">
+        <v-col
+          cols="12"
+          md="4"
+          offset-md="4"
+        >
           <ac-bound-field
-              field-type="ac-checkbox" :field="customForm.fields.hidden" label="Hidden Order"
-              :persistent-hint="true"
-              hint="If selected, this order's details will be hidden on your public queue (if you have your public queue enabled.)"
+            field-type="ac-checkbox"
+            :field="customForm.fields.hidden"
+            label="Hidden Order"
+            :persistent-hint="true"
+            hint="If selected, this order's details will be hidden on your public queue (if you have your public queue enabled.)"
           />
         </v-col>
         <v-col cols="12">

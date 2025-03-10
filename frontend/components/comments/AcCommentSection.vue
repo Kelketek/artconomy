@@ -1,45 +1,101 @@
 <template>
-  <v-container fluid class="pa-0 ma-0 comment-list">
-    <v-row no-gutters v-if="commentList.moreAvailable || showHistory">
+  <v-container
+    fluid
+    class="pa-0 ma-0 comment-list"
+  >
+    <v-row
+      v-if="commentList.moreAvailable || showHistory"
+      no-gutters
+    >
       <v-col v-if="commentList.moreAvailable">
-        <v-btn block @click="commentList.next" variant="flat">
+        <v-btn
+          block
+          variant="flat"
+          @click="commentList.next"
+        >
           Load More
-          <v-icon right :icon="mdiArrowExpandDown"/>
+          <v-icon
+            right
+            :icon="mdiArrowExpandDown"
+          />
         </v-btn>
       </v-col>
-      <v-col class="text-center" v-if="showHistory">
-        <v-btn @click="historyToggle = !historyToggle" class="comment-history-button" variant="flat">
-          <v-icon left v-if="historyToggle" :icon="mdiEye"/>
-          <v-icon left v-else :icon="mdiEyeOff"/>
+      <v-col
+        v-if="showHistory"
+        class="text-center"
+      >
+        <v-btn
+          class="comment-history-button"
+          variant="flat"
+          @click="historyToggle = !historyToggle"
+        >
+          <v-icon
+            v-if="historyToggle"
+            left
+            :icon="mdiEye"
+          />
+          <v-icon
+            v-else
+            left
+            :icon="mdiEyeOff"
+          />
           Toggle History
         </v-btn>
       </v-col>
     </v-row>
-    <ac-load-section min-height="10rem" :controller="commentList">
-      <template v-slot:default>
-        <template v-for="(comment, index) in commentList.list" :key="comment.x!.id">
+    <ac-load-section
+      min-height="10rem"
+      :controller="commentList"
+    >
+      <template #default>
+        <template
+          v-for="(comment, index) in commentList.list"
+          :key="comment.x!.id"
+        >
           <ac-comment
-              :comment="comment"
-              :username="(comment.x!.user && comment.x!.user.username) || ''"
-              :commentList="commentList"
-              :nesting="nesting"
-              :toplevel="true"
-              :locked="locked"
-              :alternate="!(index % 2)"
-              :show-history="historyToggle"
-              :in-history="inHistory"
-          >
-          </ac-comment>
-          <v-divider v-if="index + 1 !== commentList.list.length" :key="'divider-' + index"></v-divider>
+            :comment="comment"
+            :username="(comment.x!.user && comment.x!.user.username) || ''"
+            :comment-list="commentList"
+            :nesting="nesting"
+            :toplevel="true"
+            :locked="locked"
+            :alternate="!(index % 2)"
+            :show-history="historyToggle"
+            :in-history="inHistory"
+          />
+          <v-divider
+            v-if="index + 1 !== commentList.list.length"
+            :key="'divider-' + index"
+          />
         </template>
       </template>
     </ac-load-section>
-    <ac-loading-spinner v-if="commentList.fetching" min-height="10rem"></ac-loading-spinner>
-    <slot v-if="commentList.ready && !commentList.list.length" name="empty"></slot>
-    <ac-new-comment ref="newComment" v-if="commentList.ready && !locked && !inHistory" :commentList="commentList"
-                    :alternate="!(commentList.list.length % 2)" :guest-ok="guestOk" :extra-data="extraData"/>
-    <v-row no-gutters v-if="locked && commentList.ready &&!inHistory">
-      <v-col cols="12" class="col-12 text-section text-center">Comments have been locked.</v-col>
+    <ac-loading-spinner
+      v-if="commentList.fetching"
+      min-height="10rem"
+    />
+    <slot
+      v-if="commentList.ready && !commentList.list.length"
+      name="empty"
+    />
+    <ac-new-comment
+      v-if="commentList.ready && !locked && !inHistory"
+      ref="newComment"
+      :comment-list="commentList"
+      :alternate="!(commentList.list.length % 2)"
+      :guest-ok="guestOk"
+      :extra-data="extraData"
+    />
+    <v-row
+      v-if="locked && commentList.ready &&!inHistory"
+      no-gutters
+    >
+      <v-col
+        cols="12"
+        class="col-12 text-section text-center"
+      >
+        Comments have been locked.
+      </v-col>
     </v-row>
   </v-container>
 </template>

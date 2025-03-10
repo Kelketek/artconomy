@@ -1,22 +1,6 @@
 <template>
-  <div :id="`${id}-card-number`"/>
+  <div :id="`${id}-card-number`" />
 </template>
-
-<style>
-.StripeElement {
-  border-bottom-style: solid;
-  border-bottom-color: rgba(255, 255, 255, 0.7);
-  border-bottom-width: 1px;
-}
-
-.StripeElement.focus {
-  border-bottom-color: white;
-}
-
-.StripeElement.invalid {
-  border-bottom-color: darkred;
-}
-</style>
 
 <script setup lang="ts">
 import {getStripe} from './views/order/mixins/StripeMixin.ts'
@@ -60,3 +44,19 @@ onMounted(() => {
   emit('card', card)
 })
 </script>
+
+<style>
+.StripeElement {
+  border-bottom-style: solid;
+  border-bottom-color: rgba(255, 255, 255, 0.7);
+  border-bottom-width: 1px;
+}
+
+.StripeElement.focus {
+  border-bottom-color: white;
+}
+
+.StripeElement.invalid {
+  border-bottom-color: darkred;
+}
+</style>

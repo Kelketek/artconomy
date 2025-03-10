@@ -1,8 +1,14 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="transactionLink" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="transactionLink"
+    :username="username"
+  >
+    <template #title>
       <router-link
-          :to="transactionLink">Your subscription has renewed successfully!
+        :to="transactionLink"
+      >
+        Your subscription has renewed successfully!
       </router-link>
     </template>
   </ac-base-notification>

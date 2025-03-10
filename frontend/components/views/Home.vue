@@ -1,57 +1,139 @@
 <template>
-  <v-container fluid class="pa-0">
-    <div class="px-3" v-if="isRegistered">
-      <v-img :src="randomBanner.src.href" aspect-ratio="7.2" alt="Welcome back to Artconomy!" :eager="prerendering"/>
+  <v-container
+    fluid
+    class="pa-0"
+  >
+    <div
+      v-if="isRegistered"
+      class="px-3"
+    >
+      <v-img
+        :src="randomBanner.src.href"
+        aspect-ratio="7.2"
+        alt="Welcome back to Artconomy!"
+        :eager="prerendering"
+      />
       <div class="text-right pr-2 elevation-2 credit-overlay">
         <small>
-          <ac-link :to="{name: 'AboutUser', params: {username: randomBanner.artist}}">Art by {{randomBanner.artist}}
+          <ac-link :to="{name: 'AboutUser', params: {username: randomBanner.artist}}">Art by {{ randomBanner.artist }}
           </ac-link>
         </small>
       </div>
     </div>
     <v-container v-if="!isRegistered">
       <v-row no-gutters>
-        <v-col class="text-center px-2" cols="12">
-          <h1>Your ideas. <br class="hidden-sm-and-up"/> Your characters. Realized.</h1>
+        <v-col
+          class="text-center px-2"
+          cols="12"
+        >
+          <h1>Your ideas. <br class="hidden-sm-and-up"> Your characters. Realized.</h1>
         </v-col>
-        <v-col cols="8" offset="2" lg="4" offset-lg="4">
+        <v-col
+          cols="8"
+          offset="2"
+          lg="4"
+          offset-lg="4"
+        >
           <ac-bound-field
-              :field="searchForm.fields.q"
-              @keyup="searchFromField"
-              label="I'm looking for..."
-              class="home-search-field"
-              :prepend-icon="mdiMagnify"
+            :field="searchForm.fields.q"
+            label="I'm looking for..."
+            class="home-search-field"
+            :prepend-icon="mdiMagnify"
+            @keyup="searchFromField"
           />
         </v-col>
-        <v-col class="text-center" cols="12" lg="6" offset-lg="3">
+        <v-col
+          class="text-center"
+          cols="12"
+          lg="6"
+          offset-lg="3"
+        >
           Try terms like:
-          <v-chip color="secondary" variant="flat" @click="search({q: term})" class="mx-1" v-for="term in searchTerms"
-                  :key="term">{{term}}
+          <v-chip
+            v-for="term in searchTerms"
+            :key="term"
+            color="secondary"
+            variant="flat"
+            class="mx-1"
+            @click="search({q: term})"
+          >
+            {{ term }}
           </v-chip>
         </v-col>
-        <v-col class="text-center text-lg-right pt-3 px-lg-2" cols="12" lg="6">
-          <v-btn color="primary" @click="search({})" variant="flat">
-            <v-icon left :icon="mdiMagnify"/>
+        <v-col
+          class="text-center text-lg-right pt-3 px-lg-2"
+          cols="12"
+          lg="6"
+        >
+          <v-btn
+            color="primary"
+            variant="flat"
+            @click="search({})"
+          >
+            <v-icon
+              left
+              :icon="mdiMagnify"
+            />
             Browse Everyone Open
           </v-btn>
         </v-col>
-        <v-col class="text-center text-lg-left pt-3 px-lg-2" cols="12" lg="6">
-          <v-btn color="secondary" :to="{name: 'LandingArtistTools'}" variant="flat">
-            <v-icon left :icon="mdiPalette"/>
+        <v-col
+          class="text-center text-lg-left pt-3 px-lg-2"
+          cols="12"
+          lg="6"
+        >
+          <v-btn
+            color="secondary"
+            :to="{name: 'LandingArtistTools'}"
+            variant="flat"
+          >
+            <v-icon
+              left
+              :icon="mdiPalette"
+            />
             Are you an artist?
           </v-btn>
         </v-col>
       </v-row>
-      <v-row no-gutters class="pt-2">
-        <v-col class="text-center d-flex" cols="12" md="4">
+      <v-row
+        no-gutters
+        class="pt-2"
+      >
+        <v-col
+          class="text-center d-flex"
+          cols="12"
+          md="4"
+        >
           <v-row no-gutters>
             <v-col class="grow pa-1">
               <v-row no-gutters>
-                <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="laptop" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox typing away on a Laptop" :eager="true" :transition="false"/>
+                <v-col
+                  cols="6"
+                  md="12"
+                  order="2"
+                  order-md="1"
+                >
+                  <v-img
+                    :src="laptop"
+                    max-height="20vh"
+                    aspect-ratio="1"
+                    contain
+                    alt="Vulpy the Artfox typing away on a Laptop"
+                    :eager="true"
+                    :transition="false"
+                  />
                 </v-col>
-                <v-col cols="6" md="12" order="1" order-md="2">
-                  <v-row no-gutters class="justify-content fill-height" align="center">
+                <v-col
+                  cols="6"
+                  md="12"
+                  order="1"
+                  order-md="2"
+                >
+                  <v-row
+                    no-gutters
+                    class="justify-content fill-height"
+                    align="center"
+                  >
                     <v-col class="pa-1">
                       Find an artist you want to commission, and place an order describing what you want.
                     </v-col>
@@ -61,23 +143,54 @@
             </v-col>
           </v-row>
         </v-col>
-        <v-col class="text-center d-flex" cols="12" md="4">
+        <v-col
+          class="text-center d-flex"
+          cols="12"
+          md="4"
+        >
           <v-row no-gutters>
             <v-col class="grow pa-1">
               <v-row no-gutters>
-                <v-col cols="6" md="12">
-                  <v-img :src="fingerPainting" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox painting a piece of art." :eager="true" :transition="false"/>
+                <v-col
+                  cols="6"
+                  md="12"
+                >
+                  <v-img
+                    :src="fingerPainting"
+                    max-height="20vh"
+                    aspect-ratio="1"
+                    contain
+                    alt="Vulpy the Artfox painting a piece of art."
+                    :eager="true"
+                    :transition="false"
+                  />
                 </v-col>
-                <v-col class="pa-1" cols="6" md="12">
-                  <v-row no-gutters class="justify-content fill-height" align="center">
+                <v-col
+                  class="pa-1"
+                  cols="6"
+                  md="12"
+                >
+                  <v-row
+                    no-gutters
+                    class="justify-content fill-height"
+                    align="center"
+                  >
                     <v-col>
-                      <p>We hold onto your payment until the work is done. In the event the artist fails to complete the
-                        assignment, you'll get your money back!*</p>
-                      <p><small>* Protection available only on
-                        <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield
-                        </router-link>
-                        <v-icon color="green" class="px-1" :icon="mdiShieldHalfFull"/>
-                        enabled products.</small></p>
+                      <p>
+                        We hold onto your payment until the work is done. In the event the artist fails to complete the
+                        assignment, you'll get your money back!*
+                      </p>
+                      <p>
+                        <small>* Protection available only on
+                          <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield
+                          </router-link>
+                          <v-icon
+                            color="green"
+                            class="px-1"
+                            :icon="mdiShieldHalfFull"
+                          />
+                          enabled products.</small>
+                      </p>
                     </v-col>
                   </v-row>
                 </v-col>
@@ -85,20 +198,50 @@
             </v-col>
           </v-row>
         </v-col>
-        <v-col class="text-center d-flex" cols="12" md="4">
+        <v-col
+          class="text-center d-flex"
+          cols="12"
+          md="4"
+        >
           <v-row no-gutters>
             <v-col class="grow pa-1">
               <v-row dense>
-                <v-col cols="6" md="12" order="2" order-md="1">
-                  <v-img :src="fridge" max-height="20vh" aspect-ratio="1" contain alt="Vulpy the Artfox hanging his work on the fridge for all to enjoy!" :eager="true" :transition="false"/>
+                <v-col
+                  cols="6"
+                  md="12"
+                  order="2"
+                  order-md="1"
+                >
+                  <v-img
+                    :src="fridge"
+                    max-height="20vh"
+                    aspect-ratio="1"
+                    contain
+                    alt="Vulpy the Artfox hanging his work on the fridge for all to enjoy!"
+                    :eager="true"
+                    :transition="false"
+                  />
                 </v-col>
-                <v-col cols="6" md="12" order="1" order-md="2">
-                  <v-row class="justify-content fill-height" align="center">
+                <v-col
+                  cols="6"
+                  md="12"
+                  order="1"
+                  order-md="2"
+                >
+                  <v-row
+                    class="justify-content fill-height"
+                    align="center"
+                  >
                     <v-col>
-                      <p>Once completed, you can catalog and show off your completed piece to the world! If you have a
-                        character, you can add it to your character's gallery, too!</p>
-                      <p><small>Vulpy images by <a target="_blank"
-                                                   href="https://artconomy.com/profile/Halcyon/products/">Halcyon</a></small>
+                      <p>
+                        Once completed, you can catalog and show off your completed piece to the world! If you have a
+                        character, you can add it to your character's gallery, too!
+                      </p>
+                      <p>
+                        <small>Vulpy images by <a
+                          target="_blank"
+                          href="https://artconomy.com/profile/Halcyon/products/"
+                        >Halcyon</a></small>
                       </p>
                     </v-col>
                   </v-row>
@@ -109,47 +252,106 @@
         </v-col>
       </v-row>
     </v-container>
-    <v-container fluid :class="{'pt-0': isRegistered}">
+    <v-container
+      fluid
+      :class="{'pt-0': isRegistered}"
+    >
       <v-row no-gutters>
-        <v-col cols="12" :order="featuredOrder" class="pt-1">
+        <v-col
+          cols="12"
+          :order="featuredOrder"
+          class="pt-1"
+        >
           <v-card>
-            <ac-tabs :items="mainSectionItems" v-model="mainSection" label="Categories"/>
+            <ac-tabs
+              v-model="mainSection"
+              :items="mainSectionItems"
+              label="Categories"
+            />
           </v-card>
           <v-window v-model="mainSection">
             <v-window-item :value="0">
               <div>
                 <v-row v-if="featured.x">
                   <v-col class="text-left align-content-center align-left justify-start d-flex pt-5 pl-5">
-                    <ac-avatar :user="featured.x" :inline="true" :show-name="false" class="d-inline-block"/><div class="text-h4 d-inline-block pl-3">{{featured.x.username}}</div>
+                    <ac-avatar
+                      :user="featured.x"
+                      :inline="true"
+                      :show-name="false"
+                      class="d-inline-block"
+                    /><div class="text-h4 d-inline-block pl-3">
+                      {{ featured.x.username }}
+                    </div>
                   </v-col>
                 </v-row>
-                <v-card-text v-else>Artists featured for quality and performance!</v-card-text>
+                <v-card-text v-else>
+                  Artists featured for quality and performance!
+                </v-card-text>
               </div>
               <v-row>
-                <v-col cols="12" md="3" v-if="featured.x && display.mdAndUp.value && featured.x.submissions[0]">
-                  <ac-gallery-preview :submission="featured.x.submissions[0]" :show-footer="false"/>
+                <v-col
+                  v-if="featured.x && display.mdAndUp.value && featured.x.submissions[0]"
+                  cols="12"
+                  md="3"
+                >
+                  <ac-gallery-preview
+                    :submission="featured.x.submissions[0]"
+                    :show-footer="false"
+                  />
                 </v-col>
-                <v-col cols="12" md="9">
-                  <v-row v-if="featured.x" justify="center">
+                <v-col
+                  cols="12"
+                  md="9"
+                >
+                  <v-row
+                    v-if="featured.x"
+                    justify="center"
+                  >
                     <v-spacer />
                     <template v-if="featured.x.products.length">
-                      <v-col cols="6" md="3" v-for="product in featured.x.products" :key="product.id">
-                        <ac-product-preview :product="product"/>
+                      <v-col
+                        v-for="product in featured.x.products"
+                        :key="product.id"
+                        cols="6"
+                        md="3"
+                      >
+                        <ac-product-preview :product="product" />
                       </v-col>
                     </template>
                     <template v-else-if="slicedFeaturedSubmissions">
-                      <v-col cols="6" md="3" v-for="submission in slicedFeaturedSubmissions" :key="submission.id">
-                        <ac-gallery-preview :submission="submission" :show-footer="false"/>
+                      <v-col
+                        v-for="submission in slicedFeaturedSubmissions"
+                        :key="submission.id"
+                        cols="6"
+                        md="3"
+                      >
+                        <ac-gallery-preview
+                          :submission="submission"
+                          :show-footer="false"
+                        />
                       </v-col>
                     </template>
                     <v-spacer />
                     <v-col cols="12">
                       <v-row>
                         <v-col cols="6">
-                          <v-btn block color="secondary" @click="search({featured: true})" variant="flat">See All Featured</v-btn>
+                          <v-btn
+                            block
+                            color="secondary"
+                            variant="flat"
+                            @click="search({featured: true})"
+                          >
+                            See All Featured
+                          </v-btn>
                         </v-col>
                         <v-col cols="6">
-                          <v-btn block color="primary" :to="profileLink(featured.x) as RouteLocationRaw">Full Profile</v-btn>
+                          <v-btn
+                            block
+                            color="primary"
+                            :to="profileLink(featured.x) as RouteLocationRaw"
+                          >
+                            Full Profile
+                          </v-btn>
                         </v-col>
                       </v-row>
                     </v-col>
@@ -159,54 +361,111 @@
             </v-window-item>
             <v-window-item :value="1">
               <v-card-text>Products by artists given high ratings by previous commissioners</v-card-text>
-              <ac-product-slider :list="rated"/>
-              <v-btn block color="primary" @click="search({rating: true})" variant="flat">See More</v-btn>
+              <ac-product-slider :list="rated" />
+              <v-btn
+                block
+                color="primary"
+                variant="flat"
+                @click="search({rating: true})"
+              >
+                See More
+              </v-btn>
             </v-window-item>
             <v-window-item :value="2">
-              <v-card-text>Looking for something lower-budget? Check out these offerings from our artists, $30 or
+              <v-card-text>
+                Looking for something lower-budget? Check out these offerings from our artists, $30 or
                 less!
               </v-card-text>
-              <ac-product-slider :list="lowPriced"/>
-              <v-btn block color="primary" @click="search({max_price: '30.00'})" class="low-price-more" variant="flat">See More</v-btn>
+              <ac-product-slider :list="lowPriced" />
+              <v-btn
+                block
+                color="primary"
+                class="low-price-more"
+                variant="flat"
+                @click="search({max_price: '30.00'})"
+              >
+                See More
+              </v-btn>
             </v-window-item>
             <v-window-item :value="3">
               <v-card-text>Feeling lucky? Here are some offers from our artists at random!</v-card-text>
-              <ac-product-slider :list="randomProducts"/>
-              <v-btn color="primary" @click="search({})" block variant="flat">Browse Everyone Open</v-btn>
+              <ac-product-slider :list="randomProducts" />
+              <v-btn
+                color="primary"
+                block
+                variant="flat"
+                @click="search({})"
+              >
+                Browse Everyone Open
+              </v-btn>
             </v-window-item>
           </v-window>
         </v-col>
-        <v-col cols="12" md="12" :lg="isRegistered ? 12 : 6" :class="{'py-2': !isRegistered}"
-               :order="isRegistered ? 1 : 5" :order-lg="isRegistered ? 1 : 2">
+        <v-col
+          cols="12"
+          md="12"
+          :lg="isRegistered ? 12 : 6"
+          :class="{'py-2': !isRegistered}"
+          :order="isRegistered ? 1 : 5"
+          :order-lg="isRegistered ? 1 : 2"
+        >
           <v-card :color="theme.current.value.colors['well-darken-4']">
-            <v-toolbar dense color="secondary">
+            <v-toolbar
+              dense
+              color="secondary"
+            >
               <v-toolbar-title>Recent Commissions</v-toolbar-title>
-              <v-spacer/>
+              <v-spacer />
               <v-toolbar-items>
-                <v-btn color="primary" @click="searchSubmissions({commissions: true})" class="search-commissions" variant="flat">See
+                <v-btn
+                  color="primary"
+                  class="search-commissions"
+                  variant="flat"
+                  @click="searchSubmissions({commissions: true})"
+                >
+                  See
                   More
                 </v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Commissions recently completed by our artists</v-card-text>
             <ac-load-section :controller="commissions">
-              <template v-slot:default>
+              <template #default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="submission in commissionsList"
-                         :key="submission.x!.id">
-                    <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
+                  <v-col
+                    v-for="submission in commissionsList"
+                    :key="submission.x!.id"
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    :lg="isRegistered ? 2 : 4"
+                  >
+                    <ac-gallery-preview
+                      :submission="submission.x"
+                      :show-footer="false"
+                    />
                   </v-col>
                 </v-row>
               </template>
-              <template v-slot:loading-spinner>
+              <template #loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()"
-                         :key="i">
-                    <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                  <v-col
+                    v-for="i in Array(listSizer(true)).keys()"
+                    :key="i"
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    :lg="isRegistered ? 2 : 4"
+                  >
+                    <v-responsive
+                      aspect-ratio="1"
+                      max-height="100%"
+                      max-width="100%"
+                    >
                       <v-skeleton-loader
-                          max-height="100%"
-                          type="image"
-                      ></v-skeleton-loader>
+                        max-height="100%"
+                        type="image"
+                      />
                     </v-responsive>
                   </v-col>
                 </v-row>
@@ -214,28 +473,64 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" md="12" :lg="6" class="px-1 py-2 fill-height" order="2" order-lg="3">
+        <v-col
+          cols="12"
+          md="12"
+          :lg="6"
+          class="px-1 py-2 fill-height"
+          order="2"
+          order-lg="3"
+        >
           <v-card :color="theme.current.value.colors['well-darken-4']">
-            <v-toolbar dense color="secondary">
+            <v-toolbar
+              dense
+              color="secondary"
+            >
               <v-toolbar-title>Community Resources</v-toolbar-title>
             </v-toolbar>
             <v-row no-gutters>
-              <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
-                <v-img :src="discord" :aspect-ratio="3/2" contain alt="Discord" :eager="prerendering"/>
+              <v-col
+                cols="6"
+                md="3"
+                lg="6"
+                class="text-center"
+                align-self="center"
+              >
+                <v-img
+                  :src="discord"
+                  :aspect-ratio="3/2"
+                  contain
+                  alt="Discord"
+                  :eager="prerendering"
+                />
               </v-col>
-              <v-col cols="6" md="3" lg="6" class="text-center" align-self="center">
-                <v-responsive :aspect-ratio="3/2" class="pa-1">
-                  <v-row no-gutters justify="center" class="fill-height">
+              <v-col
+                cols="6"
+                md="3"
+                lg="6"
+                class="text-center"
+                align-self="center"
+              >
+                <v-responsive
+                  :aspect-ratio="3/2"
+                  class="pa-1"
+                >
+                  <v-row
+                    no-gutters
+                    justify="center"
+                    class="fill-height"
+                  >
                     <v-col align-self="center">
-                      <p><strong>Want your voice to be heard, to network with artists, and meet new friends?</strong>
+                      <p>
+                        <strong>Want your voice to be heard, to network with artists, and meet new friends?</strong>
                       </p>
                       <p>Check out our Discord!</p>
                       <v-btn
-                          href="https://discord.gg/4nWK9mf"
-                          target="_blank"
-                          rel="nofollow,noopener"
-                          color="primary"
-                          variant="flat"
+                        href="https://discord.gg/4nWK9mf"
+                        target="_blank"
+                        rel="nofollow,noopener"
+                        color="primary"
+                        variant="flat"
                       >
                         Join now!
                       </v-btn>
@@ -243,71 +538,156 @@
                   </v-row>
                 </v-responsive>
               </v-col>
-              <v-col cols="6" md="3" lg="6" align-self="center">
+              <v-col
+                cols="6"
+                md="3"
+                lg="6"
+                align-self="center"
+              >
                 <v-col class="text-center">
-                  <a :href="articles[0].link" target="_blank" :aria-label="articles[0].title">
-                    <v-img :src="articles[0].image" alt="" :aspect-ratio="3/2" contain :eager="prerendering"/>
+                  <a
+                    :href="articles[0].link"
+                    target="_blank"
+                    :aria-label="articles[0].title"
+                  >
+                    <v-img
+                      :src="articles[0].image"
+                      alt=""
+                      :aspect-ratio="3/2"
+                      contain
+                      :eager="prerendering"
+                    />
                   </a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
-                    <a :href="articles[0].link" target="_blank" id="article-0-link">{{articles[0].title}}</a>
+                    <a
+                      id="article-0-link"
+                      :href="articles[0].link"
+                      target="_blank"
+                    >{{ articles[0].title }}</a>
                   </strong>
                 </v-col>
               </v-col>
-              <v-col cols="6" md="3" lg="6" align-self="center">
+              <v-col
+                cols="6"
+                md="3"
+                lg="6"
+                align-self="center"
+              >
                 <v-col class="text-center">
-                  <a :href="articles[1].link" target="_blank" :aria-label="articles[0].title">
-                    <v-img :src="articles[1].image" alt="" :aspect-ratio="3/2" contain :eager="prerendering" />
+                  <a
+                    :href="articles[1].link"
+                    target="_blank"
+                    :aria-label="articles[0].title"
+                  >
+                    <v-img
+                      :src="articles[1].image"
+                      alt=""
+                      :aspect-ratio="3/2"
+                      contain
+                      :eager="prerendering"
+                    />
                   </a>
                 </v-col>
                 <v-col class="text-center">
                   <strong>
-                    <a :href="articles[1].link" target="_blank" id="article-1-link">{{articles[1].title}}</a>
+                    <a
+                      id="article-1-link"
+                      :href="articles[1].link"
+                      target="_blank"
+                    >{{ articles[1].title }}</a>
                   </strong>
                 </v-col>
               </v-col>
             </v-row>
           </v-card>
         </v-col>
-        <v-col cols="12" class="text-center" order="3" :order-lg="isRegistered ? 5 : 4">
+        <v-col
+          cols="12"
+          class="text-center"
+          order="3"
+          :order-lg="isRegistered ? 5 : 4"
+        >
           <v-card color="secondary">
             <v-card-text class="text-center">
               <h2>Find Your Community</h2>
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" order="4" order-lg="5">
+        <v-col
+          cols="12"
+          order="4"
+          order-lg="5"
+        >
           <v-card>
-            <ac-tabs :items="communityItems" v-model="communitySection" label="Communities"/>
+            <ac-tabs
+              v-model="communitySection"
+              :items="communityItems"
+              label="Communities"
+            />
           </v-card>
           <v-window v-model="communitySection">
             <v-window-item :value="0">
-              <ac-product-slider :list="artistsOfColor"></ac-product-slider>
-              <v-btn block color="primary" @click="search({artists_of_color: true})" variant="flat">See More</v-btn>
+              <ac-product-slider :list="artistsOfColor" />
+              <v-btn
+                block
+                color="primary"
+                variant="flat"
+                @click="search({artists_of_color: true})"
+              >
+                See More
+              </v-btn>
             </v-window-item>
             <v-window-item :value="1">
-              <ac-product-slider :list="lgbt"></ac-product-slider>
-              <v-btn block color="primary" @click="search({lgbt: true})" variant="flat">See More</v-btn>
+              <ac-product-slider :list="lgbt" />
+              <v-btn
+                block
+                color="primary"
+                variant="flat"
+                @click="search({lgbt: true})"
+              >
+                See More
+              </v-btn>
             </v-window-item>
             <v-window-item :value="2">
               <ac-load-section :controller="communitySubmissions">
-                <template v-slot:default>
+                <template #default>
                   <v-row dense>
-                    <v-col cols="6" sm="4" md="3" lg="2" v-for="submission in communitySubmissionsList"
-                           :key="submission.x!.id">
-                      <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
+                    <v-col
+                      v-for="submission in communitySubmissionsList"
+                      :key="submission.x!.id"
+                      cols="6"
+                      sm="4"
+                      md="3"
+                      lg="2"
+                    >
+                      <ac-gallery-preview
+                        :submission="submission.x"
+                        :show-footer="false"
+                      />
                     </v-col>
                   </v-row>
                 </template>
-                <template v-slot:loading-spinner>
+                <template #loading-spinner>
                   <v-row dense>
-                    <v-col cols="6" sm="4" md="3" lg="2" v-for="i in Array(listSizer(true)).keys()" :key="i">
-                      <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                    <v-col
+                      v-for="i in Array(listSizer(true)).keys()"
+                      :key="i"
+                      cols="6"
+                      sm="4"
+                      md="3"
+                      lg="2"
+                    >
+                      <v-responsive
+                        aspect-ratio="1"
+                        max-height="100%"
+                        max-width="100%"
+                      >
                         <v-skeleton-loader
-                            max-height="100%"
-                            type="image"
-                        ></v-skeleton-loader>
+                          max-height="100%"
+                          type="image"
+                        />
                       </v-responsive>
                     </v-col>
                   </v-row>
@@ -316,34 +696,69 @@
             </v-window-item>
           </v-window>
         </v-col>
-        <v-col cols="12" md="12" :lg="isRegistered? 6 : 12" class="px-1 py-2" :order="isRegistered ? 4 : 6">
+        <v-col
+          cols="12"
+          md="12"
+          :lg="isRegistered? 6 : 12"
+          class="px-1 py-2"
+          :order="isRegistered ? 4 : 6"
+        >
           <v-card :color="theme.current.value.colors['well-darken-4']">
-            <v-toolbar dense color="secondary">
+            <v-toolbar
+              dense
+              color="secondary"
+            >
               <v-toolbar-title>Recent Submissions</v-toolbar-title>
-              <v-spacer/>
+              <v-spacer />
               <v-toolbar-items>
-                <v-btn color="primary" @click="searchSubmissions({})" class="search-submissions" variant="flat">See More</v-btn>
+                <v-btn
+                  color="primary"
+                  class="search-submissions"
+                  variant="flat"
+                  @click="searchSubmissions({})"
+                >
+                  See More
+                </v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Art uploaded by our users</v-card-text>
             <ac-load-section :controller="submissions">
-              <template v-slot:default>
+              <template #default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 4 : 2" v-for="submission in submissionsList"
-                         :key="submission.x!.id">
-                    <ac-gallery-preview :submission="submission.x" :show-footer="false"/>
+                  <v-col
+                    v-for="submission in submissionsList"
+                    :key="submission.x!.id"
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    :lg="isRegistered ? 4 : 2"
+                  >
+                    <ac-gallery-preview
+                      :submission="submission.x"
+                      :show-footer="false"
+                    />
                   </v-col>
                 </v-row>
               </template>
-              <template v-slot:loading-spinner>
+              <template #loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" lg="4" v-for="i in Array(listSizer(display.md.value)).keys()"
-                         :key="i">
-                    <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                  <v-col
+                    v-for="i in Array(listSizer(display.md.value)).keys()"
+                    :key="i"
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    lg="4"
+                  >
+                    <v-responsive
+                      aspect-ratio="1"
+                      max-height="100%"
+                      max-width="100%"
+                    >
                       <v-skeleton-loader
-                          max-height="100%"
-                          type="image"
-                      ></v-skeleton-loader>
+                        max-height="100%"
+                        type="image"
+                      />
                     </v-responsive>
                   </v-col>
                 </v-row>
@@ -351,34 +766,67 @@
             </ac-load-section>
           </v-card>
         </v-col>
-        <v-col cols="12" class="px-1 py-2" order="7">
+        <v-col
+          cols="12"
+          class="px-1 py-2"
+          order="7"
+        >
           <v-card :color="theme.current.value.colors['well-darken-4']">
-            <v-toolbar dense color="secondary">
+            <v-toolbar
+              dense
+              color="secondary"
+            >
               <v-toolbar-title>New Characters</v-toolbar-title>
-              <v-spacer/>
+              <v-spacer />
               <v-toolbar-items>
-                <v-btn color="primary" @click.stop="searchCharacters()" class="search-characters" variant="flat">See More</v-btn>
+                <v-btn
+                  color="primary"
+                  class="search-characters"
+                  variant="flat"
+                  @click.stop="searchCharacters()"
+                >
+                  See More
+                </v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <v-card-text>Characters cataloged by our users</v-card-text>
             <ac-load-section :controller="characters">
-              <template v-slot:default>
+              <template #default>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="character in charactersList"
-                         :key="character.x!.id">
-                    <ac-character-preview :character="character.x" :show-footer="false"/>
+                  <v-col
+                    v-for="character in charactersList"
+                    :key="character.x!.id"
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    :lg="isRegistered ? 2 : 4"
+                  >
+                    <ac-character-preview
+                      :character="character.x"
+                      :show-footer="false"
+                    />
                   </v-col>
                 </v-row>
               </template>
-              <template v-slot:loading-spinner>
+              <template #loading-spinner>
                 <v-row dense>
-                  <v-col cols="6" sm="4" md="3" :lg="isRegistered ? 2 : 4" v-for="i in Array(listSizer(true)).keys()"
-                         :key="i">
-                    <v-responsive aspect-ratio="1" max-height="100%" max-width="100%">
+                  <v-col
+                    v-for="i in Array(listSizer(true)).keys()"
+                    :key="i"
+                    cols="6"
+                    sm="4"
+                    md="3"
+                    :lg="isRegistered ? 2 : 4"
+                  >
+                    <v-responsive
+                      aspect-ratio="1"
+                      max-height="100%"
+                      max-width="100%"
+                    >
                       <v-skeleton-loader
-                          max-height="100%"
-                          type="image"
-                      ></v-skeleton-loader>
+                        max-height="100%"
+                        type="image"
+                      />
                     </v-responsive>
                   </v-col>
                 </v-row>
@@ -390,15 +838,6 @@
     </v-container>
   </v-container>
 </template>
-
-<style scoped>
-.credit-overlay {
-  margin-top: -1.5rem;
-  position: relative;
-  z-index: 1;
-  text-shadow: -1px -2px 3px black;
-}
-</style>
 
 <script setup lang="ts">
 import {useViewer} from '@/mixins/viewer.ts'
@@ -770,3 +1209,12 @@ const randomBanner = banners[Math.floor(Math.random() * banners.length)]
 
 const {prerendering} = usePrerendering()
 </script>
+
+<style scoped>
+.credit-overlay {
+  margin-top: -1.5rem;
+  position: relative;
+  z-index: 1;
+  text-shadow: -1px -2px 3px black;
+}
+</style>

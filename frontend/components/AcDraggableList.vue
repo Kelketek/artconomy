@@ -1,26 +1,52 @@
 <template>
-  <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses" :show-pagination="showPagination">
-    <ac-draggable-navs :list="list" :sortable-list="sortableList" position-field="display_position"/>
+  <ac-paginated
+    :list="list"
+    :track-pages="trackPages"
+    :ok-statuses="okStatuses"
+    :show-pagination="showPagination"
+  >
+    <ac-draggable-navs
+      :list="list"
+      :sortable-list="sortableList"
+      position-field="display_position"
+    />
     <v-col cols="12">
       <Sortable
-          tag="div"
-          :options="{group: {name: 'main', put: false, pull: 'clone'}, store}"
-          class="v-row"
-          :list="sortableList"
-          @update="moveItemInList"
-          item-key="id"
+        tag="div"
+        :options="{group: {name: 'main', put: false, pull: 'clone'}, store}"
+        class="v-row"
+        :list="sortableList"
+        item-key="id"
+        @update="moveItemInList"
       >
         <template #item="{element, index}">
-          <slot :element="element.controller" :index="index"/>
+          <slot
+            :element="element.controller"
+            :index="index"
+          />
         </template>
       </Sortable>
     </v-col>
-    <ac-draggable-navs :list="list" :sortable-list="sortableList" class="pt-5"/>
-    <template v-slot:failure>
-      <v-col class="text-center" v-if="okStatuses"><p>{{failureMessage}}</p></v-col>
+    <ac-draggable-navs
+      :list="list"
+      :sortable-list="sortableList"
+      class="pt-5"
+    />
+    <template #failure>
+      <v-col
+        v-if="okStatuses"
+        class="text-center"
+      >
+        <p>{{ failureMessage }}</p>
+      </v-col>
     </template>
-    <template v-slot:empty>
-      <v-col class="text-center" v-if="emptyMessage"><p>{{emptyMessage}}</p></v-col>
+    <template #empty>
+      <v-col
+        v-if="emptyMessage"
+        class="text-center"
+      >
+        <p>{{ emptyMessage }}</p>
+      </v-col>
     </template>
   </ac-paginated>
 </template>

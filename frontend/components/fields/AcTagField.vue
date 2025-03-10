@@ -1,14 +1,14 @@
 <template>
   <v-combobox
-      :chips="true"
-      :multiple="true"
-      v-model="tags"
-      autocomplete
-      v-model:search="query"
-      :items="items"
-      auto-select-first="exact"
-      :closable-chips="true"
-      ref="input"
+    ref="input"
+    v-model="tags"
+    v-model:search="query"
+    :chips="true"
+    :multiple="true"
+    autocomplete
+    :items="items"
+    auto-select-first="exact"
+    :closable-chips="true"
   />
 </template>
 

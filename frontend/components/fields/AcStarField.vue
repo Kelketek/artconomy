@@ -1,12 +1,9 @@
 <template>
-  <v-rating :model-value="value" @update:model-value="update"></v-rating>
+  <v-rating
+    :model-value="value"
+    @update:model-value="update"
+  />
 </template>
-
-<style>
-.v-rating .v-icon {
-  padding: 0;
-}
-</style>
 
 <script setup lang="ts">
 import {computed} from 'vue'
@@ -31,3 +28,9 @@ const update = (val: number|string) => {
   emit('update:modelValue', result)
 }
 </script>
+
+<style>
+.v-rating .v-icon {
+  padding: 0;
+}
+</style>

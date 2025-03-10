@@ -1,30 +1,37 @@
 <template>
   <v-menu
-      ref="menu"
-      v-model="menuToggle"
-      :close-on-content-click="false"
-      transition="scale-transition"
-      offset-y
-      min-width="290px"
-      v-bind="attrs"
+    ref="menu"
+    v-model="menuToggle"
+    :close-on-content-click="false"
+    transition="scale-transition"
+    offset-y
+    min-width="290px"
+    v-bind="attrs"
   >
-    <template v-slot:activator="{ props }">
+    <template #activator="{ props }">
       <div v-bind="props">
-        <v-text-field :model-value="modelValue" v-bind="{...attrs, ...props}" prepend-icon="mdi-event"
-                      readonly>
-          <template v-for="name in slotNames" #[name]>
-            <slot :name="name"/>
+        <v-text-field
+          :model-value="modelValue"
+          v-bind="{...attrs, ...props}"
+          prepend-icon="mdi-event"
+          readonly
+        >
+          <template
+            v-for="name in slotNames"
+            #[name]
+          >
+            <slot :name="name" />
           </template>
         </v-text-field>
       </div>
     </template>
     <v-date-picker
-        ref="picker"
-        v-model="converted"
-        v-model:view-mode="activePicker"
-        :max="new Date().toISOString().slice(0, 10)"
-        min="1900-01-01"
-        @change="menuToggle = false"
+      ref="picker"
+      v-model="converted"
+      v-model:view-mode="activePicker"
+      :max="new Date().toISOString().slice(0, 10)"
+      min="1900-01-01"
+      @change="menuToggle = false"
     />
   </v-menu>
 </template>

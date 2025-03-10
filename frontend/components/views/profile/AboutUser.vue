@@ -1,73 +1,160 @@
 <template>
   <ac-load-section :controller="subjectHandler.user">
-    <template v-slot:default>
-      <v-container fluid v-if="subject">
-        <v-row dense class="fill-height">
-          <v-col cols="12" :md="subject.artist_mode ? 4 : 8" order="1">
+    <template #default>
+      <v-container
+        v-if="subject"
+        fluid
+      >
+        <v-row
+          dense
+          class="fill-height"
+        >
+          <v-col
+            cols="12"
+            :md="subject.artist_mode ? 4 : 8"
+            order="1"
+          >
             <v-card>
               <v-card-text>
-                <h2>About {{username}}</h2>
-                <v-row v-if="badges" dense>
+                <h2>About {{ username }}</h2>
+                <v-row
+                  v-if="badges"
+                  dense
+                >
                   <v-col v-if="subject.stars">
-                    <router-link :to="{name: 'Ratings', params: {username}}" v-if="subject.stars">
-                      <v-rating :model-value="starRound(subject.stars)" density="compact" size="small" half-increments color="primary" readonly v-if="subject.stars"/>
+                    <router-link
+                      v-if="subject.stars"
+                      :to="{name: 'Ratings', params: {username}}"
+                    >
+                      <v-rating
+                        v-if="subject.stars"
+                        :model-value="starRound(subject.stars)"
+                        density="compact"
+                        size="small"
+                        half-increments
+                        color="primary"
+                        readonly
+                      />
                     </router-link>
                   </v-col>
                   <v-col cols="12">
-                    <v-chip :color="badge.color" variant="flat" v-for="badge in badges" :key="badge.label" class="mr-1"
-                            size="small"
-                            :light="badge.light">
-                      <strong>{{badge.label}}</strong>
+                    <v-chip
+                      v-for="badge in badges"
+                      :key="badge.label"
+                      :color="badge.color"
+                      variant="flat"
+                      class="mr-1"
+                      size="small"
+                      :light="badge.light"
+                    >
+                      <strong>{{ badge.label }}</strong>
                     </v-chip>
                   </v-col>
                 </v-row>
-                <small><strong>Views:</strong> {{subject.hits}} <strong>Watchers: </strong>{{subject.watches}}</small>
-                <ac-patch-field field-type="ac-editor" :patcher="userHandler.patchers.biography"
-                                v-show="editing"
-                                v-if="controls"/>
+                <small><strong>Views:</strong> {{ subject.hits }} <strong>Watchers: </strong>{{ subject.watches }}</small>
+                <ac-patch-field
+                  v-show="editing"
+                  v-if="controls"
+                  field-type="ac-editor"
+                  :patcher="userHandler.patchers.biography"
+                />
                 <div v-show="!editing">
-                  <ac-rendered :value="subject.biography" :truncate="true">
-                    <template v-slot:empty>
-                      <v-col v-if="isCurrent" class="text-center">
+                  <ac-rendered
+                    :value="subject.biography"
+                    :truncate="true"
+                  >
+                    <template #empty>
+                      <v-col
+                        v-if="isCurrent"
+                        class="text-center"
+                      >
                         You haven't added any profile information yet.
-                        <v-btn block color="green" @click="() => editing = true" variant="flat">Add some.</v-btn>
+                        <v-btn
+                          block
+                          color="green"
+                          variant="flat"
+                          @click="() => editing = true"
+                        >
+                          Add some.
+                        </v-btn>
                       </v-col>
                     </template>
                   </ac-rendered>
                 </div>
-                <v-btn block
-                       v-if="subjectHandler.artistProfile.x && subject.artist_mode && subjectHandler.artistProfile.x.public_queue"
-                       color="secondary"
-                       :to="{name: 'Queue', params: {username}}"
+                <v-btn
+                  v-if="subjectHandler.artistProfile.x && subject.artist_mode && subjectHandler.artistProfile.x.public_queue"
+                  block
+                  color="secondary"
+                  :to="{name: 'Queue', params: {username}}"
                 >
-                  <v-icon left :icon="mdiTrayFull"/>
+                  <v-icon
+                    left
+                    :icon="mdiTrayFull"
+                  />
                   View Artist Queue
                 </v-btn>
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="8" v-if="subject.artist_mode" order="2" class="justify-center">
+          <v-col
+            v-if="subject.artist_mode"
+            cols="12"
+            md="8"
+            order="2"
+            class="justify-center"
+          >
             <v-col>
-              <ac-subjective-product-list :username="username" :mini="true" :hide-new-button="true"/>
+              <ac-subjective-product-list
+                :username="username"
+                :mini="true"
+                :hide-new-button="true"
+              />
             </v-col>
             <v-col align-self="end">
-              <v-btn block color="green" :to="{name: 'Products', params: {username}}" variant="flat">View full store</v-btn>
+              <v-btn
+                block
+                color="green"
+                :to="{name: 'Products', params: {username}}"
+                variant="flat"
+              >
+                View full store
+              </v-btn>
             </v-col>
           </v-col>
-          <v-col cols="12" :md="subject.artist_mode ? 8 : 12" :order="subject.artist_mode ? 2 : 3">
+          <v-col
+            cols="12"
+            :md="subject.artist_mode ? 8 : 12"
+            :order="subject.artist_mode ? 2 : 3"
+          >
             <v-card>
               <v-card-text>
-                <v-card-title>{{username}}'s {{artList.label}}</v-card-title>
+                <v-card-title>{{ username }}'s {{ artList.label }}</v-card-title>
                 <submission-list
-                    :list-name="artList.listName" :endpoint="artList.endpoint" :username="username"
-                    :empty-message="artList.emptyMessage" :track-pages="false" :show-pagination="false"
+                  :list-name="artList.listName"
+                  :endpoint="artList.endpoint"
+                  :username="username"
+                  :empty-message="artList.emptyMessage"
+                  :track-pages="false"
+                  :show-pagination="false"
                 />
-                <v-btn block :to="artList.buttonDest" color="green" class="mt-2" variant="flat">{{artList.buttonText}}</v-btn>
+                <v-btn
+                  block
+                  :to="artList.buttonDest"
+                  color="green"
+                  class="mt-2"
+                  variant="flat"
+                >
+                  {{ artList.buttonText }}
+                </v-btn>
               </v-card-text>
             </v-card>
           </v-col>
-          <v-col cols="12" md="4" :order="subject.artist_mode ? 4 : 2">
-            <ac-journals :username="username"/>
+          <v-col
+            cols="12"
+            md="4"
+            :order="subject.artist_mode ? 4 : 2"
+          >
+            <ac-journals :username="username" />
           </v-col>
         </v-row>
       </v-container>
@@ -137,7 +224,7 @@ const userHandler = computed(() => {
 
 const artList = computed(() => {
   let buttonText: string
-  // eslint-disable-next-line camelcase
+   
   if (subject.value?.artist_mode) {
     if (isCurrent.value) {
       buttonText = 'Manage my art'

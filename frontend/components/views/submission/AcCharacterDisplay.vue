@@ -1,44 +1,89 @@
 <template>
   <ac-load-section :controller="controller">
     <v-row dense>
-      <v-tooltip top v-if="editable" aria-label="Tooltip for edit character button">
-        <template v-slot:activator="{props}">
-          <v-btn v-bind="props" @click="toggle=true" color="accent" icon size="small" class="mr-1">
-            <v-icon :icon="mdiAccount" size="x-large"/>
+      <v-tooltip
+        v-if="editable"
+        top
+        aria-label="Tooltip for edit character button"
+      >
+        <template #activator="{props}">
+          <v-btn
+            v-bind="props"
+            color="accent"
+            icon
+            size="small"
+            class="mr-1"
+            @click="toggle=true"
+          >
+            <v-icon
+              :icon="mdiAccount"
+              size="x-large"
+            />
           </v-btn>
         </template>
         Edit Characters
       </v-tooltip>
-      <v-tooltip top v-else aria-label="Tooltip for character listing">
-        <template v-slot:activator="{props}">
-          <v-icon v-bind="props" :icon="mdiAccountGroup"/>
+      <v-tooltip
+        v-else
+        top
+        aria-label="Tooltip for character listing"
+      >
+        <template #activator="{props}">
+          <v-icon
+            v-bind="props"
+            :icon="mdiAccountGroup"
+          />
         </template>
         Characters
       </v-tooltip>
-      <v-col align-self="center" v-if="controller.empty">
+      <v-col
+        v-if="controller.empty"
+        align-self="center"
+      >
         No characters tagged.
       </v-col>
-      <ac-mini-character :character="item.x!.character" v-for="item in controller.list" :key="item.x!.id" :alt="item.x!.character.name" class="mr-1"/>
-      <ac-expanded-property v-model="toggle" v-if="editable" aria-label="Character editing dialog">
-        <template v-slot:title>Characters</template>
+      <ac-mini-character
+        v-for="item in controller.list"
+        :key="item.x!.id"
+        :character="item.x!.character"
+        :alt="item.x!.character.name"
+        class="mr-1"
+      />
+      <ac-expanded-property
+        v-if="editable"
+        v-model="toggle"
+        aria-label="Character editing dialog"
+      >
+        <template #title>
+          Characters
+        </template>
         <ac-related-manager
-            :field-controller="tagCharacter.fields.character_id" :list-controller="controller"
-            item-key="character"
+          :field-controller="tagCharacter.fields.character_id"
+          :list-controller="controller"
+          item-key="character"
         >
-          <template v-slot:preview="{item}">
-              <ac-mini-character :character="item.x.character" :removable="true"
-                                 :alt="item.x.character.name"
-                                 @remove="item.delete().catch(tagCharacter.setErrors)" class="mr-1"/>
+          <template #preview="{item}">
+            <ac-mini-character
+              :character="item.x.character"
+              :removable="true"
+              :alt="item.x.character.name"
+              class="mr-1"
+              @remove="item.delete().catch(tagCharacter.setErrors)"
+            />
           </template>
-          <template v-slot:default="{filter}">
+          <template #default="{filter}">
             <v-row class="mt-1">
               <v-col cols="12">
                 <ac-bound-field
-                    label="Tag Character"
-                    hint="Enter the name of a character to tag them."
-                    :field="tagCharacter.fields.character_id" field-type="ac-character-select" :multiple="false"
-                    :autofocus="true"
-                    :filter="filter" :tagging="true"/>
+                  label="Tag Character"
+                  hint="Enter the name of a character to tag them."
+                  :field="tagCharacter.fields.character_id"
+                  field-type="ac-character-select"
+                  :multiple="false"
+                  :autofocus="true"
+                  :filter="filter"
+                  :tagging="true"
+                />
               </v-col>
             </v-row>
           </template>

@@ -1,45 +1,75 @@
 <template>
-  <v-row no-gutters :key="submissionId">
+  <v-row
+    :key="submissionId"
+    no-gutters
+  >
     <v-col cols="12">
-      <ac-gallery-preview class="pa-1"
-                          :linked="false"
-                          :submission="submission.x!" :show-footer="true"
-                          :force-hidden="tag.x!.hidden"
+      <ac-gallery-preview
+        class="pa-1"
+        :linked="false"
+        :submission="submission.x!"
+        :show-footer="true"
+        :force-hidden="tag.x!.hidden"
       />
     </v-col>
     <v-col cols="12">
-      <v-btn color="primary" block @click="showSettings = true" variant="elevated">
+      <v-btn
+        color="primary"
+        block
+        variant="elevated"
+        @click="showSettings = true"
+      >
         Settings
       </v-btn>
-      <ac-expanded-property v-model="showSettings" :large="true" :eager="false">
-        <template v-slot:title>
+      <ac-expanded-property
+        v-model="showSettings"
+        :large="true"
+        :eager="false"
+      >
+        <template #title>
           <span>Edit Settings</span>
         </template>
-        <template v-slot:default>
-          <v-col cols="12" v-if="!isOwner">
+        <template #default>
+          <v-col
+            v-if="!isOwner"
+            cols="12"
+          >
             <v-alert type="info">
               Some options are not available because you are not the submitter of this piece.
             </v-alert>
           </v-col>
           <v-row>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <ac-patch-field
-                  field-type="v-checkbox"
-                  label="Unlisted"
-                  :persistent-hint="true"
-                  :false-value="false"
-                  hint="If checked, does not show this piece in your gallery.
+                field-type="v-checkbox"
+                label="Unlisted"
+                :persistent-hint="true"
+                :false-value="false"
+                hint="If checked, does not show this piece in your gallery.
               However, people with the link will still be able to view it. To nake it
               unviewable, make sure the 'private' setting is checked."
-                  :patcher="tag.patchers.hidden"
+                :patcher="tag.patchers.hidden"
               />
             </v-col>
-            <v-col cols="12" md="6" class="text-center">
+            <v-col
+              cols="12"
+              md="6"
+              class="text-center"
+            >
               <ac-confirmation :action="tag.delete">
-                <template v-slot:default="confirmContext">
-                  <v-btn color="danger" v-on="confirmContext.on" variant="elevated">Untag me</v-btn>
+                <template #default="confirmContext">
+                  <v-btn
+                    color="danger"
+                    variant="elevated"
+                    v-on="confirmContext.on"
+                  >
+                    Untag me
+                  </v-btn>
                 </template>
-                <template v-slot:confirmation-text>
+                <template #confirmation-text>
                   <p v-if="isOwner">
                     This piece will remain in your collection. You can retag it later.
                   </p>
@@ -53,28 +83,50 @@
               </ac-confirmation>
               <p>Removes you as the tagged artist from this submission.</p>
             </v-col>
-            <v-col cols="12" md="6">
+            <v-col
+              cols="12"
+              md="6"
+            >
               <ac-patch-field
-                  field-type="v-checkbox"
-                  label="Private"
-                  :persistent-hint="true"
-                  hint="If checked, this submission is hidden from view.
+                field-type="v-checkbox"
+                label="Private"
+                :persistent-hint="true"
+                hint="If checked, this submission is hidden from view.
                   Only you and those you share it with will be able to see it."
-                  :disabled="!isOwner"
-                  :patcher="submission.patchers.private"
-                  :save-indicator="isOwner"
+                :disabled="!isOwner"
+                :patcher="submission.patchers.private"
+                :save-indicator="isOwner"
               />
             </v-col>
-            <v-col cols="12" md="6" class="text-center">
+            <v-col
+              cols="12"
+              md="6"
+              class="text-center"
+            >
               <ac-confirmation :action="deleteSubmission">
-                <template v-slot:default="confirmContext">
-                  <v-btn color="danger" v-on="confirmContext.on" :disabled="!isOwner" variant="elevated">Delete Submission</v-btn>
+                <template #default="confirmContext">
+                  <v-btn
+                    color="danger"
+                    :disabled="!isOwner"
+                    variant="elevated"
+                    v-on="confirmContext.on"
+                  >
+                    Delete Submission
+                  </v-btn>
                 </template>
               </ac-confirmation>
               <p>Deletes this submission.</p>
             </v-col>
-            <v-col cols="12" class="text-center">
-              <v-btn class="success" :to="{name: 'Submission', params: {submissionId: submission.x!.id}}" variant="flat">Visit
+            <v-col
+              cols="12"
+              class="text-center"
+            >
+              <v-btn
+                class="success"
+                :to="{name: 'Submission', params: {submissionId: submission.x!.id}}"
+                variant="flat"
+              >
+                Visit
                 Submission
               </v-btn>
             </v-col>

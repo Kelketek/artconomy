@@ -1,38 +1,73 @@
 <template>
-  <ac-load-section :controller="deliverable" v-if="isRoute">
-    <template v-slot:default>
+  <ac-load-section
+    v-if="isRoute"
+    :controller="deliverable"
+  >
+    <template #default>
       <ac-load-section :controller="characters">
-        <template v-slot:default>
-          <v-col cols="12" v-if="characters.list.length">
+        <template #default>
+          <v-col
+            v-if="characters.list.length"
+            cols="12"
+          >
             <v-card-text>
-              <ac-character-display :controller="characters" :editable="false"/>
+              <ac-character-display
+                :controller="characters"
+                :editable="false"
+              />
             </v-card-text>
           </v-col>
         </template>
       </ac-load-section>
       <ac-load-section :controller="references">
-        <template v-slot:default>
+        <template #default>
           <v-row class="pt-2">
-            <v-col cols="6" sm="4" v-for="reference in references.list" :key="reference.x!.id">
-              <ac-reference :reference="reference.x!.reference" :base-name="baseName"/>
+            <v-col
+              v-for="reference in references.list"
+              :key="reference.x!.id"
+              cols="6"
+              sm="4"
+            >
+              <ac-reference
+                :reference="reference.x!.reference"
+                :base-name="baseName"
+              />
             </v-col>
-            <v-col cols="12" v-if="isBuyer || isSeller">
+            <v-col
+              v-if="isBuyer || isSeller"
+              cols="12"
+            >
               <ac-form @submit.prevent="newReference.submitThen(addReference)">
                 <ac-form-container v-bind="newReference.bind">
-                  <v-row no-gutters align-content="center" justify="center">
+                  <v-row
+                    no-gutters
+                    align-content="center"
+                    justify="center"
+                  >
                     <v-col cols="12">
-                      <v-toolbar density="compact" color="black">
+                      <v-toolbar
+                        density="compact"
+                        color="black"
+                      >
                         <v-toolbar-title>Upload Reference</v-toolbar-title>
                       </v-toolbar>
                     </v-col>
-                    <v-col class="text-center" cols="12">
-                      <ac-bound-field :field="newReference.fields.file" field-type="ac-uppy-file"
-                                      uppy-id="new-reference-file"/>
+                    <v-col
+                      class="text-center"
+                      cols="12"
+                    >
+                      <ac-bound-field
+                        :field="newReference.fields.file"
+                        field-type="ac-uppy-file"
+                        uppy-id="new-reference-file"
+                      />
                     </v-col>
                     <v-col class="text-center">
                       <v-card-text>
-                        <p><strong>Upload additional reference images here!</strong> References help artists see what you
-                          want them to create.</p>
+                        <p>
+                          <strong>Upload additional reference images here!</strong> References help artists see what you
+                          want them to create.
+                        </p>
                       </v-card-text>
                     </v-col>
                   </v-row>
@@ -44,7 +79,7 @@
       </ac-load-section>
     </template>
   </ac-load-section>
-  <router-view v-else></router-view>
+  <router-view v-else />
 </template>
 
 <script setup lang="ts">

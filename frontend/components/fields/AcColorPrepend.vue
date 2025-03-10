@@ -1,21 +1,26 @@
 <template>
   <div class="flex">
-    <v-btn icon variant="plain" size="x-small" color="primary" class="picker-button" @click="launchPicker">
-      <v-icon size="x-large" :icon="mdiEyedropper"/>
+    <v-btn
+      icon
+      variant="plain"
+      size="x-small"
+      color="primary"
+      class="picker-button"
+      @click="launchPicker"
+    >
+      <v-icon
+        size="x-large"
+        :icon="mdiEyedropper"
+      />
     </v-btn>
-    <input v-model="model"
-           type="color"
-           class="picker"
-           ref="picker"
-    />
+    <input
+      ref="picker"
+      v-model="model"
+      type="color"
+      class="picker"
+    >
   </div>
 </template>
-
-<style>
-.picker {
-  display: none;
-}
-</style>
 
 <script setup lang="ts">
 
@@ -32,3 +37,9 @@ const launchPicker = () => {
   picker.value.click()
 }
 </script>
+
+<style>
+.picker {
+  display: none;
+}
+</style>

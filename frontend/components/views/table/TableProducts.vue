@@ -1,20 +1,47 @@
 <template>
   <ac-load-section :controller="productList">
-    <v-row v-for="[username, products] of productsByUser" :key="username">
+    <v-row
+      v-for="[username, products] of productsByUser"
+      :key="username"
+    >
       <v-col cols="12">
-        <v-toolbar :dense="true" color="black" :key="`${username}-header`">
-          <ac-avatar :username="username" :show-name="false" class="ml-3"/>
+        <v-toolbar
+          :key="`${username}-header`"
+          :dense="true"
+          color="black"
+        >
+          <ac-avatar
+            :username="username"
+            :show-name="false"
+            class="ml-3"
+          />
           <v-toolbar-title class="ml-1">
-            <ac-link :to="{name: 'AboutUser', params: {username}}">{{ username }}</ac-link>
+            <ac-link :to="{name: 'AboutUser', params: {username}}">
+              {{ username }}
+            </ac-link>
           </v-toolbar-title>
         </v-toolbar>
       </v-col>
-      <v-col cols="12" sm="3" md="4" lg="3" xl="2" v-for="product in products" :key="product.id">
+      <v-col
+        v-for="product in products"
+        :key="product.id"
+        cols="12"
+        sm="3"
+        md="4"
+        lg="3"
+        xl="2"
+      >
         <div>
-          <ac-product-preview :product="product"></ac-product-preview>
+          <ac-product-preview :product="product" />
         </div>
         <div>
-          <v-btn color="green" block :to="{name: 'NewOrder', params: {username, productId: product.id, stepId: 1}}" variant="flat">New
+          <v-btn
+            color="green"
+            block
+            :to="{name: 'NewOrder', params: {username, productId: product.id, stepId: 1}}"
+            variant="flat"
+          >
+            New
             Order
           </v-btn>
         </div>

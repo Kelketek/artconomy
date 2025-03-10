@@ -2,67 +2,120 @@
   <v-list-item>
     <div>
       <v-list-item-title>
-        {{STATUS_COMMENTS[transaction.status]}} {{amount}}
+        {{ STATUS_COMMENTS[transaction.status] }} {{ amount }}
       </v-list-item-title>
       <v-list-item-subtitle v-if="objective">
-        {{displayName(transaction.payer)}} ([{{ACCOUNT_TYPES[transaction.source]}}]) to {{displayName(transaction.payee)}} ([{{ACCOUNT_TYPES[transaction.destination]}}])
+        {{ displayName(transaction.payer) }} ([{{ ACCOUNT_TYPES[transaction.source] }}]) to {{ displayName(transaction.payee) }} ([{{ ACCOUNT_TYPES[transaction.destination] }}])
       </v-list-item-subtitle>
       <v-list-item-subtitle v-else>
         <span v-if="outbound">to</span>
         <span v-else>from</span>&nbsp;
-        {{displayName(other)}}&nbsp;
-        ({{ACCOUNT_TYPES[otherAccount]}})
+        {{ displayName(other) }}&nbsp;
+        ({{ ACCOUNT_TYPES[otherAccount] }})
       </v-list-item-subtitle>
       <v-list-item-subtitle>
-        {{formatDateTime(transaction.created_on)}}
+        {{ formatDateTime(transaction.created_on) }}
       </v-list-item-subtitle>
     </div>
-    <template v-slot:append>
-      <v-btn icon variant="text" @click="showDetails = true" aria-label="Actions">
-        <v-icon :icon="mdiDotsHorizontal"/>
+    <template #append>
+      <v-btn
+        icon
+        variant="text"
+        aria-label="Actions"
+        @click="showDetails = true"
+      >
+        <v-icon :icon="mdiDotsHorizontal" />
       </v-btn>
     </template>
-    <v-dialog v-model="showDetails" max-width="800px" :attach="modalTarget">
-      <v-toolbar flat dark color="secondary" :dense="mdAndUp">
+    <v-dialog
+      v-model="showDetails"
+      max-width="800px"
+      :attach="modalTarget"
+    >
+      <v-toolbar
+        flat
+        dark
+        color="secondary"
+        :dense="mdAndUp"
+      >
         <v-toolbar-title>
-          <slot name="title">Transaction Details</slot>
+          <slot name="title">
+            Transaction Details
+          </slot>
         </v-toolbar-title>
-        <v-spacer/>
-        <v-btn icon @click="showDetails = false" variant="flat" dark class="dialog-closer">
-          <v-icon :icon="mdiClose"/>
+        <v-spacer />
+        <v-btn
+          icon
+          variant="flat"
+          dark
+          class="dialog-closer"
+          @click="showDetails = false"
+        >
+          <v-icon :icon="mdiClose" />
         </v-btn>
       </v-toolbar>
       <v-card>
         <v-card-text>
           <v-row no-gutters>
-            <v-col cols="6">TXN ID:
-              <ac-link :to="transactionLink" :new-tab="true">{{transaction.id}}</ac-link>
+            <v-col cols="6">
+              TXN ID:
+              <ac-link
+                :to="transactionLink"
+                :new-tab="true"
+              >
+                {{ transaction.id }}
+              </ac-link>
             </v-col>
-            <v-col cols="6">Category: {{CATEGORY_TYPES[transaction.category]}}</v-col>
-            <v-col cols="6">Status: {{STATUSES[transaction.status]}}</v-col>
-            <v-col cols="6">Payer: {{displayName(transaction.payer)}}</v-col>
-            <v-col cols="6">Payee: {{displayName(transaction.payee)}}</v-col>
-            <v-col cols="6"><span v-if="transaction.remote_id">Remote TXN ID: {{transaction.remote_id}}</span></v-col>
+            <v-col cols="6">
+              Category: {{ CATEGORY_TYPES[transaction.category] }}
+            </v-col>
+            <v-col cols="6">
+              Status: {{ STATUSES[transaction.status] }}
+            </v-col>
+            <v-col cols="6">
+              Payer: {{ displayName(transaction.payer) }}
+            </v-col>
+            <v-col cols="6">
+              Payee: {{ displayName(transaction.payee) }}
+            </v-col>
+            <v-col cols="6">
+              <span v-if="transaction.remote_id">Remote TXN ID: {{ transaction.remote_id }}</span>
+            </v-col>
             <v-col cols="6">
               <strong>
-                <span v-if="transaction.finalized_on">Finalized on {{formatDateTime(transaction.finalized_on)}}</span>
+                <span v-if="transaction.finalized_on">Finalized on {{ formatDateTime(transaction.finalized_on) }}</span>
                 <span v-else>Not Finalized</span>
               </strong>
             </v-col>
-            <v-col cols="6" v-if="transaction.card">Card: {{issuer!.name}} x{{transaction.card.last_four}}</v-col>
+            <v-col
+              v-if="transaction.card"
+              cols="6"
+            >
+              Card: {{ issuer!.name }} x{{ transaction.card.last_four }}
+            </v-col>
             <v-col cols="6">
               <v-list-subheader>Refs:</v-list-subheader>
               <ul>
-                <li v-for="ref, index in transaction.targets" :key="index">
-                  <ac-link :to="ref.link">{{ref.model}} #{{ref.id}}</ac-link>
+                <li
+                  v-for="ref, index in transaction.targets"
+                  :key="index"
+                >
+                  <ac-link :to="ref.link">
+                    {{ ref.model }} #{{ ref.id }}
+                  </ac-link>
                 </li>
               </ul>
             </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions class="text-right">
-          <v-spacer/>
-          <v-btn color="primary" @click.stop="showDetails=false">Close</v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            @click.stop="showDetails=false"
+          >
+            Close
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>

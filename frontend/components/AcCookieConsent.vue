@@ -1,7 +1,12 @@
 <template>
   <div>
-    <ac-form-dialog v-model="showDialog" @submit="setCurrent" :large="true" title="Cookie Settings">
-      <template v-slot:default>
+    <ac-form-dialog
+      v-model="showDialog"
+      :large="true"
+      title="Cookie Settings"
+      @submit="setCurrent"
+    >
+      <template #default>
         <v-card-text>
           Cookies are special pieces of data that help websites keep track of information about a visitor. They can help
           with authentication,
@@ -9,23 +14,40 @@
         </v-card-text>
         <v-row>
           <v-col cols="6">
-            <v-checkbox checked disabled v-model="required" label="Required Cookies"/>
+            <v-checkbox
+              v-model="required"
+              checked
+              disabled
+              label="Required Cookies"
+            />
           </v-col>
           <v-col cols="6">
             Artconomy has a handful of cookies that are required for basic function, including those that handle
             authentication and your content settings.
           </v-col>
           <v-col cols="6">
-            <v-checkbox v-model="firstParty" label="First Party Analytics" class="first-party-analytics"/>
+            <v-checkbox
+              v-model="firstParty"
+              label="First Party Analytics"
+              class="first-party-analytics"
+            />
           </v-col>
           <v-col cols="6">
-            Artconomy uses <a href="https://matomo.org/" rel="noopener nofollow" target="_blank">Matomo Analytics</a>,
+            Artconomy uses <a
+              href="https://matomo.org/"
+              rel="noopener nofollow"
+              target="_blank"
+            >Matomo Analytics</a>,
             an open source privacy-centric analytics service which does not share its data with third party entities. We
             use this to tell which
             parts of our site people use the most and where we might make improvements.
           </v-col>
           <v-col cols="6">
-            <v-checkbox v-model="thirdParty" label="Third Party Analytics" class="third-party-analytics"/>
+            <v-checkbox
+              v-model="thirdParty"
+              label="Third Party Analytics"
+              class="third-party-analytics"
+            />
           </v-col>
           <v-col cols="6">
             <p>
@@ -39,46 +61,62 @@
           </v-col>
         </v-row>
       </template>
-      <template v-slot:bottom-buttons>
-        <v-card-actions row wrap class="hidden-sm-and-down">
-          <v-spacer></v-spacer>
-          <v-btn @click="onlyEssential" class="essential-cookies-button" variant="flat">Only Required Cookies</v-btn>
-          <v-btn color="primary" type="submit" class="dialog-submit" variant="flat">Save Settings
+      <template #bottom-buttons>
+        <v-card-actions
+          row
+          wrap
+          class="hidden-sm-and-down"
+        >
+          <v-spacer />
+          <v-btn
+            class="essential-cookies-button"
+            variant="flat"
+            @click="onlyEssential"
+          >
+            Only Required Cookies
+          </v-btn>
+          <v-btn
+            color="primary"
+            type="submit"
+            class="dialog-submit"
+            variant="flat"
+          >
+            Save Settings
           </v-btn>
         </v-card-actions>
       </template>
     </ac-form-dialog>
     <v-snackbar
-        :timeout="-1"
-        :model-value="true"
-        v-if="cookiesUnset && !showDialog"
-        :vertical="true"
-        :attach="snackbarTarget"
+      v-if="cookiesUnset && !showDialog"
+      :timeout="-1"
+      :model-value="true"
+      :vertical="true"
+      :attach="snackbarTarget"
     >
       Artconomy uses cookies to help improve our service.
-      <template v-slot:actions>
+      <template #actions>
         <v-row>
           <v-col class="text-center">
             <v-btn
-                variant="text"
-                @click="onlyEssential"
-                color="red"
-                class="essential-cookies-button"
+              variant="text"
+              color="red"
+              class="essential-cookies-button"
+              @click="onlyEssential"
             >
               Decline Non-essential
             </v-btn>
             <v-btn
-                variant="text"
-                @click="showDialog = true"
-                class="customize-cookies-button"
+              variant="text"
+              class="customize-cookies-button"
+              @click="showDialog = true"
             >
               Customize
             </v-btn>
             <v-btn
-                variant="text"
-                @click="acceptAll"
-                color="primary"
-                class="accept-cookies-button"
+              variant="text"
+              color="primary"
+              class="accept-cookies-button"
+              @click="acceptAll"
             >
               Accept All
             </v-btn>

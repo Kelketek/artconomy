@@ -1,12 +1,23 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="characterLink" :username="username">
-    <template v-slot:title>
-      <ac-link :to="characterLink">{{ character.name }}</ac-link>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="characterLink"
+    :username="username"
+  >
+    <template #title>
+      <ac-link :to="characterLink">
+        {{ character.name }}
+      </ac-link>
       was tagged by
-      <ac-link :to="userLink">{{user.username}}</ac-link>
+      <ac-link :to="userLink">
+        {{ user.username }}
+      </ac-link>
     </template>
-    <template v-slot:subtitle>in
-      <ac-link :to="submissionLink">"{{submission.title}}"</ac-link>
+    <template #subtitle>
+      in
+      <ac-link :to="submissionLink">
+        "{{ submission.title }}"
+      </ac-link>
     </template>
   </ac-base-notification>
 </template>

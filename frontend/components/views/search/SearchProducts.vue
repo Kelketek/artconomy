@@ -1,12 +1,30 @@
 <template>
-  <v-container fluid class="pa-0">
-    <ac-paginated :list="list" :track-pages="true" :auto-run="false">
-      <template v-slot:default>
-        <v-col class="pa-1" cols="6" md="4" lg="3" xl="2" v-for="product in list.list" :key="product.x!.id">
-          <ac-product-preview :product="product.x!" :force-shield="searchForm.fields.shield_only.value"/>
+  <v-container
+    fluid
+    class="pa-0"
+  >
+    <ac-paginated
+      :list="list"
+      :track-pages="true"
+      :auto-run="false"
+    >
+      <template #default>
+        <v-col
+          v-for="product in list.list"
+          :key="product.x!.id"
+          class="pa-1"
+          cols="6"
+          md="4"
+          lg="3"
+          xl="2"
+        >
+          <ac-product-preview
+            :product="product.x!"
+            :force-shield="searchForm.fields.shield_only.value"
+          />
         </v-col>
       </template>
-      <template v-slot:empty>
+      <template #empty>
         <v-col class="text-center">
           <v-card>
             <v-card-text>
@@ -34,7 +52,7 @@ const list = useList<Product>('searchProducts', {
   persistent: true,
 })
 // We use this debouncedUpdate during testing.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const {rawUpdate} = useSearchList(searchForm, list)
 onMounted(() => {
   rawUpdate(searchForm.rawData)

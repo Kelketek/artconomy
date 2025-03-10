@@ -1,10 +1,20 @@
 <template>
-  <v-container class="pa-0" fluid>
+  <v-container
+    class="pa-0"
+    fluid
+  >
     <v-tabs fixed-tabs>
-      <v-tab :to="{name: 'Watching', params: {username}}">Watching</v-tab>
-      <v-tab :to="{name: 'Watchers', params: {username}}">Watchers</v-tab>
+      <v-tab :to="{name: 'Watching', params: {username}}">
+        Watching
+      </v-tab>
+      <v-tab :to="{name: 'Watchers', params: {username}}">
+        Watchers
+      </v-tab>
     </v-tabs>
-    <router-view :key="route.fullPath" class="pt-2"/>
+    <router-view
+      :key="route.fullPath"
+      class="pt-2"
+    />
   </v-container>
 </template>
 

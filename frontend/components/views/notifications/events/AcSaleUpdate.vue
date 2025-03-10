@@ -1,24 +1,23 @@
 <template>
-  <ac-base-notification :asset-link="assetLink" :notification="notification" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :asset-link="assetLink"
+    :notification="notification"
+    :username="username"
+  >
+    <template #title>
       <router-link :to="assetLink">
         <span v-if="event.target.status === 10">New Order in Limbo</span>
         <span v-else-if="event.target.status === 11">Order expired.</span>
-        <span v-else>Sale #{{event.target.order.id}} [{{event.target.name}}]</span>
+        <span v-else>Sale #{{ event.target.order.id }} [{{ event.target.name }}]</span>
       </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="assetLink">{{message}}</router-link>
+    <template #subtitle>
+      <router-link :to="assetLink">
+        {{ message }}
+      </router-link>
     </template>
   </ac-base-notification>
 </template>
-
-<style scoped>
-.notification-asset img {
-  max-width: 100%;
-  max-height: 100%;
-}
-</style>
 
 <script setup lang="ts">
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
@@ -70,3 +69,10 @@ const message = computed(() => {
   return ORDER_STATUSES[event.value.target.status]
 })
 </script>
+
+<style scoped>
+.notification-asset img {
+  max-width: 100%;
+  max-height: 100%;
+}
+</style>

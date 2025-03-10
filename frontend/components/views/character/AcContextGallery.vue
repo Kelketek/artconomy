@@ -1,39 +1,72 @@
 <template>
-  <ac-load-section :controller="character.submissions" v-show="character.profile.ready">
+  <ac-load-section
+    v-show="character.profile.ready"
+    :controller="character.submissions"
+  >
     <v-card color="grey-darken-4">
       <v-card-title><h2>Uploads</h2></v-card-title>
       <v-card-text>
-        <v-row no-gutters v-if="character.submissions.list.length && character.profile.ready"
+        <v-row
+          v-if="character.submissions.list.length && character.profile.ready"
+          no-gutters
         >
           <div :class="featuredClasses">
             <v-col cols="12">
               <ac-gallery-preview
-                  :submission="featured!"
-                  thumb-name="gallery"
-                  :contain="true"
-                  :compact="true"
-                  :aspect-ratio="null"
-                  :show-footer="lgAndUp"
+                :submission="featured!"
+                thumb-name="gallery"
+                :contain="true"
+                :compact="true"
+                :aspect-ratio="null"
+                :show-footer="lgAndUp"
               />
-              <v-col class="shrink text-center pt-2" v-if="more && mdAndUp">
-                <v-btn color="primary" variant="flat" :to="{name: 'CharacterGallery', params: {username, characterName}}">See all
+              <v-col
+                v-if="more && mdAndUp"
+                class="shrink text-center pt-2"
+              >
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  :to="{name: 'CharacterGallery', params: {username, characterName}}"
+                >
+                  See all
                   Uploads
                 </v-btn>
               </v-col>
             </v-col>
           </div>
-          <v-col cols="12" md="4" lg="2" offset-md="1" align-self="center">
+          <v-col
+            cols="12"
+            md="4"
+            lg="2"
+            offset-md="1"
+            align-self="center"
+          >
             <v-row>
-              <v-col cols="6" lg="12" v-for="submission in prunedSubmissions" :key="submission.x!.id">
+              <v-col
+                v-for="submission in prunedSubmissions"
+                :key="submission.x!.id"
+                cols="6"
+                lg="12"
+              >
                 <ac-gallery-preview
-                    :submission="submission.x!"
-                    thumb-name="thumbnail"
-                    :contain="true"
-                    :show-footer="false"
+                  :submission="submission.x!"
+                  thumb-name="thumbnail"
+                  :contain="true"
+                  :show-footer="false"
                 />
               </v-col>
-              <v-col cols="12" class="text-center pt-2" v-if="more && smAndDown">
-                <v-btn color="primary" variant="flat" :to="{name: 'CharacterGallery', params: {username, characterName}}">See all
+              <v-col
+                v-if="more && smAndDown"
+                cols="12"
+                class="text-center pt-2"
+              >
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  :to="{name: 'CharacterGallery', params: {username, characterName}}"
+                >
+                  See all
                   Uploads
                 </v-btn>
               </v-col>

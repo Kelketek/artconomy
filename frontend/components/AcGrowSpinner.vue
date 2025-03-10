@@ -1,6 +1,9 @@
 <template>
   <v-col v-observe-visibility="grower">
-    <ac-loading-spinner :min-height="minHeight" v-if="list.fetching && list.currentPage > 1"/>
+    <ac-loading-spinner
+      v-if="list.fetching && list.currentPage > 1"
+      :min-height="minHeight"
+    />
   </v-col>
 </template>
 

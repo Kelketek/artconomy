@@ -1,13 +1,24 @@
 <template>
-  <ac-form-container :sending="fieldController.form.sending" :errors="fieldController.form.errors">
+  <ac-form-container
+    :sending="fieldController.form.sending"
+    :errors="fieldController.form.errors"
+  >
     <v-row no-gutters>
-      <slot name="preview" :item="item" v-for="item in listController.list">
-        <v-col cols="12">{{item}}</v-col>
+      <slot
+        v-for="item in listController.list"
+        name="preview"
+        :item="item"
+      >
+        <v-col cols="12">
+          {{ item }}
+        </v-col>
       </slot>
-      <slot name="empty" v-if="listController.empty">
-      </slot>
+      <slot
+        v-if="listController.empty"
+        name="empty"
+      />
       <v-col cols="12">
-        <slot :filter="filter"/>
+        <slot :filter="filter" />
       </v-col>
     </v-row>
   </ac-form-container>

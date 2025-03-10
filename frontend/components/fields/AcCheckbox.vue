@@ -1,8 +1,11 @@
 <template>
   <v-checkbox v-model="scratch">
     <!-- @ts-nocheck -->
-    <template #[name] v-for="name in slotNames">
-      <slot :name="name"/>
+    <template
+      v-for="name in slotNames"
+      #[name]
+    >
+      <slot :name="name" />
     </template>
   </v-checkbox>
 </template>

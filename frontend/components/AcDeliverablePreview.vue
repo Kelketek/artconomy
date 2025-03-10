@@ -3,25 +3,28 @@
     <v-card>
       <ac-link :to="deliverableLink">
         <ac-asset
-            :asset="deliverable.display || null"
-            thumb-name="thumbnail"
-            :aspect-ratio="1"
-            :allow-preview="false"
-            :alt="`Current progress image for deliverable #${deliverable.id}`"
+          :asset="deliverable.display || null"
+          thumb-name="thumbnail"
+          :aspect-ratio="1"
+          :allow-preview="false"
+          :alt="`Current progress image for deliverable #${deliverable.id}`"
         />
       </ac-link>
       <v-card-text>
         <v-row dense>
           <v-col cols="12">
             <ac-link :to="deliverableLink">
-              {{deliverable.name}}
+              {{ deliverable.name }}
             </ac-link>
           </v-col>
-          <v-col cols="12" class="text-center">
-            <ac-deliverable-status :deliverable="deliverable"/>
+          <v-col
+            cols="12"
+            class="text-center"
+          >
+            <ac-deliverable-status :deliverable="deliverable" />
           </v-col>
           <v-col cols="12">
-            Created on <span v-text="formatDateTime(deliverable.created_on)"/>
+            Created on <span v-text="formatDateTime(deliverable.created_on)" />
           </v-col>
         </v-row>
       </v-card-text>

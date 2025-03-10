@@ -1,16 +1,32 @@
 <template>
-  <v-container fluid class="pa-0">
-    <v-tabs grow centered show-arrows class="hidden-sm-and-down">
-      <ac-tab :to="item.value" v-for="item in items" :key="item.title" :count="item.count" :icon="item.icon" :tag="tagFor(item)">
-        {{item.title}}
+  <v-container
+    fluid
+    class="pa-0"
+  >
+    <v-tabs
+      grow
+      centered
+      show-arrows
+      class="hidden-sm-and-down"
+    >
+      <ac-tab
+        v-for="item in items"
+        :key="item.title"
+        :to="item.value"
+        :count="item.count"
+        :icon="item.icon"
+        :tag="tagFor(item)"
+      >
+        {{ item.title }}
       </ac-tab>
     </v-tabs>
-    <v-select :items="items"
-              v-model="tab"
-              :label="label"
-              :prepend-inner-icon="tab && tab.icon"
-              class="hidden-md-and-up"
-              :item-text="renderText"
+    <v-select
+      v-model="tab"
+      :items="items"
+      :label="label"
+      :prepend-inner-icon="tab && tab.icon"
+      class="hidden-md-and-up"
+      :item-text="renderText"
     />
   </v-container>
 </template>

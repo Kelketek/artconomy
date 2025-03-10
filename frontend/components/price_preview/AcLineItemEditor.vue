@@ -1,30 +1,56 @@
 <template>
   <v-row no-gutters>
-    <v-col class="text-right" cols="12">
+    <v-col
+      class="text-right"
+      cols="12"
+    >
       <ac-patch-field
-          :patcher="line.patchers.description"
-          :id="`lineItem-${line.x!.id}-description`"
-          :disabled="disabled"
-          density="compact"
-          :placeholder="placeholder"
+        :id="`lineItem-${line.x!.id}-description`"
+        :patcher="line.patchers.description"
+        :disabled="disabled"
+        density="compact"
+        :placeholder="placeholder"
       />
     </v-col>
-    <v-col class="text-left" cols="6">
+    <v-col
+      class="text-left"
+      cols="6"
+    >
       <ac-patch-field
-          :patcher="line.patchers.amount"
-          :id="`lineItem-${line.x!.id}-amount`"
-          field-type="ac-price-field"
-          :disabled="disabled"
-          density="compact"
-          @keydown.enter="newLineFunc"
+        :id="`lineItem-${line.x!.id}-amount`"
+        :patcher="line.patchers.amount"
+        field-type="ac-price-field"
+        :disabled="disabled"
+        density="compact"
+        @keydown.enter="newLineFunc"
       />
     </v-col>
-    <v-col class="text-left" cols="4" md="5">
-      <v-text-field :disabled="true" :value="'$' + price" density="compact"/>
+    <v-col
+      class="text-left"
+      cols="4"
+      md="5"
+    >
+      <v-text-field
+        :disabled="true"
+        :value="'$' + price"
+        density="compact"
+      />
     </v-col>
-    <v-col cols="2" sm="1" class="text-center d-flex justify-center pl-1">
-      <v-btn size="x-small" icon color="red" @click.prevent="line.delete" v-if="deletable" :disabled="disabled" class="align-self-start mt-1">
-        <v-icon :icon="mdiDelete"/>
+    <v-col
+      cols="2"
+      sm="1"
+      class="text-center d-flex justify-center pl-1"
+    >
+      <v-btn
+        v-if="deletable"
+        size="x-small"
+        icon
+        color="red"
+        :disabled="disabled"
+        class="align-self-start mt-1"
+        @click.prevent="line.delete"
+      >
+        <v-icon :icon="mdiDelete" />
       </v-btn>
     </v-col>
   </v-row>

@@ -1,8 +1,22 @@
 <template>
-  <v-tab :to="destination" :value="value">
-    <v-icon left v-if="icon" :icon="icon" size="large" class="mr-1"/>
-    <component :is="tag" class="text-button font-weight-bold"><slot /></component>
-    <span v-if="count">&nbsp;({{count}})</span>
+  <v-tab
+    :to="destination"
+    :value="value"
+  >
+    <v-icon
+      v-if="icon"
+      left
+      :icon="icon"
+      size="large"
+      class="mr-1"
+    />
+    <component
+      :is="tag"
+      class="text-button font-weight-bold"
+    >
+      <slot />
+    </component>
+    <span v-if="count">&nbsp;({{ count }})</span>
   </v-tab>
 </template>
 

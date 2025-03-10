@@ -1,6 +1,11 @@
 <template>
-  <ac-invoice-form :new-invoice="newInvoice" :username="username" :line-items="invoiceLineItems"
-                   :escrow-enabled="invoiceEscrowEnabled" :show-buyer="showBuyer"/>
+  <ac-invoice-form
+    :new-invoice="newInvoice"
+    :username="username"
+    :line-items="invoiceLineItems"
+    :escrow-enabled="invoiceEscrowEnabled"
+    :show-buyer="showBuyer"
+  />
 </template>
 
 <script setup lang="ts">

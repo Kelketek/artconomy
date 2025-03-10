@@ -1,5 +1,9 @@
 <template>
-  <v-btn @click="store.commit('reportDialog', true)"><v-icon left>{{mdiFlag}}</v-icon>Report</v-btn>
+  <v-btn @click="store.commit('reportDialog', true)">
+    <v-icon left>
+      {{ mdiFlag }}
+    </v-icon>Report
+  </v-btn>
 </template>
 
 <script setup lang="ts">

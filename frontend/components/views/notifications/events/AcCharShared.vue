@@ -1,12 +1,18 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="characterLink" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="characterLink"
+    :username="username"
+  >
+    <template #title>
       <ac-link :to="characterLink">
         A character was shared with you
       </ac-link>
     </template>
-    <template v-slot:subtitle>
-      <ac-link :to="characterLink">"{{event.data.character.name}}" was shared by {{event.data.user.username}}</ac-link>
+    <template #subtitle>
+      <ac-link :to="characterLink">
+        "{{ event.data.character.name }}" was shared by {{ event.data.user.username }}
+      </ac-link>
     </template>
   </ac-base-notification>
 </template>

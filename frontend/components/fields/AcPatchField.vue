@@ -1,34 +1,94 @@
 <template>
-  <component :is="fieldComponent" v-bind="inputAttrs" v-model="scratch" v-if="(patcher.loaded || patcher.model)"
-             @keydown.enter="enterHandler" class="patch-field">
-    <template v-for="(_, name) in slots" #[name]>
-      <slot :name="name"/>
+  <component
+    :is="fieldComponent"
+    v-bind="inputAttrs"
+    v-if="(patcher.loaded || patcher.model)"
+    v-model="scratch"
+    class="patch-field"
+    @keydown.enter="enterHandler"
+  >
+    <template
+      v-for="(_, name) in slots"
+      #[name]
+    >
+      <slot :name="name" />
     </template>
     <template #append>
       <div v-if="!handlesSaving">
-        <v-tooltip v-if="saved && saveIndicator" text="Saved" location="top">
-          <template v-slot:activator="{ props }">
+        <v-tooltip
+          v-if="saved && saveIndicator"
+          text="Saved"
+          location="top"
+        >
+          <template #activator="{ props }">
             <!-- Using a button here so the two elements are aligned. -->
-            <v-btn size="x-small" v-bind="props" icon variant="plain" density="compact" class="save-indicator" @click.stop="() => {}"
-                   :ripple="false" tabindex="-1">
-              <v-icon size="x-small" color="green" class="save-indicator" :icon="mdiCheckCircle"/>
+            <v-btn
+              size="x-small"
+              v-bind="props"
+              icon
+              variant="plain"
+              density="compact"
+              class="save-indicator"
+              :ripple="false"
+              tabindex="-1"
+              @click.stop="() => {}"
+            >
+              <v-icon
+                size="x-small"
+                color="green"
+                class="save-indicator"
+                :icon="mdiCheckCircle"
+              />
             </v-btn>
           </template>
         </v-tooltip>
-        <v-tooltip v-else-if="saveIndicator" text="Unsaved" location="top">
-          <template v-slot:activator="{ props }">
+        <v-tooltip
+          v-else-if="saveIndicator"
+          text="Unsaved"
+          location="top"
+        >
+          <template #activator="{ props }">
             <!-- Using a button here so the two elements are aligned. -->
-            <v-btn v-bind="props" size="x-small" icon variant="plain" density="compact" class="save-indicator" @click.stop="() => {}"
-                   :ripple="false" tabindex="-1" :disabled="disabled">
-              <v-icon size="x-small" color="yellow" class="save-indicator" :icon="mdiAlert"/>
+            <v-btn
+              v-bind="props"
+              size="x-small"
+              icon
+              variant="plain"
+              density="compact"
+              class="save-indicator"
+              :ripple="false"
+              tabindex="-1"
+              :disabled="disabled"
+              @click.stop="() => {}"
+            >
+              <v-icon
+                size="x-small"
+                color="yellow"
+                class="save-indicator"
+                :icon="mdiAlert"
+              />
             </v-btn>
           </template>
         </v-tooltip>
-        <v-tooltip v-if="!autoSave" text="Save" location="top">
-          <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" @click="save" :disabled="saved || disabled" icon variant="plain" color="black"
-                   class="save-button">
-              <v-icon color="yellow" :icon="mdiContentSave"/>
+        <v-tooltip
+          v-if="!autoSave"
+          text="Save"
+          location="top"
+        >
+          <template #activator="{ props }">
+            <v-btn
+              v-bind="props"
+              :disabled="saved || disabled"
+              icon
+              variant="plain"
+              color="black"
+              @click="save"
+              class="save-button"
+            >
+              <v-icon
+                color="yellow"
+                :icon="mdiContentSave"
+              />
             </v-btn>
           </template>
         </v-tooltip>
@@ -36,15 +96,6 @@
     </template>
   </component>
 </template>
-
-<style lang="stylus">
-.save-indicator {
-  &.v-btn--active::before,
-  &.v-btn:hover::before, &.v-btn:focus::before {
-    background-color: unset;
-  }
-}
-</style>
 
 <script setup lang="ts">
 import {toValue, defineAsyncComponent, computed, useAttrs, ref, watch, useSlots} from 'vue'
@@ -211,3 +262,12 @@ const processInstantly = () => {
   return props.instant || !document.hasFocus()
 }
 </script>
+
+<style lang="stylus">
+.save-indicator {
+  &.v-btn--active::before,
+  &.v-btn:hover::before, &.v-btn:focus::before {
+    background-color: unset;
+  }
+}
+</style>

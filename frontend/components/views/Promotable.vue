@@ -1,27 +1,59 @@
 <template>
   <v-container>
-    <ac-paginated :list="promotableUsers" :track-pages="true">
-      <template v-slot:default>
+    <ac-paginated
+      :list="promotableUsers"
+      :track-pages="true"
+    >
+      <template #default>
         <v-container class="pa-0">
-          <template v-for="(promotable, index) in promotableUsers.list" :key="promotable.x!.id">
+          <template
+            v-for="(promotable, index) in promotableUsers.list"
+            :key="promotable.x!.id"
+          >
             <v-card>
               <v-card-text v-if="promotable.x">
                 <v-row>
-                  <v-col cols="3" class="text-center">
+                  <v-col
+                    cols="3"
+                    class="text-center"
+                  >
                     <ac-avatar :user="promotable.x.user" />
                   </v-col>
-                  <v-col cols="2" class="text-center d-flex justify-center">
-                    <div class="align-self-center">Can Promote <ac-indicator :value="promotable.x.allow_promotion" /></div>
-                  </v-col>
-                  <v-col cols="2" class="text-center d-flex justify-center">
-                    <div class="align-self-center">Can Promote Site <ac-indicator :value="promotable.x.allow_site_promotion" /></div>
-                  </v-col>
-                  <v-col cols="2" class="text-center d-flex justify-center">
-                    <div class="align-self-center">Can Promote NSFW <ac-indicator :value="promotable.x.nsfw_promotion" /></div>
-                  </v-col>
-                  <v-col cols="3" class="text-center d-flex justify-center">
+                  <v-col
+                    cols="2"
+                    class="text-center d-flex justify-center"
+                  >
                     <div class="align-self-center">
-                      <v-btn color="primary" :to="{name: 'Social', params: {username: promotable.x.user.username}}">Details</v-btn>
+                      Can Promote <ac-indicator :value="promotable.x.allow_promotion" />
+                    </div>
+                  </v-col>
+                  <v-col
+                    cols="2"
+                    class="text-center d-flex justify-center"
+                  >
+                    <div class="align-self-center">
+                      Can Promote Site <ac-indicator :value="promotable.x.allow_site_promotion" />
+                    </div>
+                  </v-col>
+                  <v-col
+                    cols="2"
+                    class="text-center d-flex justify-center"
+                  >
+                    <div class="align-self-center">
+                      Can Promote NSFW <ac-indicator :value="promotable.x.nsfw_promotion" />
+                    </div>
+                  </v-col>
+                  <v-col
+                    cols="3"
+                    class="text-center d-flex justify-center"
+                  >
+                    <div class="align-self-center">
+                      <v-btn
+                        color="primary"
+                        :to="{name: 'Social', params: {username: promotable.x.user.username}}"
+                      >
+                        Details
+                      </v-btn>
                     </div>
                   </v-col>
                 </v-row>
@@ -34,11 +66,6 @@
     </ac-paginated>
   </v-container>
 </template>
-
-<style scoped>
-
-</style>
-
 
 <script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -53,3 +80,8 @@ const promotableUsers = useList<SocialSettings & {user: User}>(
 )
 promotableUsers.firstRun()
 </script>
+
+
+<style scoped>
+
+</style>

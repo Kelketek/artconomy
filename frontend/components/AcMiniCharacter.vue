@@ -4,29 +4,46 @@
       <div class="flex">
         <router-link :to="route">
           <v-avatar :color="current.colors.well">
-            <v-icon v-if="!canDisplay" :icon="mdiCancel"/>
-            <img :src="displayImage" v-else-if="canDisplay && displayImage" class="asset-image" :alt="alt">
+            <v-icon
+              v-if="!canDisplay"
+              :icon="mdiCancel"
+            />
+            <img
+              v-else-if="canDisplay && displayImage"
+              :src="displayImage"
+              class="asset-image"
+              :alt="alt"
+            >
           </v-avatar>
         </router-link>
       </div>
-      <div v-if="showName" class="flex text-center">
-        <router-link :to="route">{{ character.name }}</router-link>
+      <div
+        v-if="showName"
+        class="flex text-center"
+      >
+        <router-link :to="route">
+          {{ character.name }}
+        </router-link>
       </div>
-      <div class="flex" v-if="removable">
-        <v-btn size="x-small" icon color="danger" @click="emit('remove')">
-          <v-icon size="large" :icon="mdiClose"/>
+      <div
+        v-if="removable"
+        class="flex"
+      >
+        <v-btn
+          size="x-small"
+          icon
+          color="danger"
+          @click="emit('remove')"
+        >
+          <v-icon
+            size="large"
+            :icon="mdiClose"
+          />
         </v-btn>
       </div>
     </div>
   </div>
 </template>
-
-<style>
-/*noinspection CssUnusedSymbol*/
-.ac-avatar .v-rating.v-rating--dense .v-icon {
-  padding: 0.025rem;
-}
-</style>
 
 <script setup lang="ts">
 import {assetDefaults, useAssetHelpers} from '@/mixins/asset_base.ts'
@@ -74,3 +91,10 @@ const route = computed(() => ({
   },
 }))
 </script>
+
+<style>
+/*noinspection CssUnusedSymbol*/
+.ac-avatar .v-rating.v-rating--dense .v-icon {
+  padding: 0.025rem;
+}
+</style>

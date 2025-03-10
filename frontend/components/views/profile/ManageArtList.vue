@@ -9,15 +9,41 @@
     </v-col>
     <v-col cols="12">
       <ac-draggable-list :list="list">
-        <template v-slot:default="{element, index}">
-          <v-col cols="4" sm="3" lg="2" :key="index" class="draggable-item">
-            <artist-tag-manager :tag="element" :username="username" :key="index"/>
+        <template #default="{element, index}">
+          <v-col
+            :key="index"
+            cols="4"
+            sm="3"
+            lg="2"
+            class="draggable-item"
+          >
+            <artist-tag-manager
+              :key="index"
+              :tag="element"
+              :username="username"
+            />
           </v-col>
         </template>
       </ac-draggable-list>
     </v-col>
   </v-row>
 </template>
+
+<script setup lang="ts">
+import {flatten} from '@/lib/lib.ts'
+import AcDraggableList from '@/components/AcDraggableList.vue'
+import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
+import {useList} from '@/store/lists/hooks.ts'
+import type {ArtistTag, SubjectiveProps} from '@/types/main'
+
+const props = defineProps<SubjectiveProps & {listName: string, endpoint: string}>()
+let listName = props.listName
+if (props.username) {
+  listName = `${flatten(props.username)}-${listName}-management`
+}
+const list = useList<ArtistTag>(listName, {endpoint: props.endpoint})
+list.firstRun()
+</script>
 
 <style>
 .disabled {
@@ -40,19 +66,3 @@
   opacity: .5;
 }
 </style>
-
-<script setup lang="ts">
-import {flatten} from '@/lib/lib.ts'
-import AcDraggableList from '@/components/AcDraggableList.vue'
-import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
-import {useList} from '@/store/lists/hooks.ts'
-import type {ArtistTag, SubjectiveProps} from '@/types/main'
-
-const props = defineProps<SubjectiveProps & {listName: string, endpoint: string}>()
-let listName = props.listName
-if (props.username) {
-  listName = `${flatten(props.username)}-${listName}-management`
-}
-const list = useList<ArtistTag>(listName, {endpoint: props.endpoint})
-list.firstRun()
-</script>

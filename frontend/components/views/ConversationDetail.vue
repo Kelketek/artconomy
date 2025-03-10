@@ -1,26 +1,40 @@
 <template>
-  <v-row no-gutters :key="conversationId">
+  <v-row
+    :key="conversationId"
+    no-gutters
+  >
     <v-col v-if="conversation.x">
       <v-container>
         <v-card>
           <v-row>
-            <v-col class="shrink"
-                   v-for="participant in conversation.x.participants.filter((x) => x.username !== rawViewerName)"
-                   :key="participant.id">
+            <v-col
+              v-for="participant in conversation.x.participants.filter((x) => x.username !== rawViewerName)"
+              :key="participant.id"
+              class="shrink"
+            >
               <ac-avatar
-                  :user="participant"
-                  class="px-1"
+                :user="participant"
+                class="px-1"
               />
             </v-col>
-            <v-spacer/>
-            <v-col class="shrink d-flex" align-self="center">
+            <v-spacer />
+            <v-col
+              class="shrink d-flex"
+              align-self="center"
+            >
               <ac-confirmation :action="leaveConversation">
-                <template v-slot:default="{on}">
-                  <v-btn icon v-on="on" color="red" class="delete-button" aria-label="Delete Conversation">
-                    <v-icon :icon="mdiDelete"/>
+                <template #default="{on}">
+                  <v-btn
+                    icon
+                    color="red"
+                    class="delete-button"
+                    aria-label="Delete Conversation"
+                    v-on="on"
+                  >
+                    <v-icon :icon="mdiDelete" />
                   </v-btn>
                 </template>
-                <template v-slot:confirmation-text>
+                <template #confirmation-text>
                   <v-col>
                     Are you sure you wish to leave this conversation? This cannot be undone. Conversations are deleted
                     when all users have left.
@@ -31,27 +45,36 @@
           </v-row>
         </v-card>
       </v-container>
-      <ac-loading-spinner v-if="!conversation.x"/>
+      <ac-loading-spinner v-if="!conversation.x" />
       <v-container>
         <v-row no-gutters>
           <v-col cols="12">
-            <p><strong class="danger">WARNING:</strong> Do not discuss order details through private conversations. Add
+            <p>
+              <strong class="danger">WARNING:</strong> Do not discuss order details through private conversations. Add
               any details
               about the commission you want in an order. You can negotiate details and pricing and approve/disapprove as
               needed within the order itself.
               Requirements negotiated within a private conversation cannot be enforced by
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>&nbsp;
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'disputes'}}">dispute resolution.</router-link>
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
+                Artconomy Shield
+              </router-link>&nbsp;
+              <router-link :to="{name: 'BuyAndSell', params: {question: 'disputes'}}">
+                dispute resolution.
+              </router-link>
             </p>
           </v-col>
         </v-row>
       </v-container>
-      <v-container fluid class="pa-0">
+      <v-container
+        fluid
+        class="pa-0"
+      >
         <ac-comment-section
-            :commentList="conversationComments"
-            :nesting="false"
-            :locked="(!inConversation) && locked">
-          <template v-slot:empty>
+          :comment-list="conversationComments"
+          :nesting="false"
+          :locked="(!inConversation) && locked"
+        >
+          <template #empty>
             <v-col class="text-center pt-1">
               <v-col>
                 <h2>Start a conversation</h2>
@@ -63,10 +86,27 @@
           </template>
         </ac-comment-section>
         <v-row no-gutters>
-          <v-col class="text-center" cols="12" v-if="!inConversation">
-            <v-btn @click="locked = !locked" :block="xs" class="lock-toggle" variant="flat">
-              <v-icon v-if="locked" left :icon="mdiLock"/>
-              <v-icon v-else left :icon="mdiLockOpen"/>
+          <v-col
+            v-if="!inConversation"
+            class="text-center"
+            cols="12"
+          >
+            <v-btn
+              :block="xs"
+              class="lock-toggle"
+              variant="flat"
+              @click="locked = !locked"
+            >
+              <v-icon
+                v-if="locked"
+                left
+                :icon="mdiLock"
+              />
+              <v-icon
+                v-else
+                left
+                :icon="mdiLockOpen"
+              />
               <span v-if="locked">Unlock to allow outside comment.</span>
               <span v-else>Lock to prevent outside comment.</span>
             </v-btn>

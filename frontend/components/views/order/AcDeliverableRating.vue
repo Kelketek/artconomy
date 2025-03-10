@@ -1,18 +1,30 @@
 <template>
   <ac-load-section :controller="rating">
-    <template v-slot:default>
+    <template #default>
       <v-card v-if="rating.x">
         <v-card-text>
           <v-row no-gutters>
-            <v-col class="text-center" cols="12">
+            <v-col
+              class="text-center"
+              cols="12"
+            >
               <span class="title">Rate your {{ end }}!</span>
             </v-col>
-            <v-col class="text-center" cols="12">
-              <ac-patch-field :patcher="rating.patchers.stars" field-type="ac-star-field"></ac-patch-field>
+            <v-col
+              class="text-center"
+              cols="12"
+            >
+              <ac-patch-field
+                :patcher="rating.patchers.stars"
+                field-type="ac-star-field"
+              />
             </v-col>
             <v-col cols="12">
-              <ac-patch-field :patcher="rating.patchers.comments" field-type="ac-editor"
-                              v-if="rating.x.stars"></ac-patch-field>
+              <ac-patch-field
+                v-if="rating.x.stars"
+                :patcher="rating.patchers.comments"
+                field-type="ac-editor"
+              />
             </v-col>
           </v-row>
         </v-card-text>

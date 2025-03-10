@@ -1,16 +1,28 @@
 <template>
   <v-list-item>
-    <template v-slot:prepend>
-      <ac-link :to="assetLink" class="mr-5">
+    <template #prepend>
+      <ac-link
+        :to="assetLink"
+        class="mr-5"
+      >
         <v-tooltip :text="formatDateTime(event.date)">
-          <template v-slot:activator="{ props }">
-            <v-badge left overlap :model-value="!notification.read" color="primary" v-bind="props">
-              <template v-slot:badge>
+          <template #activator="{ props }">
+            <v-badge
+              left
+              overlap
+              :model-value="!notification.read"
+              color="primary"
+              v-bind="props"
+            >
+              <template #badge>
                 <span>*</span>
               </template>
               <slot name="avatar">
                 <v-avatar>
-                  <img :src="image" alt="">
+                  <img
+                    :src="image"
+                    alt=""
+                  >
                 </v-avatar>
               </slot>
             </v-badge>
@@ -19,10 +31,10 @@
       </ac-link>
     </template>
     <v-list-item-title>
-      <slot name="title"/>
+      <slot name="title" />
     </v-list-item-title>
     <v-list-item-subtitle>
-      <slot name="subtitle"/>
+      <slot name="subtitle" />
     </v-list-item-subtitle>
     <slot name="extra" />
   </v-list-item>

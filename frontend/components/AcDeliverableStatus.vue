@@ -1,7 +1,14 @@
 <template>
-  <v-chip variant="flat" :color="STATUSES[deliverable.status].color" :light="!STATUSES[deliverable.status].dark">
-    <v-icon left :icon="STATUSES[deliverable.status].icon"/>
-    {{STATUSES[deliverable.status].text}}
+  <v-chip
+    variant="flat"
+    :color="STATUSES[deliverable.status].color"
+    :light="!STATUSES[deliverable.status].dark"
+  >
+    <v-icon
+      left
+      :icon="STATUSES[deliverable.status].icon"
+    />
+    {{ STATUSES[deliverable.status].text }}
   </v-chip>
 </template>
 

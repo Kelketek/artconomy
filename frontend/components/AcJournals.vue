@@ -1,11 +1,22 @@
 <template>
   <div class="flex flex-column">
     <div class="flex">
-      <v-toolbar dense color="secondary">
+      <v-toolbar
+        dense
+        color="secondary"
+      >
         <v-toolbar-title>Journals</v-toolbar-title>
-        <v-spacer/>
-        <v-btn color="green" @click="showNew = true" v-if="isCurrent" variant="flat">
-          <v-icon left :icon="mdiPlus"/>
+        <v-spacer />
+        <v-btn
+          v-if="isCurrent"
+          color="green"
+          variant="flat"
+          @click="showNew = true"
+        >
+          <v-icon
+            left
+            :icon="mdiPlus"
+          />
           Add New
         </v-btn>
       </v-toolbar>
@@ -13,16 +24,19 @@
         <ac-paginated :list="journals">
           <v-col cols="12">
             <v-list two-line>
-              <template v-for="item in journals.list" :key="item.x!.id">
+              <template
+                v-for="item in journals.list"
+                :key="item.x!.id"
+              >
                 <v-list-item
-                    :to="{name: 'Journal', params: {username, journalId: item.x!.id}}"
-                    v-if="item.x!"
+                  v-if="item.x!"
+                  :to="{name: 'Journal', params: {username, journalId: item.x!.id}}"
                 >
-                  <template v-slot:prepend>
-                    <v-icon :icon="mdiPencil"/>
+                  <template #prepend>
+                    <v-icon :icon="mdiPencil" />
                   </template>
-                  <v-list-item-title>{{item.x!.subject}}</v-list-item-title>
-                  <v-list-item-subtitle>{{formatDate(item.x!.created_on)}}</v-list-item-subtitle>
+                  <v-list-item-title>{{ item.x!.subject }}</v-list-item-title>
+                  <v-list-item-subtitle>{{ formatDate(item.x!.created_on) }}</v-list-item-subtitle>
                 </v-list-item>
               </template>
             </v-list>
@@ -31,26 +45,55 @@
       </v-col>
     </div>
     <ac-form-dialog
-        v-model="showNew"
-        v-if="isCurrent"
-        v-bind="newJournal.bind"
-        @submit="newJournal.submitThen(visitJournal)"
-        :large="true"
-        title="New Journal"
+      v-if="isCurrent"
+      v-model="showNew"
+      v-bind="newJournal.bind"
+      :large="true"
+      title="New Journal"
+      @submit="newJournal.submitThen(visitJournal)"
     >
       <v-row>
-        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
-          <ac-bound-field :field="newJournal.fields.subject" label="Subject" autofocus/>
-        </v-col>
-        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
-          <ac-bound-field :field="newJournal.fields.body" field-type="ac-editor" label="Body"
-                          :auto-save="true" :save-indicator="false"
+        <v-col
+          cols="12"
+          sm="10"
+          offset-sm="1"
+          offset-md="2"
+          md="8"
+        >
+          <ac-bound-field
+            :field="newJournal.fields.subject"
+            label="Subject"
+            autofocus
           />
         </v-col>
-        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
-          <ac-bound-field :field="newJournal.fields.comments_disabled" field-type="ac-checkbox" :persistent-hint="true"
-                          label="Comments Disabled"
-                          hint="If checked, prevents people from commenting on this journal."
+        <v-col
+          cols="12"
+          sm="10"
+          offset-sm="1"
+          offset-md="2"
+          md="8"
+        >
+          <ac-bound-field
+            :field="newJournal.fields.body"
+            field-type="ac-editor"
+            label="Body"
+            :auto-save="true"
+            :save-indicator="false"
+          />
+        </v-col>
+        <v-col
+          cols="12"
+          sm="10"
+          offset-sm="1"
+          offset-md="2"
+          md="8"
+        >
+          <ac-bound-field
+            :field="newJournal.fields.comments_disabled"
+            field-type="ac-checkbox"
+            :persistent-hint="true"
+            label="Comments Disabled"
+            hint="If checked, prevents people from commenting on this journal."
           />
         </v-col>
       </v-row>

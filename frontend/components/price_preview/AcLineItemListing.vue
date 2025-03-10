@@ -1,44 +1,102 @@
 <template>
-  <v-container fluid class="pa-0">
+  <v-container
+    fluid
+    class="pa-0"
+  >
     <template v-if="editable && editBase">
-      <ac-line-item-editor :line="line" v-for="line in baseItems" :key="line.x!.id" :price-data="priceData"
-                           :editing="editable"/>
+      <ac-line-item-editor
+        v-for="line in baseItems"
+        :key="line.x!.id"
+        :line="line"
+        :price-data="priceData"
+        :editing="editable"
+      />
     </template>
     <template v-else>
-      <ac-line-item-preview :line="line.x!" v-for="line in baseItems" :key="line.x!.id" :price-data="priceData"
-                            :editing="editable"/>
+      <ac-line-item-preview
+        v-for="line in baseItems"
+        :key="line.x!.id"
+        :line="line.x!"
+        :price-data="priceData"
+        :editing="editable"
+      />
     </template>
     <template v-if="editable && editBase">
-      <ac-line-item-editor :line="line" v-for="line in addOns" :key="line.x!.id" :price-data="priceData"
-                           :editing="editable"/>
+      <ac-line-item-editor
+        v-for="line in addOns"
+        :key="line.x!.id"
+        :line="line"
+        :price-data="priceData"
+        :editing="editable"
+      />
       <ac-form-container v-bind="addOnForm.bind">
         <ac-form @submit.prevent="addOnForm.submitThen(lineItems.uniquePush)">
-          <ac-new-line-item :form="addOnForm"/>
+          <ac-new-line-item :form="addOnForm" />
         </ac-form>
       </ac-form-container>
     </template>
     <template v-else>
-      <ac-line-item-preview :line="line.x!" v-for="line in addOns" :key="line.x!.id" :price-data="priceData"/>
+      <ac-line-item-preview
+        v-for="line in addOns"
+        :key="line.x!.id"
+        :line="line.x!"
+        :price-data="priceData"
+      />
     </template>
-    <ac-line-item-preview :line="line" v-for="line in modifiers" :key="line.id" :price-data="priceData"
-                          :editing="editable"/>
+    <ac-line-item-preview
+      v-for="line in modifiers"
+      :key="line.id"
+      :line="line"
+      :price-data="priceData"
+      :editing="editable"
+    />
     <template v-if="editable && editExtras">
-      <ac-line-item-editor :line="line" v-for="line in extras" :key="line.x!.id" :price-data="priceData"
-                           :editing="editable"/>
+      <ac-line-item-editor
+        v-for="line in extras"
+        :key="line.x!.id"
+        :line="line"
+        :price-data="priceData"
+        :editing="editable"
+      />
       <ac-form-container v-bind="extraForm.bind">
         <ac-form @submit.prevent="extraForm.submitThen(lineItems.uniquePush)">
-          <ac-new-line-item :form="extraForm"/>
+          <ac-new-line-item :form="extraForm" />
         </ac-form>
       </ac-form-container>
     </template>
     <template v-else>
-      <ac-line-item-preview :line="line.x!" v-for="line in extras" :key="line.x!.id" :price-data="priceData"/>
+      <ac-line-item-preview
+        v-for="line in extras"
+        :key="line.x!.id"
+        :line="line.x!"
+        :price-data="priceData"
+      />
     </template>
-    <ac-line-item-preview :line="line.x!" v-for="line in others" :key="line.x!.id" :price-data="priceData"/>
-    <ac-line-item-preview :line="line.x!" v-for="line in taxes" :key="line.x!.id" :price-data="priceData"/>
+    <ac-line-item-preview
+      v-for="line in others"
+      :key="line.x!.id"
+      :line="line.x!"
+      :price-data="priceData"
+    />
+    <ac-line-item-preview
+      v-for="line in taxes"
+      :key="line.x!.id"
+      :line="line.x!"
+      :price-data="priceData"
+    />
     <v-row no-gutters>
-      <v-col class="text-right pr-1" cols="6"><strong>Total Price:</strong></v-col>
-      <v-col class="text-left pl-1" cols="6">${{rawPrice}}</v-col>
+      <v-col
+        class="text-right pr-1"
+        cols="6"
+      >
+        <strong>Total Price:</strong>
+      </v-col>
+      <v-col
+        class="text-left pl-1"
+        cols="6"
+      >
+        ${{ rawPrice }}
+      </v-col>
     </v-row>
   </v-container>
 </template>

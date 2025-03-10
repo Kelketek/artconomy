@@ -2,12 +2,12 @@
   <v-col cols="12">
     <v-row no-gutters>
       <Sortable
-          tag="div"
-          :list="previousList"
-          :options="{group: {name: 'previous', put: true, pull: false}, disabled: list.currentPage === 1, removeCloneOnHide: false}"
-          class="page-setter v-col v-col-6"
-          @add="addPrevious"
-          item-key="id"
+        tag="div"
+        :list="previousList"
+        :options="{group: {name: 'previous', put: true, pull: false}, disabled: list.currentPage === 1, removeCloneOnHide: false}"
+        class="page-setter v-col v-col-6"
+        item-key="id"
+        @add="addPrevious"
       >
         <template #header>
           <v-card :class="{disabled: list.currentPage === 1}">
@@ -16,17 +16,27 @@
             </v-card-text>
           </v-card>
         </template>
-        <template #item="{index}"><span v-show="false" :key="index"/></template>
+        <template #item="{index}">
+          <span
+            v-show="false"
+            :key="index"
+          />
+        </template>
       </Sortable>
       <Sortable
-          tag="div"
-          :list="nextList"
-          :options="{group: {name: 'next', put: true, pull: false}, disabled: list.currentPage === list.totalPages}"
-          class="page-setter v-col"
-          @add="addNext"
-          item-key="id"
+        tag="div"
+        :list="nextList"
+        :options="{group: {name: 'next', put: true, pull: false}, disabled: list.currentPage === list.totalPages}"
+        class="page-setter v-col"
+        item-key="id"
+        @add="addNext"
       >
-        <template #item="{index}"><span v-show="false" :key="index"/></template>
+        <template #item="{index}">
+          <span
+            v-show="false"
+            :key="index"
+          />
+        </template>
         <template #header>
           <v-card :class="{disabled: list.currentPage === list.totalPages}">
             <v-card-text class="text-center">
@@ -38,16 +48,6 @@
     </v-row>
   </v-col>
 </template>
-
-<style>
-/*
-No idea why, but there seems to be no way to hide the resulting drop aside from this.
-Make sure any draggable item has the .draggable-item class or it won't be properly hidden.
-*/
-.page-setter .draggable-item {
-  display: none;
-}
-</style>
 
 <script setup lang="ts" generic="T extends SortableModel">
 import {Sortable} from 'sortablejs-vue3'
@@ -97,3 +97,13 @@ const addPrevious = (addEvent: any) => {
   adder(addEvent, true)
 }
 </script>
+
+<style>
+/*
+No idea why, but there seems to be no way to hide the resulting drop aside from this.
+Make sure any draggable item has the .draggable-item class or it won't be properly hidden.
+*/
+.page-setter .draggable-item {
+  display: none;
+}
+</style>

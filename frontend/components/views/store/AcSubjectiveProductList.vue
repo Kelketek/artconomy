@@ -1,47 +1,111 @@
 <template>
   <ac-load-section :controller="products">
-    <v-row class="d-flex" v-if="controls && !store.state.iFrame && !firstProduct && !hideNewButton">
+    <v-row
+      v-if="controls && !store.state.iFrame && !firstProduct && !hideNewButton"
+      class="d-flex"
+    >
       <v-col class="text-md-right text-center">
-        <v-btn variant="flat" color="green" @click="showNew = true" class="mx-2 d-inline-block" v-if="!managing">
-          <v-icon left :icon="mdiPlus"/>
+        <v-btn
+          v-if="!managing"
+          variant="flat"
+          color="green"
+          class="mx-2 d-inline-block"
+          @click="showNew = true"
+        >
+          <v-icon
+            left
+            :icon="mdiPlus"
+          />
           New Product
         </v-btn>
-        <v-btn @click="managing = !managing" color="primary" variant="flat">
-          <v-icon left :icon="mdiCog"/>
+        <v-btn
+          color="primary"
+          variant="flat"
+          @click="managing = !managing"
+        >
+          <v-icon
+            left
+            :icon="mdiCog"
+          />
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
       </v-col>
     </v-row>
-    <ac-product-list :products="products" v-show="!firstProduct" :show-username="false" :mini="mini" v-if="!managing">
-      <template v-slot:empty>
+    <ac-product-list
+      v-show="!firstProduct"
+      v-if="!managing"
+      :products="products"
+      :show-username="false"
+      :mini="mini"
+    >
+      <template #empty>
         <v-col class="text-center pt-5">
           {{ username }} has no available products.
         </v-col>
       </template>
     </ac-product-list>
-    <ac-new-product :username="username" v-model="showNew"
-                    v-if="!managing && controls && !store.state.iFrame" />
-    <v-row no-gutters v-if="firstProduct">
-      <v-col cols="12" class="text-md-right text-center">
-        <v-btn @click="managing = !managing" color="primary" variant="flat">
-          <v-icon left :icon="mdiCog"/>
+    <ac-new-product
+      v-if="!managing && controls && !store.state.iFrame"
+      v-model="showNew"
+      :username="username"
+    />
+    <v-row
+      v-if="firstProduct"
+      no-gutters
+    >
+      <v-col
+        cols="12"
+        class="text-md-right text-center"
+      >
+        <v-btn
+          color="primary"
+          variant="flat"
+          @click="managing = !managing"
+        >
+          <v-icon
+            left
+            :icon="mdiCog"
+          />
           <span v-if="managing">Finish</span>
           <span v-else>Manage</span>
         </v-btn>
       </v-col>
-      <v-col class="pa-2" cols="12" :lg="mini ? 12 : 8" :offset-lg="mini ? 0 : 2" v-if="!managing">
+      <v-col
+        v-if="!managing"
+        class="pa-2"
+        cols="12"
+        :lg="mini ? 12 : 8"
+        :offset-lg="mini ? 0 : 2"
+      >
         <v-card>
           <v-responsive min-height="25vh">
             <v-container class="bg fill-height">
               <v-card-text>
-                <v-row no-gutters class="justify-content" align="center">
-                  <v-col :cols="mini ? 12 : 6" :class="{'text-center': mini}">
+                <v-row
+                  no-gutters
+                  class="justify-content"
+                  align="center"
+                >
+                  <v-col
+                    :cols="mini ? 12 : 6"
+                    :class="{'text-center': mini}"
+                  >
                     <h1>Your art. Your store.</h1>
                     <p>Get started selling commissions by adding a product!</p>
                   </v-col>
-                  <v-col class="text-center" :cols="mini ? 12 : 6">
-                    <v-btn large variant="flat" color="primary" @click="showNew = true">Add your first product!</v-btn>
+                  <v-col
+                    class="text-center"
+                    :cols="mini ? 12 : 6"
+                  >
+                    <v-btn
+                      large
+                      variant="flat"
+                      color="primary"
+                      @click="showNew = true"
+                    >
+                      Add your first product!
+                    </v-btn>
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -50,7 +114,7 @@
         </v-card>
       </v-col>
     </v-row>
-    <router-view v-if="managing"/>
+    <router-view v-if="managing" />
   </ac-load-section>
 </template>
 

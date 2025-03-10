@@ -1,19 +1,27 @@
 <template>
-  <v-responsive v-if="smAndDown || mini" aspect-ratio="1" class="character" :class="{unavailable}">
+  <v-responsive
+    v-if="smAndDown || mini"
+    aspect-ratio="1"
+    class="character"
+    :class="{unavailable}"
+  >
     <v-card>
       <v-card-text class="pa-2">
         <v-row no-gutters>
           <v-col>
             <v-row no-gutters>
-              <v-col cols="8" offset="2">
+              <v-col
+                cols="8"
+                offset="2"
+              >
                 <ac-link :to="characterLink">
                   <ac-asset
-                      :text="false"
-                      :asset="character.primary_submission"
-                      thumb-name="thumbnail"
-                      :aspect-ratio="1"
-                      :allow-preview="false"
-                      :alt="characterAltText"
+                    :text="false"
+                    :asset="character.primary_submission"
+                    thumb-name="thumbnail"
+                    :aspect-ratio="1"
+                    :allow-preview="false"
+                    :alt="characterAltText"
                   />
                 </ac-link>
               </v-col>
@@ -30,32 +38,32 @@
       </v-card-text>
     </v-card>
   </v-responsive>
-  <v-card class="character-card" v-else :class="{unavailable}">
+  <v-card
+    v-else
+    class="character-card"
+    :class="{unavailable}"
+  >
     <router-link
-        :to="characterLink">
+      :to="characterLink"
+    >
       <ac-asset
-          :asset="character.primary_submission"
-          thumb-name="thumbnail"
-          :terse="true"
-          :aspect-ratio="1"
-          :allow-preview="false"
-          :alt="characterAltText"
+        :asset="character.primary_submission"
+        thumb-name="thumbnail"
+        :terse="true"
+        :aspect-ratio="1"
+        :allow-preview="false"
+        :alt="characterAltText"
       />
     </router-link>
     <v-card-title v-if="showFooter">
       <router-link
-          :to="characterLink">
+        :to="characterLink"
+      >
         {{ character.name }}
       </router-link>
     </v-card-title>
   </v-card>
 </template>
-
-<style>
-.character a {
-  text-decoration: none !important;
-}
-</style>
 
 <script setup lang="ts">
 import AcAsset from './AcAsset.vue'
@@ -89,3 +97,9 @@ const characterAltText = computed(() => {
 })
 const unavailable = computed(() => props.character.private)
 </script>
+
+<style>
+.character a {
+  text-decoration: none !important;
+}
+</style>

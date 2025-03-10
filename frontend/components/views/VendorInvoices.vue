@@ -1,39 +1,74 @@
 <template>
-  <v-container class="pa-0" v-if="currentRoute">
+  <v-container
+    v-if="currentRoute"
+    class="pa-0"
+  >
     <v-row>
-      <v-col cols="12" class="text-center py-8">
-        <v-btn color="green" block type="submit" variant="flat"  @click="showNewInvoice = true">
-          <v-icon :icon="mdiReceiptText"/>
+      <v-col
+        cols="12"
+        class="text-center py-8"
+      >
+        <v-btn
+          color="green"
+          block
+          type="submit"
+          variant="flat"
+          @click="showNewInvoice = true"
+        >
+          <v-icon :icon="mdiReceiptText" />
           New invoice
         </v-btn>
       </v-col>
     </v-row>
-    <ac-form-dialog v-model="showNewInvoice" v-bind="invoiceForm.bind" @submit.prevent="invoiceForm.submitThen(goToInvoice)">
+    <ac-form-dialog
+      v-model="showNewInvoice"
+      v-bind="invoiceForm.bind"
+      @submit.prevent="invoiceForm.submitThen(goToInvoice)"
+    >
       <v-row>
-        <v-col cols="12" md="6" offset-md="3">
+        <v-col
+          cols="12"
+          md="6"
+          offset-md="3"
+        >
           <ac-bound-field
-              :field="invoiceForm.fields.issued_by_id" field-type="ac-user-select"
-              :multiple="false"
-              label="User we're paying"
+            :field="invoiceForm.fields.issued_by_id"
+            field-type="ac-user-select"
+            :multiple="false"
+            label="User we're paying"
           />
         </v-col>
       </v-row>
     </ac-form-dialog>
-    <ac-paginated :list="invoices" class="py-8">
-      <template v-slot:default>
-        <v-col cols="12" md="6" lg="4" offset-md="3" offset-lg="4">
+    <ac-paginated
+      :list="invoices"
+      class="py-8"
+    >
+      <template #default>
+        <v-col
+          cols="12"
+          md="6"
+          lg="4"
+          offset-md="3"
+          offset-lg="4"
+        >
           <v-toolbar>
             <v-toolbar-title>History</v-toolbar-title>
           </v-toolbar>
           <v-list>
-            <v-list-item v-for="invoice in invoices.list" :key="invoice.x!.id">
+            <v-list-item
+              v-for="invoice in invoices.list"
+              :key="invoice.x!.id"
+            >
               <v-list-item-title>
-                <ac-link :to="linkFor(invoice.x!)">{{ invoice.x!.id }} to {{ invoice.x!.issued_by?.username}}</ac-link>
+                <ac-link :to="linkFor(invoice.x!)">
+                  {{ invoice.x!.id }} to {{ invoice.x!.issued_by?.username }}
+                </ac-link>
               </v-list-item-title>
               <v-list-item-subtitle>
                 {{ formatDateTime(invoice.x!.created_on) }}
               </v-list-item-subtitle>
-              <template v-slot:append>
+              <template #append>
                 {{ invoice.x!.total }}
               </template>
             </v-list-item>
@@ -42,38 +77,39 @@
       </template>
     </ac-paginated>
   </v-container>
-  <v-container class="pa-0" v-else>
+  <v-container
+    v-else
+    class="pa-0"
+  >
     <v-toolbar class="table-invoice-toolbar">
       <v-toolbar-items>
-        <v-btn @click="() => router.go(-1)" color="secondary" variant="flat">
-          <v-icon left :icon="mdiArrowLeftThick"/>
+        <v-btn
+          color="secondary"
+          variant="flat"
+          @click="() => router.go(-1)"
+        >
+          <v-icon
+            left
+            :icon="mdiArrowLeftThick"
+          />
           Back
         </v-btn>
-        <v-btn color="primary" @click="performPrint" variant="flat">
-          <v-icon left :icon="mdiPrinter"/>
+        <v-btn
+          color="primary"
+          variant="flat"
+          @click="performPrint"
+        >
+          <v-icon
+            left
+            :icon="mdiPrinter"
+          />
           Print
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
-    <router-view/>
+    <router-view />
   </v-container>
 </template>
-
-<style>
-@media print {
-  .table-invoice-toolbar {
-    display: none;
-  }
-
-  .table-dashboard-nav {
-    display: none;
-  }
-
-  .main-navigation {
-    display: none;
-  }
-}
-</style>
 
 <script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -141,3 +177,19 @@ const invoiceForm = useForm('new_invoice_button', {
 const invoices = useList<Invoice>('vendor_invoices', {endpoint: '/api/sales/vendor-invoices/'})
 invoices.firstRun()
 </script>
+
+<style>
+@media print {
+  .table-invoice-toolbar {
+    display: none;
+  }
+
+  .table-dashboard-nav {
+    display: none;
+  }
+
+  .main-navigation {
+    display: none;
+  }
+}
+</style>

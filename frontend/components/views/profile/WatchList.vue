@@ -1,7 +1,16 @@
 <template>
-  <ac-paginated :list="watch" :track-pages="true">
+  <ac-paginated
+    :list="watch"
+    :track-pages="true"
+  >
     <v-row>
-      <v-col cols="3" sm="2" lg="1" v-for="user in watch.list" :key="user.x!.id">
+      <v-col
+        v-for="user in watch.list"
+        :key="user.x!.id"
+        cols="3"
+        sm="2"
+        lg="1"
+      >
         <ac-avatar :user="user.x" />
       </v-col>
     </v-row>

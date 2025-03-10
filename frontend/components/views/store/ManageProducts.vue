@@ -9,12 +9,19 @@
     </v-col>
     <v-col cols="12">
       <ac-draggable-list :list="list">
-        <template v-slot:default="{element, index}">
-          <v-col cols="12" sm="3" md="4" lg="3" xl="2" :key="index">
+        <template #default="{element, index}">
+          <v-col
+            :key="index"
+            cols="12"
+            sm="3"
+            md="4"
+            lg="3"
+            xl="2"
+          >
             <ac-product-manager
-                :product="element"
-                :username="username"
-                :key="index"
+              :key="index"
+              :product="element"
+              :username="username"
             />
           </v-col>
         </template>
@@ -22,6 +29,27 @@
     </v-col>
   </v-row>
 </template>
+
+<script setup lang="ts">
+import {flatten} from '@/lib/lib.ts'
+import AcDraggableList from '@/components/AcDraggableList.vue'
+import AcProductManager from '@/components/views/store/AcProductManager.vue'
+import {computed} from 'vue'
+import {useList} from '@/store/lists/hooks.ts'
+import type {Product} from '@/types/main'
+
+
+declare interface ManageProductsArgs {
+  username: string,
+}
+
+const props = defineProps<ManageProductsArgs>()
+
+const url = computed(() => `/api/sales/account/${props.username}/products/manage/`)
+
+const list = useList<Product>(`${flatten(props.username)}-products-management`, {endpoint: url.value})
+list.firstRun()
+</script>
 
 <style>
 .disabled {
@@ -44,24 +72,3 @@
   opacity: .5;
 }
 </style>
-
-<script setup lang="ts">
-import {flatten} from '@/lib/lib.ts'
-import AcDraggableList from '@/components/AcDraggableList.vue'
-import AcProductManager from '@/components/views/store/AcProductManager.vue'
-import {computed} from 'vue'
-import {useList} from '@/store/lists/hooks.ts'
-import type {Product} from '@/types/main'
-
-
-declare interface ManageProductsArgs {
-  username: string,
-}
-
-const props = defineProps<ManageProductsArgs>()
-
-const url = computed(() => `/api/sales/account/${props.username}/products/manage/`)
-
-const list = useList<Product>(`${flatten(props.username)}-products-management`, {endpoint: url.value})
-list.firstRun()
-</script>

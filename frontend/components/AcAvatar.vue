@@ -4,45 +4,89 @@
       <div class="flex">
         <ac-link :to="profileLink">
           <v-avatar :aria-label="`Profile for ${displayName}`">
-            <img alt="" :src="person.avatar_url" v-if="person" width="40" height="40">
-            <v-icon v-else :icon="mdiAccount"/>
+            <img
+              v-if="person"
+              alt=""
+              :src="person.avatar_url"
+              width="40"
+              height="40"
+            >
+            <v-icon
+              v-else
+              :icon="mdiAccount"
+            />
           </v-avatar>
         </ac-link>
       </div>
-      <div v-if="showName" class="text-center flex">
-        <v-tooltip bottom v-if="person && person.is_superuser" aria-label="Admin status tooltip">
-          <template v-slot:activator="{props}">
-            <v-icon size="small" color="green" v-bind="props" :icon="mdiStarCircle"/>
+      <div
+        v-if="showName"
+        class="text-center flex"
+      >
+        <v-tooltip
+          v-if="person && person.is_superuser"
+          bottom
+          aria-label="Admin status tooltip"
+        >
+          <template #activator="{props}">
+            <v-icon
+              size="small"
+              color="green"
+              v-bind="props"
+              :icon="mdiStarCircle"
+            />
           </template>
           <span>Admin</span>
         </v-tooltip>
-        <v-tooltip bottom v-else-if="person && person.is_staff" aria-label="Staff status tooltip">
-          <template v-slot:activator="{props}">
-            <v-icon v-bind="props" size="small" color="yellow" :icon="mdiStarCircle"/>
+        <v-tooltip
+          v-else-if="person && person.is_staff"
+          bottom
+          aria-label="Staff status tooltip"
+        >
+          <template #activator="{props}">
+            <v-icon
+              v-bind="props"
+              size="small"
+              color="yellow"
+              :icon="mdiStarCircle"
+            />
           </template>
           <span>Staff</span>
         </v-tooltip>
-        <ac-link :to="profileLink">{{ displayName }}</ac-link>
+        <ac-link :to="profileLink">
+          {{ displayName }}
+        </ac-link>
       </div>
-      <div v-if="person && removable" class="flex">
-        <v-btn size="x-small" icon color="danger" @click="emit('remove')">
-          <v-icon size="large" :icon="mdiClose"/>
+      <div
+        v-if="person && removable"
+        class="flex"
+      >
+        <v-btn
+          size="x-small"
+          icon
+          color="danger"
+          @click="emit('remove')"
+        >
+          <v-icon
+            size="large"
+            :icon="mdiClose"
+          />
         </v-btn>
       </div>
-      <router-link :to="{name: 'Ratings', params: {username: person.username}}"
-                   v-if="showRating && person && person.stars">
-        <v-rating density="compact" size="small" half-increments :model-value="starRound(person.stars)" color="primary"/>
+      <router-link
+        v-if="showRating && person && person.stars"
+        :to="{name: 'Ratings', params: {username: person.username}}"
+      >
+        <v-rating
+          density="compact"
+          size="small"
+          half-increments
+          :model-value="starRound(person.stars)"
+          color="primary"
+        />
       </router-link>
     </div>
   </div>
 </template>
-
-<style>
-/*noinspection CssUnusedSymbol*/
-.ac-avatar .v-rating.v-rating--dense .v-icon {
-  padding: 0.025rem;
-}
-</style>
 
 <script setup lang="ts">
 import {ProfileController} from '@/store/profiles/controller.ts'
@@ -190,3 +234,10 @@ if (!props.user) {
   buildHandler(props.username)
 }
 </script>
+
+<style>
+/*noinspection CssUnusedSymbol*/
+.ac-avatar .v-rating.v-rating--dense .v-icon {
+  padding: 0.025rem;
+}
+</style>

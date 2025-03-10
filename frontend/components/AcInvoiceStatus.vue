@@ -1,7 +1,15 @@
 <template>
-  <v-chip :color="STATUSES[invoice.status].color" :light="!STATUSES[invoice.status].dark" variant="flat" size="small">
-    <v-icon left :icon="STATUSES[invoice.status].icon"/>
-    {{STATUSES[invoice.status].text}}
+  <v-chip
+    :color="STATUSES[invoice.status].color"
+    :light="!STATUSES[invoice.status].dark"
+    variant="flat"
+    size="small"
+  >
+    <v-icon
+      left
+      :icon="STATUSES[invoice.status].icon"
+    />
+    {{ STATUSES[invoice.status].text }}
   </v-chip>
 </template>
 

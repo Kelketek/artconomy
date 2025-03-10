@@ -1,8 +1,14 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="assetLink"
+    :username="username"
+  >
+    <template #title>
       <router-link
-          :to="assetLink">Your waitlist has been updated. You now have {{event.data.count}} orders on your waitlist.
+        :to="assetLink"
+      >
+        Your waitlist has been updated. You now have {{ event.data.count }} orders on your waitlist.
       </router-link>
     </template>
   </ac-base-notification>

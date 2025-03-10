@@ -1,20 +1,34 @@
 <template>
   <v-row no-gutters>
     <ac-related-manager
-        :field-controller="newShare.fields.user_id" :list-controller="controller"
-        item-key="user"
+      :field-controller="newShare.fields.user_id"
+      :list-controller="controller"
+      item-key="user"
     >
-      <template v-slot:preview="{item}">
-        <v-col cols="4" sm="3" md="2" lg="1">
-          <ac-avatar :user="item.x!.user" :removable="true" @remove="item.delete().catch(newShare.setErrors)"/>
+      <template #preview="{item}">
+        <v-col
+          cols="4"
+          sm="3"
+          md="2"
+          lg="1"
+        >
+          <ac-avatar
+            :user="item.x!.user"
+            :removable="true"
+            @remove="item.delete().catch(newShare.setErrors)"
+          />
         </v-col>
       </template>
-      <template v-slot:default="{filter}">
+      <template #default="{filter}">
         <v-col cols="12">
           <ac-bound-field
-              label="Share with..."
-              hint="Enter the username of another Artconomy user to share this with them."
-              :field="newShare.fields.user_id" field-type="ac-user-select" :multiple="false" :filter="filter"/>
+            label="Share with..."
+            hint="Enter the username of another Artconomy user to share this with them."
+            :field="newShare.fields.user_id"
+            field-type="ac-user-select"
+            :multiple="false"
+            :filter="filter"
+          />
         </v-col>
       </template>
     </ac-related-manager>

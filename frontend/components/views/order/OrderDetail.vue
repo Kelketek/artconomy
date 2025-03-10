@@ -1,13 +1,27 @@
 <template>
   <v-container v-if="isCurrentRoute">
-    <ac-paginated :list="deliverables" :track-pages="true">
-      <template v-slot:default>
+    <ac-paginated
+      :list="deliverables"
+      :track-pages="true"
+    >
+      <template #default>
         <ac-load-section :controller="order">
-          <template v-slot:default>
+          <template #default>
             <v-row>
-              <v-col cols="12" sm="6" md="4" lg="3" v-for="deliverable in deliverables.list" :key="deliverable.x!.id">
+              <v-col
+                v-for="deliverable in deliverables.list"
+                :key="deliverable.x!.id"
+                cols="12"
+                sm="6"
+                md="4"
+                lg="3"
+              >
                 <ac-unread-marker :read="deliverable.x!.read">
-                  <ac-deliverable-preview :scope="String(route.name)" :order="order.x!" :deliverable="deliverable.x!"/>
+                  <ac-deliverable-preview
+                    :scope="String(route.name)"
+                    :order="order.x!"
+                    :deliverable="deliverable.x!"
+                  />
                 </ac-unread-marker>
               </v-col>
             </v-row>
@@ -16,7 +30,7 @@
       </template>
     </ac-paginated>
   </v-container>
-  <router-view v-else></router-view>
+  <router-view v-else />
 </template>
 
 <script setup lang="ts">

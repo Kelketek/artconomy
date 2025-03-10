@@ -1,30 +1,49 @@
 <template>
   <ac-load-section :controller="stripeAccounts">
-    <template v-slot:default>
-      <v-container v-if="modelValue === BankStatus.UNSET || modelValue === BankStatus.IN_SUPPORTED_COUNTRY" class="pa-0">
+    <template #default>
+      <v-container
+        v-if="modelValue === BankStatus.UNSET || modelValue === BankStatus.IN_SUPPORTED_COUNTRY"
+        class="pa-0"
+      >
         <v-card v-if="(needStripe || restartStripe) && (!hasActiveStripe)">
           <v-card-text>
-            <ac-form-container v-bind="stripeSetupForm.bind" v-if="stripeCountries.x">
+            <ac-form-container
+              v-if="stripeCountries.x"
+              v-bind="stripeSetupForm.bind"
+            >
               <v-row>
                 <v-col cols="12">
                   <ac-bound-field
-                      :field="stripeSetupForm.fields.country" field-type="v-select" outlined
-                      label="Select your country"
-                      :items="stripeCountries.x.countries"
-                  ></ac-bound-field>
-                  <v-btn @click="stripeSetupForm.submit().then(redirect)"
-                         variant="flat"
-                         :disabled="!stripeSetupForm.fields.country.value" color="primary">Set up Account
+                    :field="stripeSetupForm.fields.country"
+                    field-type="v-select"
+                    outlined
+                    label="Select your country"
+                    :items="stripeCountries.x.countries"
+                  />
+                  <v-btn
+                    variant="flat"
+                    :disabled="!stripeSetupForm.fields.country.value"
+                    color="primary"
+                    @click="stripeSetupForm.submit().then(redirect)"
+                  >
+                    Set up Account
                   </v-btn>
                 </v-col>
                 <v-col cols="12">
                   <v-list-subheader>Can't find your country?</v-list-subheader>
                 </v-col>
                 <v-col cols="12">
-                  <p>If your country isn't supported, or you wish to forgo shield protection altogether, click the
+                  <p>
+                    If your country isn't supported, or you wish to forgo shield protection altogether, click the
                     button below. You'll still be able to list products, manage orders, and use other features of the
-                    site, but you'll have to handle payment on your own.</p>
-                  <v-btn @click="() => $emit('update:modelValue', BankStatus.NO_SUPPORTED_COUNTRY)" color="danger" variant="flat">Disable Shield
+                    site, but you'll have to handle payment on your own.
+                  </p>
+                  <v-btn
+                    color="danger"
+                    variant="flat"
+                    @click="() => $emit('update:modelValue', BankStatus.NO_SUPPORTED_COUNTRY)"
+                  >
+                    Disable Shield
                   </v-btn>
                 </v-col>
               </v-row>
@@ -41,14 +60,30 @@
                     Be sure to upload your ID/documents in the section that talks about 'needing verification.'
                   </v-card-text>
                 </v-col>
-                <v-col cols="6" class="text-center">
-                  <v-btn @click="stripeSetupForm.submit().then(redirect)"
-                         variant="flat"
-                         :disabled="!stripeSetupForm.fields.country.value" color="primary">Finish Setup
+                <v-col
+                  cols="6"
+                  class="text-center"
+                >
+                  <v-btn
+                    variant="flat"
+                    :disabled="!stripeSetupForm.fields.country.value"
+                    color="primary"
+                    @click="stripeSetupForm.submit().then(redirect)"
+                  >
+                    Finish Setup
                   </v-btn>
                 </v-col>
-                <v-col cols="6" class="text-center">
-                  <v-btn @click="() => restartStripe = true" color="danger" variant="flat">Start Over</v-btn>
+                <v-col
+                  cols="6"
+                  class="text-center"
+                >
+                  <v-btn
+                    color="danger"
+                    variant="flat"
+                    @click="() => restartStripe = true"
+                  >
+                    Start Over
+                  </v-btn>
                 </v-col>
               </v-row>
             </ac-form-container>
@@ -57,9 +92,17 @@
       </v-container>
       <v-row v-else-if="manageBanks">
         <h2>You may now list products!</h2>
-        <p>Your products will not be protected by Artconomy Shield, but you will still be able to list products, take
-          orders, and use other features of the site.</p>
-        <v-btn color="primary" @click="() => $emit('update:modelValue', BankStatus.UNSET)" class="have-us-account" variant="flat">Re-enable
+        <p>
+          Your products will not be protected by Artconomy Shield, but you will still be able to list products, take
+          orders, and use other features of the site.
+        </p>
+        <v-btn
+          color="primary"
+          class="have-us-account"
+          variant="flat"
+          @click="() => $emit('update:modelValue', BankStatus.UNSET)"
+        >
+          Re-enable
           Shield
         </v-btn>
       </v-row>

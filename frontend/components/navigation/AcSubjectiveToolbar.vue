@@ -1,25 +1,37 @@
 <template>
-  <v-toolbar density="compact" color="black" class="subjective-toolbar">
+  <v-toolbar
+    density="compact"
+    color="black"
+    class="subjective-toolbar"
+  >
     <slot name="avatar">
-      <ac-avatar :username="username" :show-name="false" class="ml-3" />
+      <ac-avatar
+        :username="username"
+        :show-name="false"
+        class="ml-3"
+      />
       <v-toolbar-title class="ml-1">
-        <ac-link :to="profileLink(subject)">{{subjectHandler.displayName}}</ac-link>
+        <ac-link :to="profileLink(subject)">
+          {{ subjectHandler.displayName }}
+        </ac-link>
       </v-toolbar-title>
     </slot>
-    <v-spacer/>
+    <v-spacer />
     <v-toolbar-items v-if="!xs">
-      <slot/>
+      <slot />
     </v-toolbar-items>
   </v-toolbar>
-  <v-toolbar v-if="xs" :dense="true" class="subjective-mini-buttons" density="compact">
+  <v-toolbar
+    v-if="xs"
+    :dense="true"
+    class="subjective-mini-buttons"
+    density="compact"
+  >
     <v-toolbar-items>
-      <slot/>
+      <slot />
     </v-toolbar-items>
   </v-toolbar>
 </template>
-
-<style>
-</style>
 
 <script setup lang="ts">
 import AcAvatar from '../AcAvatar.vue'
@@ -34,3 +46,6 @@ const props = defineProps<SubjectiveProps>()
 const {subjectHandler, subject} = useSubject({ props })
 const {xs} = useDisplay()
 </script>
+
+<style>
+</style>

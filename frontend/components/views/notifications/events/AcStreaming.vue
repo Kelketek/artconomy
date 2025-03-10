@@ -1,7 +1,15 @@
 <template>
-  <ac-base-notification :notification="notification" :href-link="streamLink" :username="username">
-    <template v-slot:title><a :href="streamLink"
-                              target="_blank">{{ event.data.seller.username }} is streaming!</a></template>
+  <ac-base-notification
+    :notification="notification"
+    :href-link="streamLink"
+    :username="username"
+  >
+    <template #title>
+      <a
+        :href="streamLink"
+        target="_blank"
+      >{{ event.data.seller.username }} is streaming!</a>
+    </template>
   </ac-base-notification>
 </template>
 

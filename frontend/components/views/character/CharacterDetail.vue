@@ -1,75 +1,144 @@
 <template>
   <v-container fluid>
-    <ac-character-toolbar :username="username" :character-name="characterName" :character-avatar="false"
-                          :show-edit="true" ref="toolbar" @success="addSubmission" :visit="!showChangePrimary"/>
-    <ac-load-section :controller="character.profile" tag="v-layout" class="mt-3">
-      <template v-slot:default>
-        <v-card class="mb-2" v-if="character.profile.x">
+    <ac-character-toolbar
+      ref="toolbar"
+      :username="username"
+      :character-name="characterName"
+      :character-avatar="false"
+      :show-edit="true"
+      :visit="!showChangePrimary"
+      @success="addSubmission"
+    />
+    <ac-load-section
+      :controller="character.profile"
+      tag="v-layout"
+      class="mt-3"
+    >
+      <template #default>
+        <v-card
+          v-if="character.profile.x"
+          class="mb-2"
+        >
           <v-card-text>
             <v-row no-gutters>
-              <v-col cols="12" sm="8" md="7" lg="8" xl="9">
+              <v-col
+                cols="12"
+                sm="8"
+                md="7"
+                lg="8"
+                xl="9"
+              >
                 <v-card-title primary-title>
-                  <h1 v-show="!editing">{{character.profile.x.name}}</h1>
+                  <h1 v-show="!editing">
+                    {{ character.profile.x.name }}
+                  </h1>
                   <ac-patch-field
-                      :patcher="character.profile.patchers.name" :persistant-hint="true"
-                      v-show="editing"
-                      v-if="controls"
-                      :auto-save="false"
-                      :enter-save="true"
-                      label="Name"
-                      hint="WARNING: Changing this character's name will change the URL of the
+                    v-show="editing"
+                    v-if="controls"
+                    :patcher="character.profile.patchers.name"
+                    :persistant-hint="true"
+                    :auto-save="false"
+                    :enter-save="true"
+                    label="Name"
+                    hint="WARNING: Changing this character's name will change the URL of the
                   character, which can affect SEO."
                   />
                 </v-card-title>
-                <ac-attributes :username="username" :character-name="characterName"/>
+                <ac-attributes
+                  :username="username"
+                  :character-name="characterName"
+                />
                 <ac-tag-display
-                    :patcher="character.profile.patchers.tags"
-                    :editable="tagControls"
-                    :username="username"
-                    scope="Characters"
+                  :patcher="character.profile.patchers.tags"
+                  :editable="tagControls"
+                  :username="username"
+                  scope="Characters"
                 />
               </v-col>
-              <v-col cols="12" sm="4" md="4" lg="3" xl="2" offset-md="1">
-                <v-row no-gutters align-content="center" align="center" justify="center">
-                  <v-col align-self="center" class="primary-submission-container">
+              <v-col
+                cols="12"
+                sm="4"
+                md="4"
+                lg="3"
+                xl="2"
+                offset-md="1"
+              >
+                <v-row
+                  no-gutters
+                  align-content="center"
+                  align="center"
+                  justify="center"
+                >
+                  <v-col
+                    align-self="center"
+                    class="primary-submission-container"
+                  >
                     <ac-link :to="primarySubmissionLink">
-                      <ac-asset :asset="character.profile.x.primary_submission"
-                                thumb-name="thumbnail" :terse="true"
-                                :aspect-ratio="1"
-                                :editing="editing"
-                                class="primary-submission"
-                                v-model="showChangePrimary"
-                                :alt="primarySubmissionText"
+                      <ac-asset
+                        v-model="showChangePrimary"
+                        :asset="character.profile.x.primary_submission"
+                        thumb-name="thumbnail"
+                        :terse="true"
+                        :aspect-ratio="1"
+                        :editing="editing"
+                        class="primary-submission"
+                        :alt="primarySubmissionText"
                       >
-                        <template v-slot:edit-menu>
-                          <ac-expanded-property v-model="showChangePrimary" :large="true">
-                            <template v-slot:title>Change Showcase Submission</template>
+                        <template #edit-menu>
+                          <ac-expanded-property
+                            v-model="showChangePrimary"
+                            :large="true"
+                          >
+                            <template #title>
+                              Change Showcase Submission
+                            </template>
                             <v-row>
-                              <v-col cols="12" class="text-center">
+                              <v-col
+                                cols="12"
+                                class="text-center"
+                              >
                                 <!-- @vue-ignore -->
-                                <v-btn color="green" variant="flat" class="upload-button" @click="toolbar!.showUpload = true">
-                                  <v-icon left :icon="mdiUpload"/>
+                                <v-btn
+                                  color="green"
+                                  variant="flat"
+                                  class="upload-button"
+                                  @click="toolbar!.showUpload = true"
+                                >
+                                  <v-icon
+                                    left
+                                    :icon="mdiUpload"
+                                  />
                                   Upload new Submission
                                 </v-btn>
                               </v-col>
                               <v-col cols="12">
                                 <ac-patch-field
-                                    field-type="ac-submission-select"
-                                    :patcher="character.profile.patchers.primary_submission"
-                                    :list="submissionList"
-                                    v-if="submissionList"
-                                    :save-comparison="character.profile.x.primary_submission"
-                                    :show-progress="true"
+                                  v-if="submissionList"
+                                  field-type="ac-submission-select"
+                                  :patcher="character.profile.patchers.primary_submission"
+                                  :list="submissionList"
+                                  :save-comparison="character.profile.x.primary_submission"
+                                  :show-progress="true"
                                 />
                               </v-col>
                             </v-row>
-                            <template v-slot:actions>
-                              <v-spacer/>
-                              <v-btn color="danger" v-if="character.profile.x.primary_submission"
-                                     variant="flat"
-                                     @click="character.profile.patch({primary_submission: null})">Clear Showcased Image
+                            <template #actions>
+                              <v-spacer />
+                              <v-btn
+                                v-if="character.profile.x.primary_submission"
+                                color="danger"
+                                variant="flat"
+                                @click="character.profile.patch({primary_submission: null})"
+                              >
+                                Clear Showcased Image
                               </v-btn>
-                              <v-btn color="primary" variant="flat" @click="showChangePrimary = false">Cancel</v-btn>
+                              <v-btn
+                                color="primary"
+                                variant="flat"
+                                @click="showChangePrimary = false"
+                              >
+                                Cancel
+                              </v-btn>
                             </template>
                           </ac-expanded-property>
                         </template>
@@ -83,76 +152,133 @@
         </v-card>
         <v-card v-if="character.profile.x">
           <v-card-text>
-            <v-card-title primary-title><h2>About {{character.profile.x.name}}</h2></v-card-title>
+            <v-card-title primary-title>
+              <h2>About {{ character.profile.x.name }}</h2>
+            </v-card-title>
             <ac-patch-field
-                field-type="ac-editor"
-                :auto-save="false"
-                :patcher="character.profile.patchers.description"
-                v-if="controls"
-                v-show="editing"
-                :save-comparison="character.profile.patchers.description.rawValue"/>
-            <ac-rendered :value="character.profile.patchers.description.rawValue" v-show="!editing"/>
+              v-if="controls"
+              v-show="editing"
+              field-type="ac-editor"
+              :auto-save="false"
+              :patcher="character.profile.patchers.description"
+              :save-comparison="character.profile.patchers.description.rawValue"
+            />
+            <ac-rendered
+              v-show="!editing"
+              :value="character.profile.patchers.description.rawValue"
+            />
           </v-card-text>
         </v-card>
-        <ac-colors :username="username" :character-name="characterName"/>
-        <v-card v-if="character.profile.x && (editing || character.profile.x.open_requests)" class="mt-3">
+        <ac-colors
+          :username="username"
+          :character-name="characterName"
+        />
+        <v-card
+          v-if="character.profile.x && (editing || character.profile.x.open_requests)"
+          class="mt-3"
+        >
           <v-card-text>
-            <v-row no-gutters class="mb-2">
-              <ac-patch-field field-type="ac-checkbox"
-                              hint="If this is checked, permits others to commission art involving your characters."
-                              label="Open Requests"
-                              :persistent-hint="true"
-                              v-if="controls"
-                              v-show="editing"
-                              :save-indicator="false"
-                              :patcher="character.profile.patchers.open_requests"
+            <v-row
+              no-gutters
+              class="mb-2"
+            >
+              <ac-patch-field
+                v-if="controls"
+                v-show="editing"
+                field-type="ac-checkbox"
+                hint="If this is checked, permits others to commission art involving your characters."
+                label="Open Requests"
+                :persistent-hint="true"
+                :save-indicator="false"
+                :patcher="character.profile.patchers.open_requests"
               />
-              <v-col cols="12" v-if="character.profile.x.open_requests" v-show="!editing">
+              <v-col
+                v-if="character.profile.x.open_requests"
+                v-show="!editing"
+                cols="12"
+              >
                 <h3>
-                  <v-icon left color="green" :icon="mdiCheckCircle"/>
+                  <v-icon
+                    left
+                    color="green"
+                    :icon="mdiCheckCircle"
+                  />
                   Character can be used in other people's commissions
                 </h3>
               </v-col>
             </v-row>
             <v-row no-gutters>
-              <v-col cols="12" v-show="editing" v-if="controls">
+              <v-col
+                v-show="editing"
+                v-if="controls"
+                cols="12"
+              >
                 <ac-patch-field
-                    field-type="ac-editor"
-                    :auto-save="false"
-                    :patcher="character.profile.patchers.open_requests_restrictions"
-                    label="Restrictions"
-                    hint="Write any restrictions you wish to place on having your character commissioned by others.
+                  field-type="ac-editor"
+                  :auto-save="false"
+                  :patcher="character.profile.patchers.open_requests_restrictions"
+                  label="Restrictions"
+                  hint="Write any restrictions you wish to place on having your character commissioned by others.
                   For instance, if your character would never eat pie, you could write, 'Don't draw them eating pie.'"
-                    :disabled="!character.profile.patchers.open_requests.model"
-                    :save-comparison="character.profile.x.open_requests_restrictions"/>
+                  :disabled="!character.profile.patchers.open_requests.model"
+                  :save-comparison="character.profile.x.open_requests_restrictions"
+                />
               </v-col>
-              <v-col cols="12" v-if="character.profile.x.open_requests_restrictions" v-show="!editing">
+              <v-col
+                v-if="character.profile.x.open_requests_restrictions"
+                v-show="!editing"
+                cols="12"
+              >
                 <h4 class="mb-2">
-                  <v-icon color="yellow" left :icon="mdiAlert"/>
+                  <v-icon
+                    color="yellow"
+                    left
+                    :icon="mdiAlert"
+                  />
                   With the following restrictions:
                 </h4>
-                <ac-rendered :value="character.profile.x.open_requests_restrictions"/>
+                <ac-rendered :value="character.profile.x.open_requests_restrictions" />
               </v-col>
             </v-row>
           </v-card-text>
         </v-card>
         <ac-context-gallery
-            class="mt-3"
-            :username="username" :character-name="characterName"
+          class="mt-3"
+          :username="username"
+          :character-name="characterName"
         />
         <v-row no-gutters>
-          <v-col cols="12" class="pt-5">
-            <v-toolbar color="secondary" dense>
+          <v-col
+            cols="12"
+            class="pt-5"
+          >
+            <v-toolbar
+              color="secondary"
+              dense
+            >
               <v-toolbar-title>You might also like...</v-toolbar-title>
             </v-toolbar>
             <v-card :color="current.colors['well-darken-4']">
-              <v-card-text class="px-0" v-if="character.recommended">
+              <v-card-text
+                v-if="character.recommended"
+                class="px-0"
+              >
                 <ac-load-section :controller="character.recommended">
-                  <template v-slot:default>
+                  <template #default>
                     <v-row no-gutters>
-                      <v-col cols="6" sm="4" md="3" lg="2" v-for="char in character.recommended.list" :key="char.x!.id"
-                             class="pa-1">
-                        <ac-character-preview :character="char.x!" :mini="true"/>
+                      <v-col
+                        v-for="char in character.recommended.list"
+                        :key="char.x!.id"
+                        cols="6"
+                        sm="4"
+                        md="3"
+                        lg="2"
+                        class="pa-1"
+                      >
+                        <ac-character-preview
+                          :character="char.x!"
+                          :mini="true"
+                        />
                       </v-col>
                     </v-row>
                   </template>

@@ -3,44 +3,77 @@
     <v-col v-if="conversations.ready">
       <v-container>
         <v-row no-gutters>
-          <v-col cols="12" class="text-center text-md-right py-2" v-if="isCurrent">
-            <v-btn color="green" @click="showNew = true" variant="elevated">
-              <v-icon left :icon="mdiPlus"/>
+          <v-col
+            v-if="isCurrent"
+            cols="12"
+            class="text-center text-md-right py-2"
+          >
+            <v-btn
+              color="green"
+              variant="elevated"
+              @click="showNew = true"
+            >
+              <v-icon
+                left
+                :icon="mdiPlus"
+              />
               New Conversation
             </v-btn>
           </v-col>
           <v-col cols="12">
-            <ac-paginated :list="conversations" :auto-run="false" :track-pages="true">
-              <template v-slot:empty>
+            <ac-paginated
+              :list="conversations"
+              :auto-run="false"
+              :track-pages="true"
+            >
+              <template #empty>
                 <v-row>
                   <v-col cols="12">
                     <v-card>
                       <v-card-text>
                         <v-col class="text-center">
                           <p>You have no conversations at this time.</p>
-                          <v-btn color="primary" v-if="isCurrent" @click="showNew = true" variant="flat">Start a Conversation</v-btn>
+                          <v-btn
+                            v-if="isCurrent"
+                            color="primary"
+                            variant="flat"
+                            @click="showNew = true"
+                          >
+                            Start a Conversation
+                          </v-btn>
                         </v-col>
                       </v-card-text>
                     </v-card>
                   </v-col>
                 </v-row>
               </template>
-              <template v-slot:default>
+              <template #default>
                 <v-col>
                   <v-list three-line>
-                    <template v-for="(conversation, index) in conversations.list" :key="conversation.x!.id">
-                      <v-list-item :to="{name: 'Conversation', params: {username, conversationId: conversation.x!.id}}" v-if="conversation.x">
-                        <template v-slot:prepend>
-                          <img :src="avatarImage(conversation.x!)" alt=""/>
+                    <template
+                      v-for="(conversation, index) in conversations.list"
+                      :key="conversation.x!.id"
+                    >
+                      <v-list-item
+                        v-if="conversation.x"
+                        :to="{name: 'Conversation', params: {username, conversationId: conversation.x!.id}}"
+                      >
+                        <template #prepend>
+                          <img
+                            :src="avatarImage(conversation.x!)"
+                            alt=""
+                          >
                         </template>
-                        <v-list-item-title>{{conversationTitle(conversation.x!)}}</v-list-item-title>
+                        <v-list-item-title>{{ conversationTitle(conversation.x!) }}</v-list-item-title>
                         <v-list-item-subtitle v-if="conversation.x!.last_comment">
-                          <span v-if="conversation.x!.last_comment.user">{{conversation.x!.last_comment.user.username}}:</span>
-                          {{textualize(conversation.x!.last_comment.text)}}
+                          <span v-if="conversation.x!.last_comment.user">{{ conversation.x!.last_comment.user.username }}:</span>
+                          {{ textualize(conversation.x!.last_comment.text) }}
                         </v-list-item-subtitle>
                       </v-list-item>
-                      <v-divider :key="'divider' + conversation.x!.id"
-                                 v-if="index + 1 !== conversations.list.length"></v-divider>
+                      <v-divider
+                        v-if="index + 1 !== conversations.list.length"
+                        :key="'divider' + conversation.x!.id"
+                      />
                     </template>
                   </v-list>
                 </v-col>
@@ -50,23 +83,33 @@
         </v-row>
       </v-container>
       <ac-form-dialog
-          v-model="showNew"
-          v-if="isCurrent"
-          v-bind="newConversation.bind"
-          @submit="newConversation.submitThen(visitConversation)"
-          title="Start a New Conversation"
+        v-if="isCurrent"
+        v-model="showNew"
+        v-bind="newConversation.bind"
+        title="Start a New Conversation"
+        @submit="newConversation.submitThen(visitConversation)"
       >
-        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
+        <v-col
+          cols="12"
+          sm="10"
+          offset-sm="1"
+          offset-md="2"
+          md="8"
+        >
           <v-row>
             <v-col cols="12">
               <ac-bound-field
-                  field-type="ac-user-select" :field="newConversation.fields.participants"
-                  label="Start conversation with..." autofocus
+                field-type="ac-user-select"
+                :field="newConversation.fields.participants"
+                label="Start conversation with..."
+                autofocus
               />
             </v-col>
             <v-col cols="12">
               <ac-bound-field
-                  field-type="ac-captcha-field" :field="newConversation.fields.captcha" label="Prove you are human"
+                field-type="ac-captcha-field"
+                :field="newConversation.fields.captcha"
+                label="Prove you are human"
               />
             </v-col>
           </v-row>

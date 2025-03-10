@@ -1,25 +1,64 @@
 <template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
-  <v-container fluid class="pa-0">
+  <v-container
+    fluid
+    class="pa-0"
+  >
     <v-row dense>
       <v-col>
-        <v-tooltip top v-if="controls" aria-label="Tooltip for tags">
-          <template v-slot:activator="{props}">
-            <v-btn color="primary" icon size="small" v-bind="props" @click="editTags" class="edit-button" aria-label="Edit tags">
-              <v-icon size="x-large" :icon="mdiTagMultiple"/>
+        <v-tooltip
+          v-if="controls"
+          top
+          aria-label="Tooltip for tags"
+        >
+          <template #activator="{props}">
+            <v-btn
+              color="primary"
+              icon
+              size="small"
+              v-bind="props"
+              class="edit-button"
+              aria-label="Edit tags"
+              @click="editTags"
+            >
+              <v-icon
+                size="x-large"
+                :icon="mdiTagMultiple"
+              />
             </v-btn>
           </template>
           Edit Tags
         </v-tooltip>
-        <v-tooltip top v-else aria-label="Tooltip for tags">
-          <template v-slot:activator="{props}">
-            <v-icon v-bind="props" :icon="mdiTagMultiple" aria-label="Tags"/>
+        <v-tooltip
+          v-else
+          top
+          aria-label="Tooltip for tags"
+        >
+          <template #activator="{props}">
+            <v-icon
+              v-bind="props"
+              :icon="mdiTagMultiple"
+              aria-label="Tags"
+            />
           </template>
           Tags
         </v-tooltip>
-        <v-chip v-for="tag in displayedTags" :key="tag" @click.stop="setSearch(tag)" class="tag-search-link ml-2">
-          <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
+        <v-chip
+          v-for="tag in displayedTags"
+          :key="tag"
+          class="tag-search-link ml-2"
+          @click.stop="setSearch(tag)"
+        >
+          <ac-link :to="tagLink(tag)">
+            {{ tag }}
+          </ac-link>
         </v-chip>
-        <v-chip v-if="moreTags" @click="showMore" class="show-more-tags ml-2">...</v-chip>
+        <v-chip
+          v-if="moreTags"
+          class="show-more-tags ml-2"
+          @click="showMore"
+        >
+          ...
+        </v-chip>
       </v-col>
       <v-col v-if="displayedTags.length === 0">
         <span>
@@ -28,24 +67,54 @@
           <span v-else>No tags set.</span>
         </span>
       </v-col>
-      <ac-expanded-property v-model="toggle" aria-label="Tag Editing Dialog">
-        <template v-slot:title>
+      <ac-expanded-property
+        v-model="toggle"
+        aria-label="Tag Editing Dialog"
+      >
+        <template #title>
           All Tags
         </template>
         <v-row>
-          <v-col cols="12" v-if="editing && controls">
-            <ac-patch-field field-type="ac-tag-field" :patcher="patcher" :autofocus="true"/>
+          <v-col
+            v-if="editing && controls"
+            cols="12"
+          >
+            <ac-patch-field
+              field-type="ac-tag-field"
+              :patcher="patcher"
+              :autofocus="true"
+            />
           </v-col>
-          <v-col cols="12" v-show="!editing">
-            <v-chip v-for="tag in patcher.rawValue" variant="tonal" :key="tag" @click.stop="setSearch(tag)" class="tag-search-link ml-2">
-              <ac-link :to="tagLink(tag)">{{tag}}</ac-link>
+          <v-col
+            v-show="!editing"
+            cols="12"
+          >
+            <v-chip
+              v-for="tag in patcher.rawValue"
+              :key="tag"
+              variant="tonal"
+              class="tag-search-link ml-2"
+              @click.stop="setSearch(tag)"
+            >
+              <ac-link :to="tagLink(tag)">
+                {{ tag }}
+              </ac-link>
             </v-chip>
           </v-col>
         </v-row>
-        <template v-slot:actions>
-          <v-switch v-model="editing" label="Editing" v-if="controls" color="primary"/>
-          <v-spacer/>
-          <v-btn color="primary" type="submit" variant="flat">
+        <template #actions>
+          <v-switch
+            v-if="controls"
+            v-model="editing"
+            label="Editing"
+            color="primary"
+          />
+          <v-spacer />
+          <v-btn
+            color="primary"
+            type="submit"
+            variant="flat"
+          >
             Done
           </v-btn>
         </template>

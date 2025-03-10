@@ -1,22 +1,47 @@
 <template>
   <v-list-item v-if="link.x">
-    <template v-slot:prepend>
+    <template #prepend>
       <v-avatar v-if="!logoFailed">
-        <v-img :src="favicon" @error="() => logoFailed = true" />
+        <v-img
+          :src="favicon"
+          @error="() => logoFailed = true"
+        />
       </v-avatar>
-      <v-avatar v-else variant="elevated">
+      <v-avatar
+        v-else
+        variant="elevated"
+      >
         <v-icon>
-          {{mdiAccount}}
+          {{ mdiAccount }}
         </v-icon>
       </v-avatar>
     </template>
     <v-list-item-title>
-      <ac-link :to="siteLink" :new-tab="true">{{link.x.site_name}}</ac-link><span v-if="link.x.identifier">: </span><ac-link :to="accountUrl" :new-tab="true" v-if="link.x.identifier">{{link.x.identifier}}</ac-link>
+      <ac-link
+        :to="siteLink"
+        :new-tab="true"
+      >
+        {{ link.x.site_name }}
+      </ac-link><span v-if="link.x.identifier">: </span><ac-link
+        v-if="link.x.identifier"
+        :to="accountUrl"
+        :new-tab="true"
+      >
+        {{ link.x.identifier }}
+      </ac-link>
     </v-list-item-title>
-    <template v-slot:append>
+    <template #append>
       <v-list-item-action end>
-        <v-btn icon color="red" @click="link.delete" size="small" aria-label="Delete">
-          <v-icon size="x-large">{{mdiDelete}}</v-icon>
+        <v-btn
+          icon
+          color="red"
+          size="small"
+          aria-label="Delete"
+          @click="link.delete"
+        >
+          <v-icon size="x-large">
+            {{ mdiDelete }}
+          </v-icon>
         </v-btn>
       </v-list-item-action>
     </template>

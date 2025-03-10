@@ -1,7 +1,11 @@
 <template>
   <div>
-    <div id="sfw_mode">{{subjectHandler.user.patchers.sfw_mode.model}}</div>
-    <div id="max_load">{{subjectHandler.artistProfile.patchers.max_load.model}}</div>
+    <div id="sfw_mode">
+      {{ subjectHandler.user.patchers.sfw_mode.model }}
+    </div>
+    <div id="max_load">
+      {{ subjectHandler.artistProfile.patchers.max_load.model }}
+    </div>
   </div>
 </template>
 

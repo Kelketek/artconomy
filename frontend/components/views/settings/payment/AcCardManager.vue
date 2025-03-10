@@ -1,15 +1,28 @@
 <template>
   <v-row no-gutters>
-    <v-col cols="12" v-if="subject && cards.ready">
+    <v-col
+      v-if="subject && cards.ready"
+      cols="12"
+    >
       <v-row no-gutters>
         <v-col>
-          <v-tabs v-if="cards.list.length" v-model="tab" fixed-tabs>
-            <v-tab value="saved-cards" class="saved-card-tab">
-              <v-icon :icon="mdiContentSave"/>
+          <v-tabs
+            v-if="cards.list.length"
+            v-model="tab"
+            fixed-tabs
+          >
+            <v-tab
+              value="saved-cards"
+              class="saved-card-tab"
+            >
+              <v-icon :icon="mdiContentSave" />
               Saved Cards
             </v-tab>
-            <v-tab value="new-card" class="new-card-tab">
-              <v-icon :icon="mdiCreditCard"/>
+            <v-tab
+              value="new-card"
+              class="new-card-tab"
+            >
+              <v-icon :icon="mdiCreditCard" />
               New Card
             </v-tab>
           </v-tabs>
@@ -18,42 +31,85 @@
       <v-row no-gutters>
         <v-col cols="12">
           <v-window v-model="tab">
-            <v-window-item value="saved-cards" eager>
+            <v-window-item
+              value="saved-cards"
+              eager
+            >
               <v-row no-gutters>
-                <v-col cols="12" sm="8" offset-sm="2" md="6" offset-md="3" lg="4" offset-lg="4">
-                  <ac-saved-card-field v-if="fieldMode" :model-value="modelValue" @input="setCard" :cards="cards"/>
-                  <ac-card v-else v-for="card in cards.list" :card="card" :key="card.x!.id" :card-list="cards"/>
+                <v-col
+                  cols="12"
+                  sm="8"
+                  offset-sm="2"
+                  md="6"
+                  offset-md="3"
+                  lg="4"
+                  offset-lg="4"
+                >
+                  <ac-saved-card-field
+                    v-if="fieldMode"
+                    :model-value="modelValue"
+                    :cards="cards"
+                    @input="setCard"
+                  />
+                  <ac-card
+                    v-for="card in cards.list"
+                    v-else
+                    :key="card.x!.id"
+                    :card="card"
+                    :card-list="cards"
+                  />
                 </v-col>
               </v-row>
             </v-window-item>
-            <v-window-item value="new-card" eager>
+            <v-window-item
+              value="new-card"
+              eager
+            >
               <v-row class="mt-3">
-                <v-col sm="6" offset-sm="3" lg="4" offset-lg="4">
-                  <ac-stripe-charge @card="(card: StripeCardElement) => { stripeCard = card }" :key="clientSecret"/>
-                </v-col>
-                <v-col sm="3" offset-sm="3" lg="2" offset-lg="4" v-if="isRegistered && showSave">
-                  <ac-bound-field
-                      fieldType="ac-checkbox"
-                      label="Save Card"
-                      :field="ccForm.fields.save_card"
+                <v-col
+                  sm="6"
+                  offset-sm="3"
+                  lg="4"
+                  offset-lg="4"
+                >
+                  <ac-stripe-charge
+                    :key="clientSecret"
+                    @card="(card: StripeCardElement) => { stripeCard = card }"
                   />
                 </v-col>
-                <v-col sm="3" lg="2" v-if="isRegistered && showSave">
+                <v-col
+                  v-if="isRegistered && showSave"
+                  sm="3"
+                  offset-sm="3"
+                  lg="2"
+                  offset-lg="4"
+                >
                   <ac-bound-field
-                      fieldType="ac-checkbox"
-                      label="Make this my default card"
-                      :field="ccForm.fields.make_primary"
+                    field-type="ac-checkbox"
+                    label="Save Card"
+                    :field="ccForm.fields.save_card"
+                  />
+                </v-col>
+                <v-col
+                  v-if="isRegistered && showSave"
+                  sm="3"
+                  lg="2"
+                >
+                  <ac-bound-field
+                    field-type="ac-checkbox"
+                    label="Make this my default card"
+                    :field="ccForm.fields.make_primary"
                   />
                 </v-col>
               </v-row>
-              <slot name="new-card-button"/>
+              <slot name="new-card-button" />
             </v-window-item>
           </v-window>
         </v-col>
       </v-row>
     </v-col>
     <v-col v-else>
-      <ac-loading-spinner/>
+      <ac-loading-spinner />
     </v-col>
   </v-row>
 </template>
@@ -104,7 +160,7 @@ const tab = ref('')
 const lastCard = ref<null | number>(null)
 const stripeCard = ref<StripeCardElement | null>(null)
 
-let cardsName = `${flatten(props.username)}__creditCards`
+const cardsName = `${flatten(props.username)}__creditCards`
 
 const url = computed(() => `/api/sales/account/${props.username}/cards/`)
 

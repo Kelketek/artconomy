@@ -1,11 +1,28 @@
 <template>
   <v-container fluid>
     <ac-load-section :controller="character.profile">
-      <ac-character-toolbar :username="username" :character-name="characterName"
-                            @success="character.submissions.unshift" :visit="false"/>
-      <ac-paginated :list="character.submissions" :track-pages="true" class="pt-3">
-        <v-col cols="4" sm="3" lg="2" v-for="submission in character.submissions.list" :key="submission.x!.id">
-          <ac-gallery-preview class="pa-1" :submission="submission.x!"/>
+      <ac-character-toolbar
+        :username="username"
+        :character-name="characterName"
+        :visit="false"
+        @success="character.submissions.unshift"
+      />
+      <ac-paginated
+        :list="character.submissions"
+        :track-pages="true"
+        class="pt-3"
+      >
+        <v-col
+          v-for="submission in character.submissions.list"
+          :key="submission.x!.id"
+          cols="4"
+          sm="3"
+          lg="2"
+        >
+          <ac-gallery-preview
+            class="pa-1"
+            :submission="submission.x!"
+          />
         </v-col>
       </ac-paginated>
     </ac-load-section>

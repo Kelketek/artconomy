@@ -1,22 +1,31 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
-    <template v-slot:title>
-      <router-link :to="assetLink">Order #{{event.target.order.id}} [{{event.target.name}}]</router-link>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="assetLink"
+    :username="username"
+  >
+    <template #title>
+      <router-link :to="assetLink">
+        Order #{{ event.target.order.id }} [{{ event.target.name }}]
+      </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="assetLink">{{ message }}</router-link>
+    <template #subtitle>
+      <router-link :to="assetLink">
+        {{ message }}
+      </router-link>
     </template>
-    <template v-slot:extra>
+    <template #extra>
       <v-list-item-subtitle>
-        <a target="_blank" :href="streamingLink" v-if="streamingLink">Click here for stream!</a>
-        <span v-if="autoFinalizeDisplay && event.target.auto_finalize_on">Will auto-finalize on {{formatDate(event.target.auto_finalize_on)}}.</span>
+        <a
+          v-if="streamingLink"
+          target="_blank"
+          :href="streamingLink"
+        >Click here for stream!</a>
+        <span v-if="autoFinalizeDisplay && event.target.auto_finalize_on">Will auto-finalize on {{ formatDate(event.target.auto_finalize_on) }}.</span>
       </v-list-item-subtitle>
     </template>
   </ac-base-notification>
 </template>
-
-<style scoped>
-</style>
 
 <script setup lang="ts">
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
@@ -64,3 +73,6 @@ const streamingLink = computed(() => {
 const autoFinalizeDisplay = computed(() => event.value.target.status === 8)
 
 </script>
+
+<style scoped>
+</style>

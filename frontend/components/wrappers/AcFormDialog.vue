@@ -1,55 +1,102 @@
 <template>
   <v-dialog
-      v-model="toggle"
-      :fullscreen="fullscreen"
-      ref="dialog"
-      :transition="transition"
-      :persistent="persistent"
-      :scrollable="true"
-      :eager="eager"
-      :width="width"
-      :attach="modalTarget"
+    ref="dialog"
+    v-model="toggle"
+    :fullscreen="fullscreen"
+    :transition="transition"
+    :persistent="persistent"
+    :scrollable="true"
+    :eager="eager"
+    :width="width"
+    :attach="modalTarget"
   >
     <v-card :id="id">
       <div v-if="smAndDown">
-        <v-toolbar dark color="secondary">
-          <v-btn variant="plain" @click="toggle = false" dark class="dialog-closer">
-            <v-icon :icon="mdiClose"/>
+        <v-toolbar
+          dark
+          color="secondary"
+        >
+          <v-btn
+            variant="plain"
+            dark
+            class="dialog-closer"
+            @click="toggle = false"
+          >
+            <v-icon :icon="mdiClose" />
           </v-btn>
           <v-toolbar-title>{{ title }}</v-toolbar-title>
-          <v-spacer/>
+          <v-spacer />
           <slot name="top-buttons">
             <v-toolbar-items v-if="smAndDown">
-              <v-btn variant="text" @click.prevent="reSend" :disabled="disabled">{{ submitText }}</v-btn>
+              <v-btn
+                variant="text"
+                :disabled="disabled"
+                @click.prevent="reSend"
+              >
+                {{ submitText }}
+              </v-btn>
             </v-toolbar-items>
           </slot>
         </v-toolbar>
       </div>
-      <v-toolbar flat dark color="secondary" dense v-else>
+      <v-toolbar
+        v-else
+        flat
+        dark
+        color="secondary"
+        dense
+      >
         <v-toolbar-title>{{ title }}</v-toolbar-title>
-        <v-spacer/>
-        <v-btn icon @click="toggle = false" dark class="dialog-closer">
-          <v-icon :icon="mdiClose"/>
+        <v-spacer />
+        <v-btn
+          icon
+          dark
+          class="dialog-closer"
+          @click="toggle = false"
+        >
+          <v-icon :icon="mdiClose" />
         </v-btn>
       </v-toolbar>
-      <v-card-text class="scrollableText" :class="{'pa-0': fluid}">
+      <v-card-text
+        class="scrollableText"
+        :class="{'pa-0': fluid}"
+      >
         <ac-form @submit.prevent="reSend">
           <v-container class="pa-0">
-            <slot name="header"/>
+            <slot name="header" />
           </v-container>
           <ac-form-container
-              :errors="errors"
-              :sending="sending"
+            :errors="errors"
+            :sending="sending"
           >
-            <slot/>
+            <slot />
           </ac-form-container>
-          <slot name="footer"/>
-          <slot name="bottom-buttons" :show-submit="showSubmit">
-            <v-card-actions row wrap class="hidden-sm-and-down">
-              <v-spacer></v-spacer>
-              <v-btn variant="flat" @click="toggle=false">{{ cancelText }}</v-btn>
-              <v-btn variant="flat" color="primary" type="submit" :disabled="disabled" class="dialog-submit"
-                     v-if="showSubmit">{{
+          <slot name="footer" />
+          <slot
+            name="bottom-buttons"
+            :show-submit="showSubmit"
+          >
+            <v-card-actions
+              row
+              wrap
+              class="hidden-sm-and-down"
+            >
+              <v-spacer />
+              <v-btn
+                variant="flat"
+                @click="toggle=false"
+              >
+                {{ cancelText }}
+              </v-btn>
+              <v-btn
+                v-if="showSubmit"
+                variant="flat"
+                color="primary"
+                type="submit"
+                :disabled="disabled"
+                class="dialog-submit"
+              >
+                {{
                   submitText
                 }}
               </v-btn>
@@ -60,12 +107,6 @@
     </v-card>
   </v-dialog>
 </template>
-
-<style scoped>
-.hidden {
-  display: none;
-}
-</style>
 
 <script setup lang="ts">
 import AcFormContainer from './AcFormContainer.vue'
@@ -132,3 +173,9 @@ watch(() => props.modelValue, (value: boolean) => {
   })
 })
 </script>
+
+<style scoped>
+.hidden {
+  display: none;
+}
+</style>

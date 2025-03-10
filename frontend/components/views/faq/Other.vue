@@ -10,14 +10,14 @@
             Artconomy caters to varying tastes and strives to give its customers the best viewing
             experience it can. In order to do so, we have instated a handful of 'rating levels'.
             <router-link
-                :to="{name: 'Options', params: {username: viewer!.username}}"
-                v-if="isRegistered"
+              v-if="isRegistered"
+              :to="{name: 'Options', params: {username: viewer!.username}}"
             >
               Your rating level can be configured in your settings.
             </router-link>
             <span v-else>
-                      Your rating level can be configured in your settings.
-                    </span>
+              Your rating level can be configured in your settings.
+            </span>
           </p>
           <p>The following rating levels exist:</p>
           <ol>
@@ -60,16 +60,22 @@
       </template>
     </ac-question>
     <ac-question>
-      <template #title>What is your content policy?</template>
+      <template #title>
+        What is your content policy?
+      </template>
       <template #default>
         <v-card-text>
           <p>
             In general, the policy is 'nothing illegal in the state of Texas, USA.' We don't believe in telling you what
             you can and can't draw. The requirement we have is that content must be properly tagged, especially NSFW
             content. If users cannot
-            <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">block your content by tag</router-link>
+            <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">
+              block your content by tag
+            </router-link>
             (and by
-            <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">rating</router-link>
+            <router-link :to="{name: 'Other', params: {question: 'content-ratings'}}">
+              rating
+            </router-link>
             as applicable) your account may be subject to disciplinary action.
           </p>
           <p>
@@ -83,32 +89,40 @@
               Computer generated explicit content of humans which is indistinguishable (or only distinguishable with
               difficulty) from photographs.
             </li>
-            <li>Non-art content-- such as datasets or programs that aren't reasonably understood by our staff to have
+            <li>
+              Non-art content-- such as datasets or programs that aren't reasonably understood by our staff to have
               artistic purpose or merit.
             </li>
           </ul>
-          <p>Please note that content at higher ratings may be given special treatment to avoid issues with service
+          <p>
+            Please note that content at higher ratings may be given special treatment to avoid issues with service
             providers. For example, adult content may not be granted semantic markup for SEO, and extreme content may
-            be exempted from search engine indexing.</p>
+            be exempted from search engine indexing.
+          </p>
 
           Artconomy is hosted in the state of Texas and is subject to the laws of it and the United States of America.
           Some examples of content which is illegal here and not covered in the above prohibitions include:
 
           <ul>
             <li>Criminal Threats</li>
-            <li>Content which violates Intellectual Property laws-- such as content you did not create and don't have
+            <li>
+              Content which violates Intellectual Property laws-- such as content you did not create and don't have
               permission to upload
             </li>
             <li>Incitement to imminent lawless action</li>
-            <li>Visual or written art which appears to depict minors (human or plausibly human characters such as elves, dwarves,
+            <li>
+              Visual or written art which appears to depict minors (human or plausibly human characters such as elves, dwarves,
               merfolk, etc characters whose apparent age is younger than 18) with
               <a href="https://www.law.cornell.edu/uscode/text/18/2256#2_A">sexually explicit conduct</a>, or depicted
-              in situations of masochistic or sadistic abuse, even if these are not depictions of real persons.</li>
+              in situations of masochistic or sadistic abuse, even if these are not depictions of real persons.
+            </li>
           </ul>
 
           This is not an exhaustive list. If you are unsure if your content is illegal, please consult with your
           attorney. You may also check our
-          <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+          <router-link :to="{name: 'TermsOfService'}">
+            Terms of Service
+          </router-link>
           for more information. Artconomy staff is not a legal team, but will remove violating content on our best
           judgement.
         </v-card-text>
@@ -120,17 +134,24 @@
       </template>
       <template #default>
         <v-card-text>
-          <p>Artconomy has
-            <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">very few restrictions</router-link>
+          <p>
+            Artconomy has
+            <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">
+              very few restrictions
+            </router-link>
             on what content may be posted, but with this freedom comes a responsibility to tag content effectively.
             Tagging content serves the following purposes:
           </p>
           <ul>
-            <li>It makes products, submissions, and characters easy for visitors to find via search. Customers interested
+            <li>
+              It makes products, submissions, and characters easy for visitors to find via search. Customers interested
               in your content may not be able to find it if it is not properly tagged.
             </li>
-            <li>It makes such content easy to
-              <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">block</router-link>
+            <li>
+              It makes such content easy to
+              <router-link :to="{name: 'Other', params: {question: 'tag-blocking'}}">
+                block
+              </router-link>
               for
               those who do not wish to see it.
             </li>
@@ -138,14 +159,18 @@
           <p>
             In sum, tagging allows viewers of the site to have control over their experience, and tagging allows artists
             to find their audience. This, in combination with
-            <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">content ratings</router-link>
+            <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">
+              content ratings
+            </router-link>
             allows Artconomy to serve a wide, often disparate range of content without telling artists what they may or
             may not create.
           </p>
-          <p>These purposes guide tagging-- which means that
+          <p>
+            These purposes guide tagging-- which means that
             <strong>appearances are more important than lore-based truth</strong> for content. This is commonly referred
             to as a <strong>tag what you see</strong> policy. Tag what you see is the first priority, but you may also
-            tag for lore accuracy when it's in conflict with what's visible 'in frame' for a piece.</p>
+            tag for lore accuracy when it's in conflict with what's visible 'in frame' for a piece.
+          </p>
           <p>
             At the time of writing, minimum tag requirements are not technically enforced, but will be eventually.
             However, even with a minimum number of tags, it is not always clear what kind of content warrants tagging,
@@ -191,8 +216,8 @@
             which is not tagged properly, you are encouraged to tag it. If users are tagging your work inappropriately,
             you may disable public tagging in your
             <router-link
-                :to="{name: 'Options', params: {username: viewer!.username}}"
-                v-if="isRegistered"
+              v-if="isRegistered"
+              :to="{name: 'Options', params: {username: viewer!.username}}"
             >
               settings
             </router-link>
@@ -206,7 +231,9 @@
       </template>
     </ac-question>
     <ac-question>
-      <template #title>How do I block tags I don't want to see?</template>
+      <template #title>
+        How do I block tags I don't want to see?
+      </template>
       <template #default>
         <v-card-text>
           <p>
@@ -214,18 +241,19 @@
             given work may be less desirable to a viewer even if it might normally be in a rating they are
             comfortable with.
           </p>
-          <p><strong>Enter tag blocking:</strong>
+          <p>
+            <strong>Enter tag blocking:</strong>
             When you encounter content that is against your tastes, check the tags on the work.
             Once you locate a tag related to the content you find objectionable, you can go to
             <router-link
-                :to="{name: 'Options', params: {username: viewer!.username}}"
-                v-if="isRegistered"
+              v-if="isRegistered"
+              :to="{name: 'Options', params: {username: viewer!.username}}"
             >
               your settings page
             </router-link>
             <span v-else>
-                      your settings page
-                    </span>
+              your settings page
+            </span>
             and add it to your blocked tags. From then on, content with that tag will be filtered out.
           </p>
           <p>
@@ -236,7 +264,9 @@
           </p>
           <p>
             Artconomy's
-            <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">content policy</router-link>
+            <router-link :to="{name: 'Other', params: {question: 'content-policy'}}">
+              content policy
+            </router-link>
             is very permissive, and does not prevent disturbing or offensive imagery from being uploaded,
             especially since pieces may be marked private. We prefer to give each customer the power to customize his
             or her viewing experience using the rating, user blocking and tag blocking tools.
@@ -284,7 +314,10 @@
           <p>
             If you find a bug in the blocking that allows users to continue harassing you, or you have continued
             to be harassed on the platform after asking someone to stop,
-            <a href="#" @click.prevent="store.commit('supportDialog', true)">please contact support</a> with
+            <a
+              href="#"
+              @click.prevent="store.commit('supportDialog', true)"
+            >please contact support</a> with
             the details. Harassment can be subject to disciplinary action, including account closure, depending on
             severity.
           </p>
@@ -301,14 +334,17 @@
             We currently support most file formats used for artistic expression, with a few caveats:
           </p>
           <ul>
-            <li>We do not (yet) do automated video conversion.
+            <li>
+              We do not (yet) do automated video conversion.
               You should upload in mp4, or else some viewers may not see your work.
             </li>
-            <li>Not all file formats will have useful previews. JPG, GIF, BMP, PNG, and others are supported by
+            <li>
+              Not all file formats will have useful previews. JPG, GIF, BMP, PNG, and others are supported by
               all browsers, but whatever you upload can be downloaded. You're advised to set the preview icon of
               any piece that doesn't have previewing, such as .PSD files.
             </li>
-            <li>The file size limit is currently <strong>~50MB</strong> (slightly under due to transfer overhead).
+            <li>
+              The file size limit is currently <strong>~50MB</strong> (slightly under due to transfer overhead).
             </li>
             <li>.TXT files will be previewed with Markdown.</li>
             <li>

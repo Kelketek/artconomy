@@ -1,13 +1,16 @@
 <template>
-  <v-input v-bind="attributes" class="mt-4">
+  <v-input
+    v-bind="attributes"
+    class="mt-4"
+  >
     <v-col class="text-center">
       <div style="display: inline-block">
         <vue-hcaptcha
-            :sitekey="siteKey"
-            ref="recaptcha"
-            @verify="change"
-            @expired="reset"
-            theme="dark"
+          ref="recaptcha"
+          :sitekey="siteKey"
+          theme="dark"
+          @verify="change"
+          @expired="reset"
         />
       </div>
     </v-col>

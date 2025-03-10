@@ -1,10 +1,13 @@
 <template>
-  <ac-base-notification :notification="notification" :username="username">
-    <template v-slot:title>
-      Your product named {{event.target.name}} was removed.
+  <ac-base-notification
+    :notification="notification"
+    :username="username"
+  >
+    <template #title>
+      Your product named {{ event.target.name }} was removed.
     </template>
-    <template v-slot:subtitle>
-      Reason: {{reason}}
+    <template #subtitle>
+      Reason: {{ reason }}
     </template>
   </ac-base-notification>
 </template>

@@ -1,23 +1,35 @@
 <template>
   <v-row no-gutters>
-    <v-col cols="12" v-if="subject!.artist_mode">
+    <v-col
+      v-if="subject!.artist_mode"
+      cols="12"
+    >
       <ac-bound-field
-          :field="transactionFilter.fields.account"
-          field-type="v-select"
-          :items="[{title: 'Purchases', value: 300}, {title: 'Escrow', value: 302}, {title: 'Holdings', value: 303}]"
-          label="Account"
+        :field="transactionFilter.fields.account"
+        field-type="v-select"
+        :items="[{title: 'Purchases', value: 300}, {title: 'Escrow', value: 302}, {title: 'Holdings', value: 303}]"
+        label="Account"
       />
     </v-col>
     <v-col cols="12">
       <ac-paginated :list="transactions">
-        <template v-slot:default>
+        <template #default>
           <v-row>
             <v-col cols="12">
               <v-list three-line>
-                <template v-for="transaction, index in transactions.list" :key="transaction.x!.id">
-                  <ac-transaction :transaction="transaction.x!" :username="username"
-                                  :as-account="transactionFilter.fields.account.value"/>
-                  <v-divider v-if="index + 1 < transactions.list.length" :key="index"/>
+                <template
+                  v-for="transaction, index in transactions.list"
+                  :key="transaction.x!.id"
+                >
+                  <ac-transaction
+                    :transaction="transaction.x!"
+                    :username="username"
+                    :as-account="transactionFilter.fields.account.value"
+                  />
+                  <v-divider
+                    v-if="index + 1 < transactions.list.length"
+                    :key="index"
+                  />
                 </template>
               </v-list>
             </v-col>
@@ -25,11 +37,14 @@
         </template>
       </ac-paginated>
     </v-col>
-    <v-col cols="12" v-if="!purchaseList">
+    <v-col
+      v-if="!purchaseList"
+      cols="12"
+    >
       <ac-load-section :controller="summary">
-        <template v-slot:default>
-          <strong>Working Balance:</strong> ${{summary.x!.available}}<br/>
-          <span v-if="!escrowList"><strong>Pending Changes:</strong> ${{summary.x!.pending}}</span>
+        <template #default>
+          <strong>Working Balance:</strong> ${{ summary.x!.available }}<br>
+          <span v-if="!escrowList"><strong>Pending Changes:</strong> ${{ summary.x!.pending }}</span>
         </template>
       </ac-load-section>
     </v-col>

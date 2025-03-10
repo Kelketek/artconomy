@@ -1,48 +1,101 @@
 <template>
-  <v-card :color="color" :class="{alternate, comment: true, 'elevation-3': alternate, selected}"
-          :id="'comment-' + comment.x.id" v-if="comment.x">
-    <v-toolbar dense color="black">
-      <ac-avatar :username="username" :show-name="false" v-if="username"/>
-      <v-toolbar-title v-if="username" class="ml-1">
-        <ac-link :to="profileLink(subject)">{{ subjectHandler.displayName }}</ac-link>
+  <v-card
+    v-if="comment.x"
+    :id="'comment-' + comment.x.id"
+    :color="color"
+    :class="{alternate, comment: true, 'elevation-3': alternate, selected}"
+  >
+    <v-toolbar
+      dense
+      color="black"
+    >
+      <ac-avatar
+        v-if="username"
+        :username="username"
+        :show-name="false"
+      />
+      <v-toolbar-title
+        v-if="username"
+        class="ml-1"
+      >
+        <ac-link :to="profileLink(subject)">
+          {{ subjectHandler.displayName }}
+        </ac-link>
       </v-toolbar-title>
-      <v-spacer/>
+      <v-spacer />
       <v-tooltip bottom>
-        <template v-slot:activator="{ props }">
-          <v-icon v-bind="props" :icon="mdiInformation"/>
+        <template #activator="{ props }">
+          <v-icon
+            v-bind="props"
+            :icon="mdiInformation"
+          />
         </template>
         {{ formatDateTime(comment.x.created_on) }}
-        <span v-if="comment.x.edited"><br/>Edited: {{ formatDateTime(comment.x.edited_on) }}</span>
+        <span v-if="comment.x.edited"><br>Edited: {{ formatDateTime(comment.x.edited_on) }}</span>
       </v-tooltip>
-      <v-menu offset-x left v-if="!inHistory" :attach="menuTarget">
-        <template v-slot:activator="{props}">
-          <v-btn icon v-bind="props" class="more-button" aria-label="Actions">
-            <v-icon :icon="mdiDotsHorizontal"/>
+      <v-menu
+        v-if="!inHistory"
+        offset-x
+        left
+        :attach="menuTarget"
+      >
+        <template #activator="{props}">
+          <v-btn
+            icon
+            v-bind="props"
+            class="more-button"
+            aria-label="Actions"
+          >
+            <v-icon :icon="mdiDotsHorizontal" />
           </v-btn>
         </template>
         <v-list dense>
-          <v-list-item @click="historyDisplay = true" v-if="showHistory">
-            <template v-slot:prepend>
-              <v-icon class="history-button" :icon="mdiHistory"/>
+          <v-list-item
+            v-if="showHistory"
+            @click="historyDisplay = true"
+          >
+            <template #prepend>
+              <v-icon
+                class="history-button"
+                :icon="mdiHistory"
+              />
             </template>
             <v-list-item-title>Revision history</v-list-item-title>
           </v-list-item>
-          <v-list-item @click="editing = true" v-if="!editing && controls">
-            <template v-slot:prepend>
-              <v-icon class="edit-button" :icon="mdiPencil"/>
+          <v-list-item
+            v-if="!editing && controls"
+            @click="editing = true"
+          >
+            <template #prepend>
+              <v-icon
+                class="edit-button"
+                :icon="mdiPencil"
+              />
             </template>
             <v-list-item-title>Edit</v-list-item-title>
           </v-list-item>
-          <v-list-item @click="editing = false" v-if="editing && controls">
-            <template v-slot:prepend>
-              <v-icon class="lock-button" :icon="mdiCancel"/>
+          <v-list-item
+            v-if="editing && controls"
+            @click="editing = false"
+          >
+            <template #prepend>
+              <v-icon
+                class="lock-button"
+                :icon="mdiCancel"
+              />
             </template>
             <v-list-item-title>Cancel edit</v-list-item-title>
           </v-list-item>
           <v-list-item @click.stop="comment.patch({subscribed: !comment.x.subscribed})">
-            <template v-slot:prepend>
-              <v-icon v-if="comment.x.subscribed" :icon="mdiVolumeHigh"/>
-              <v-icon v-else :icon="mdiVolumeOff"/>
+            <template #prepend>
+              <v-icon
+                v-if="comment.x.subscribed"
+                :icon="mdiVolumeHigh"
+              />
+              <v-icon
+                v-else
+                :icon="mdiVolumeOff"
+              />
             </template>
             <v-list-item-title>
               Notifications
@@ -50,11 +103,17 @@
               <span v-else>off</span>
             </v-list-item-title>
           </v-list-item>
-          <ac-confirmation :action="comment.delete" v-if="controls">
-            <template v-slot:default="confirmContext">
+          <ac-confirmation
+            v-if="controls"
+            :action="comment.delete"
+          >
+            <template #default="confirmContext">
               <v-list-item v-on="confirmContext.on">
-                <template v-slot:prepend>
-                  <v-icon class="delete-button" :icon="mdiDelete"/>
+                <template #prepend>
+                  <v-icon
+                    class="delete-button"
+                    :icon="mdiDelete"
+                  />
                 </template>
                 <v-list-item-title>Delete</v-list-item-title>
               </v-list-item>
@@ -65,24 +124,34 @@
     </v-toolbar>
     <v-card-text ref="main">
       <v-row no-gutters>
-        <v-col cols="12" sm="12">
+        <v-col
+          cols="12"
+          sm="12"
+        >
           <v-row no-gutters>
             <v-col cols="12">
               <ac-patch-field
-                  v-show="editing"
-                  field-type="ac-editor"
-                  :auto-grow="editing"
-                  :patcher="comment.patchers.text"
-                  :auto-save="false"
-                  v-if="controls"
+                v-show="editing"
+                v-if="controls"
+                field-type="ac-editor"
+                :auto-grow="editing"
+                :patcher="comment.patchers.text"
+                :auto-save="false"
               >
-                <template v-slot:pre-actions>
+                <template #pre-actions>
                   <v-col class="shrink">
                     <v-tooltip top>
-                      <template v-slot:activator="{ props }">
-                        <v-btn v-bind="props" @click="editing=false" icon small color="danger" class="cancel-button"
-                               :disabled="!!comment.patchers.text.patching">
-                          <v-icon :icon="mdiCancel"/>
+                      <template #activator="{ props }">
+                        <v-btn
+                          v-bind="props"
+                          icon
+                          small
+                          color="danger"
+                          class="cancel-button"
+                          @click="editing=false"
+                          :disabled="!!comment.patchers.text.patching"
+                        >
+                          <v-icon :icon="mdiCancel" />
                         </v-btn>
                       </template>
                       <span>Cancel</span>
@@ -90,75 +159,121 @@
                   </v-col>
                 </template>
               </ac-patch-field>
-              <ac-rendered v-show="!editing" :value="comment.x.text" v-if="!comment.x.deleted"/>
-              <v-col v-else>[Deleted]</v-col>
+              <ac-rendered
+                v-show="!editing"
+                v-if="!comment.x.deleted"
+                :value="comment.x.text"
+              />
+              <v-col v-else>
+                [Deleted]
+              </v-col>
             </v-col>
-            <v-col class="text-right" cols="12"
-                   v-if="canReply && !editing && !comment.x.deleted && !subCommentList.list.length && !replying">
+            <v-col
+              v-if="canReply && !editing && !comment.x.deleted && !subCommentList.list.length && !replying"
+              class="text-right"
+              cols="12"
+            >
               <v-row no-gutters>
-                <v-spacer/>
+                <v-spacer />
                 <v-col class="shrink">
                   <v-tooltip top>
-                    <template v-slot:activator="{ props }">
-                      <v-btn v-bind="props" color="primary" icon small @click="replying = true" class="reply-button">
-                        <v-icon :icon="mdiReply"/>
+                    <template #activator="{ props }">
+                      <v-btn
+                        v-bind="props"
+                        color="primary"
+                        icon
+                        small
+                        class="reply-button"
+                        @click="replying = true"
+                      >
+                        <v-icon :icon="mdiReply" />
                       </v-btn>
                     </template>
                     <span>Reply</span>
                   </v-tooltip>
                 </v-col>
-                <v-col class="shrink"/>
+                <v-col class="shrink" />
               </v-row>
             </v-col>
           </v-row>
         </v-col>
       </v-row>
-      <v-row no-gutters v-if="subCommentList.list.length || replying">
-        <v-col cols="11" offset="1">
-          <v-row no-gutters class="mt-4">
+      <v-row
+        v-if="subCommentList.list.length || replying"
+        no-gutters
+      >
+        <v-col
+          cols="11"
+          offset="1"
+        >
+          <v-row
+            no-gutters
+            class="mt-4"
+          >
             <v-col v-if="subCommentList.moreAvailable">
-              <v-btn block @click="subCommentList.next" variant="flat">
+              <v-btn
+                block
+                variant="flat"
+                @click="subCommentList.next"
+              >
                 Load More
-                <v-icon right :icon="mdiArrowExpandDown"/>
+                <v-icon
+                  right
+                  :icon="mdiArrowExpandDown"
+                />
               </v-btn>
             </v-col>
             <ac-load-section :controller="subCommentList">
-              <template v-slot:default>
+              <template #default>
                 <div class="flex subcomments">
                   <template v-for="(comment, index) in subCommentList.list">
                     <ac-comment
-                        :alternate="checkAlternate(index)"
-                        :comment="comment"
-                        :comment-list="subCommentList"
-                        :username="comment.x!.user?.username || ''"
-                        :level="level + 1"
-                        :key="comment.x!.id"
-                        :nesting="nesting"
-                        :show-history="showHistory"
-                        v-if="comment.x"
+                      v-if="comment.x"
+                      :key="comment.x!.id"
+                      :alternate="checkAlternate(index)"
+                      :comment="comment"
+                      :comment-list="subCommentList"
+                      :username="comment.x!.user?.username || ''"
+                      :level="level + 1"
+                      :nesting="nesting"
+                      :show-history="showHistory"
                     />
                   </template>
                 </div>
               </template>
             </ac-load-section>
-            <v-col cols="12" v-if="replying">
+            <v-col
+              v-if="replying"
+              cols="12"
+            >
               <ac-new-comment
-                  :commentList="subCommentList"
-                  v-if="replying"
-                  :alternate="checkAlternate(subCommentList.list.length)"
-                  v-model="replying"
+                v-if="replying"
+                v-model="replying"
+                :comment-list="subCommentList"
+                :alternate="checkAlternate(subCommentList.list.length)"
               />
             </v-col>
           </v-row>
         </v-col>
-        <v-col cols="12" v-if="subCommentList.list.length && canReply && !replying" class="pt-2">
+        <v-col
+          v-if="subCommentList.list.length && canReply && !replying"
+          cols="12"
+          class="pt-2"
+        >
           <v-row no-gutters>
-            <v-spacer/>
+            <v-spacer />
             <v-col class="shrink">
               <v-tooltip top>
-                <template v-slot:activator="{ props }">
-                  <v-btn v-bind="props" color="primary" small icon @click="replying = true" class="reply-button">
-                    <v-icon :icon="mdiReply"/>
+                <template #activator="{ props }">
+                  <v-btn
+                    v-bind="props"
+                    color="primary"
+                    small
+                    icon
+                    class="reply-button"
+                    @click="replying = true"
+                  >
+                    <v-icon :icon="mdiReply" />
                   </v-btn>
                 </template>
                 <span>Reply</span>
@@ -169,20 +284,16 @@
       </v-row>
     </v-card-text>
     <ac-expanded-property v-model="historyDisplay">
-      <ac-comment-section :locked="true" :comment-list="historyList" v-if="renderHistory" :in-history="true" class="comment-history"/>
+      <ac-comment-section
+        v-if="renderHistory"
+        :locked="true"
+        :comment-list="historyList"
+        :in-history="true"
+        class="comment-history"
+      />
     </ac-expanded-property>
   </v-card>
 </template>
-
-<style lang="stylus" scoped>
-.comment p:last-child {
-  margin-bottom: 0;
-}
-
-.comment.selected {
-  box-shadow: inset 0 0 10px 0 #fff !important;
-}
-</style>
 
 <script setup lang="ts">
 import {computed, defineAsyncComponent, ref, watch} from 'vue'
@@ -352,3 +463,13 @@ watch(main, (el) => {
   }
 })
 </script>
+
+<style lang="stylus" scoped>
+.comment p:last-child {
+  margin-bottom: 0;
+}
+
+.comment.selected {
+  box-shadow: inset 0 0 10px 0 #fff !important;
+}
+</style>

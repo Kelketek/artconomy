@@ -9,15 +9,20 @@
     </v-col>
     <v-col cols="12">
       <ac-draggable-list :list="list">
-        <template v-slot:default="{element, index}">
-          <v-col cols="4" sm="3" lg="2" :key="index">
+        <template #default="{element, index}">
+          <v-col
+            :key="index"
+            cols="4"
+            sm="3"
+            lg="2"
+          >
             <ac-gallery-preview
-                class="pa-1"
-                @click.capture.stop.prevent="() => false"
-                :linked="false"
-                :key="index"
-                :submission="element.x"
-                :show-footer="true"
+              :key="index"
+              class="pa-1"
+              :linked="false"
+              :submission="element.x"
+              :show-footer="true"
+              @click.capture.stop.prevent="() => false"
             />
           </v-col>
         </template>
@@ -25,24 +30,6 @@
     </v-col>
   </v-row>
 </template>
-
-<style>
-.disabled {
-  opacity: .5;
-}
-
-.page-setter .sortable-ghost {
-  display: none;
-}
-
-.page-setter .sortable-ghost + .v-card {
-  filter: brightness(200%);
-}
-
-.page-setter .sortable-ghost + .v-card.disabled {
-  filter: brightness(100%);
-}
-</style>
 
 <script setup lang="ts">
 import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
@@ -72,3 +59,21 @@ watch(rawRating, (newValue: RatingsValue|undefined, oldValue: RatingsValue|undef
   list.get()
 })
 </script>
+
+<style>
+.disabled {
+  opacity: .5;
+}
+
+.page-setter .sortable-ghost {
+  display: none;
+}
+
+.page-setter .sortable-ghost + .v-card {
+  filter: brightness(200%);
+}
+
+.page-setter .sortable-ghost + .v-card.disabled {
+  filter: brightness(100%);
+}
+</style>

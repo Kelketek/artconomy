@@ -1,61 +1,168 @@
 <template>
   <v-container fluid>
     <v-row no-gutters>
-      <v-col cols="12" style="position: relative">
-        <v-btn icon absolute top left :to="backUrl" color="primary">
-          <v-icon :icon="mdiArrowLeft"/>
+      <v-col
+        cols="12"
+        style="position: relative"
+      >
+        <v-btn
+          icon
+          absolute
+          top
+          left
+          :to="backUrl"
+          color="primary"
+        >
+          <v-icon :icon="mdiArrowLeft" />
         </v-btn>
         <ac-load-section :controller="revision">
-          <template v-slot:default>
-            <ac-asset thumb-name="gallery" :asset="revision.x" :contain="true" alt="Revision for order."/>
-            <ac-form-container v-bind="approveForm.bind" v-if="revision.x">
+          <template #default>
+            <ac-asset
+              thumb-name="gallery"
+              :asset="revision.x"
+              :contain="true"
+              alt="Revision for order."
+            />
+            <ac-form-container
+              v-if="revision.x"
+              v-bind="approveForm.bind"
+            >
               <v-row>
-                <v-col class="text-center" cols="12" :lg="isBuyer && !isFinal ? '6' : '12'" v-if="isBuyer || archived">
-                  <v-btn color="green" :href="revision.x.file.full" variant="flat" download v-if="revision.x.file">
-                    <v-icon left :icon="mdiCloudDownload"/>
+                <v-col
+                  v-if="isBuyer || archived"
+                  class="text-center"
+                  cols="12"
+                  :lg="isBuyer && !isFinal ? '6' : '12'"
+                >
+                  <v-btn
+                    v-if="revision.x.file"
+                    color="green"
+                    :href="revision.x.file.full"
+                    variant="flat"
+                    download
+                  >
+                    <v-icon
+                      left
+                      :icon="mdiCloudDownload"
+                    />
                     Download
                   </v-btn>
                 </v-col>
-                <v-col class="text-center" cols="12" :lg="6"
-                       v-if="isBuyer && !isFinal && (!archived || revision.x.approved_on)">
-                  <v-btn @click="approveForm.submitThen(revision.updateX)" color="primary" variant="flat"
-                         v-if="!revision.x.approved_on">
-                    <v-icon left :icon="mdiCheckCircle"/>
+                <v-col
+                  v-if="isBuyer && !isFinal && (!archived || revision.x.approved_on)"
+                  class="text-center"
+                  cols="12"
+                  :lg="6"
+                >
+                  <v-btn
+                    v-if="!revision.x.approved_on"
+                    color="primary"
+                    variant="flat"
+                    @click="approveForm.submitThen(revision.updateX)"
+                  >
+                    <v-icon
+                      left
+                      :icon="mdiCheckCircle"
+                    />
                     Approve
                   </v-btn>
                   <span v-else-if="revision.x.approved_on">Approved on {{
-                      formatDateTime(revision.x.approved_on)
-                    }}</span>
+                    formatDateTime(revision.x.approved_on)
+                  }}</span>
                 </v-col>
-                <v-col class="text-center" cols="6" lg="3" v-else-if="isSeller">
-                  <v-btn icon small color="green" :href="revision.x.file.full" variant="flat" download
-                         v-if="revision.x.file"
-                         aria-label="Download">
-                    <v-icon :icon="mdiCloudDownload"/>
+                <v-col
+                  v-else-if="isSeller"
+                  class="text-center"
+                  cols="6"
+                  lg="3"
+                >
+                  <v-btn
+                    v-if="revision.x.file"
+                    icon
+                    small
+                    color="green"
+                    :href="revision.x.file.full"
+                    variant="flat"
+                    download
+                    aria-label="Download"
+                  >
+                    <v-icon :icon="mdiCloudDownload" />
                   </v-btn>
                 </v-col>
-                <v-col class="text-center" cols="6" lg="3" v-if="isSeller && isLast && !archived">
-                  <v-btn icon small color="danger" class="delete-revision" @click="handleDelete"
-                         aria-label="Delete Revision">
-                    <v-icon :icon="mdiDelete"/>
+                <v-col
+                  v-if="isSeller && isLast && !archived"
+                  class="text-center"
+                  cols="6"
+                  lg="3"
+                >
+                  <v-btn
+                    icon
+                    small
+                    color="danger"
+                    class="delete-revision"
+                    aria-label="Delete Revision"
+                    @click="handleDelete"
+                  >
+                    <v-icon :icon="mdiDelete" />
                   </v-btn>
                 </v-col>
-                <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isLast &&! isFinal && !archived">
-                  <v-btn color="primary" @click="statusEndpoint('complete')()" variant="flat">Mark Final</v-btn>
+                <v-col
+                  v-if="isSeller && isLast &&! isFinal && !archived"
+                  class="text-center"
+                  cols="12"
+                  lg="6"
+                >
+                  <v-btn
+                    color="primary"
+                    variant="flat"
+                    @click="statusEndpoint('complete')()"
+                  >
+                    Mark Final
+                  </v-btn>
                 </v-col>
-                <v-col class="text-center" cols="12" lg="6" v-if="isSeller && isFinal && !(archived && escrow)">
-                  <v-btn color="primary" @click="statusEndpoint('reopen')()" variant="flat">Unmark Final</v-btn>
+                <v-col
+                  v-if="isSeller && isFinal && !(archived && escrow)"
+                  class="text-center"
+                  cols="12"
+                  lg="6"
+                >
+                  <v-btn
+                    color="primary"
+                    variant="flat"
+                    @click="statusEndpoint('reopen')()"
+                  >
+                    Unmark Final
+                  </v-btn>
                 </v-col>
-                <v-col class="'text-center" cols="12" v-if="galleryLink">
-                  <v-btn color="green" block :to="galleryLink" variant="flat">
-                    <v-icon :icon="mdiUpload"/>
+                <v-col
+                  v-if="galleryLink"
+                  class="'text-center"
+                  cols="12"
+                >
+                  <v-btn
+                    color="green"
+                    block
+                    :to="galleryLink"
+                    variant="flat"
+                  >
+                    <v-icon :icon="mdiUpload" />
                     <span v-if="isSeller">View in Gallery</span><span v-else>View in Collection</span>
                   </v-btn>
                 </v-col>
-                <v-col class="text-center mb-2" cols="12" lg="12"
-                       v-else-if="isSeller || (is(DeliverableStatus.COMPLETED) && isRegistered)">
-                  <v-btn color="green" block @click="prepSubmission" class="prep-submission-button" variant="elevated">
-                    <v-icon :icon="mdiUpload"/>
+                <v-col
+                  v-else-if="isSeller || (is(DeliverableStatus.COMPLETED) && isRegistered)"
+                  class="text-center mb-2"
+                  cols="12"
+                  lg="12"
+                >
+                  <v-btn
+                    color="green"
+                    block
+                    class="prep-submission-button"
+                    variant="elevated"
+                    @click="prepSubmission"
+                  >
+                    <v-icon :icon="mdiUpload" />
                     <span v-if="isSeller">Add to Gallery</span><span v-else>Add to Collection</span>
                   </v-btn>
                 </v-col>
@@ -65,8 +172,13 @@
         </ac-load-section>
       </v-col>
     </v-row>
-    <ac-comment-section :commentList="revisionComments" :nesting="false" :locked="!isInvolved" :guest-ok="true"
-                        :show-history="isArbitrator"/>
+    <ac-comment-section
+      :comment-list="revisionComments"
+      :nesting="false"
+      :locked="!isInvolved"
+      :guest-ok="true"
+      :show-history="isArbitrator"
+    />
   </v-container>
 </template>
 
@@ -177,7 +289,7 @@ const submissionMap = computed((): { [key: number]: number } => {
 
   revision.x.submissions.map((entry) => {
     map[entry.owner_id] = entry.id
-  }) // eslint-disable-line array-callback-return
+  })  
   return map
 })
 

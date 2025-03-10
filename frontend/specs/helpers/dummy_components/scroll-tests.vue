@@ -3,21 +3,25 @@
     <div v-if="test === 'scrollableText'">
       <div id="form-example">
         <div class="scrollableText">
-          <span class="error--text" id="scrollable-text-error"></span>
+          <span
+            id="scrollable-text-error"
+            class="error--text"
+          />
         </div>
       </div>
     </div>
     <div v-else-if="test === 'idOnly'">
       <div id="form-example">
-        <span class="error--text" id="id-only-error"></span>
+        <span
+          id="id-only-error"
+          class="error--text"
+        />
       </div>
     </div>
     <div v-else-if="test === 'noError'">
-      <div id="form-example"></div>
+      <div id="form-example" />
     </div>
-    <div v-else-if="test === 'noErrorNoId'">
-
-    </div>
+    <div v-else-if="test === 'noErrorNoId'" />
   </div>
 </template>
 

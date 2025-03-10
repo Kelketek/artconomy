@@ -4,16 +4,23 @@
     <ac-form @submit.prevent="forgotForm.submitThen(forgotHandler)">
       <ac-form-container v-bind="forgotForm.bind">
         <ac-bound-field
-            label="Email or Username"
-            :field="forgotForm.fields.email"
+          label="Email or Username"
+          :field="forgotForm.fields.email"
         />
-        <v-alert type="info" v-model="resetSent" dismissible>
+        <v-alert
+          v-model="resetSent"
+          type="info"
+          dismissible
+        >
           Email sent! Please check your inbox (and your spam folder)!
         </v-alert>
-        <v-btn color="primary" id="forgotSubmit"
-               class="mb-2"
-               variant="flat"
-               type="submit">
+        <v-btn
+          id="forgotSubmit"
+          color="primary"
+          class="mb-2"
+          variant="flat"
+          type="submit"
+        >
           Reset
         </v-btn>
       </ac-form-container>

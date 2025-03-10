@@ -1,77 +1,103 @@
 <!--suppress JSUnusedGlobalSymbols -->
 <template>
   <v-app dark>
-    <nav-bar/>
+    <nav-bar />
     <v-main class="main-content">
-      <ac-cookied-alert cookie="artist2024BlackFriday" type="warning" :expires="new Date(2024, 11, 5)" v-if="viewer && viewer.artist_mode">
-        <template v-slot:default>
-          Time is running out for holiday listings! Tag <router-link :to="{name: 'Products', params: {username: viewer.username}}">your products</router-link> that can be delivered in time for
+      <ac-cookied-alert
+        v-if="viewer && viewer.artist_mode"
+        cookie="artist2024BlackFriday"
+        type="warning"
+        :expires="new Date(2024, 11, 5)"
+      >
+        <template #default>
+          Time is running out for holiday listings! Tag <router-link :to="{name: 'Products', params: {username: viewer.username}}">
+            your products
+          </router-link> that can be delivered in time for
           Christmas with the <strong>blackfriday2024</strong> tag!
         </template>
       </ac-cookied-alert>
       <!-- Remember to remove the special functions for this. -->
-      <ac-cookied-alert cookie="2024BlackFriday" type="info" :expires="new Date(2024, 11, 8)" v-else-if="viewer">
-        <template v-slot:default>
-          Grab a deal for the holidays! Check our <router-link @click="search({q: 'blackfriday2024'})" :to="{name: 'SearchProducts', query: {q: 'blackfriday2024'}}">holiday listings</router-link>!
+      <ac-cookied-alert
+        v-else-if="viewer"
+        cookie="2024BlackFriday"
+        type="info"
+        :expires="new Date(2024, 11, 8)"
+      >
+        <template #default>
+          Grab a deal for the holidays! Check our <router-link
+            :to="{name: 'SearchProducts', query: {q: 'blackfriday2024'}}"
+            @click="search({q: 'blackfriday2024'})"
+          >
+            holiday listings
+          </router-link>!
         </template>
       </ac-cookied-alert>
-      <router-view v-if="displayRoute" :key="routeKey"/>
-      <ac-error v-else/>
+      <router-view
+        v-if="displayRoute"
+        :key="routeKey"
+      />
+      <ac-error v-else />
       <ac-form-dialog
-          :modelValue="store.state.showSupport"
-          @update:modelValue="(val: boolean) => store.commit('supportDialog', val)"
-          @submit="supportForm.submitThen(showSupportSuccess)"
-          v-bind="supportForm.bind"
-          v-if="loadSupport"
-          title="Get Support or Give Feedback!"
+        v-if="loadSupport"
+        :model-value="store.state.showSupport"
+        v-bind="supportForm.bind"
+        title="Get Support or Give Feedback!"
+        @update:model-value="(val: boolean) => store.commit('supportDialog', val)"
+        @submit="supportForm.submitThen(showSupportSuccess)"
       >
         <v-row no-gutters>
-          <v-col cols="12" class="text-center">
+          <v-col
+            cols="12"
+            class="text-center"
+          >
             <span class="headline">We respond to all requests within 24 hours, and often within the same hour!</span>
           </v-col>
           <v-col cols="12">
             <v-text-field
-                label="Email"
-                placeholder="test@example.com"
-                v-bind="supportForm.fields.email.bind"
+              label="Email"
+              placeholder="test@example.com"
+              v-bind="supportForm.fields.email.bind"
             />
           </v-col>
           <v-col cols="12">
             <v-textarea
-                label="How can we help?"
-                v-bind="supportForm.fields.body.bind"
+              label="How can we help?"
+              v-bind="supportForm.fields.body.bind"
             />
           </v-col>
         </v-row>
       </ac-form-dialog>
       <ac-form-dialog
-          :modelValue="store.state.showReport"
-          @update:modelValue="(val: boolean) => store.commit('reportDialog', val)"
-          @submit="reportForm.submitThen(showReportSuccess)"
-          v-bind="reportForm.bind"
-          v-if="loadReport"
-          title="Report Content"
+        v-if="loadReport"
+        :model-value="store.state.showReport"
+        v-bind="reportForm.bind"
+        title="Report Content"
+        @update:model-value="(val: boolean) => store.commit('reportDialog', val)"
+        @submit="reportForm.submitThen(showReportSuccess)"
       >
         <v-row no-gutters>
-          <v-col cols="12" class="text-center">
+          <v-col
+            cols="12"
+            class="text-center"
+          >
             <span class="headline">Please fill in these details for your report.</span>
           </v-col>
           <v-col cols="12">
             <v-text-field
-                label="Your email"
-                placeholder="test@example.com"
-                v-bind="reportForm.fields.email.bind"
+              label="Your email"
+              placeholder="test@example.com"
+              v-bind="reportForm.fields.email.bind"
             />
           </v-col>
           <v-col cols="12">
             <v-col cols="12">
               <v-select
-                  label="Reason"
-                  :items="reportReasons"
-                  :item-props="true"
-                  :persistent-hint="true"
-                  hint="Please select a reason. Pick the most applicable if there's more than one."
-                  v-bind="reportForm.fields.flag.bind"
+                label="Reason"
+                :items="reportReasons"
+                :item-props="true"
+                :persistent-hint="true"
+                hint="Please select a reason. Pick the most applicable if there's more than one."
+                v-bind="reportForm.fields.flag.bind"
               />
             </v-col>
           </v-col>
@@ -80,16 +106,16 @@
           </v-col>
           <v-col cols="12">
             <v-textarea
-                label="Please add any context that will help our staff make a decision."
-                v-bind="reportForm.fields.body.bind"
+              label="Please add any context that will help our staff make a decision."
+              v-bind="reportForm.fields.body.bind"
             />
           </v-col>
         </v-row>
       </ac-form-dialog>
       <v-dialog
-          v-model="showTicketSuccess"
-          width="500"
-          :attach="modalTarget"
+        v-model="showTicketSuccess"
+        width="500"
+        :attach="modalTarget"
       >
         <v-card id="supportSuccess">
           <v-card-text>
@@ -102,9 +128,9 @@
           <v-card-actions>
             <v-spacer />
             <v-btn
-                color="primary"
-                variant="plain"
-                @click="showTicketSuccess = false"
+              color="primary"
+              variant="plain"
+              @click="showTicketSuccess = false"
             >
               OK
             </v-btn>
@@ -112,142 +138,181 @@
         </v-card>
       </v-dialog>
       <ac-form-dialog
-        :modelValue="store.state.showAgeVerification"
-        @update:modelValue="closeAgeVerification"
         v-if="viewerHandler.user.x && loadAgeVerification"
-        @submit="closeAgeVerification"
+        :model-value="store.state.showAgeVerification"
         :large="true"
+        @update:model-value="closeAgeVerification"
+        @submit="closeAgeVerification"
       >
         <v-row>
-          <v-col cols="12" v-if="unverifiedInTheocracy">
+          <v-col
+            v-if="unverifiedInTheocracy"
+            cols="12"
+          >
             <v-alert type="error">
               You are currently accessing Artconomy from a location that has restrictive laws on adult content.
               You will not be allowed to load adult content unless specific conditions are met.
               <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
             </v-alert>
           </v-col>
-          <v-col cols="12" class="text-center">
-            <span class="title">Warning: {{RATINGS_SHORT[contentRating]}}. Please verify your age and content preferences.</span>
+          <v-col
+            cols="12"
+            class="text-center"
+          >
+            <span class="title">Warning: {{ RATINGS_SHORT[contentRating] }}. Please verify your age and content preferences.</span>
           </v-col>
-          <v-col cols="12" md="6">
+          <v-col
+            cols="12"
+            md="6"
+          >
             <ac-patch-field
-                field-type="ac-birthday-field"
-                label="Birthday"
-                :disabled="unverifiedInTheocracy"
-                :patcher="userHandler.patchers.birthday"
-                :persistent-hint="true"
-                :save-indicator="false"
-                hint="You must be at least 18 years old to view adult content."
+              field-type="ac-birthday-field"
+              label="Birthday"
+              :disabled="unverifiedInTheocracy"
+              :patcher="userHandler.patchers.birthday"
+              :persistent-hint="true"
+              :save-indicator="false"
+              hint="You must be at least 18 years old to view adult content."
             />
           </v-col>
-          <v-col cols="12" sm="6">
-            <ac-patch-field field-type="v-switch" label="SFW Mode"
-                            :patcher="viewerHandler.user.patchers.sfw_mode"
-                            hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
+          <v-col
+            cols="12"
+            sm="6"
+          >
+            <ac-patch-field
+              field-type="v-switch"
+              label="SFW Mode"
+              :patcher="viewerHandler.user.patchers.sfw_mode"
+              hint="Overrides your content preferences to only allow clean content. Useful if viewing the site
                       from a work machine."
-                            :save-indicator="false"
-                            color="primary"
-                            persistent-hint />
+              :save-indicator="false"
+              color="primary"
+              persistent-hint
+            />
           </v-col>
           <v-col cols="12">
             <v-card-text :class="{disabled: viewerHandler.user.patchers.sfw_mode.model}">
               <ac-patch-field
-                  field-type="ac-rating-field"
-                  label="Select the maximum content rating you'd like to see when browsing."
-                  :patcher="userHandler.patchers.rating"
-                  :disabled="!adultAllowed"
-                  :persistent-hint="true"
-                  hint="You must be at least 18 years old to view adult content."
+                field-type="ac-rating-field"
+                label="Select the maximum content rating you'd like to see when browsing."
+                :patcher="userHandler.patchers.rating"
+                :disabled="!adultAllowed"
+                :persistent-hint="true"
+                hint="You must be at least 18 years old to view adult content."
               />
             </v-card-text>
           </v-col>
-          <v-col></v-col>
+          <v-col />
         </v-row>
-        <template v-slot:bottom-buttons>
-          <v-card-actions row wrap class="hidden-sm-and-down">
-            <v-spacer></v-spacer>
-            <v-btn color="primary" variant="flat" type="submit" class="dialog-submit">Done</v-btn>
+        <template #bottom-buttons>
+          <v-card-actions
+            row
+            wrap
+            class="hidden-sm-and-down"
+          >
+            <v-spacer />
+            <v-btn
+              color="primary"
+              variant="flat"
+              type="submit"
+              class="dialog-submit"
+            >
+              Done
+            </v-btn>
           </v-card-actions>
         </template>
       </ac-form-dialog>
-      <v-snackbar v-model="showAlert" v-if="store.getters.latestAlert"
-                  :color="store.getters.latestAlert.category"
-                  :timeout="store.getters.latestAlert.timeout"
-                  :attach="snackbarTarget"
-                  top
+      <v-snackbar
+        v-if="store.getters.latestAlert"
+        v-model="showAlert"
+        :color="store.getters.latestAlert.category"
+        :timeout="store.getters.latestAlert.timeout"
+        :attach="snackbarTarget"
+        top
       >
-        {{latestAlert.message}}
+        {{ latestAlert.message }}
         <v-btn
-            dark
-            variant="plain"
-            class="close-status-alert"
-            @click="showAlert = false"
+          dark
+          variant="plain"
+          class="close-status-alert"
+          @click="showAlert = false"
         >
           Close
         </v-btn>
       </v-snackbar>
-      <ac-markdown-explanation v-model="showMarkdownHelp" v-if="loadMarkdownHelp" />
+      <ac-markdown-explanation
+        v-if="loadMarkdownHelp"
+        v-model="showMarkdownHelp"
+      />
       <v-snackbar
-          :timeout="-1"
-          v-if="socketState.x && !devMode"
-          :model-value="!!(socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion))"
-          color="primary"
-          shaped
-          width="100vw"
-          rounded="pill"
-          :attach="statusTarget"
+        v-if="socketState.x && !devMode"
+        :timeout="-1"
+        :model-value="!!(socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion))"
+        color="primary"
+        shaped
+        width="100vw"
+        rounded="pill"
+        :attach="statusTarget"
       >
         <div class="d-flex text-center">
           <div class="align-self-center">
             <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
           </div>
-          <v-btn color="green" class="ml-2" icon small @click="location.reload()" aria-label="Refresh Page"><v-icon :icon="mdiUpdate" /></v-btn>
+          <v-btn
+            color="green"
+            class="ml-2"
+            icon
+            small
+            aria-label="Refresh Page"
+            @click="location.reload()"
+          >
+            <v-icon :icon="mdiUpdate" />
+          </v-btn>
         </div>
       </v-snackbar>
       <v-snackbar
-          :timeout="-1"
-          :model-value="!!(socketState.x!.serverVersion && socketState.x!.status === ConnectionStatus.CLOSED)"
-          color="info"
-          shaped
-          rounded="pill"
-          :attach="statusTarget"
+        :timeout="-1"
+        :model-value="!!(socketState.x!.serverVersion && socketState.x!.status === ConnectionStatus.CLOSED)"
+        color="info"
+        shaped
+        rounded="pill"
+        :attach="statusTarget"
       >
-        <v-col class="text-center" id="reconnection-status-bar">
+        <v-col
+          id="reconnection-status-bar"
+          class="text-center"
+        >
           <strong>Reconnecting...</strong>
         </v-col>
       </v-snackbar>
-      <v-row no-gutters class="mb-4" v-if="contentReady">
+      <v-row
+        v-if="contentReady"
+        no-gutters
+        class="mb-4"
+      >
         <v-col class="text-center">
-          <router-link :to="{name: 'PrivacyPolicy'}">Privacy Policy</router-link>
+          <router-link :to="{name: 'PrivacyPolicy'}">
+            Privacy Policy
+          </router-link>
           <span class="mx-3 d-inline-block">|</span>
-          <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>
+          <router-link :to="{name: 'TermsOfService'}">
+            Terms of Service
+          </router-link>
         </v-col>
       </v-row>
       <ac-cookie-consent />
     </v-main>
-    <div class="dev-mode-overlay text-center" v-if="devMode">
-      <v-icon size="50vw" :icon="mdiHammerWrench" />
+    <div
+      v-if="devMode"
+      class="dev-mode-overlay text-center"
+    >
+      <v-icon
+        size="50vw"
+        :icon="mdiHammerWrench"
+      />
     </div>
   </v-app>
 </template>
-
-<style scoped>
-  .main-content {
-    min-height: 90vh;
-  }
-  .dev-mode-overlay {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    z-index: 1000000;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    opacity: .1;
-    pointer-events: none;
-  }
-</style>
 
 <script setup lang="ts">
 // Remove the need for these, so we can remove this dependency.
@@ -341,7 +406,7 @@ searchSchema.fields.min_price.value = fallback(query, 'min_price', '')
 searchSchema.fields.max_turnaround.value = fallback(query, 'max_turnaround', '')
 searchSchema.fields.page.value = fallback(query, 'page', 1)
 // This variable is accessed in the tests to verify it's set up correctly, even though it does not appear to be used.
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 const searchForm = useForm('search', searchSchema)
 
 // These next two functions stolen from Home-- remove when we no longer have the Black Friday banner or else
@@ -377,7 +442,7 @@ const socketState = useSingle<SocketState>('socketState', {
   x: {
     status: ConnectionStatus.CONNECTING,
     // @ts-ignore
-    // eslint-disable-next-line no-undef
+     
     version: process.env['__COMMIT_HASH__'],
     serverVersion: '',
   },
@@ -457,7 +522,7 @@ const userHandler = computed(() => {
 const devMode = computed(() => {
   // Accessing a property registers that property as a listener. Even if we do nothing with it, changing its value
   // will force recomputation of this value.
-  // eslint-disable-next-line no-unused-expressions
+   
   forceRecompute.value
   return mode() === 'development'
 })
@@ -567,3 +632,21 @@ const contentReady = ref(false)
 
 router.isReady().then(() => contentReady.value = true)
 </script>
+
+<style scoped>
+  .main-content {
+    min-height: 90vh;
+  }
+  .dev-mode-overlay {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    z-index: 1000000;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    opacity: .1;
+    pointer-events: none;
+  }
+</style>

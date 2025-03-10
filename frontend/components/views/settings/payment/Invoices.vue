@@ -1,59 +1,89 @@
 <template>
-  <v-container class="pa-0" v-if="currentRoute">
-    <ac-paginated :list="invoices" class="py-8">
-      <template v-slot:default>
-        <v-col cols="12" md="8" offset-md="2">
+  <v-container
+    v-if="currentRoute"
+    class="pa-0"
+  >
+    <ac-paginated
+      :list="invoices"
+      class="py-8"
+    >
+      <template #default>
+        <v-col
+          cols="12"
+          md="8"
+          offset-md="2"
+        >
           <v-list>
-            <template v-for="invoice, invoiceIndex in invoices.list" :key="invoice.x!.id">
+            <template
+              v-for="invoice, invoiceIndex in invoices.list"
+              :key="invoice.x!.id"
+            >
               <v-list-item class="my-2">
                 <v-list-item-title>
-                  <ac-link :to="{name: 'Invoice', params: {username, invoiceId: invoice.x!.id}}">{{invoice.x!.id}}
+                  <ac-link :to="{name: 'Invoice', params: {username, invoiceId: invoice.x!.id}}">
+                    {{ invoice.x!.id }}
                   </ac-link>
-                  ({{INVOICE_TYPES[invoice.x!.type]}})
+                  ({{ INVOICE_TYPES[invoice.x!.type] }})
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  {{formatDateTime(invoice.x!.created_on)}}
-                  <span v-for="ref, index in invoice.x!.targets" :key="index">
-                  <ac-link :to="ref.link"><span v-if="ref.display_name">{{ref.display_name}}</span><span v-else>{{ref.model}} #{{ref.id}}</span></ac-link><span
-                      v-if="index !== (invoice.x!.targets.length - 1)">,</span>
-                </span>
+                  {{ formatDateTime(invoice.x!.created_on) }}
+                  <span
+                    v-for="ref, index in invoice.x!.targets"
+                    :key="index"
+                  >
+                    <ac-link :to="ref.link"><span v-if="ref.display_name">{{ ref.display_name }}</span><span v-else>{{ ref.model }} #{{ ref.id }}</span></ac-link><span
+                      v-if="index !== (invoice.x!.targets.length - 1)"
+                    >,</span>
+                  </span>
                 </v-list-item-subtitle>
-                <template v-slot:append>
-                  {{invoice.x!.total}}
-                  <ac-invoice-status :invoice="invoice.x!" class="ml-2"/>
+                <template #append>
+                  {{ invoice.x!.total }}
+                  <ac-invoice-status
+                    :invoice="invoice.x!"
+                    class="ml-2"
+                  />
                 </template>
               </v-list-item>
-              <v-divider v-if="invoiceIndex !== (invoices.list.length - 1)"/>
+              <v-divider v-if="invoiceIndex !== (invoices.list.length - 1)" />
             </template>
           </v-list>
         </v-col>
       </template>
     </ac-paginated>
   </v-container>
-  <v-container class="pa-0" v-else>
+  <v-container
+    v-else
+    class="pa-0"
+  >
     <v-toolbar class="invoice-toolbar">
       <v-toolbar-items>
-        <v-btn @click="goBack" color="secondary" variant="flat">
-          <v-icon left :icon="mdiArrowLeftBold"/>
+        <v-btn
+          color="secondary"
+          variant="flat"
+          @click="goBack"
+        >
+          <v-icon
+            left
+            :icon="mdiArrowLeftBold"
+          />
           Back
         </v-btn>
-        <v-btn color="primary" variant="flat" @click="performPrint">
-          <v-icon left :icon="mdiPrinter"/>
+        <v-btn
+          color="primary"
+          variant="flat"
+          @click="performPrint"
+        >
+          <v-icon
+            left
+            :icon="mdiPrinter"
+          />
           Print
         </v-btn>
       </v-toolbar-items>
     </v-toolbar>
-    <router-view/>
+    <router-view />
   </v-container>
 </template>
-
-<style>
-@media print {
-  .invoice-toolbar, .main-navigation, .invoice-actions, .settings-nav-toolbar, .transactions-list {
-    display: none;
-  }
-}
-</style>
 
 <script setup lang="ts">
 import AcPaginated from '@/components/wrappers/AcPaginated.vue'
@@ -107,3 +137,11 @@ const currentRoute = computed(() => {
   return route.name === 'Invoices'
 })
 </script>
+
+<style>
+@media print {
+  .invoice-toolbar, .main-navigation, .invoice-actions, .settings-nav-toolbar, .transactions-list {
+    display: none;
+  }
+}
+</style>

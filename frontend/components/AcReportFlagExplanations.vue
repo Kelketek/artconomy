@@ -1,8 +1,13 @@
 <template>
   <div v-if="flag !== null">
-    <v-alert v-if="flag == ReportFlags.COPYRIGHT_CLAIMED" type="warning">
+    <v-alert
+      v-if="flag == ReportFlags.COPYRIGHT_CLAIMED"
+      type="warning"
+    >
       Copyright claims must be made via DMCA request, with procedure outlined in the
-      <router-link :to="{name: 'TermsOfService'}">Terms of Service</router-link>. You may use
+      <router-link :to="{name: 'TermsOfService'}">
+        Terms of Service
+      </router-link>. You may use
       this form for any additional questions, but reports cannot be made here.
     </v-alert>
     <v-alert type="info">

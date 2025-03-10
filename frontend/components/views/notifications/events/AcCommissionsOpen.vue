@@ -1,10 +1,18 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
-    <template v-slot:title>
-      <router-link :to="assetLink">{{event.target.username}} is open!</router-link>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="assetLink"
+    :username="username"
+  >
+    <template #title>
+      <router-link :to="assetLink">
+        {{ event.target.username }} is open!
+      </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="assetLink">Click here to commission them.</router-link>
+    <template #subtitle>
+      <router-link :to="assetLink">
+        Click here to commission them.
+      </router-link>
     </template>
   </ac-base-notification>
 </template>

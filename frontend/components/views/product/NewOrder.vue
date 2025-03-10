@@ -1,145 +1,238 @@
 <template>
   <ac-load-section :controller="product">
-    <template v-slot:default>
-      <v-row @click="() => clickCounter += 1" v-if="product.x">
-        <v-col cols="12" md="8" offset-lg="1">
+    <template #default>
+      <v-row
+        v-if="product.x"
+        @click="() => clickCounter += 1"
+      >
+        <v-col
+          cols="12"
+          md="8"
+          offset-lg="1"
+        >
           <ac-form @submit.prevent="submitAction">
             <ac-form-container
-                :errors="orderForm.errors"
-                :sending="orderForm.sending"
+              :errors="orderForm.errors"
+              :sending="orderForm.sending"
             >
-              <template v-slot:top-buttons/>
+              <template #top-buttons />
               <v-card>
                 <v-card-title>
                   <span class="title">New Commission Order</span>
                 </v-card-title>
-                <v-toolbar v-if="isRegistered" dense color="black">
-                  <ac-avatar :user="viewer as User" :show-name="false" class="ml-3"/>
-                  <v-toolbar-title class="ml-1">{{viewerName}}</v-toolbar-title>
+                <v-toolbar
+                  v-if="isRegistered"
+                  dense
+                  color="black"
+                >
+                  <ac-avatar
+                    :user="viewer as User"
+                    :show-name="false"
+                    class="ml-3"
+                  />
+                  <v-toolbar-title class="ml-1">
+                    {{ viewerName }}
+                  </v-toolbar-title>
                 </v-toolbar>
-                <v-stepper v-model="orderForm.step" class="submission-stepper" non-linear>
+                <v-stepper
+                  v-model="orderForm.step"
+                  class="submission-stepper"
+                  non-linear
+                >
                   <v-stepper-header>
-                    <v-stepper-item :complete="orderForm.steps[1].complete" :value="1"
-                                    :rules="orderForm.steps[1].rules">Basics
+                    <v-stepper-item
+                      :complete="orderForm.steps[1].complete"
+                      :value="1"
+                      :rules="orderForm.steps[1].rules"
+                    >
+                      Basics
                     </v-stepper-item>
-                    <v-divider/>
-                    <v-stepper-item :value="2" :rules="orderForm.steps[2].rules"
-                                    :complete="orderForm.steps[1].complete">Details
+                    <v-divider />
+                    <v-stepper-item
+                      :value="2"
+                      :rules="orderForm.steps[2].rules"
+                      :complete="orderForm.steps[1].complete"
+                    >
+                      Details
                     </v-stepper-item>
-                    <v-divider/>
-                    <v-stepper-item :value="3" :rules="orderForm.steps[3].rules">Notices and Agreements</v-stepper-item>
+                    <v-divider />
+                    <v-stepper-item
+                      :value="3"
+                      :rules="orderForm.steps[3].rules"
+                    >
+                      Notices and Agreements
+                    </v-stepper-item>
                   </v-stepper-header>
                   <v-stepper-window>
                     <v-stepper-window-item :value="1">
                       <v-row>
-                        <v-col cols="12" sm="6" v-if="invoicing || !isRegistered || product.x.table_product">
-                          <v-list-subheader v-if="!isRegistered">Checkout as Guest</v-list-subheader>
-                          <v-list-subheader v-if="invoicing">Enter customer's username or email</v-list-subheader>
-                          <v-list-subheader v-else-if="product.x.table_product">Enter Commissioner's Email
+                        <v-col
+                          v-if="invoicing || !isRegistered || product.x.table_product"
+                          cols="12"
+                          sm="6"
+                        >
+                          <v-list-subheader v-if="!isRegistered">
+                            Checkout as Guest
+                          </v-list-subheader>
+                          <v-list-subheader v-if="invoicing">
+                            Enter customer's username or email
+                          </v-list-subheader>
+                          <v-list-subheader v-else-if="product.x.table_product">
+                            Enter Commissioner's Email
                           </v-list-subheader>
                           <ac-bound-field
-                              label="Customer username/email"
-                              :field="orderForm.fields.email"
-                              item-value="username"
-                              :multiple="false"
-                              :allow-raw="true"
-                              v-if="invoicing"
-                              hint="Enter the username or the email address of the customer this commission is for.
+                            v-if="invoicing"
+                            label="Customer username/email"
+                            :field="orderForm.fields.email"
+                            item-value="username"
+                            :multiple="false"
+                            :allow-raw="true"
+                            hint="Enter the username or the email address of the customer this commission is for.
                 This can be left blank if you only want to use this order for tracking purposes."
                           />
-                          <ac-bound-field label="Email" v-else :field="orderForm.fields.email"/>
+                          <ac-bound-field
+                            v-else
+                            label="Email"
+                            :field="orderForm.fields.email"
+                          />
                         </v-col>
-                        <v-col cols="12" sm="6" class="text-center" v-if="!isRegistered">
+                        <v-col
+                          v-if="!isRegistered"
+                          cols="12"
+                          sm="6"
+                          class="text-center"
+                        >
                           <p>Or, if you have an account,</p>
-                          <v-btn :to="{name: 'Login', query: {next: route.fullPath}}" color="primary" variant="flat">Log in here!
+                          <v-btn
+                            :to="{name: 'Login', query: {next: route.fullPath}}"
+                            color="primary"
+                            variant="flat"
+                          >
+                            Log in here!
                           </v-btn>
                         </v-col>
                       </v-row>
                       <v-row v-if="product.x.max_rating > 0">
                         <v-col cols="12">
                           <ac-bound-field
-                              label="Content Ratings of Piece"
-                              field-type="ac-rating-field" :field="orderForm.fields.rating"
-                              :persistent-hint="true"
-                              :max="product.x.max_rating"
+                            label="Content Ratings of Piece"
+                            field-type="ac-rating-field"
+                            :field="orderForm.fields.rating"
+                            :persistent-hint="true"
+                            :max="product.x.max_rating"
                           />
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col cols="12" v-if="isRegistered && !product.x.table_product">
+                        <v-col
+                          v-if="isRegistered && !product.x.table_product"
+                          cols="12"
+                        >
                           <ac-bound-field
-                              field-type="ac-character-select" :field="orderForm.fields.characters" label="Characters"
-                              hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
+                            v-if="showCharacters"
+                            field-type="ac-character-select"
+                            :field="orderForm.fields.characters"
+                            label="Characters"
+                            hint="Start typing a character's name to search. If you've set up characters on Artconomy, you can
                   attach them to this order for easy referencing by the artist! If you haven't added any characters, or
                   no characters are in this piece, you may leave this blank."
-                              v-if="showCharacters"
-                              autocomplete="off"
-                              :new-order="true"
-                              :init-items="initCharacters"
+                            autocomplete="off"
+                            :new-order="true"
+                            :init-items="initCharacters"
                           />
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col cols="12" sm="6">
+                        <v-col
+                          cols="12"
+                          sm="6"
+                        >
                           <ac-bound-field
-                              field-type="ac-checkbox" :field="orderForm.fields.private" label="Private Order"
-                              :persistent-hint="true"
-                              :hint="privateHint"
+                            field-type="ac-checkbox"
+                            :field="orderForm.fields.private"
+                            label="Private Order"
+                            :persistent-hint="true"
+                            :hint="privateHint"
                           />
                         </v-col>
-                        <v-col cols="12" sm="6" v-if="product.x.name_your_price">
+                        <v-col
+                          v-if="product.x.name_your_price"
+                          cols="12"
+                          sm="6"
+                        >
                           <ac-bound-field
-                              field-type="ac-price-field" :field="orderForm.fields.named_price" label="Price"
-                              :persistent-hint="true"
-                              :hint="`Enter the price you'd like to pay for this work.${currentPrice && ` Must be at least ${currentPrice} to cover the artist's costs.`}`"
+                            field-type="ac-price-field"
+                            :field="orderForm.fields.named_price"
+                            label="Price"
+                            :persistent-hint="true"
+                            :hint="`Enter the price you'd like to pay for this work.${currentPrice && ` Must be at least ${currentPrice} to cover the artist's costs.`}`"
                           />
                         </v-col>
                       </v-row>
                     </v-stepper-window-item>
                     <v-stepper-window-item :value="2">
                       <v-row class="justify-center">
-                        <v-col cols="12" sm="6" order="2" order-sm="1" class="align-self-center pt-5">
+                        <v-col
+                          cols="12"
+                          sm="6"
+                          order="2"
+                          order-sm="1"
+                          class="align-self-center pt-5"
+                        >
                           <ac-bound-field
-                              :field="orderForm.fields.details" field-type="ac-editor" label="Description"
-                              :rows="7"
-                              :save-indicator="false"
+                            :field="orderForm.fields.details"
+                            field-type="ac-editor"
+                            label="Description"
+                            :rows="7"
+                            :save-indicator="false"
                           />
                         </v-col>
-                        <v-col cols="12" sm="6" order="1" order-sm="2">
+                        <v-col
+                          cols="12"
+                          sm="6"
+                          order="1"
+                          order-sm="2"
+                        >
                           <v-row>
-                            <v-col class="d-flex justify-content justify-center align-content-center" cols="5"
-                                   style="flex-direction: column">
+                            <v-col
+                              class="d-flex justify-content justify-center align-content-center"
+                              cols="5"
+                              style="flex-direction: column"
+                            >
                               <v-img
-                                  :src="laptop.href"
-                                  max-height="30vh"
-                                  :contain="true"
-                                  :eager="prerendering"
-                                  alt="An example image showing a drawing based on the description below."
+                                :src="laptop.href"
+                                max-height="30vh"
+                                :contain="true"
+                                :eager="prerendering"
+                                alt="An example image showing a drawing based on the description below."
                               />
                             </v-col>
                             <v-col cols="7">
                               <h2>Example description</h2>
-                              Vulpy:<br/>
-                              * is a fox<br/>
-                              * is about three feet tall<br/>
-                              * has orange fur, with white on his belly, cheeks, 'socks', and inner ears<br/>
-                              * has a paintbrush tail that can be any color, but is black for this piece.<br/>
-                              * has pink pawpads<br/><br/>
+                              Vulpy:<br>
+                              * is a fox<br>
+                              * is about three feet tall<br>
+                              * has orange fur, with white on his belly, cheeks, 'socks', and inner ears<br>
+                              * has a paintbrush tail that can be any color, but is black for this piece.<br>
+                              * has pink pawpads<br><br>
                               Please draw Vulpy sitting and typing away excitedly on a computer!
                             </v-col>
                           </v-row>
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col cols="12" order="3">
+                        <v-col
+                          cols="12"
+                          order="3"
+                        >
                           <ac-bound-field
-                              field-type="ac-uppy-file"
-                              uppy-id="uppy-new-order"
-                              :field="orderForm.fields.references"
-                              :max-number-of-files="10"
-                              label="(Optional) Add some reference images!"
-                              :persistent-hint="true"
-                              :persist="true"
+                            field-type="ac-uppy-file"
+                            uppy-id="uppy-new-order"
+                            :field="orderForm.fields.references"
+                            :max-number-of-files="10"
+                            label="(Optional) Add some reference images!"
+                            :persistent-hint="true"
+                            :persist="true"
                           />
                         </v-col>
                       </v-row>
@@ -150,7 +243,8 @@
                           <v-card>
                             <v-card-text>
                               <p><span class="title">When you hit 'Create Invoice'...</span></p>
-                              <p>You will be brought to an order page, where you can then adjust terms/line items and
+                              <p>
+                                You will be brought to an order page, where you can then adjust terms/line items and
                                 finalize once ready. Once finalized, the invoice will be sent to the customer
                                 (if you provided a username or email).
                               </p>
@@ -160,7 +254,11 @@
                       </v-row>
                       <v-row v-else>
                         <v-col cols="12">
-                          <v-alert type="warning" :value="true" v-if="product.x.wait_list">
+                          <v-alert
+                            v-if="product.x.wait_list"
+                            type="warning"
+                            :value="true"
+                          >
                             This order will be waitlisted. Waitlisted orders are not guaranteed to be accepted on any
                             particular time table and may not be fulfilled in the order they are received. Please check
                             the
@@ -168,7 +266,10 @@
                             <strong>You will not be expected to pay for this order unless and until it is
                               accepted.</strong>
                           </v-alert>
-                          <v-alert type="info" :value="true">
+                          <v-alert
+                            type="info"
+                            :value="true"
+                          >
                             Once your order is placed, the artist will review your request, make any adjustments to the
                             quote as needed, and present them for your approval and payment. We will update you via
                             email as things progress.
@@ -176,31 +277,53 @@
                         </v-col>
                         <v-col cols="12">
                           <ac-load-section :controller="subjectHandler.artistProfile">
-                            <template v-slot:default>
-                              <v-list-subheader v-if="subjectHandler.artistProfile.x!.commission_info">Commission Info
+                            <template #default>
+                              <v-list-subheader v-if="subjectHandler.artistProfile.x!.commission_info">
+                                Commission Info
                               </v-list-subheader>
-                              <ac-rendered :value="subjectHandler.artistProfile.x!.commission_info" :truncate="500"/>
+                              <ac-rendered
+                                :value="subjectHandler.artistProfile.x!.commission_info"
+                                :truncate="500"
+                              />
                             </template>
                           </ac-load-section>
                         </v-col>
                         <v-col cols="12">
-                          <v-alert type="info" :value="true">
+                          <v-alert
+                            type="info"
+                            :value="true"
+                          >
                             All orders are bound by the
-                            <router-link :to="{name: 'CommissionAgreement'}">Commission Agreement.</router-link>
+                            <router-link :to="{name: 'CommissionAgreement'}">
+                              Commission Agreement.
+                            </router-link>
                           </v-alert>
                         </v-col>
-                        <v-col cols="12" v-if="product.x.escrow_enabled || !product.x.escrow_upgradable">
-                          <ac-escrow-label :escrow="product.x.escrow_enabled" name="product"/>
+                        <v-col
+                          v-if="product.x.escrow_enabled || !product.x.escrow_upgradable"
+                          cols="12"
+                        >
+                          <ac-escrow-label
+                            :escrow="product.x.escrow_enabled"
+                            name="product"
+                          />
                         </v-col>
                         <template v-else>
-                          <v-col cols="12" sm="6">
-                            <ac-escrow-label :escrow="product.x.escrow_enabled" :upgrade-available="true"
-                                             name="product"/>
+                          <v-col
+                            cols="12"
+                            sm="6"
+                          >
+                            <ac-escrow-label
+                              :escrow="product.x.escrow_enabled"
+                              :upgrade-available="true"
+                              name="product"
+                            />
                           </v-col>
                           <v-col cols="6">
                             <ac-bound-field
-                                :field="orderForm.fields.escrow_upgrade" field-type="v-checkbox"
-                                :label="shieldUpgradeLabel"
+                              :field="orderForm.fields.escrow_upgrade"
+                              field-type="v-checkbox"
+                              :label="shieldUpgradeLabel"
                             />
                           </v-col>
                         </template>
@@ -208,15 +331,37 @@
                     </v-stepper-window-item>
                   </v-stepper-window>
                 </v-stepper>
-                <v-card-actions row wrap>
-                  <v-spacer></v-spacer>
-                  <v-btn @click.prevent="orderForm.step -= 1" v-if="orderForm.step > 1" color="secondary"
-                         class="previous-button" variant="flat">Previous
+                <v-card-actions
+                  row
+                  wrap
+                >
+                  <v-spacer />
+                  <v-btn
+                    v-if="orderForm.step > 1"
+                    color="secondary"
+                    class="previous-button"
+                    variant="flat"
+                    @click.prevent="orderForm.step -= 1"
+                  >
+                    Previous
                   </v-btn>
-                  <v-btn @click.prevent="orderForm.step += 1" v-if="orderForm.step < 3" color="primary"
-                         class="next-button" variant="flat" :disabled="!!nextDisabled">Next
+                  <v-btn
+                    v-if="orderForm.step < 3"
+                    color="primary"
+                    class="next-button"
+                    variant="flat"
+                    :disabled="!!nextDisabled"
+                    @click.prevent="orderForm.step += 1"
+                  >
+                    Next
                   </v-btn>
-                  <v-btn type="submit" v-if="orderForm.step === 3" color="primary" class="submit-button" variant="flat">
+                  <v-btn
+                    v-if="orderForm.step === 3"
+                    type="submit"
+                    color="primary"
+                    class="submit-button"
+                    variant="flat"
+                  >
                     <span v-if="invoicing">
                       Create Invoice
                     </span>
@@ -229,41 +374,77 @@
             </ac-form-container>
           </ac-form>
         </v-col>
-        <v-col cols="12" offset-md="1" md="3" lg="2">
-          <v-toolbar dense color="black">
-            <ac-avatar :user="product.x.user" :show-name="false" class="ml-3"/>
+        <v-col
+          cols="12"
+          offset-md="1"
+          md="3"
+          lg="2"
+        >
+          <v-toolbar
+            dense
+            color="black"
+          >
+            <ac-avatar
+              :user="product.x.user"
+              :show-name="false"
+              class="ml-3"
+            />
             <v-toolbar-title class="ml-1">
-              <ac-link :to="profileLink(product.x.user)">{{username}}</ac-link>
+              <ac-link :to="profileLink(product.x.user)">
+                {{ username }}
+              </ac-link>
             </v-toolbar-title>
           </v-toolbar>
           <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
-                <v-col class="title" cols="12">
+                <v-col
+                  class="title"
+                  cols="12"
+                >
                   Order Summary
                 </v-col>
-                <v-col class="subheading" cols="12">
-                  {{product.x.name}}
+                <v-col
+                  class="subheading"
+                  cols="12"
+                >
+                  {{ product.x.name }}
                 </v-col>
                 <v-col cols="12">
-                  <ac-asset :asset="product.x.primary_submission" thumb-name="thumbnail" :aspect-ratio="1" :alt="productSubmissionText"/>
+                  <ac-asset
+                    :asset="product.x.primary_submission"
+                    thumb-name="thumbnail"
+                    :aspect-ratio="1"
+                    :alt="productSubmissionText"
+                  />
                 </v-col>
-                <v-col class="subtitle-1" cols="12" v-if="product.x.name_your_price">
+                <v-col
+                  v-if="product.x.name_your_price"
+                  class="subtitle-1"
+                  cols="12"
+                >
                   Name your price!
                 </v-col>
-                <v-col class="subtitle-1" cols="12" v-else>
-                  Starts at ${{currentPrice}}
+                <v-col
+                  v-else
+                  class="subtitle-1"
+                  cols="12"
+                >
+                  Starts at ${{ currentPrice }}
                   <p v-if="shielded">
-                    <small>(${{product.x.starting_price}} + ${{shieldCost}} shield fee)</small>
+                    <small>(${{ product.x.starting_price }} + ${{ shieldCost }} shield fee)</small>
                   </p>
                 </v-col>
                 <v-col>
                   <span v-if="product.x.revisions">
-                    <strong>{{product.x.revisions}}</strong> revision<span v-if="product.x.revisions > 1">s</span> included.
+                    <strong>{{ product.x.revisions }}</strong> revision<span v-if="product.x.revisions > 1">s</span> included.
                   </span>
                 </v-col>
-                <v-col cols="12" v-if="deliveryDate">
-                  <span>Estimated completion: <strong>{{formatDateTerse(deliveryDate!)}}</strong></span>
+                <v-col
+                  v-if="deliveryDate"
+                  cols="12"
+                >
+                  <span>Estimated completion: <strong>{{ formatDateTerse(deliveryDate!) }}</strong></span>
                 </v-col>
               </v-row>
             </v-card-text>
@@ -467,7 +648,7 @@ watch(() => orderForm.step, (val: number) => {
 const nextDisabled = computed(() => {
   // Touch the order form so this is re-evaluated whenever it changes.
   // Just checking the email field isn't enough since Vue can't listen for it.
-  // eslint-disable-next-line no-unused-expressions
+   
   clickCounter.value
   const element = document.querySelector('#field-newOrder__email')
   if (!element) {
@@ -493,7 +674,7 @@ const goToOrder = (order: Order) => {
     return
   }
   // Special case override for table events.
-  if ((product.x?.table_product && powers.value.table_seller) || invoicing.value) { // eslint-disable-line camelcase
+  if ((product.x?.table_product && powers.value.table_seller) || invoicing.value) {  
     link.query.view_as = 'Seller'
     link.name = 'SaleDeliverablePayment'
     delete link.query.showConfirm

@@ -1,16 +1,41 @@
 <template>
   <ac-load-section :controller="orderList">
-    <v-row v-for="[username, orders] of ordersByUser" :key="username">
+    <v-row
+      v-for="[username, orders] of ordersByUser"
+      :key="username"
+    >
       <v-col cols="12">
-        <v-toolbar :dense="true" color="black" :key="`${username}-header`">
-          <ac-avatar :username="username" :show-name="false" class="ml-3"/>
+        <v-toolbar
+          :key="`${username}-header`"
+          :dense="true"
+          color="black"
+        >
+          <ac-avatar
+            :username="username"
+            :show-name="false"
+            class="ml-3"
+          />
           <v-toolbar-title class="ml-1">
-            <ac-link :to="{name: 'AboutUser', params: {username}}">{{ username }}</ac-link>
+            <ac-link :to="{name: 'AboutUser', params: {username}}">
+              {{ username }}
+            </ac-link>
           </v-toolbar-title>
         </v-toolbar>
       </v-col>
-      <v-col cols="12" sm="3" md="4" lg="3" xl="2" v-for="order in orders" :key="order.id">
-        <ac-order-preview :order="order" :type="'sale'" :username="username"/>
+      <v-col
+        v-for="order in orders"
+        :key="order.id"
+        cols="12"
+        sm="3"
+        md="4"
+        lg="3"
+        xl="2"
+      >
+        <ac-order-preview
+          :order="order"
+          :type="'sale'"
+          :username="username"
+        />
       </v-col>
     </v-row>
   </ac-load-section>

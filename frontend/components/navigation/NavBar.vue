@@ -2,36 +2,56 @@
 <template>
   <div class="main-navigation">
     <v-navigation-drawer
-        fixed
-        v-model="drawer"
-        app
-        temporary
-        width="300"
-        v-if="viewer && !store.state.iFrame && fullInterface"
+      v-if="viewer && !store.state.iFrame && fullInterface"
+      v-model="drawer"
+      fixed
+      app
+      temporary
+      width="300"
     >
-      <v-container fluid class="pa-0 fill-height">
+      <v-container
+        fluid
+        class="pa-0 fill-height"
+      >
         <v-row no-gutters>
           <v-col cols="12">
-            <ac-nav-links :subject-handler="viewerHandler" :is-logged-in="isLoggedIn" :is-registered="isRegistered"
-                          :is-superuser="isSuperuser" v-model="drawer"/>
+            <ac-nav-links
+              v-model="drawer"
+              :subject-handler="viewerHandler"
+              :is-logged-in="isLoggedIn"
+              :is-registered="isRegistered"
+              :is-superuser="isSuperuser"
+            />
           </v-col>
           <v-col cols="12">
             <v-divider />
           </v-col>
-          <v-col cols="12" class="pt-3">
+          <v-col
+            cols="12"
+            class="pt-3"
+          >
             <v-sheet>
               <v-row>
                 <v-col class="bottom-button">
                   <a
-                      href="https://bsky.app/profile/artconomy.bsky.social"
-                      rel="nofollow noopener"
-                      target="_blank"
+                    href="https://bsky.app/profile/artconomy.bsky.social"
+                    rel="nofollow noopener"
+                    target="_blank"
                   >
                     <v-row no-gutters>
-                      <v-col cols="12" class="text-center">
-                        <v-icon size="default" :icon="siBluesky.path"/>
+                      <v-col
+                        cols="12"
+                        class="text-center"
+                      >
+                        <v-icon
+                          size="default"
+                          :icon="siBluesky.path"
+                        />
                       </v-col>
-                      <v-col cols="12" class="text-center">
+                      <v-col
+                        cols="12"
+                        class="text-center"
+                      >
                         <small>Bluesky</small>
                       </v-col>
                     </v-row>
@@ -39,15 +59,27 @@
                 </v-col>
                 <v-col class="bottom-button">
                   <a
-                      href="https://artconomy.com/blog/"
-                      rel="nofollow noopener"
-                      target="_blank"
+                    href="https://artconomy.com/blog/"
+                    rel="nofollow noopener"
+                    target="_blank"
                   >
-                    <v-row no-gutters class="px-2">
-                      <v-col cols="12" class="text-center">
-                        <v-icon medium :icon="mdiPencil"/>
+                    <v-row
+                      no-gutters
+                      class="px-2"
+                    >
+                      <v-col
+                        cols="12"
+                        class="text-center"
+                      >
+                        <v-icon
+                          medium
+                          :icon="mdiPencil"
+                        />
                       </v-col>
-                      <v-col cols="12" class="text-center pt-1">
+                      <v-col
+                        cols="12"
+                        class="text-center pt-1"
+                      >
                         <small>Blog</small>
                       </v-col>
                     </v-row>
@@ -55,26 +87,48 @@
                 </v-col>
                 <v-col class="bottom-button">
                   <a
-                      href="https://discord.gg/4nWK9mf"
-                      rel="nofollow noopener"
-                      target="_blank"
+                    href="https://discord.gg/4nWK9mf"
+                    rel="nofollow noopener"
+                    target="_blank"
                   >
                     <v-row no-gutters>
-                      <v-col cols="12" class="text-center">
-                        <v-icon size="default" :icon="siDiscord.path"/>
+                      <v-col
+                        cols="12"
+                        class="text-center"
+                      >
+                        <v-icon
+                          size="default"
+                          :icon="siDiscord.path"
+                        />
                       </v-col>
-                      <v-col cols="12" class="text-center">
+                      <v-col
+                        cols="12"
+                        class="text-center"
+                      >
                         <small>Discord</small>
                       </v-col>
                     </v-row>
                   </a>
                 </v-col>
-                <v-col class="bottom-button" @click.capture.prevent="showSupport" tabindex="0">
+                <v-col
+                  class="bottom-button"
+                  tabindex="0"
+                  @click.capture.prevent="showSupport"
+                >
                   <v-row no-gutters>
-                    <v-col cols="12" class="text-center support-button">
-                      <v-icon medium :icon="mdiChatQuestion"/>
+                    <v-col
+                      cols="12"
+                      class="text-center support-button"
+                    >
+                      <v-icon
+                        medium
+                        :icon="mdiChatQuestion"
+                      />
                     </v-col>
-                    <v-col cols="12" class="text-center pt-1">
+                    <v-col
+                      cols="12"
+                      class="text-center pt-1"
+                    >
                       <small>Support</small>
                     </v-col>
                   </v-row>
@@ -85,118 +139,165 @@
         </v-row>
       </v-container>
     </v-navigation-drawer>
-    <message-center v-if="isRegistered" :username="rawViewerName" v-model="messagesOpen" />
+    <message-center
+      v-if="isRegistered"
+      v-model="messagesOpen"
+      :username="rawViewerName"
+    />
     <v-app-bar
-        color="secondary"
-        density="compact"
-        fixed
-        clipped-left
-        app
-        dark
-        :scroll-off-screen="mdAndDown"
-        :scroll-threshold="150"
-        v-if="!store.state.iFrame"
+      v-if="!store.state.iFrame"
+      color="secondary"
+      density="compact"
+      fixed
+      clipped-left
+      app
+      dark
+      :scroll-off-screen="mdAndDown"
+      :scroll-threshold="150"
     >
-      <template v-slot:prepend>
-        <v-app-bar-nav-icon v-if="viewer && fullInterface"
-                            @click.stop="drawer = !drawer"
-                            tabindex="0"
-                            aria-label="Open Menu"
-                            name="Main Menu"/>
+      <template #prepend>
+        <v-app-bar-nav-icon
+          v-if="viewer && fullInterface"
+          tabindex="0"
+          aria-label="Open Menu"
+          name="Main Menu"
+          @click.stop="drawer = !drawer"
+        />
       </template>
       <v-toolbar-title class="mr-5 align-center hidden-xs">
-        <v-btn variant="text" to="/">
-          <img :src="logo" class="header-logo" alt="A" height="28" width="28"/>
-          <div class="title">rtconomy</div>
+        <v-btn
+          variant="text"
+          to="/"
+        >
+          <img
+            :src="logo"
+            class="header-logo"
+            alt="A"
+            height="28"
+            width="28"
+          >
+          <div class="title">
+            rtconomy
+          </div>
         </v-btn>
       </v-toolbar-title>
-      <v-toolbar-title class="align-center hidden-sm-and-up" v-if="isLoggedIn">
-        <v-btn variant="text" to="/" icon>
-          <img :src="logo" class="header-logo" alt="A"/>
+      <v-toolbar-title
+        v-if="isLoggedIn"
+        class="align-center hidden-sm-and-up"
+      >
+        <v-btn
+          variant="text"
+          to="/"
+          icon
+        >
+          <img
+            :src="logo"
+            class="header-logo"
+            alt="A"
+          >
         </v-btn>
       </v-toolbar-title>
-      <v-btn icon class="hidden-md-and-up" :to="{name: 'SearchProducts'}" aria-label="Search">
-        <v-icon x-large :icon="mdiMagnify"></v-icon>
+      <v-btn
+        icon
+        class="hidden-md-and-up"
+        :to="{name: 'SearchProducts'}"
+        aria-label="Search"
+      >
+        <v-icon
+          x-large
+          :icon="mdiMagnify"
+        />
       </v-btn>
       <ac-bound-field
-          :field="searchForm.fields.q"
-          placeholder="Search..."
-          single-line
-          @keyup="runSearch"
-          @click:append="runSearch"
-          color="white"
-          hide-details
-          class="hidden-sm-and-down"
-          field-id="nav-bar-search"
-          aria-label="Search field"
+        :field="searchForm.fields.q"
+        placeholder="Search..."
+        single-line
+        color="white"
+        hide-details
+        class="hidden-sm-and-down"
+        field-id="nav-bar-search"
+        aria-label="Search field"
+        @keyup="runSearch"
+        @click:append="runSearch"
       >
-        <template v-slot:prepend>
-          <v-btn icon variant="plain" :to="{name: 'SearchProducts'}" aria-label="Search" class="search-button-offset">
-            <v-icon x-large :icon="mdiMagnify"></v-icon>
+        <template #prepend>
+          <v-btn
+            icon
+            variant="plain"
+            :to="{name: 'SearchProducts'}"
+            aria-label="Search"
+            class="search-button-offset"
+          >
+            <v-icon
+              x-large
+              :icon="mdiMagnify"
+            />
           </v-btn>
         </template>
       </ac-bound-field>
-      <v-card class="px-2 py-1 hidden-xs"
-              :color="sfwMode.model? 'blue darken-3' : 'black'"
-              v-if="viewer && viewer.rating > 0 && fullInterface"
+      <v-card
+        v-if="viewer && viewer.rating > 0 && fullInterface"
+        class="px-2 py-1 hidden-xs"
+        :color="sfwMode.model? 'blue darken-3' : 'black'"
       >
         <v-switch
-            v-model="sfwMode.model"
-            @click="sfwMode.model = !sfwMode.model"
-            label="SFW"
-            :hide-details="true"
-        >
-        </v-switch>
+          v-model="sfwMode.model"
+          label="SFW"
+          :hide-details="true"
+          @click="sfwMode.model = !sfwMode.model"
+        />
       </v-card>
-      <ac-stats-bar :username="rawViewerName" v-if="viewer && viewer.artist_mode && fullInterface" />
+      <ac-stats-bar
+        v-if="viewer && viewer.artist_mode && fullInterface"
+        :username="rawViewerName"
+      />
       <v-toolbar-items v-if="fullInterface">
-        <ac-notification-indicator :username="rawViewerName" v-if="isRegistered" @click="messagesOpen = !messagesOpen" :key="rawViewerName" />
-        <v-btn class="nav-login-item" variant="text" v-if="isRegistered"
-               :to="profileRoute">
+        <ac-notification-indicator
+          v-if="isRegistered"
+          :key="rawViewerName"
+          :username="rawViewerName"
+          @click="messagesOpen = !messagesOpen"
+        />
+        <v-btn
+          v-if="isRegistered"
+          class="nav-login-item"
+          variant="text"
+          :to="profileRoute"
+        >
           <v-avatar size="32px">
-            <img :src="registeredUser.avatar_url" aria-hidden="true" width="32" height="32" alt="">
+            <img
+              :src="registeredUser.avatar_url"
+              aria-hidden="true"
+              width="32"
+              height="32"
+              alt=""
+            >
           </v-avatar>
-          <div style="padding-left: 1rem;" v-if="isLoggedIn" class="hidden-sm-and-down">{{ viewer!.username }}</div>
+          <div
+            v-if="isLoggedIn"
+            style="padding-left: 1rem;"
+            class="hidden-sm-and-down"
+          >
+            {{ viewer!.username }}
+          </div>
         </v-btn>
-        <v-btn v-else-if="viewer" class="nav-login-item" variant="text" :to="loginLink">Login</v-btn>
-        <v-btn v-else class="nav-login-item" aria-label="Login button loading."/>
+        <v-btn
+          v-else-if="viewer"
+          class="nav-login-item"
+          variant="text"
+          :to="loginLink"
+        >
+          Login
+        </v-btn>
+        <v-btn
+          v-else
+          class="nav-login-item"
+          aria-label="Login button loading."
+        />
       </v-toolbar-items>
     </v-app-bar>
   </div>
 </template>
-
-<style>
-.header-logo {
-  height: 1.75rem;
-  vertical-align: middle;
-}
-
-.title {
-  display: inline-block;
-  vertical-align: middle;
-}
-
-.phone-padding {
-  padding-bottom: 80px !important;
-}
-.search-button-offset {
-  right: -1rem;
-}
-
-.bottom-button {
-  opacity: .7;
-}
-
-.bottom-button:hover {
-  opacity: 1
-}
-
-#app .bottom-button a {
-  text-decoration: none;
-  font-weight: normal;
-}
-
-</style>
 
 <script setup lang="ts">
 import {makeQueryParams, BASE_URL} from '@/lib/lib.ts'
@@ -281,3 +382,36 @@ const messagesOpen = computed<boolean>({
   set: (val: boolean) => store.commit('setMessagesOpen', val)
 })
 </script>
+
+<style>
+.header-logo {
+  height: 1.75rem;
+  vertical-align: middle;
+}
+
+.title {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.phone-padding {
+  padding-bottom: 80px !important;
+}
+.search-button-offset {
+  right: -1rem;
+}
+
+.bottom-button {
+  opacity: .7;
+}
+
+.bottom-button:hover {
+  opacity: 1
+}
+
+#app .bottom-button a {
+  text-decoration: none;
+  font-weight: normal;
+}
+
+</style>

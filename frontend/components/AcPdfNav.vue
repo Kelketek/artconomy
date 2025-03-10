@@ -1,17 +1,25 @@
 <template>
-  <v-col cols="12" class="text-center">
+  <v-col
+    cols="12"
+    class="text-center"
+  >
     <v-btn
-        @click="page = page > 1 ? page - 1 : page"
-        :disabled="page === 1"
-        class="mr-1"
-        color="primary"
-    >Prev</v-btn>
+      :disabled="page === 1"
+      class="mr-1"
+      color="primary"
+      @click="page = page > 1 ? page - 1 : page"
+    >
+      Prev
+    </v-btn>
     <span>{{ page }} / {{ pages }}</span>
     <v-btn
-        @click="page = page < pages ? page + 1 : page"
-        color="primary"
-        :disabled="page === pages" class="ml-1"
-    >Next</v-btn>
+      color="primary"
+      :disabled="page === pages"
+      class="ml-1"
+      @click="page = page < pages ? page + 1 : page"
+    >
+      Next
+    </v-btn>
   </v-col>
 </template>
 

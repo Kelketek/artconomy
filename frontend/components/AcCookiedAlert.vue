@@ -1,7 +1,12 @@
 <template>
-<v-alert :type="type" v-model="isNew" :closable="true" v-if="active">
-  <slot />
-</v-alert>
+  <v-alert
+    v-if="active"
+    v-model="isNew"
+    :type="type"
+    :closable="true"
+  >
+    <slot />
+  </v-alert>
 </template>
 
 <script setup lang="ts">

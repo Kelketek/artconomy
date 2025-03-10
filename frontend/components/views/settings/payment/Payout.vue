@@ -1,40 +1,80 @@
 <template>
   <v-row no-gutters>
-    <v-col cols="12" sm="8" md="6" class="pa-2 text-center d-flex">
-      <v-row no-gutters class="justify-content" align="center">
+    <v-col
+      cols="12"
+      sm="8"
+      md="6"
+      class="pa-2 text-center d-flex"
+    >
+      <v-row
+        no-gutters
+        class="justify-content"
+        align="center"
+      >
         <v-col>
-          <ac-load-section :controller="balance" v-if="inSupportedCountry">
-            <template v-slot:default>
+          <ac-load-section
+            v-if="inSupportedCountry"
+            :controller="balance"
+          >
+            <template #default>
               <v-card>
                 <v-card-text>
-                  <p><strong>Escrow Balance: ${{balance.x!.escrow}}</strong></p>
-                  <p><strong>Available Balance: ${{balance.x!.available}}</strong></p>
-                  <p><strong>In transit to your bank: ${{balance.x!.pending}}</strong></p>
+                  <p><strong>Escrow Balance: ${{ balance.x!.escrow }}</strong></p>
+                  <p><strong>Available Balance: ${{ balance.x!.available }}</strong></p>
+                  <p><strong>In transit to your bank: ${{ balance.x!.pending }}</strong></p>
                 </v-card-text>
               </v-card>
             </template>
           </ac-load-section>
           <ac-load-section :controller="subjectHandler.artistProfile">
-            <template v-slot:default>
+            <template #default>
               <v-col class="py-1">
-                <ac-patch-field field-type="ac-bank-toggle"
-                                :patcher="subjectHandler.artistProfile.patchers.bank_account_status"
-                                :username="username" :manage-banks="true"
-                ></ac-patch-field>
+                <ac-patch-field
+                  field-type="ac-bank-toggle"
+                  :patcher="subjectHandler.artistProfile.patchers.bank_account_status"
+                  :username="username"
+                  :manage-banks="true"
+                />
               </v-col>
             </template>
           </ac-load-section>
         </v-col>
       </v-row>
     </v-col>
-    <v-col cols="12" sm="4" md="6" class="pa-2 text-center">
+    <v-col
+      cols="12"
+      sm="4"
+      md="6"
+      class="pa-2 text-center"
+    >
       <v-row no-gutters>
-        <v-col cols="8" offset="2" sm="6" offset-sm="3" md="4" offset-md="4">
-          <v-img :src="defending.href" contain class="shield-indicator" :class="{faded: !inSupportedCountry}" alt="" aria-hidden="true"></v-img>
+        <v-col
+          cols="8"
+          offset="2"
+          sm="6"
+          offset-sm="3"
+          md="4"
+          offset-md="4"
+        >
+          <v-img
+            :src="defending.href"
+            contain
+            class="shield-indicator"
+            :class="{faded: !inSupportedCountry}"
+            alt=""
+            aria-hidden="true"
+          />
         </v-col>
-        <v-col class="text-center" cols="12">
-          <p v-if="inSupportedCountry">Artconomy Shield is enabled!</p>
-          <p v-else>Artconomy Shield is disabled.</p>
+        <v-col
+          class="text-center"
+          cols="12"
+        >
+          <p v-if="inSupportedCountry">
+            Artconomy Shield is enabled!
+          </p>
+          <p v-else>
+            Artconomy Shield is disabled.
+          </p>
         </v-col>
       </v-row>
     </v-col>
@@ -44,18 +84,39 @@
           <v-row>
             <v-col cols="12">
               <h2>Your bank account is configured, and you can now list products!</h2>
-              <p>Your products can be protected by
-                <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">Artconomy Shield</router-link>
+              <p>
+                Your products can be protected by
+                <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
+                  Artconomy Shield
+                </router-link>
                 .
               </p>
             </v-col>
-            <v-col cols="12" sm="6">
-              <v-btn color="primary" :to="{name: 'Store', params: {username}}" variant="flat">Go to my Store</v-btn>
+            <v-col
+              cols="12"
+              sm="6"
+            >
+              <v-btn
+                color="primary"
+                :to="{name: 'Store', params: {username}}"
+                variant="flat"
+              >
+                Go to my Store
+              </v-btn>
             </v-col>
-            <v-col cols="12" sm="6">
+            <v-col
+              cols="12"
+              sm="6"
+            >
               <ac-form @submit.prevent="dashboardLinkForm.submitThen(goToDashboard)">
                 <ac-form-container v-bind="dashboardLinkForm.bind">
-                  <v-btn color="secondary" variant="flat" type="submit">Stripe Dashboard</v-btn>
+                  <v-btn
+                    color="secondary"
+                    variant="flat"
+                    type="submit"
+                  >
+                    Stripe Dashboard
+                  </v-btn>
                 </ac-form-container>
               </ac-form>
             </v-col>
@@ -65,16 +126,6 @@
     </v-col>
   </v-row>
 </template>
-
-<style scoped>
-.shield-indicator {
-  transition: opacity 1s;
-}
-
-.faded {
-  opacity: .25;
-}
-</style>
 
 <script setup lang="ts">
 import {useSubject} from '@/mixins/subjective.ts'
@@ -167,3 +218,13 @@ const goToDashboard = (dashboardLinkData: DashboardLinkData) => {
   }
 }
 </script>
+
+<style scoped>
+.shield-indicator {
+  transition: opacity 1s;
+}
+
+.faded {
+  opacity: .25;
+}
+</style>

@@ -1,8 +1,20 @@
 <template>
   <v-row no-gutters>
-    <v-col class="text-left pa-1" cols="12">
-      <v-btn type="submit" small variant="flat" color="black">
-        <v-icon left color="yellow" :icon="mdiPlus"/>
+    <v-col
+      class="text-left pa-1"
+      cols="12"
+    >
+      <v-btn
+        type="submit"
+        small
+        variant="flat"
+        color="black"
+      >
+        <v-icon
+          left
+          color="yellow"
+          :icon="mdiPlus"
+        />
         {{ placeholder }}
       </v-btn>
     </v-col>

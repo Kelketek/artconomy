@@ -1,15 +1,27 @@
 <template>
-  <v-responsive v-if="(smAndDown && showFooter) || mini" aspect-ratio="1" class="submission"
-                :class="{unavailable}">
+  <v-responsive
+    v-if="(smAndDown && showFooter) || mini"
+    aspect-ratio="1"
+    class="submission"
+    :class="{unavailable}"
+  >
     <v-card>
       <v-card-text class="pa-2">
         <v-row no-gutters>
-          <v-col cols="8" offset="2">
+          <v-col
+            cols="8"
+            offset="2"
+          >
             <ac-link :to="submissionLink">
-              <ac-asset :text="false" :asset="submission" thumb-name="thumbnail" :allow-preview="false"
-                        :alt="altText"
-                        :aspect-ratio="1"
-                        :class="{fade: unavailable}"/>
+              <ac-asset
+                :text="false"
+                :asset="submission"
+                thumb-name="thumbnail"
+                :allow-preview="false"
+                :alt="altText"
+                :aspect-ratio="1"
+                :class="{fade: unavailable}"
+              />
             </ac-link>
           </v-col>
         </v-row>
@@ -18,7 +30,9 @@
             <ac-link :to="submissionLink">
               <v-row no-gutters>
                 <v-col>
-                  <div class="text-left">{{ submission.title }}</div>
+                  <div class="text-left">
+                    {{ submission.title }}
+                  </div>
                 </v-col>
               </v-row>
             </ac-link>
@@ -27,45 +41,41 @@
       </v-card-text>
     </v-card>
   </v-responsive>
-  <v-card class="submission" v-else :class="{unavailable}">
+  <v-card
+    v-else
+    class="submission"
+    :class="{unavailable}"
+  >
     <ac-link :to="submissionLink">
       <ac-asset
-          :asset="submission"
-          :thumb-name="thumbName"
-          :contain="contain"
-          :compact="compact"
-          :text="text"
-          :terse="true"
-          :aspect-ratio="aspectRatio"
-          :allow-preview="allowPreview"
-          :alt="showFooter ? '' : altText"
+        :asset="submission"
+        :thumb-name="thumbName"
+        :contain="contain"
+        :compact="compact"
+        :text="text"
+        :terse="true"
+        :aspect-ratio="aspectRatio"
+        :allow-preview="allowPreview"
+        :alt="showFooter ? '' : altText"
       />
     </ac-link>
-    <ac-link :to="submissionLink" v-if="showFooter">
-      <v-card-text class="pa-1" v-if="submission.title">
+    <ac-link
+      v-if="showFooter"
+      :to="submissionLink"
+    >
+      <v-card-text
+        v-if="submission.title"
+        class="pa-1"
+      >
         <v-row dense>
-          <v-col class="text-left"><strong>{{ submission.title }}</strong></v-col>
+          <v-col class="text-left">
+            <strong>{{ submission.title }}</strong>
+          </v-col>
         </v-row>
       </v-card-text>
     </ac-link>
   </v-card>
 </template>
-
-<style>
-.gallery-preview-media .v-card__media__content {
-  justify-content: center;
-}
-
-.submission a {
-  text-decoration: none !important;
-}
-</style>
-
-<style scoped>
-.unavailable {
-  opacity: .5;
-}
-</style>
 
 <script setup lang="ts">
 import AcAsset from './AcAsset.vue'
@@ -115,3 +125,19 @@ const submissionLink = computed(() => {
 const altText = computed(() => props.submission.title || 'Untitled Submission.')
 const unavailable = computed(() => props.submission.private || props.forceHidden)
 </script>
+
+<style>
+.gallery-preview-media .v-card__media__content {
+  justify-content: center;
+}
+
+.submission a {
+  text-decoration: none !important;
+}
+</style>
+
+<style scoped>
+.unavailable {
+  opacity: .5;
+}
+</style>

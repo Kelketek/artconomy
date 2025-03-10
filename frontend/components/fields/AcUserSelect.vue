@@ -1,22 +1,22 @@
 <template>
   <v-autocomplete
-      chips
-      :multiple="multiple"
-      v-model="tags"
-      autocomplete
-      v-model:search="query"
-      :items="items"
-      hide-no-data
-      auto-select-first
-      deletable-chips
-      hide-selected
-      cache-items
-      :filter="itemFilter"
-      :item-value="itemValue"
-      :allow-raw="allowRaw"
-      item-title="username"
-      ref="input"
-      v-bind="fieldAttrs"
+    v-model="tags"
+    v-model:search="query"
+    chips
+    :multiple="multiple"
+    autocomplete
+    :items="items"
+    ref="input"
+    hide-no-data
+    auto-select-first
+    deletable-chips
+    hide-selected
+    cache-items
+    :filter="itemFilter"
+    :item-value="itemValue"
+    :allow-raw="allowRaw"
+    item-title="username"
+    v-bind="fieldAttrs"
   />
 </template>
 

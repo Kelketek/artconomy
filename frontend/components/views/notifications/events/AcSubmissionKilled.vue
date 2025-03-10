@@ -1,10 +1,13 @@
 <template>
-  <ac-base-notification :notification="notification" :username="username">
-    <template v-slot:title>
-      Your submission with ID {{event.target.id}} was removed.
+  <ac-base-notification
+    :notification="notification"
+    :username="username"
+  >
+    <template #title>
+      Your submission with ID {{ event.target.id }} was removed.
     </template>
-    <template v-slot:subtitle>
-      Reason: {{reason}}
+    <template #subtitle>
+      Reason: {{ reason }}
     </template>
   </ac-base-notification>
 </template>

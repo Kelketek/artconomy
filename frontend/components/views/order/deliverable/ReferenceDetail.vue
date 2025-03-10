@@ -1,20 +1,51 @@
 <template>
   <v-container fluid>
     <v-row no-gutters>
-      <v-col cols="12" style="position: relative">
-        <v-btn icon absolute top left :to="backUrl" color="primary">
-          <v-icon :icon="mdiArrowLeft"/>
+      <v-col
+        cols="12"
+        style="position: relative"
+      >
+        <v-btn
+          icon
+          absolute
+          top
+          left
+          :to="backUrl"
+          color="primary"
+        >
+          <v-icon :icon="mdiArrowLeft" />
         </v-btn>
         <ac-load-section :controller="reference">
-          <template v-slot:default>
-            <ac-asset thumb-name="gallery" :asset="reference.x" :contain="true" alt="Reference for order. See comments below, if available."/>
+          <template #default>
+            <ac-asset
+              thumb-name="gallery"
+              :asset="reference.x"
+              :contain="true"
+              alt="Reference for order. See comments below, if available."
+            />
             <v-row>
               <v-col class="text-center">
-                <ac-rating-button :controls="true" :patcher="reference.patchers.rating" :editing="true" :class="{'mr-1': reference.x!.owner === rawViewerName}" />
-                <ac-confirmation :action="performDelete" v-if="reference.x!.owner === rawViewerName">
-                  <template v-slot:default="{on}">
-                    <v-btn color="red" v-on="on"  variant="flat" class="ml-1">
-                      <v-icon left :icon="mdiDelete"/>
+                <ac-rating-button
+                  :controls="true"
+                  :patcher="reference.patchers.rating"
+                  :editing="true"
+                  :class="{'mr-1': reference.x!.owner === rawViewerName}"
+                />
+                <ac-confirmation
+                  v-if="reference.x!.owner === rawViewerName"
+                  :action="performDelete"
+                >
+                  <template #default="{on}">
+                    <v-btn
+                      color="red"
+                      variant="flat"
+                      class="ml-1"
+                      v-on="on"
+                    >
+                      <v-icon
+                        left
+                        :icon="mdiDelete"
+                      />
                       Delete
                     </v-btn>
                   </template>
@@ -26,12 +57,12 @@
       </v-col>
     </v-row>
     <ac-comment-section
-        :commentList="referenceComments"
-        :nesting="false"
-        :locked="!isInvolved || is(DeliverableStatus.MISSED) || is(DeliverableStatus.LIMBO)"
-        :guest-ok="true"
-        :show-history="isArbitrator"
-        :extra-data="{deliverable: deliverableId}"
+      :comment-list="referenceComments"
+      :nesting="false"
+      :locked="!isInvolved || is(DeliverableStatus.MISSED) || is(DeliverableStatus.LIMBO)"
+      :guest-ok="true"
+      :show-history="isArbitrator"
+      :extra-data="{deliverable: deliverableId}"
     />
   </v-container>
 </template>

@@ -1,11 +1,18 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="productLink" :username="username">
-    <template v-slot:title>
-      <ac-link :to="productLink">New Product: {{event.data.product.name}}</ac-link>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="productLink"
+    :username="username"
+  >
+    <template #title>
+      <ac-link :to="productLink">
+        New Product: {{ event.data.product.name }}
+      </ac-link>
     </template>
-    <template v-slot:subtitle>
-      <ac-link :to="productLink">By {{event.data.product.user.username}} starting at
-        ${{event.data.product.starting_price}}
+    <template #subtitle>
+      <ac-link :to="productLink">
+        By {{ event.data.product.user.username }} starting at
+        ${{ event.data.product.starting_price }}
       </ac-link>
     </template>
   </ac-base-notification>

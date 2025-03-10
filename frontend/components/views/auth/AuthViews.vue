@@ -1,19 +1,38 @@
 <template>
   <v-container>
     <v-row>
-      <v-col cols="12" sm="8" md="6" offset-sm="2" offset-md="3" class="text-center">
-        <v-tabs class="inverse" fixed-tabs>
-          <v-tab :to="{name: 'Login', query: {...route.query}}" :replace="true">
+      <v-col
+        cols="12"
+        sm="8"
+        md="6"
+        offset-sm="2"
+        offset-md="3"
+        class="text-center"
+      >
+        <v-tabs
+          class="inverse"
+          fixed-tabs
+        >
+          <v-tab
+            :to="{name: 'Login', query: {...route.query}}"
+            :replace="true"
+          >
             Login
           </v-tab>
-          <v-tab :to="{name: 'Register', query: {...route.query}}" :replace="true">
+          <v-tab
+            :to="{name: 'Register', query: {...route.query}}"
+            :replace="true"
+          >
             Register
           </v-tab>
-          <v-tab :to="{name: 'Forgot', query: {...route.query}}" :replace="true">
+          <v-tab
+            :to="{name: 'Forgot', query: {...route.query}}"
+            :replace="true"
+          >
             Forgot
           </v-tab>
         </v-tabs>
-        <router-view ref="currentView"/>
+        <router-view ref="currentView" />
       </v-col>
     </v-row>
   </v-container>

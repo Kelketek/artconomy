@@ -1,39 +1,99 @@
 <template>
-  <v-toolbar :density="dense ? 'compact' : 'default'" color="black">
-    <ac-avatar :username="username" :show-name="false" class="ml-3"/>
+  <v-toolbar
+    :density="dense ? 'compact' : 'default'"
+    color="black"
+  >
+    <ac-avatar
+      :username="username"
+      :show-name="false"
+      class="ml-3"
+    />
     <v-toolbar-title class="ml-1">
-      <ac-link :to="subject && profileLink(subject)">{{ subjectHandler.displayName }}</ac-link>
+      <ac-link :to="subject && profileLink(subject)">
+        {{ subjectHandler.displayName }}
+      </ac-link>
     </v-toolbar-title>
-    <v-spacer/>
+    <v-spacer />
     <v-toolbar-items v-if="subject && isRegistered && display.smAndUp">
-      <v-btn color="secondary" variant="flat" @click="editing = !editing" v-if="showEdit && controls">
-        <v-icon v-if="editing" :icon="mdiLock"/>
-        <v-icon v-else :icon="mdiPencil"/>
+      <v-btn
+        v-if="showEdit && controls"
+        color="secondary"
+        variant="flat"
+        @click="editing = !editing"
+      >
+        <v-icon
+          v-if="editing"
+          :icon="mdiLock"
+        />
+        <v-icon
+          v-else
+          :icon="mdiPencil"
+        />
         <span v-if="editing">Lock</span>
         <span v-else>Edit</span>
       </v-btn>
-      <v-btn color="secondary" @click="showMenu=!showMenu" v-if="powers.view_as && !isCurrent" variant="flat">
-        <v-icon left :icon="mdiMenu"/>
+      <v-btn
+        v-if="powers.view_as && !isCurrent"
+        color="secondary"
+        variant="flat"
+        @click="showMenu=!showMenu"
+      >
+        <v-icon
+          left
+          :icon="mdiMenu"
+        />
         Menu
       </v-btn>
-      <v-btn color="info" @click="showNotifications=!showNotifications" v-if="powers.view_as && !isCurrent" variant="flat">
-        <v-icon left :icon="mdiMenu"/>
+      <v-btn
+        v-if="powers.view_as && !isCurrent"
+        color="info"
+        variant="flat"
+        @click="showNotifications=!showNotifications"
+      >
+        <v-icon
+          left
+          :icon="mdiMenu"
+        />
         Notifications
       </v-btn>
-      <v-btn color="primary" class="message-button" @click="showNew = true" v-if="!isCurrent" variant="flat">
-        <v-icon left :icon="mdiMessage"/>
+      <v-btn
+        v-if="!isCurrent"
+        color="primary"
+        class="message-button"
+        variant="flat"
+        @click="showNew = true"
+      >
+        <v-icon
+          left
+          :icon="mdiMessage"
+        />
         Message
       </v-btn>
-      <v-btn color="grey-darken-2" @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent"
-             variant="flat">
-        <v-icon left v-if="subject.watching" :icon="mdiEyeOff"/>
-        <v-icon left v-else :icon="mdiEye"/>
+      <v-btn
+        v-if="!isCurrent"
+        color="grey-darken-2"
+        variant="flat"
+        @click="subjectHandler.user.patch({watching: !subject.watching})"
+      >
+        <v-icon
+          v-if="subject.watching"
+          left
+          :icon="mdiEyeOff"
+        />
+        <v-icon
+          v-else
+          left
+          :icon="mdiEye"
+        />
         <span v-if="subject.watching">Unwatch</span>
         <span v-else>Watch</span>
       </v-btn>
       <!--suppress JSCheckFunctionSignatures -->
-      <ac-confirmation :action="() => subjectHandler.user.patch({blocking: !subject!.blocking})" v-if="!isCurrent">
-        <template v-slot:confirmation-text>
+      <ac-confirmation
+        v-if="!isCurrent"
+        :action="() => subjectHandler.user.patch({blocking: !subject!.blocking})"
+      >
+        <template #confirmation-text>
           <v-col>
             <v-col v-if="subject!.blocking">
               <p>
@@ -48,64 +108,115 @@
                 comment on your
                 items, or perform other interactive actions with your account.
               </p>
-              <p v-if="subject.watching">This will also remove them from your watchlist.</p>
+              <p v-if="subject.watching">
+                This will also remove them from your watchlist.
+              </p>
             </v-col>
           </v-col>
         </template>
-        <template v-slot:default="{on}">
-          <v-btn color="red" v-on="on" variant="flat">
-            <v-icon left :icon="mdiCancel"/>
+        <template #default="{on}">
+          <v-btn
+            color="red"
+            variant="flat"
+            v-on="on"
+          >
+            <v-icon
+              left
+              :icon="mdiCancel"
+            />
             <span v-if="subject!.blocking">Unblock</span>
             <span v-else>Block</span>
           </v-btn>
         </template>
       </ac-confirmation>
     </v-toolbar-items>
-    <v-menu offset-y v-else-if="subject && isRegistered">
-      <template v-slot:activator="{props}">
-        <v-btn v-bind="props" icon aria-label="Actions">
-          <v-icon :icon="mdiDotsHorizontal"/>
+    <v-menu
+      v-else-if="subject && isRegistered"
+      offset-y
+    >
+      <template #activator="{props}">
+        <v-btn
+          v-bind="props"
+          icon
+          aria-label="Actions"
+        >
+          <v-icon :icon="mdiDotsHorizontal" />
         </v-btn>
       </template>
       <v-list dense>
-        <v-list-item v-if="powers.view_as && !isCurrent" @click="showMenu=true">
-          <template v-slot:prepend>
-            <v-icon :icon="mdiMenu"/>
+        <v-list-item
+          v-if="powers.view_as && !isCurrent"
+          @click="showMenu=true"
+        >
+          <template #prepend>
+            <v-icon :icon="mdiMenu" />
           </template>
           <v-list-item-title>Menu</v-list-item-title>
         </v-list-item>
-        <v-list-item v-if="powers.view_as && !isCurrent" @click="showNotifications=true">
-          <template v-slot:prepend>
-            <v-icon :icon="mdiMenu"/>
+        <v-list-item
+          v-if="powers.view_as && !isCurrent"
+          @click="showNotifications=true"
+        >
+          <template #prepend>
+            <v-icon :icon="mdiMenu" />
           </template>
           <v-list-item-title>Notifications</v-list-item-title>
         </v-list-item>
-        <v-list-item class="message-button" @click="showNew = true" v-if="!isCurrent">
-          <template v-slot:prepend>
-            <v-icon :icon="mdiMessage"/>
+        <v-list-item
+          v-if="!isCurrent"
+          class="message-button"
+          @click="showNew = true"
+        >
+          <template #prepend>
+            <v-icon :icon="mdiMessage" />
           </template>
           <v-list-item-title>Message</v-list-item-title>
         </v-list-item>
-        <v-list-item @click="subjectHandler.user.patch({watching: !subject.watching})" v-if="!isCurrent">
-          <template v-slot:prepend>
-            <v-icon v-if="subject.watching" :icon="mdiEyeOff"/>
-            <v-icon v-else :icon="mdiEye"/>
+        <v-list-item
+          v-if="!isCurrent"
+          @click="subjectHandler.user.patch({watching: !subject.watching})"
+        >
+          <template #prepend>
+            <v-icon
+              v-if="subject.watching"
+              :icon="mdiEyeOff"
+            />
+            <v-icon
+              v-else
+              :icon="mdiEye"
+            />
           </template>
           <v-list-item-title>
             <span v-if="subject.watching">Unwatch</span>
             <span v-else>Watch</span>
           </v-list-item-title>
         </v-list-item>
-        <v-list-item @click.stop="editing = !editing" v-if="controls && showEdit">
-          <template v-slot:prepend>
-            <v-icon v-if="editing" :icon="mdiLock"/>
-            <v-icon v-else :icon="mdiPencil"/>
+        <v-list-item
+          v-if="controls && showEdit"
+          @click.stop="editing = !editing"
+        >
+          <template #prepend>
+            <v-icon
+              v-if="editing"
+              :icon="mdiLock"
+            />
+            <v-icon
+              v-else
+              :icon="mdiPencil"
+            />
           </template>
-          <v-list-item-title v-if="editing">Lock</v-list-item-title>
-          <v-list-item-title v-else>Edit</v-list-item-title>
+          <v-list-item-title v-if="editing">
+            Lock
+          </v-list-item-title>
+          <v-list-item-title v-else>
+            Edit
+          </v-list-item-title>
         </v-list-item>
-        <ac-confirmation :action="async () => blockToggle" v-if="!isCurrent">
-          <template v-slot:confirmation-text>
+        <ac-confirmation
+          v-if="!isCurrent"
+          :action="async () => blockToggle"
+        >
+          <template #confirmation-text>
             <v-col>
               <v-col v-if="subject!.blocking">
                 <p>
@@ -120,14 +231,16 @@
                   comment on your
                   items, or perform other interactive actions with your account.
                 </p>
-                <p v-if="subject.watching">This will also remove them from your watchlist.</p>
+                <p v-if="subject.watching">
+                  This will also remove them from your watchlist.
+                </p>
               </v-col>
             </v-col>
           </template>
-          <template v-slot:default="{on}">
+          <template #default="{on}">
             <v-list-item v-on="on">
-              <template v-slot:prepend>
-                <v-icon :icon="mdiCancel"/>
+              <template #prepend>
+                <v-icon :icon="mdiCancel" />
               </template>
               <v-list-item-title>
                 <span v-if="subject.blocking">Unblock</span>
@@ -138,38 +251,59 @@
         </ac-confirmation>
       </v-list>
     </v-menu>
-    <v-navigation-drawer v-model="showMenu" v-if="powers.view_as && subject" fixed clipped :disable-resize-watcher="true"
-                         temporary>
+    <v-navigation-drawer
+      v-if="powers.view_as && subject"
+      v-model="showMenu"
+      fixed
+      clipped
+      :disable-resize-watcher="true"
+      temporary
+    >
       <ac-nav-links
-          :subject-handler="subjectHandler"
-          :is-staff="subject.is_staff"
-          :is-superuser="subject.is_superuser"
-          :is-logged-in="true"
-          :is-registered="true"
-          :embedded="true"
-          v-model="showMenu"
+        v-model="showMenu"
+        :subject-handler="subjectHandler"
+        :is-staff="subject.is_staff"
+        :is-superuser="subject.is_superuser"
+        :is-logged-in="true"
+        :is-registered="true"
+        :embedded="true"
       />
     </v-navigation-drawer>
     <ac-form-dialog
-        v-model="showNew"
-        v-bind="newConversation.bind"
-        @submit="newConversation.submitThen(visitConversation)"
-        title="Start a New Conversation"
+      v-model="showNew"
+      v-bind="newConversation.bind"
+      title="Start a New Conversation"
+      @submit="newConversation.submitThen(visitConversation)"
     >
-      <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
+      <v-col
+        cols="12"
+        sm="10"
+        offset-sm="1"
+        offset-md="2"
+        md="8"
+      >
         <v-row>
-          <v-col cols="12" class="text-center">
+          <v-col
+            cols="12"
+            class="text-center"
+          >
             <span class="title">Quick check!</span>
           </v-col>
           <v-col cols="12">
             <ac-bound-field
-                field-type="ac-captcha-field" :field="newConversation.fields.captcha" label="Prove you are human"
+              field-type="ac-captcha-field"
+              :field="newConversation.fields.captcha"
+              label="Prove you are human"
             />
           </v-col>
         </v-row>
       </v-col>
     </ac-form-dialog>
-    <message-center :username="username" :model-value="showNotifications" v-if="powers.view_as && !isCurrent"/>
+    <message-center
+      v-if="powers.view_as && !isCurrent"
+      :username="username"
+      :model-value="showNotifications"
+    />
   </v-toolbar>
 </template>
 

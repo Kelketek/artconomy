@@ -1,8 +1,21 @@
 <template>
-  <v-toolbar-items v-if="stats.x" variant="flat" class="ml-1">
-    <v-btn icon variant="plain" v-if="stats" :to="{name: 'CurrentSales', params: {username}}">
-      <span class="active-order-count">{{stats.x.active_orders}}</span>
-      <v-badge :content="newCount" color="success" :model-value="!!newCount">
+  <v-toolbar-items
+    v-if="stats.x"
+    variant="flat"
+    class="ml-1"
+  >
+    <v-btn
+      v-if="stats"
+      icon
+      variant="plain"
+      :to="{name: 'CurrentSales', params: {username}}"
+    >
+      <span class="active-order-count">{{ stats.x.active_orders }}</span>
+      <v-badge
+        :content="newCount"
+        color="success"
+        :model-value="!!newCount"
+      >
         <v-icon :icon="mdiInvoiceTextOutline" />
       </v-badge>
     </v-btn>

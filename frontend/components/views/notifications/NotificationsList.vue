@@ -1,31 +1,44 @@
 <template>
   <v-row no-gutters>
-    <ac-paginated :show-pagination="false" :list="notifications">
-      <template v-slot:default>
+    <ac-paginated
+      :show-pagination="false"
+      :list="notifications"
+    >
+      <template #default>
         <v-col cols="12">
           <v-list lines="three">
             <template v-for="(notification, index) in notifications.list">
               <template v-if="!notification.x!.event.recalled">
                 <div
-                    v-if="dynamicComponent(notification.x!.event.type)"
-                    @click.left.capture="clickRead(notification)"
-                    @click.middle.capture="clickRead(notification)"
-                    :key="'container-' + index"
+                  v-if="dynamicComponent(notification.x!.event.type)"
+                  :key="'container-' + index"
+                  @click.left.capture="clickRead(notification)"
+                  @click.middle.capture="clickRead(notification)"
                 >
-                  <component :is="dynamicComponent(notification.x!.event.type)"
-                             :key="notification.x!.id" v-observe-visibility="(value: boolean) => markRead(value, notification)"
-                             class="notification" :notification="notification.x" :username="username"
+                  <component
+                    :is="dynamicComponent(notification.x!.event.type)"
+                    :key="notification.x!.id"
+                    v-observe-visibility="(value: boolean) => markRead(value, notification)"
+                    class="notification"
+                    :notification="notification.x"
+                    :username="username"
                   />
                 </div>
-                <v-list-item v-else :key="index">
+                <v-list-item
+                  v-else
+                  :key="index"
+                >
                   <v-row>
                     <v-col>
-                      {{error(notification.x)}}
-                      {{notification.x}}
+                      {{ error(notification.x) }}
+                      {{ notification.x }}
                     </v-col>
                   </v-row>
                 </v-list-item>
-                <v-divider v-if="index + 1 < notifications.list.length" :key="`divider-${index}`"/>
+                <v-divider
+                  v-if="index + 1 < notifications.list.length"
+                  :key="`divider-${index}`"
+                />
               </template>
             </template>
           </v-list>

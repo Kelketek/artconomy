@@ -1,28 +1,64 @@
 <template>
-  <v-col no-gutters v-if="device.x">
+  <v-col
+    v-if="device.x"
+    no-gutters
+  >
     <v-row>
-      <v-col v-if="device.x.confirmed" cols="12">
+      <v-col
+        v-if="device.x.confirmed"
+        cols="12"
+      >
         <v-card class="elevation-7">
           <v-card-text>
             <v-row>
-              <v-col class="text-center" cols="12" sm="12" order="2" order-sm="1"
-                     :class="{'two-factor-label': xs}">
+              <v-col
+                class="text-center"
+                cols="12"
+                sm="12"
+                order="2"
+                order-sm="1"
+                :class="{'two-factor-label': xs}"
+              >
                 <!--suppress HtmlUnknownTarget -->
-                <img :src="telegramLogo" style="height: 10vh" alt="Telegram Logo"/>
+                <img
+                  :src="telegramLogo"
+                  style="height: 10vh"
+                  alt="Telegram Logo"
+                >
               </v-col>
-              <v-col cols="12" order="1" order-sm="2" class="two-factor-label text-center">
+              <v-col
+                cols="12"
+                order="1"
+                order-sm="2"
+                class="two-factor-label text-center"
+              >
                 <p><strong>You have Telegram Two Factor Authentication enabled!</strong></p>
               </v-col>
-              <v-col class="text-center" cols="12" order="2" order-sm="3">
+              <v-col
+                class="text-center"
+                cols="12"
+                order="2"
+                order-sm="3"
+              >
                 <p>You will be prompted for a code on each login, keeping your account extra secure.</p>
               </v-col>
-              <v-col class="text-center" cols="12" order="3">
+              <v-col
+                class="text-center"
+                cols="12"
+                order="3"
+              >
                 <ac-confirmation :action="() => device.delete().then(() => $emit('removed'))">
-                  <template v-slot:default="{on}">
-                    <v-btn color="red" class="delete-phone-2fa" v-on="on" variant="elevated">Disable Telegram 2FA
+                  <template #default="{on}">
+                    <v-btn
+                      color="red"
+                      class="delete-phone-2fa"
+                      variant="elevated"
+                      v-on="on"
+                    >
+                      Disable Telegram 2FA
                     </v-btn>
                   </template>
-                  <template v-slot:confirmation-text>
+                  <template #confirmation-text>
                     <div>
                       Are you sure you wish to remove Telegram 2FA? Removing 2FA makes your account less secure.
                       You should only do this if you no longer use the Telegram account on file or believe it
@@ -35,17 +71,29 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col v-else cols="12">
-        <v-stepper v-model="step" non-linear>
+      <v-col
+        v-else
+        cols="12"
+      >
+        <v-stepper
+          v-model="step"
+          non-linear
+        >
           <v-stepper-header>
             <v-stepper-item :value="1">
-              <template v-slot:title>Add Bot</template>
+              <template #title>
+                Add Bot
+              </template>
             </v-stepper-item>
             <v-stepper-item :value="2">
-              <template v-slot:title>Send Code</template>
+              <template #title>
+                Send Code
+              </template>
             </v-stepper-item>
             <v-stepper-item :value="3">
-              <template v-slot:title>Verify Code</template>
+              <template #title>
+                Verify Code
+              </template>
             </v-stepper-item>
           </v-stepper-header>
           <v-stepper-window>
@@ -53,31 +101,59 @@
               <v-card class="lighten-1">
                 <v-card-text>
                   <v-row no-gutters>
-                    <v-col class="text-center" cols="12">
-                      <a :href="subject!.telegram_link" target="_blank" @click="step = 2">
+                    <v-col
+                      class="text-center"
+                      cols="12"
+                    >
+                      <a
+                        :href="subject!.telegram_link"
+                        target="_blank"
+                        @click="step = 2"
+                      >
                         <v-avatar
-                            size="20vh"
-                            color="purple"
-                            class="elevation-2"
+                          size="20vh"
+                          color="purple"
+                          class="elevation-2"
                         >
                           <!--suppress HtmlUnknownTarget -->
-                          <img :src="logo" alt="Bot Avatar">
+                          <img
+                            :src="logo"
+                            alt="Bot Avatar"
+                          >
                         </v-avatar>
                       </a>
                     </v-col>
                     <v-col class="text-center">
-                      <a :href="subject!.telegram_link" target="_blank" style="text-decoration: underline;"
-                         @click="step = 2">
+                      <a
+                        :href="subject!.telegram_link"
+                        target="_blank"
+                        style="text-decoration: underline;"
+                        @click="step = 2"
+                      >
                         Click to add our Telegram Bot!</a>
                       <p>Press the 'start' button when prompted, then return here.</p>
                     </v-col>
                   </v-row>
                 </v-card-text>
               </v-card>
-              <v-card-actions row wrap>
+              <v-card-actions
+                row
+                wrap
+              >
                 <v-spacer />
-                <v-btn @click="device.delete" variant="flat">Cancel</v-btn>
-                <v-btn color="primary" @click="step = 2" variant="flat">Continue</v-btn>
+                <v-btn
+                  variant="flat"
+                  @click="device.delete"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  @click="step = 2"
+                >
+                  Continue
+                </v-btn>
               </v-card-actions>
             </v-stepper-window-item>
             <v-stepper-window-item :value="2">
@@ -85,42 +161,102 @@
                 <v-card-text>
                   <v-row no-gutters>
                     <v-col class="text-center">
-                      <v-btn color="primary" @click="sendTGCode" class="send-tg-code" variant="flat">Send Code</v-btn>
+                      <v-btn
+                        color="primary"
+                        class="send-tg-code"
+                        variant="flat"
+                        @click="sendTGCode"
+                      >
+                        Send Code
+                      </v-btn>
                       <p>Click the button to send a verification code to Telegram!</p>
                     </v-col>
                   </v-row>
                 </v-card-text>
               </v-card>
-              <v-card-actions row wrap>
+              <v-card-actions
+                row
+                wrap
+              >
                 <v-spacer />
-                <v-btn @click="device.delete" variant="flat">Cancel</v-btn>
-                <v-btn @click="step = 1" color="black" variant="flat">Back</v-btn>
-                <v-btn color="primary" @click="step = 3" variant="flat">Continue</v-btn>
+                <v-btn
+                  variant="flat"
+                  @click="device.delete"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="black"
+                  variant="flat"
+                  @click="step = 1"
+                >
+                  Back
+                </v-btn>
+                <v-btn
+                  color="primary"
+                  variant="flat"
+                  @click="step = 3"
+                >
+                  Continue
+                </v-btn>
               </v-card-actions>
             </v-stepper-window-item>
             <v-stepper-window-item :value="3">
               <v-card class="lighten-1">
                 <v-card-text>
                   <v-row no-gutters>
-                    <v-col class="text-center" cols="12">
+                    <v-col
+                      class="text-center"
+                      cols="12"
+                    >
                       <p>Finally, enter the code in the field below, and you're all done!</p>
                     </v-col>
-                    <v-col class="text-center" cols="12" sm="8" offset-sm="2" md="4" offset-md="4">
+                    <v-col
+                      class="text-center"
+                      cols="12"
+                      sm="8"
+                      offset-sm="2"
+                      md="4"
+                      offset-md="4"
+                    >
                       <ac-form @submit.prevent="form.submitThen(device.setX)">
                         <ac-form-container v-bind="form.bind">
-                          <v-text-field v-bind="form.fields.code.bind" v-mask-token>
-                          </v-text-field>
-                          <v-btn color="primary" type="submit" class="submit-button" variant="flat">Verify</v-btn>
+                          <v-text-field
+                            v-mask-token
+                            v-bind="form.fields.code.bind"
+                          />
+                          <v-btn
+                            color="primary"
+                            type="submit"
+                            class="submit-button"
+                            variant="flat"
+                          >
+                            Verify
+                          </v-btn>
                         </ac-form-container>
                       </ac-form>
                     </v-col>
                   </v-row>
                 </v-card-text>
               </v-card>
-              <v-card-actions row wrap>
+              <v-card-actions
+                row
+                wrap
+              >
                 <v-spacer />
-                <v-btn @click="device.delete" variant="flat">Cancel</v-btn>
-                <v-btn @click="step = 2" color="black" variant="flat">Back</v-btn>
+                <v-btn
+                  variant="flat"
+                  @click="device.delete"
+                >
+                  Cancel
+                </v-btn>
+                <v-btn
+                  color="black"
+                  variant="flat"
+                  @click="step = 2"
+                >
+                  Back
+                </v-btn>
               </v-card-actions>
             </v-stepper-window-item>
           </v-stepper-window>

@@ -1,12 +1,17 @@
 <template>
-  <ac-base-notification :asset-link="assetLink" :notification="notification" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :asset-link="assetLink"
+    :notification="notification"
+    :username="username"
+  >
+    <template #title>
       <router-link :to="assetLink">
         A submission was shared with you
       </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="assetLink">"{{event.data.submission.title}}" was shared by {{event.data.user.username}}
+    <template #subtitle>
+      <router-link :to="assetLink">
+        "{{ event.data.submission.title }}" was shared by {{ event.data.user.username }}
       </router-link>
     </template>
   </ac-base-notification>

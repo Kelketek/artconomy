@@ -1,15 +1,26 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="assetLink" :username="username">
-    <template v-slot:title>An artist has been tagged on
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="assetLink"
+    :username="username"
+  >
+    <template #title>
+      An artist has been tagged on
       <router-link
-          :to="assetLink">{{event.target.title}}!
+        :to="assetLink"
+      >
+        {{ event.target.title }}!
       </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="{name: 'Profile', params: {username: userName}}">{{userName}}</router-link>
+    <template #subtitle>
+      <router-link :to="{name: 'Profile', params: {username: userName}}">
+        {{ userName }}
+      </router-link>
       tagged
       <router-link
-          :to="{name: 'Profile', params: {username: artistName}}">{{artistName}}!
+        :to="{name: 'Profile', params: {username: artistName}}"
+      >
+        {{ artistName }}!
       </router-link>
     </template>
   </ac-base-notification>

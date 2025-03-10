@@ -1,12 +1,18 @@
 <template>
-  <ac-base-notification :asset-link="url" :notification="notification" :username="username">
-    <template v-slot:title>
+  <ac-base-notification
+    :asset-link="url"
+    :notification="notification"
+    :username="username"
+  >
+    <template #title>
       <router-link :to="url">
-        Sale #{{event.data.deliverable.order.id}} [{{event.data.deliverable.name}}]
+        Sale #{{ event.data.deliverable.order.id }} [{{ event.data.deliverable.name }}]
       </router-link>
     </template>
-    <template v-slot:subtitle>
-      <router-link :to="url">Your revision/WIP has been approved!</router-link>
+    <template #subtitle>
+      <router-link :to="url">
+        Your revision/WIP has been approved!
+      </router-link>
     </template>
   </ac-base-notification>
 </template>

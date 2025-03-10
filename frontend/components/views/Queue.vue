@@ -1,36 +1,78 @@
 <template>
   <v-container>
-    <ac-profile-header :username="username"></ac-profile-header>
+    <ac-profile-header :username="username" />
     <ac-paginated :list="list">
-      <template v-slot:default>
-        <v-container fluid class="pt-2 px-0">
+      <template #default>
+        <v-container
+          fluid
+          class="pt-2 px-0"
+        >
           <v-row>
-            <v-col cols="12" class="text-right">
-              <v-btn color="green" :to="{name: 'Products', params: {username}}" variant="flat">
-                <v-icon left :icon="mdiPlus"/>
+            <v-col
+              cols="12"
+              class="text-right"
+            >
+              <v-btn
+                color="green"
+                :to="{name: 'Products', params: {username}}"
+                variant="flat"
+              >
+                <v-icon
+                  left
+                  :icon="mdiPlus"
+                />
                 Place an order!
               </v-btn>
-              <v-btn class="ml-2" @click="openListing" variant="elevated" v-if="isCurrent">
-                <v-icon :icon="mdiOpenInNew"/>
+              <v-btn
+                v-if="isCurrent"
+                class="ml-2"
+                variant="elevated"
+                @click="openListing"
+              >
+                <v-icon :icon="mdiOpenInNew" />
                 Stream list display
               </v-btn>
             </v-col>
           </v-row>
           <v-row no-gutters>
-            <v-col cols="12" sm="6" md="4" lg="2" v-for="order in list.list" :key="order.x!.id">
-              <ac-order-preview :order="order" type="sale" :username="username"/>
+            <v-col
+              v-for="order in list.list"
+              :key="order.x!.id"
+              cols="12"
+              sm="6"
+              md="4"
+              lg="2"
+            >
+              <ac-order-preview
+                :order="order"
+                type="sale"
+                :username="username"
+              />
             </v-col>
           </v-row>
         </v-container>
       </template>
-      <template v-slot:empty>
+      <template #empty>
         <v-row>
-          <v-col cols="12" class="text-center">
+          <v-col
+            cols="12"
+            class="text-center"
+          >
             This artist has no commissions in progress.
           </v-col>
-          <v-col cols="12" class="text-center">
-            <v-btn color="green" :to="{name: 'Products', params: {username}}" variant="flat">
-              <v-icon left :icon="mdiPlus"/>
+          <v-col
+            cols="12"
+            class="text-center"
+          >
+            <v-btn
+              color="green"
+              :to="{name: 'Products', params: {username}}"
+              variant="flat"
+            >
+              <v-icon
+                left
+                :icon="mdiPlus"
+              />
               Place an order!
             </v-btn>
           </v-col>

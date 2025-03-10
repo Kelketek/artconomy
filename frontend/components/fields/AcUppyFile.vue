@@ -1,49 +1,51 @@
 <template>
-  <v-input v-bind="passedProps" class="ac-uppy-file" v-if="uppy">
+  <v-input
+    v-if="uppy"
+    v-bind="passedProps"
+    class="ac-uppy-file"
+  >
     <div class="flex flex-column">
-      <div class="flex text-center" v-if="label">
-        <v-label :for="attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
+      <div
+        v-if="label"
+        class="flex text-center"
+      >
+        <v-label
+          :for="attrs.id"
+          :color="errorColor"
+          :focused="errorFocused"
+        >
+          {{ label }}
+        </v-label>
       </div>
-      <div class="flex text-center" :id="uppyId">
-        <v-col class="dashboard-container"/>
+      <div
+        :id="uppyId"
+        class="flex text-center"
+      >
+        <v-col class="dashboard-container" />
       </div>
       <div class="d-flex justify-center">
-        <v-btn @click="reset" class="uppy-reset-button" variant="flat" color="secondary" v-if="modelValue && showReset">Reset</v-btn>
-        <v-btn @click="clear" class="uppy-clear-button" variant="flat" color="danger" v-if="modelValue && showClear">Clear</v-btn>
+        <v-btn
+          v-if="modelValue && showReset"
+          class="uppy-reset-button"
+          variant="flat"
+          color="secondary"
+          @click="reset"
+        >
+          Reset
+        </v-btn>
+        <v-btn
+          v-if="modelValue && showClear"
+          class="uppy-clear-button"
+          variant="flat"
+          color="danger"
+          @click="clear"
+        >
+          Clear
+        </v-btn>
       </div>
     </div>
   </v-input>
 </template>
-
-<style>
-.ac-uppy-file .v-messages {
-  text-align: center;
-}
-
-.ac-uppy-file .v-input__control {
-  justify-content: center;
-}
-
-.ac-uppy-file .uppy-Dashboard-AddFiles-list {
-  flex: unset;
-}
-
-.ac-uppy-file .uppy-Dashboard-AddFiles-title {
-  color: #fff;
-}
-.ac-uppy-file .uppy-Url {
-  display: flex;
-  flex-direction: column;
-}
-
-.ac-uppy-file .uppy-Url-input {
-  margin-bottom: 1rem;
-}
-
-.ac-uppy-file .uppy-StatusBar-actionBtn--done {
-  display: none;
-}
-</style>
 
 <script setup lang="ts">
 import Uppy, {Meta, UppyFile, Body} from '@uppy/core'
@@ -241,6 +243,36 @@ onMounted(() => {
   }
 })
 </script>
+
+<style>
+.ac-uppy-file .v-messages {
+  text-align: center;
+}
+
+.ac-uppy-file .v-input__control {
+  justify-content: center;
+}
+
+.ac-uppy-file .uppy-Dashboard-AddFiles-list {
+  flex: unset;
+}
+
+.ac-uppy-file .uppy-Dashboard-AddFiles-title {
+  color: #fff;
+}
+.ac-uppy-file .uppy-Url {
+  display: flex;
+  flex-direction: column;
+}
+
+.ac-uppy-file .uppy-Url-input {
+  margin-bottom: 1rem;
+}
+
+.ac-uppy-file .uppy-StatusBar-actionBtn--done {
+  display: none;
+}
+</style>
 
 <style scoped>
 .ac-uppy-container {

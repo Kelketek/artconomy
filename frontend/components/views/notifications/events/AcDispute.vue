@@ -1,21 +1,23 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="casePath" :username="username">
-    <template v-slot:title>
-      A Dispute has been filed for Deliverable #{{event.target.id}}.
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="casePath"
+    :username="username"
+  >
+    <template #title>
+      A Dispute has been filed for Deliverable #{{ event.target.id }}.
     </template>
-    <template v-slot:extra>
+    <template #extra>
       <v-btn
-          @click="claimDispute"
-          variant="flat"
-          small
-      >Claim
+        variant="flat"
+        small
+        @click="claimDispute"
+      >
+        Claim
       </v-btn>
     </template>
   </ac-base-notification>
 </template>
-
-<style scoped>
-</style>
 
 <script setup lang="ts">
 import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
@@ -50,3 +52,6 @@ const claimDispute = () => {
   }).then(visitOrder)
 }
 </script>
+
+<style scoped>
+</style>

@@ -1,10 +1,18 @@
 <template>
-  <ac-base-notification :notification="notification" :asset-link="event.data.link" :username="username">
-    <template v-slot:title>
-      <ac-link :to="event.data.link">{{titleText}}</ac-link>
+  <ac-base-notification
+    :notification="notification"
+    :asset-link="event.data.link"
+    :username="username"
+  >
+    <template #title>
+      <ac-link :to="event.data.link">
+        {{ titleText }}
+      </ac-link>
     </template>
-    <template v-slot:subtitle>
-      <ac-link :to="event.data.link">{{byLine}}</ac-link>
+    <template #subtitle>
+      <ac-link :to="event.data.link">
+        {{ byLine }}
+      </ac-link>
     </template>
   </ac-base-notification>
 </template>

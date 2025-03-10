@@ -1,15 +1,38 @@
 <template>
-  <ac-paginated :list="list" :track-pages="trackPages" :ok-statuses="okStatuses" :show-pagination="showPagination">
-    <v-col cols="4" sm="3" lg="2" v-for="submission in derivedList" :key="submission.id">
-      <ac-gallery-preview class="pa-1"
-                          :submission="submission" :show-footer="false">
-      </ac-gallery-preview>
+  <ac-paginated
+    :list="list"
+    :track-pages="trackPages"
+    :ok-statuses="okStatuses"
+    :show-pagination="showPagination"
+  >
+    <v-col
+      v-for="submission in derivedList"
+      :key="submission.id"
+      cols="4"
+      sm="3"
+      lg="2"
+    >
+      <ac-gallery-preview
+        class="pa-1"
+        :submission="submission"
+        :show-footer="false"
+      />
     </v-col>
-    <template v-slot:failure>
-      <v-col class="text-center" v-if="okStatuses"><p>{{ failureMessage }}</p></v-col>
+    <template #failure>
+      <v-col
+        v-if="okStatuses"
+        class="text-center"
+      >
+        <p>{{ failureMessage }}</p>
+      </v-col>
     </template>
-    <template v-slot:empty>
-      <v-col class="text-center" v-if="emptyMessage"><p>{{ emptyMessage }}</p></v-col>
+    <template #empty>
+      <v-col
+        v-if="emptyMessage"
+        class="text-center"
+      >
+        <p>{{ emptyMessage }}</p>
+      </v-col>
     </template>
   </ac-paginated>
 </template>

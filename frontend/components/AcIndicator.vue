@@ -1,5 +1,8 @@
 <template>
-  <v-icon :icon="value ? mdiCheckCircle : mdiCloseCircle" :color="value ? 'green' : 'red'" />
+  <v-icon
+    :icon="value ? mdiCheckCircle : mdiCloseCircle"
+    :color="value ? 'green' : 'red'"
+  />
 </template>
 
 <script setup lang="ts">

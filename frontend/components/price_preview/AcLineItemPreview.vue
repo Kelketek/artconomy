@@ -1,29 +1,43 @@
 <template>
   <v-row no-gutters>
-    <v-col class="text-right pr-1" :cols="labelCols">
-      <v-tooltip :text="typeHint" v-if="typeHint">
-        <template v-slot:activator="{ props }">
+    <v-col
+      class="text-right pr-1"
+      :cols="labelCols"
+    >
+      <v-tooltip
+        v-if="typeHint"
+        :text="typeHint"
+      >
+        <template #activator="{ props }">
           <v-badge
-              color="info"
-              content="?"
-              inline
-              v-bind="props"
+            color="info"
+            content="?"
+            inline
+            v-bind="props"
           />
         </template>
       </v-tooltip>
-      {{label}}:
+      {{ label }}:
     </v-col>
-    <v-col v-if="editing" cols="4">
+    <v-col
+      v-if="editing"
+      cols="4"
+    >
       <span v-if="line.back_into_percentage && line.percentage">(*)</span>
       <span v-if="line.cascade_percentage && line.percentage">(</span>
-      <span v-if="line.percentage">{{line.percentage}}%</span>
+      <span v-if="line.percentage">{{ line.percentage }}%</span>
       <span v-if="line.cascade_percentage && line.percentage">)</span>
       <span v-if="line.percentage && line.amount">&nbsp;+&nbsp;</span>
       <span v-if="line.cascade_amount && line.amount">(</span>
-      <span v-if="line.amount">${{line.amount}}</span>
+      <span v-if="line.amount">${{ line.amount }}</span>
       <span v-if="line.cascade_amount && line.amount">)</span>
     </v-col>
-    <v-col class="text-left pl-1" :cols="priceCols">${{price}}</v-col>
+    <v-col
+      class="text-left pl-1"
+      :cols="priceCols"
+    >
+      ${{ price }}
+    </v-col>
   </v-row>
 </template>
 

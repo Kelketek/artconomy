@@ -1,8 +1,13 @@
 <template>
   <v-app>
     <v-main>
-      <ac-new-submission ref="submissionForm" title="Sharable thing!" :username="username" v-model="showUpload"
-                         :allow-multiple="allowMultiple"/>
+      <ac-new-submission
+        ref="submissionForm"
+        v-model="showUpload"
+        title="Sharable thing!"
+        :username="username"
+        :allow-multiple="allowMultiple"
+      />
     </v-main>
   </v-app>
 </template>

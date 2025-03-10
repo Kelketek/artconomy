@@ -1,7 +1,19 @@
 <template>
   <div>
-    <div v-if="editing" class="is-editing" @click="editing=false">Editing</div>
-    <div v-else class="is-not-editing" @click="editing=true">Not Editing</div>
+    <div
+      v-if="editing"
+      class="is-editing"
+      @click="editing=false"
+    >
+      Editing
+    </div>
+    <div
+      v-else
+      class="is-not-editing"
+      @click="editing=true"
+    >
+      Not Editing
+    </div>
   </div>
 </template>
 

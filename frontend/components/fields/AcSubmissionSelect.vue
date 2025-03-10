@@ -1,35 +1,77 @@
 <template>
-  <v-input v-bind="passedProps" class="ac-uppy-file">
-    <v-col class="text-center mb-2" v-if="label">
-      <v-label :for="attrs.id" :color="errorColor" :focused="errorFocused">{{label}}</v-label>
+  <v-input
+    v-bind="passedProps"
+    class="ac-uppy-file"
+  >
+    <v-col
+      v-if="label"
+      class="text-center mb-2"
+    >
+      <v-label
+        :for="attrs.id"
+        :color="errorColor"
+        :focused="errorFocused"
+      >
+        {{ label }}
+      </v-label>
     </v-col>
-    <ac-paginated :list="submissionList" class="submission-list-container" v-if="submissionList">
-      <template v-slot:default>
-        <v-col cols="6" sm="6" md="3" class="submission-container" v-for="submission in submissionList.list"
-               :key="submission.x && derived(submission).id">
-          <v-row no-gutters v-if="submission.x">
+    <ac-paginated
+      v-if="submissionList"
+      :list="submissionList"
+      class="submission-list-container"
+    >
+      <template #default>
+        <v-col
+          v-for="submission in submissionList.list"
+          :key="submission.x && derived(submission).id"
+          cols="6"
+          sm="6"
+          md="3"
+          class="submission-container"
+        >
+          <v-row
+            v-if="submission.x"
+            no-gutters
+          >
             <v-col cols="12">
-              <ac-gallery-preview class="pa-1"
-                                  @click.capture.stop.prevent="select(derived(submission).id)"
-                                  :key="derived(submission).id"
-                                  :submission="derived(submission)" :show-footer="true"
+              <ac-gallery-preview
+                :key="derived(submission).id"
+                class="pa-1"
+                :submission="derived(submission)"
+                :show-footer="true"
+                @click.capture.stop.prevent="select(derived(submission).id)"
               >
-                <template v-slot:stats-append>
-                  <v-spacer></v-spacer>
+                <template #stats-append>
+                  <v-spacer />
                   <v-col class="text-right">
                     <v-progress-circular
-                        :color="current.colors.secondary"
-                        indeterminate
-                        :size="24"
-                        v-if="loading === derived(submission).id"
-                    ></v-progress-circular>
-                    <v-icon v-if="derived(submission).id === compare" color="green" :icon="mdiCheckCircle"/>
+                      v-if="loading === derived(submission).id"
+                      :color="current.colors.secondary"
+                      indeterminate
+                      :size="24"
+                    />
+                    <v-icon
+                      v-if="derived(submission).id === compare"
+                      color="green"
+                      :icon="mdiCheckCircle"
+                    />
                   </v-col>
                 </template>
               </ac-gallery-preview>
             </v-col>
-            <v-col class="text-center" cols="12" v-if="removable">
-              <v-btn @click="emit('remove', submission)" color="danger" class="remove-submission" variant="flat">Unlink Sample</v-btn>
+            <v-col
+              v-if="removable"
+              class="text-center"
+              cols="12"
+            >
+              <v-btn
+                color="danger"
+                class="remove-submission"
+                variant="flat"
+                @click="emit('remove', submission)"
+              >
+                Unlink Sample
+              </v-btn>
             </v-col>
           </v-row>
         </v-col>
