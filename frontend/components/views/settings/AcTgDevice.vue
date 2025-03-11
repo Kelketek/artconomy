@@ -287,6 +287,7 @@ const {xs} = useDisplay()
 declare interface AcTgDeviceProps {
   device: SingleController<TGDevice>
 }
+defineEmits<{removed: []}>()
 
 const props = defineProps<AcTgDeviceProps & SubjectiveProps>()
 const subjectTraits = useSubject({ props })

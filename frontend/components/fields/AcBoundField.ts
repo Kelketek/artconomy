@@ -41,6 +41,7 @@ export default defineComponent({
     fieldId: {
       required: false,
       type: String,
+      default: '',
     },
     field: {
       type: FieldController,

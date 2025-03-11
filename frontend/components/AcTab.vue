@@ -37,7 +37,7 @@ declare interface TabProps {
   tag?: string,
 }
 
-const props = withDefaults(defineProps<TabProps>(), {trackPages: true, pageVariable: 'page', tag: 'span'})
+const props = withDefaults(defineProps<TabProps>(), {trackPages: true, pageVariable: 'page', tag: 'span', icon: undefined, list: undefined, count: undefined, to: undefined, value: undefined})
 
 const destination = computed(() => {
   if (!props.to) {

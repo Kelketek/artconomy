@@ -40,7 +40,7 @@ describe('AcCardManager.vue Stripe', () => {
         },
       })
     vm = wrapper.vm
-    // @ts-expect-error
+    // @ts-expect-error Manipulated for tests.
     getStripe()!.setupValue = {}
   })
   test('Fetches the initial data', async() => {
@@ -82,7 +82,7 @@ describe('AcCardManager.vue Stripe', () => {
       clientSecret: 'Beep',
     })
     vm.tab = 'new-card'
-    // @ts-expect-error
+    // @ts-expect-error Manipulated for tests.
     getStripe()!.setupValue = {}
     await vm.$nextTick()
     expect(ccForm.errors).toEqual([])
@@ -98,7 +98,7 @@ describe('AcCardManager.vue Stripe', () => {
       clientSecret: 'Beep',
     })
     vm.tab = 'new-card'
-    // @ts-expect-error
+    // @ts-expect-error Manipulated for tests.
     getStripe()!.setupValue = {
       error: {
         code: 'Failure',

@@ -85,7 +85,6 @@ describe('AcSubmissionSelect.vue', () => {
     submissions[2].submission.id = 3
     vm.submissionList.ready = true
     vm.submissionList.fetching = false
-    // @ts-ignore
     vm.submissionList.setList(submissions)
     vm.submissionList.response = {
       count: 3,

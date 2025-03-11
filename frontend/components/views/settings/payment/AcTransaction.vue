@@ -97,11 +97,11 @@
               <v-list-subheader>Refs:</v-list-subheader>
               <ul>
                 <li
-                  v-for="ref, index in transaction.targets"
+                  v-for="transactionRef, index in transaction.targets"
                   :key="index"
                 >
-                  <ac-link :to="ref.link">
-                    {{ ref.model }} #{{ ref.id }}
+                  <ac-link :to="transactionRef.link">
+                    {{ transactionRef.model }} #{{ transactionRef.id }}
                   </ac-link>
                 </li>
               </ul>

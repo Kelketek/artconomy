@@ -235,10 +235,9 @@
                       class="text-center"
                       cols="12"
                     >
-                      <div
-                        v-if="image"
-                        class="qrcode"
-                        v-html="image"
+                      <qr-code
+                        v-if="device.x && !device.x.confirmed"
+                        :data="device.x.config_url"
                       />
                     </v-col>
                     <v-col
@@ -344,35 +343,20 @@
 </template>
 
 <script setup lang="ts">
-import QRCode from 'qrcode'
 import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
 import {SingleController} from '@/store/singles/controller.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import {BASE_URL} from '@/lib/lib.ts'
 import {vMaskToken} from '@/lib/vMask.ts'
-import {onMounted, ref, watch} from 'vue'
+import {ref, watch} from 'vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import type {SubjectiveProps, TOTPDevice} from '@/types/main'
+import QrCode from '@/components/wrappers/QrCode.ts'
 
 const props = defineProps<{device: SingleController<TOTPDevice>} & SubjectiveProps>()
 
 const step = ref(1)
-const image = ref('')
-
-const renderCode = () => {
-  const device = props.device.x as TOTPDevice
-  if (device.confirmed) {
-    image.value = ''
-    return
-  }
-  QRCode.toString(device.config_url, {}, (err: Error | null | undefined, str: string) => {
-    if (err) {
-      console.error(err)
-    }
-    image.value = str
-  })
-}
 
 const appStore = new URL('/static/images/Appstore.svg', BASE_URL).href
 const playStore = new URL('/static/images/Playstore.svg', BASE_URL).href
@@ -396,15 +380,4 @@ const totpForm = useForm(props.device.x!.id + '_totpForm', {
 watch(() => props.device.endpoint, (val: string) => {
   totpForm.endpoint = val
 })
-
-onMounted(renderCode)
 </script>
-
-<style scoped>
-.qrcode {
-  width: 160px;
-  height: 160px;
-  margin-top: 15px;
-  display: inline-block;
-}
-</style>

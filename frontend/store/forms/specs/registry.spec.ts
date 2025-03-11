@@ -1,24 +1,21 @@
 import {FormController} from '../form-controller.ts'
 import {formRegistry} from '../registry.ts'
 import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '../../index.ts'
+import {ArtStore, createStore} from '@/store'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
 import {buildRegistries} from '@/plugins/createRegistries.ts'
 import {buildSocketManger} from '@/plugins/socket.ts'
 import {createRouter, createWebHistory} from 'vue-router'
-import {RootFormState} from '@/store/forms/types/main'
 
 describe('Form and field controllers', () => {
   let wrapper: VueWrapper<any>
   let store: ArtStore
-  let state: RootFormState
   const registries = buildRegistries()
   beforeEach(() => {
     formRegistry.resetValidators()
     store = createStore()
-    state = (store.state as any).forms as RootFormState
   })
   afterEach(() => {
     cleanUp(wrapper)

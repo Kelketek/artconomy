@@ -33,10 +33,10 @@
               top
               aria-label="Preview mode tooltip"
             >
-              <template #activator="{ props }">
+              <template #activator="activator">
                 <v-btn
                   size="small"
-                  v-bind="props"
+                  v-bind="activator.props"
                   class="preview-mode-toggle"
                   :icon="previewMode ? 'mdi-eye-off' : 'mdi-eye'"
                   :class="{weakened: disabled}"
@@ -64,9 +64,9 @@
               top
               aria-label="Tooltip for Formatting help button"
             >
-              <template #activator="{ props }">
+              <template #activator="activator">
                 <v-btn
-                  v-bind="props"
+                  v-bind="activator.props"
                   :class="{weakened: disabled}"
                   size="small"
                   icon
@@ -98,10 +98,10 @@
                     top
                     aria-label="Tooltip for save indicator"
                   >
-                    <template #activator="{ props }">
+                    <template #activator="activator">
                       <!-- Using a button here so the two elements are aligned. -->
                       <v-btn
-                        v-bind="props"
+                        v-bind="activator.props"
                         variant="plain"
                         icon
                         size="small"
@@ -126,10 +126,10 @@
                     v-else-if="saveIndicator"
                     top
                   >
-                    <template #activator="{ props }">
+                    <template #activator="activator">
                       <!-- Using a button here so the two elements are aligned. -->
                       <v-btn
-                        v-bind="props"
+                        v-bind="activator.props"
                         variant="plain"
                         icon
                         size="small"
@@ -156,16 +156,16 @@
                   class="shrink"
                 >
                   <v-tooltip top>
-                    <template #activator="{ props }">
+                    <template #activator="activator">
                       <v-btn
-                        v-bind="props"
+                        v-bind="activator.props"
                         :disabled="saved || disabled"
                         color="black"
                         icon
                         size="small"
-                        @click="save"
                         class="save-button"
                         aria-label="Needs saving."
+                        @click="save"
                       >
                         <v-icon
                           color="yellow"
@@ -208,6 +208,7 @@ const props = withDefaults(defineProps<{
   autoGrow: true,
   saveIndicator: true,
   disabled: false,
+  saveComparison: undefined,
   errorMessages: () => [],
 })
 const route = useRoute()

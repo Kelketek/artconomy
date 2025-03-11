@@ -20,10 +20,11 @@
         <v-expansion-panel-title><strong>Click to Read</strong></v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-card>
-            <v-card-text
+            <ac-rendered
               v-if="response !== null"
-              class="text-left"
-              v-html="md.render(response)"
+              :classes="{'v-card-text': true, 'text-left': true}"
+              :value="response"
+              :truncate="false"
             />
           </v-card>
         </v-expansion-panel-text>
@@ -69,20 +70,21 @@
                 </v-btn>
               </v-toolbar-items>
             </v-toolbar>
-            <v-card-text
+            <ac-rendered
               v-if="response !== null"
-              v-html="md.render(response)"
+              :classes="{'v-card-text': true, 'text-left': true}"
+              :value="response"
+              :truncate="false"
             />
           </v-card>
         </v-dialog>
       </div>
       <v-col v-else-if="response">
-        <v-card-text>
-          <v-col
-            class="text-left"
-            v-html="md.render(response)"
-          />
-        </v-card-text>
+        <ac-rendered
+          :classes="{'v-card-text': true, 'text-left': true}"
+          :value="response"
+          :truncate="false"
+        />
       </v-col>
       <v-progress-circular
         v-if="!response"
@@ -98,9 +100,9 @@
 import {ref} from 'vue'
 import {artCall} from '../lib/lib.ts'
 import {mdiClose} from '@mdi/js'
-import {md} from '@/lib/markdown.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import type {Asset} from '@/types/main'
+import AcRendered from '@/components/wrappers/AcRendered.ts'
 
 const props = defineProps<{asset: Asset, compact?: boolean, popOut?: boolean}>()
 const response = ref<string|null>(null)

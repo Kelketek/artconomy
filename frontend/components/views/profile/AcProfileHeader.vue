@@ -134,9 +134,9 @@
       v-else-if="subject && isRegistered"
       offset-y
     >
-      <template #activator="{props}">
+      <template #activator="activator">
         <v-btn
-          v-bind="props"
+          v-bind="activator.props"
           icon
           aria-label="Actions"
         >

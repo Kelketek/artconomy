@@ -43,7 +43,7 @@ const blur = () => {
 }
 
 const slotNames = computed((): Array<keyof VTextField['$slots']> => {
-  // @ts-expect-error
+  // @ts-expect-error Metaprogramming too complicated.
   return [...Object.keys(slots)]
 })
 </script>

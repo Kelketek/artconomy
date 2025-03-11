@@ -82,9 +82,9 @@
           </div>
           <div class="flex-shrink-0">
             <v-tooltip top>
-              <template #activator="{props}">
+              <template #activator="activator">
                 <v-btn
-                  v-bind="props"
+                  v-bind="activator.props"
                   @click="dataMode = true"
                 >
                   <v-icon :icon="mdiListBox" />

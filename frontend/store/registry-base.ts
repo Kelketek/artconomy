@@ -1,5 +1,5 @@
-import type {EffectScope, Ref} from 'vue'
-import {ComponentOptions, createApp, effectScope, h, markRaw, toRaw, toValue} from 'vue'
+import type {Ref} from 'vue'
+import {ComponentOptions, createApp, h, markRaw, toValue} from 'vue'
 import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
 import {Router} from 'vue-router'
 import {SocketManager} from '@/plugins/socket.ts'
@@ -127,12 +127,11 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
   }
   public reset = () => {
     // Clears all data. Useful for testing.
-    const self = (this as unknown as Registry<K, T>)
-    self.controllers = markRaw({})
-    self.componentMap = markRaw({})
-    self.uidTracking = markRaw({})
-    self.listeners = markRaw({})
-    self.uidListenerTracking = markRaw({})
+    this.controllers = markRaw({})
+    this.componentMap = markRaw({})
+    this.uidTracking = markRaw({})
+    this.listeners = markRaw({})
+    this.uidListenerTracking = markRaw({})
   }
   public unhook = (uid: string, controller: Registerable<K>) => {
     // Reference tracking for removal of controller. Deletes the Vuex representation if it is not set persistent

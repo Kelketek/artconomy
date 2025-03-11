@@ -165,15 +165,10 @@ describe('ProductDetail.vue', () => {
         submission: genSubmission(),
       },
     ]
-    // @ts-ignore
     submissions[0].submission.id = 1
-    // @ts-ignore
     submissions[1].submission.id = 2
-    // @ts-ignore
     submissions[2].submission.id = 3
-    // @ts-ignore
     submissions[3].submission.id = 5
-    // @ts-ignore
     submissions[4].submission.id = 6
     data.samplesList.setList(submissions)
     wrapper = mount(ProductDetail, {

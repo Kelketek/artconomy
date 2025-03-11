@@ -20,11 +20,11 @@
           text="Saved"
           location="top"
         >
-          <template #activator="{ props }">
+          <template #activator="activator">
             <!-- Using a button here so the two elements are aligned. -->
             <v-btn
               size="x-small"
-              v-bind="props"
+              v-bind="activator.props"
               icon
               variant="plain"
               density="compact"
@@ -47,10 +47,10 @@
           text="Unsaved"
           location="top"
         >
-          <template #activator="{ props }">
+          <template #activator="activator">
             <!-- Using a button here so the two elements are aligned. -->
             <v-btn
-              v-bind="props"
+              v-bind="activator.props"
               size="x-small"
               icon
               variant="plain"
@@ -75,15 +75,15 @@
           text="Save"
           location="top"
         >
-          <template #activator="{ props }">
+          <template #activator="activator">
             <v-btn
-              v-bind="props"
+              v-bind="activator.props"
               :disabled="saved || disabled"
               icon
               variant="plain"
               color="black"
-              @click="save"
               class="save-button"
+              @click="save"
             >
               <v-icon
                 color="yellow"
@@ -148,6 +148,7 @@ const props = withDefaults(defineProps<PatchFieldProps>(), {
   autoSave: true,
   enterSave: true,
   instant: false,
+  id: undefined,
 })
 
 const fieldComponent = componentMap[transformComponentName(props.fieldType)]

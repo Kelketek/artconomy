@@ -116,7 +116,7 @@ export class Patch<T = any> {
     val = toValue(val)
     // Broken out into its own function so that we can force retry as needed.
     this.cached.value = toValue(val)
-     
+
     this.debouncedSet.apply(this, [val])
   }
 
@@ -169,7 +169,6 @@ export class Patch<T = any> {
   }
 
   public get dirty() {
-    // @ts-ignore
     const cached = toValue(this.cached)
     if (cached === uncached) {
       return false

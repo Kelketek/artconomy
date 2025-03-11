@@ -225,7 +225,6 @@ const adultAllowed = computed(() => {
   if (patchers.value.sfw_mode.model || unverifiedInTheocracy.value) {
     return false
   }
-  // @ts-ignore
   const birthday = patchers.value.birthday.model
   if (birthday === null) {
     return false

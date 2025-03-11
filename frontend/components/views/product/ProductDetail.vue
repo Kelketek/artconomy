@@ -211,10 +211,10 @@
                 :close-on-content-click="false"
                 :attach="menuTarget"
               >
-                <template #activator="{props}">
+                <template #activator="activator">
                   <v-btn
                     icon
-                    v-bind="props"
+                    v-bind="activator.props"
                     class="more-button"
                     aria-label="Actions"
                   >
@@ -1037,14 +1037,14 @@
                 <template #default>
                   <v-row no-gutters>
                     <v-col
-                      v-for="product in recommended.list"
-                      :key="product.x!.id"
+                      v-for="recommendedProduct in recommended.list"
+                      :key="recommendedProduct.x!.id"
                       cols="6"
                       sm="4"
                       md="3"
                       class="pa-1"
                     >
-                      <ac-product-preview :product="product.x!" />
+                      <ac-product-preview :product="recommendedProduct.x!" />
                     </v-col>
                   </v-row>
                 </template>
@@ -1206,7 +1206,7 @@ subjectHandler.artistProfile.get().catch(setError)
 listenForForm(`product${props.productId}__order`)
 
 const orderLink = computed(() => {
-   
+
   if (isCurrent.value && product.x?.over_order_limit) {
     return {
       name: 'Upgrade',
@@ -1287,7 +1287,7 @@ const rawLineItemSetMaps = computed(() => {
     return []
   }
   const basePrice = product.x.base_price
-   
+
   const planName = subject.value?.service_plan
   const international = subject.value?.international
   const cascade = product.x.cascade_fees
@@ -1341,7 +1341,7 @@ const rawLineItemSetMaps = computed(() => {
     })
   }
   if (appendPreferred) {
-     
+
     sets.push({
       name: pricing.x?.preferred_plan + '',
       lineItems: preferredLines,

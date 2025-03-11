@@ -67,9 +67,9 @@
                         class="shrink"
                       >
                         <v-tooltip top>
-                          <template #activator="{ props }">
+                          <template #activator="activator">
                             <v-btn
-                              v-bind="props"
+                              v-bind="activator.props"
                               color="danger"
                               icon
                               small
@@ -84,9 +84,9 @@
                       </v-col>
                       <v-col class="shrink">
                         <v-tooltip top>
-                          <template #activator="{ props }">
+                          <template #activator="activator">
                             <v-btn
-                              v-bind="props"
+                              v-bind="activator.props"
                               color="blue"
                               type="submit"
                               icon
@@ -158,7 +158,6 @@ const theme = useTheme()
 
 const color = computed(() => {
   if (props.alternate) {
-    // @ts-ignore
     return theme.current.value.colors['well-darken-4']
   }
   return ''

@@ -1,12 +1,12 @@
 <template>
   <v-autocomplete
+    ref="input"
     v-model="tags"
     v-model:search="query"
     chips
     :multiple="multiple"
     autocomplete
     :items="items"
-    ref="input"
     hide-no-data
     auto-select-first
     deletable-chips

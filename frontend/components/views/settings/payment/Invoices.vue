@@ -99,7 +99,7 @@ import {formatDateTime} from '@/lib/otherFormatters.ts'
 import {computed} from 'vue'
 import type {Invoice, SubjectiveProps} from '@/types/main'
 
-const props = withDefaults(defineProps<{initialState: boolean|null} & SubjectiveProps>(), {initialState: initDrawerValue()})
+const props = withDefaults(defineProps<{initialState?: boolean|null} & SubjectiveProps>(), {initialState: initDrawerValue()})
 
 const display = useDisplay()
 const router = useRouter()

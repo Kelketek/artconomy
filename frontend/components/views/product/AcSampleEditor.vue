@@ -230,7 +230,7 @@ const addSample = (value: Submission) => {
   if (props.product.x!.primary_submission) {
     return
   }
-  // @ts-expect-error
+  // @ts-expect-error Written type doesn't match read.
   return props.product.patch({primary_submission: value.id})
 }
 
@@ -239,7 +239,6 @@ const unlinkSubmission = (submission: SingleController<LinkedSubmission>) => {
   const id = submission.x!.submission.id
   submission.delete().then(() => {
     const existingPrimary = (props.product.x as Product).primary_submission
-    // @ts-ignore
     if (existingPrimary && existingPrimary.id === id) {
       props.product.updateX({primary_submission: null})
     }

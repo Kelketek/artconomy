@@ -45,7 +45,6 @@ describe('Form and field controllers', () => {
   let store: ArtStore
   let state: RootFormState
   let wrapper: VueWrapper<any>
-  let empty: VueWrapper<any>
   let router: Router
   let socket: SocketManager
   const registries: RegistryRegistry = {
@@ -65,7 +64,6 @@ describe('Form and field controllers', () => {
     mockTrace.mockClear()
     router = createRouter({history: createWebHistory(), routes: [{name: 'Home', path: '/', component: Empty}]})
     mockScrollIntoView.mockClear()
-    empty = mount(Empty, vueSetup({store}))
     formRegistry.resetValidators()
     formRegistry.reset()
     socket = buildSocketManger({endpoint: '/beep/'})
@@ -447,7 +445,7 @@ describe('Form and field controllers', () => {
       },
 
     })
-     
+
     new FormController({
       $store: store,
       initName: 'example2',
@@ -518,7 +516,7 @@ describe('Form and field controllers', () => {
       },
 
     })
-     
+
     new FormController({
       $store: store,
       initName: 'example2',

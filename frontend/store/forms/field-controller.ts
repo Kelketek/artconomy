@@ -43,6 +43,7 @@ export class FieldController {
       this.runValidation, this.debounceRate, {trailing: true},
     )
     // Force creation of the value computed getter.
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     this.value
     this.scope.run(() => {
       this.localCache = ref(null)
@@ -205,7 +206,7 @@ export class FieldController {
     const errors: string[] = []
     const allValidators = this.attr('validators')
     const syncValidators = allValidators.filter((validator: ValidatorSpec) => !validator.async)
-    // Run our syncronous validators first.
+    // Run our synchronous validators first.
     for (const validator of syncValidators) {
       if (!formRegistry.validators[validator.name]) {
         console.error(

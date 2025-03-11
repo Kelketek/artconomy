@@ -23,8 +23,6 @@ let socketSettings: ListSocketSettings
 let router: Router
 const registries = buildRegistries()
 
-const mockWarning = vi.spyOn(console, 'warn')
-
 describe('List controller', () => {
   function makeController(extra?: Partial<ListModuleOpts>) {
     const schema = {...{endpoint: '/endpoint/'}, ...extra}

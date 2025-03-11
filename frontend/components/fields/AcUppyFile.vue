@@ -161,7 +161,7 @@ const uppy = ref(new Uppy({
   id: props.uppyId,
   autoProceed: true,
   debug: false,
-  // @ts-expect-error
+  // @ts-expect-error Upstream type incomplete.
   store: new ArtconomyUppyStore<GenericState>(uppySingle),
   restrictions: {
     maxFileSize: null,
@@ -217,13 +217,12 @@ onMounted(() => {
     theme: 'dark',
     proudlyDisplayPoweredByUppy: false,
     showLinkToFileUploadResult: false,
-    // @ts-ignore
     doneButtonHandler: null,
   })
   const companionUrl = `${window.location.origin}/companion/`
     // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
     uppy.value.use(Url, {
-      // @ts-expect-error
+      // @ts-expect-error Upstream type incomplete.
       target: Dashboard,
       companionUrl,
       companionCookiesRule: 'include',

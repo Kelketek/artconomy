@@ -70,6 +70,7 @@ export default {
       default: undefined
     },
   },
+  emits: ['error', 'rendered', 'executed', 'reset', 'verify', 'expired', 'challengeExpired', 'opened', 'closed'],
   data: () => {
     return {
       widgetId: null,
@@ -158,7 +159,9 @@ export default {
     },
     onRendered() {
       this.$emit('rendered');
-      this.renderedCb && this.renderedCb();
+      if (this.renderedCb) {
+        this.renderedCb();
+      }
     },
     onExecuted() {
       this.$emit('executed');

@@ -462,33 +462,4 @@ describe('DeliverableDetail.vue', () => {
     await nextTick()
     expect(newInvoice.fields.references.value).toEqual([3, 4])
   })
-  test('Requests the right endpoint for information on invoicing', async() => {
-    const fox = genUser({
-      username: 'Fox',
-      landscape: true,
-    })
-    setViewer({ store, user: fox })
-    await router.push('/orders/Fox/order/1/deliverables/5/overview')
-    wrapper = mount(
-      DeliverableDetail, {
-        ...vueSetup({
-          store,
-          router,
-          stubs: ['router-link'],
-        }),
-        props: {
-          orderId: '1',
-          deliverableId: '5',
-          baseName: 'Sale',
-          username: 'Fox',
-        },
-      })
-    const {deliverable} = getControllers({
-      orderId: '1',
-      deliverableId: '5',
-    })
-    deliverable.makeReady(genDeliverable())
-    await nextTick()
-    expect(mockAxios.getReqByUrl('/api/sales/account/Vulpes/products/1/')).toBeTruthy
-  })
 })

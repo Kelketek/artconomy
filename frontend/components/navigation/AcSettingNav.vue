@@ -87,9 +87,9 @@
       value="Payment"
       density="compact"
     >
-      <template #activator="{props}">
+      <template #activator="activator">
         <v-list-item
-          v-bind="props"
+          v-bind="activator.props"
           tabindex="0"
         >
           <v-list-item-title>Payment</v-list-item-title>

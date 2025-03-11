@@ -145,10 +145,9 @@
           class="text-center"
           cols="12"
         >
-          <div
+          <qr-code
             v-if="image"
-            class="qrcode"
-            v-html="image"
+            :data="baseRawLocation"
           />
         </v-col>
         <v-col
@@ -167,11 +166,11 @@
 import {useViewer} from '../mixins/viewer.ts'
 import {defaultDialogProps, DialogProps} from '../mixins/dialog.ts'
 import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import QRCode from 'qrcode'
 import {siPinterest, siReddit, siX, siTumblr, siTelegram} from 'simple-icons'
 import {mdiShare, mdiQrcode} from '@mdi/js'
 import {computed, ref, watch} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
+import QrCode from '@/components/wrappers/QrCode.ts'
 
 declare interface ExtraReferred {
   [key: string]: string,
@@ -229,26 +228,6 @@ const location = (extraReferred?: ExtraReferred) => encodeURIComponent(rawLocati
 
 const baseRawLocation = computed(() => rawLocation())
 
-const renderCode = () => {
-  QRCode.toString(rawLocation(), {}, (err: Error | null | undefined, str: string) => {
-    /* istanbul ignore if */
-    if (err) {
-      console.error(err)
-    }
-    image.value = str
-  })
-}
-watch(baseRawLocation, renderCode, {immediate: true})
-
 // Used in tests.
 defineExpose({referral, showModal, baseRawLocation, showQr})
 </script>
-
-<style>
-.qrcode {
-  width: 160px;
-  height: 160px;
-  margin-top: 15px;
-  display: inline-block;
-}
-</style>

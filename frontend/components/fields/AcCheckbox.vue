@@ -30,7 +30,7 @@ watch(scratch, (val: boolean | null) => {
 const slots = useSlots()
 
 const slotNames = computed((): Array<keyof VCheckbox['$slots']> => {
-  // @ts-expect-error
+  // @ts-expect-error Metaprogramming insanity.
   return [...Object.keys(slots)]
 })
 </script>

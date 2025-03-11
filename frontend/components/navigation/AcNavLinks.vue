@@ -104,9 +104,9 @@
         nav
         role="listitem"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-list-item
-            v-bind="props"
+            v-bind="activator.props"
             tabindex="0"
           >
             <v-list-item-title>Reports</v-list-item-title>
@@ -221,9 +221,9 @@
         nav
         role="listitem"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-list-item
-            v-bind="props"
+            v-bind="activator.props"
             tabindex="0"
             role="listitem"
           >
@@ -282,9 +282,9 @@
         value="Art"
         role="listitem"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-list-item
-            v-bind="props"
+            v-bind="activator.props"
             tabindex="0"
             role="listitem"
           >
@@ -376,9 +376,9 @@
         value="Settings"
         role="listitem"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-list-item
-            v-bind="props"
+            v-bind="activator.props"
             tabindex="0"
           >
             <v-list-item-title>Settings</v-list-item-title>

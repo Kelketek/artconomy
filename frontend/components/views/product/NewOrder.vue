@@ -3,7 +3,7 @@
     <template #default>
       <v-row
         v-if="product.x"
-        @click="() => clickCounter += 1"
+        @click="recalculate"
       >
         <v-col
           cols="12"
@@ -465,7 +465,7 @@ import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
 import AcRendered from '@/components/wrappers/AcRendered.ts'
 import AcForm from '@/components/wrappers/AcForm.vue'
 import AcLink from '@/components/wrappers/AcLink.vue'
-import {artCall, BASE_URL, prepopulateCharacters} from '@/lib/lib.ts'
+import {artCall, BASE_URL, prepopulateCharacters, useForceRecompute} from '@/lib/lib.ts'
 import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
 import {useForm} from '@/store/forms/hooks.ts'
 import {computed, onMounted, ref, watch} from 'vue'
@@ -493,7 +493,7 @@ const showCharacters = ref(false)
 const initCharacters = ref<Character[]>([])
 const {current} = useTheme()
 // Do we still need this? Or is there now a better way?
-const clickCounter = ref(0)
+const {check, recalculate} = useForceRecompute()
 const laptop = new URL('/static/images/laptop.png', BASE_URL)
 
 const {viewer, viewerHandler, rawViewerName, powers, isRegistered, viewerName} = useViewer()
@@ -618,11 +618,6 @@ orderForm.fields.invoicing.update(invoicing.value)
 
 onMounted(() => orderForm.step = step)
 
-// @ts-ignore
-window.orderForm = orderForm
-
-
-
 watch(() => product.x, (newProduct) => {
   if (!newProduct) {
     return
@@ -648,8 +643,8 @@ watch(() => orderForm.step, (val: number) => {
 const nextDisabled = computed(() => {
   // Touch the order form so this is re-evaluated whenever it changes.
   // Just checking the email field isn't enough since Vue can't listen for it.
-   
-  clickCounter.value
+
+  check()
   const element = document.querySelector('#field-newOrder__email')
   if (!element) {
     return false
@@ -674,7 +669,7 @@ const goToOrder = (order: Order) => {
     return
   }
   // Special case override for table events.
-  if ((product.x?.table_product && powers.value.table_seller) || invoicing.value) {  
+  if ((product.x?.table_product && powers.value.table_seller) || invoicing.value) {
     link.query.view_as = 'Seller'
     link.name = 'SaleDeliverablePayment'
     delete link.query.showConfirm

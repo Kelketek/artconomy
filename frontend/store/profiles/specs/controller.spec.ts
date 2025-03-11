@@ -9,8 +9,6 @@ import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {setViewer} from '@/lib/lib.ts'
 
-const localVue = vueSetup()
-
 describe('Profile controller', () => {
   let store: ArtStore
   let wrapper: VueWrapper<any>

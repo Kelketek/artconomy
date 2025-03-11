@@ -73,12 +73,12 @@
                           <td><strong>Targets:</strong></td>
                           <td>
                             <span
-                              v-for="ref, index in invoice.x.targets"
+                              v-for="targetRef, index in invoice.x.targets"
                               :key="index"
                             >
-                              <ac-link :to="ref.link"><span v-if="ref.display_name">{{ ref.display_name }}</span><span
+                              <ac-link :to="targetRef.link"><span v-if="targetRef.display_name">{{ targetRef.display_name }}</span><span
                                 v-else
-                              >{{ ref.model }} #{{ ref.id }}</span></ac-link><span
+                              >{{ targetRef.model }} #{{ targetRef.id }}</span></ac-link><span
                                 v-if="index !== (invoice.x.targets.length - 1)"
                               >,</span>
                             </span>

@@ -72,10 +72,10 @@
           :close-on-content-click="false"
           :attach="menuTarget"
         >
-          <template #activator="{props}">
+          <template #activator="activator">
             <v-btn
               icon
-              v-bind="props"
+              v-bind="activator.props"
               class="more-button"
               aria-label="Actions"
             >

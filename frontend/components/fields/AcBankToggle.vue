@@ -41,7 +41,7 @@
                   <v-btn
                     color="danger"
                     variant="flat"
-                    @click="() => $emit('update:modelValue', BankStatus.NO_SUPPORTED_COUNTRY)"
+                    @click="() => emit('update:modelValue', BankStatus.NO_SUPPORTED_COUNTRY)"
                   >
                     Disable Shield
                   </v-btn>
@@ -100,7 +100,7 @@
           color="primary"
           class="have-us-account"
           variant="flat"
-          @click="() => $emit('update:modelValue', BankStatus.UNSET)"
+          @click="() => emit('update:modelValue', BankStatus.UNSET)"
         >
           Re-enable
           Shield
@@ -131,6 +131,8 @@ const props = withDefaults(
       manageBanks: false,
     },
 )
+
+const emit = defineEmits<{'update:modelValue': [BankStatusValue]}>()
 
 const restartStripe = ref(false)
 

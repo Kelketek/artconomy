@@ -134,7 +134,7 @@ const sortableList = computed({
     if (index === (newVersion.length - 1)) {
       const last = oldList[index].controller
       // Ditto here.
-      // @ts-expect-error
+      // @ts-expect-error TypeScript being obtuse.
       target.updateX({display_position: last.patchers.display_position.model - 0.1})
       artCall({
         url: `${target.endpoint}down/`,

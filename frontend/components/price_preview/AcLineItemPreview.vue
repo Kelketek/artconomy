@@ -8,12 +8,12 @@
         v-if="typeHint"
         :text="typeHint"
       >
-        <template #activator="{ props }">
+        <template #activator="activator">
           <v-badge
             color="info"
             content="?"
             inline
-            v-bind="props"
+            v-bind="activator.props"
           />
         </template>
       </v-tooltip>

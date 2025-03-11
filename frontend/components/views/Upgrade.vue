@@ -56,14 +56,14 @@
                             <strong>...All that, plus:</strong>
                           </v-list-item>
                           <template
-                            v-for="(feature, index) in features[plan.id]"
+                            v-for="(feature, innerIndex) in features[plan.id]"
                             :key="feature"
                           >
                             <v-list-item>
                               {{ feature }}
                             </v-list-item>
                             <v-divider
-                              v-if="index !== (features[plan.id].length - 1)"
+                              v-if="innerIndex !== (features[plan.id].length - 1)"
                               :key="`divider-${feature}`"
                             />
                           </template>

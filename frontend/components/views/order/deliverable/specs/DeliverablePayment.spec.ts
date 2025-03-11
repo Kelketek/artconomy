@@ -307,7 +307,7 @@ describe('DeliverablePayment.vue', () => {
     await wrapper.findComponent('.payment-button').trigger('click')
     await nextTick()
     expect(vm.viewSettings.model.showPayment).toBe(true)
-    // @ts-expect-error
+    // @ts-expect-error Forceful modification
     getStripe().paymentValue = {}
     await wrapper.findComponent('.dialog-submit').trigger('click')
     await nextTick()
@@ -347,7 +347,7 @@ describe('DeliverablePayment.vue', () => {
     await wrapper.find('.payment-button').trigger('click')
     await nextTick()
     expect(vm.viewSettings.model.showPayment).toBe(true)
-    // @ts-expect-error
+    // @ts-expect-error Forceful modification
     getStripe().paymentValue = {}
     vm.$refs.cardManager.tab = 'saved-cards'
     vm.paymentForm.fields.card_id.update(15)
@@ -391,7 +391,7 @@ describe('DeliverablePayment.vue', () => {
     await nextTick()
     await nextTick()
     expect(vm.viewSettings.model.showPayment).toBe(true)
-    // @ts-expect-error
+    // @ts-expect-error Forceful modification
     getStripe().paymentValue = {
       error: {
         code: 'Failure',
@@ -403,7 +403,7 @@ describe('DeliverablePayment.vue', () => {
     await nextTick()
     expect(vm.viewSettings.model.showPayment).toBe(true)
     expect(vm.paymentForm.errors).toEqual(['Shit broke.'])
-    // @ts-expect-error
+    // @ts-expect-error Forceful modification
     getStripe().paymentValue = {
       error: {code: 'Failure'},
     }

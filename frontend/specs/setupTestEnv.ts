@@ -1,8 +1,10 @@
 // Polyfills the CSS.escape function, needed for dynamic CSS class/identifier creation.
 import {clearBody} from '@/specs/helpers'
 
-require('css.escape')
+import 'css.escape'
 import {expect, vi} from 'vitest'
+import ResizeObserver from 'resize-observer-polyfill'
+import '@/window-type.d.ts'
 
 vi.mock('axios', async (importOriginal) => {
   const realAxios = await importOriginal<typeof import('axios')>()
@@ -47,7 +49,7 @@ export class LocalStorageMock {
 
 Object.defineProperty(window, 'localStorage', {value: new LocalStorageMock()})
 
-global.ResizeObserver = require('resize-observer-polyfill')
+global.ResizeObserver = ResizeObserver
 
 window.HTMLElement.prototype.scrollIntoView = vi.fn();
 window.scrollTo = vi.fn();

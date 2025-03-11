@@ -32,8 +32,6 @@ export abstract class BaseController<S, D extends AttrKeys> {
   public $router: Router
   public $registries: RegistryRegistry
   public schema: S
-  // Set this to false if the controller never fetches anything, and so should never be waited on to load.
-  public isFetchableController = true
 
   // Replace this with the default module new instances should be installed under, like 'lists' or 'singles'.
   public baseModuleName = 'base'
@@ -105,7 +103,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
     }
     try {
       this.$store.registerModule(
-         
+
         path, new this.baseClass({...this.schema, ...data, ...{name: path.join('/')}}),
       )
     } catch (err) {
@@ -119,7 +117,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
   }
 
   public get registry(): Registry<D, BaseController<S, D>> {
-    // @ts-expect-error
+    // @ts-expect-error Too recursively complicated to fix.
     return this.$registries[this.typeName]
   }
 
@@ -168,12 +166,14 @@ export abstract class BaseController<S, D extends AttrKeys> {
   }
 
   public stateFor = (path: string[]) => {
-    let state = this.$store.state as unknown
+    let state = this.$store.state as any
     for (const namespace of path) {
       if (state === undefined) {
         return undefined
       }
-      // @ts-ignore
+      if (state === null) {
+        return undefined
+      }
       state = state[namespace]
     }
     return state as undefined | D

@@ -74,6 +74,6 @@ import {mdiArrowExpand} from '@mdi/js'
 import type {Product, SubjectiveProps} from '@/types/main'
 
 
-const props = defineProps<{product: SingleController<Product>} & SubjectiveProps>()
+defineProps<{product: SingleController<Product>} & SubjectiveProps>()
 const showSettings = ref(false)
 </script>

@@ -6,13 +6,13 @@
         class="mr-5"
       >
         <v-tooltip :text="formatDateTime(event.date)">
-          <template #activator="{ props }">
+          <template #activator="activator">
             <v-badge
               left
               overlap
               :model-value="!notification.read"
               color="primary"
-              v-bind="props"
+              v-bind="activator.props"
             >
               <template #badge>
                 <span>*</span>

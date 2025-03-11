@@ -41,7 +41,6 @@ describe('Single controller', () => {
   })
   test('Sends a put request', async() => {
     const controller = makeController()
-    // @ts-ignore
     mockAxios.request.mockImplementationOnce(mockAxios.request)
     controller.put().then()
     expect(mockAxios.request).toHaveBeenCalledWith(rq('/endpoint/', 'put'))

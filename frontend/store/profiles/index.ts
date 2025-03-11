@@ -1,4 +1,3 @@
-// @ts-ignore
 import * as Sentry from '@sentry/browser'
 import {ActionTree, GetterTree, Module, MutationTree} from 'vuex'
 import {ArtState as RootState} from '../artState.ts'
@@ -33,10 +32,8 @@ const mutations: MutationTree<UserStoreState> = {
     state.viewerRawUsername = username
     /* istanbul ignore next */
     try {
-      // @ts-ignore
-      Sentry.configureScope(scope => {
-        scope.setUser({username})
-      })
+      const scope = Sentry.getCurrentScope()
+      scope.setUser({username})
     } catch {
       // Ignore.
     }

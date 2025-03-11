@@ -9,9 +9,8 @@ export interface ExtendedInputProps {
 export const useExtendedInput = <T extends ExtendedInputProps>(props: T) => {
   const passedProps = computed(() => {
     const toPass = {...props} as ExtendedInputProps
-    // @ts-ignore
+    // @ts-expect-error May not exist but we don't care.
     delete toPass.success
-    // @ts-ignore
     delete toPass.label
     return props
   })

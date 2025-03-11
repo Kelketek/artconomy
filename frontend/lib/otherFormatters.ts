@@ -69,7 +69,8 @@ export function deriveDisplayName(username: string) {
     return '[deleted]'
   }
   if (username.startsWith('__')) {
-    // @ts-ignore
+    // @ts-expect-error Match should always work in practice
+    // or there's a much bigger problem.
     return `Guest #${username.match(/__([0-9]+)/)[1]}`
   }
   return username

@@ -24,7 +24,7 @@ export class CharacterController extends BaseController<CharacterModuleOpts, Cha
   public submoduleKeys = ['profile', 'attributes', 'colors', 'submissions', 'sharedWith', 'recommended']
   public baseClass = CharacterModule
   public baseModuleName = 'characterModules'
-  public typeName: 'Character' = 'Character'
+  public typeName = 'Character' as const
 
   public constructor(args: ControllerArgs<CharacterModuleOpts>) {
     super(args)

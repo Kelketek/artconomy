@@ -71,9 +71,9 @@ const list = useList<Submission | ArtistTag>(listName, {endpoint: props.endpoint
 
 const derivedList = computed((): Submission[] => {
   return list.list.map((single) => {
-    // @ts-expect-error
+    // @ts-expect-error Undefined check intentional here.
     if (single.x?.submission !== undefined) {
-      // @ts-expect-error
+      // @ts-expect-error ditto.
       return single.x.submission as Submission
     }
     return single.x as Submission

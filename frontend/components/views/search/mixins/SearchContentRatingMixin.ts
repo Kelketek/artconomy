@@ -11,7 +11,7 @@ export const useContentRatingSearch = (searchForm: FormController) => {
   } = useViewer()
   const ratingItems = computed(() => {
     return Object.keys(RATINGS_SHORT).filter(
-      // @ts-ignore
+      // @ts-expect-error Not worth fixing now.
       (val: number) => val <= rating.value).map((key: string) => {
         const value = parseInt(key, 10) as RatingsValue
         return {

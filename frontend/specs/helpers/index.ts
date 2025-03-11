@@ -5,7 +5,7 @@ import {expect, vi} from 'vitest'
 import VueMask from '@devindex/vue-mask'
 import {csrfSafeMethod, genId, getCookie, immediate} from '@/lib/lib.ts'
 import {mount as upstreamMount, VueWrapper} from '@vue/test-utils'
-import {ComponentPublicInstance, defineComponent, ref, useAttrs} from 'vue'
+import {defineComponent, ref, useAttrs} from 'vue'
 import {FieldController} from '@/store/forms/field-controller.ts'
 import {FieldBank} from '@/store/forms/form-controller.ts'
 import flushPromisesUpstream from 'flush-promises'
@@ -30,6 +30,8 @@ import {createRouter, createWebHistory, Router, RouteRecordRaw} from 'vue-router
 import {routes} from '@/router'
 import {cleanup as renderCleanUp, RenderResult} from '@testing-library/vue'
 import {HttpVerbs} from '@/store/forms/types/main'
+import {Pricing} from '@/types/main'
+import {SingleController} from '@/store/singles/controller.ts'
 
 export interface ExtraData {
   status?: number,
@@ -85,12 +87,6 @@ export function dialogExpects(spec: { wrapper: any, formName: string, fields: st
   return submit
 }
 
-export function vuetifySetup() {
-  const el = document.createElement('div')
-  el.setAttribute('data-app', 'true')
-  document.body.appendChild(el)
-}
-
 export function fieldEl(wrapper: VueWrapper<any>, field: FieldController) {
   const el = wrapper.find('#' + field.id)
   if (!el.exists()) {
@@ -125,14 +121,6 @@ export async function confirmAction(wrapper: VueWrapper<any>, selectors: string[
   } catch (e) {
     console.log('Confirmation dialog missing in:', wrapper.html())
     throw e
-  }
-}
-
-export function makeSpace() {
-  // Prints a bunch of lines to the console. Used to make sure Jest's test runner doesn't overwrite
-  // useful information when it summarizes
-  for (let index = 0; index < 10; index++) {
-    console.log('***')
   }
 }
 
@@ -199,9 +187,10 @@ export const cleanUp = (wrapper?: VueWrapper<any>|RenderResult) => {
   mockAxios.reset()
   vi.clearAllTimers()
   if (wrapper) {
-    // @ts-expect-error
+    // @ts-expect-error 'vm' doesn't exist on RenderResult, and would be OK to be accessed
+    // as undefined here.
     if (wrapper.vm && wrapper.vm.$sock) {
-      // @ts-expect-error
+      // @ts-expect-error ditto for the above.
       wrapper.vm.$sock.reset()
     }
     wrapper.unmount()
@@ -223,12 +212,10 @@ export const cleanUp = (wrapper?: VueWrapper<any>|RenderResult) => {
 // with class-based Vue objects, as far as I know. Revisit once converted to
 // functional components.
 export function setPricing(store: ArtStore) {
-  const pricing: VueWrapper<any> = mount(Empty, vueSetup({
+  const pricing: SingleController<Pricing> = mount(Empty, vueSetup({
     store,
   })).vm.$getSingle('pricing', {endpoint: '/pricing/'})
-  // @ts-ignore
   pricing.setX(genPricing())
-  // @ts-ignore
   pricing.ready = true
   return pricing
 }
@@ -242,10 +229,6 @@ export function docTarget() {
   rootDiv.setAttribute('id', genId())
   document.body.appendChild(rootDiv)
   return rootDiv
-}
-
-export function qMount<V>(component: ComponentPublicInstance<V>, options?: any): VueWrapper<any> {
-  return mount(component, options)
 }
 
 // At one point it looked like everything needed to be moved over to a wrapped version of the upstream mount
@@ -286,7 +269,7 @@ export function VuetifyWrapped(component: ReturnType<typeof defineComponent>) {
   return defineComponent({
     components: {wrapped: component},
     inheritAttrs: false,
-    props: ['id'],
+    props: {id: {type: String, default: ''}},
     setup() {
       return {vm: ref(null), attrs: useAttrs()}
     },
@@ -321,7 +304,7 @@ export const realTimerScope = (): () => void => {
 export async function waitFor(func: () => any, timeout = 2000) {
   const restoreFakes = realTimerScope()
   const startTime = Date.now()
-   
+
   while (true) {
     try {
       const result = await func()

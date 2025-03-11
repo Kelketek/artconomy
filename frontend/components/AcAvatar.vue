@@ -27,11 +27,11 @@
           bottom
           aria-label="Admin status tooltip"
         >
-          <template #activator="{props}">
+          <template #activator="activator">
             <v-icon
               size="small"
               color="green"
-              v-bind="props"
+              v-bind="activator.props"
               :icon="mdiStarCircle"
             />
           </template>
@@ -42,9 +42,9 @@
           bottom
           aria-label="Staff status tooltip"
         >
-          <template #activator="{props}">
+          <template #activator="activator">
             <v-icon
-              v-bind="props"
+              v-bind="activator.props"
               size="small"
               color="yellow"
               :icon="mdiStarCircle"
@@ -124,6 +124,8 @@ const props = withDefaults(
       noLink: false,
       username: '',
       showName: true,
+      user: null,
+      userId: 0,
       showRating: false,
       removable: false,
       inline: false,

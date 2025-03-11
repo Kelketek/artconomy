@@ -8,11 +8,11 @@
     min-width="290px"
     v-bind="attrs"
   >
-    <template #activator="{ props }">
-      <div v-bind="props">
+    <template #activator="activator">
+      <div v-bind="activator.props">
         <v-text-field
           :model-value="modelValue"
-          v-bind="{...attrs, ...props}"
+          v-bind="{...attrs, ...activator.props}"
           prepend-icon="mdi-event"
           readonly
         >

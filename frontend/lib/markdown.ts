@@ -78,7 +78,6 @@ export function textualize(markdown: string) {
 
 
 md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
-  // @ts-ignore
   if (window.PRERENDERING) {
     return tokens[idx].content
   }
@@ -102,7 +101,6 @@ md.renderer.rules.link_open = (tokens, idx, options, env, self) => {
 }
 
 md.renderer.rules.link_close = (tokens, idx, options, env, self) => {
-  // @ts-ignore
   if (window.PRERENDERING) {
     return ''
   }

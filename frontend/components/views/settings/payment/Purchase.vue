@@ -113,7 +113,9 @@ const cards = useList<CreditCardToken>(`${flatten(props.username)}__creditCards`
 cards.firstRun()
 
 const submitNewCard = () => {
-  cardManager.value && cardManager.value.stripeSubmit()
+  if (cardManager.value) {
+    cardManager.value.stripeSubmit()
+  }
 }
 
 watch(() => props.username, () => {

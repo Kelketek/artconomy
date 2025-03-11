@@ -12,7 +12,6 @@ import {
   VuetifyWrapped,
   waitForSelector,
 } from '@/specs/helpers/index.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ListController} from '@/store/lists/controller.ts'

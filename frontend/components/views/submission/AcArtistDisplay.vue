@@ -6,9 +6,9 @@
         top
         aria-label="Tooltip for Artist tagger"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-btn
-            v-bind="props"
+            v-bind="activator.props"
             color="secondary"
             icon
             size="small"
@@ -29,9 +29,9 @@
         top
         aria-label="Tooltip for Artists"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-icon
-            v-bind="props"
+            v-bind="activator.props"
             :icon="mdiPalette"
           />
         </template>

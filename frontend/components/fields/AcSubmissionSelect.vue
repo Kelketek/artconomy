@@ -107,6 +107,7 @@ const props = withDefaults(defineProps<AcSubmissionSelectProps & Partial<Extende
   removable: false,
   saveComparison: null,
   queryEndpoint: '',
+  list: undefined,
   label: '',
   errorMessages: () => [],
 })

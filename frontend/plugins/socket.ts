@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 import {createApp, inject, markRaw} from 'vue'
 import ReconnectingWebSocket, {CloseEvent, Event} from 'reconnecting-websocket'
 import {log} from '@/lib/lib.ts'

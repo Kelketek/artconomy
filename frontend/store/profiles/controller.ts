@@ -31,10 +31,8 @@ export class ProfileController extends BaseController<ProfileModuleOpts, Profile
   public baseClass = ProfileModule
   public submoduleKeys = ['user', 'artistProfile', 'staffPowers']
   public baseModuleName = 'userModules'
-  public typeName: 'Profile' = 'Profile'
-   
+  public typeName = 'Profile' as const
   public profile_controller__ = true
-  public isFetchableController = false
   public user = null as unknown as SingleController<AnyUser>
   public artistProfile = null as unknown as SingleController<ArtistProfile>
   public staffPowers = null as unknown as SingleController<StaffPowers>

@@ -5,7 +5,7 @@ import {LineType} from '@/types/enums/LineType.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
 import AcNewLineItem from '@/components/price_preview/AcNewLineItem.vue'
 import {FormController} from '@/store/forms/form-controller.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 
 import type {ArtVueInterface} from '@/types/main'
 

@@ -26,7 +26,7 @@ const props = withDefaults(defineProps<{
   to?: RouteLocationRaw|null,
   // Must be used only with string location
   newTab?: boolean
-}>(), {newTab: false})
+}>(), {newTab: false, to: null})
 
 const router = useRouter()
 const store = useStore<ArtState>()

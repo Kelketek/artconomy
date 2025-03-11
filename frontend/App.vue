@@ -331,7 +331,7 @@ import {
   paramsKey,
   RATINGS_SHORT,
   searchSchema as baseSearchSchema,
-  setCookie, useLazyInitializer,
+  setCookie, useForceRecompute, useLazyInitializer,
 } from './lib/lib.ts'
 import {SingleController} from '@/store/singles/controller.ts'
 import {ConnectionStatus} from '@/types/enums/ConnectionStatus.ts'
@@ -406,7 +406,7 @@ searchSchema.fields.min_price.value = fallback(query, 'min_price', '')
 searchSchema.fields.max_turnaround.value = fallback(query, 'max_turnaround', '')
 searchSchema.fields.page.value = fallback(query, 'page', 1)
 // This variable is accessed in the tests to verify it's set up correctly, even though it does not appear to be used.
- 
+
 const searchForm = useForm('search', searchSchema)
 
 // These next two functions stolen from Home-- remove when we no longer have the Black Friday banner or else
@@ -431,8 +431,6 @@ watch(() => route.fullPath, (newPath: string) => {
   reportForm.fields.referring_url.update(newPath)
 })
 
-const forceRecompute = ref(0)
-
 // Do we still need this?
 store.commit('setSearchInitialized', true)
 
@@ -441,9 +439,7 @@ const socketState = useSingle<SocketState>('socketState', {
   persist: true,
   x: {
     status: ConnectionStatus.CONNECTING,
-    // @ts-ignore
-     
-    version: process.env['__COMMIT_HASH__'],
+    version: process.env['__COMMIT_HASH__'] || '',
     serverVersion: '',
   },
 })
@@ -519,11 +515,13 @@ const userHandler = computed(() => {
   return viewerHandler.user as SingleController<User>
 })
 
+const {check, recalculate} = useForceRecompute()
+
 const devMode = computed(() => {
   // Accessing a property registers that property as a listener. Even if we do nothing with it, changing its value
   // will force recomputation of this value.
-   
-  forceRecompute.value
+
+  check()
   return mode() === 'development'
 })
 
@@ -631,6 +629,8 @@ const location = window.location
 const contentReady = ref(false)
 
 router.isReady().then(() => contentReady.value = true)
+
+defineExpose({recalculate})
 </script>
 
 <style scoped>

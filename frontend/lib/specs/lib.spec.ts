@@ -178,7 +178,7 @@ describe('Enumerators', () => {
     if (wrapper) {
       wrapper.unmount()
     }
-    // @ts-ignore
+    // @ts-expect-error Deliberately modifying global state.
     delete window.PRERENDERING
   })
   test('Generates shortened options for ratings', () => {
@@ -634,7 +634,7 @@ describe('Logger', () => {
     expect(error).toHaveBeenCalledTimes(1)
   })
   test('Sends all logging levels if the log level is super high', () => {
-    // @ts-expect-error
+    // @ts-expect-error Deliberately testing bad assignment.
     window.__LOG_LEVEL__ = LogLevels.ERROR + 1
     sendMessages()
     expect(debug).not.toHaveBeenCalled()

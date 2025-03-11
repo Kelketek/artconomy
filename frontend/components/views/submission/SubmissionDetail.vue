@@ -227,8 +227,8 @@
               <h3>You might also like...</h3>
               <v-row no-gutters>
                 <v-col
-                  v-for="submission in recommended.list"
-                  :key="submission.x!.id"
+                  v-for="recommendedSubmission in recommended.list"
+                  :key="recommendedSubmission.x!.id"
                   cols="4"
                   sm="2"
                   lg="6"
@@ -287,10 +287,10 @@
                   :close-on-content-click="false"
                   :attach="menuTarget"
                 >
-                  <template #activator="{props}">
+                  <template #activator="activator">
                     <v-btn
                       icon
-                      v-bind="props"
+                      v-bind="activator.props"
                       class="more-button"
                       aria-label="Actions"
                     >
@@ -539,7 +539,7 @@ import {useRouter} from 'vue-router'
 import {textualize} from '@/lib/markdown.ts'
 import {useTargets} from '@/plugins/targets.ts'
 import type {ArtistTag, Comment, LinkedCharacter, RatingsValue, Submission} from '@/types/main'
-import {TerseUser} from '@/store/profiles/types/main'
+import {TerseUser, RelatedUser} from '@/store/profiles/types/main'
 import AcReportButton from '@/components/AcReportButton.vue'
 import AcKillButton from '@/components/AcKillButton.vue'
 
@@ -665,8 +665,7 @@ const title = computed(() => {
     } else {
       title += 'By '
     }
-    // @ts-ignore
-    const artistNames = artists.list.map((user) => (user.x.user as TerseUser).username)
+    const artistNames = artists.list.map((user) => (user.x!.user as RelatedUser).username)
     const firstNames = artistNames.slice(0, 4)
     title += posse(firstNames, artistNames.length - firstNames.length)
   } else {

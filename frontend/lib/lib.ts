@@ -176,7 +176,7 @@ export function ratings() {
 
 export function ratingsNonExtreme() {
   const nonExtreme = {...RATINGS}
-  // @ts-ignore
+  // @ts-expect-error Manual type manipulation.
   delete nonExtreme[3]
   return genOptions(nonExtreme)
 }
@@ -467,7 +467,7 @@ export function updateLinked(options: LinkUpdateOptions) {
   let updateItems = options.list.list.map(x => clone(x.x))
   updateItems = updateItems.filter(
     (x) => x[options.key][options.subKey as string] === options.newValue[options.subKey as string])
-  updateItems.map((x) => { x[options.key] = options.newValue })  
+  updateItems.map((x) => { x[options.key] = options.newValue })
   updateItems.map(options.list.replace)
 }
 
@@ -546,6 +546,7 @@ export const paypalTokenToUrl = (invoiceToken: string, sender: boolean): string 
  * style that changing the controllers to use .value for all their computed properties would be a massive, error-prone
  * undertaking, and it would be more verbose than I'd like anyway.
 */
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
 export function ComputedGetters<T extends Function> (
   Wrapped: T,
 ): T {
@@ -679,6 +680,7 @@ export const useForceRecompute = () => {
   const recalculate = () => {
     checkTarget.value = checkTarget.value ? 0 : 1
   }
+  // eslint-disable-next-line @typescript-eslint/no-unused-expressions
   const check = () => {checkTarget.value}
   return {check, recalculate}
 }

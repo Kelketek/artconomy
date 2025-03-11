@@ -13,7 +13,7 @@ import {genUser} from '@/specs/helpers/fixtures.ts'
 import {ListController} from '@/store/lists/controller.ts'
 import mockAxios from '@/specs/helpers/mock-axios.ts'
 import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
+import {describe, expect, beforeEach, afterEach, test} from 'vitest'
 import {setViewer} from '@/lib/lib.ts'
 import {nextTick} from 'vue'
 import {TOTPDevice} from '@/types/main'
@@ -24,7 +24,6 @@ const qrImageUrl = 'otpauth://totp/Artconomy%20Dev%3Afox%40vulpinity.com?secret=
 const WrappedDevice = VuetifyWrapped(AcTotpDevice)
 
 describe('AcTotpDevice.vue', () => {
-  const mockError = vi.spyOn(console, 'error')
   let store: ArtStore
   let wrapper: VueWrapper<any>
   let controller: ListController<TOTPDevice>
@@ -98,27 +97,8 @@ describe('AcTotpDevice.vue', () => {
     await flushPromises()
     expect(controller.list).toEqual([])
   })
-  test('Logs an error if there was an issue building the QR code image', async() => {
-    setViewer({ store, user: genUser() })
-    mockError.mockImplementationOnce(() => undefined)
-    controller.setList([{
-      id: 1,
-      confirmed: false,
-      config_url: '',
-      name: 'Phone',
-    }])
-    wrapper = mount(WrappedDevice, {
-      ...vueSetup({store}),
-      props: {
-        username: 'Fox',
-        device: controller.list[0],
-      },
-    })
-    expect(mockError).toHaveBeenCalledWith(Error('No input text'))
-  })
   test('Sends a verification code', async() => {
     setViewer({ store, user: genUser() })
-    mockError.mockImplementationOnce(() => undefined)
     controller.setList([{
       id: 1,
       confirmed: false,

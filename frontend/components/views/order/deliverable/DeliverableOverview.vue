@@ -416,7 +416,7 @@ const editDetails = ref(false)
 const ratingDialog = ref(false)
 const cheering = new URL('/static/images/cheering.png', BASE_URL).href
 const {current} = useTheme()
-const {smAndDown, mdAndUp} = useDisplay()
+const {smAndDown} = useDisplay()
 
 const route = useRoute()
 const store = useStore()

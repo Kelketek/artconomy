@@ -98,7 +98,7 @@ const mutations: MutationTree<RootFormState> = {
   },
   updateMeta(state: RootFormState, payload: { name: string, meta: { [key in keyof typeof MetaToggles]: boolean } }) {
     for (const key of Object.keys(payload.meta)) {
-      // @ts-ignore
+      // @ts-expect-error Form definition not type-aware enough to check.
       state[payload.name][key] = payload.meta[key]
     }
   },

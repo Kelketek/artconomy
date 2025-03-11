@@ -1,7 +1,7 @@
 <template>
   <ac-form-dialog
-    :model-value="modelValue"
     v-if="isRegistered"
+    :model-value="modelValue"
     :large="true"
     v-bind="newUpload.bind"
     class="submission-uploader"

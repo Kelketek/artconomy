@@ -26,9 +26,7 @@
           <v-col class="text-center">
             <h2>Use this link to refer other commissioners and artists:</h2>
             <p>
-              <a :href="`https://artconomy.com/?referred_by=${username}`"><code
-                v-html="`https://artconomy.com/?referred_by=${username}`"
-              /></a>
+              <a :href="`https://artconomy.com/?referred_by=${username}`"><code>https://artconomy.com/?referred_by={{ username }}</code></a>
             </p>
             <p>
               You may also make any link to an Artconomy page a referral link by adding <code>{{

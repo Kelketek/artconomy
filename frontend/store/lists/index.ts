@@ -71,7 +71,7 @@ const defaultParams = (state: ListState<any>, params: QueryParams) => {
   return newParams
 }
 
-export class ListModule<T extends {}> {
+export class ListModule<T extends object> {
   public state: ListState<T>
   public mutations: MutationTree<ListState<T>>
   public actions: ActionTree<ListState<T>, RootState>
@@ -106,7 +106,7 @@ export class ListModule<T extends {}> {
       setEndpoint(state: ListState<T>, endpoint: string) {
         state.endpoint = endpoint
       },
-      kill(state: ListState<T>) {
+      kill() {
         // Triggers the cancellation token.
         cancel.source.abort('Killed.')
         cancel.source = new AbortController()
@@ -156,7 +156,7 @@ export class ListModule<T extends {}> {
           state.refs.splice(index, 1)
           index = state.refs.indexOf((item as any)[state.keyProp] + '')
         }
-        // @ts-ignore
+        // @ts-expect-error Bad upstream declaration, I think.
         this.unregisterModule([...state.name.split('/'), 'items', item[state.keyProp] + ''])
       },
       replace(state: ListState<T>, item: T) {
@@ -192,8 +192,8 @@ export class ListModule<T extends {}> {
           return
         }
         const toRemove = state.refs.filter((x) => entries.indexOf(x) === -1)
-        toRemove.map((x: string) => {  
-          // @ts-ignore
+        toRemove.map((x: string) => {
+          // @ts-expect-error Bad upstream declaration, I think.
           this.unregisterModule([...state.name.split('/'), 'items', x])
         })
         state.refs = entries
@@ -239,13 +239,13 @@ export class ListModule<T extends {}> {
       },
       async firstRun({state, dispatch}) {
         // Runs get if we've never succeeded before and are not fetching.
-        // Otherwise does nothing. Useful when Vue reloads components.
+        // Otherwise, does nothing. Useful when Vue reloads components.
         if (state.ready || state.fetching) {
           return immediate(undefined)
         }
         return dispatch('get')
       },
-      async buildResults({state, commit, dispatch}, response) {
+      async buildResults({state, commit}, response) {
         if (state.paginated) {
           /* istanbul ignore if */
           if (response.results === undefined) {
@@ -279,13 +279,13 @@ export class ListModule<T extends {}> {
         commit('setCurrentPage', 1)
         return dispatch('firstRun')
       },
-      async next({state, commit, dispatch, getters}) {
+      async next({state, dispatch}) {
         if (state.params && pageFromParams(state.params) >= totalPages(state.response)) {
           return
         }
         return dispatch('getPage', pageFromParams(state.params) + 1)
       },
-      async retryGet({state, commit, dispatch, getters}) {
+      async retryGet({commit, dispatch}) {
         commit('setFailed', false)
         commit('setReady', false)
         return dispatch('get')

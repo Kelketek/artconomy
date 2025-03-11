@@ -16,7 +16,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
 
   public baseModuleName = 'lists'
 
-  public typeName: 'List' = 'List'
+  public typeName = 'List' as const
 
   constructor(args: ControllerArgs<ListModuleOpts>) {
     super(args)

@@ -21,11 +21,10 @@ import {WS} from 'vitest-websocket-mock'
 import {socketNameSpace} from '@/plugins/socket.ts'
 import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
 import {nextTick, reactive} from 'vue'
+import '@/window-type.d.ts'
 
 let wrapper: VueWrapper<typeof App>
 
-// @ts-ignore
-window.__COMMIT_HASH__ = 'bogusHash'
 socketNameSpace.socketClass = WebSocket
 
 describe('App.vue', () => {
@@ -271,7 +270,7 @@ describe('App.vue', () => {
     expect(vm.mode()).toBe('test')
     expect(vm.devMode).toBe(false)
     process.env.NODE_ENV = 'development'
-    vm.forceRecompute += 1
+    vm.recalculate()
     await nextTick()
     await nextTick()
     expect(vm.devMode).toBe(true)

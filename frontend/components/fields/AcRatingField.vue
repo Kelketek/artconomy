@@ -49,8 +49,8 @@
               cols="12"
             >
               <v-btn
-                :color="(String(scratch) === String(index)) ? RATING_COLOR[index] : ''"
                 v-if="index <= max"
+                :color="(String(scratch) === String(index)) ? RATING_COLOR[index] : ''"
                 :disabled="disabled"
                 block
                 variant="flat"

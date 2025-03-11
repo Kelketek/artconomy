@@ -13,9 +13,9 @@ export class SingleController<T extends object> extends BaseController<SingleMod
 
   public baseModuleName = 'singles'
 
-  public typeName: 'Single' = 'Single'
+  public typeName = 'Single' as const
 
-   
+
   public single_controller__ = true
 
   constructor(args: ControllerArgs<SingleModuleOpts<T>>) {
@@ -69,8 +69,7 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public getModel = () => {
-    const self = this
-    const patchers = self.patchers
+    const patchers = this.patchers
     type KeyType = keyof T
     return new Proxy<T>({} as T, {
       get(target, propName) {
@@ -84,12 +83,11 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public getPatcher = () => {
-    const self = this
     return new Proxy<SinglePatchers<T>>({cached: {} as SinglePatchers<T>} as SinglePatchers<T>, {
-      get(target, propName): Patch {
+      get: (target, propName): Patch => {
         const intermediary = target as {cached: SinglePatchers<T>}
         if (intermediary.cached[propName as keyof T] === undefined) {
-          intermediary.cached[propName as keyof T] = new Patch({target: self, modelProp: '', attrName: propName as string, silent: true})
+          intermediary.cached[propName as keyof T] = new Patch({target: this, modelProp: '', attrName: propName as string, silent: true})
         }
         return intermediary.cached[propName as keyof T]
       },
@@ -173,13 +171,13 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public get model(): T {
-     
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     this.forceRecomputeCounter.value
     return this.getModel() as unknown as T
   }
 
   public get patchers(): SinglePatchers<T> {
-     
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     this.forceRecomputeCounter.value
     return this.getPatcher() as unknown as SinglePatchers<T>
   }

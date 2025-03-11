@@ -1,4 +1,4 @@
-<template xmlns:v-slot="http://www.w3.org/1999/XSL/Transform">
+<template>
   <v-container
     fluid
     class="pa-0"
@@ -10,12 +10,12 @@
           top
           aria-label="Tooltip for tags"
         >
-          <template #activator="{props}">
+          <template #activator="activator">
             <v-btn
               color="primary"
               icon
               size="small"
-              v-bind="props"
+              v-bind="activator.props"
               class="edit-button"
               aria-label="Edit tags"
               @click="editTags"
@@ -33,9 +33,9 @@
           top
           aria-label="Tooltip for tags"
         >
-          <template #activator="{props}">
+          <template #activator="activator">
             <v-icon
-              v-bind="props"
+              v-bind="activator.props"
               :icon="mdiTagMultiple"
               aria-label="Tags"
             />

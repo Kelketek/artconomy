@@ -366,7 +366,7 @@ watch(() => character.profile.x?.primary_submission?.id, () => {
 const addSubmission = (submission: Submission) => {
   if (showChangePrimary.value) {
     if (submissionList.empty) {
-      // @ts-expect-error
+      // @ts-expect-error Write doesn't match read type.
       character.profile.patchers.primary_submission.model = submission.id
     }
   }

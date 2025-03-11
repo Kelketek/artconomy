@@ -20,7 +20,6 @@ const mockTrace = vi.spyOn(console, 'trace')
 
 describe('Patcher', () => {
   let wrapper: VueWrapper<any>
-  let wrapper2: VueWrapper<any>
   beforeEach(() => {
     vi.useFakeTimers()
     mockWarn.mockClear()

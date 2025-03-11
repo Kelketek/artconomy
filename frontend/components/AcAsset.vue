@@ -45,9 +45,9 @@
         class="d-flex justify-center"
       >
         <v-img
+          ref="imageContainer"
           :src="displayImage"
           :aspect-ratio="ratio || undefined"
-          ref="imageContainer"
           :contain="contain"
           :max-height="maxHeight"
           :max-width="maxWidth"
@@ -228,6 +228,7 @@ const props = withDefaults(defineProps<AcAssetProps>(), {
   aspectRatio: 1,
   text: true,
   eager: false,
+  transition: false,
 })
 
 const {ageCheck, isRegistered} = useViewer()
@@ -262,8 +263,8 @@ const displayComponent = computed(() => {
   if (['gallery', 'full', 'preview'].indexOf(props.thumbName) === -1) {
     return null
   }
-  // @ts-ignore
-  return COMPONENT_EXTENSIONS[ext]
+  // @ts-expect-error Allowing undefined fallthrough.
+  return COMPONENT_EXTENSIONS[ext] || null
 })
 
 const renderImage = computed(() => canDisplay.value && (isImage.value || !displayComponent.value))

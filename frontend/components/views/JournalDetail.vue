@@ -21,9 +21,9 @@
                 </v-toolbar-title>
                 <v-spacer />
                 <v-tooltip bottom>
-                  <template #activator="{props}">
+                  <template #activator="activator">
                     <v-icon
-                      v-bind="props"
+                      v-bind="activator.props"
                       :icon="mdiInformation"
                     />
                   </template>
@@ -36,10 +36,10 @@
                   :close-on-content-click="false"
                   :attach="menuTarget"
                 >
-                  <template #activator="{props}">
+                  <template #activator="activator">
                     <v-btn
                       icon
-                      v-bind="props"
+                      v-bind="activator.props"
                       class="more-button"
                       aria-label="Actions"
                     >
@@ -147,9 +147,9 @@
                       <template #pre-actions>
                         <v-col class="shrink">
                           <v-tooltip top>
-                            <template #activator="{ props }">
+                            <template #activator="activator">
                               <v-btn
-                                v-bind="props"
+                                v-bind="activator.props"
                                 icon
                                 color="danger"
                                 class="cancel-button"

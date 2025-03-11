@@ -6,9 +6,9 @@
         top
         aria-label="Tooltip for edit character button"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-btn
-            v-bind="props"
+            v-bind="activator.props"
             color="accent"
             icon
             size="small"
@@ -28,9 +28,9 @@
         top
         aria-label="Tooltip for character listing"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-icon
-            v-bind="props"
+            v-bind="activator.props"
             :icon="mdiAccountGroup"
           />
         </template>

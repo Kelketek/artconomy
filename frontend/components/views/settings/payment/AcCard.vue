@@ -37,10 +37,10 @@
           v-if="card.x.primary"
           top
         >
-          <template #activator="{props}">
+          <template #activator="activator">
             <v-btn
               color="green"
-              v-bind="props"
+              v-bind="activator.props"
               icon
               size="x-small"
               class="default-indicator"
@@ -57,9 +57,9 @@
           v-else
           top
         >
-          <template #activator="{props}">
+          <template #activator="activator">
             <v-btn
-              v-bind="props"
+              v-bind="activator.props"
               size="x-small"
               icon
               color="black"

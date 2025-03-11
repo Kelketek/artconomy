@@ -93,9 +93,11 @@
                       <v-col cols="6">
                         <kbd>{{ item.input }}</kbd>
                       </v-col>
-                      <v-col
-                        cols="6"
-                        v-html="md.renderInline(item.input)"
+                      <ac-rendered
+                        :classes="{'cols-6': true}"
+                        :inline="true"
+                        :truncate="false"
+                        :value="item.input"
                       />
                     </v-row>
                   </v-col>
@@ -149,11 +151,11 @@
                       >
                         <kbd>{{ item.input }}</kbd>
                       </v-col>
-                      <v-col
-                        cols="5"
-                        md="4"
-                        lg="5"
-                        v-html="md.renderInline(item.input)"
+                      <ac-rendered
+                        :classes="{'cols-5': true, 'md-4': true, 'lg-5': true}"
+                        :inline="true"
+                        :truncate="false"
+                        :value="item.input"
                       />
                     </v-row>
                   </v-col>
@@ -210,11 +212,13 @@
                         <v-divider />
                       </v-col>
                       <v-col cols="6">
-                        <kbd v-html="item.display" />
+                        <kbd>{{ item.display }}</kbd>
                       </v-col>
-                      <v-col
-                        cols="6"
-                        v-html="md.render(item.input)"
+                      <ac-rendered
+                        :classes="{'cols-6': true}"
+                        :inline="false"
+                        :truncate="false"
+                        :value="item.input"
                       />
                     </v-row>
                   </v-col>
@@ -277,13 +281,17 @@
                         md="8"
                         lg="7"
                       >
-                        <kbd v-html="item.display" />
+                        <ac-rendered
+                          :classes="{}"
+                          :inline="true"
+                          :truncate="false"
+                          :value="item.input"
+                        />
                       </v-col>
-                      <v-col
-                        cols="5"
-                        md="4"
-                        lg="5"
-                        v-html="md.render(item.input)"
+                      <ac-rendered
+                        :truncate="false"
+                        :classes="{'cols-5': true, 'md-4': true, 'lg-5': true}"
+                        :value="item.input"
                       />
                     </v-row>
                   </v-col>
@@ -352,11 +360,9 @@
                       >
                         <kbd>{{ item.input }}</kbd>
                       </v-col>
-                      <v-col
-                        cols="5"
-                        md="4"
-                        lg="5"
-                        v-html="md.render(item.input)"
+                      <ac-rendered
+                        :classes="{'cols-5': true, 'md-4': true, 'lg-5': true}"
+                        :value="item.input"
                       />
                     </v-row>
                   </v-col>
@@ -436,10 +442,10 @@
                           ...and get
                         </v-list-subheader>
                       </v-col>
-                      <v-col
-                        cols="12"
-                        lg="5"
-                        v-html="md.render(item.input)"
+                      <ac-rendered
+                        :value="item.input"
+                        :truncate="false"
+                        :classes="{'cols-12': true, 'lg-5': true}"
                       />
                     </v-row>
                   </v-col>
@@ -469,7 +475,7 @@
 import {mdiClose} from '@mdi/js'
 import {computed, ref, watch} from 'vue'
 import {useTargets} from '@/plugins/targets.ts'
-import {md} from '@/lib/markdown.ts'
+import AcRendered from '@/components/wrappers/AcRendered.ts'
 
 const props = defineProps<{modelValue: boolean}>()
 const emit = defineEmits<{'update:modelValue': [value: boolean]}>()

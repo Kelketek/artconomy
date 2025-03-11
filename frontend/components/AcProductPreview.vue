@@ -109,12 +109,12 @@
                           bottom
                           aria-label="Tooltip for shield indicator"
                         >
-                          <template #activator="{props}">
+                          <template #activator="activator">
                             <v-icon
                               color="green"
                               class="pl-1"
                               small
-                              v-bind="props"
+                              v-bind="activator.props"
                               :icon="mdiShieldHalfFull"
                               aria-label="Learn More About this product's shield protection."
                             />
@@ -308,12 +308,12 @@
                     bottom
                     aria-label="Tooltip for shield status indicator"
                   >
-                    <template #activator="{props}">
+                    <template #activator="activator">
                       <v-icon
                         :color="shieldColor"
                         class="pl-1"
                         small
-                        v-bind="props"
+                        v-bind="activator.props"
                         :icon="mdiShieldHalfFull"
                       />
                       <span class="d-sr-only">Learn more about shield.</span>
@@ -396,11 +396,11 @@
                 bottom
                 aria-label="Shield Status Tooltip"
               >
-                <template #activator="{props}">
+                <template #activator="activator">
                   <v-icon
                     :color="shieldColor"
                     class="pl-1"
-                    v-bind="props"
+                    v-bind="activator.props"
                     :icon="mdiShieldHalfFull"
                     aria-label="Learn more about Shield."
                   />

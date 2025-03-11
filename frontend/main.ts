@@ -19,42 +19,18 @@ import {createCharacters} from '@/store/characters/registry.ts'
 import {createVueSocket} from '@/plugins/socket.ts'
 import {createVuetify} from '@/plugins/vuetify.ts'
 import '@stripe/stripe-js'
-import {Stripe, StripeConstructor} from '@stripe/stripe-js'
 import {VCol, VRow} from 'vuetify/lib/components/VGrid/index.mjs'
 import {createTargetsPlugin} from '@/plugins/targets.ts'
 import {createRegistries} from '@/plugins/createRegistries.ts'
+import '@/window-type.d.ts'
 
-import type {ShoppingCart} from '@/types/main'
-import {AnonUser, User} from '@/store/profiles/types/main'
 
-declare global {
-  interface Window {
-    // We shouldn't be referencing this directly anywhere.
-    // We use it during debugging.
-    artconomy: any,
-    chrome?: boolean,
-    PRERENDERING: number,
-    windowId: string,
-    USER_PRELOAD: User|AnonUser,
-    SANDBOX_APIS: boolean,
-    RECAPTCHA_SITE_KEY: string,
-    STRIPE_PUBLIC_KEY: string,
-    THEOCRATIC_BAN: boolean,
-    DEFAULT_SERVICE_PLAN_NAME: string,
-    CART?: ShoppingCart,
-    Stripe?: StripeConstructor,
-    StripeInstance: Stripe,
-    _drip: () => void,
-    _fb: () => void,
-    fbq: (...args: any) => void,
-  }
-}
 // Uncomment to enable debug logger.
 // window.__LOG_LEVEL__ = 0
 
 const productionMode = process.env.NODE_ENV === 'production'
 if (!productionMode) {
-  // @ts-expect-error
+  // @ts-expect-error Style must be dependently imported.
   import('vuetify/styles')
 }
 
@@ -110,7 +86,6 @@ if (productionMode && isValidBrowser) {
   init({
     app,
     dsn: 'https://8efd301a6c794f3e9a84e741edef2cfe@sentry.io/1406820',
-    // @ts-ignore
     release: process.env.__COMMIT_HASH__,
     ignoreErrors: [
       'ResizeObserver loop limit exceeded', 'ResizeObserver loop completed with undelivered notifications.',

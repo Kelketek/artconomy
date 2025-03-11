@@ -14,8 +14,8 @@ import {deleteCookie, getCookie, setCookie} from '@/lib/lib.ts'
 import {computed, ref, watch} from 'vue'
 
 const props = withDefaults(
-    defineProps<{type?: "error" | "success" | "warning" | "info", cookie: string, expires?: Date}>(),
-    {type: "info"},
+    defineProps<{type?: "error" | "success" | "warning" | "info", cookie: string, expires?: Date|null}>(),
+    {type: "info", expires: null},
 )
 
 const isNew = ref(!getCookie(props.cookie))

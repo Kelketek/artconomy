@@ -24,9 +24,9 @@
       </v-toolbar-title>
       <v-spacer />
       <v-tooltip bottom>
-        <template #activator="{ props }">
+        <template #activator="activator">
           <v-icon
-            v-bind="props"
+            v-bind="activator.props"
             :icon="mdiInformation"
           />
         </template>
@@ -39,10 +39,10 @@
         left
         :attach="menuTarget"
       >
-        <template #activator="{props}">
+        <template #activator="activator">
           <v-btn
             icon
-            v-bind="props"
+            v-bind="activator.props"
             class="more-button"
             aria-label="Actions"
           >
@@ -141,15 +141,15 @@
                 <template #pre-actions>
                   <v-col class="shrink">
                     <v-tooltip top>
-                      <template #activator="{ props }">
+                      <template #activator="activator">
                         <v-btn
-                          v-bind="props"
+                          v-bind="activator.props"
                           icon
                           small
                           color="danger"
                           class="cancel-button"
-                          @click="editing=false"
                           :disabled="!!comment.patchers.text.patching"
+                          @click="editing=false"
                         >
                           <v-icon :icon="mdiCancel" />
                         </v-btn>
@@ -177,9 +177,9 @@
                 <v-spacer />
                 <v-col class="shrink">
                   <v-tooltip top>
-                    <template #activator="{ props }">
+                    <template #activator="activator">
                       <v-btn
-                        v-bind="props"
+                        v-bind="activator.props"
                         color="primary"
                         icon
                         small
@@ -226,14 +226,14 @@
             <ac-load-section :controller="subCommentList">
               <template #default>
                 <div class="flex subcomments">
-                  <template v-for="(comment, index) in subCommentList.list">
+                  <template v-for="(subComment, index) in subCommentList.list">
                     <ac-comment
-                      v-if="comment.x"
-                      :key="comment.x!.id"
+                      v-if="subComment.x"
+                      :key="subComment.x!.id"
                       :alternate="checkAlternate(index)"
-                      :comment="comment"
+                      :comment="subComment"
                       :comment-list="subCommentList"
-                      :username="comment.x!.user?.username || ''"
+                      :username="subComment.x!.user?.username || ''"
                       :level="level + 1"
                       :nesting="nesting"
                       :show-history="showHistory"
@@ -264,9 +264,9 @@
             <v-spacer />
             <v-col class="shrink">
               <v-tooltip top>
-                <template #activator="{ props }">
+                <template #activator="activator">
                   <v-btn
-                    v-bind="props"
+                    v-bind="activator.props"
                     color="primary"
                     small
                     icon

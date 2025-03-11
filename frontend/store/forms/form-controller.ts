@@ -7,7 +7,7 @@ import {dataFromForm} from '@/store/forms/index.ts'
 import {ComputedGetters, flatten} from '@/lib/lib.ts'
 import {nextTick, toValue} from 'vue'
 
-import type {AcServerError, ArtVueInterface} from '@/types/main'
+import type {AcServerError} from '@/types/main'
 import StepSpec, {FormState, NamelessFormSchema, RawData} from '@/store/forms/types/main'
 
 export interface FieldBank {
@@ -24,7 +24,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
 
   public baseModuleName = 'forms'
 
-  public typeName: 'Form' = 'Form'
+  public typeName = 'Form' as const
   // tslint:disable-next-line:no-empty
   private unsubscribe: (() => void) = null as unknown as (() => void)
 
@@ -62,20 +62,17 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public submit = () =>  {
-    const self = this as unknown as ArtVueInterface
     this.stopValidators()
-    return self.$store.dispatch('forms/submit', {name: this.name.value})
+    return this.$store.dispatch('forms/submit', {name: this.name.value})
   }
 
   public reset = () => {
-    const self = this as unknown as ArtVueInterface
-    self.$store.commit('forms/resetForm', {name: this.name.value})
+    this.$store.commit('forms/resetForm', {name: this.name.value})
   }
 
   public purge = () => {
-    const self = this as unknown as ArtVueInterface
     this.stopValidators()
-    self.$store.commit('forms/delForm', {name: this.name.value})
+    this.$store.commit('forms/delForm', {name: this.name.value})
   }
 
   public get errors() {
@@ -86,8 +83,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public set errors(errors: string[]) {
-    const self = this as unknown as ArtVueInterface
-    self.$store.commit('forms/setMetaErrors', {name: toValue(this.name), errors})
+    this.$store.commit('forms/setMetaErrors', {name: toValue(this.name), errors})
   }
 
   public get disabled(): boolean {
@@ -108,8 +104,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public get rawData(): RawData {
-    const self = this as unknown as ArtVueInterface
-    return dataFromForm(self.$store.state.forms![toValue(this.name)])
+    return dataFromForm(this.$store.state.forms![toValue(this.name)])
   }
 
   public get endpoint() {
@@ -125,8 +120,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public set step(step: number) {
-    const self = this as unknown as ArtVueInterface
-    self.$store.commit('forms/setStep', {name: toValue(this.name), step})
+    this.$store.commit('forms/setStep', {name: toValue(this.name), step})
   }
 
   public get lastStep() {
@@ -170,8 +164,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public clearErrors = () => {
-    const self = this as unknown as ArtVueInterface
-    self.$store.commit('forms/clearErrors', {name: this.name.value})
+    this.$store.commit('forms/clearErrors', {name: this.name.value})
   }
 
   public formWatch = (mutation: MutationPayload) => {

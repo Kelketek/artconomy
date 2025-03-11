@@ -133,7 +133,7 @@ describe('AcLineItemEditor.vue', () => {
   test('Gives a blank label for an unknown type', async() => {
     const lineItems = dummyLineItems()
     const addOn = genLineItem({
-      // @ts-expect-error
+      // @ts-expect-error Test need out-of-bounds value
       type: 1234,
       amount: '2',
       id: -500,

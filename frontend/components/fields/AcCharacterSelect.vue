@@ -1,11 +1,11 @@
 <template>
   <v-autocomplete
+    ref="input"
     v-model="tags"
     v-model:search="query"
     :chips="true"
     :multiple="multiple"
     autocomplete
-    ref="input"
     :items="items"
     :hide-no-data="true"
     :auto-select-first="true"

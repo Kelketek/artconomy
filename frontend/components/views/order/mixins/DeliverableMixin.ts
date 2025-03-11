@@ -376,8 +376,6 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
     }
     return product.value.name
   })
-  // @ts-ignore
-  window.deliverable = deliverable
 
   watch(() => deliverable.x?.id, (newId?: number) => {
     if (!newId) {

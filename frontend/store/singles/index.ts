@@ -97,7 +97,7 @@ export class SingleModule<T> {
           throw reason
         })
       },
-      retryGet({state, commit, dispatch}) {
+      retryGet({commit, dispatch}) {
         commit('setFailed', false)
         dispatch('get')
       },
@@ -107,7 +107,7 @@ export class SingleModule<T> {
           url: state.endpoint,
           method: 'delete',
           signal: cancel.source.signal,
-        }).then((response) => {
+        }).then(() => {
           commit('setDeleted', true)
           commit('setReady', false)
           commit('setX', null)
@@ -119,6 +119,7 @@ export class SingleModule<T> {
           url: state.endpoint,
           method: 'put',
           signal: cancel.source.signal,
+          data,
         }).then((response) => {
           commit('setX', response)
         })

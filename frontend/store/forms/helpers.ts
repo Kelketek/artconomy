@@ -36,10 +36,10 @@ export function deriveErrors(error: AxiosError<{detail: string} | Record<string,
   }
   for (const key of Object.keys(error.response.data)) {
     if (knownFields.indexOf(key) !== -1) {
-      // @ts-ignore
+      // @ts-expect-error Forcible type munging.
       errorSet.fields[key] = error.response.data[key]
     } else if (key !== 'detail') {
-      // @ts-ignore
+      // @ts-expect-error ditto
       unresolved[key] = error.response.data[key]
     }
   }
