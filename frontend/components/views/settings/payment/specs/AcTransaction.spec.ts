@@ -71,7 +71,7 @@ describe('AcTransaction.vue', () => {
       props: {
         transaction: genTransaction(),
         username: 'Fox',
-        currentAccount: 300,
+        asAccount: 300,
       },
     })
   })
@@ -84,7 +84,7 @@ describe('AcTransaction.vue', () => {
       props: {
         transaction: genTransaction(),
         username: 'Vulpes',
-        currentAccount: 300,
+        asAccount: 300,
       },
     })
   })
@@ -98,7 +98,7 @@ describe('AcTransaction.vue', () => {
       props: {
         transaction,
         username: 'Fox',
-        currentAccount: 301,
+        asAccount: 301,
       },
     })
   })
@@ -113,7 +113,7 @@ describe('AcTransaction.vue', () => {
       props: {
         transaction,
         username: 'Vulpes',
-        currentAccount: 300,
+        asAccount: 300,
       },
     })
   })
@@ -126,7 +126,7 @@ describe('AcTransaction.vue', () => {
       props: {
         transaction,
         username: 'Fox',
-        currentAccount: 300,
+        asAccount: 300,
       },
     })
   })
@@ -141,7 +141,7 @@ describe('AcTransaction.vue', () => {
       props: {
         transaction,
         username: 'Fox',
-        currentAccount: 300,
+        asAccount: 300,
       },
     })
     const vm = wrapper.vm as any
@@ -158,7 +158,7 @@ describe('AcTransaction.vue', () => {
       props: {
         transaction,
         username: 'Fox',
-        currentAccount: 300,
+        asAccount: 300,
       },
     })
     const vm = wrapper.vm as any
