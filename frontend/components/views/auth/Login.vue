@@ -41,21 +41,18 @@
       class="token-prompt-dialog"
       @keydown.enter="sendLogin()"
     >
-      <v-col
-        v-if="showTokenPrompt"
-        class="token-prompt-loaded"
-      />
+      <v-col v-if="showTokenPrompt" class="token-prompt-loaded" />
       <v-card>
         <ac-form @submit.prevent="sendLogin()">
           <v-card-text>
             <p>
-              This account is protected by Two Factor Authentication. Please use your
-              authentication device to generate a login token, or check your Telegram messages if you've set
-              up Telegram 2FA.
+              This account is protected by Two Factor Authentication. Please use
+              your authentication device to generate a login token, or check
+              your Telegram messages if you've set up Telegram 2FA.
             </p>
             <p>
-              If you have lost your 2FA device/service, please contact support@artconomy.com with the subject 'Lost
-              2FA'.
+              If you have lost your 2FA device/service, please contact
+              support@artconomy.com with the subject 'Lost 2FA'.
             </p>
             <ac-form-container
               :sending="loginForm.sending"
@@ -69,9 +66,7 @@
                 :autofocus="true"
               />
               <div class="text-center">
-                <v-btn @click="showTokenPrompt = false">
-                  Cancel
-                </v-btn>
+                <v-btn @click="showTokenPrompt = false"> Cancel </v-btn>
                 <v-btn
                   id="tokenSubmit"
                   color="primary"
@@ -91,20 +86,19 @@
 </template>
 
 <script setup lang="ts">
-import {useAuth} from '@/components/views/auth/mixins/Auth.ts'
-import {AxiosResponse} from 'axios'
-import {isAxiosError} from '@/lib/lib.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import {vMaskToken} from '@/lib/vMask.ts'
-import {useTargets} from '@/plugins/targets.ts'
-import {nextTick, ref, watch} from 'vue'
-import type {AcServerError} from '@/types/main'
+import { useAuth } from "@/components/views/auth/mixins/Auth.ts"
+import { AxiosResponse } from "axios"
+import { isAxiosError } from "@/lib/lib.ts"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import AcForm from "@/components/wrappers/AcForm.vue"
+import { vMaskToken } from "@/lib/vMask.ts"
+import { useTargets } from "@/plugins/targets.ts"
+import { nextTick, ref, watch } from "vue"
+import type { AcServerError } from "@/types/main"
 
-
-const {loginForm, loginHandler} = useAuth()
-const {modalTarget} = useTargets()
+const { loginForm, loginHandler } = useAuth()
+const { modalTarget } = useTargets()
 const showTokenPrompt = ref(false)
 
 const loginFailure = (error: AcServerError) => {
@@ -116,7 +110,7 @@ const loginFailure = (error: AcServerError) => {
     loginForm.setErrors(error)
     return
   }
-  if (('token' in (error.response as AxiosResponse).data)) {
+  if ("token" in (error.response as AxiosResponse).data) {
     const tokenErrors = (error.response as AxiosResponse).data.token
     if (!tokenErrors.length) {
       loginForm.setErrors(error)
@@ -140,12 +134,10 @@ const sendLogin = () => {
 watch(showTokenPrompt, (newVal) => {
   if (newVal) {
     nextTick(() => {
-      document.getElementById('field-token')?.focus();
+      document.getElementById("field-token")?.focus()
     })
   }
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

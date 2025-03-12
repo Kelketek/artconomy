@@ -1,20 +1,27 @@
-import {SingleModule} from './index.ts'
-import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {Patch} from '@/store/singles/patcher.ts'
-import {ref, Ref, watch} from 'vue'
-import {ComputedGetters} from '@/lib/lib.ts'
-import type {SingleModuleOpts, SinglePatchers, SingleSocketSettings, SingleState} from '@/store/singles/types.d.ts'
-import {RawData} from '@/store/forms/types/main'
+import { SingleModule } from "./index.ts"
+import { BaseController, ControllerArgs } from "@/store/controller-base.ts"
+import { Patch } from "@/store/singles/patcher.ts"
+import { ref, Ref, watch } from "vue"
+import { ComputedGetters } from "@/lib/lib.ts"
+import type {
+  SingleModuleOpts,
+  SinglePatchers,
+  SingleSocketSettings,
+  SingleState,
+} from "@/store/singles/types.d.ts"
+import { RawData } from "@/store/forms/types/main"
 
 @ComputedGetters
-export class SingleController<T extends object> extends BaseController<SingleModuleOpts<T>, SingleState<T>> {
+export class SingleController<T extends object> extends BaseController<
+  SingleModuleOpts<T>,
+  SingleState<T>
+> {
   public baseClass = SingleModule
   public forceRecomputeCounter!: Ref<number>
 
-  public baseModuleName = 'singles'
+  public baseModuleName = "singles"
 
-  public typeName = 'Single' as const
-
+  public typeName = "Single" as const
 
   public single_controller__ = true
 
@@ -25,28 +32,32 @@ export class SingleController<T extends object> extends BaseController<SingleMod
     })
     this.register()
     this.scope.run(() => {
-      watch(() => this.ready, (currentValue: boolean) => {
-        if (currentValue) {
-          this.socketOpened()
-        }
-      }, {immediate: true})
+      watch(
+        () => this.ready,
+        (currentValue: boolean) => {
+          if (currentValue) {
+            this.socketOpened()
+          }
+        },
+        { immediate: true },
+      )
     })
   }
 
   public get = () => {
-    return this.dispatch('get')
+    return this.dispatch("get")
   }
 
   public patch = (data: Partial<T>) => {
-    return this.dispatch('patch', data)
+    return this.dispatch("patch", data)
   }
 
   public post = (data?: any) => {
-    return this.dispatch('post', data)
+    return this.dispatch("post", data)
   }
 
   public delete = () => {
-    return this.dispatch('delete')
+    return this.dispatch("delete")
   }
 
   public markDeleted = () => {
@@ -57,15 +68,17 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public put = (data?: any) => {
-    return this.dispatch('put', data)
+    return this.dispatch("put", data)
   }
 
   public setX = (x: T | null) => {
     // Also available as a setter.
     if (this.x && !x) {
-      this.forceRecomputeCounter.value = this.forceRecomputeCounter.value ? 0 : 1
+      this.forceRecomputeCounter.value = this.forceRecomputeCounter.value
+        ? 0
+        : 1
     }
-    this.commit('setX', x)
+    this.commit("setX", x)
   }
 
   public getModel = () => {
@@ -83,27 +96,35 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public getPatcher = () => {
-    return new Proxy<SinglePatchers<T>>({cached: {} as SinglePatchers<T>} as SinglePatchers<T>, {
-      get: (target, propName): Patch => {
-        const intermediary = target as {cached: SinglePatchers<T>}
-        if (intermediary.cached[propName as keyof T] === undefined) {
-          intermediary.cached[propName as keyof T] = new Patch({target: this, modelProp: '', attrName: propName as string, silent: true})
-        }
-        return intermediary.cached[propName as keyof T]
+    return new Proxy<SinglePatchers<T>>(
+      { cached: {} as SinglePatchers<T> } as SinglePatchers<T>,
+      {
+        get: (target, propName): Patch => {
+          const intermediary = target as { cached: SinglePatchers<T> }
+          if (intermediary.cached[propName as keyof T] === undefined) {
+            intermediary.cached[propName as keyof T] = new Patch({
+              target: this,
+              modelProp: "",
+              attrName: propName as string,
+              silent: true,
+            })
+          }
+          return intermediary.cached[propName as keyof T]
+        },
       },
-    })
+    )
   }
 
   public updateX = (x: Partial<T>) => {
-    this.commit('updateX', x)
+    this.commit("updateX", x)
   }
 
   public retryGet = () => {
-    return this.dispatch('retryGet')
+    return this.dispatch("retryGet")
   }
 
   public get x(): T | null {
-    return this.attr('x')
+    return this.attr("x")
   }
 
   public set x(x: T | null) {
@@ -111,54 +132,54 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public get endpoint(): string {
-    return this.attr('endpoint')
+    return this.attr("endpoint")
   }
 
   public set endpoint(val: string) {
-    this.commit('setEndpoint', val)
+    this.commit("setEndpoint", val)
   }
 
   public get fetching(): boolean {
-    return this.attr('fetching')
+    return this.attr("fetching")
   }
 
   public set fetching(val: boolean) {
-    this.commit('setFetching', val)
+    this.commit("setFetching", val)
   }
 
   public get ready(): boolean {
-    return this.attr('ready')
+    return this.attr("ready")
   }
 
-  public get socketSettings(): SingleSocketSettings|null {
-    return this.attr('socketSettings')
+  public get socketSettings(): SingleSocketSettings | null {
+    return this.attr("socketSettings")
   }
 
-  public set socketSettings(val: SingleSocketSettings|null) {
-    this.commit('setSocketSettings', val)
+  public set socketSettings(val: SingleSocketSettings | null) {
+    this.commit("setSocketSettings", val)
   }
 
   public set ready(val: boolean) {
-    this.commit('setReady', val)
+    this.commit("setReady", val)
   }
 
-  public set params(val: RawData|null) {
-    this.commit('setParams', val)
+  public set params(val: RawData | null) {
+    this.commit("setParams", val)
   }
 
   public get params() {
-    return this.attr('params')
+    return this.attr("params")
   }
 
   public set failed(val: boolean) {
-    this.commit('setFailed', val)
+    this.commit("setFailed", val)
   }
 
   public get failed(): boolean {
-    return this.attr('failed')
+    return this.attr("failed")
   }
 
-  public refresh = ()=> {
+  public refresh = () => {
     this.ready = false
     return this.get()
   }
@@ -183,19 +204,19 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   }
 
   public get deleted(): boolean {
-    return this.attr('deleted')
+    return this.attr("deleted")
   }
 
   public set deleted(val: boolean) {
-    this.commit('setDeleted', val)
+    this.commit("setDeleted", val)
   }
 
   public get socketUpdateParams() {
-    const socketSettings = this.attr('socketSettings')
+    const socketSettings = this.attr("socketSettings")
     if (!socketSettings || !this.x) {
       return null
     }
-    const pk = this.x[(socketSettings.keyField || 'id') as keyof T]
+    const pk = this.x[(socketSettings.keyField || "id") as keyof T]
     if (!pk) {
       return null
     }
@@ -210,7 +231,7 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   public get updateLabel() {
     const data = this.socketUpdateParams
     if (!data) {
-      return ''
+      return ""
     }
     return `${data.app_label}.${data.model_name}.update.${data.serializer}.${data.pk}`
   }
@@ -218,7 +239,7 @@ export class SingleController<T extends object> extends BaseController<SingleMod
   public get deleteLabel() {
     const data = this.socketUpdateParams
     if (!data) {
-      return ''
+      return ""
     }
     return `${data.app_label}.${data.model_name}.delete.${data.pk}`
   }
@@ -242,7 +263,7 @@ export class SingleController<T extends object> extends BaseController<SingleMod
       // Also because some weirdness happens with reference changes.
       this.markDeleted,
     )
-    this.$sock.send('watch', data)
+    this.$sock.send("watch", data)
   }
 
   public socketUnmount = () => {
@@ -251,11 +272,14 @@ export class SingleController<T extends object> extends BaseController<SingleMod
       return
     }
     if (this.updateLabel) {
-      this.$sock.send('clear_watch', this.socketUpdateParams)
+      this.$sock.send("clear_watch", this.socketUpdateParams)
       this.$sock.removeListener(updateLabel, `${this.socketLabelBase}.update`)
     }
     if (this.deleteLabel) {
-      this.$sock.removeListener(this.deleteLabel, `${this.socketLabelBase}.delete`)
+      this.$sock.removeListener(
+        this.deleteLabel,
+        `${this.socketLabelBase}.delete`,
+      )
     }
   }
 }

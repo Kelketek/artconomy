@@ -5,9 +5,7 @@
     :username="username"
   >
     <template #title>
-      <router-link
-        :to="paymentLink"
-      >
+      <router-link :to="paymentLink">
         There was an issue renewing your subscription.
       </router-link>
     </template>
@@ -20,25 +18,28 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
-import {computed} from 'vue'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import {
+  DisplayData,
+  NotificationProps,
+  NotificationUser,
+  useEvent,
+} from "../mixins/notification.ts"
+import { computed } from "vue"
 
 declare interface RenewalFailure extends DisplayData {
-  error: string,
+  error: string
 }
 const props = defineProps<NotificationProps<NotificationUser, RenewalFailure>>()
 const event = useEvent(props)
 
 const paymentLink = computed(() => ({
-  name: 'Settings',
+  name: "Settings",
   params: {
     username: event.value.target.username,
-    tabName: 'payment',
+    tabName: "payment",
   },
 }))
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

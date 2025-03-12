@@ -1,30 +1,28 @@
 <template>
   <v-container fluid>
     <v-tabs fixed-tabs>
-      <v-tab :to="{name: 'LinksAndStats', params: {username}}">
+      <v-tab :to="{ name: 'LinksAndStats', params: { username } }">
         Referrals
       </v-tab>
-      <v-tab :to="{name: 'Tools', params: {username}}">
-        Tools
-      </v-tab>
+      <v-tab :to="{ name: 'Tools', params: { username } }"> Tools </v-tab>
     </v-tabs>
     <router-view />
   </v-container>
 </template>
 
 <script setup lang="ts">
-import {useRoute, useRouter} from 'vue-router'
+import { useRoute, useRouter } from "vue-router"
 
-import type {SubjectiveProps} from '@/types/main'
+import type { SubjectiveProps } from "@/types/main"
 
 const props = defineProps<SubjectiveProps>()
 const route = useRoute()
 const router = useRouter()
 
-if (route.name === 'ReferralsAndTools') {
+if (route.name === "ReferralsAndTools") {
   router.replace({
-    name: 'LinksAndStats',
-    params: {username: props.username},
+    name: "LinksAndStats",
+    params: { username: props.username },
   })
 }
 </script>

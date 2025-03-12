@@ -13,17 +13,14 @@
     <v-col cols="12">
       <Sortable
         tag="div"
-        :options="{group: {name: 'main', put: false, pull: 'clone'}, store}"
+        :options="{ group: { name: 'main', put: false, pull: 'clone' }, store }"
         class="v-row"
         :list="sortableList"
         item-key="id"
         @update="moveItemInList"
       >
-        <template #item="{element, index}">
-          <slot
-            :element="element.controller"
-            :index="index"
-          />
+        <template #item="{ element, index }">
+          <slot :element="element.controller" :index="index" />
         </template>
       </Sortable>
     </v-col>
@@ -33,18 +30,12 @@
       class="pt-5"
     />
     <template #failure>
-      <v-col
-        v-if="okStatuses"
-        class="text-center"
-      >
+      <v-col v-if="okStatuses" class="text-center">
         <p>{{ failureMessage }}</p>
       </v-col>
     </template>
     <template #empty>
-      <v-col
-        v-if="emptyMessage"
-        class="text-center"
-      >
+      <v-col v-if="emptyMessage" class="text-center">
         <p>{{ emptyMessage }}</p>
       </v-col>
     </template>
@@ -52,35 +43,48 @@
 </template>
 
 <script setup lang="ts" generic="T extends SortableModel">
-import {Sortable} from 'sortablejs-vue3'
-import AcDraggableNavs from '@/components/AcDraggableNavs.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import diff, {DELETION, DiffPatch, INSERTION} from 'list-diff.js'
-import {artCall} from '@/lib/lib.ts'
-import {VCol} from 'vuetify/lib/components/VGrid/index.mjs'
-import {SortableEvent} from 'sortablejs'
-import {computed} from 'vue'
-import {SingleController} from '@/store/singles/controller.ts'
+import { Sortable } from "sortablejs-vue3"
+import AcDraggableNavs from "@/components/AcDraggableNavs.vue"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import diff, { DELETION, DiffPatch, INSERTION } from "list-diff.js"
+import { artCall } from "@/lib/lib.ts"
+import { VCol } from "vuetify/lib/components/VGrid/index.mjs"
+import { SortableEvent } from "sortablejs"
+import { computed } from "vue"
+import { SingleController } from "@/store/singles/controller.ts"
 
-import type {AcDraggableListProps, SortableItem, SortableModel} from '@/types/main'
+import type {
+  AcDraggableListProps,
+  SortableItem,
+  SortableModel,
+} from "@/types/main"
 
 const props = withDefaults(defineProps<AcDraggableListProps<T>>(), {
   trackPages: false,
   okStatuses: () => [],
-  failureMessage: '',
-  emptyMessage: '',
+  failureMessage: "",
+  emptyMessage: "",
   showPagination: true,
 })
 
 const listToSortable = (list: SingleController<T>[]): SortableItem<T>[] => {
-  return list.map((controller) => ({id: controller.x![props.list.keyProp], controller: controller}))
+  return list.map((controller) => ({
+    id: controller.x![props.list.keyProp],
+    controller: controller,
+  }))
 }
 
 const sortableList = computed({
   get(): SortableItem<T>[] {
     const list = listToSortable(props.list.list)
     // Mark this for forced reactivity. The sorting does not seem to be reacting deeply to the model values as expected.
-    list.sort((a, b) => -(a.controller.patchers.display_position.model - b.controller.patchers.display_position.model))
+    list.sort(
+      (a, b) =>
+        -(
+          a.controller.patchers.display_position.model -
+          b.controller.patchers.display_position.model
+        ),
+    )
     return list
   },
   set(newVersion) {
@@ -123,31 +127,35 @@ const sortableList = computed({
       //
       // However, we really need to know the on-server 'up' value on this one to do this right.
       const first = oldList[index].controller
-      target.updateX({display_position: first.patchers.display_position.model + 0.1} as Partial<T>)
+      target.updateX({
+        display_position: first.patchers.display_position.model + 0.1,
+      } as Partial<T>)
       artCall({
         url: `${target.endpoint}up/`,
-        method: 'post',
-        data: {relative_to: first.x![keyProp]},
+        method: "post",
+        data: { relative_to: first.x![keyProp] },
       }).then(setPosition)
       return
     }
-    if (index === (newVersion.length - 1)) {
+    if (index === newVersion.length - 1) {
       const last = oldList[index].controller
       // Ditto here.
       // @ts-expect-error TypeScript being obtuse.
-      target.updateX({display_position: last.patchers.display_position.model - 0.1})
+      target.updateX({
+        display_position: last.patchers.display_position.model - 0.1,
+      })
       artCall({
         url: `${target.endpoint}down/`,
-        method: 'post',
-        data: {relative_to: last.x![keyProp]},
+        method: "post",
+        data: { relative_to: last.x![keyProp] },
       }).then(setPosition)
       return
     }
     // Averaging what's in front and behind will set this item's position between.
-    target.patchers.display_position.model = (
-        newVersion[index - 1].controller.patchers.display_position.model +
-        newVersion[index + 1].controller.patchers.display_position.model
-    ) / 2
+    target.patchers.display_position.model =
+      (newVersion[index - 1].controller.patchers.display_position.model +
+        newVersion[index + 1].controller.patchers.display_position.model) /
+      2
   },
 })
 
@@ -160,7 +168,7 @@ const moveItemInList = (event: SortableEvent) => {
   const array = [...sortableList.value]
   const from = event.oldIndex
   const to = event.newIndex
-  if (!(typeof from === 'number' && typeof to === 'number')) {
+  if (!(typeof from === "number" && typeof to === "number")) {
     // Bogus instructions. Ignore.
     return
   }

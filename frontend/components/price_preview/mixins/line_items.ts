@@ -1,33 +1,35 @@
-import {computed} from 'vue'
-import {ListController} from '@/store/lists/controller.ts'
-import {LineType} from '@/types/enums/LineType.ts'
-import {useForm} from '@/store/forms/hooks.ts'
-import {getTotals} from '@/lib/lineItemFunctions.ts'
-import type {LineItem, LineTypeValue} from '@/types/main'
+import { computed } from "vue"
+import { ListController } from "@/store/lists/controller.ts"
+import { LineType } from "@/types/enums/LineType.ts"
+import { useForm } from "@/store/forms/hooks.ts"
+import { getTotals } from "@/lib/lineItemFunctions.ts"
+import type { LineItem, LineTypeValue } from "@/types/main"
 
-export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
+export const useLineItems = (props: {
+  lineItems: ListController<LineItem>
+}) => {
   const addOnForm = useForm(`${props.lineItems.name.value}_addOn`, {
     endpoint: props.lineItems.endpoint,
     fields: {
       amount: {
-        value: '0.00',
-        validators: [{name: 'numeric'}],
+        value: "0.00",
+        validators: [{ name: "numeric" }],
       },
-      description: {value: ''},
-      type: {value: LineType.ADD_ON},
-      percentage: {value: '0'},
+      description: { value: "" },
+      type: { value: LineType.ADD_ON },
+      percentage: { value: "0" },
     },
   })
   const extraForm = useForm(`${props.lineItems.name.value}_extra`, {
     endpoint: props.lineItems.endpoint,
     fields: {
       amount: {
-        value: '0.00',
-        validators: [{name: 'numeric'}],
+        value: "0.00",
+        validators: [{ name: "numeric" }],
       },
-      description: {value: ''},
-      type: {value: LineType.EXTRA},
-      percentage: {value: '0'},
+      description: { value: "" },
+      type: { value: LineType.EXTRA },
+      percentage: { value: "0" },
     },
   })
   const addOnFormItem = computed((): LineItem => {
@@ -59,7 +61,9 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
       description: extraForm.fields.description.value,
     }
   })
-  const rawLineItems = computed(() => props.lineItems.list.map((item) => item.x as LineItem))
+  const rawLineItems = computed(() =>
+    props.lineItems.list.map((item) => item.x as LineItem),
+  )
 
   const addForms = (startingItems: LineItem[]) => {
     const allItems = [...startingItems]
@@ -73,12 +77,29 @@ export const useLineItems = (props: {lineItems: ListController<LineItem>}) => {
     }
     return allItems
   }
-  const baseItems = computed(() => props.lineItems.list.filter(item => item.x && item.x.type === LineType.BASE_PRICE))
-  const linesOfType = (type: LineTypeValue) => props.lineItems.list.filter((item) => item.x!.type === type)
+  const baseItems = computed(() =>
+    props.lineItems.list.filter(
+      (item) => item.x && item.x.type === LineType.BASE_PRICE,
+    ),
+  )
+  const linesOfType = (type: LineTypeValue) =>
+    props.lineItems.list.filter((item) => item.x!.type === type)
   const addOns = computed(() => linesOfType(LineType.ADD_ON))
   const extras = computed(() => linesOfType(LineType.EXTRA))
   const taxes = computed(() => linesOfType(LineType.TAX))
-  const others = computed(() => props.lineItems.list.filter((item) => item.x && ([LineType.PREMIUM_SUBSCRIPTION, LineType.OTHER_FEE, LineType.DELIVERABLE_TRACKING] as LineTypeValue[]).includes(item.x.type)))
+  const others = computed(() =>
+    props.lineItems.list.filter(
+      (item) =>
+        item.x &&
+        (
+          [
+            LineType.PREMIUM_SUBSCRIPTION,
+            LineType.OTHER_FEE,
+            LineType.DELIVERABLE_TRACKING,
+          ] as LineTypeValue[]
+        ).includes(item.x.type),
+    ),
+  )
   const rawPlusForms = computed(() => {
     return addForms(rawLineItems.value)
   })

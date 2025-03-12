@@ -18,17 +18,21 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {NotificationProps, DisplayUser, useEvent} from '../mixins/notification.ts'
-import {computed} from 'vue'
-import {User} from '@/store/profiles/types/main'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import {
+  NotificationProps,
+  DisplayUser,
+  useEvent,
+} from "../mixins/notification.ts"
+import { computed } from "vue"
+import { User } from "@/store/profiles/types/main"
 
 const props = defineProps<NotificationProps<User, DisplayUser>>()
 const event = useEvent(props)
 
 const assetLink = computed(() => {
   return {
-    name: 'Payout',
+    name: "Payout",
     params: {
       username: event.value.target.username,
     },
@@ -36,6 +40,4 @@ const assetLink = computed(() => {
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

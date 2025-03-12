@@ -5,10 +5,7 @@
         <v-row>
           <v-col>
             <v-card>
-              <v-toolbar
-                dense
-                color="black"
-              >
+              <v-toolbar dense color="black">
                 <ac-avatar
                   :username="username"
                   :show-name="false"
@@ -22,13 +19,13 @@
                 <v-spacer />
                 <v-tooltip bottom>
                   <template #activator="activator">
-                    <v-icon
-                      v-bind="activator.props"
-                      :icon="mdiInformation"
-                    />
+                    <v-icon v-bind="activator.props" :icon="mdiInformation" />
                   </template>
                   {{ formatDateTime(journal.x.created_on) }}
-                  <span v-if="journal.x.edited"><br>Edited: {{ formatDateTime(journal.x.edited_on) }}</span>
+                  <span v-if="journal.x.edited"
+                    ><br />Edited:
+                    {{ formatDateTime(journal.x.edited_on) }}</span
+                  >
                 </v-tooltip>
                 <v-menu
                   offset-x
@@ -52,32 +49,25 @@
                       @click.stop="editing = !editing"
                     >
                       <template #prepend>
-                        <v-icon
-                          v-if="editing"
-                          :icon="mdiLock"
-                        />
-                        <v-icon
-                          v-else
-                          :icon="mdiPencil"
-                        />
+                        <v-icon v-if="editing" :icon="mdiLock" />
+                        <v-icon v-else :icon="mdiPencil" />
                       </template>
                       <v-list-item-title v-if="editing">
                         Lock
                       </v-list-item-title>
-                      <v-list-item-title v-else>
-                        Edit
-                      </v-list-item-title>
+                      <v-list-item-title v-else> Edit </v-list-item-title>
                     </v-list-item>
-                    <v-list-item @click.stop="journal.patch({subscribed: !journal.x.subscribed})">
+                    <v-list-item
+                      @click.stop="
+                        journal.patch({ subscribed: !journal.x.subscribed })
+                      "
+                    >
                       <template #prepend>
                         <v-icon
                           v-if="journal.x.subscribed"
                           :icon="mdiVolumeHigh"
                         />
-                        <v-icon
-                          v-else
-                          :icon="mdiVolumeOff"
-                        />
+                        <v-icon v-else :icon="mdiVolumeOff" />
                       </template>
                       <v-list-item-title>
                         Notifications
@@ -86,30 +76,27 @@
                       </v-list-item-title>
                     </v-list-item>
                     <v-list-item
-                      @click="journal.patchers.comments_disabled.model = !journal.patchers.comments_disabled.model"
+                      @click="
+                        journal.patchers.comments_disabled.model =
+                          !journal.patchers.comments_disabled.model
+                      "
                     >
                       <template #prepend>
                         <v-switch
-                          :model-value="journal.patchers.comments_disabled.model"
+                          :model-value="
+                            journal.patchers.comments_disabled.model
+                          "
                           color="primary"
                           :hide-details="true"
                         />
                       </template>
-                      <v-list-item-title>
-                        Comments Disabled
-                      </v-list-item-title>
+                      <v-list-item-title> Comments Disabled </v-list-item-title>
                     </v-list-item>
-                    <ac-confirmation
-                      v-if="controls"
-                      :action="deleteJournal"
-                    >
+                    <ac-confirmation v-if="controls" :action="deleteJournal">
                       <template #default="confirmContext">
                         <v-list-item v-on="confirmContext.on">
                           <template #prepend>
-                            <v-icon
-                              class="delete-button"
-                              :icon="mdiDelete"
-                            />
+                            <v-icon class="delete-button" :icon="mdiDelete" />
                           </template>
                           <v-list-item-title>Delete</v-list-item-title>
                         </v-list-item>
@@ -126,14 +113,8 @@
                       v-if="controls"
                       :patcher="journal.patchers.subject"
                     />
-                    <h1
-                      v-show="!editing"
-                      class="text-h5"
-                    >
-                      <ac-rendered
-                        :value="journal.x.subject"
-                        :inline="true"
-                      />
+                    <h1 v-show="!editing" class="text-h5">
+                      <ac-rendered :value="journal.x.subject" :inline="true" />
                     </h1>
                   </v-col>
                   <v-col cols="12">
@@ -153,7 +134,7 @@
                                 icon
                                 color="danger"
                                 class="cancel-button"
-                                @click="editing=false"
+                                @click="editing = false"
                               >
                                 <v-icon :icon="mdiLock" />
                               </v-btn>
@@ -163,10 +144,7 @@
                         </v-col>
                       </template>
                     </ac-patch-field>
-                    <ac-rendered
-                      v-show="!editing"
-                      :value="journal.x.body"
-                    />
+                    <ac-rendered v-show="!editing" :value="journal.x.body" />
                   </v-col>
                 </v-row>
               </v-card-text>
@@ -187,50 +165,59 @@
   </ac-load-section>
 </template>
 <script setup lang="ts">
-import {useEditable} from '@/mixins/editable.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
-import {useSubject} from '@/mixins/subjective.ts'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {mdiLock, mdiPencil, mdiVolumeHigh, mdiVolumeOff, mdiDelete, mdiDotsHorizontal, mdiInformation} from '@mdi/js'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {useRouter} from 'vue-router'
-import {computed} from 'vue'
-import {formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
-import {useTargets} from '@/plugins/targets.ts'
-import type {Comment, Journal, SubjectiveProps} from '@/types/main'
+import { useEditable } from "@/mixins/editable.ts"
+import AcAvatar from "@/components/AcAvatar.vue"
+import { useSubject } from "@/mixins/subjective.ts"
+import AcRendered from "@/components/wrappers/AcRendered.ts"
+import AcConfirmation from "@/components/wrappers/AcConfirmation.vue"
+import AcCommentSection from "@/components/comments/AcCommentSection.vue"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import {
+  mdiLock,
+  mdiPencil,
+  mdiVolumeHigh,
+  mdiVolumeOff,
+  mdiDelete,
+  mdiDotsHorizontal,
+  mdiInformation,
+} from "@mdi/js"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { useRouter } from "vue-router"
+import { computed } from "vue"
+import { formatDateTime, profileLink } from "@/lib/otherFormatters.ts"
+import { useTargets } from "@/plugins/targets.ts"
+import type { Comment, Journal, SubjectiveProps } from "@/types/main"
 
-const props = defineProps<SubjectiveProps & {journalId: number}>()
-const {controls, subject} = useSubject({ props })
+const props = defineProps<SubjectiveProps & { journalId: number }>()
+const { controls, subject } = useSubject({ props })
 const router = useRouter()
-const {editing} = useEditable(controls)
-const {menuTarget} = useTargets()
+const { editing } = useEditable(controls)
+const { menuTarget } = useTargets()
 
-const {setError} = useErrorHandling()
-const journal = useSingle<Journal>(
-    `journal-${props.journalId}`, {
-      endpoint: `/api/profiles/account/${props.username}/journals/${props.journalId}/`,
-    })
+const { setError } = useErrorHandling()
+const journal = useSingle<Journal>(`journal-${props.journalId}`, {
+  endpoint: `/api/profiles/account/${props.username}/journals/${props.journalId}/`,
+})
 journal.get().catch(setError)
 const journalComments = useList<Comment>(
-    `journal-${props.journalId}-comments`, {
-      endpoint: `/api/lib/comments/profiles.Journal/${props.journalId}/`,
-      reverse: true,
-      grow: true,
-      params: {size: 5},
-    })
+  `journal-${props.journalId}-comments`,
+  {
+    endpoint: `/api/lib/comments/profiles.Journal/${props.journalId}/`,
+    reverse: true,
+    grow: true,
+    params: { size: 5 },
+  },
+)
 journalComments.firstRun()
 
 const goBack = () => {
   router.push({
-    name: 'Profile',
-    params: {username: props.username},
+    name: "Profile",
+    params: { username: props.username },
   })
 }
 
@@ -238,5 +225,5 @@ const deleteJournal = async () => {
   return journal.delete().then(goBack)
 }
 
-const locked = computed(() => (!journal.x || journal.x!.comments_disabled))
+const locked = computed(() => !journal.x || journal.x!.comments_disabled)
 </script>

@@ -12,11 +12,13 @@
   </v-app>
 </template>
 <script setup lang="ts">
-import {useUpload} from '@/mixins/upload.ts'
-import AcNewSubmission from '@/components/AcNewSubmission.vue'
-import type {SubjectiveProps} from '@/types/main'
+import { useUpload } from "@/mixins/upload.ts"
+import AcNewSubmission from "@/components/AcNewSubmission.vue"
+import type { SubjectiveProps } from "@/types/main"
 
-withDefaults(defineProps<SubjectiveProps & {allowMultiple?: boolean}>(), {allowMultiple: false})
-const {showUpload} = useUpload()
+withDefaults(defineProps<SubjectiveProps & { allowMultiple?: boolean }>(), {
+  allowMultiple: false,
+})
+const { showUpload } = useUpload()
 showUpload.value = true
 </script>

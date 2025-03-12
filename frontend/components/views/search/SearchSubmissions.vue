@@ -1,9 +1,5 @@
 <template>
-  <ac-paginated
-    :list="list"
-    :track-pages="true"
-    :auto-run="false"
-  >
+  <ac-paginated :list="list" :track-pages="true" :auto-run="false">
     <v-row no-gutters>
       <v-col
         v-for="submission in list.list"
@@ -12,10 +8,7 @@
         sm="3"
         lg="2"
       >
-        <ac-gallery-preview
-          :submission="submission.x!"
-          :show-footer="false"
-        />
+        <ac-gallery-preview :submission="submission.x!" :show-footer="false" />
       </v-col>
     </v-row>
     <template #empty>
@@ -32,18 +25,18 @@
   </ac-paginated>
 </template>
 <script setup lang="ts">
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useList} from '@/store/lists/hooks.ts'
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import { useSearchList } from "@/components/views/search/mixins/SearchList.ts"
+import AcGalleryPreview from "@/components/AcGalleryPreview.vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useList } from "@/store/lists/hooks.ts"
 
-import type {Submission} from '@/types/main'
+import type { Submission } from "@/types/main"
 
-const searchForm = useForm('search')
+const searchForm = useForm("search")
 
-const list = useList<Submission>('searchSubmissions', {
-  endpoint: '/api/profiles/search/submission/',
+const list = useList<Submission>("searchSubmissions", {
+  endpoint: "/api/profiles/search/submission/",
   persistent: true,
 })
 useSearchList(searchForm, list)

@@ -5,35 +5,28 @@
         <v-card>
           <v-card-text>
             <v-row>
-              <v-col
-                v-if="unverifiedInTheocracy"
-                cols="12"
-              >
+              <v-col v-if="unverifiedInTheocracy" cols="12">
                 <v-alert type="error">
-                  You are currently accessing Artconomy from a location that has restrictive laws on adult content.
-                  You will not be allowed to load adult content unless specific conditions are met.
-                  <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
+                  You are currently accessing Artconomy from a location that has
+                  restrictive laws on adult content. You will not be allowed to
+                  load adult content unless specific conditions are met.
+                  <a
+                    href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/"
+                    >Please read our blog post for more details.</a
+                  >
                 </v-alert>
               </v-col>
-              <v-col
-                v-else
-                cols="12"
-              >
+              <v-col v-else cols="12">
                 <v-alert
                   type="error"
                   :aria-hidden="patchers.sfw_mode.model ? undefined : true"
-                  :class="{invisible: !patchers.sfw_mode.model}"
+                  :class="{ invisible: !patchers.sfw_mode.model }"
                 >
-                  SFW Mode is enabled. Content settings are disabled while SFW mode is in use.
+                  SFW Mode is enabled. Content settings are disabled while SFW
+                  mode is in use.
                 </v-alert>
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-                lg="4"
-                order="2"
-                order-md="1"
-              >
+              <v-col cols="12" md="6" lg="4" order="2" order-md="1">
                 <ac-patch-field
                   field-type="ac-birthday-field"
                   label="Birthday"
@@ -57,23 +50,24 @@
                   variant="elevated"
                   @click="updateCookieSettings"
                 >
-                  Update Cookie
-                  Settings
+                  Update Cookie Settings
                 </v-btn>
               </v-col>
               <v-col
                 cols="12"
                 class="pt-5"
                 order="3"
-                :class="{disabled: patchers.sfw_mode.model}"
+                :class="{ disabled: patchers.sfw_mode.model }"
               >
-                <strong>Select the maximum content rating
-                  you'd like to see when browsing.</strong>
+                <strong
+                  >Select the maximum content rating you'd like to see when
+                  browsing.</strong
+                >
               </v-col>
               <v-col
                 cols="12"
                 order="4"
-                :class="{disabled: patchers.sfw_mode.model}"
+                :class="{ disabled: patchers.sfw_mode.model }"
               >
                 <ac-patch-field
                   field-type="ac-rating-field"
@@ -83,15 +77,8 @@
                   hint="Beep"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                order="5"
-              />
-              <v-col
-                cols="12"
-                sm="6"
-                order="6"
-              >
+              <v-col cols="12" order="5" />
+              <v-col cols="12" sm="6" order="6">
                 <ac-patch-field
                   field-type="v-switch"
                   label="SFW Mode"
@@ -104,27 +91,13 @@
                   persistent-hint
                 />
               </v-col>
-              <v-col
-                class="pa-2 text-center"
-                cols="12"
-                sm="6"
-                order="7"
-              >
+              <v-col class="pa-2 text-center" cols="12" sm="6" order="7">
                 <p class="title">
                   Register, and get access to more cool features like:
                 </p>
               </v-col>
-              <v-col
-                class="d-flex"
-                cols="12"
-                sm="6"
-                order="8"
-              >
-                <v-row
-                  no-gutters
-                  class="justify-content d-flex"
-                  align="center"
-                >
+              <v-col class="d-flex" cols="12" sm="6" order="8">
+                <v-row no-gutters class="justify-content d-flex" align="center">
                   <v-col>
                     <v-img
                       :src="laptop"
@@ -135,17 +108,8 @@
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col
-                class="d-flex"
-                cols="12"
-                sm="6"
-                order="9"
-              >
-                <v-row
-                  no-gutters
-                  class="justify-content"
-                  align="center"
-                >
+              <v-col class="d-flex" cols="12" sm="6" order="9">
+                <v-row no-gutters class="justify-content" align="center">
                   <v-spacer />
                   <v-col>
                     <ul>
@@ -153,7 +117,9 @@
                         <strong>Character listings</strong>
                       </li>
                       <li>
-                        <strong>Saved Payment information for quick checkout</strong>
+                        <strong
+                          >Saved Payment information for quick checkout</strong
+                        >
                       </li>
                       <li>
                         <strong>Galleries</strong>
@@ -169,14 +135,10 @@
                   <v-spacer />
                 </v-row>
               </v-col>
-              <v-col
-                class="text-center pt-2"
-                cols="12"
-                order="10"
-              >
+              <v-col class="text-center pt-2" cols="12" order="10">
                 <v-btn
                   color="primary"
-                  :to="{name: 'Register'}"
+                  :to="{ name: 'Register' }"
                   variant="flat"
                 >
                   Sign up for FREE!
@@ -191,25 +153,25 @@
 </template>
 
 <script setup lang="ts">
-import {useViewer} from '@/mixins/viewer.ts'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {differenceInYears} from 'date-fns'
-import {BASE_URL} from '@/lib/lib.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {parseISO} from '@/lib/otherFormatters.ts'
-import {computed, onMounted} from 'vue'
-import {ArtState} from '@/store/artState.ts'
-import {useStore} from 'vuex'
-import {useRouter} from 'vue-router'
-import {AnonUser} from '@/store/profiles/types/main'
+import { useViewer } from "@/mixins/viewer.ts"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import { differenceInYears } from "date-fns"
+import { BASE_URL } from "@/lib/lib.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import { parseISO } from "@/lib/otherFormatters.ts"
+import { computed, onMounted } from "vue"
+import { ArtState } from "@/store/artState.ts"
+import { useStore } from "vuex"
+import { useRouter } from "vue-router"
+import { AnonUser } from "@/store/profiles/types/main"
 
-
-const {viewerHandler, theocraticBan, isRegistered, rawViewerName} = useViewer()
+const { viewerHandler, theocraticBan, isRegistered, rawViewerName } =
+  useViewer()
 const store = useStore<ArtState>()
 const router = useRouter()
 
-const laptop = new URL('/static/images/laptop.png', BASE_URL).href
+const laptop = new URL("/static/images/laptop.png", BASE_URL).href
 
 const patchers = computed(() => {
   return (viewerHandler.user as SingleController<AnonUser>).patchers
@@ -220,7 +182,7 @@ const unverifiedInTheocracy = computed(() => {
 })
 
 const updateCookieSettings = () => {
-  store.commit('setShowCookieDialog', true)
+  store.commit("setShowCookieDialog", true)
 }
 
 const adultAllowed = computed(() => {
@@ -240,8 +202,8 @@ const adultAllowed = computed(() => {
 onMounted(() => {
   if (isRegistered.value) {
     router.replace({
-      name: 'Settings',
-      params: {username: rawViewerName.value},
+      name: "Settings",
+      params: { username: rawViewerName.value },
     })
   }
 })
@@ -249,7 +211,7 @@ onMounted(() => {
 
 <style scoped>
 .disabled {
-  opacity: .5;
+  opacity: 0.5;
 }
 .invisible {
   opacity: 0;

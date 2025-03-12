@@ -1,18 +1,12 @@
 <template>
   <v-row no-gutters>
-    <v-col
-      cols="12"
-      class="text-center"
-    >
+    <v-col cols="12" class="text-center">
       <v-expansion-panels v-model="panel">
         <v-expansion-panel>
           <v-expansion-panel-title class="pa-1">
             <v-row no-gutters>
               <v-col class="text-center extra-height">
-                <v-icon
-                  left
-                  :icon="mdiCog"
-                />
+                <v-icon left :icon="mdiCog" />
                 Search Options
                 <v-chip
                   v-if="searchForm.fields.shield_only.value"
@@ -45,8 +39,7 @@
                   class="mx-1"
                   light
                 >
-                  high
-                  rated
+                  high rated
                 </v-chip>
                 <v-chip
                   v-if="searchForm.fields.max_price.value"
@@ -70,8 +63,7 @@
                   color="teal"
                   class="mx-1"
                 >
-                  max
-                  turnaround
+                  max turnaround
                 </v-chip>
                 <v-chip
                   v-if="searchForm.fields.artists_of_color.value"
@@ -99,10 +91,7 @@
                 >
                   Content
                   <span class="px-1" />
-                  <v-badge
-                    dot
-                    :color="RATING_COLOR[ratingKey]"
-                  />
+                  <v-badge dot :color="RATING_COLOR[ratingKey]" />
                 </v-chip>
               </v-col>
             </v-row>
@@ -110,12 +99,7 @@
           <v-expansion-panel-text>
             <v-card-text>
               <v-row dense>
-                <v-col
-                  v-if="isRegistered"
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col v-if="isRegistered" cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.watch_list"
                     field-type="ac-checkbox"
@@ -124,11 +108,7 @@
                     hint="Only return results from artists on my watch list."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.shield_only"
                     field-type="ac-checkbox"
@@ -137,11 +117,7 @@
                     hint="Only show products guaranteed by Artconomy Shield."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.featured"
                     field-type="ac-checkbox"
@@ -150,11 +126,7 @@
                     hint="Only show featured products curated by Artconomy.com's staff."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.rating"
                     field-type="ac-checkbox"
@@ -163,11 +135,7 @@
                     hint="Sort from highest reviewed product to lowest."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.artists_of_color"
                     field-type="ac-checkbox"
@@ -176,11 +144,7 @@
                     hint="Find products from Artists of Color."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.lgbt"
                     field-type="ac-checkbox"
@@ -189,11 +153,7 @@
                     hint="Find products from LGBTQ+ artists."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.max_price"
                     label="Max Price"
@@ -201,11 +161,7 @@
                     hint="Only show products with a price equal to or lower than this amount."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.min_price"
                     label="Min Price"
@@ -213,11 +169,7 @@
                     hint="Only show products with a price equal to or higher than this amount."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  sm="6"
-                  md="4"
-                >
+                <v-col cols="12" sm="6" md="4">
                   <ac-bound-field
                     :field="searchForm.fields.max_turnaround"
                     label="Max Turnaround"
@@ -227,12 +179,7 @@
                 </v-col>
               </v-row>
               <v-row v-if="showRatings">
-                <v-col
-                  sm="10"
-                  md="10"
-                  offset-lg="1"
-                  offset-sm="1"
-                >
+                <v-col sm="10" md="10" offset-lg="1" offset-sm="1">
                   <ac-bound-field
                     :field="searchForm.fields.minimum_content_rating"
                     field-type="v-select"
@@ -254,15 +201,20 @@
       class="py-2"
     >
       <v-alert type="warning">
-        Some results may be hidden because your content rating settings are too low.
+        Some results may be hidden because your content rating settings are too
+        low.
         <v-btn
           class="rating-button"
           small
           variant="elevated"
-          @click="ageCheck({value: searchForm.fields.minimum_content_rating.value, force: true})"
+          @click="
+            ageCheck({
+              value: searchForm.fields.minimum_content_rating.value,
+              force: true,
+            })
+          "
         >
-          Adjust your
-          content rating settings.
+          Adjust your content rating settings.
         </v-btn>
       </v-alert>
     </v-col>
@@ -270,25 +222,30 @@
 </template>
 
 <script setup lang="ts">
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {useViewer} from '@/mixins/viewer.ts'
-import {computed, ref, watch} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {RATING_COLOR} from '@/lib/lib.ts'
-import {useContentRatingSearch} from '@/components/views/search/mixins/SearchContentRatingMixin.ts'
-import {mdiCog} from '@mdi/js'
-import {RatingsValue} from '@/types/main'
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import { useViewer } from "@/mixins/viewer.ts"
+import { computed, ref, watch } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { RATING_COLOR } from "@/lib/lib.ts"
+import { useContentRatingSearch } from "@/components/views/search/mixins/SearchContentRatingMixin.ts"
+import { mdiCog } from "@mdi/js"
+import { RatingsValue } from "@/types/main"
 
-const searchForm = useForm('search')
-const {showRatings, ratingItems} = useContentRatingSearch(searchForm)
-const {isRegistered, rating, ageCheck} = useViewer()
-const panel = ref<number|null>(null)
-const ratingKey = computed(() => searchForm.fields.minimum_content_rating.value as RatingsValue)
-watch(() => searchForm.fields.minimum_content_rating.value, (value: RatingsValue) => {
-  if (value) {
-    ageCheck({value})
-  }
-})
+const searchForm = useForm("search")
+const { showRatings, ratingItems } = useContentRatingSearch(searchForm)
+const { isRegistered, rating, ageCheck } = useViewer()
+const panel = ref<number | null>(null)
+const ratingKey = computed(
+  () => searchForm.fields.minimum_content_rating.value as RatingsValue,
+)
+watch(
+  () => searchForm.fields.minimum_content_rating.value,
+  (value: RatingsValue) => {
+    if (value) {
+      ageCheck({ value })
+    }
+  },
+)
 </script>
 
 <style scoped>

@@ -17,10 +17,7 @@
               {{ deliverable.name }}
             </ac-link>
           </v-col>
-          <v-col
-            cols="12"
-            class="text-center"
-          >
+          <v-col cols="12" class="text-center">
             <ac-deliverable-status :deliverable="deliverable" />
           </v-col>
           <v-col cols="12">
@@ -33,17 +30,17 @@
 </template>
 
 <script setup lang="ts">
-import AcLink from '@/components/wrappers/AcLink.vue'
-import AcAsset from '@/components/AcAsset.vue'
-import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import {formatDateTime} from '@/lib/otherFormatters.ts'
-import {computed} from 'vue'
-import type {Deliverable, Order} from '@/types/main'
+import AcLink from "@/components/wrappers/AcLink.vue"
+import AcAsset from "@/components/AcAsset.vue"
+import AcDeliverableStatus from "@/components/AcDeliverableStatus.vue"
+import { formatDateTime } from "@/lib/otherFormatters.ts"
+import { computed } from "vue"
+import type { Deliverable, Order } from "@/types/main"
 
 declare interface AcDeliverablePreviewProps {
-  deliverable: Deliverable,
-  order: Order,
-  scope: string,
+  deliverable: Deliverable
+  order: Order
+  scope: string
 }
 
 const props = defineProps<AcDeliverablePreviewProps>()
@@ -53,6 +50,6 @@ const deliverableLink = computed(() => ({
   params: {
     orderId: props.order.id,
     deliverableId: props.deliverable.id,
-  }
+  },
 }))
 </script>

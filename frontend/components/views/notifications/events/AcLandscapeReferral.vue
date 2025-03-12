@@ -10,9 +10,7 @@
       </router-link>
     </template>
     <template #subtitle>
-      <router-link
-        :to="assetLink"
-      >
+      <router-link :to="assetLink">
         You've received a month of Artconomy Landscape.
       </router-link>
     </template>
@@ -20,23 +18,27 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
-import {computed} from 'vue'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import {
+  DisplayData,
+  NotificationProps,
+  NotificationUser,
+  useEvent,
+} from "../mixins/notification.ts"
+import { computed } from "vue"
 
-import {TerseUser} from '@/store/profiles/types/main'
+import { TerseUser } from "@/store/profiles/types/main"
 
-const props = defineProps<NotificationProps<TerseUser, DisplayData<NotificationUser>>>()
+const props =
+  defineProps<NotificationProps<TerseUser, DisplayData<NotificationUser>>>()
 const event = useEvent(props)
 
 const assetLink = computed(() => ({
-  name: 'LinksAndStats',
+  name: "LinksAndStats",
   params: {
     username: event.value.target.username,
   },
 }))
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

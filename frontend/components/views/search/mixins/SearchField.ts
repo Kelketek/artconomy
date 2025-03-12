@@ -1,28 +1,36 @@
-import deepEqual from 'fast-deep-equal'
-import {makeQueryParams} from '@/lib/lib.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import debounce from 'lodash/debounce'
-import {watch} from 'vue'
-import {router} from '@/router'
-import {RawData} from '@/store/forms/types/main'
+import deepEqual from "fast-deep-equal"
+import { makeQueryParams } from "@/lib/lib.ts"
+import { ListController } from "@/store/lists/controller.ts"
+import { FormController } from "@/store/forms/form-controller.ts"
+import debounce from "lodash/debounce"
+import { watch } from "vue"
+import { router } from "@/router"
+import { RawData } from "@/store/forms/types/main"
 
+export const useSearchField = (
+  searchForm: FormController,
+  list: ListController<any>,
+) => {
+  watch(
+    () => list.params?.page,
+    (newValue?: unknown) => {
+      if (newValue === undefined) {
+        return
+      }
+      searchForm.fields.page.update(parseInt(newValue + "", 10))
+    },
+  )
 
-export const useSearchField = (searchForm: FormController, list: ListController<any>) => {
-  watch(() => list.params?.page, (newValue?: unknown) => {
-    if (newValue === undefined) {
-      return
-    }
-    searchForm.fields.page.update(parseInt(newValue + '', 10))
-  })
-
-  watch(() => list.params?.size,(newValue: unknown) => {
-    /* istanbul ignore next */
-    if (newValue === undefined) {
-      return
-    }
-    searchForm.fields.size.update(parseInt(newValue + '', 10))
-  })
+  watch(
+    () => list.params?.size,
+    (newValue: unknown) => {
+      /* istanbul ignore next */
+      if (newValue === undefined) {
+        return
+      }
+      searchForm.fields.size.update(parseInt(newValue + "", 10))
+    },
+  )
 
   const rawUpdate = (newData: RawData) => {
     if (list.purged) {
@@ -47,7 +55,7 @@ export const useSearchField = (searchForm: FormController, list: ListController<
     if (!(list && list.reset)) {
       return
     }
-    router.replace({query: newParams}).then(() => {})
+    router.replace({ query: newParams }).then(() => {})
     // Same issue here.
     /* istanbul ignore if */
     if (!(list && list.reset)) {
@@ -60,11 +68,15 @@ export const useSearchField = (searchForm: FormController, list: ListController<
     }
   }
 
-  watch(() => searchForm.rawData, (newData: RawData) => {
-    debouncedUpdate(newData)
-  }, {deep: true})
+  watch(
+    () => searchForm.rawData,
+    (newData: RawData) => {
+      debouncedUpdate(newData)
+    },
+    { deep: true },
+  )
 
-  const debouncedUpdate = debounce(rawUpdate, 250, {trailing: true})
+  const debouncedUpdate = debounce(rawUpdate, 250, { trailing: true })
 
   if (!(list.ready || list.fetching || list.failed)) {
     list.get().then()

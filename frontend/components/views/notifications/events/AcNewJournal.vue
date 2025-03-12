@@ -18,11 +18,16 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
-import {computed} from 'vue'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import {
+  DisplayData,
+  NotificationProps,
+  NotificationUser,
+  useEvent,
+} from "../mixins/notification.ts"
+import { computed } from "vue"
 
-import type {Journal} from '@/types/main'
+import type { Journal } from "@/types/main"
 
 declare interface NewJournal extends DisplayData {
   journal: Journal
@@ -33,15 +38,13 @@ const event = useEvent(props)
 
 const assetLink = computed(() => {
   return {
-    name: 'Journal',
+    name: "Journal",
     params: {
       username: event.value.target.username,
-      journalId: event.value.data.journal.id + '',
+      journalId: event.value.data.journal.id + "",
     },
   }
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

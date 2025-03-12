@@ -1,7 +1,6 @@
-import {computed, nextTick, onMounted, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useGoTo} from 'vuetify'
-
+import { computed, nextTick, onMounted, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
+import { useGoTo } from "vuetify"
 
 export const useQuestionSet = (questions: string[]) => {
   const router = useRouter()
@@ -16,14 +15,14 @@ export const useQuestionSet = (questions: string[]) => {
       // We've moved to a different route-- bail.
       return
     }
-    const params: {[key: string]: any} = {}
+    const params: { [key: string]: any } = {}
     params.question = questions[value]
     const newParams = Object.assign({}, route.params, params)
     const newQuery = Object.assign({}, route.query)
     delete newQuery.page
     /* istanbul ignore next */
     const name = route.name || undefined
-    const newPath = {name, params: newParams, query: newQuery}
+    const newPath = { name, params: newParams, query: newQuery }
     router.replace(newPath).then(() => {})
   }
 
@@ -33,7 +32,9 @@ export const useQuestionSet = (questions: string[]) => {
       return
     }
     if (attempts.value > 10) {
-      console.error(`Could not scroll to question number ${tab.value} with label '${route.params.question}'`)
+      console.error(
+        `Could not scroll to question number ${tab.value} with label '${route.params.question}'`,
+      )
       return
     }
     const index = tab.value + 1

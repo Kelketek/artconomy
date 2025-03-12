@@ -19,18 +19,12 @@
       />
     </v-col>
     <template #failure>
-      <v-col
-        v-if="okStatuses"
-        class="text-center"
-      >
+      <v-col v-if="okStatuses" class="text-center">
         <p>{{ failureMessage }}</p>
       </v-col>
     </template>
     <template #empty>
-      <v-col
-        v-if="emptyMessage"
-        class="text-center"
-      >
+      <v-col v-if="emptyMessage" class="text-center">
         <p>{{ emptyMessage }}</p>
       </v-col>
     </template>
@@ -38,28 +32,28 @@
 </template>
 
 <script setup lang="ts">
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {flatten} from '@/lib/lib.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {computed, watch} from 'vue'
-import {useViewer} from '@/mixins/viewer.ts'
-import type {ArtistTag, SubjectiveProps, Submission} from '@/types/main'
+import AcGalleryPreview from "@/components/AcGalleryPreview.vue"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import { flatten } from "@/lib/lib.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { computed, watch } from "vue"
+import { useViewer } from "@/mixins/viewer.ts"
+import type { ArtistTag, SubjectiveProps, Submission } from "@/types/main"
 
 declare interface SubmissionListProps extends SubjectiveProps {
-  listName: string,
-  endpoint: string,
-  emptyMessage?: string,
-  failureMessage?: string,
-  trackPages?: boolean,
-  showPagination?: boolean,
-  okStatuses?: number[],
+  listName: string
+  endpoint: string
+  emptyMessage?: string
+  failureMessage?: string
+  trackPages?: boolean
+  showPagination?: boolean
+  okStatuses?: number[]
 }
 
 const props = withDefaults(defineProps<SubmissionListProps>(), {
   okStatuses: () => [],
-  failureMessage: 'This content is disabled or unavailable.',
-  emptyMessage: '',
+  failureMessage: "This content is disabled or unavailable.",
+  emptyMessage: "",
   showPagination: true,
 })
 
@@ -67,7 +61,9 @@ let listName = props.listName
 if (props.username) {
   listName = `${flatten(props.username)}-${listName}`
 }
-const list = useList<Submission | ArtistTag>(listName, {endpoint: props.endpoint})
+const list = useList<Submission | ArtistTag>(listName, {
+  endpoint: props.endpoint,
+})
 
 const derivedList = computed((): Submission[] => {
   return list.list.map((single) => {
@@ -80,7 +76,7 @@ const derivedList = computed((): Submission[] => {
   })
 })
 
-const {rawRating} = useViewer()
+const { rawRating } = useViewer()
 
 watch(rawRating, (newValue, oldValue) => {
   if (oldValue === undefined) {

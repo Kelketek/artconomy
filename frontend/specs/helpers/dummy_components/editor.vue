@@ -1,10 +1,6 @@
 <template>
   <div>
-    <ac-editor
-      id="editor"
-      ref="auto"
-      v-model="stuff"
-    />
+    <ac-editor id="editor" ref="auto" v-model="stuff" />
     <ac-editor
       id="editor-manual"
       ref="manual"
@@ -16,10 +12,10 @@
 </template>
 
 <script setup lang="ts">
-import AcEditor from '@/components/fields/AcEditor.vue'
-import {ref} from 'vue'
+import AcEditor from "@/components/fields/AcEditor.vue"
+import { ref } from "vue"
 
-const stuff = ref('')
-const things = ref('')
-const base = ref('')
+const stuff = ref("")
+const things = ref("")
+const base = ref("")
 </script>

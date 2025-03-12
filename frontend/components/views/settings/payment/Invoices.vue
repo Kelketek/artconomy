@@ -1,82 +1,61 @@
 <template>
-  <v-container
-    v-if="currentRoute"
-    class="pa-0"
-  >
-    <ac-paginated
-      :list="invoices"
-      class="py-8"
-    >
+  <v-container v-if="currentRoute" class="pa-0">
+    <ac-paginated :list="invoices" class="py-8">
       <template #default>
-        <v-col
-          cols="12"
-          md="8"
-          offset-md="2"
-        >
+        <v-col cols="12" md="8" offset-md="2">
           <v-list>
             <template
-              v-for="invoice, invoiceIndex in invoices.list"
+              v-for="(invoice, invoiceIndex) in invoices.list"
               :key="invoice.x!.id"
             >
               <v-list-item class="my-2">
                 <v-list-item-title>
-                  <ac-link :to="{name: 'Invoice', params: {username, invoiceId: invoice.x!.id}}">
+                  <ac-link
+                    :to="{
+                      name: 'Invoice',
+                      params: { username, invoiceId: invoice.x!.id },
+                    }"
+                  >
                     {{ invoice.x!.id }}
                   </ac-link>
                   ({{ INVOICE_TYPES[invoice.x!.type] }})
                 </v-list-item-title>
                 <v-list-item-subtitle>
                   {{ formatDateTime(invoice.x!.created_on) }}
-                  <span
-                    v-for="ref, index in invoice.x!.targets"
-                    :key="index"
-                  >
-                    <ac-link :to="ref.link"><span v-if="ref.display_name">{{ ref.display_name }}</span><span v-else>{{ ref.model }} #{{ ref.id }}</span></ac-link><span
-                      v-if="index !== (invoice.x!.targets.length - 1)"
-                    >,</span>
+                  <span v-for="(ref, index) in invoice.x!.targets" :key="index">
+                    <ac-link :to="ref.link"
+                      ><span v-if="ref.display_name">{{
+                        ref.display_name
+                      }}</span
+                      ><span v-else
+                        >{{ ref.model }} #{{ ref.id }}</span
+                      ></ac-link
+                    ><span v-if="index !== invoice.x!.targets.length - 1"
+                      >,</span
+                    >
                   </span>
                 </v-list-item-subtitle>
                 <template #append>
                   {{ invoice.x!.total }}
-                  <ac-invoice-status
-                    :invoice="invoice.x!"
-                    class="ml-2"
-                  />
+                  <ac-invoice-status :invoice="invoice.x!" class="ml-2" />
                 </template>
               </v-list-item>
-              <v-divider v-if="invoiceIndex !== (invoices.list.length - 1)" />
+              <v-divider v-if="invoiceIndex !== invoices.list.length - 1" />
             </template>
           </v-list>
         </v-col>
       </template>
     </ac-paginated>
   </v-container>
-  <v-container
-    v-else
-    class="pa-0"
-  >
+  <v-container v-else class="pa-0">
     <v-toolbar class="invoice-toolbar">
       <v-toolbar-items>
-        <v-btn
-          color="secondary"
-          variant="flat"
-          @click="goBack"
-        >
-          <v-icon
-            left
-            :icon="mdiArrowLeftBold"
-          />
+        <v-btn color="secondary" variant="flat" @click="goBack">
+          <v-icon left :icon="mdiArrowLeftBold" />
           Back
         </v-btn>
-        <v-btn
-          color="primary"
-          variant="flat"
-          @click="performPrint"
-        >
-          <v-icon
-            left
-            :icon="mdiPrinter"
-          />
+        <v-btn color="primary" variant="flat" @click="performPrint">
+          <v-icon left :icon="mdiPrinter" />
           Print
         </v-btn>
       </v-toolbar-items>
@@ -86,20 +65,23 @@
 </template>
 
 <script setup lang="ts">
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {initDrawerValue, INVOICE_TYPES} from '@/lib/lib.ts'
-import AcInvoiceStatus from '@/components/AcInvoiceStatus.vue'
-import {mdiArrowLeftBold, mdiPrinter} from '@mdi/js'
-import {useDisplay} from 'vuetify'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {useRoute, useRouter} from 'vue-router'
-import {formatDateTime} from '@/lib/otherFormatters.ts'
-import {computed} from 'vue'
-import type {Invoice, SubjectiveProps} from '@/types/main'
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { initDrawerValue, INVOICE_TYPES } from "@/lib/lib.ts"
+import AcInvoiceStatus from "@/components/AcInvoiceStatus.vue"
+import { mdiArrowLeftBold, mdiPrinter } from "@mdi/js"
+import { useDisplay } from "vuetify"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { useRoute, useRouter } from "vue-router"
+import { formatDateTime } from "@/lib/otherFormatters.ts"
+import { computed } from "vue"
+import type { Invoice, SubjectiveProps } from "@/types/main"
 
-const props = withDefaults(defineProps<{initialState?: boolean|null} & SubjectiveProps>(), {initialState: initDrawerValue()})
+const props = withDefaults(
+  defineProps<{ initialState?: boolean | null } & SubjectiveProps>(),
+  { initialState: initDrawerValue() },
+)
 
 const display = useDisplay()
 const router = useRouter()
@@ -112,11 +94,13 @@ if (display.mdAndDown.value) {
 } else {
   drawer = props.initialState
 }
-const navSettings = useSingle('navSettings', {
-  endpoint: '#',
-  x: {drawer},
+const navSettings = useSingle("navSettings", {
+  endpoint: "#",
+  x: { drawer },
 })
-const invoices = useList<Invoice>(`${props.username}__invoices`, {endpoint: `/api/sales/account/${props.username}/invoices/`})
+const invoices = useList<Invoice>(`${props.username}__invoices`, {
+  endpoint: `/api/sales/account/${props.username}/invoices/`,
+})
 invoices.firstRun()
 
 const performPrint = () => {
@@ -128,19 +112,23 @@ const performPrint = () => {
 
 const goBack = () => {
   router.replace({
-    name: 'Invoices',
-    params: {username: props.username},
+    name: "Invoices",
+    params: { username: props.username },
   })
 }
 
 const currentRoute = computed(() => {
-  return route.name === 'Invoices'
+  return route.name === "Invoices"
 })
 </script>
 
 <style>
 @media print {
-  .invoice-toolbar, .main-navigation, .invoice-actions, .settings-nav-toolbar, .transactions-list {
+  .invoice-toolbar,
+  .main-navigation,
+  .invoice-actions,
+  .settings-nav-toolbar,
+  .transactions-list {
     display: none;
   }
 }

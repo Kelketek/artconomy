@@ -22,7 +22,10 @@
             color="green"
             variant="flat"
             class="mt-2"
-            :to="{name: 'Product', params: {username, productId: `${product.x!.id}`}}"
+            :to="{
+              name: 'Product',
+              params: { username, productId: `${product.x!.id}` },
+            }"
           >
             <v-icon :icon="mdiArrowExpand" />
           </v-btn>
@@ -41,23 +44,12 @@
       <template #default>
         <v-row>
           <v-col cols="6" />
-          <v-col
-            cols="6"
-            class="text-center"
-          >
-            <v-btn
-              color="green"
-              variant="flat"
-            >
-              View product
-            </v-btn>
+          <v-col cols="6" class="text-center">
+            <v-btn color="green" variant="flat"> View product </v-btn>
           </v-col>
-          <v-col
-            v-if="product.x!.table_product"
-            cols="12"
-            class="text-center"
-          >
-            This product is a table product. It is not shown to customers directly.
+          <v-col v-if="product.x!.table_product" cols="12" class="text-center">
+            This product is a table product. It is not shown to customers
+            directly.
           </v-col>
         </v-row>
       </template>
@@ -65,15 +57,14 @@
   </v-row>
 </template>
 <script setup lang="ts">
-import AcProductPreview from '@/components/AcProductPreview.vue'
-import {SingleController} from '@/store/singles/controller.ts'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {ref} from 'vue'
-import {mdiArrowExpand} from '@mdi/js'
-import type {Product, SubjectiveProps} from '@/types/main'
+import AcProductPreview from "@/components/AcProductPreview.vue"
+import { SingleController } from "@/store/singles/controller.ts"
+import AcExpandedProperty from "@/components/wrappers/AcExpandedProperty.vue"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import { ref } from "vue"
+import { mdiArrowExpand } from "@mdi/js"
+import type { Product, SubjectiveProps } from "@/types/main"
 
-
-defineProps<{product: SingleController<Product>} & SubjectiveProps>()
+defineProps<{ product: SingleController<Product> } & SubjectiveProps>()
 const showSettings = ref(false)
 </script>

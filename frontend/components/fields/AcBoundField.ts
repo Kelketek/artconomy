@@ -1,28 +1,55 @@
-import {computed, defineAsyncComponent, defineComponent, h, useAttrs, useSlots} from 'vue'
-import type {Component} from 'vue'
-import {FieldController} from '@/store/forms/field-controller.ts'
-import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
-import {VSwitch} from 'vuetify/lib/components/VSwitch/index.mjs'
-import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'
-import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
-import {VSlider} from 'vuetify/lib/components/VSlider/index.mjs'
-import {VSelect} from 'vuetify/lib/components/VSelect/index.mjs'
-import {VRadio as BaseVRadio} from 'vuetify/lib/components/VRadio/index.mjs'
-import {transformComponentName} from '@/lib/lib.ts'
+import {
+  computed,
+  defineAsyncComponent,
+  defineComponent,
+  h,
+  useAttrs,
+  useSlots,
+} from "vue"
+import type { Component } from "vue"
+import { FieldController } from "@/store/forms/field-controller.ts"
+import { VCheckbox } from "vuetify/lib/components/VCheckbox/index.mjs"
+import { VSwitch } from "vuetify/lib/components/VSwitch/index.mjs"
+import { VTextField } from "vuetify/lib/components/VTextField/index.mjs"
+import { VAutocomplete } from "vuetify/lib/components/VAutocomplete/index.mjs"
+import { VSlider } from "vuetify/lib/components/VSlider/index.mjs"
+import { VSelect } from "vuetify/lib/components/VSelect/index.mjs"
+import { VRadio as BaseVRadio } from "vuetify/lib/components/VRadio/index.mjs"
+import { transformComponentName } from "@/lib/lib.ts"
 const VRadio = BaseVRadio.default
 
-const canonicalFields = ['input', 'button', 'textarea', 'select']
+const canonicalFields = ["input", "button", "textarea", "select"]
 const componentMapping: Record<string, Component> = {
-  AcUserSelect: defineAsyncComponent(() => import('@/components/fields/AcUserSelect.vue')),
-  AcEditor: defineAsyncComponent(() => import('@/components/fields/AcEditor.vue')),
-  AcTagField: defineAsyncComponent(() => import('@/components/fields/AcTagField.vue')),
-  AcRatingField: defineAsyncComponent(() => import('@/components/fields/AcRatingField.vue')),
-  AcUppyFile: defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue')),
-  AcCharacterSelect: defineAsyncComponent(() => import('@/components/fields/AcCharacterSelect.vue')),
-  AcPriceField: defineAsyncComponent(() => import('@/components/fields/AcPriceField.vue')),
-  AcProductSelect: defineAsyncComponent(() => import('@/components/fields/AcProductSelect.vue')),
-  AcCheckbox: defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue')),
-  AcCaptchaField: defineAsyncComponent(() => import('@/components/fields/AcCaptchaField.vue')),
+  AcUserSelect: defineAsyncComponent(
+    () => import("@/components/fields/AcUserSelect.vue"),
+  ),
+  AcEditor: defineAsyncComponent(
+    () => import("@/components/fields/AcEditor.vue"),
+  ),
+  AcTagField: defineAsyncComponent(
+    () => import("@/components/fields/AcTagField.vue"),
+  ),
+  AcRatingField: defineAsyncComponent(
+    () => import("@/components/fields/AcRatingField.vue"),
+  ),
+  AcUppyFile: defineAsyncComponent(
+    () => import("@/components/fields/AcUppyFile.vue"),
+  ),
+  AcCharacterSelect: defineAsyncComponent(
+    () => import("@/components/fields/AcCharacterSelect.vue"),
+  ),
+  AcPriceField: defineAsyncComponent(
+    () => import("@/components/fields/AcPriceField.vue"),
+  ),
+  AcProductSelect: defineAsyncComponent(
+    () => import("@/components/fields/AcProductSelect.vue"),
+  ),
+  AcCheckbox: defineAsyncComponent(
+    () => import("@/components/fields/AcCheckbox.vue"),
+  ),
+  AcCaptchaField: defineAsyncComponent(
+    () => import("@/components/fields/AcCaptchaField.vue"),
+  ),
   VTextField,
   VSwitch,
   VCheckbox,
@@ -35,18 +62,18 @@ const componentMapping: Record<string, Component> = {
 export default defineComponent({
   props: {
     fieldType: {
-      default: 'v-text-field',
+      default: "v-text-field",
       type: String,
     },
     fieldId: {
       required: false,
       type: String,
-      default: '',
+      default: "",
     },
     field: {
       type: FieldController,
       required: true,
-    }
+    },
   },
   setup: (props) => {
     const slots = useSlots()
@@ -57,22 +84,27 @@ export default defineComponent({
       // will complain about, since all, or nearly all, of our inputs are based on Vuetify components.
       let base: Record<string, any>
       if (canonicalFields.indexOf(props.fieldType) === -1) {
-        base = {...props.field.bind}
+        base = { ...props.field.bind }
       } else {
-        base = {...props.field.rawBind}
+        base = { ...props.field.rawBind }
       }
       if (props.fieldId) {
         base.id = props.fieldId
       }
       return {
         ...base,
-        ref: 'input', ...passedAttrs,
+        ref: "input",
+        ...passedAttrs,
       }
     })
     return () => {
-      return h(componentMapping[transformComponentName(props.fieldType)], {
-        ...attrs.value,
-      }, slots)
+      return h(
+        componentMapping[transformComponentName(props.fieldType)],
+        {
+          ...attrs.value,
+        },
+        slots,
+      )
     }
-  }
+  },
 })

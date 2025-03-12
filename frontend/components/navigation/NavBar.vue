@@ -9,10 +9,7 @@
       temporary
       width="300"
     >
-      <v-container
-        fluid
-        class="pa-0 fill-height"
-      >
+      <v-container fluid class="pa-0 fill-height">
         <v-row no-gutters>
           <v-col cols="12">
             <ac-nav-links
@@ -26,10 +23,7 @@
           <v-col cols="12">
             <v-divider />
           </v-col>
-          <v-col
-            cols="12"
-            class="pt-3"
-          >
+          <v-col cols="12" class="pt-3">
             <v-sheet>
               <v-row>
                 <v-col class="bottom-button">
@@ -39,19 +33,10 @@
                     target="_blank"
                   >
                     <v-row no-gutters>
-                      <v-col
-                        cols="12"
-                        class="text-center"
-                      >
-                        <v-icon
-                          size="default"
-                          :icon="siBluesky.path"
-                        />
+                      <v-col cols="12" class="text-center">
+                        <v-icon size="default" :icon="siBluesky.path" />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        class="text-center"
-                      >
+                      <v-col cols="12" class="text-center">
                         <small>Bluesky</small>
                       </v-col>
                     </v-row>
@@ -63,23 +48,11 @@
                     rel="nofollow noopener"
                     target="_blank"
                   >
-                    <v-row
-                      no-gutters
-                      class="px-2"
-                    >
-                      <v-col
-                        cols="12"
-                        class="text-center"
-                      >
-                        <v-icon
-                          medium
-                          :icon="mdiPencil"
-                        />
+                    <v-row no-gutters class="px-2">
+                      <v-col cols="12" class="text-center">
+                        <v-icon medium :icon="mdiPencil" />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        class="text-center pt-1"
-                      >
+                      <v-col cols="12" class="text-center pt-1">
                         <small>Blog</small>
                       </v-col>
                     </v-row>
@@ -92,19 +65,10 @@
                     target="_blank"
                   >
                     <v-row no-gutters>
-                      <v-col
-                        cols="12"
-                        class="text-center"
-                      >
-                        <v-icon
-                          size="default"
-                          :icon="siDiscord.path"
-                        />
+                      <v-col cols="12" class="text-center">
+                        <v-icon size="default" :icon="siDiscord.path" />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        class="text-center"
-                      >
+                      <v-col cols="12" class="text-center">
                         <small>Discord</small>
                       </v-col>
                     </v-row>
@@ -116,19 +80,10 @@
                   @click.capture.prevent="showSupport"
                 >
                   <v-row no-gutters>
-                    <v-col
-                      cols="12"
-                      class="text-center support-button"
-                    >
-                      <v-icon
-                        medium
-                        :icon="mdiChatQuestion"
-                      />
+                    <v-col cols="12" class="text-center support-button">
+                      <v-icon medium :icon="mdiChatQuestion" />
                     </v-col>
-                    <v-col
-                      cols="12"
-                      class="text-center pt-1"
-                    >
+                    <v-col cols="12" class="text-center pt-1">
                       <small>Support</small>
                     </v-col>
                   </v-row>
@@ -165,48 +120,23 @@
         />
       </template>
       <v-toolbar-title class="mr-5 align-center hidden-xs">
-        <v-btn
-          variant="text"
-          to="/"
-        >
-          <img
-            :src="logo"
-            class="header-logo"
-            alt="A"
-            height="28"
-            width="28"
-          >
-          <div class="title">
-            rtconomy
-          </div>
+        <v-btn variant="text" to="/">
+          <img :src="logo" class="header-logo" alt="A" height="28" width="28" />
+          <div class="title">rtconomy</div>
         </v-btn>
       </v-toolbar-title>
-      <v-toolbar-title
-        v-if="isLoggedIn"
-        class="align-center hidden-sm-and-up"
-      >
-        <v-btn
-          variant="text"
-          to="/"
-          icon
-        >
-          <img
-            :src="logo"
-            class="header-logo"
-            alt="A"
-          >
+      <v-toolbar-title v-if="isLoggedIn" class="align-center hidden-sm-and-up">
+        <v-btn variant="text" to="/" icon>
+          <img :src="logo" class="header-logo" alt="A" />
         </v-btn>
       </v-toolbar-title>
       <v-btn
         icon
         class="hidden-md-and-up"
-        :to="{name: 'SearchProducts'}"
+        :to="{ name: 'SearchProducts' }"
         aria-label="Search"
       >
-        <v-icon
-          x-large
-          :icon="mdiMagnify"
-        />
+        <v-icon x-large :icon="mdiMagnify" />
       </v-btn>
       <ac-bound-field
         :field="searchForm.fields.q"
@@ -224,21 +154,18 @@
           <v-btn
             icon
             variant="plain"
-            :to="{name: 'SearchProducts'}"
+            :to="{ name: 'SearchProducts' }"
             aria-label="Search"
             class="search-button-offset"
           >
-            <v-icon
-              x-large
-              :icon="mdiMagnify"
-            />
+            <v-icon x-large :icon="mdiMagnify" />
           </v-btn>
         </template>
       </ac-bound-field>
       <v-card
         v-if="viewer && viewer.rating > 0 && fullInterface"
         class="px-2 py-1 hidden-xs"
-        :color="sfwMode.model? 'blue darken-3' : 'black'"
+        :color="sfwMode.model ? 'blue darken-3' : 'black'"
       >
         <v-switch
           v-model="sfwMode.model"
@@ -271,11 +198,11 @@
               width="32"
               height="32"
               alt=""
-            >
+            />
           </v-avatar>
           <div
             v-if="isLoggedIn"
-            style="padding-left: 1rem;"
+            style="padding-left: 1rem"
             class="hidden-sm-and-down"
           >
             {{ viewer!.username }}
@@ -300,60 +227,70 @@
 </template>
 
 <script setup lang="ts">
-import {makeQueryParams, BASE_URL} from '@/lib/lib.ts'
-import {useViewer} from '@/mixins/viewer.ts'
-const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
-import {useNav} from '@/mixins/nav.ts'
-const AcNavLinks = defineAsyncComponent(() => import('@/components/navigation/AcNavLinks.vue'))
-import {siDiscord, siBluesky} from 'simple-icons'
-import {computed, defineAsyncComponent, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useStore} from 'vuex'
-import {ArtState} from '@/store/artState.ts'
-import {useSearchForm} from '@/components/views/search/hooks.ts'
-import {useDisplay} from 'vuetify'
-import {mdiChatQuestion, mdiMagnify, mdiPencil} from '@mdi/js'
-import {User} from '@/store/profiles/types/main'
-const AcNotificationIndicator = defineAsyncComponent(() => import('@/components/navigation/AcNotificationIndicator.vue'))
-const AcStatsBar = defineAsyncComponent(() => import('@/components/navigation/AcStatsBar.vue'))
-const MessageCenter = defineAsyncComponent(() => import('@/components/navigation/MessageCenter.vue'))
+import { makeQueryParams, BASE_URL } from "@/lib/lib.ts"
+import { useViewer } from "@/mixins/viewer.ts"
+const AcBoundField = defineAsyncComponent(
+  () => import("@/components/fields/AcBoundField.ts"),
+)
+import { useNav } from "@/mixins/nav.ts"
+const AcNavLinks = defineAsyncComponent(
+  () => import("@/components/navigation/AcNavLinks.vue"),
+)
+import { siDiscord, siBluesky } from "simple-icons"
+import { computed, defineAsyncComponent, ref } from "vue"
+import { useRoute, useRouter } from "vue-router"
+import { useStore } from "vuex"
+import { ArtState } from "@/store/artState.ts"
+import { useSearchForm } from "@/components/views/search/hooks.ts"
+import { useDisplay } from "vuetify"
+import { mdiChatQuestion, mdiMagnify, mdiPencil } from "@mdi/js"
+import { User } from "@/store/profiles/types/main"
+const AcNotificationIndicator = defineAsyncComponent(
+  () => import("@/components/navigation/AcNotificationIndicator.vue"),
+)
+const AcStatsBar = defineAsyncComponent(
+  () => import("@/components/navigation/AcStatsBar.vue"),
+)
+const MessageCenter = defineAsyncComponent(
+  () => import("@/components/navigation/MessageCenter.vue"),
+)
 
 // Should already have been populated in the root component.
 const searchForm = useSearchForm()
-const logo = new URL('/static/images/mini-logo.png', BASE_URL).href
+const logo = new URL("/static/images/mini-logo.png", BASE_URL).href
 const route = useRoute()
 const router = useRouter()
 const store = useStore<ArtState>()
-const {mdAndDown} = useDisplay()
+const { mdAndDown } = useDisplay()
 
 const drawer = ref(false)
 
 const loginLink = computed(() => {
-  if (route.name === 'Login') {
+  if (route.name === "Login") {
     return {
-      name: 'Login',
+      name: "Login",
     }
   }
   return {
-    name: 'Login',
-    query: {next: route.path},
+    name: "Login",
+    query: { next: route.path },
   }
 })
 
 const runSearch = (event: KeyboardEvent) => {
-  if (event.key === 'Tab') {
+  if (event.key === "Tab") {
     return
   }
-  if (route.name && (String(route.name).indexOf('Search') !== -1)) {
+  if (route.name && String(route.name).indexOf("Search") !== -1) {
     return
   }
   router.push({
-    name: 'SearchProducts',
+    name: "SearchProducts",
     query: makeQueryParams(searchForm.rawData),
   })
 }
 
-const {fullInterface} = useNav()
+const { fullInterface } = useNav()
 
 const {
   viewer,
@@ -366,12 +303,12 @@ const {
 
 const registeredUser = computed(() => viewer.value as User)
 
-const showSupport = () => store.commit('supportDialog', true)
+const showSupport = () => store.commit("supportDialog", true)
 
 const profileRoute = computed(() => {
   return {
-    name: 'AboutUser',
-    params: {username: viewer.value.username},
+    name: "AboutUser",
+    params: { username: viewer.value.username },
   }
 })
 
@@ -379,7 +316,7 @@ const sfwMode = computed(() => viewerHandler.user.patchers.sfw_mode)
 
 const messagesOpen = computed<boolean>({
   get: () => store.state.messagesOpen,
-  set: (val: boolean) => store.commit('setMessagesOpen', val)
+  set: (val: boolean) => store.commit("setMessagesOpen", val),
 })
 </script>
 
@@ -402,16 +339,15 @@ const messagesOpen = computed<boolean>({
 }
 
 .bottom-button {
-  opacity: .7;
+  opacity: 0.7;
 }
 
 .bottom-button:hover {
-  opacity: 1
+  opacity: 1;
 }
 
 #app .bottom-button a {
   text-decoration: none;
   font-weight: normal;
 }
-
 </style>

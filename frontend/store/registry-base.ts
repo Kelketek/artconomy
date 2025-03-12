@@ -1,36 +1,36 @@
-import type {Ref} from 'vue'
-import {ComponentOptions, createApp, h, markRaw, toValue} from 'vue'
-import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {Router} from 'vue-router'
-import {SocketManager} from '@/plugins/socket.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {CharacterController} from '@/store/characters/controller.ts'
-import {ProfileController} from '@/store/profiles/controller.ts'
-import {ArtStore} from '@/store/index.ts'
-import type {ArtVueInterface} from '@/types/main'
-import type {SingleState} from '@/store/singles/types.d.ts'
-import {ProfileState} from '@/store/profiles/types/main'
-import type {ListState} from '@/store/lists/types.d.ts'
-import {FormState} from '@/store/forms/types/main'
-import type {CharacterState} from '@/store/characters/types/main'
+import type { Ref } from "vue"
+import { ComponentOptions, createApp, h, markRaw, toValue } from "vue"
+import { BaseController, ControllerArgs } from "@/store/controller-base.ts"
+import { Router } from "vue-router"
+import { SocketManager } from "@/plugins/socket.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import { ListController } from "@/store/lists/controller.ts"
+import { FormController } from "@/store/forms/form-controller.ts"
+import { CharacterController } from "@/store/characters/controller.ts"
+import { ProfileController } from "@/store/profiles/controller.ts"
+import { ArtStore } from "@/store/index.ts"
+import type { ArtVueInterface } from "@/types/main"
+import type { SingleState } from "@/store/singles/types.d.ts"
+import { ProfileState } from "@/store/profiles/types/main"
+import type { ListState } from "@/store/lists/types.d.ts"
+import { FormState } from "@/store/forms/types/main"
+import type { CharacterState } from "@/store/characters/types/main"
 
 type _Vue = ReturnType<typeof createApp>
 
 export interface AttrKeys {
-  persistent: boolean,
+  persistent: boolean
 }
 
 declare interface Registerable<K extends AttrKeys> {
   purge: () => void
-  purged: boolean,
-  initName: string,
-  name: Ref<string>,
-  migrate: (newName: string) => void,
-  attr: (attrName: keyof K) => any,
-  socketOpened: () => void,
-  socketUnmount: () => void,
+  purged: boolean
+  initName: string
+  name: Ref<string>
+  migrate: (newName: string) => void
+  attr: (attrName: keyof K) => any
+  socketOpened: () => void
+  socketUnmount: () => void
 }
 
 // TODO: Use of arrays here might be worth changing to some hashable value
@@ -38,23 +38,23 @@ declare interface Registerable<K extends AttrKeys> {
 // check the registration status on each render rather than just on creation,
 // which means looping through these arrays many times a second.
 export interface Registry<K extends AttrKeys, T extends Registerable<K>> {
-  typeName: string,
-  controllers: { [key: string]: T },
-  componentMap: { [key: string]: T[] },
-  uidTracking: { [key: string]: string[] },
+  typeName: string
+  controllers: { [key: string]: T }
+  componentMap: { [key: string]: T[] }
+  uidTracking: { [key: string]: string[] }
   uidListenerTracking: { [key: string]: string[] }
-  listeners: { [key: string]: string[] },
-  register: (uid: string, controller: T) => void,
-  listen: (uid: string, name: string) => void,
-  ignore: (uid: string, name: string) => void,
-  unhook: (uid: string, controller: T) => void,
-  delete: (name: string) => void,
-  rename: (oldName: string, newName: string) => void,
-  reset: () => void,
+  listeners: { [key: string]: string[] }
+  register: (uid: string, controller: T) => void
+  listen: (uid: string, name: string) => void
+  ignore: (uid: string, name: string) => void
+  unhook: (uid: string, controller: T) => void
+  delete: (name: string) => void
+  rename: (oldName: string, newName: string) => void
+  reset: () => void
 }
 
 declare interface Tracker {
-  [key: string]: any[],
+  [key: string]: any[]
 }
 
 export function addItem(tracker: Tracker, key: string, value: any) {
@@ -77,7 +77,10 @@ export function clearItem(tracker: Tracker, key: string, value: any) {
   }
 }
 
-export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>> {
+export abstract class BaseRegistry<
+  K extends AttrKeys,
+  T extends Registerable<K>,
+> {
   // We're making all of these non-reactive, since the recursion is liable to cause performance problems
   // if we accidentally attach the registry somewhere.
   public controllers: { [key: string]: T }
@@ -101,7 +104,7 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
     const baseUIDs = []
     for (const pattern of Object.keys(this.listeners)) {
       /* istanbul ignore else */
-      if (pattern === '__ob__') {
+      if (pattern === "__ob__") {
         continue
       }
       if (RegExp(pattern).test(toValue(controller.name))) {
@@ -143,7 +146,7 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
     }
     this.uidTracking[name] = this.uidTracking[name].filter((x) => x !== uid)
     if (this.uidTracking[name].length === 0) {
-      if (!controller.attr('persistent')) {
+      if (!controller.attr("persistent")) {
         if (!controller.purged) {
           controller.purge()
         }
@@ -167,7 +170,14 @@ export abstract class BaseRegistry<K extends AttrKeys, T extends Registerable<K>
   }
 }
 
-export const performUnhook = <K extends AttrKeys, S, C extends BaseController<S, K>>(uid: string, registry: Registry<K, C>) => {
+export const performUnhook = <
+  K extends AttrKeys,
+  S,
+  C extends BaseController<S, K>,
+>(
+  uid: string,
+  registry: Registry<K, C>,
+) => {
   // Cleans up references to a component ID in the registry.
   if (registry.uidListenerTracking[uid] !== undefined) {
     for (const listenName of registry.uidListenerTracking[uid]) {
@@ -184,32 +194,47 @@ export const performUnhook = <K extends AttrKeys, S, C extends BaseController<S,
   delete registry.componentMap[uid]
 }
 
-export type ModuleName = 'Single' | 'List' | 'Form' | 'Character' | 'Profile'
+export type ModuleName = "Single" | "List" | "Form" | "Character" | "Profile"
 
 export interface RegistryRegistry {
-  Single: Registry<SingleState<any>, SingleController<any>>,
-  List: Registry<ListState<any>, ListController<any>>,
-  Form: Registry<FormState, FormController>,
-  Character: Registry<CharacterState, CharacterController>,
-  Profile: Registry<ProfileState, ProfileController>,
+  Single: Registry<SingleState<any>, SingleController<any>>
+  List: Registry<ListState<any>, ListController<any>>
+  Form: Registry<FormState, FormController>
+  Character: Registry<CharacterState, CharacterController>
+  Profile: Registry<ProfileState, ProfileController>
 }
 
-
-declare interface ControllerInvocationArgs<S, K extends AttrKeys, C extends BaseController<S, K>> {
-  uid: string,
-  name: string,
-  schema: S | undefined,
-  registries: RegistryRegistry,
-  typeName: keyof RegistryRegistry,
-  router: Router,
-  socket: SocketManager,
-  store: ArtStore,
-  ControllerClass: new (args: ControllerArgs<S>) => C,
+declare interface ControllerInvocationArgs<
+  S,
+  K extends AttrKeys,
+  C extends BaseController<S, K>,
+> {
+  uid: string
+  name: string
+  schema: S | undefined
+  registries: RegistryRegistry
+  typeName: keyof RegistryRegistry
+  router: Router
+  socket: SocketManager
+  store: ArtStore
+  ControllerClass: new (args: ControllerArgs<S>) => C
 }
 
-export const getController = <K extends AttrKeys, S, C extends BaseController<S, K>>(
-{ uid, name, schema, registries, typeName, ControllerClass, socket, router, store }: ControllerInvocationArgs<S, K, C>,
-): C => {
+export const getController = <
+  K extends AttrKeys,
+  S,
+  C extends BaseController<S, K>,
+>({
+  uid,
+  name,
+  schema,
+  registries,
+  typeName,
+  ControllerClass,
+  socket,
+  router,
+  store,
+}: ControllerInvocationArgs<S, K, C>): C => {
   // Convenience function which registers a module if it does not yet exist, and gets it if it does.
   // Why does TypeScript identify _uid as number? I can't find anywhere I've defined it as such, and it doesn't
   // say where it gets the declaration. It should always be string.
@@ -222,7 +247,9 @@ export const getController = <K extends AttrKeys, S, C extends BaseController<S,
     return registry.controllers[name]
   }
   if (schema === undefined) {
-    throw Error(`Attempt to pull a ${registry.typeName} which does not exist, '${name}', from cache.`)
+    throw Error(
+      `Attempt to pull a ${registry.typeName} which does not exist, '${name}', from cache.`,
+    )
   }
   controller = new ControllerClass({
     initName: name,
@@ -238,22 +265,43 @@ export const getController = <K extends AttrKeys, S, C extends BaseController<S,
   return controller!
 }
 
-export const listenForRegistryName = <K extends AttrKeys, S, C extends BaseController<S, K>>(uid: string, name: string, registry: Registry<K, C>) => {
+export const listenForRegistryName = <
+  K extends AttrKeys,
+  S,
+  C extends BaseController<S, K>,
+>(
+  uid: string,
+  name: string,
+  registry: Registry<K, C>,
+) => {
   registry.listen(uid, name)
 }
 
-export function genRegistryPluginBase<K extends AttrKeys, S, C extends BaseController<S, K>>(
-  typeName: ModuleName, registry: Registry<K, C>, ControllerClass: new (args: ControllerArgs<S>) => C, store: ArtStore) {
+export function genRegistryPluginBase<
+  K extends AttrKeys,
+  S,
+  C extends BaseController<S, K>,
+>(
+  typeName: ModuleName,
+  registry: Registry<K, C>,
+  ControllerClass: new (args: ControllerArgs<S>) => C,
+  store: ArtStore,
+) {
   const base: ComponentOptions = {
-    render: () => h('div'),
+    render: () => h("div"),
     methods: {},
     unmounted(): void {
       performUnhook<K, S, C>(this._uid, registry)
     },
   }
 
-  function getter(this: ArtVueInterface, name: string, schema?: S, uid?: string) {
-    uid = uid || this._uid as unknown as string
+  function getter(
+    this: ArtVueInterface,
+    name: string,
+    schema?: S,
+    uid?: string,
+  ) {
+    uid = uid || (this._uid as unknown as string)
     return getController<K, S, C>({
       uid,
       name,
@@ -271,10 +319,11 @@ export function genRegistryPluginBase<K extends AttrKeys, S, C extends BaseContr
     listenForRegistryName<K, S, C>(uid || this._uid, name, registry)
   }
 
-  (base.methods as ComponentOptions<_Vue>)[`$get${typeName}`] = getter;
-  (base.methods as ComponentOptions<_Vue>)[`$listenFor${typeName}`] = listener;
-  (base.methods as ComponentOptions<_Vue>)[`$registryFor${typeName}`] = () => registry
+  ;(base.methods as ComponentOptions<_Vue>)[`$get${typeName}`] = getter
+  ;(base.methods as ComponentOptions<_Vue>)[`$listenFor${typeName}`] = listener
+  ;(base.methods as ComponentOptions<_Vue>)[`$registryFor${typeName}`] = () =>
+    registry
   return base
 }
 
-export const registryKey = Symbol('RegistryKey')
+export const registryKey = Symbol("RegistryKey")

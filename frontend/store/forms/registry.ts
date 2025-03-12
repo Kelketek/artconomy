@@ -1,16 +1,26 @@
-import {createApp, markRaw} from 'vue'
-import {FormController} from './form-controller.ts'
-import {FieldController} from './field-controller.ts'
-import {registerValidators} from './validators.ts'
-import {BaseRegistry, genRegistryPluginBase} from '../registry-base.ts'
-import {ArtStore} from '@/store/index.ts'
-import {FormState, NamelessFormSchema} from '@/store/forms/types/main'
+import { createApp, markRaw } from "vue"
+import { FormController } from "./form-controller.ts"
+import { FieldController } from "./field-controller.ts"
+import { registerValidators } from "./validators.ts"
+import { BaseRegistry, genRegistryPluginBase } from "../registry-base.ts"
+import { ArtStore } from "@/store/index.ts"
+import { FormState, NamelessFormSchema } from "@/store/forms/types/main"
 
 export class FormRegistry extends BaseRegistry<FormState, FormController> {
-  public validators: { [key: string]: (fieldController: FieldController, ...args: any[]) => string[] }
-  public asyncValidators: { [key: string]: (fieldController: FieldController, ...args: any[]) => Promise<string[]> }
+  public validators: {
+    [key: string]: (
+      fieldController: FieldController,
+      ...args: any[]
+    ) => string[]
+  }
+  public asyncValidators: {
+    [key: string]: (
+      fieldController: FieldController,
+      ...args: any[]
+    ) => Promise<string[]>
+  }
   constructor() {
-    super('Form')
+    super("Form")
     this.validators = {}
     this.asyncValidators = {}
   }
@@ -21,14 +31,20 @@ export class FormRegistry extends BaseRegistry<FormState, FormController> {
   }
 }
 
-
 export const formRegistry = markRaw(new FormRegistry())
 
 export function createForms(store: ArtStore) {
   return {
     install(app: ReturnType<typeof createApp>) {
-      app.mixin(genRegistryPluginBase<FormState, NamelessFormSchema, FormController>('Form', formRegistry, FormController, store))
+      app.mixin(
+        genRegistryPluginBase<FormState, NamelessFormSchema, FormController>(
+          "Form",
+          formRegistry,
+          FormController,
+          store,
+        ),
+      )
       registerValidators()
-    }
+    },
   }
 }

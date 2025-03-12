@@ -1,22 +1,33 @@
-import {ComponentInternalInstance, getCurrentInstance, inject, onUnmounted, provide} from 'vue'
+import {
+  ComponentInternalInstance,
+  getCurrentInstance,
+  inject,
+  onUnmounted,
+  provide,
+} from "vue"
 import {
   AttrKeys,
   getController,
   listenForRegistryName,
-  ModuleName, performUnhook,
+  ModuleName,
+  performUnhook,
   Registry,
   registryKey,
   RegistryRegistry,
-} from '@/store/registry-base.ts'
-import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {useSocket} from '@/plugins/socket.ts'
-import {useStore} from 'vuex'
-import {useRouter} from 'vue-router'
-import type {ArtVueInterface} from '@/types/main'
+} from "@/store/registry-base.ts"
+import { BaseController, ControllerArgs } from "@/store/controller-base.ts"
+import { useSocket } from "@/plugins/socket.ts"
+import { useStore } from "vuex"
+import { useRouter } from "vue-router"
+import type { ArtVueInterface } from "@/types/main"
 
 export type ArtVueInstance = ComponentInternalInstance & ArtVueInterface
 
-export const useRegistry = <T extends 'Single'|'List'|'Form'|'Character'|'Profile'>(typeName: T) => {
+export const useRegistry = <
+  T extends "Single" | "List" | "Form" | "Character" | "Profile",
+>(
+  typeName: T,
+) => {
   return useRegistries()[typeName]
 }
 
@@ -27,7 +38,9 @@ export const useRegistries = (): RegistryRegistry => {
 export const getUid = () => {
   const app = getCurrentInstance()
   if (!app) {
-    throw Error('Cannot provision UIDs without being in an active app environment.')
+    throw Error(
+      "Cannot provision UIDs without being in an active app environment.",
+    )
   }
   return `${app.uid}`
 }
@@ -42,7 +55,14 @@ export const ensureUnmountAction = (key: string, func: () => any) => {
   }
 }
 
-export const generateModuleHooks = <K extends AttrKeys, S, C extends BaseController<S, K>>(typeName: ModuleName, ControllerClass: new (args: ControllerArgs<S>) => C) => {
+export const generateModuleHooks = <
+  K extends AttrKeys,
+  S,
+  C extends BaseController<S, K>,
+>(
+  typeName: ModuleName,
+  ControllerClass: new (args: ControllerArgs<S>) => C,
+) => {
   const use = (name: string, schema?: S) => {
     const controller = getController<K, S, C>({
       name,

@@ -2,24 +2,17 @@
   <component
     :is="fieldComponent"
     v-bind="inputAttrs"
-    v-if="(patcher.loaded || patcher.model)"
+    v-if="patcher.loaded || patcher.model"
     v-model="scratch"
     class="patch-field"
     @keydown.enter="enterHandler"
   >
-    <template
-      v-for="(_, name) in slots"
-      #[name]
-    >
+    <template v-for="(_, name) in slots" #[name]>
       <slot :name="name" />
     </template>
     <template #append>
       <div v-if="!handlesSaving">
-        <v-tooltip
-          v-if="saved && saveIndicator"
-          text="Saved"
-          location="top"
-        >
+        <v-tooltip v-if="saved && saveIndicator" text="Saved" location="top">
           <template #activator="activator">
             <!-- Using a button here so the two elements are aligned. -->
             <v-btn
@@ -42,11 +35,7 @@
             </v-btn>
           </template>
         </v-tooltip>
-        <v-tooltip
-          v-else-if="saveIndicator"
-          text="Unsaved"
-          location="top"
-        >
+        <v-tooltip v-else-if="saveIndicator" text="Unsaved" location="top">
           <template #activator="activator">
             <!-- Using a button here so the two elements are aligned. -->
             <v-btn
@@ -70,11 +59,7 @@
             </v-btn>
           </template>
         </v-tooltip>
-        <v-tooltip
-          v-if="!autoSave"
-          text="Save"
-          location="top"
-        >
+        <v-tooltip v-if="!autoSave" text="Save" location="top">
           <template #activator="activator">
             <v-btn
               v-bind="activator.props"
@@ -85,10 +70,7 @@
               class="save-button"
               @click="save"
             >
-              <v-icon
-                color="yellow"
-                :icon="mdiContentSave"
-              />
+              <v-icon color="yellow" :icon="mdiContentSave" />
             </v-btn>
           </template>
         </v-tooltip>
@@ -98,32 +80,62 @@
 </template>
 
 <script setup lang="ts">
-import {toValue, defineAsyncComponent, computed, useAttrs, ref, watch, useSlots} from 'vue'
-import type {Component} from 'vue'
-import {Patch} from '@/store/singles/patcher.ts'
-import deepEqual from 'fast-deep-equal'
-import {useTheme} from 'vuetify'
-import {VCheckbox} from 'vuetify/lib/components/VCheckbox/index.mjs'
-import {VSwitch} from 'vuetify/lib/components/VSwitch/index.mjs'
-import {VTextField} from 'vuetify/lib/components/VTextField/index.mjs'
-import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
-import {VSlider} from 'vuetify/lib/components/VSlider/index.mjs'
-import {VSelect} from 'vuetify/lib/components/VSelect/index.mjs'
-import {transformComponentName} from '@/lib/lib.ts'
-import {mdiAlert, mdiCheckCircle, mdiContentSave} from '@mdi/js'
+import {
+  toValue,
+  defineAsyncComponent,
+  computed,
+  useAttrs,
+  ref,
+  watch,
+  useSlots,
+} from "vue"
+import type { Component } from "vue"
+import { Patch } from "@/store/singles/patcher.ts"
+import deepEqual from "fast-deep-equal"
+import { useTheme } from "vuetify"
+import { VCheckbox } from "vuetify/lib/components/VCheckbox/index.mjs"
+import { VSwitch } from "vuetify/lib/components/VSwitch/index.mjs"
+import { VTextField } from "vuetify/lib/components/VTextField/index.mjs"
+import { VAutocomplete } from "vuetify/lib/components/VAutocomplete/index.mjs"
+import { VSlider } from "vuetify/lib/components/VSlider/index.mjs"
+import { VSelect } from "vuetify/lib/components/VSelect/index.mjs"
+import { transformComponentName } from "@/lib/lib.ts"
+import { mdiAlert, mdiCheckCircle, mdiContentSave } from "@mdi/js"
 
 const componentMap: Record<string, Component> = {
-  AcEditor: defineAsyncComponent(() => import('@/components/fields/AcEditor.vue')),
-  AcTagField: defineAsyncComponent(() => import('@/components/fields/AcTagField.vue')),
-  AcRatingField: defineAsyncComponent(() => import('@/components/fields/AcRatingField.vue')),
-  AcUppyFile: defineAsyncComponent(() => import('@/components/fields/AcUppyFile.vue')),
-  AcSubmissionSelect: defineAsyncComponent(() => import('@/components/fields/AcSubmissionSelect.vue')),
-  AcBankToggle: defineAsyncComponent(() => import('@/components/fields/AcBankToggle.vue')),
-  AcPriceField: defineAsyncComponent(() => import('@/components/fields/AcPriceField.vue')),
-  AcStarField: defineAsyncComponent(() => import('@/components/fields/AcStarField.vue')),
-  AcBirthdayField: defineAsyncComponent(() => import('@/components/fields/AcBirthdayField.vue')),
-  AcCheckbox: defineAsyncComponent(() => import('@/components/fields/AcCheckbox.vue')),
-  AcColorPrepend: defineAsyncComponent(() => import('@/components/fields/AcColorPrepend.vue')),
+  AcEditor: defineAsyncComponent(
+    () => import("@/components/fields/AcEditor.vue"),
+  ),
+  AcTagField: defineAsyncComponent(
+    () => import("@/components/fields/AcTagField.vue"),
+  ),
+  AcRatingField: defineAsyncComponent(
+    () => import("@/components/fields/AcRatingField.vue"),
+  ),
+  AcUppyFile: defineAsyncComponent(
+    () => import("@/components/fields/AcUppyFile.vue"),
+  ),
+  AcSubmissionSelect: defineAsyncComponent(
+    () => import("@/components/fields/AcSubmissionSelect.vue"),
+  ),
+  AcBankToggle: defineAsyncComponent(
+    () => import("@/components/fields/AcBankToggle.vue"),
+  ),
+  AcPriceField: defineAsyncComponent(
+    () => import("@/components/fields/AcPriceField.vue"),
+  ),
+  AcStarField: defineAsyncComponent(
+    () => import("@/components/fields/AcStarField.vue"),
+  ),
+  AcBirthdayField: defineAsyncComponent(
+    () => import("@/components/fields/AcBirthdayField.vue"),
+  ),
+  AcCheckbox: defineAsyncComponent(
+    () => import("@/components/fields/AcCheckbox.vue"),
+  ),
+  AcColorPrepend: defineAsyncComponent(
+    () => import("@/components/fields/AcColorPrepend.vue"),
+  ),
   VCheckbox,
   VSwitch,
   VTextField,
@@ -133,17 +145,17 @@ const componentMap: Record<string, Component> = {
 }
 
 declare interface PatchFieldProps {
-  fieldType?: string,
-  patcher: Patch,
-  saveIndicator?: boolean,
-  autoSave?: boolean,
-  enterSave?: boolean,
-  id?: string,
-  instant?: boolean,
+  fieldType?: string
+  patcher: Patch
+  saveIndicator?: boolean
+  autoSave?: boolean
+  enterSave?: boolean
+  id?: string
+  instant?: boolean
 }
 
 const props = withDefaults(defineProps<PatchFieldProps>(), {
-  fieldType: 'v-text-field',
+  fieldType: "v-text-field",
   saveIndicator: true,
   autoSave: true,
   enterSave: true,
@@ -158,12 +170,15 @@ const theme = useTheme()
 const slots = useSlots()
 
 const disabled = computed(() => {
-  return Boolean(passedAttrs.disabled || (!props.autoSave && toValue(props.patcher.patching)))
+  return Boolean(
+    passedAttrs.disabled ||
+      (!props.autoSave && toValue(props.patcher.patching)),
+  )
 })
 
 const handlesSaving = computed(() => {
   // May want to find a way to generalize this in the future.
-  return props.fieldType === 'ac-editor'
+  return props.fieldType === "ac-editor"
 })
 
 const loading = computed(() => {
@@ -180,14 +195,14 @@ const scratch = ref<any>(props.patcher.model)
 
 const saved = computed(() => {
   let result: boolean
-  if (typeof scratch.value !== 'string') {
+  if (typeof scratch.value !== "string") {
     result = deepEqual(scratch.value, props.patcher.rawValue)
     return result
   }
-  if (typeof props.patcher.rawValue === 'number') {
+  if (typeof props.patcher.rawValue === "number") {
     return parseFloat(scratch.value) === props.patcher.rawValue
   }
-  if (typeof props.patcher.rawValue !== 'string') {
+  if (typeof props.patcher.rawValue !== "string") {
     // Can't be saved if it's not the same type.
     return false
   }
@@ -202,7 +217,7 @@ const save = () => {
 }
 
 const inputAttrs = computed(() => {
-  const attrs: any = {...passedAttrs}
+  const attrs: any = { ...passedAttrs }
   delete attrs.value
   delete attrs.modelValue
   attrs.errorMessages = toValue(props.patcher.errors)
@@ -223,26 +238,35 @@ watch(scratch, () => {
   }
 })
 
-watch(() => props.patcher.model, (val: any) => {
-  if (processInstantly()) {
-    return
-  }
-  if (props.autoSave || handlesSaving.value) {
+watch(
+  () => props.patcher.model,
+  (val: any) => {
+    if (processInstantly()) {
+      return
+    }
+    if (props.autoSave || handlesSaving.value) {
+      scratch.value = val
+    }
+  },
+)
+
+watch(
+  () => props.patcher.rawValue,
+  (val: any) => {
+    if (!processInstantly()) {
+      return
+    }
     scratch.value = val
-  }
-})
+  },
+)
 
-watch(() => props.patcher.rawValue, (val: any) => {
-  if (!processInstantly()) {
-    return
-  }
-  scratch.value = val
-})
-
-watch(() => props.patcher.cached, (val: any) => {
-  // A synced handler is modifying our value.
-  scratch.value = val
-})
+watch(
+  () => props.patcher.cached,
+  (val: any) => {
+    // A synced handler is modifying our value.
+    scratch.value = val
+  },
+)
 
 watch(saved, (val: boolean) => {
   if (val) {

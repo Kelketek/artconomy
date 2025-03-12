@@ -1,7 +1,7 @@
-import {Router} from 'vue-router'
-import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store/index.ts'
-import BuyAndSell from '@/components/views/faq/BuyAndSell.vue'
+import { Router } from "vue-router"
+import { VueWrapper } from "@vue/test-utils"
+import { ArtStore, createStore } from "@/store/index.ts"
+import BuyAndSell from "@/components/views/faq/BuyAndSell.vue"
 import {
   cleanUp,
   createTestRouter,
@@ -9,17 +9,18 @@ import {
   mount,
   setPricing,
   VueMountOptions,
-  vueSetup, waitFor,
-} from '@/specs/helpers/index.ts'
-import searchSchema from '@/components/views/search/specs/fixtures.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {afterEach, beforeEach, describe, expect, test} from 'vitest'
-import {nextTick} from 'vue'
+  vueSetup,
+  waitFor,
+} from "@/specs/helpers/index.ts"
+import searchSchema from "@/components/views/search/specs/fixtures.ts"
+import { FormController } from "@/store/forms/form-controller.ts"
+import Empty from "@/specs/helpers/dummy_components/empty.ts"
+import { afterEach, beforeEach, describe, expect, test } from "vitest"
+import { nextTick } from "vue"
 
 let searchForm: FormController
 
-describe('BuyAndSell.vue', () => {
+describe("BuyAndSell.vue", () => {
   let router: Router
   let wrapper: VueWrapper<any>
   let store: ArtStore
@@ -29,51 +30,57 @@ describe('BuyAndSell.vue', () => {
     store = createStore()
     options = {
       props: {
-        question: 'how-to-buy',
+        question: "how-to-buy",
       },
       ...vueSetup({
         store,
         router,
-      })
+      }),
     }
     searchForm = mount(Empty, {
       ...options,
-      attachTo: '',
-    }).vm.$getForm('search', searchSchema())
+      attachTo: "",
+    }).vm.$getForm("search", searchSchema())
     // Configure country list so the page will render.
     mount(Empty, {
       ...options,
-      attachTo: '',
-    }).vm.$getSingle('stripeCountries', {
+      attachTo: "",
+    }).vm.$getSingle("stripeCountries", {
       x: {
-        countries: [{
-          value: 'stuff',
-          title: 'things',
-        }],
+        countries: [
+          {
+            value: "stuff",
+            title: "things",
+          },
+        ],
       },
-      endpoint: '/stuff/',
+      endpoint: "/stuff/",
     })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Shows the buy and sell FAQ', async() => {
-    await router.push('/faq/buying-and-selling/')
+  test("Shows the buy and sell FAQ", async () => {
+    await router.push("/faq/buying-and-selling/")
     wrapper = mount(BuyAndSell, options)
     const vm = wrapper.vm as any
     await nextTick()
     await flushPromises()
-    expect(router.currentRoute.value.params).toEqual({question: 'how-to-buy'})
+    expect(router.currentRoute.value.params).toEqual({
+      question: "how-to-buy",
+    })
     setPricing(store)
     await vm.$nextTick()
   })
-  test('Sends the user to search', async() => {
-    searchForm.fields.q.update('stuff', false)
-    await router.push('/faq/buying-and-selling/')
+  test("Sends the user to search", async () => {
+    searchForm.fields.q.update("stuff", false)
+    await router.push("/faq/buying-and-selling/")
     wrapper = mount(BuyAndSell, options)
     await nextTick()
-    await wrapper.find('.who-is-open-link').trigger('click')
-    await waitFor(() => expect(router.currentRoute.value.name).toBe('SearchProducts'))
-    expect(searchForm.fields.q.model).toBe('')
+    await wrapper.find(".who-is-open-link").trigger("click")
+    await waitFor(() =>
+      expect(router.currentRoute.value.name).toBe("SearchProducts"),
+    )
+    expect(searchForm.fields.q.model).toBe("")
   })
 })

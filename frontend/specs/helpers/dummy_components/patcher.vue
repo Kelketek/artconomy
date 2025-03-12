@@ -10,13 +10,15 @@
 </template>
 
 <script setup lang="ts">
-import {genArtistProfile} from '@/specs/helpers/fixtures.ts'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {useProfile} from '@/store/profiles/hooks.ts'
-import type {DeliverableViewSettings} from '@/types/main'
+import { genArtistProfile } from "@/specs/helpers/fixtures.ts"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { useProfile } from "@/store/profiles/hooks.ts"
+import type { DeliverableViewSettings } from "@/types/main"
 
-const subjectHandler = useProfile('Fox')
+const subjectHandler = useProfile("Fox")
 subjectHandler.artistProfile.makeReady(genArtistProfile())
-const localShare = useSingle<DeliverableViewSettings>('TestSingle', {endpoint: '#'})
-defineExpose({localShare})
+const localShare = useSingle<DeliverableViewSettings>("TestSingle", {
+  endpoint: "#",
+})
+defineExpose({ localShare })
 </script>

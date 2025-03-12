@@ -8,7 +8,7 @@
     :role="nested ? undefined : 'list'"
   >
     <v-list-item
-      :to="{name: 'Options', params: {username}}"
+      :to="{ name: 'Options', params: { username } }"
       exact
       role="listitem"
       tabindex="0"
@@ -21,7 +21,7 @@
     <v-list-item
       v-if="subject.artist_mode"
       class="artist-panel-link"
-      :to="{name: 'Artist', params: {username}}"
+      :to="{ name: 'Artist', params: { username } }"
       exact
       role="listitem"
       tabindex="0"
@@ -32,7 +32,7 @@
       </template>
     </v-list-item>
     <v-list-item
-      :to="{name: 'Email', params: {username}}"
+      :to="{ name: 'Email', params: { username } }"
       exact
       role="listitem"
       tabindex="0"
@@ -43,7 +43,7 @@
       </template>
     </v-list-item>
     <v-list-item
-      :to="{name: 'Login Details', params: {username}}"
+      :to="{ name: 'Login Details', params: { username } }"
       role="listitem"
       tabindex="0"
     >
@@ -53,7 +53,7 @@
       </template>
     </v-list-item>
     <v-list-item
-      :to="{name: 'Avatar', params: {username}}"
+      :to="{ name: 'Avatar', params: { username } }"
       role="listitem"
       tabindex="0"
     >
@@ -64,7 +64,7 @@
     </v-list-item>
     <v-list-item
       v-if="isArtist"
-      :to="{name: 'Social', params: {username}}"
+      :to="{ name: 'Social', params: { username } }"
       role="listitem"
       tabindex="0"
     >
@@ -74,7 +74,7 @@
       </template>
     </v-list-item>
     <v-list-item
-      :to="{name: 'Premium', params: {username}}"
+      :to="{ name: 'Premium', params: { username } }"
       role="listitem"
       tabindex="0"
     >
@@ -83,20 +83,14 @@
         <v-icon :icon="mdiStar" />
       </template>
     </v-list-item>
-    <v-list-group
-      value="Payment"
-      density="compact"
-    >
+    <v-list-group value="Payment" density="compact">
       <template #activator="activator">
-        <v-list-item
-          v-bind="activator.props"
-          tabindex="0"
-        >
+        <v-list-item v-bind="activator.props" tabindex="0">
           <v-list-item-title>Payment</v-list-item-title>
         </v-list-item>
       </template>
       <v-list-item
-        :to="{name: 'Purchase', params: {username}}"
+        :to="{ name: 'Purchase', params: { username } }"
         role="listitem"
         tabindex="0"
       >
@@ -107,7 +101,7 @@
       </v-list-item>
       <v-list-item
         v-if="showPayout"
-        :to="{name: 'Payout', params: {username}}"
+        :to="{ name: 'Payout', params: { username } }"
         class="payout-link"
         role="listitem"
         tabindex="0"
@@ -118,7 +112,7 @@
         <v-list-item-title>Payout Methods</v-list-item-title>
       </v-list-item>
       <v-list-item
-        :to="{name: 'Invoices', params: {username}}"
+        :to="{ name: 'Invoices', params: { username } }"
         role="listitem"
         tabindex="0"
       >
@@ -128,7 +122,7 @@
         <v-list-item-title>Invoices</v-list-item-title>
       </v-list-item>
       <v-list-item
-        :to="{name: 'TransactionHistory', params: {username}}"
+        :to="{ name: 'TransactionHistory', params: { username } }"
         role="listitem"
         tabindex="0"
       >
@@ -142,8 +136,8 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
-import {computed, ref} from 'vue'
+import { useSubject } from "@/mixins/subjective.ts"
+import { computed, ref } from "vue"
 import {
   mdiAccount,
   mdiCreditCard,
@@ -151,20 +145,28 @@ import {
   mdiLock,
   mdiPalette,
   mdiReceiptText,
-  mdiSend, mdiShare,
+  mdiSend,
+  mdiShare,
   mdiStar,
-  mdiWallet, mdiWrench,
-} from '@mdi/js'
-import {User} from '@sentry/vue'
-import type {SubjectiveProps} from '@/types/main'
-import {BankStatus} from '@/store/profiles/types/enums.ts'
+  mdiWallet,
+  mdiWrench,
+} from "@mdi/js"
+import { User } from "@sentry/vue"
+import type { SubjectiveProps } from "@/types/main"
+import { BankStatus } from "@/store/profiles/types/enums.ts"
 
-const props = withDefaults(defineProps<SubjectiveProps & {nested?: boolean}>(), {nested: false})
-const open = ref(['Payment'])
-const {subjectHandler, subject} = useSubject({ props })
+const props = withDefaults(
+  defineProps<SubjectiveProps & { nested?: boolean }>(),
+  { nested: false },
+)
+const open = ref(["Payment"])
+const { subjectHandler, subject } = useSubject({ props })
 const inSupportedCountry = computed(() => {
   const profile = subjectHandler.artistProfile
-  return profile.x && (profile.x.bank_account_status === BankStatus.IN_SUPPORTED_COUNTRY)
+  return (
+    profile.x &&
+    profile.x.bank_account_status === BankStatus.IN_SUPPORTED_COUNTRY
+  )
 })
 const isArtist = computed(() => {
   return (subject.value as User).artist_mode

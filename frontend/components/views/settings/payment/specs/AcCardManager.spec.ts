@@ -1,7 +1,7 @@
-import {VueWrapper} from '@vue/test-utils'
-import AcCardManager from '@/components/views/settings/payment/AcCardManager.vue'
+import { VueWrapper } from "@vue/test-utils"
+import AcCardManager from "@/components/views/settings/payment/AcCardManager.vue"
 
-import {ArtStore, createStore} from '@/store/index.ts'
+import { ArtStore, createStore } from "@/store/index.ts"
 import {
   cleanUp,
   createTestRouter,
@@ -9,79 +9,85 @@ import {
   mount,
   rq,
   vueSetup,
-} from '@/specs/helpers/index.ts'
-import mockAxios from '@/__mocks__/axios.ts'
-import {genCard, genUser} from '@/specs/helpers/fixtures.ts'
-import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {baseCardSchema, setViewer} from '@/lib/lib.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import {describe, expect, beforeEach, afterEach, test} from 'vitest'
-import {nextTick} from 'vue'
-import {getStripe} from '@/components/views/order/mixins/StripeMixin.ts'
+} from "@/specs/helpers/index.ts"
+import mockAxios from "@/__mocks__/axios.ts"
+import { genCard, genUser } from "@/specs/helpers/fixtures.ts"
+import Empty from "@/specs/helpers/dummy_components/empty.ts"
+import { baseCardSchema, setViewer } from "@/lib/lib.ts"
+import { FormController } from "@/store/forms/form-controller.ts"
+import { describe, expect, beforeEach, afterEach, test } from "vitest"
+import { nextTick } from "vue"
+import { getStripe } from "@/components/views/order/mixins/StripeMixin.ts"
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let vm: any
 let ccForm: FormController
 
-describe('AcCardManager.vue Stripe', () => {
+describe("AcCardManager.vue Stripe", () => {
   beforeEach(() => {
     store = createStore()
     setViewer({ store, user: genUser() })
-    ccForm = mount(Empty, vueSetup({store})).vm.$getForm('newCard', baseCardSchema('/test/'))
+    ccForm = mount(Empty, vueSetup({ store })).vm.$getForm(
+      "newCard",
+      baseCardSchema("/test/"),
+    )
     const router = createTestRouter()
-    wrapper = mount(
-      AcCardManager, {
-        ...vueSetup({store, router}),
-        props: {
-          username: 'Fox',
-          clientSecret: 'Beep',
-          ccForm,
-        },
-      })
+    wrapper = mount(AcCardManager, {
+      ...vueSetup({ store, router }),
+      props: {
+        username: "Fox",
+        clientSecret: "Beep",
+        ccForm,
+      },
+    })
     vm = wrapper.vm
     // @ts-expect-error Manipulated for tests.
     getStripe()!.setupValue = {}
   })
-  test('Fetches the initial data', async() => {
+  test("Fetches the initial data", async () => {
     expect(mockAxios.request.mock.calls[1][0]).toEqual(
-      rq('/api/sales/account/Fox/cards/', 'get', undefined, {signal: expect.any(Object)}),
+      rq("/api/sales/account/Fox/cards/", "get", undefined, {
+        signal: expect.any(Object),
+      }),
     )
   })
-  test('Updates the endpoint when the username is changed', async() => {
+  test("Updates the endpoint when the username is changed", async () => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/account/Fox/cards/')
-    await wrapper.setProps({username: 'Vulpes'})
+    expect(vm.cards.endpoint).toBe("/api/sales/account/Fox/cards/")
+    await wrapper.setProps({ username: "Vulpes" })
     await nextTick()
-    expect(vm.cards.endpoint).toBe('/api/sales/account/Vulpes/cards/')
+    expect(vm.cards.endpoint).toBe("/api/sales/account/Vulpes/cards/")
   })
-  test('Switches tabs depending on whether cards are present', async() => {
+  test("Switches tabs depending on whether cards are present", async () => {
     const vm = wrapper.vm as any
-    expect(vm.cards.endpoint).toBe('/api/sales/account/Fox/cards/')
-    await wrapper.setProps({username: 'Vulpes'})
+    expect(vm.cards.endpoint).toBe("/api/sales/account/Fox/cards/")
+    await wrapper.setProps({ username: "Vulpes" })
     await nextTick()
-    expect(vm.cards.endpoint).toBe('/api/sales/account/Vulpes/cards/')
+    expect(vm.cards.endpoint).toBe("/api/sales/account/Vulpes/cards/")
     vm.cards.setList([genCard()])
     await nextTick()
-    expect(vm.tab).toBe('saved-cards')
+    expect(vm.tab).toBe("saved-cards")
     vm.cards.setList([])
     await nextTick()
-    expect(vm.tab).toBe('new-card')
+    expect(vm.tab).toBe("new-card")
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Fetches the initial data', async() => {
+  test("Fetches the initial data", async () => {
     expect(mockAxios.request.mock.calls[1][0]).toEqual(
-      rq('/api/sales/account/Fox/cards/', 'get', undefined, {signal: expect.any(Object)}),
+      rq("/api/sales/account/Fox/cards/", "get", undefined, {
+        signal: expect.any(Object),
+      }),
     )
   })
-  test('Handles cleanup after saving a card', async() => {
+  test("Handles cleanup after saving a card", async () => {
     await wrapper.setProps({
       saveOnly: true,
-      clientSecret: 'Beep',
+      clientSecret: "Beep",
     })
-    vm.tab = 'new-card'
+    vm.tab = "new-card"
     // @ts-expect-error Manipulated for tests.
     getStripe()!.setupValue = {}
     await vm.$nextTick()
@@ -90,19 +96,19 @@ describe('AcCardManager.vue Stripe', () => {
     await flushPromises()
     await vm.$nextTick()
     expect(ccForm.errors).toEqual([])
-    expect(vm.tab).toBe('saved-cards')
+    expect(vm.tab).toBe("saved-cards")
   })
-  test('Handles a stripe error when saving a card', async() => {
+  test("Handles a stripe error when saving a card", async () => {
     await wrapper.setProps({
       saveOnly: true,
-      clientSecret: 'Beep',
+      clientSecret: "Beep",
     })
-    vm.tab = 'new-card'
+    vm.tab = "new-card"
     // @ts-expect-error Manipulated for tests.
     getStripe()!.setupValue = {
       error: {
-        code: 'Failure',
-        message: 'Shit broke.',
+        code: "Failure",
+        message: "Shit broke.",
       },
     }
     await vm.$nextTick()
@@ -110,7 +116,7 @@ describe('AcCardManager.vue Stripe', () => {
     vm.stripeSubmit()
     await flushPromises()
     await vm.$nextTick()
-    expect(ccForm.errors).toEqual(['Shit broke.'])
-    expect(vm.tab).toBe('new-card')
+    expect(ccForm.errors).toEqual(["Shit broke."])
+    expect(vm.tab).toBe("new-card")
   })
 })

@@ -1,15 +1,6 @@
 <template>
-  <v-container
-    v-if="subject"
-    fluid
-    style="min-height: 75vh"
-    role="navigation"
-  >
-    <v-list
-      density="compact"
-      nav
-      role="list"
-    >
+  <v-container v-if="subject" fluid style="min-height: 75vh" role="navigation">
+    <v-list density="compact" nav role="list">
       <v-list-item
         role="listitem"
         tabindex="0"
@@ -34,12 +25,7 @@
           color="primary"
         />
       </v-list-item>
-      <v-list-item
-        to="/"
-        exact
-        role="listitem"
-        tabindex="0"
-      >
+      <v-list-item to="/" exact role="listitem" tabindex="0">
         <template #prepend>
           <v-icon :icon="mdiHome" />
         </template>
@@ -47,7 +33,7 @@
       </v-list-item>
       <v-list-item
         v-if="!isRegistered"
-        :to="{name: 'SessionSettings'}"
+        :to="{ name: 'SessionSettings' }"
         role="listitem"
         tabindex="0"
       >
@@ -58,7 +44,7 @@
       </v-list-item>
       <v-list-item
         v-if="isRegistered"
-        :to="{name: 'Conversations', params: {username: subject.username}}"
+        :to="{ name: 'Conversations', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
       >
@@ -79,7 +65,7 @@
     >
       <v-divider aria-hidden="true" />
       <v-list-item
-        :to="{name: 'Store', params: {username: subject.username}}"
+        :to="{ name: 'Store', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
       >
@@ -89,7 +75,7 @@
         <v-list-item-title>My Store</v-list-item-title>
       </v-list-item>
       <v-list-item
-        :to="{name: 'CurrentSales', params: {username: subject.username}}"
+        :to="{ name: 'CurrentSales', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
       >
@@ -105,15 +91,12 @@
         role="listitem"
       >
         <template #activator="activator">
-          <v-list-item
-            v-bind="activator.props"
-            tabindex="0"
-          >
+          <v-list-item v-bind="activator.props" tabindex="0">
             <v-list-item-title>Reports</v-list-item-title>
           </v-list-item>
         </template>
         <v-list-item
-          :to="{name: 'Reports', params: {username: subject.username}}"
+          :to="{ name: 'Reports', params: { username: subject.username } }"
           role="listitem"
           tabindex="0"
         >
@@ -124,7 +107,7 @@
         </v-list-item>
         <v-list-item
           v-if="powers.handle_disputes"
-          :to="{name: 'TroubledDeliverables'}"
+          :to="{ name: 'TroubledDeliverables' }"
           role="listitem"
           tabindex="0"
         >
@@ -135,7 +118,7 @@
         </v-list-item>
         <v-list-item
           v-if="powers.view_social_data"
-          :to="{name: 'Promotable'}"
+          :to="{ name: 'Promotable' }"
           role="listitem"
           tabindex="0"
         >
@@ -147,7 +130,7 @@
       </v-list-group>
       <v-list-item
         v-else-if="isLoggedIn && (subject.artist_mode || subject.is_superuser)"
-        :to="{name: 'Reports', params: {username: subject.username}}"
+        :to="{ name: 'Reports', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
       >
@@ -158,7 +141,7 @@
       </v-list-item>
       <v-list-item
         v-if="isLoggedIn && powers.table_seller"
-        :to="{name: 'TableProducts'}"
+        :to="{ name: 'TableProducts' }"
         role="listitem"
         tabindex="0"
       >
@@ -169,7 +152,7 @@
       </v-list-item>
       <v-list-item
         v-if="isLoggedIn && powers.view_financials"
-        :to="{name: 'VendorInvoices'}"
+        :to="{ name: 'VendorInvoices' }"
         role="listitem"
         tabindex="0"
       >
@@ -188,7 +171,7 @@
       tabindex="0"
     >
       <v-list-item
-        :to="{name: 'CurrentCases', params: {username: subject.username}}"
+        :to="{ name: 'CurrentCases', params: { username: subject.username } }"
         role="listitem"
       >
         <template #prepend>
@@ -206,7 +189,7 @@
     >
       <v-list-item
         v-if="isLoggedIn"
-        :to="{name: 'CurrentOrders', params: {username: subject.username}}"
+        :to="{ name: 'CurrentOrders', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
       >
@@ -215,47 +198,32 @@
         </template>
         <v-list-item-title>Orders</v-list-item-title>
       </v-list-item>
-      <v-list-group
-        v-if="isRegistered"
-        value="Openings"
-        nav
-        role="listitem"
-      >
+      <v-list-group v-if="isRegistered" value="Openings" nav role="listitem">
         <template #activator="activator">
-          <v-list-item
-            v-bind="activator.props"
-            tabindex="0"
-            role="listitem"
-          >
+          <v-list-item v-bind="activator.props" tabindex="0" role="listitem">
             <v-list-item-title>Who's Open?</v-list-item-title>
           </v-list-item>
         </template>
         <v-list-item
-          :to="{name: 'SearchProducts'}"
+          :to="{ name: 'SearchProducts' }"
           role="listitem"
           tabindex="0"
           @click.capture.stop.prevent="searchOpen({})"
         >
           <template #prepend>
-            <v-icon
-              class="who-is-open"
-              :icon="mdiCity"
-            />
+            <v-icon class="who-is-open" :icon="mdiCity" />
           </template>
           <v-list-item-title>All Openings</v-list-item-title>
         </v-list-item>
         <v-list-item
           exact
-          :to="{name: 'SearchProducts', query: {watch_list: 'true'}}"
+          :to="{ name: 'SearchProducts', query: { watch_list: 'true' } }"
           tabindex="0"
           role="listitem"
-          @click.capture.stop.prevent="searchOpen({watch_list: true})"
+          @click.capture.stop.prevent="searchOpen({ watch_list: true })"
         >
           <template #prepend>
-            <v-icon
-              class="who-is-open-watchlist"
-              :icon="mdiStore"
-            />
+            <v-icon class="who-is-open-watchlist" :icon="mdiStore" />
           </template>
           <v-list-item-title>Watchlist</v-list-item-title>
         </v-list-item>
@@ -263,113 +231,84 @@
       <v-list-item
         v-else
         exact
-        :to="{name: 'SearchProducts'}"
+        :to="{ name: 'SearchProducts' }"
         role="listitem"
         tabindex="0"
         @click.capture.stop.prevent="searchOpen({})"
       >
         <template #prepend>
-          <v-icon
-            class="who-is-open"
-            :icon="mdiStore"
-          />
+          <v-icon class="who-is-open" :icon="mdiStore" />
         </template>
         <v-list-item-title>Who's Open?</v-list-item-title>
       </v-list-item>
-      <v-list-group
-        v-if="isRegistered"
-        nav
-        value="Art"
-        role="listitem"
-      >
+      <v-list-group v-if="isRegistered" nav value="Art" role="listitem">
         <template #activator="activator">
-          <v-list-item
-            v-bind="activator.props"
-            tabindex="0"
-            role="listitem"
-          >
+          <v-list-item v-bind="activator.props" tabindex="0" role="listitem">
             <v-list-item-title>Recent Art</v-list-item-title>
           </v-list-item>
         </template>
         <v-list-item
           :exact="true"
-          :to="{name: 'SearchSubmissions'}"
+          :to="{ name: 'SearchSubmissions' }"
           role="listitem"
           tabindex="0"
           @click.capture.stop.prevent="searchSubmissions({})"
         >
           <template #prepend>
-            <v-icon
-              class="recent-art"
-              :icon="mdiImageMultiple"
-            />
+            <v-icon class="recent-art" :icon="mdiImageMultiple" />
           </template>
           <v-list-item-title>All Submissions</v-list-item-title>
         </v-list-item>
         <v-list-item
           :exact="true"
-          :to="{name: 'SearchSubmissions', query: {watch_list: 'true'}}"
+          :to="{ name: 'SearchSubmissions', query: { watch_list: 'true' } }"
           role="listitem"
           tabindex="0"
-          @click.capture.stop.prevent="searchSubmissions({watch_list: true})"
+          @click.capture.stop.prevent="searchSubmissions({ watch_list: true })"
         >
           <template #prepend>
-            <v-icon
-              class="recent-art-watchlist"
-              :icon="mdiEye"
-            />
+            <v-icon class="recent-art-watchlist" :icon="mdiEye" />
           </template>
           <v-list-item-title>Watchlist</v-list-item-title>
         </v-list-item>
       </v-list-group>
       <v-list-item
         v-else
-        :to="{name: 'SearchSubmissions'}"
+        :to="{ name: 'SearchSubmissions' }"
         role="listitem"
         tabindex="0"
         @click.capture.stop.prevent="searchSubmissions({})"
       >
         <template #prepend>
-          <v-icon
-            class="recent-art"
-            :icon="mdiImageMultiple"
-          />
+          <v-icon class="recent-art" :icon="mdiImageMultiple" />
         </template>
         <v-list-item-title>Recent Art</v-list-item-title>
       </v-list-item>
       <v-list-item
         v-if="isRegistered"
-        :to="{name: 'LinksAndStats', params: {username: subject.username}}"
+        :to="{ name: 'LinksAndStats', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
       >
         <template #prepend>
           <v-icon :icon="mdiStar" />
         </template>
-        <v-list-item-title>
-          Extras!
-        </v-list-item-title>
+        <v-list-item-title> Extras! </v-list-item-title>
       </v-list-item>
       <v-list-item
         v-if="isRegistered && !embedded"
-        :to="{name: 'Upgrade', params: {username: subject.username}}"
+        :to="{ name: 'Upgrade', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
       >
         <template #prepend>
           <v-icon :icon="mdiArrowUp" />
         </template>
-        <v-list-item-title>
-          Upgrade
-        </v-list-item-title>
+        <v-list-item-title> Upgrade </v-list-item-title>
       </v-list-item>
     </v-list>
     <v-divider aria-hidden="true" />
-    <v-list
-      nav
-      density="compact"
-      role="list"
-    >
+    <v-list nav density="compact" role="list">
       <v-list-group
         v-if="isRegistered"
         prepend-icon="mdi-cog"
@@ -377,21 +316,15 @@
         role="listitem"
       >
         <template #activator="activator">
-          <v-list-item
-            v-bind="activator.props"
-            tabindex="0"
-          >
+          <v-list-item v-bind="activator.props" tabindex="0">
             <v-list-item-title>Settings</v-list-item-title>
           </v-list-item>
         </template>
-        <ac-setting-nav
-          :username="subject.username"
-          :nested="true"
-        />
+        <ac-setting-nav :username="subject.username" :nested="true" />
       </v-list-group>
       <v-list-item
         v-if="!embedded"
-        :to="{name: 'About'}"
+        :to="{ name: 'About' }"
         tabindex="0"
         role="listitem"
       >
@@ -407,17 +340,14 @@
         @click.prevent="logout()"
       >
         <template #prepend>
-          <v-icon
-            class="logout-button"
-            :icon="mdiLogout"
-          />
+          <v-icon class="logout-button" :icon="mdiLogout" />
         </template>
         <v-list-item-title>Log out</v-list-item-title>
       </v-list-item>
       <v-list-item
         v-if="!embedded"
         class="mt-3"
-        :to="{name: 'Policies'}"
+        :to="{ name: 'Policies' }"
         tabindex="0"
         role="listitem"
       >
@@ -431,60 +361,73 @@
 </template>
 
 <script setup lang="ts">
-import AcSettingNav from '@/components/navigation/AcSettingNav.vue'
-import {ProfileController} from '@/store/profiles/controller.ts'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {artCall, makeQueryParams} from '@/lib/lib.ts'
-import {computed, ref} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useRouter} from 'vue-router'
+import AcSettingNav from "@/components/navigation/AcSettingNav.vue"
+import { ProfileController } from "@/store/profiles/controller.ts"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import { artCall, makeQueryParams } from "@/lib/lib.ts"
+import { computed, ref } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useRouter } from "vue-router"
 import {
   mdiAlert,
-  mdiArrowUp, mdiBasket, mdiBullhorn, mdiCashMultiple, mdiChartBoxOutline,
-  mdiCity, mdiClose, mdiCog, mdiEmail,
+  mdiArrowUp,
+  mdiBasket,
+  mdiBullhorn,
+  mdiCashMultiple,
+  mdiChartBoxOutline,
+  mdiCity,
+  mdiClose,
+  mdiCog,
+  mdiEmail,
   mdiEye,
-  mdiForum, mdiGavel, mdiHome,
+  mdiForum,
+  mdiGavel,
+  mdiHome,
   mdiImageMultiple,
-  mdiInformation, mdiInvoice,
+  mdiInformation,
+  mdiInvoice,
   mdiLogout,
   mdiStar,
-  mdiStore, mdiStoreCogOutline, mdiStorefront,
-} from '@mdi/js'
-import {buildPowers, useViewer} from '@/mixins/viewer.ts'
-import {AnonUser, User} from '@/store/profiles/types/main'
-import {RawData} from '@/store/forms/types/main'
+  mdiStore,
+  mdiStoreCogOutline,
+  mdiStorefront,
+} from "@mdi/js"
+import { buildPowers, useViewer } from "@/mixins/viewer.ts"
+import { AnonUser, User } from "@/store/profiles/types/main"
+import { RawData } from "@/store/forms/types/main"
 
 declare interface AcNavLinksProps {
-  modelValue: boolean|null,
-  subjectHandler: ProfileController,
-  isRegistered: boolean,
-  isLoggedIn: boolean,
-  embedded?: boolean,
-  isSuperuser: boolean,
+  modelValue: boolean | null
+  subjectHandler: ProfileController
+  isRegistered: boolean
+  isLoggedIn: boolean
+  embedded?: boolean
+  isSuperuser: boolean
 }
 
-const props = withDefaults(defineProps<AcNavLinksProps>(), {embedded: false})
+const props = withDefaults(defineProps<AcNavLinksProps>(), { embedded: false })
 const router = useRouter()
-const {viewerHandler} = useViewer()
+const { viewerHandler } = useViewer()
 const powers = buildPowers(props.subjectHandler)
 props.subjectHandler.staffPowers.get().catch(() => {})
 
-const openFirst = ref(['Openings', 'Art'])
-const openSecond = ref(['Reports'])
+const openFirst = ref(["Openings", "Art"])
+const openSecond = ref(["Reports"])
 
-const emit = defineEmits<{'update:modelValue': [boolean|null]}>()
+const emit = defineEmits<{ "update:modelValue": [boolean | null] }>()
 
 const subject = computed(() => props.subjectHandler.user.x)
 const sfwMode = computed(() => props.subjectHandler.user.patchers.sfw_mode)
-const showSfwToggle = computed(() => !props.embedded && subject.value && (subject.value as User).rating > 0)
+const showSfwToggle = computed(
+  () => !props.embedded && subject.value && (subject.value as User).rating > 0,
+)
 
-const searchForm = useForm('search')
-
+const searchForm = useForm("search")
 
 const searchOpen = (data: RawData) => {
   searchReplace(data)
   router.push({
-    name: 'SearchProducts',
+    name: "SearchProducts",
     query: makeQueryParams(searchForm.rawData),
   })
 }
@@ -499,19 +442,19 @@ const searchReplace = (data: RawData) => {
 const searchSubmissions = (data: RawData) => {
   searchReplace(data)
   router.push({
-    name: 'SearchSubmissions',
+    name: "SearchSubmissions",
     query: makeQueryParams(searchForm.rawData),
   })
 }
 
 const logout = () => {
   artCall({
-    url: '/api/profiles/logout/',
-    method: 'post',
+    url: "/api/profiles/logout/",
+    method: "post",
   }).then((newUser: AnonUser) => {
     viewerHandler.user.setX(newUser)
-    router.push({name: 'Home'})
-    emit('update:modelValue', null)
+    router.push({ name: "Home" })
+    emit("update:modelValue", null)
   })
 }
 </script>

@@ -10,28 +10,30 @@
       </router-link>
     </template>
     <template #subtitle>
-      <router-link :to="url">
-        A new reference has been added!
-      </router-link>
+      <router-link :to="url"> A new reference has been added! </router-link>
     </template>
   </ac-base-notification>
 </template>
 
 <script setup lang="ts">
-import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import {computed} from 'vue'
-import type {Deliverable, Reference} from '@/types/main'
+import {
+  DisplayData,
+  NotificationProps,
+  useEvent,
+} from "../mixins/notification.ts"
+import AcBaseNotification from "@/components/views/notifications/events/AcBaseNotification.vue"
+import { computed } from "vue"
+import type { Deliverable, Reference } from "@/types/main"
 
 declare interface ReferenceUploaded extends DisplayData {
-  reference: Reference,
+  reference: Reference
 }
 
 const props = defineProps<NotificationProps<Deliverable, ReferenceUploaded>>()
 const event = useEvent(props)
 
 const url = computed(() => ({
-  name: 'OrderDeliverableReference',
+  name: "OrderDeliverableReference",
   params: {
     deliverableId: event.value.target.id,
     orderId: event.value.target.order.id,

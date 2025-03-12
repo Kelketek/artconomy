@@ -18,38 +18,51 @@
                         v-if="is(DeliverableStatus.LIMBO) && isBuyer"
                         cols="12"
                       >
-                        <p>The artist has been informed about your order and should respond soon.</p>
+                        <p>
+                          The artist has been informed about your order and
+                          should respond soon.
+                        </p>
                       </v-col>
                       <v-col
                         v-if="is(DeliverableStatus.WAITING) && isBuyer"
                         cols="12"
                       >
                         <p>
-                          Your order has been placed in the artist's waitlist. Waitlisted orders are not guaranteed by
-                          Artconomy to be accepted in any order and every artist's policy is different in how they are
-                          handled.
-                          If your artist has not listed their waitlist policy for this commission in the product
-                          details,
-                          or in their commission info under the Overview tab, you may want to message them for
-                          clarification.
+                          Your order has been placed in the artist's waitlist.
+                          Waitlisted orders are not guaranteed by Artconomy to
+                          be accepted in any order and every artist's policy is
+                          different in how they are handled. If your artist has
+                          not listed their waitlist policy for this commission
+                          in the product details, or in their commission info
+                          under the Overview tab, you may want to message them
+                          for clarification.
                         </p>
                       </v-col>
                       <v-col
-                        v-if="is(DeliverableStatus.WAITING) && isSeller && seller"
+                        v-if="
+                          is(DeliverableStatus.WAITING) && isSeller && seller
+                        "
                         cols="12"
                       >
                         <p>
-                          This order is in your waitlist. You should put your waitlist policy in your commission info
-                          in your
-                          <router-link :to="{name: 'Artist', params: {username: seller.username}}">
+                          This order is in your waitlist. You should put your
+                          waitlist policy in your commission info in your
+                          <router-link
+                            :to="{
+                              name: 'Artist',
+                              params: { username: seller.username },
+                            }"
+                          >
                             Artist Settings
                           </router-link>
-                          if you have not already, or else add it to the details of the product this order is associated
-                          with.
+                          if you have not already, or else add it to the details
+                          of the product this order is associated with.
                         </p>
                         <p>
-                          Hit the <strong>Select for Consideration</strong> button if you'd like to treat this as a
-                          freshly placed order rather than having it chill in the waitlist.
+                          Hit the
+                          <strong>Select for Consideration</strong> button if
+                          you'd like to treat this as a freshly placed order
+                          rather than having it chill in the waitlist.
                         </p>
                       </v-col>
                       <v-col
@@ -57,22 +70,29 @@
                         cols="12"
                       >
                         <p>
-                          Your order has been placed and is awaiting the artist's review. You will receive an email
-                          when the
-                          artist has accepted or rejected the order, or if they have any comments.
+                          Your order has been placed and is awaiting the
+                          artist's review. You will receive an email when the
+                          artist has accepted or rejected the order, or if they
+                          have any comments.
                         </p>
-                        <p>You may add additional comments or questions below!</p>
+                        <p>
+                          You may add additional comments or questions below!
+                        </p>
                       </v-col>
                       <v-col
                         v-if="is(DeliverableStatus.NEW) && isSeller"
                         cols="12"
                       >
                         <p>
-                          This order is pending your review. Please make any pricing adjustments and accept the order,
-                          or
-                          reject the order if you are unwilling or unable to complete the piece.
+                          This order is pending your review. Please make any
+                          pricing adjustments and accept the order, or reject
+                          the order if you are unwilling or unable to complete
+                          the piece.
                         </p>
-                        <p>You may add comments to ask the commissioner questions.</p>
+                        <p>
+                          You may add comments to ask the commissioner
+                          questions.
+                        </p>
                       </v-col>
                       <v-col
                         v-if="!is(DeliverableStatus.COMPLETED) && !isRegistered"
@@ -94,40 +114,57 @@
                       >
                         <v-divider />
                         <p>
-                          <strong>Congratulations!</strong> Your artist has accepted your order. Please submit payment
-                          so that it can be added to their work queue.
+                          <strong>Congratulations!</strong> Your artist has
+                          accepted your order. Please submit payment so that it
+                          can be added to their work queue.
                           <span v-if="paypalUrl">
-                            <a :href="paypalUrl">Payment is done via PayPal.</a> This order is not protected by <router-link
-                              :to="{name: 'BuyAndSell', params: {question: 'shield'}}"
-                            >Artconomy Shield.</router-link>
+                            <a :href="paypalUrl">Payment is done via PayPal.</a>
+                            This order is not protected by
+                            <router-link
+                              :to="{
+                                name: 'BuyAndSell',
+                                params: { question: 'shield' },
+                              }"
+                              >Artconomy Shield.</router-link
+                            >
                           </span>
-                          <span
-                            v-if="!deliverable.x.escrow_enabled"
-                          >Your artist will inform you on how to pay them.</span>
+                          <span v-if="!deliverable.x.escrow_enabled"
+                            >Your artist will inform you on how to pay
+                            them.</span
+                          >
                         </p>
                         <p v-if="deliverable.x.escrow_enabled">
-                          <strong class="danger">WARNING:</strong> Only send payment using the <strong>'Send
-                            Payment'</strong> button in the '<strong>Payment</strong>' <span
-                            v-if="mdAndUp"
-                          >tab</span><span v-else>dropdown option</span> directly below
-                          this section.
-                          Do not use any other method, button, or link, or we will not be able to protect you from
-                          fraud. If your
-                          artist asks for payment using another method, or if you are getting errors, please <a
-                            @click="store.commit('supportDialog', true)"
-                          >contact support.</a>
+                          <strong class="danger">WARNING:</strong> Only send
+                          payment using the
+                          <strong>'Send Payment'</strong> button in the
+                          '<strong>Payment</strong>'
+                          <span v-if="mdAndUp">tab</span
+                          ><span v-else>dropdown option</span> directly below
+                          this section. Do not use any other method, button, or
+                          link, or we will not be able to protect you from
+                          fraud. If your artist asks for payment using another
+                          method, or if you are getting errors, please
+                          <a @click="store.commit('supportDialog', true)"
+                            >contact support.</a
+                          >
                         </p>
                       </v-col>
                       <v-col
-                        v-if="isBuyer && deliverable.x.stream_link && !(is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED))"
+                        v-if="
+                          isBuyer &&
+                          deliverable.x.stream_link &&
+                          !(
+                            is(DeliverableStatus.COMPLETED) ||
+                            is(DeliverableStatus.CANCELLED) ||
+                            is(DeliverableStatus.REFUNDED)
+                          )
+                        "
                         cols="12"
                       >
                         <p>
-                          <a
-                            :href="deliverable.x.stream_link"
-                            target="_blank"
-                          >Your artist is streaming your commission
-                            here!</a>
+                          <a :href="deliverable.x.stream_link" target="_blank"
+                            >Your artist is streaming your commission here!</a
+                          >
                         </p>
                       </v-col>
                       <v-col
@@ -135,19 +172,22 @@
                         cols="12"
                       >
                         <p>
-                          The commissioner has been informed that they must now pay in order for you to work on the
-                          order.
-                          You may continue to comment and tweak pricing in the interim, or you may cancel the order if
-                          you need to.
+                          The commissioner has been informed that they must now
+                          pay in order for you to work on the order. You may
+                          continue to comment and tweak pricing in the interim,
+                          or you may cancel the order if you need to.
                         </p>
                         <p v-if="!deliverable.x.escrow_enabled && !paypalUrl">
-                          <strong>REMEMBER:</strong> As we are not handling payment for this order, you MUST tell your
-                          commissioner how to pay you. Leave a comment telling them how if you have not done so already.
-                          When the customer has paid, click the 'Mark Paid' button.
+                          <strong>REMEMBER:</strong> As we are not handling
+                          payment for this order, you MUST tell your
+                          commissioner how to pay you. Leave a comment telling
+                          them how if you have not done so already. When the
+                          customer has paid, click the 'Mark Paid' button.
                         </p>
                         <p v-else-if="!deliverable.x.table_order">
-                          You may mark this order as paid, if the customer has paid you through an outside method, or
-                          you wish to waive payment for this commission.
+                          You may mark this order as paid, if the customer has
+                          paid you through an outside method, or you wish to
+                          waive payment for this commission.
                         </p>
                         <v-col
                           v-if="!deliverable.x.escrow_enabled"
@@ -165,16 +205,9 @@
                           v-else-if="!deliverable.x.table_order"
                           :action="statusEndpoint('mark-paid')"
                         >
-                          <template #default="{on}">
-                            <v-col
-                              class="text-center"
-                              cols="12"
-                            >
-                              <v-btn
-                                color="primary"
-                                variant="flat"
-                                v-on="on"
-                              >
+                          <template #default="{ on }">
+                            <v-col class="text-center" cols="12">
+                              <v-btn color="primary" variant="flat" v-on="on">
                                 Mark Paid
                               </v-btn>
                             </v-col>
@@ -182,12 +215,20 @@
                           <template #confirmation-text>
                             <v-col>
                               <p>
-                                Artconomy will not be able to protect you from fraud if your customer has paid through
-                                an outside
-                                method.
+                                Artconomy will not be able to protect you from
+                                fraud if your customer has paid through an
+                                outside method.
                               </p>
-                              <p><strong>Don't do this unless you really know what you're doing!</strong></p>
-                              <p>If you are having trouble, please contact support.</p>
+                              <p>
+                                <strong
+                                  >Don't do this unless you really know what
+                                  you're doing!</strong
+                                >
+                              </p>
+                              <p>
+                                If you are having trouble, please contact
+                                support.
+                              </p>
                             </v-col>
                           </template>
                         </ac-confirmation>
@@ -197,25 +238,33 @@
                         cols="12"
                       >
                         <p>
-                          The commissioner has been informed that the final is ready for their review. Please stand by
-                          for final approval!
+                          The commissioner has been informed that the final is
+                          ready for their review. Please stand by for final
+                          approval!
                         </p>
                       </v-col>
                       <v-col
-                        v-if="is(DeliverableStatus.REVIEW) && deliverable.x.auto_finalize_on"
+                        v-if="
+                          is(DeliverableStatus.REVIEW) &&
+                          deliverable.x.auto_finalize_on
+                        "
                         cols="12"
                       >
                         <p>
                           This order will auto-finalize on
-                          <strong>{{ formatDateTerse(deliverable.x.auto_finalize_on) }}</strong>.
+                          <strong>{{
+                            formatDateTerse(deliverable.x.auto_finalize_on)
+                          }}</strong
+                          >.
                         </p>
                       </v-col>
                       <template v-if="isBuyer && is(DeliverableStatus.REVIEW)">
                         <v-col cols="12">
                           <p>
-                            Your artist has completed the piece! If all is well, please hit approve. Otherwise, if
-                            there is an
-                            issue you cannot resolve with the artist, please hit the dispute button.
+                            Your artist has completed the piece! If all is well,
+                            please hit approve. Otherwise, if there is an issue
+                            you cannot resolve with the artist, please hit the
+                            dispute button.
                           </p>
                         </v-col>
                         <v-row>
@@ -245,31 +294,39 @@
                         cols="12"
                       >
                         <p>
-                          <strong>Your dispute has been filed.</strong> Please stand by for further instructions.
-                          If you are able to work out your disagreement with the artist, please approve the order using
-                          the
-                          button below.
+                          <strong>Your dispute has been filed.</strong> Please
+                          stand by for further instructions. If you are able to
+                          work out your disagreement with the artist, please
+                          approve the order using the button below.
                         </p>
                       </v-col>
                       <v-col
-                        v-if="(isBuyer || isArbitrator) && is(DeliverableStatus.DISPUTED)"
+                        v-if="
+                          (isBuyer || isArbitrator) &&
+                          is(DeliverableStatus.DISPUTED)
+                        "
                         class="text-center"
                         cols="12"
                       >
                         <ac-confirmation :action="statusEndpoint('approve')">
-                          <template #default="{on}">
-                            <v-btn
-                              color="primary"
-                              v-on="on"
-                            >
+                          <template #default="{ on }">
+                            <v-btn color="primary" v-on="on">
                               Approve Final
                             </v-btn>
                           </template>
                         </ac-confirmation>
                       </v-col>
-                      <v-row v-if="is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW) || is(DeliverableStatus.PAYMENT_PENDING)">
+                      <v-row
+                        v-if="
+                          is(DeliverableStatus.WAITING) ||
+                          is(DeliverableStatus.NEW) ||
+                          is(DeliverableStatus.PAYMENT_PENDING)
+                        "
+                      >
                         <v-col
-                          v-if="is(DeliverableStatus.NEW) && canWaitlist && isSeller"
+                          v-if="
+                            is(DeliverableStatus.NEW) && canWaitlist && isSeller
+                          "
                           class="text-center"
                         >
                           <v-btn
@@ -294,12 +351,8 @@
                         </v-col>
                         <v-col class="text-center">
                           <ac-confirmation :action="statusEndpoint('cancel')">
-                            <template #default="{on}">
-                              <v-btn
-                                variant="elevated"
-                                color="black"
-                                v-on="on"
-                              >
+                            <template #default="{ on }">
+                              <v-btn variant="elevated" color="black" v-on="on">
                                 Cancel Order
                               </v-btn>
                             </template>
@@ -309,29 +362,40 @@
                           <v-btn
                             v-if="route.params.deliverableId"
                             color="primary"
-                            :to="{name: `${baseName}DeliverablePayment`,
-                                  params: {...route.params}}"
+                            :to="{
+                              name: `${baseName}DeliverablePayment`,
+                              params: { ...route.params },
+                            }"
                             variant="flat"
                             class="review-terms-button"
                             @click="scrollToSection"
                           >
-                            Review Terms/Pricing<span v-if="is(DeliverableStatus.PAYMENT_PENDING) && isBuyer">/Pay</span><span
-                              v-else-if="(is(DeliverableStatus.WAITING) || is(DeliverableStatus.NEW)) && isSeller"
-                            >/Accept</span>
+                            Review Terms/Pricing<span
+                              v-if="
+                                is(DeliverableStatus.PAYMENT_PENDING) && isBuyer
+                              "
+                              >/Pay</span
+                            ><span
+                              v-else-if="
+                                (is(DeliverableStatus.WAITING) ||
+                                  is(DeliverableStatus.NEW)) &&
+                                isSeller
+                              "
+                              >/Accept</span
+                            >
                           </v-btn>
                         </v-col>
-                        <v-col
-                          v-if="isBuyer"
-                          class="text-center"
-                        >
+                        <v-col v-if="isBuyer" class="text-center">
                           <v-btn
                             v-if="route.params.deliverableId"
                             color="secondary"
                             variant="flat"
-                            :to="{name: `${baseName}DeliverableReferences`, params: {...route.params}}"
+                            :to="{
+                              name: `${baseName}DeliverableReferences`,
+                              params: { ...route.params },
+                            }"
                           >
-                            Add
-                            References
+                            Add References
                           </v-btn>
                         </v-col>
                       </v-row>
@@ -340,8 +404,8 @@
                         cols="12"
                       >
                         <p>
-                          Your order has been added to the artists queue. We will notify you when they have begun
-                          work!
+                          Your order has been added to the artists queue. We
+                          will notify you when they have begun work!
                         </p>
                       </v-col>
                       <v-col
@@ -349,13 +413,25 @@
                         cols="12"
                       >
                         <p>
-                          <strong>Excellent!</strong> The commissioner has paid<span v-if="escrow"> and the money is being held in safekeeping</span>.
-                          When you've started work, hit the 'Mark In Progress' button to let the customer know.
-                          You can also set the order's streaming link (if applicable) here:
+                          <strong>Excellent!</strong> The commissioner has
+                          paid<span v-if="escrow">
+                            and the money is being held in safekeeping</span
+                          >. When you've started work, hit the 'Mark In
+                          Progress' button to let the customer know. You can
+                          also set the order's streaming link (if applicable)
+                          here:
                         </p>
                       </v-col>
                       <v-col
-                        v-if="deliverable.x.dispute_available_on && !(is(DeliverableStatus.DISPUTED) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
+                        v-if="
+                          deliverable.x.dispute_available_on &&
+                          !(
+                            is(DeliverableStatus.DISPUTED) ||
+                            is(DeliverableStatus.REVIEW) ||
+                            is(DeliverableStatus.COMPLETED) ||
+                            is(DeliverableStatus.REFUNDED)
+                          )
+                        "
                         cols="12"
                       >
                         <p v-if="disputeTimeElapsed">
@@ -363,7 +439,13 @@
                         </p>
                         <p v-else>
                           This order may be disputed for non-completion on:
-                          <br><strong>{{ formatDateTerse(deliverable.x.dispute_available_on) }}.</strong>
+                          <br /><strong
+                            >{{
+                              formatDateTerse(
+                                deliverable.x.dispute_available_on,
+                              )
+                            }}.</strong
+                          >
                         </p>
                         <v-col class="text-center">
                           <v-btn
@@ -377,20 +459,32 @@
                         </v-col>
                       </v-col>
                       <v-col
-                        v-if="isSeller && (is(DeliverableStatus.QUEUED) || is(DeliverableStatus.IN_PROGRESS) || is(DeliverableStatus.REVIEW) || is(DeliverableStatus.DISPUTED))"
+                        v-if="
+                          isSeller &&
+                          (is(DeliverableStatus.QUEUED) ||
+                            is(DeliverableStatus.IN_PROGRESS) ||
+                            is(DeliverableStatus.REVIEW) ||
+                            is(DeliverableStatus.DISPUTED))
+                        "
                         cols="12"
                       >
                         <v-alert v-if="order.x.private">
-                          <strong>NOTE:</strong> This user has asked that this commission be private. Please do not use
-                          a public streaming link!
+                          <strong>NOTE:</strong> This user has asked that this
+                          commission be private. Please do not use a public
+                          streaming link!
                         </v-alert>
                         <ac-patch-field
                           :patcher="deliverable.patchers.stream_link"
                           label="Stream URL"
                         />
                       </v-col>
-                      <v-col v-if="isBuyer && is(DeliverableStatus.IN_PROGRESS)">
-                        <p>The artist has begun work on your order. You'll be notified as they make progress!</p>
+                      <v-col
+                        v-if="isBuyer && is(DeliverableStatus.IN_PROGRESS)"
+                      >
+                        <p>
+                          The artist has begun work on your order. You'll be
+                          notified as they make progress!
+                        </p>
                       </v-col>
                       <v-col
                         v-if="is(DeliverableStatus.QUEUED) && isSeller"
@@ -407,11 +501,11 @@
                       </v-col>
                       <v-col v-if="is(DeliverableStatus.DISPUTED) && isSeller">
                         <p>
-                          <strong>This order is under dispute.</strong> One of our staff will be along soon to give
-                          further
-                          instruction. If you wish, you may refund the customer. Otherwise, please wait for our staff to
-                          work
-                          with you and the commissioner on a resolution.
+                          <strong>This order is under dispute.</strong> One of
+                          our staff will be along soon to give further
+                          instruction. If you wish, you may refund the customer.
+                          Otherwise, please wait for our staff to work with you
+                          and the commissioner on a resolution.
                         </p>
                       </v-col>
                       <v-col
@@ -419,23 +513,30 @@
                         class="text-center"
                         cols="12"
                       >
-                        <p>This order has been completed! <strong>Thank you for using Artconomy!</strong></p>
+                        <p>
+                          This order has been completed!
+                          <strong>Thank you for using Artconomy!</strong>
+                        </p>
                       </v-col>
                       <v-col
-                        v-if="is(DeliverableStatus.COMPLETED) && disputeWindow && isBuyer && deliverable.x.auto_finalize_on"
+                        v-if="
+                          is(DeliverableStatus.COMPLETED) &&
+                          disputeWindow &&
+                          isBuyer &&
+                          deliverable.x.auto_finalize_on
+                        "
                         class="text-center"
                         cols="12"
                       >
-                        <v-alert
-                          :value="true"
-                          type="info"
-                        >
-                          If there is an issue with this order, please <a
+                        <v-alert :value="true" type="info">
+                          If there is an issue with this order, please
+                          <a
                             href="#"
                             @click.prevent="store.commit('supportDialog', true)"
-                          >contact
-                            support</a>
-                          on or before {{ formatDateTerse(deliverable.x.auto_finalize_on) }}.
+                            >contact support</a
+                          >
+                          on or before
+                          {{ formatDateTerse(deliverable.x.auto_finalize_on) }}.
                         </v-alert>
                       </v-col>
                       <v-col
@@ -446,24 +547,30 @@
                         <p>This order has been refunded and is now archived.</p>
                       </v-col>
                       <v-col
-                        v-if="isSeller && escrow && is(DeliverableStatus.COMPLETED)"
+                        v-if="
+                          isSeller && escrow && is(DeliverableStatus.COMPLETED)
+                        "
                         class="text-center"
                         cols="12"
                       >
                         <p>
-                          <router-link :to="{name: 'Payout', params: {username: seller!.username}}">
-                            If you have not already, please add your bank account in your payout settings.
+                          <router-link
+                            :to="{
+                              name: 'Payout',
+                              params: { username: seller!.username },
+                            }"
+                          >
+                            If you have not already, please add your bank
+                            account in your payout settings.
                           </router-link>
                         </p>
                         <p>
-                          A transfer will automatically be initiated to your bank account.
-                          Please wait up to five business days for payment to post.
+                          A transfer will automatically be initiated to your
+                          bank account. Please wait up to five business days for
+                          payment to post.
                         </p>
                       </v-col>
-                      <v-col
-                        v-if="deliverable.x.tip_invoice"
-                        cols="12"
-                      >
+                      <v-col v-if="deliverable.x.tip_invoice" cols="12">
                         <ac-tipping-prompt
                           :key="deliverable.x.tip_invoice"
                           :invoice-id="deliverable.x.tip_invoice"
@@ -474,7 +581,11 @@
                         />
                       </v-col>
                       <v-col
-                        v-if="isBuyer && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
+                        v-if="
+                          isBuyer &&
+                          (is(DeliverableStatus.COMPLETED) ||
+                            is(DeliverableStatus.REFUNDED))
+                        "
                         cols="12"
                       >
                         <ac-deliverable-rating
@@ -485,7 +596,12 @@
                         />
                       </v-col>
                       <v-col
-                        v-if="buyer && isSeller && (is(DeliverableStatus.COMPLETED) || is(DeliverableStatus.REFUNDED))"
+                        v-if="
+                          buyer &&
+                          isSeller &&
+                          (is(DeliverableStatus.COMPLETED) ||
+                            is(DeliverableStatus.REFUNDED))
+                        "
                         cols="12"
                       >
                         <ac-deliverable-rating
@@ -496,7 +612,11 @@
                         />
                       </v-col>
                       <v-col
-                        v-if="isSeller && is(DeliverableStatus.COMPLETED) && !order.x.private"
+                        v-if="
+                          isSeller &&
+                          is(DeliverableStatus.COMPLETED) &&
+                          !order.x.private
+                        "
                         class="text-center"
                         cols="12"
                       >
@@ -511,10 +631,12 @@
                           v-if="sellerSubmission"
                           color="primary"
                           variant="flat"
-                          :to="{name: 'Submission', params: {submissionId: sellerSubmission.id}}"
+                          :to="{
+                            name: 'Submission',
+                            params: { submissionId: sellerSubmission.id },
+                          }"
                         >
-                          Visit in
-                          Gallery
+                          Visit in Gallery
                         </v-btn>
                         <v-btn
                           v-else
@@ -542,10 +664,12 @@
                           v-if="buyerSubmission"
                           color="primary"
                           variant="flat"
-                          :to="{name: 'Submission', params: {submissionId: buyerSubmission.id}}"
+                          :to="{
+                            name: 'Submission',
+                            params: { submissionId: buyerSubmission.id },
+                          }"
                         >
-                          Visit in
-                          Collection
+                          Visit in Collection
                         </v-btn>
                         <v-btn
                           v-else
@@ -559,23 +683,36 @@
                       </v-col>
                       <v-col v-if="is(DeliverableStatus.CANCELLED) && isBuyer">
                         <p>
-                          This order has been cancelled. You will have to create a new order if you want a
-                          commission.
+                          This order has been cancelled. You will have to create
+                          a new order if you want a commission.
                         </p>
                       </v-col>
                       <v-col v-if="is(DeliverableStatus.CANCELLED) && isSeller">
-                        <p>This order has been cancelled. There is nothing more to do.</p>
+                        <p>
+                          This order has been cancelled. There is nothing more
+                          to do.
+                        </p>
                       </v-col>
                       <v-col
-                        v-if="!(is(DeliverableStatus.CANCELLED) || is(DeliverableStatus.REFUNDED) || is(DeliverableStatus.COMPLETED)) && escrow"
+                        v-if="
+                          !(
+                            is(DeliverableStatus.CANCELLED) ||
+                            is(DeliverableStatus.REFUNDED) ||
+                            is(DeliverableStatus.COMPLETED)
+                          ) && escrow
+                        "
                         cols="12"
                       >
                         <p>
-                          <strong class="danger">WARNING:</strong> Any conversations made off-site, such as over
-                          instant messanger or text, cannot be viewed or verified by Artconomy staff and will not be
-                          considered in the case of a dispute. For your safety, any material discussion should be made
-                          via comments on this order. If you must use instant messanger, copy a summary here of your
-                          discussion for record, and have the other person affirm it is accurate.
+                          <strong class="danger">WARNING:</strong> Any
+                          conversations made off-site, such as over instant
+                          messanger or text, cannot be viewed or verified by
+                          Artconomy staff and will not be considered in the case
+                          of a dispute. For your safety, any material discussion
+                          should be made via comments on this order. If you must
+                          use instant messanger, copy a summary here of your
+                          discussion for record, and have the other person
+                          affirm it is accurate.
                         </p>
                       </v-col>
                       <ac-form-dialog
@@ -586,8 +723,12 @@
                         :errors="addSubmission.errors"
                         :large="true"
                         :eager="true"
-                        :title="isSeller ? 'Add to Gallery' : 'Add to Collection'"
-                        @submit.prevent="addSubmission.submitThen(visitSubmission)"
+                        :title="
+                          isSeller ? 'Add to Gallery' : 'Add to Collection'
+                        "
+                        @submit.prevent="
+                          addSubmission.submitThen(visitSubmission)
+                        "
                       >
                         <v-container class="pa-0 add-submission-dialog">
                           <v-row no-gutters>
@@ -617,10 +758,7 @@
                                 :persistent-hint="true"
                               />
                             </v-col>
-                            <v-col
-                              cols="12"
-                              sm="6"
-                            >
+                            <v-col cols="12" sm="6">
                               <ac-bound-field
                                 :field="addSubmission.fields.private"
                                 label="Private"
@@ -628,10 +766,7 @@
                                 hint="If checked, will not show this submission to anyone you've not explicitly shared it with."
                               />
                             </v-col>
-                            <v-col
-                              cols="12"
-                              sm="6"
-                            >
+                            <v-col cols="12" sm="6">
                               <ac-bound-field
                                 :field="addSubmission.fields.comments_disabled"
                                 label="Comments Disabled"
@@ -650,7 +785,9 @@
                         :eager="true"
                         class="add-deliverable-dialog"
                         :title="'Add new Deliverable to Order.'"
-                        @submit.prevent="newInvoice.submitThen(visitDeliverable)"
+                        @submit.prevent="
+                          newInvoice.submitThen(visitDeliverable)
+                        "
                       >
                         <v-container class="pa-0">
                           <ac-invoice-form
@@ -660,20 +797,14 @@
                             :escrow-enabled="invoiceEscrowEnabled"
                           >
                             <template #second>
-                              <v-col
-                                cols="12"
-                                sm="6"
-                              >
+                              <v-col cols="12" sm="6">
                                 <ac-bound-field
                                   :field="newInvoice.fields.name"
                                   label="Deliverable Name"
                                   hint="Give this deliverable a name, like 'Page 2' or 'Inks'. This will help distinguish it from the other deliverables in the order."
                                 />
                               </v-col>
-                              <v-col
-                                cols="12"
-                                sm="6"
-                              >
+                              <v-col cols="12" sm="6">
                                 <v-checkbox
                                   v-model="keepReferences"
                                   label="Keep References"
@@ -681,13 +812,13 @@
                                   :persistent-hint="true"
                                 />
                               </v-col>
-                              <v-col
-                                cols="12"
-                                sm="6"
-                              >
+                              <v-col cols="12" sm="6">
                                 <ac-bound-field
                                   :field="newInvoice.fields.characters"
-                                  :init-items="viewSettings.patchers.characterInitItems.model"
+                                  :init-items="
+                                    viewSettings.patchers.characterInitItems
+                                      .model
+                                  "
                                   field-type="ac-character-select"
                                   label="Characters"
                                   hint="Tag the character(s) to be referenced in this deliverable. If they're not listed on Artconomy, you can skip this step."
@@ -703,10 +834,7 @@
               </ac-form>
             </v-card>
           </v-col>
-          <v-col
-            cols="12"
-            class="pt-2"
-          >
+          <v-col cols="12" class="pt-2">
             <v-row no-gutters>
               <v-col v-if="powers.table_seller || powers.handle_disputes">
                 <v-select
@@ -721,10 +849,7 @@
           </v-col>
         </v-row>
         <v-card>
-          <ac-tab-nav
-            :items="navItems"
-            label="See more"
-          />
+          <ac-tab-nav :items="navItems" label="See more" />
         </v-card>
         <div class="section-scroll-target" />
         <router-view />
@@ -734,39 +859,53 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcDeliverableRating from '@/components/views/order/AcDeliverableRating.vue'
-import {RouteLocation, RouteLocationRaw, useRoute, useRouter} from 'vue-router'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import {DeliverableProps, useDeliverable, ensureHandler} from './mixins/DeliverableMixin.ts'
-import AcTabNav from '@/components/navigation/AcTabNav.vue'
-import {ViewerType} from '@/types/enums/ViewerType.ts'
-import AcInvoiceForm from '@/components/views/orders/AcInvoiceForm.vue'
-import {SingleController} from '@/store/singles/controller.ts'
-import {BASE_URL, markRead} from '@/lib/lib.ts'
-import {isBefore} from 'date-fns'
-import AcTippingPrompt from '@/components/views/order/deliverable/AcTippingPrompt.vue'
-import {computed, onMounted, watch} from 'vue'
-import {DeliverableStatus} from '@/types/enums/DeliverableStatus.ts'
-import {useGoTo, useDisplay} from 'vuetify'
-import {useViewer} from '@/mixins/viewer.ts'
-import {usePricing} from '@/mixins/PricingAware.ts'
-import {listenForSingle} from '@/store/singles/hooks.ts'
-import {listenForList, useList} from '@/store/lists/hooks.ts'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {useStore} from 'vuex'
-import {useInvoicing} from '@/components/views/order/mixins/InvoicingMixin.ts'
-import {usePrerendering} from '@/mixins/prerendering.ts'
-import {formatDateTerse, parseISO} from '@/lib/otherFormatters.ts'
-import type {Deliverable, LinkedReference, ServicePlan, Submission} from '@/types/main'
-import {Character} from '@/store/characters/types/main'
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcConfirmation from "@/components/wrappers/AcConfirmation.vue"
+import AcFormDialog from "@/components/wrappers/AcFormDialog.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcDeliverableRating from "@/components/views/order/AcDeliverableRating.vue"
+import {
+  RouteLocation,
+  RouteLocationRaw,
+  useRoute,
+  useRouter,
+} from "vue-router"
+import AcForm from "@/components/wrappers/AcForm.vue"
+import {
+  DeliverableProps,
+  useDeliverable,
+  ensureHandler,
+} from "./mixins/DeliverableMixin.ts"
+import AcTabNav from "@/components/navigation/AcTabNav.vue"
+import { ViewerType } from "@/types/enums/ViewerType.ts"
+import AcInvoiceForm from "@/components/views/orders/AcInvoiceForm.vue"
+import { SingleController } from "@/store/singles/controller.ts"
+import { BASE_URL, markRead } from "@/lib/lib.ts"
+import { isBefore } from "date-fns"
+import AcTippingPrompt from "@/components/views/order/deliverable/AcTippingPrompt.vue"
+import { computed, onMounted, watch } from "vue"
+import { DeliverableStatus } from "@/types/enums/DeliverableStatus.ts"
+import { useGoTo, useDisplay } from "vuetify"
+import { useViewer } from "@/mixins/viewer.ts"
+import { usePricing } from "@/mixins/PricingAware.ts"
+import { listenForSingle } from "@/store/singles/hooks.ts"
+import { listenForList, useList } from "@/store/lists/hooks.ts"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { useStore } from "vuex"
+import { useInvoicing } from "@/components/views/order/mixins/InvoicingMixin.ts"
+import { usePrerendering } from "@/mixins/prerendering.ts"
+import { formatDateTerse, parseISO } from "@/lib/otherFormatters.ts"
+import type {
+  Deliverable,
+  LinkedReference,
+  ServicePlan,
+  Submission,
+} from "@/types/main"
+import { Character } from "@/store/characters/types/main"
 
-const props = defineProps<{username: string} & DeliverableProps>()
+const props = defineProps<{ username: string } & DeliverableProps>()
 
 const router = useRouter()
 const route = useRoute()
@@ -803,35 +942,38 @@ const {
   disputeWindow,
   updateDeliverable,
 } = useDeliverable(props)
-const {mdAndUp} = useDisplay()
+const { mdAndUp } = useDisplay()
 
-const {isRegistered, powers} = useViewer()
+const { isRegistered, powers } = useViewer()
 
-const {pricing} = usePricing()
+const { pricing } = usePricing()
 
 const store = useStore()
 
-const fridge = new URL('/static/images/fridge.png', BASE_URL).href
+const fridge = new URL("/static/images/fridge.png", BASE_URL).href
 
-const parentDeliverables = useList(
-  `order${props.orderId}__deliverables`,
-  {endpoint: `${url.value}deliverables/`},
+const parentDeliverables = useList(`order${props.orderId}__deliverables`, {
+  endpoint: `${url.value}deliverables/`,
+})
+
+watch(
+  () => deliverable.x?.id,
+  () => {
+    if (!deliverable.x) {
+      return
+    }
+    if (deliverable.x.arbitrator) {
+      ensureHandler(arbitratorHandler, deliverable.x.arbitrator)
+    }
+    outputs.makeReady(deliverable.x.outputs)
+    addSubmission.fields.private.update(deliverable.x.order.private)
+    newInvoice.fields.details.update(deliverable.x.details)
+    newInvoice.fields.rating.update(deliverable.x.rating)
+    order.setX(deliverable.x.order)
+    order.ready = true
+  },
+  { immediate: true },
 )
-
-watch(() => deliverable.x?.id, () => {
-  if (!deliverable.x) {
-    return
-  }
-  if (deliverable.x.arbitrator) {
-    ensureHandler(arbitratorHandler, deliverable.x.arbitrator)
-  }
-  outputs.makeReady(deliverable.x.outputs)
-  addSubmission.fields.private.update(deliverable.x.order.private)
-  newInvoice.fields.details.update(deliverable.x.details)
-  newInvoice.fields.rating.update(deliverable.x.rating)
-  order.setX(deliverable.x.order)
-  order.ready = true
-}, {immediate: true})
 
 const setReferences = () => {
   newInvoice.fields.references.update(
@@ -845,19 +987,19 @@ const viewerItems = computed(() => {
   const items = []
   if (viewMode.value === 0) {
     items.push({
-      title: 'Please select...',
+      title: "Please select...",
       value: ViewerType.UNSET,
     })
   }
-  items.push({title: 'Staff', value: ViewerType.STAFF})
+  items.push({ title: "Staff", value: ViewerType.STAFF })
   if (buyer.value) {
     items.push({
-      title: 'Buyer',
+      title: "Buyer",
       value: ViewerType.BUYER,
     })
   }
   items.push({
-    title: 'Seller',
+    title: "Seller",
     value: ViewerType.SELLER,
   })
   return items
@@ -875,22 +1017,21 @@ watch(() => references.list.length, setReferences)
 
 const visitSubmission = (submission: Submission) => {
   return router.push({
-    name: 'Submission',
-    params: {submissionId: submission.id + ''},
-    query: {editing: 'true'},
+    name: "Submission",
+    params: { submissionId: submission.id + "" },
+    query: { editing: "true" },
   })
 }
 
-const sellerName = computed(() => seller.value?.username || '')
+const sellerName = computed(() => seller.value?.username || "")
 
 const planName = computed(() => {
-   
   return seller.value?.service_plan
 })
 
 const registerLink = computed(() => {
   const baseRoute: RouteLocationRaw = {
-    name: 'Register',
+    name: "Register",
     query: {},
   }
   /* istanbul ignore if */
@@ -901,18 +1042,18 @@ const registerLink = computed(() => {
   /* istanbul ignore next */
   const nextRoute: RouteLocationRaw = {
     name: route.name || undefined,
-    params: {...route.params},
-    query: {...route.query},
+    params: { ...route.params },
+    query: { ...route.query },
   }
   if (is(DeliverableStatus.COMPLETED)) {
-    nextRoute.query!.showAdd = 'true'
+    nextRoute.query!.showAdd = "true"
   }
   baseRoute.query!.next = router.resolve(nextRoute).href
   return baseRoute
 })
 
 const navItems = computed(() => {
-  const params = {...route.params}
+  const params = { ...route.params }
   if (!params.deliverableId) {
     // We're transitioning to another area. Return no items.
     return []
@@ -923,28 +1064,28 @@ const navItems = computed(() => {
         name: `${props.baseName}DeliverableOverview`,
         params,
       },
-      title: 'Overview',
+      title: "Overview",
     },
     {
       value: {
         name: `${props.baseName}DeliverableReferences`,
         params,
       },
-      title: 'References/Characters',
+      title: "References/Characters",
     },
     {
       value: {
         name: `${props.baseName}DeliverablePayment`,
         params,
       },
-      title: 'Payment/Terms',
+      title: "Payment/Terms",
     },
     {
       value: {
         name: `${props.baseName}DeliverableRevisions`,
         params,
       },
-      title: 'Revisions/WIPs',
+      title: "Revisions/WIPs",
     },
   ]
 })
@@ -964,19 +1105,19 @@ const addToCollection = () => {
 }
 
 const scrollToSection = () => {
-  goTo('.section-scroll-target')
+  goTo(".section-scroll-target")
 }
 
 const visitDeliverable = (toVisit: Deliverable) => {
-  order.updateX({deliverable_count: order.x!.deliverable_count + 1})
+  order.updateX({ deliverable_count: order.x!.deliverable_count + 1 })
   parentDeliverables.push(toVisit)
   router.push({
     name: `${props.baseName}DeliverableOverview`,
     params: {
       orderId: props.orderId,
-      deliverableId: toVisit.id + '',
+      deliverableId: toVisit.id + "",
       username: props.username,
-    }
+    },
   })
 }
 
@@ -989,7 +1130,9 @@ const addTags = () => {
     theseCharacters.push(character!.character)
   }
   addSubmission.fields.tags.update([...new Set(tags)])
-  newInvoice.fields.characters.update(theseCharacters.map((char: Character) => char.id))
+  newInvoice.fields.characters.update(
+    theseCharacters.map((char: Character) => char.id),
+  )
   viewSettings.patchers.characterInitItems.model = theseCharacters
 }
 
@@ -1008,7 +1151,9 @@ const canWaitlist = computed(() => {
   if (!pricing.x) {
     return false
   }
-  return pricing.x.plans.filter((plan: ServicePlan) => plan.name === planName.value)[0].waitlisting
+  return pricing.x.plans.filter(
+    (plan: ServicePlan) => plan.name === planName.value,
+  )[0].waitlisting
 })
 
 const invoiceEscrowEnabled = computed(() => {
@@ -1029,8 +1174,9 @@ const keepReferences = computed({
       return
     } else {
       newInvoice.fields.references.update([])
-  }
-}})
+    }
+  },
+})
 
 listenForList(`${prefix.value}__characters`)
 listenForList(`${prefix.value}__revisions`)
@@ -1039,42 +1185,54 @@ listenForSingle(`${prefix.value}__rate__buyer`)
 listenForSingle(`${prefix.value}__rate__seller`)
 listenForSingle(`${prefix.value}__revision.*`)
 listenForSingle(`${prefix.value}__clientSecret`)
-listenForSingle('new-revision-file')
+listenForSingle("new-revision-file")
 
 // At the moment, this isn't much benefit, since dropping a file on the uploader immediately submits.
 // But if I change the default behavior, not having this will introduce a subtle bug where the contents will
 // disappear if we navigate away.
-listenForSingle('new-reference-file')
+listenForSingle("new-reference-file")
 
-watch(route, (route: RouteLocation) => {
-  if (route.name !== `${props.baseName}Deliverable`) {
-    return
-  }
-  router.replace({
-    name: `${props.baseName}DeliverableOverview`,
-    params: {...route.params},
-    query: {...route.query},
-    hash: route.hash,
-  }).then()
-}, {immediate: true})
+watch(
+  route,
+  (route: RouteLocation) => {
+    if (route.name !== `${props.baseName}Deliverable`) {
+      return
+    }
+    router
+      .replace({
+        name: `${props.baseName}DeliverableOverview`,
+        params: { ...route.params },
+        query: { ...route.query },
+        hash: route.hash,
+      })
+      .then()
+  },
+  { immediate: true },
+)
 
-const {invoiceLineItems} = useInvoicing({
-  newInvoice, invoiceEscrowEnabled, international, planName, sellerName,
+const { invoiceLineItems } = useInvoicing({
+  newInvoice,
+  invoiceEscrowEnabled,
+  international,
+  planName,
+  sellerName,
 })
 
-const {setError, statusOk} = useErrorHandling()
+const { setError, statusOk } = useErrorHandling()
 
 onMounted(() => {
   if (route.query.showAdd) {
     viewSettings.patchers.showAddSubmission.model = true
   }
-  deliverable.get().then(() => markRead(deliverable, 'sales.Deliverable')).then(
-    () => parentDeliverables.replace(deliverable.x as Deliverable),
-  ).catch(setError)
+  deliverable
+    .get()
+    .then(() => markRead(deliverable, "sales.Deliverable"))
+    .then(() => parentDeliverables.replace(deliverable.x as Deliverable))
+    .catch(setError)
   characters.firstRun().then(addTags)
   revisions.firstRun().catch(statusOk(403))
   references.firstRun()
 })
 
-const {prerendering} = usePrerendering()
+const { prerendering } = usePrerendering()
 </script>

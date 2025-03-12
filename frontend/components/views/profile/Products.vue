@@ -5,9 +5,9 @@
 </template>
 
 <script setup lang="ts">
-import AcSubjectiveProductList from '@/components/views/store/AcSubjectiveProductList.vue'
+import AcSubjectiveProductList from "@/components/views/store/AcSubjectiveProductList.vue"
 
-import type {SubjectiveProps} from '@/types/main'
+import type { SubjectiveProps } from "@/types/main"
 
 defineProps<SubjectiveProps>()
 </script>

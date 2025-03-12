@@ -11,11 +11,7 @@
     @submit.prevent="newUpload.submitThen(success)"
   >
     <template #top-buttons />
-    <v-stepper
-      v-model="newUpload.step"
-      class="submission-stepper"
-      non-linear
-    >
+    <v-stepper v-model="newUpload.step" class="submission-stepper" non-linear>
       <v-stepper-header>
         <v-stepper-item
           editable
@@ -23,9 +19,7 @@
           :value="1"
           :rules="newUpload.steps[1].rules"
         >
-          <template #title>
-            Content
-          </template>
+          <template #title> Content </template>
         </v-stepper-item>
         <v-divider />
         <v-stepper-item
@@ -34,9 +28,7 @@
           :rules="newUpload.steps[2].rules"
           @submit.prevent="false"
         >
-          <template #title>
-            Info
-          </template>
+          <template #title> Info </template>
         </v-stepper-item>
       </v-stepper-header>
       <v-stepper-window>
@@ -51,10 +43,7 @@
                 uppy-id="new-submission-file"
               />
             </v-col>
-            <v-col
-              v-if="addThumbnail"
-              cols="12"
-            >
+            <v-col v-if="addThumbnail" cols="12">
               <ac-bound-field
                 :field="newUpload.fields.preview"
                 field-type="ac-uppy-file"
@@ -63,10 +52,7 @@
                 uppy-id="new-submission-file-preview"
               />
             </v-col>
-            <v-col
-              v-else
-              cols="12"
-            >
+            <v-col v-else cols="12">
               <v-row no-gutters>
                 <v-col
                   cols="12"
@@ -99,10 +85,7 @@
                 hint="Please add a few tags for this submission."
               />
             </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
+            <v-col cols="12" md="6">
               <ac-bound-field
                 v-if="subject"
                 :field="newUpload.fields.artists"
@@ -112,10 +95,7 @@
                 hint="Tag the artist(s) that have worked on this piece. If they don't have an Artconomy account, you can skip this step."
               />
             </v-col>
-            <v-col
-              cols="12"
-              md="6"
-            >
+            <v-col cols="12" md="6">
               <ac-bound-field
                 v-if="showCharacters"
                 :field="newUpload.fields.characters"
@@ -145,11 +125,7 @@
                 :save-indicator="false"
               />
             </v-col>
-            <v-col
-              class="px-2"
-              cols="12"
-              md="4"
-            >
+            <v-col class="px-2" cols="12" md="4">
               <ac-bound-field
                 field-type="ac-checkbox"
                 :field="newUpload.fields.private"
@@ -158,11 +134,7 @@
                 :persistent-hint="true"
               />
             </v-col>
-            <v-col
-              class="px-2"
-              cols="12"
-              md="4"
-            >
+            <v-col class="px-2" cols="12" md="4">
               <ac-bound-field
                 field-type="ac-checkbox"
                 :field="newUpload.fields.comments_disabled"
@@ -171,11 +143,7 @@
                 :persistent-hint="true"
               />
             </v-col>
-            <v-col
-              class="px-2"
-              cols="12"
-              md="4"
-            >
+            <v-col class="px-2" cols="12" md="4">
               <v-checkbox
                 v-if="subject"
                 v-model="isArtist"
@@ -192,10 +160,7 @@
       </template>
     </v-stepper>
     <template #bottom-buttons>
-      <v-card-actions
-        row
-        wrap
-      >
+      <v-card-actions row wrap>
         <v-spacer />
         <div class="d-flex flex-shrink-1 justify-end align-end">
           <v-checkbox
@@ -206,12 +171,7 @@
             :hide-details="true"
           />
         </div>
-        <v-btn
-          variant="flat"
-          @click.prevent="toggle(false)"
-        >
-          Cancel
-        </v-btn>
+        <v-btn variant="flat" @click.prevent="toggle(false)"> Cancel </v-btn>
         <v-btn
           v-if="newUpload.step > 1"
           color="secondary"
@@ -243,51 +203,56 @@
 </template>
 
 <script setup lang="ts">
-import AcFormDialog from './wrappers/AcFormDialog.vue'
-import AcBoundField from './fields/AcBoundField.ts'
-import {useSubject} from '../mixins/subjective.ts'
-import {useUpload} from '@/mixins/upload.ts'
-import {newUploadSchema} from '@/lib/lib.ts'
-import {computed, nextTick, ref} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {listenForSingle} from '@/store/singles/hooks.ts'
-import {useRouter} from 'vue-router'
-import {useViewer} from '@/mixins/viewer.ts'
-import type {SubjectiveProps, Submission} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
-import {Character} from '@/store/characters/types/main'
+import AcFormDialog from "./wrappers/AcFormDialog.vue"
+import AcBoundField from "./fields/AcBoundField.ts"
+import { useSubject } from "../mixins/subjective.ts"
+import { useUpload } from "@/mixins/upload.ts"
+import { newUploadSchema } from "@/lib/lib.ts"
+import { computed, nextTick, ref } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { listenForSingle } from "@/store/singles/hooks.ts"
+import { useRouter } from "vue-router"
+import { useViewer } from "@/mixins/viewer.ts"
+import type { SubjectiveProps, Submission } from "@/types/main"
+import { User } from "@/store/profiles/types/main"
+import { Character } from "@/store/characters/types/main"
 
 declare interface AcNewSubmissionsProps extends SubjectiveProps {
-  showCharacters?: boolean,
-  title?: string,
-  modelValue: boolean,
-  visit?: boolean,
-  allowMultiple?: boolean,
-  characterInitItems?: Character[],
+  showCharacters?: boolean
+  title?: string
+  modelValue: boolean
+  visit?: boolean
+  allowMultiple?: boolean
+  characterInitItems?: Character[]
 }
 
-const emit = defineEmits<{'update:modelValue': [boolean], success: [Submission]}>()
+const emit = defineEmits<{
+  "update:modelValue": [boolean]
+  success: [Submission]
+}>()
 
 const props = withDefaults(defineProps<AcNewSubmissionsProps>(), {
   showCharacters: true,
-  title: '',
+  title: "",
   visit: true,
   allowMultiple: false,
   characterInitItems: () => [],
 })
 
-const {isRegistered} = useViewer()
-const {subject, subjectHandler} = useSubject({ props })
-const {showUpload} = useUpload()
+const { isRegistered } = useViewer()
+const { subject, subjectHandler } = useSubject({ props })
+const { showUpload } = useUpload()
 const router = useRouter()
 
 const addThumbnail = ref(false)
 const multiple = ref(false)
 
-const newUpload = useForm('newUpload', newUploadSchema(subjectHandler.user))
+const newUpload = useForm("newUpload", newUploadSchema(subjectHandler.user))
 nextTick(() => {
   if (props.characterInitItems.length) {
-    newUpload.fields.characters.model = props.characterInitItems.map((x) => x.id)
+    newUpload.fields.characters.model = props.characterInitItems.map(
+      (x) => x.id,
+    )
   }
 })
 
@@ -316,11 +281,11 @@ const isArtist = computed({
         return artistId !== (subject.value as User).id
       })
     }
-  }
+  },
 })
 
 const toggle = (value: boolean) => {
-  emit('update:modelValue', value)
+  emit("update:modelValue", value)
 }
 
 const success = computed(() => {
@@ -328,14 +293,14 @@ const success = computed(() => {
     return (submission: Submission) => {
       const newValue = isArtist.value
       newUpload.reset()
-      emit('success', submission)
+      emit("success", submission)
       nextTick(() => {
         isArtist.value = newValue
       })
     }
   }
   return (submission: Submission) => {
-    emit('success', submission)
+    emit("success", submission)
     newUpload.reset()
     if (props.visit) {
       goToSubmission(submission)
@@ -346,20 +311,20 @@ const success = computed(() => {
 const goToSubmission = (submission: Submission) => {
   showUpload.value = false
   router.push({
-    name: 'Submission',
-    params: {submissionId: submission.id + ''},
-    query: {editing: 'true'},
+    name: "Submission",
+    params: { submissionId: submission.id + "" },
+    query: { editing: "true" },
   })
 }
 
-listenForSingle('new-submission-file')
-listenForSingle('new-submission-file-preview')
+listenForSingle("new-submission-file")
+listenForSingle("new-submission-file-preview")
 
-defineExpose({isArtist, newUpload})
+defineExpose({ isArtist, newUpload })
 </script>
 
 <style>
 .submission-stepper .v_messages__message {
-  hyphens: unset
+  hyphens: unset;
 }
 </style>

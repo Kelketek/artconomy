@@ -5,13 +5,8 @@
       :list-controller="controller"
       item-key="user"
     >
-      <template #preview="{item}">
-        <v-col
-          cols="4"
-          sm="3"
-          md="2"
-          lg="1"
-        >
+      <template #preview="{ item }">
+        <v-col cols="4" sm="3" md="2" lg="1">
           <ac-avatar
             :user="item.x!.user"
             :removable="true"
@@ -19,7 +14,7 @@
           />
         </v-col>
       </template>
-      <template #default="{filter}">
+      <template #default="{ filter }">
         <v-col cols="12">
           <ac-bound-field
             label="Share with..."
@@ -36,22 +31,20 @@
 </template>
 
 <script setup lang="ts">
-import AcAvatar from './AcAvatar.vue'
-import AcRelatedManager from './wrappers/AcRelatedManager.vue'
-import AcBoundField from './fields/AcBoundField.ts'
-import {genId} from '@/lib/lib.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import {useForm} from '@/store/forms/hooks.ts'
-import {TerseUser} from '@/store/profiles/types/main'
+import AcAvatar from "./AcAvatar.vue"
+import AcRelatedManager from "./wrappers/AcRelatedManager.vue"
+import AcBoundField from "./fields/AcBoundField.ts"
+import { genId } from "@/lib/lib.ts"
+import { ListController } from "@/store/lists/controller.ts"
+import { useForm } from "@/store/forms/hooks.ts"
+import { TerseUser } from "@/store/profiles/types/main"
 
-const props = defineProps<{controller: ListController<TerseUser>}>()
+const props = defineProps<{ controller: ListController<TerseUser> }>()
 
-const newShare = useForm('share_' + genId(), {
+const newShare = useForm("share_" + genId(), {
   endpoint: props.controller.endpoint,
-  fields: {user_id: {value: null}},
+  fields: { user_id: { value: null } },
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

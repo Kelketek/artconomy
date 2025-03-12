@@ -1,8 +1,5 @@
 <template>
-  <v-col
-    cols="12"
-    class="text-center"
-  >
+  <v-col cols="12" class="text-center">
     <v-btn
       :disabled="page === 1"
       class="mr-1"
@@ -24,11 +21,14 @@
 </template>
 
 <script setup lang="ts">
-import {ref, watch} from 'vue'
+import { ref, watch } from "vue"
 
-const props = defineProps<{modelValue: number, pages: number}>()
-const emit = defineEmits<{'update:modelValue': [value: number]}>()
+const props = defineProps<{ modelValue: number; pages: number }>()
+const emit = defineEmits<{ "update:modelValue": [value: number] }>()
 const page = ref(props.modelValue)
-watch(page, () => emit('update:modelValue', page.value))
-watch(() => props.modelValue, (newVal) => page.value = newVal)
+watch(page, () => emit("update:modelValue", page.value))
+watch(
+  () => props.modelValue,
+  (newVal) => (page.value = newVal),
+)
 </script>

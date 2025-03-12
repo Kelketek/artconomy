@@ -1,9 +1,5 @@
 <template>
-  <ac-paginated
-    :list="list"
-    :track-pages="true"
-    :auto-run="false"
-  >
+  <ac-paginated :list="list" :track-pages="true" :auto-run="false">
     <template #default>
       <v-col
         v-for="character in list.list"
@@ -29,16 +25,16 @@
   </ac-paginated>
 </template>
 <script setup lang="ts">
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
-import AcCharacterPreview from '@/components/AcCharacterPreview.vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {Character} from '@/store/characters/types/main'
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import { useSearchList } from "@/components/views/search/mixins/SearchList.ts"
+import AcCharacterPreview from "@/components/AcCharacterPreview.vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { Character } from "@/store/characters/types/main"
 
-const searchForm = useForm('search')
-const list = useList<Character>('searchCharacters', {
-  endpoint: '/api/profiles/search/character/',
+const searchForm = useForm("search")
+const list = useList<Character>("searchCharacters", {
+  endpoint: "/api/profiles/search/character/",
   persistent: true,
 })
 

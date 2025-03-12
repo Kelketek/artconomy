@@ -1,61 +1,78 @@
-import {SingleController} from '../singles/controller.ts'
-import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {ListModule, pageFromParams, pageSizeFromParams, totalPages} from '@/store/lists/index.ts'
-import {QueryParams} from '@/store/helpers/QueryParams.ts'
-import {ComputedGetters} from '@/lib/lib.ts'
-import {getController} from '@/store/registry-base.ts'
-import {effectScope, watch} from 'vue'
-import type {SingleModuleOpts, SingleState} from '@/store/singles/types.d.ts'
-import type {ListModuleOpts, ListSocketSettings, ListState, PaginatedResponse} from '@/store/lists/types.d.ts'
+import { SingleController } from "../singles/controller.ts"
+import { BaseController, ControllerArgs } from "@/store/controller-base.ts"
+import {
+  ListModule,
+  pageFromParams,
+  pageSizeFromParams,
+  totalPages,
+} from "@/store/lists/index.ts"
+import { QueryParams } from "@/store/helpers/QueryParams.ts"
+import { ComputedGetters } from "@/lib/lib.ts"
+import { getController } from "@/store/registry-base.ts"
+import { effectScope, watch } from "vue"
+import type { SingleModuleOpts, SingleState } from "@/store/singles/types.d.ts"
+import type {
+  ListModuleOpts,
+  ListSocketSettings,
+  ListState,
+  PaginatedResponse,
+} from "@/store/lists/types.d.ts"
 
 @ComputedGetters
-export class ListController<T extends object> extends BaseController<ListModuleOpts, ListState<T>> {
+export class ListController<T extends object> extends BaseController<
+  ListModuleOpts,
+  ListState<T>
+> {
   public __getterMap = new Map()
   public scope = effectScope(true)
   public baseClass = ListModule
 
-  public baseModuleName = 'lists'
+  public baseModuleName = "lists"
 
-  public typeName = 'List' as const
+  public typeName = "List" as const
 
   constructor(args: ControllerArgs<ListModuleOpts>) {
     super(args)
     this.register()
     this.scope.run(() => {
-      watch(() => this.ready, (currentValue: boolean) => {
-        if (currentValue) {
-          this.socketOpened()
-        }
-      }, {immediate: true})
+      watch(
+        () => this.ready,
+        (currentValue: boolean) => {
+          if (currentValue) {
+            this.socketOpened()
+          }
+        },
+        { immediate: true },
+      )
     })
   }
 
   public get = () => {
-    return this.dispatch('get')
+    return this.dispatch("get")
   }
 
   public remove = (item: T) => {
-    this.commit('remove', item)
+    this.commit("remove", item)
   }
 
   public replace = (item: T) => {
-    this.commit('replace', item)
+    this.commit("replace", item)
   }
 
   public unshift = (...args: T[]) => {
-    this.commit('unshift', args)
+    this.commit("unshift", args)
   }
 
   public push = (...args: T[]) => {
-    this.commit('push', args)
+    this.commit("push", args)
   }
 
   public uniquePush = (...args: T[]) => {
-    this.commit('uniquePush', args)
+    this.commit("uniquePush", args)
   }
 
   public uniqueUnshift = (...args: T[]) => {
-    this.commit('uniqueUnshift', args)
+    this.commit("uniqueUnshift", args)
   }
 
   public uniqueAddNew = (...args: T[]) => {
@@ -67,7 +84,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   }
 
   public post = (item: Partial<T>) => {
-    return this.dispatch('post', item)
+    return this.dispatch("post", item)
   }
 
   public postPush = (item: Partial<T>) => {
@@ -75,19 +92,19 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   }
 
   public setList = (array: T[]) => {
-    this.commit('setList', array)
+    this.commit("setList", array)
   }
 
   public next = () => {
-    return this.dispatch('next')
+    return this.dispatch("next")
   }
 
   public firstRun = () => {
-    return this.dispatch('firstRun')
+    return this.dispatch("firstRun")
   }
 
   public retryGet = () => {
-    return this.dispatch('retryGet')
+    return this.dispatch("retryGet")
   }
 
   public makeReady = (array: T[]) => {
@@ -98,7 +115,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   }
 
   public reset = () => {
-    return this.dispatch('reset')
+    return this.dispatch("reset")
   }
 
   public grower = (val: boolean) => {
@@ -113,34 +130,36 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   public get list(): Array<SingleController<T>> {
     // Can happen if there remains a reference to this object after our system reaps it.
     /* istanbul ignore if */
-    if (!this.attr('refs')) {
+    if (!this.attr("refs")) {
       return []
     }
-    let controllers = this.attr('refs').map((ref: string) => (
-      getController<SingleState<T>, SingleModuleOpts<T>, SingleController<T>>(
-        {
-          uid: this._uid,
-          name: `${this.prefix}items/${ref}`,
-// Vestigial endpoint-- the controller may not be cached but the list should have defined it in the store.
-          schema: {endpoint: ''},
-          typeName: 'Single',
-          socket: this.$sock,
-          router: this.$router,
-          store: this.$store,
-          registries: this.$registries,
-          ControllerClass: SingleController,
-        },
-      )))
-    controllers = controllers.filter((controller: SingleController<T>) => !(controller.deleted) && !(controller.x === null))
+    let controllers = this.attr("refs").map((ref: string) =>
+      getController<SingleState<T>, SingleModuleOpts<T>, SingleController<T>>({
+        uid: this._uid,
+        name: `${this.prefix}items/${ref}`,
+        // Vestigial endpoint-- the controller may not be cached but the list should have defined it in the store.
+        schema: { endpoint: "" },
+        typeName: "Single",
+        socket: this.$sock,
+        router: this.$router,
+        store: this.$store,
+        registries: this.$registries,
+        ControllerClass: SingleController,
+      }),
+    )
+    controllers = controllers.filter(
+      (controller: SingleController<T>) =>
+        !controller.deleted && !(controller.x === null),
+    )
     return controllers
   }
 
   public get endpoint(): string {
-    return this.attr('endpoint')
+    return this.attr("endpoint")
   }
 
   public set endpoint(val: string) {
-    this.commit('setEndpoint', val)
+    this.commit("setEndpoint", val)
   }
 
   public get totalPages(): number {
@@ -148,73 +167,73 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   }
 
   public get moreAvailable(): boolean {
-    return (!this.fetching) && (this.totalPages > this.currentPage)
+    return !this.fetching && this.totalPages > this.currentPage
   }
 
   public get currentPage(): number {
-    return pageFromParams(this.attr('params'))
+    return pageFromParams(this.attr("params"))
   }
 
   public set currentPage(val: number) {
-    this.dispatch('getPage', val).then()
+    this.dispatch("getPage", val).then()
   }
 
   public get pageSize(): number {
-    return pageSizeFromParams(this.attr('params'))
+    return pageSizeFromParams(this.attr("params"))
   }
 
   public get grow() {
-    return this.attr('grow')
+    return this.attr("grow")
   }
 
   public set grow(val: boolean) {
     // Should only be used during testing, since state can't be guaranteed sane if set at runtime.
-    this.commit('setGrow', val)
+    this.commit("setGrow", val)
   }
 
   public get reverse() {
-    return this.attr('reverse')
+    return this.attr("reverse")
   }
 
   public get params(): QueryParams | null {
-    return this.attr('params')
+    return this.attr("params")
   }
 
   public set params(params: QueryParams | null) {
-    this.commit('setParams', params)
+    this.commit("setParams", params)
   }
 
   public get fetching() {
-    return this.attr('fetching')
+    return this.attr("fetching")
   }
 
   public set fetching(val: boolean) {
     // Used during testing.
-    this.commit('setFetching', val)
+    this.commit("setFetching", val)
   }
 
   public get empty() {
     return (
-      (!this.paginated || (this.currentPage === 1)) &&
+      (!this.paginated || this.currentPage === 1) &&
       this.ready &&
       this.list.length === 0
     )
   }
 
   public get response() {
-    return this.attr('response')
+    return this.attr("response")
   }
 
   public set response(value: PaginatedResponse | null) {
-    this.commit('setResponse', value)
+    this.commit("setResponse", value)
   }
 
   public get failed() {
-    return this.attr('failed')
+    return this.attr("failed")
   }
 
   public get paginated() {
-    return this.attr('paginated')
+    return this.attr("paginated")
   }
 
   public get count() {
@@ -222,35 +241,35 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   }
 
   public get ready() {
-    return this.attr('ready')
+    return this.attr("ready")
   }
 
   public set ready(val: boolean) {
-    this.commit('setReady', val)
+    this.commit("setReady", val)
   }
 
   public get stale(): boolean {
-    return this.attr('stale')
+    return this.attr("stale")
   }
 
   public set stale(val: boolean) {
-    this.commit('setStale', val)
+    this.commit("setStale", val)
   }
 
   public get keyProp() {
-    return this.attr('keyProp')
+    return this.attr("keyProp")
   }
 
   public get socketSettings(): ListSocketSettings | null {
-    return this.attr('socketSettings')
+    return this.attr("socketSettings")
   }
 
   public set socketSettings(val: ListSocketSettings | null) {
-    this.commit('setSocketSettings', val)
+    this.commit("setSocketSettings", val)
   }
 
   public get socketNewItemParams() {
-    const socketSettings = this.attr('socketSettings')
+    const socketSettings = this.attr("socketSettings")
 
     if (!socketSettings) {
       return null
@@ -271,7 +290,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
   public get newItemLabel() {
     const data = this.socketNewItemParams
     if (!data) {
-      return ''
+      return ""
     }
     let pathName = `${data.app_label}.${data.model_name}`
     if (data.pk) {
@@ -287,7 +306,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
     }
     /* istanbul ignore else */
     if (newItemLabel) {
-      this.$sock.send('clear_watch_new', this.socketNewItemParams)
+      this.$sock.send("clear_watch_new", this.socketNewItemParams)
       this.$sock.removeListener(newItemLabel, `${this.socketLabelBase}.new`)
     }
   }
@@ -308,7 +327,7 @@ export class ListController<T extends object> extends BaseController<ListModuleO
       `${this.socketLabelBase}.new`,
       this.uniqueAddNew,
     )
-    this.$sock.send('watch_new', data)
+    this.$sock.send("watch_new", data)
   }
 
   public socketClosed = () => {

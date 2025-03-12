@@ -1,8 +1,5 @@
 <template>
-  <v-row
-    no-gutters
-    class="ac-audio-player"
-  >
+  <v-row no-gutters class="ac-audio-player">
     <v-col
       v-if="asset.preview"
       cols="12"
@@ -18,25 +15,21 @@
         alt="alt"
       />
     </v-col>
-    <v-col
-      class="text-center"
-      cols="12"
-    >
+    <v-col class="text-center" cols="12">
       <audio controls>
-        <source
-          :src="asset.file!.full"
-          :type="type"
-        >
+        <source :src="asset.file!.full" :type="type" />
       </audio>
     </v-col>
   </v-row>
 </template>
 
 <script setup lang="ts">
-import {getExt} from '@/mixins/asset_base.ts'
-import {computed} from 'vue'
-import type {Asset} from '@/types/main'
+import { getExt } from "@/mixins/asset_base.ts"
+import { computed } from "vue"
+import type { Asset } from "@/types/main"
 
-const props = defineProps<{asset: Asset, alt: string}>()
-const type = computed(() =>  'audio/' + getExt(props.asset.file!.full).toLowerCase())
+const props = defineProps<{ asset: Asset; alt: string }>()
+const type = computed(
+  () => "audio/" + getExt(props.asset.file!.full).toLowerCase(),
+)
 </script>

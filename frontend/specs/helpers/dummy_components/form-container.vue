@@ -10,8 +10,8 @@
 </template>
 
 <script setup lang="ts">
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {useForm} from '@/store/forms/hooks.ts'
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import { useForm } from "@/store/forms/hooks.ts"
 
-const basicForm = useForm('basicForm', {endpoint: '/endpoint/', fields: {}})
+const basicForm = useForm("basicForm", { endpoint: "/endpoint/", fields: {} })
 </script>

@@ -16,7 +16,7 @@
         <v-row dense>
           <v-col cols="12">
             <ac-deliverable-status
-              :deliverable="{status: order.x.status}"
+              :deliverable="{ status: order.x.status }"
               class="ma-1"
             />
           </v-col>
@@ -27,30 +27,22 @@
             <span v-if="!isBuyer"> commissioned </span>by
             <ac-link
               v-if="isBuyer"
-              :to="{name: 'Profile', params: {username: order.x.seller.username}}"
+              :to="{
+                name: 'Profile',
+                params: { username: order.x.seller.username },
+              }"
             >
               {{ order.x.seller.username }}
             </ac-link>
-            <ac-link
-              v-else-if="order.x.buyer"
-              :to="profileLink(order.x.buyer)"
-            >
+            <ac-link v-else-if="order.x.buyer" :to="profileLink(order.x.buyer)">
               {{ deriveDisplayName(order.x.buyer.username) }}
             </ac-link>
-            <span v-else>
-              (Pending)
-            </span>
+            <span v-else> (Pending) </span>
           </v-col>
-          <v-col
-            v-if="order.x.customer_display_name"
-            cols="12"
-          >
+          <v-col v-if="order.x.customer_display_name" cols="12">
             {{ order.x.customer_display_name }}
           </v-col>
-          <v-col
-            v-else-if="order.x.guest_email"
-            cols="12"
-          >
+          <v-col v-else-if="order.x.guest_email" cols="12">
             <strong>{{ order.x.guest_email }}</strong>
           </v-col>
           <v-col cols="12">
@@ -62,11 +54,7 @@
   </v-col>
   <v-col v-else>
     <v-card>
-      <ac-asset
-        :asset="null"
-        thumb-name="thumbnail"
-        alt=""
-      />
+      <ac-asset :asset="null" thumb-name="thumbnail" alt="" />
       <v-card-text>
         <strong>Private Order</strong>
         <p>This order is private. No details or previews, sorry!</p>
@@ -76,19 +64,28 @@
 </template>
 
 <script setup lang="ts">
-import AcAsset from './AcAsset.vue'
-import {SingleController} from '@/store/singles/controller.ts'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import AcHiddenFlag from '@/components/AcHiddenFlag.vue'
-import {computed} from 'vue'
-import {useViewer} from '@/mixins/viewer.ts'
-import {deriveDisplayName, formatDateTime, profileLink} from '@/lib/otherFormatters.ts'
-import type {Order, SubjectiveProps} from '@/types/main'
+import AcAsset from "./AcAsset.vue"
+import { SingleController } from "@/store/singles/controller.ts"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import AcDeliverableStatus from "@/components/AcDeliverableStatus.vue"
+import AcHiddenFlag from "@/components/AcHiddenFlag.vue"
+import { computed } from "vue"
+import { useViewer } from "@/mixins/viewer.ts"
+import {
+  deriveDisplayName,
+  formatDateTime,
+  profileLink,
+} from "@/lib/otherFormatters.ts"
+import type { Order, SubjectiveProps } from "@/types/main"
 
-
-const props = defineProps<{type: string, order: SingleController<Order>} & SubjectiveProps>()
-const {rawViewerName} = useViewer()
+const props = defineProps<
+  { type: string; order: SingleController<Order> } & SubjectiveProps
+>()
+const { rawViewerName } = useViewer()
 const name = computed(() => `${props.order.x!.product_name}`)
-const isBuyer = computed(() => props.order.x!.buyer && props.order.x!.buyer.username === rawViewerName.value)
+const isBuyer = computed(
+  () =>
+    props.order.x!.buyer &&
+    props.order.x!.buyer.username === rawViewerName.value,
+)
 </script>

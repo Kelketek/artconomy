@@ -3,14 +3,14 @@
 </template>
 
 <script setup lang="ts">
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {useForm} from '@/store/forms/hooks.ts'
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import { useForm } from "@/store/forms/hooks.ts"
 
-const form = useForm('boundFields', {
-  endpoint: '/',
+const form = useForm("boundFields", {
+  endpoint: "/",
   fields: {
-    name: {value: 'Wat'},
-    age: {value: 20},
+    name: { value: "Wat" },
+    age: { value: 20 },
   },
 })
 </script>

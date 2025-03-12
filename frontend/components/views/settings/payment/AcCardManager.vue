@@ -1,27 +1,14 @@
 <template>
   <v-row no-gutters>
-    <v-col
-      v-if="subject && cards.ready"
-      cols="12"
-    >
+    <v-col v-if="subject && cards.ready" cols="12">
       <v-row no-gutters>
         <v-col>
-          <v-tabs
-            v-if="cards.list.length"
-            v-model="tab"
-            fixed-tabs
-          >
-            <v-tab
-              value="saved-cards"
-              class="saved-card-tab"
-            >
+          <v-tabs v-if="cards.list.length" v-model="tab" fixed-tabs>
+            <v-tab value="saved-cards" class="saved-card-tab">
               <v-icon :icon="mdiContentSave" />
               Saved Cards
             </v-tab>
-            <v-tab
-              value="new-card"
-              class="new-card-tab"
-            >
+            <v-tab value="new-card" class="new-card-tab">
               <v-icon :icon="mdiCreditCard" />
               New Card
             </v-tab>
@@ -31,10 +18,7 @@
       <v-row no-gutters>
         <v-col cols="12">
           <v-window v-model="tab">
-            <v-window-item
-              value="saved-cards"
-              eager
-            >
+            <v-window-item value="saved-cards" eager>
               <v-row no-gutters>
                 <v-col
                   cols="12"
@@ -61,20 +45,16 @@
                 </v-col>
               </v-row>
             </v-window-item>
-            <v-window-item
-              value="new-card"
-              eager
-            >
+            <v-window-item value="new-card" eager>
               <v-row class="mt-3">
-                <v-col
-                  sm="6"
-                  offset-sm="3"
-                  lg="4"
-                  offset-lg="4"
-                >
+                <v-col sm="6" offset-sm="3" lg="4" offset-lg="4">
                   <ac-stripe-charge
                     :key="clientSecret"
-                    @card="(card: StripeCardElement) => { stripeCard = card }"
+                    @card="
+                      (card: StripeCardElement) => {
+                        stripeCard = card
+                      }
+                    "
                   />
                 </v-col>
                 <v-col
@@ -90,11 +70,7 @@
                     :field="ccForm.fields.save_card"
                   />
                 </v-col>
-                <v-col
-                  v-if="isRegistered && showSave"
-                  sm="3"
-                  lg="2"
-                >
+                <v-col v-if="isRegistered && showSave" sm="3" lg="2">
                   <ac-bound-field
                     field-type="ac-checkbox"
                     label="Make this my default card"
@@ -115,48 +91,55 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
-import {FormController} from '@/store/forms/form-controller.ts'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcCard from '@/components/views/settings/payment/AcCard.vue'
-import AcSavedCardField from '@/components/fields/AcSavedCardField.vue'
-import {flatten} from '@/lib/lib.ts'
-import {getStripe} from '@/components/views/order/mixins/StripeMixin.ts'
-import {StripeCardElement} from '@stripe/stripe-js'
-import AcStripeCharge from '@/components/AcStripeCharge.vue'
-import {mdiCreditCard, mdiContentSave} from '@mdi/js'
-import {useList} from '@/store/lists/hooks.ts'
-import {useViewer} from '@/mixins/viewer.ts'
-import {computed, ComputedRef, ref, watch} from 'vue'
-import type {CreditCardToken, SubjectiveProps} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
-import {RawData} from '@/store/forms/types/main'
+import { useSubject } from "@/mixins/subjective.ts"
+import { FormController } from "@/store/forms/form-controller.ts"
+import AcLoadingSpinner from "@/components/wrappers/AcLoadingSpinner.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcCard from "@/components/views/settings/payment/AcCard.vue"
+import AcSavedCardField from "@/components/fields/AcSavedCardField.vue"
+import { flatten } from "@/lib/lib.ts"
+import { getStripe } from "@/components/views/order/mixins/StripeMixin.ts"
+import { StripeCardElement } from "@stripe/stripe-js"
+import AcStripeCharge from "@/components/AcStripeCharge.vue"
+import { mdiCreditCard, mdiContentSave } from "@mdi/js"
+import { useList } from "@/store/lists/hooks.ts"
+import { useViewer } from "@/mixins/viewer.ts"
+import { computed, ComputedRef, ref, watch } from "vue"
+import type { CreditCardToken, SubjectiveProps } from "@/types/main"
+import { User } from "@/store/profiles/types/main"
+import { RawData } from "@/store/forms/types/main"
 
 declare type StripeError = { error: null | { message: string } }
 
 declare interface AcCardManagerProps {
-  ccForm: FormController,
-  showSave?: boolean,
-  saveOnly?: boolean,
-  modelValue?: null | number,
-  fieldMode?: boolean,
-  clientSecret: string,
+  ccForm: FormController
+  showSave?: boolean
+  saveOnly?: boolean
+  modelValue?: null | number
+  fieldMode?: boolean
+  clientSecret: string
 }
 
-const props = withDefaults(defineProps<SubjectiveProps & AcCardManagerProps>(), {
-  fieldMode: true,
-  saveOnly: false,
-  showSave: true,
-  modelValue: null,
-})
-const emit = defineEmits<{ paymentSent: [], cardAdded: [], 'update:modelValue': [number | null] }>()
+const props = withDefaults(
+  defineProps<SubjectiveProps & AcCardManagerProps>(),
+  {
+    fieldMode: true,
+    saveOnly: false,
+    showSave: true,
+    modelValue: null,
+  },
+)
+const emit = defineEmits<{
+  paymentSent: []
+  cardAdded: []
+  "update:modelValue": [number | null]
+}>()
 
 const setCard = (val: number | null) => {
-  emit('update:modelValue', val)
+  emit("update:modelValue", val)
 }
 
-const tab = ref('')
+const tab = ref("")
 const lastCard = ref<null | number>(null)
 const stripeCard = ref<StripeCardElement | null>(null)
 
@@ -164,37 +147,37 @@ const cardsName = `${flatten(props.username)}__creditCards`
 
 const url = computed(() => `/api/sales/account/${props.username}/cards/`)
 
-const {subject} = useSubject({ props })
+const { subject } = useSubject({ props })
 
 // Should be set by the time we're here, and this will only be needed
 // when dealing with registered users.
 const viewerItems = useViewer()
 const viewer = viewerItems.viewer as ComputedRef<User>
-const {isRegistered} = viewerItems
+const { isRegistered } = viewerItems
 const cards = useList<CreditCardToken>(cardsName, {
   endpoint: url.value,
   paginated: false,
   socketSettings: {
-    appLabel: 'sales',
-    modelName: 'CreditCardToken',
-    serializer: 'CardSerializer',
+    appLabel: "sales",
+    modelName: "CreditCardToken",
+    serializer: "CardSerializer",
     list: {
-      appLabel: 'profiles',
-      modelName: 'User',
-      pk: viewer.value.id + '',
-      listName: 'all_cards',
+      appLabel: "profiles",
+      modelName: "User",
+      pk: viewer.value.id + "",
+      listName: "all_cards",
     },
   },
 })
 
 const initialize = () => {
   if (cards.list.length) {
-    tab.value = 'saved-cards'
+    tab.value = "saved-cards"
     const card = cards.list[0].x as CreditCardToken
     lastCard.value = card.id
     setCard(card.id)
   } else {
-    tab.value = 'new-card'
+    tab.value = "new-card"
     props.ccForm.fields.make_primary.update(true, false)
     // Should already be null, but just in case.
     setCard(null)
@@ -205,7 +188,9 @@ watch(() => cards.list.length, initialize)
 
 const handleStripeError = (result: StripeError) => {
   let message = result.error && result.error.message
-  message = message || 'An unknown error occurred while trying to reach Stripe. Please contact support.'
+  message =
+    message ||
+    "An unknown error occurred while trying to reach Stripe. Please contact support."
   const ccForm = props.ccForm
   ccForm.errors = [message]
   ccForm.sending = false
@@ -221,72 +206,74 @@ const stripeSubmit = () => {
   const ccForm = props.ccForm
   ccForm.sending = true
   if (props.saveOnly) {
-    stripe.confirmCardSetup(
-        secret,
-        {
-          payment_method: {
-            card: stripeCard.value!,
-            billing_details: {},
-          },
+    stripe
+      .confirmCardSetup(secret, {
+        payment_method: {
+          card: stripeCard.value!,
+          billing_details: {},
         },
-    ).then((response: StripeError | any) => {
-      const result = response || {}
-      ccForm.sending = false
-      if (result.error) {
-        handleStripeError(result)
-        return
-      }
-      tab.value = 'saved-cards'
-      emit('cardAdded')
-    })
+      })
+      .then((response: StripeError | any) => {
+        const result = response || {}
+        ccForm.sending = false
+        if (result.error) {
+          handleStripeError(result)
+          return
+        }
+        tab.value = "saved-cards"
+        emit("cardAdded")
+      })
   } else {
     const data: RawData = {}
-    if (tab.value === 'new-card') {
-      data.payment_method = {card: stripeCard.value}
+    if (tab.value === "new-card") {
+      data.payment_method = { card: stripeCard.value }
     }
-    stripe.confirmCardPayment(
-        secret,
-        data,
-    ).then((result: StripeError | any) => {
-      if (result.error) {
-        handleStripeError(result)
-        ccForm.sending = false
-        return
-      }
-      emit('paymentSent')
-    })
+    stripe
+      .confirmCardPayment(secret, data)
+      .then((result: StripeError | any) => {
+        if (result.error) {
+          handleStripeError(result)
+          ccForm.sending = false
+          return
+        }
+        emit("paymentSent")
+      })
   }
 }
 
-watch(() => props.username, () => {
-  cards.endpoint = url.value
-  // eslint-disable-next-line vue/no-mutating-props
-  props.ccForm.endpoint = url.value
-})
+watch(
+  () => props.username,
+  () => {
+    cards.endpoint = url.value
+    // eslint-disable-next-line vue/no-mutating-props
+    props.ccForm.endpoint = url.value
+  },
+)
 
 watch(tab, (val: string) => {
   /* istanbul ignore if */
   if (!val) {
     return
   }
-  if (val === 'new-card') {
+  if (val === "new-card") {
     lastCard.value = props.ccForm.fields.card_id.value
     props.ccForm.fields.card_id.update(null)
   }
-  if (val === 'saved-cards') {
+  if (val === "saved-cards") {
     props.ccForm.fields.card_id.update(lastCard.value)
   }
 })
 
-watch(() => props.modelValue, (value: null | number) => {
-  if (value) {
-    lastCard.value = value
-  }
-})
+watch(
+  () => props.modelValue,
+  (value: null | number) => {
+    if (value) {
+      lastCard.value = value
+    }
+  },
+)
 
-defineExpose({stripeSubmit})
+defineExpose({ stripeSubmit })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

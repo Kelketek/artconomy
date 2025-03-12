@@ -22,16 +22,18 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcCard from '@/components/views/settings/payment/AcCard.vue'
-import {ListController} from '@/store/lists/controller.ts'
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcCard from "@/components/views/settings/payment/AcCard.vue"
+import { ListController } from "@/store/lists/controller.ts"
 
-import type {CreditCardToken} from '@/types/main'
+import type { CreditCardToken } from "@/types/main"
 
-
-defineProps<{modelValue: number|null, cards: ListController<CreditCardToken>}>()
-const emit = defineEmits<{'update:modelValue': [number|null]}>()
-const sendInput = (value: number|null) => emit('update:modelValue', value)
+defineProps<{
+  modelValue: number | null
+  cards: ListController<CreditCardToken>
+}>()
+const emit = defineEmits<{ "update:modelValue": [number | null] }>()
+const sendInput = (value: number | null) => emit("update:modelValue", value)
 </script>
 
 <style>

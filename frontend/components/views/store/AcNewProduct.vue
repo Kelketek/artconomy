@@ -16,14 +16,11 @@
             v-if="subjectHandler.artistProfile.x!.bank_account_status === 0"
             no-gutters
           >
-            <v-col
-              class="pt-2"
-              cols="12"
-              md="8"
-              offset-md="2"
-            >
+            <v-col class="pt-2" cols="12" md="8" offset-md="2">
               <ac-patch-field
-                :patcher="subjectHandler.artistProfile.patchers.bank_account_status"
+                :patcher="
+                  subjectHandler.artistProfile.patchers.bank_account_status
+                "
                 field-type="ac-bank-toggle"
                 :username="username"
               />
@@ -64,24 +61,14 @@
             <v-stepper-window>
               <v-stepper-window-item :value="1">
                 <v-row>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                    order="1"
-                    order-sm="1"
-                  >
+                  <v-col cols="12" sm="6" order="1" order-sm="1">
                     <ac-bound-field
                       :field="newProduct.fields.name"
                       label="Product Name"
                       hint="Pick a helpful name to describe what you're selling, such as 'Reference Sheet' or 'Line Drawing'."
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                    order="3"
-                    order-sm="2"
-                  >
+                  <v-col cols="12" sm="6" order="3" order-sm="2">
                     <ac-bound-field
                       :field="newProduct.fields.hidden"
                       label="Hide Product"
@@ -90,11 +77,7 @@
                       hint="This product will not be immediately available. You will need to unhide the product in order for customers to order."
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    order="2"
-                    order-sm="3"
-                  >
+                  <v-col cols="12" order="2" order-sm="3">
                     <ac-bound-field
                       :field="newProduct.fields.tags"
                       label="Tags"
@@ -102,11 +85,7 @@
                       hint="Add some tags to make it easy to search for your product."
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    order="4"
-                    order-sm="4"
-                  >
+                  <v-col cols="12" order="4" order-sm="4">
                     <ac-bound-field
                       :field="newProduct.fields.description"
                       label="Description"
@@ -117,28 +96,27 @@
                     description of the product itself here."
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    order="5"
-                    order-sm="5"
-                  >
+                  <v-col cols="12" order="5" order-sm="5">
                     <v-expansion-panels>
                       <v-expansion-panel>
-                        <v-expansion-panel-title>Details Template</v-expansion-panel-title>
+                        <v-expansion-panel-title
+                          >Details Template</v-expansion-panel-title
+                        >
                         <v-expansion-panel-text>
                           <v-row>
                             <v-col cols="6">
-                              Optional. You may include a template for the commissioner to fill out. You might do this
-                              if you need to collect specific details for this commission and want to avoid a lot of
-                              back and forth.
-
-                              Here's an example template you might use:
+                              Optional. You may include a template for the
+                              commissioner to fill out. You might do this if you
+                              need to collect specific details for this
+                              commission and want to avoid a lot of back and
+                              forth. Here's an example template you might use:
                             </v-col>
                             <v-col cols="6">
                               <blockquote>
-                                Preferred colors:<br><br>
-                                Do you want shading? (yes/no):<br><br>
-                                What are your social media accounts you'd like me to tag when the piece is done?:
+                                Preferred colors:<br /><br />
+                                Do you want shading? (yes/no):<br /><br />
+                                What are your social media accounts you'd like
+                                me to tag when the piece is done?:
                               </blockquote>
                             </v-col>
                             <v-col cols="12">
@@ -159,27 +137,18 @@
               </v-stepper-window-item>
               <v-stepper-window-item :value="2">
                 <v-row>
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
+                  <v-col cols="12" md="6">
                     <v-row>
                       <v-col cols="12">
                         <v-row>
-                          <v-col
-                            cols="12"
-                            md="6"
-                          >
+                          <v-col cols="12" md="6">
                             <v-checkbox
                               v-model="saleMode"
                               label="Sale mode"
                               hint="Check this to mark the item as on sale."
                             />
                           </v-col>
-                          <v-col
-                            cols="12"
-                            md="6"
-                          >
+                          <v-col cols="12" md="6">
                             <ac-bound-field
                               :field="newProduct.fields.compare_at_price"
                               label="Compare at price"
@@ -191,11 +160,7 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                        lg="12"
-                      >
+                      <v-col cols="12" sm="6" lg="12">
                         <ac-bound-field
                           :field="newProduct.fields.base_price"
                           :label="basePriceLabel"
@@ -203,10 +168,7 @@
                           :hint="priceHint"
                         />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-bound-field
                           :field="newProduct.fields.cascade_fees"
                           field-type="v-switch"
@@ -220,10 +182,7 @@
                           color="primary"
                         />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-bound-field
                           :field="newProduct.fields.name_your_price"
                           field-type="v-switch"
@@ -254,11 +213,7 @@
                           :false-value="false"
                         />
                       </v-col>
-                      <v-col
-                        v-if="escrow"
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col v-if="escrow" cols="12" sm="6">
                         <ac-bound-field
                           :field="newProduct.fields.escrow_enabled"
                           field-type="v-switch"
@@ -270,11 +225,7 @@
                           color="primary"
                         />
                       </v-col>
-                      <v-col
-                        v-if="escrow"
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col v-if="escrow" cols="12" sm="6">
                         <ac-bound-field
                           :field="newProduct.fields.escrow_upgradable"
                           field-type="v-switch"
@@ -289,10 +240,7 @@
                       </v-col>
                     </v-row>
                   </v-col>
-                  <v-col
-                    cols="12"
-                    md="6"
-                  >
+                  <v-col cols="12" md="6">
                     <ac-price-comparison
                       :username="username"
                       :line-item-set-maps="lineItemSetMaps"
@@ -300,10 +248,7 @@
                   </v-col>
                 </v-row>
                 <v-row>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
+                  <v-col cols="12" sm="6">
                     <ac-bound-field
                       :field="newProduct.fields.expected_turnaround"
                       number
@@ -312,10 +257,7 @@
                       :persistent-hint="true"
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
+                  <v-col cols="12" sm="6">
                     <ac-bound-field
                       :field="newProduct.fields.revisions"
                       number
@@ -340,18 +282,19 @@
                     <h2>AWOO Workload Settings</h2>
                     <v-divider />
                     <p>
-                      You can set these settings to help the Artconomy Workload Organization and Overview tool manage
-                      your workload for you.
+                      You can set these settings to help the Artconomy Workload
+                      Organization and Overview tool manage your workload for
+                      you.
                     </p>
                     <p>
-                      <strong>If you're not sure what to do here, or would like to set these settings later, the
-                        defaults should be safe.</strong>
+                      <strong
+                        >If you're not sure what to do here, or would like to
+                        set these settings later, the defaults should be
+                        safe.</strong
+                      >
                     </p>
                   </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
+                  <v-col cols="12" sm="6">
                     <ac-bound-field
                       :field="newProduct.fields.task_weight"
                       number
@@ -361,10 +304,7 @@
                       :persistent-hint="true"
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
+                  <v-col cols="12" sm="6">
                     <ac-bound-field
                       :field="newProduct.fields.wait_list"
                       label="Wait List Product"
@@ -378,16 +318,13 @@
                     />
                     <div v-if="!subject!.landscape">
                       This feature only available for
-                      <router-link :to="{name: 'Upgrade'}">
+                      <router-link :to="{ name: 'Upgrade' }">
                         Landscape
                       </router-link>
                       subscribers.
                     </div>
                   </v-col>
-                  <v-col
-                    cols="12"
-                    sm="6"
-                  >
+                  <v-col cols="12" sm="6">
                     <v-checkbox
                       v-model="limitAtOnce"
                       :persistent-hint="true"
@@ -395,11 +332,7 @@
                       hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
                     />
                   </v-col>
-                  <v-col
-                    v-if="limitAtOnce"
-                    cols="12"
-                    sm="6"
-                  >
+                  <v-col v-if="limitAtOnce" cols="12" sm="6">
                     <ac-bound-field
                       :persistent-hint="true"
                       :field="newProduct.fields.max_parallel"
@@ -418,17 +351,15 @@
     </ac-load-section>
     <template #bottom-buttons>
       <v-card-actions
-        v-if="subjectHandler.artistProfile.x && subjectHandler.artistProfile.x.bank_account_status !== 0"
+        v-if="
+          subjectHandler.artistProfile.x &&
+          subjectHandler.artistProfile.x.bank_account_status !== 0
+        "
         row
         wrap
       >
         <v-spacer />
-        <v-btn
-          variant="flat"
-          @click.prevent="toggle(false)"
-        >
-          Cancel
-        </v-btn>
+        <v-btn variant="flat" @click.prevent="toggle(false)"> Cancel </v-btn>
         <v-btn
           v-if="newProduct.step > 1"
           color="secondary"
@@ -458,69 +389,75 @@
       </v-card-actions>
       <v-card-actions v-else>
         <v-spacer />
-        <v-btn @click.prevent="toggle(false)">
-          Cancel
-        </v-btn>
+        <v-btn @click.prevent="toggle(false)"> Cancel </v-btn>
       </v-card-actions>
     </template>
   </ac-form-dialog>
 </template>
 <script setup lang="ts">
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {useSubject} from '@/mixins/subjective.ts'
-import {flatten, min} from '@/lib/lib.ts'
-import {Ratings} from '@/types/enums/Ratings.ts'
-import {deliverableLines, getTotals} from '@/lib/lineItemFunctions.ts'
-import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {useForm} from '@/store/forms/hooks.ts'
-import {computed, watch} from 'vue'
-import {useRouter} from 'vue-router'
-import {useList} from '@/store/lists/hooks.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import type {LineItem, Pricing, Product, RawLineItemSetMap, SubjectiveProps} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
+import AcFormDialog from "@/components/wrappers/AcFormDialog.vue"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import { useSubject } from "@/mixins/subjective.ts"
+import { flatten, min } from "@/lib/lib.ts"
+import { Ratings } from "@/types/enums/Ratings.ts"
+import { deliverableLines, getTotals } from "@/lib/lineItemFunctions.ts"
+import AcPriceComparison from "@/components/price_preview/AcPriceComparison.vue"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { useForm } from "@/store/forms/hooks.ts"
+import { computed, watch } from "vue"
+import { useRouter } from "vue-router"
+import { useList } from "@/store/lists/hooks.ts"
+import { ListController } from "@/store/lists/controller.ts"
+import type {
+  LineItem,
+  Pricing,
+  Product,
+  RawLineItemSetMap,
+  SubjectiveProps,
+} from "@/types/main"
+import { User } from "@/store/profiles/types/main"
 
-const props = defineProps<{modelValue: boolean} & SubjectiveProps>()
-const emit = defineEmits<{'update:modelValue': [boolean]}>()
+const props = defineProps<{ modelValue: boolean } & SubjectiveProps>()
+const emit = defineEmits<{ "update:modelValue": [boolean] }>()
 const router = useRouter()
-const {subjectHandler, subject} = useSubject({ props })
-const {setError} = useErrorHandling()
+const { subjectHandler, subject } = useSubject({ props })
+const { setError } = useErrorHandling()
 
 subjectHandler.artistProfile.get().catch(setError)
-const pricing = useSingle<Pricing>('pricing', {endpoint: '/api/sales/pricing-info/'})
+const pricing = useSingle<Pricing>("pricing", {
+  endpoint: "/api/sales/pricing-info/",
+})
 pricing.get()
 
 const url = computed(() => `/api/sales/account/${props.username}/products/`)
 const newProduct = useForm(`${flatten(props.username)}__newProduct`, {
   endpoint: url.value,
   fields: {
-    name: {value: ''},
-    description: {value: ''},
-    details_template: {value: ''},
+    name: { value: "" },
+    description: { value: "" },
+    details_template: { value: "" },
     compare_at_price: {
       value: null,
       step: 2,
     },
     base_price: {
-      value: '25.00',
+      value: "25.00",
       step: 2,
-      validators: [{name: 'numeric'}],
+      validators: [{ name: "numeric" }],
     },
     expected_turnaround: {
       value: 5,
       step: 2,
-      validators: [{name: 'numeric'}],
+      validators: [{ name: "numeric" }],
     },
     max_rating: {
       value: Ratings.GENERAL,
       step: 2,
     },
-    wait_list: {value: false},
+    wait_list: { value: false },
     task_weight: {
       value: 1,
       step: 3,
@@ -533,9 +470,9 @@ const newProduct = useForm(`${flatten(props.username)}__newProduct`, {
       value: 0,
       step: 3,
     },
-    hidden: {value: false},
-    table_product: {value: false},
-    tags: {value: []},
+    hidden: { value: false },
+    table_product: { value: false },
+    tags: { value: [] },
     cascade_fees: {
       value: false,
       step: 2,
@@ -560,12 +497,16 @@ const newProduct = useForm(`${flatten(props.username)}__newProduct`, {
 })
 
 const startingAt = computed(() => {
-  return min(
-      lineItemSetMaps.value.map(
-          (lineItemSetMap) => parseFloat(
-              getTotals(lineItemSetMap.lineItems.list.map((entry) => entry.x!)).total,
-          ),
-      )) || 0
+  return (
+    min(
+      lineItemSetMaps.value.map((lineItemSetMap) =>
+        parseFloat(
+          getTotals(lineItemSetMap.lineItems.list.map((entry) => entry.x!))
+            .total,
+        ),
+      ),
+    ) || 0
+  )
 })
 
 const saleMode = computed({
@@ -590,16 +531,14 @@ const escrow = computed(() => {
 })
 
 const goToProduct = (product: Product) => {
-  router.push(
-      {
-        name: 'Product',
-        params: {
-          username: props.username,
-          productId: product.id + '',
-        },
-        query: {editing: 'true'},
-      },
-  )
+  router.push({
+    name: "Product",
+    params: {
+      username: props.username,
+      productId: product.id + "",
+    },
+    query: { editing: "true" },
+  })
 }
 
 const limitAtOnce = computed({
@@ -611,18 +550,23 @@ const limitAtOnce = computed({
     } else {
       field.update(0)
     }
-  }
+  },
 })
 
-const listControllerMaps = new Map(['Shielded', 'Unshielded', '__preferred'].map((name) => [name, useList<LineItem>(`newProduct${name}`, {endpoint: '#', paginated: false})]))
+const listControllerMaps = new Map(
+  ["Shielded", "Unshielded", "__preferred"].map((name) => [
+    name,
+    useList<LineItem>(`newProduct${name}`, { endpoint: "#", paginated: false }),
+  ]),
+)
 
 const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
-  if (!(pricing.x)) {
+  if (!pricing.x) {
     return []
   }
   const sets = []
   const basePrice = newProduct.fields.base_price.value
-   
+
   const planName = subject.value?.service_plan
   const international = !!subject.value?.international
   const cascade = newProduct.fields.cascade_fees.value
@@ -631,24 +575,28 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
   let appendPreferred = false
   const options = {
     basePrice,
-    cascade: cascade && (newProduct.fields.escrow_enabled.value),
+    cascade: cascade && newProduct.fields.escrow_enabled.value,
     international,
     pricing: pricing.x,
     escrowEnabled: true,
     tableProduct,
     extraLines: [],
   }
-  if (escrow.value && (newProduct.fields.escrow_enabled.value || newProduct.fields.escrow_upgradable.value)) {
+  if (
+    escrow.value &&
+    (newProduct.fields.escrow_enabled.value ||
+      newProduct.fields.escrow_upgradable.value)
+  ) {
     const escrowLines = deliverableLines({
       ...options,
       planName,
     })
     sets.push({
-      name: 'Shielded',
+      name: "Shielded",
       lineItems: escrowLines,
       offer: false,
     })
-    if (pricing && (planName !== pricing.x.preferred_plan)) {
+    if (pricing && planName !== pricing.x.preferred_plan) {
       preferredLines = deliverableLines({
         ...options,
         planName: pricing.x.preferred_plan,
@@ -668,15 +616,14 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
       extraLines: [],
     })
     sets.push({
-      name: 'Unshielded',
+      name: "Unshielded",
       lineItems: nonEscrowLines,
       offer: false,
     })
   }
   if (appendPreferred) {
-     
     sets.push({
-      name: pricing.x?.preferred_plan + '',
+      name: pricing.x?.preferred_plan + "",
       lineItems: preferredLines,
       offer: true,
     })
@@ -687,31 +634,37 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
 const lineItemSetMaps = computed(() => {
   const sets = []
   for (const set of rawLineItemSetMaps.value) {
-    const name = listControllerMaps.has(set.name) ? set.name : '__preferred'
+    const name = listControllerMaps.has(set.name) ? set.name : "__preferred"
     const controller = listControllerMaps.get(name) as ListController<LineItem>
-    sets.push({name: set.name, lineItems: controller, offer: set.offer})
+    sets.push({ name: set.name, lineItems: controller, offer: set.offer })
   }
   return sets
 })
 
-watch(rawLineItemSetMaps, (rawLineItemSetMaps: RawLineItemSetMap[]) => {
-  for (const set of rawLineItemSetMaps) {
-    const name = listControllerMaps.has(set.name) ? set.name : '__preferred'
-    const controller = listControllerMaps.get(name) as ListController<LineItem>
-    controller.makeReady(set.lineItems)
-  }
-}, {deep: true, immediate: true})
+watch(
+  rawLineItemSetMaps,
+  (rawLineItemSetMaps: RawLineItemSetMap[]) => {
+    for (const set of rawLineItemSetMaps) {
+      const name = listControllerMaps.has(set.name) ? set.name : "__preferred"
+      const controller = listControllerMaps.get(
+        name,
+      ) as ListController<LineItem>
+      controller.makeReady(set.lineItems)
+    }
+  },
+  { deep: true, immediate: true },
+)
 
 const basePriceLabel = computed(() => {
   if (newProduct.fields.cascade_fees.model) {
-    return 'List Price'
+    return "List Price"
   } else {
-    return 'Take home amount'
+    return "Take home amount"
   }
 })
 
 const toggle = (value: boolean) => {
-  emit('update:modelValue', value)
+  emit("update:modelValue", value)
 }
 
 const priceHint = computed(() => {

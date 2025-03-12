@@ -1,10 +1,10 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
-import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store/index.ts'
-import AcRendered from '../AcRendered.ts'
-import {describe, expect, beforeEach, afterEach, test} from 'vitest'
+import { cleanUp, mount, vueSetup } from "@/specs/helpers/index.ts"
+import { VueWrapper } from "@vue/test-utils"
+import { ArtStore, createStore } from "@/store/index.ts"
+import AcRendered from "../AcRendered.ts"
+import { describe, expect, beforeEach, afterEach, test } from "vitest"
 
-describe('AcRendered.ts', () => {
+describe("AcRendered.ts", () => {
   let wrapper: VueWrapper<any>
   let store: ArtStore
   beforeEach(() => {
@@ -13,45 +13,45 @@ describe('AcRendered.ts', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Truncates text at a specific length', () => {
+  test("Truncates text at a specific length", () => {
     wrapper = mount(AcRendered, {
       ...vueSetup({
         store,
       }),
       props: {
-        value: 'This is a section of text.',
+        value: "This is a section of text.",
         truncate: 10,
       },
     })
-    expect(wrapper.text()).toBe('This is a...Read More')
+    expect(wrapper.text()).toBe("This is a...Read More")
   })
-  test('Allows the user to read more', async() => {
+  test("Allows the user to read more", async () => {
     wrapper = mount(AcRendered, {
       ...vueSetup({
         store,
       }),
       props: {
-        value: 'This is a section of text.',
+        value: "This is a section of text.",
         truncate: 10,
       },
     })
-    await wrapper.find('.read-more-bar').trigger('click')
+    await wrapper.find(".read-more-bar").trigger("click")
     await wrapper.vm.$nextTick()
-    expect(wrapper.text()).toBe('This is a section of text.')
+    expect(wrapper.text()).toBe("This is a section of text.")
   })
-  test('Sets a default truncation level', async() => {
+  test("Sets a default truncation level", async () => {
     wrapper = mount(AcRendered, {
       ...vueSetup({
         store,
       }),
       props: {
-        value: ''.padStart(1500, 'A'),
+        value: "".padStart(1500, "A"),
         truncate: true,
       },
     })
-    expect(wrapper.text()).toBe(''.padStart(1000, 'A') + '...Read More')
+    expect(wrapper.text()).toBe("".padStart(1000, "A") + "...Read More")
   })
-  test('Shows default data', async() => {
+  test("Shows default data", async () => {
     wrapper = mount(AcRendered, {
       ...vueSetup({
         store,
@@ -61,9 +61,9 @@ describe('AcRendered.ts', () => {
         truncate: true,
       },
       slots: {
-        empty: '<p>Nobody here but us chickens!</p>',
+        empty: "<p>Nobody here but us chickens!</p>",
       },
     })
-    expect(wrapper.text()).toBe('Nobody here but us chickens!')
+    expect(wrapper.text()).toBe("Nobody here but us chickens!")
   })
 })

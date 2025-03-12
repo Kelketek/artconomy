@@ -1,12 +1,26 @@
-import {formRegistry} from './registry.ts'
-import debounce from 'lodash/debounce'
-import axios from 'axios'
-import deepEqual from 'fast-deep-equal'
-import {clone, ComputedGetters, dotTraverse, flatten} from '@/lib/lib.ts'
-import {ControllerArgs} from '@/store/controller-base.ts'
-import {ArtStore} from '@/store/index.ts'
-import {ComputedGetter, EffectScope, effectScope, ref, toValue, watch, Ref} from 'vue'
-import {Field, FormError, FormState, RawData, ValidatorSpec} from '@/store/forms/types/main'
+import { formRegistry } from "./registry.ts"
+import debounce from "lodash/debounce"
+import axios from "axios"
+import deepEqual from "fast-deep-equal"
+import { clone, ComputedGetters, dotTraverse, flatten } from "@/lib/lib.ts"
+import { ControllerArgs } from "@/store/controller-base.ts"
+import { ArtStore } from "@/store/index.ts"
+import {
+  ComputedGetter,
+  EffectScope,
+  effectScope,
+  ref,
+  toValue,
+  watch,
+  Ref,
+} from "vue"
+import {
+  Field,
+  FormError,
+  FormState,
+  RawData,
+  ValidatorSpec,
+} from "@/store/forms/types/main"
 
 export function axiosCatch(error: Error) {
   if (axios.isCancel(error)) {
@@ -16,9 +30,10 @@ export function axiosCatch(error: Error) {
   return []
 }
 
-declare interface FieldControllerArgs extends Omit<ControllerArgs<undefined>, "initName" | "schema" > {
-  fieldName: string,
-  formName: string,
+declare interface FieldControllerArgs
+  extends Omit<ControllerArgs<undefined>, "initName" | "schema"> {
+  fieldName: string
+  formName: string
 }
 
 @ComputedGetters
@@ -32,36 +47,36 @@ export class FieldController {
   public cancelSource = new AbortController()
   public localCache!: Ref<any>
 
-  constructor({fieldName, formName, $store}: FieldControllerArgs) {
+  constructor({ fieldName, formName, $store }: FieldControllerArgs) {
     // Used by the ComputedGetters decorator
     this.__getterMap = new Map()
     this.scope = effectScope(true)
     this.fieldName = fieldName
     this.formName = formName
     this.$store = $store
-    this.validate = debounce(
-      this.runValidation, this.debounceRate, {trailing: true},
-    )
+    this.validate = debounce(this.runValidation, this.debounceRate, {
+      trailing: true,
+    })
     // Force creation of the value computed getter.
     // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     this.value
     this.scope.run(() => {
       this.localCache = ref(null)
-      watch(this.__getterMap.get('value'), this.syncCache, {immediate: true})
-      watch(this.localCache, this.updateInternal, {deep: true})
+      watch(this.__getterMap.get("value"), this.syncCache, { immediate: true })
+      watch(this.localCache, this.updateInternal, { deep: true })
     })
   }
 
-  public get value () {
-    return this.attr('value')
+  public get value() {
+    return this.attr("value")
   }
 
   public get errors() {
-    return this.attr('errors')
+    return this.attr("errors")
   }
 
   public get step() {
-    return this.attr('step')
+    return this.attr("step")
   }
 
   public get model() {
@@ -73,17 +88,20 @@ export class FieldController {
   }
 
   public get initialData() {
-    return this.attr('initialData')
+    return this.attr("initialData")
   }
 
   public set initialData(value: any) {
     const data: RawData = {}
     data[this.fieldName] = clone(value)
-    this.$store.commit('forms/updateInitialData', {name: this.formName, data})
+    this.$store.commit("forms/updateInitialData", {
+      name: this.formName,
+      data,
+    })
   }
 
   // Watcher for value
-  public syncCache = (val: any)=> {
+  public syncCache = (val: any) => {
     if (val === undefined) {
       // Should not happen unless we're tearing down.
       return
@@ -107,7 +125,7 @@ export class FieldController {
 
   public get id() {
     const sourceString = `field-${flatten(this.formName)}__${flatten(this.fieldName)}`
-    let destString = ''
+    let destString = ""
     for (const char of sourceString) {
       if (/[a-zA-Z0-9_-]/.test(char)) {
         destString += char
@@ -123,12 +141,12 @@ export class FieldController {
     return {
       // Native elements use value
       value: this.value,
-      disabled: this.attr('disabled') || this.formAttr('sending'),
+      disabled: this.attr("disabled") || this.formAttr("sending"),
       id: this.id,
       onBlur: this.forceValidate,
       onInput: this.domUpdate,
       onChange: this.domUpdate,
-      ...this.attr('extra'),
+      ...this.attr("extra"),
     }
   }
 
@@ -137,11 +155,11 @@ export class FieldController {
     return {
       modelValue: this.value,
       errorMessages: this.errors,
-      disabled: this.attr('disabled') || this.formAttr('sending'),
+      disabled: this.attr("disabled") || this.formAttr("sending"),
       id: this.id,
       onBlur: this.forceValidate,
-      'onUpdate:modelValue': this.update,
-      ...this.attr('extra'),
+      "onUpdate:modelValue": this.update,
+      ...this.attr("extra"),
     }
   }
 
@@ -163,8 +181,8 @@ export class FieldController {
   }
 
   public get debounceRate() {
-    if (this.attr('debounce') !== null) {
-      return this.attr('debounce')
+    if (this.attr("debounce") !== null) {
+      return this.attr("debounce")
     }
     return this.$store.state.forms![this.formName]!.debounce
   }
@@ -177,7 +195,9 @@ export class FieldController {
 
   public attr = (attrName: keyof Field): any => {
     return dotTraverse(
-      this, `$store.state.forms.${this.formName}.fields.${this.fieldName}.${attrName}`, true,
+      this,
+      `$store.state.forms.${this.formName}.fields.${this.fieldName}.${attrName}`,
+      true,
     )
   }
 
@@ -186,7 +206,7 @@ export class FieldController {
   }
 
   public get validators() {
-    return this.attr('validators')
+    return this.attr("validators")
   }
 
   public domUpdate = (event: InputEvent) => {
@@ -196,42 +216,61 @@ export class FieldController {
   public update = (value: any, validate: boolean = true) => {
     const data: RawData = {}
     data[this.fieldName] = clone(value)
-    this.$store.commit('forms/updateValues', {name: this.formName, data})
+    this.$store.commit("forms/updateValues", { name: this.formName, data })
     if (validate) {
       this.validate()
     }
   }
 
-  private runValidation = ()=> {
+  private runValidation = () => {
     const errors: string[] = []
-    const allValidators = this.attr('validators')
-    const syncValidators = allValidators.filter((validator: ValidatorSpec) => !validator.async)
+    const allValidators = this.attr("validators")
+    const syncValidators = allValidators.filter(
+      (validator: ValidatorSpec) => !validator.async,
+    )
     // Run our synchronous validators first.
     for (const validator of syncValidators) {
       if (!formRegistry.validators[validator.name]) {
         console.error(
-          'Unregistered synchronous validator: ', validator.name, '\n', 'Options are: ',
-          Object.keys(formRegistry.validators))
+          "Unregistered synchronous validator: ",
+          validator.name,
+          "\n",
+          "Options are: ",
+          Object.keys(formRegistry.validators),
+        )
         continue
       }
-      errors.push(...formRegistry.validators[validator.name](this, ...(validator.args || [])))
+      errors.push(
+        ...formRegistry.validators[validator.name](
+          this,
+          ...(validator.args || []),
+        ),
+      )
     }
     const errorFields: FormError = {}
     errorFields[this.fieldName] = errors
-    const asyncValidators = allValidators.filter((validator: ValidatorSpec) => validator.async)
+    const asyncValidators = allValidators.filter(
+      (validator: ValidatorSpec) => validator.async,
+    )
     const promiseSet: Array<Promise<any>> = []
     // Run the async validators
     for (const validator of asyncValidators) {
       if (!formRegistry.asyncValidators[validator.name]) {
         console.error(
-          'Unregistered asynchronous validator: ', validator.name, '\n', 'Options are: ',
-          Object.keys(formRegistry.asyncValidators))
+          "Unregistered asynchronous validator: ",
+          validator.name,
+          "\n",
+          "Options are: ",
+          Object.keys(formRegistry.asyncValidators),
+        )
         continue
       }
       const args = clone(validator.args || [])
       args.unshift(this.cancelSource.signal)
       promiseSet.push(
-        formRegistry.asyncValidators[validator.name](this, ...args).catch(axiosCatch),
+        formRegistry.asyncValidators[validator.name](this, ...args).catch(
+          axiosCatch,
+        ),
       )
     }
     // Batch up the results of all validators to avoid having the form error messages bounce back and forth between
@@ -240,12 +279,19 @@ export class FieldController {
       for (const result of results) {
         errors.push(...result)
       }
-      this.$store.commit('forms/setFieldErrors', {name: this.formName, fields: errorFields})
+      this.$store.commit("forms/setFieldErrors", {
+        name: this.formName,
+        fields: errorFields,
+      })
     })
   }
 
   public toJSON = () => {
     // Used to prevent the pretty printing service from exhausting all memory.
-    return {type: this.constructor.name, name: this.fieldName, state: this.value}
+    return {
+      type: this.constructor.name,
+      name: this.fieldName,
+      state: this.value,
+    }
   }
 }

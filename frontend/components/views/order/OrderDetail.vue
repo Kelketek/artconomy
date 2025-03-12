@@ -1,9 +1,6 @@
 <template>
   <v-container v-if="isCurrentRoute">
-    <ac-paginated
-      :list="deliverables"
-      :track-pages="true"
-    >
+    <ac-paginated :list="deliverables" :track-pages="true">
       <template #default>
         <ac-load-section :controller="order">
           <template #default>
@@ -34,35 +31,37 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcDeliverablePreview from '@/components/AcDeliverablePreview.vue'
-import AcUnreadMarker from '@/components/AcUnreadMarker.vue'
-import {computed} from 'vue'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {useRoute} from 'vue-router'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import type {Deliverable, Order, OrderProps} from '@/types/main'
-
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcDeliverablePreview from "@/components/AcDeliverablePreview.vue"
+import AcUnreadMarker from "@/components/AcUnreadMarker.vue"
+import { computed } from "vue"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { useRoute } from "vue-router"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import type { Deliverable, Order, OrderProps } from "@/types/main"
 
 const props = defineProps<OrderProps>()
 const route = useRoute()
 
 const isCurrentRoute = computed(() => {
-  return ['Order', 'Sale', 'Case'].indexOf(String(route.name)) !== -1
+  return ["Order", "Sale", "Case"].indexOf(String(route.name)) !== -1
 })
 
 const url = computed(() => {
   return `/api/sales/order/${props.orderId}/`
 })
 
-const {setError} = useErrorHandling()
+const { setError } = useErrorHandling()
 
-const order = useSingle<Order>(`order${props.orderId}`, {endpoint: url.value})
+const order = useSingle<Order>(`order${props.orderId}`, {
+  endpoint: url.value,
+})
 order.get().catch(setError)
 const deliverables = useList<Deliverable>(
-    `order${props.orderId}__deliverables`, {endpoint: `${url.value}deliverables/`},
+  `order${props.orderId}__deliverables`,
+  { endpoint: `${url.value}deliverables/` },
 )
 deliverables.firstRun()
 </script>

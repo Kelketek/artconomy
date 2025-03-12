@@ -4,10 +4,7 @@
     :color="STATUSES[deliverable.status].color"
     :light="!STATUSES[deliverable.status].dark"
   >
-    <v-icon
-      left
-      :icon="STATUSES[deliverable.status].icon"
-    />
+    <v-icon left :icon="STATUSES[deliverable.status].icon" />
     {{ STATUSES[deliverable.status].text }}
   </v-chip>
 </template>
@@ -25,84 +22,83 @@ import {
   mdiListBox,
   mdiPencil,
   mdiStar,
-} from '@mdi/js'
+} from "@mdi/js"
 
-import {DeliverableStatusValue} from '@/types/main'
+import { DeliverableStatusValue } from "@/types/main"
 
-defineProps<{deliverable: {status: DeliverableStatusValue}}>()
+defineProps<{ deliverable: { status: DeliverableStatusValue } }>()
 const STATUSES = {
   0: {
-    text: 'Waiting',
+    text: "Waiting",
     icon: mdiClockOutline,
-    color: 'white',
+    color: "white",
     dark: false,
   },
   1: {
-    text: 'NEW!',
+    text: "NEW!",
     icon: mdiStar,
-    color: 'primary',
+    color: "primary",
     dark: true,
   },
   2: {
-    text: 'Unpaid',
+    text: "Unpaid",
     icon: mdiCreditCard,
-    color: 'orange',
+    color: "orange",
     dark: true,
   },
   3: {
-    text: 'Queued',
+    text: "Queued",
     icon: mdiListBox,
-    color: 'secondary',
+    color: "secondary",
     dark: true,
   },
   4: {
-    text: 'In Progress',
+    text: "In Progress",
     icon: mdiPencil,
-    color: 'info',
+    color: "info",
     dark: true,
   },
   5: {
-    text: 'Review',
+    text: "Review",
     icon: mdiEye,
-    color: 'yellow',
+    color: "yellow",
     dark: false,
   },
   6: {
-    text: 'Cancelled',
+    text: "Cancelled",
     icon: mdiCancel,
-    color: 'black',
+    color: "black",
     dark: true,
   },
   7: {
-    text: 'Disputed',
+    text: "Disputed",
     icon: mdiGavel,
-    color: 'danger',
+    color: "danger",
     dark: true,
   },
   8: {
-    text: 'Completed',
+    text: "Completed",
     icon: mdiCheckCircle,
-    color: 'green',
+    color: "green",
     dark: true,
   },
   9: {
-    text: 'Refunded',
+    text: "Refunded",
     icon: mdiClipboardArrowLeft,
-    color: 'black',
+    color: "black",
     dark: true,
   },
   10: {
-    text: 'Limbo',
+    text: "Limbo",
     icon: mdiHelpCircle,
-    color: 'white',
+    color: "white",
     dark: false,
   },
   11: {
-    text: 'Missed',
+    text: "Missed",
     icon: mdiCancel,
-    color: 'black',
+    color: "black",
     dark: true,
   },
 }
-
 </script>

@@ -1,6 +1,6 @@
 <template>
   <v-card
-    :class="{comment: true, 'elevation-3': alternate}"
+    :class="{ comment: true, 'elevation-3': alternate }"
     class="new-comment"
     :color="color"
   >
@@ -9,11 +9,7 @@
       dense
       color="black"
     >
-      <ac-avatar
-        :user="viewerUser"
-        :show-name="false"
-        class="ml-3"
-      />
+      <ac-avatar :user="viewerUser" :show-name="false" class="ml-3" />
       <v-toolbar-title class="ml-1">
         <ac-link :to="profileLink(viewerUser)">
           {{ viewerName }}
@@ -22,36 +18,20 @@
       <v-spacer />
     </v-toolbar>
     <v-card-text>
-      <v-row
-        v-if="!isRegistered && !guestOk"
-        no-gutters
-      >
-        <v-col
-          class="text-center"
-          cols="12"
-        >
+      <v-row v-if="!isRegistered && !guestOk" no-gutters>
+        <v-col class="text-center" cols="12">
           <v-btn
             class="new-comment-button"
-            :to="{name: 'Login', query: {next: route.fullPath}}"
+            :to="{ name: 'Login', query: { next: route.fullPath } }"
             variant="elevated"
           >
-            Log in or
-            Register to
-            Comment!
+            Log in or Register to Comment!
           </v-btn>
         </v-col>
       </v-row>
-      <v-list-subheader v-else-if="!modelValue">
-        New Comment
-      </v-list-subheader>
-      <v-row
-        v-if="isRegistered || (isLoggedIn && guestOk)"
-        no-gutters
-      >
-        <v-col
-          cols="12"
-          sm="12"
-        >
+      <v-list-subheader v-else-if="!modelValue"> New Comment </v-list-subheader>
+      <v-row v-if="isRegistered || (isLoggedIn && guestOk)" no-gutters>
+        <v-col cols="12" sm="12">
           <ac-form-container v-bind="newCommentForm.bind">
             <ac-form @submit.prevent="publish">
               <ac-bound-field
@@ -62,10 +42,7 @@
                   <v-col class="text-right">
                     <v-row dense>
                       <v-spacer />
-                      <v-col
-                        v-if="modelValue"
-                        class="shrink"
-                      >
+                      <v-col v-if="modelValue" class="shrink">
                         <v-tooltip top>
                           <template #activator="activator">
                             <v-btn
@@ -112,77 +89,82 @@
 </template>
 
 <script setup lang="ts">
-import {useViewer} from '@/mixins/viewer.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {mdiCancel, mdiSend} from '@mdi/js'
-import {computed, Ref, watch} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {profileLink} from '@/lib/otherFormatters.ts'
-import {useTheme} from 'vuetify'
-import {useRoute} from 'vue-router'
-import type {Comment} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
-import {RawData} from '@/store/forms/types/main'
+import { useViewer } from "@/mixins/viewer.ts"
+import { ListController } from "@/store/lists/controller.ts"
+import AcAvatar from "@/components/AcAvatar.vue"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcForm from "@/components/wrappers/AcForm.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { mdiCancel, mdiSend } from "@mdi/js"
+import { computed, Ref, watch } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { profileLink } from "@/lib/otherFormatters.ts"
+import { useTheme } from "vuetify"
+import { useRoute } from "vue-router"
+import type { Comment } from "@/types/main"
+import { User } from "@/store/profiles/types/main"
+import { RawData } from "@/store/forms/types/main"
 
 const route = useRoute()
 
 // Used for when we're nested under a comment thread.
 const cancel = () => {
-  emit('update:modelValue', false)
+  emit("update:modelValue", false)
 }
 
 declare interface AcNewCommentProps {
   commentList: ListController<Comment>
-  alternate?: boolean,
-  modelValue?: boolean,
-  guestOk?: boolean,
-  extraData?: RawData,
+  alternate?: boolean
+  modelValue?: boolean
+  guestOk?: boolean
+  extraData?: RawData
 }
 
-const props = withDefaults(
-    defineProps<AcNewCommentProps>(),
-    {
-      alternate: false,
-      modelValue: false,
-      guestOk: false,
-      extraData: () => ({}),
-    }
-)
+const props = withDefaults(defineProps<AcNewCommentProps>(), {
+  alternate: false,
+  modelValue: false,
+  guestOk: false,
+  extraData: () => ({}),
+})
 
 const theme = useTheme()
 
 const color = computed(() => {
   if (props.alternate) {
-    return theme.current.value.colors['well-darken-4']
+    return theme.current.value.colors["well-darken-4"]
   }
-  return ''
+  return ""
 })
 
-const emit = defineEmits<{'update:modelValue': [false]}>()
-const {viewer, isLoggedIn, isRegistered, viewerName} = useViewer()
+const emit = defineEmits<{ "update:modelValue": [false] }>()
+const { viewer, isLoggedIn, isRegistered, viewerName } = useViewer()
 
-const viewerUser =  viewer as Ref<User>
+const viewerUser = viewer as Ref<User>
 
-const newCommentForm = useForm(props.commentList.name.value + '_new', {
+const newCommentForm = useForm(props.commentList.name.value + "_new", {
   endpoint: props.commentList.endpoint,
   fields: {
-    text: {value: ''},
-    extra_data: {value: props.extraData},
+    text: { value: "" },
+    extra_data: { value: props.extraData },
   },
 })
 
 const publish = () => {
-  newCommentForm.submit().then(props.commentList.push).then(cancel).catch(newCommentForm.setErrors)
+  newCommentForm
+    .submit()
+    .then(props.commentList.push)
+    .then(cancel)
+    .catch(newCommentForm.setErrors)
 }
 
-watch(() => props.extraData, () => {
-  newCommentForm.fields.extra_data.update(props.extraData)
-}, {deep: true})
+watch(
+  () => props.extraData,
+  () => {
+    newCommentForm.fields.extra_data.update(props.extraData)
+  },
+  { deep: true },
+)
 </script>
 
 <style lang="stylus" scoped>

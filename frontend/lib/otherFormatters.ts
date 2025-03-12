@@ -1,6 +1,6 @@
-import {format, parseISO as upstreamParseISO} from 'date-fns'
+import { format, parseISO as upstreamParseISO } from "date-fns"
 
-import {RelatedUser, TerseUser, User} from '@/store/profiles/types/main'
+import { RelatedUser, TerseUser, User } from "@/store/profiles/types/main"
 
 export const truncateText = (text: string, maxLength: number) => {
   if (text.length <= maxLength) {
@@ -11,14 +11,14 @@ export const truncateText = (text: string, maxLength: number) => {
   // Find the first space break before that point.
   while (iterator < newText.length) {
     const testText = newText.slice(0, newText.length - iterator)
-    if (([' ', '\n', '\r', '\t'].indexOf(testText[testText.length - 1]) === -1)) {
+    if ([" ", "\n", "\r", "\t"].indexOf(testText[testText.length - 1]) === -1) {
       iterator += 1
       continue
     }
-    return testText.trimEnd() + '...'
+    return testText.trimEnd() + "..."
   }
   // Super long word for some reason.
-  return newText + '...'
+  return newText + "..."
 }
 
 export function parseISO(dateString: string | Date) {
@@ -30,45 +30,45 @@ export function parseISO(dateString: string | Date) {
 }
 
 export function formatDateTime(dateString: string) {
-  return format(parseISO(dateString), 'MMMM do yyyy, h:mm:ss aaa')
+  return format(parseISO(dateString), "MMMM do yyyy, h:mm:ss aaa")
 }
 
 export function formatDate(dateString: string) {
-  return format(parseISO(dateString), 'MMMM do yyyy')
+  return format(parseISO(dateString), "MMMM do yyyy")
 }
 
 export function formatDateTerse(dateString: string | Date) {
   const date = parseISO(dateString)
   if (date.getFullYear() !== new Date().getFullYear()) {
-    return format(date, 'MMM do yy')
+    return format(date, "MMM do yy")
   }
-  return format(date, 'MMM do')
+  return format(date, "MMM do")
 }
 
 export function formatSize(size: number): string {
   if (size > 1024 * 1024 * 1024 * 1024) {
-    return (size / 1024 / 1024 / 1024 / 1024).toFixed(2) + ' TB'
+    return (size / 1024 / 1024 / 1024 / 1024).toFixed(2) + " TB"
   } else if (size > 1024 * 1024 * 1024) {
-    return (size / 1024 / 1024 / 1024).toFixed(2) + ' GB'
+    return (size / 1024 / 1024 / 1024).toFixed(2) + " GB"
   } else if (size > 1024 * 1024) {
-    return (size / 1024 / 1024).toFixed(2) + ' MB'
+    return (size / 1024 / 1024).toFixed(2) + " MB"
   } else if (size > 1024) {
-    return (size / 1024).toFixed(2) + ' KB'
+    return (size / 1024).toFixed(2) + " KB"
   }
-  return size.toString() + ' B'
+  return size.toString() + " B"
 }
 
 export function deriveDisplayName(username: string) {
   if (!username) {
-    return ''
+    return ""
   }
-  if (username === '_') {
-    return ''
+  if (username === "_") {
+    return ""
   }
-  if (username.startsWith('__deleted')) {
-    return '[deleted]'
+  if (username.startsWith("__deleted")) {
+    return "[deleted]"
   }
-  if (username.startsWith('__')) {
+  if (username.startsWith("__")) {
     // @ts-expect-error Match should always work in practice
     // or there's a much bigger problem.
     return `Guest #${username.match(/__([0-9]+)/)[1]}`
@@ -77,10 +77,10 @@ export function deriveDisplayName(username: string) {
 }
 
 export function guestName(username: string) {
-  if (username.indexOf(' #') !== -1) {
+  if (username.indexOf(" #") !== -1) {
     return true
   }
-  return (username.startsWith('__'))
+  return username.startsWith("__")
 }
 
 export function posse(userList: string[], additional: number) {
@@ -91,13 +91,13 @@ export function posse(userList: string[], additional: number) {
   if (userList.length === 3 && !additional) {
     return `${userList[0]}, ${userList[1]}, and ${userList[2]}`
   }
-  let group = userList.join(', ')
+  let group = userList.join(", ")
   if (additional) {
-    group += ' and ' + additional
+    group += " and " + additional
     if (additional === 1) {
-      group += ' other'
+      group += " other"
     } else {
-      group += ' others'
+      group += " others"
     }
   }
   return group
@@ -111,7 +111,7 @@ export function profileLink(user: User | TerseUser | RelatedUser | null) {
     return null
   }
   return {
-    name: 'AboutUser',
-    params: {username: user.username},
+    name: "AboutUser",
+    params: { username: user.username },
   }
 }

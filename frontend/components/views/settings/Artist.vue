@@ -3,21 +3,12 @@
     <template #default>
       <v-card>
         <v-card-text>
-          <v-container
-            fluid
-            class="py-0"
-          >
+          <v-container fluid class="py-0">
             <v-list-subheader>
-              <strong>
-                Workload
-              </strong>
+              <strong> Workload </strong>
             </v-list-subheader>
             <v-row class="pb-4">
-              <v-col
-                cols="12"
-                sm="6"
-                md="3"
-              >
+              <v-col cols="12" sm="6" md="3">
                 <ac-patch-field
                   label="Commissions Closed"
                   field-type="v-switch"
@@ -26,14 +17,12 @@
                   :persistent-hint="true"
                   :save-indicator="false"
                   color="primary"
-                  :patcher="subjectHandler.artistProfile.patchers.commissions_closed"
+                  :patcher="
+                    subjectHandler.artistProfile.patchers.commissions_closed
+                  "
                 />
               </v-col>
-              <v-col
-                cols="12"
-                sm="6"
-                md="3"
-              >
+              <v-col cols="12" sm="6" md="3">
                 <ac-patch-field
                   label="Auto Withdraw"
                   field-type="v-switch"
@@ -45,11 +34,7 @@
                   :persistent-hint="true"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                sm="6"
-                md="3"
-              >
+              <v-col cols="12" sm="6" md="3">
                 <ac-patch-field
                   label="Public Queue"
                   field-type="v-switch"
@@ -60,11 +45,7 @@
                   :persistent-hint="true"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                sm="6"
-                md="3"
-              >
+              <v-col cols="12" sm="6" md="3">
                 <v-row no-gutters>
                   <v-col cols="12">
                     <ac-patch-field
@@ -79,9 +60,9 @@
                   <v-col cols="12">
                     <div class="v-messages mb-1">
                       <div class="v-messages__message">
-                        Commissions are automatically closed when you've filled up your
-                        slots.
-                        You can customize an order to take multiple slots if it is especially big.
+                        Commissions are automatically closed when you've filled
+                        up your slots. You can customize an order to take
+                        multiple slots if it is especially big.
                       </div>
                     </div>
                   </v-col>
@@ -102,10 +83,7 @@
             </v-row>
           </v-container>
           <v-row no-gutters>
-            <v-col
-              class="py-4"
-              cols="12"
-            >
+            <v-col class="py-4" cols="12">
               <v-divider />
             </v-col>
             <v-col cols="12">
@@ -122,10 +100,7 @@
           </v-row>
           <v-container>
             <v-row no-gutters>
-              <v-col
-                class="py-4"
-                cols="12"
-              >
+              <v-col class="py-4" cols="12">
                 <v-divider />
               </v-col>
               <v-col cols="12">
@@ -133,10 +108,7 @@
                   <strong>I am/identify as...</strong>
                 </v-list-subheader>
               </v-col>
-              <v-col
-                cols="12"
-                sm="6"
-              >
+              <v-col cols="12" sm="6">
                 <ac-patch-field
                   :patcher="artistProfile.patchers.artist_of_color"
                   field-type="ac-checkbox"
@@ -144,10 +116,7 @@
                   label="An Artist of Color"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                sm="6"
-              >
+              <v-col cols="12" sm="6">
                 <ac-patch-field
                   :patcher="artistProfile.patchers.lgbt"
                   field-type="ac-checkbox"
@@ -156,7 +125,10 @@
                 />
               </v-col>
               <v-col cols="12">
-                <strong>...and would like to be featured in the relevant community sections.</strong>
+                <strong
+                  >...and would like to be featured in the relevant community
+                  sections.</strong
+                >
               </v-col>
             </v-row>
           </v-container>
@@ -167,15 +139,15 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
+import { useSubject } from "@/mixins/subjective.ts"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
 
-import type {SubjectiveProps} from '@/types/main'
+import type { SubjectiveProps } from "@/types/main"
 
 const props = defineProps<SubjectiveProps>()
 
-const {subjectHandler} = useSubject({ props })
+const { subjectHandler } = useSubject({ props })
 
 const artistProfile = subjectHandler.artistProfile
 artistProfile.get().then()

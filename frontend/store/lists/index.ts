@@ -1,41 +1,51 @@
-import {ArtState as RootState} from '../artState.ts'
-import {ActionTree, MutationTree, Store} from 'vuex'
-import {artCall, ArtCallOptions, immediate} from '@/lib/lib.ts'
-import axios from 'axios'
-import {SingleModule} from '@/store/singles'
-import {QueryParams} from '@/store/helpers/QueryParams.ts'
+import { ArtState as RootState } from "../artState.ts"
+import { ActionTree, MutationTree, Store } from "vuex"
+import { artCall, ArtCallOptions, immediate } from "@/lib/lib.ts"
+import axios from "axios"
+import { SingleModule } from "@/store/singles"
+import { QueryParams } from "@/store/helpers/QueryParams.ts"
 
-import type {SingleSocketSettings} from '@/store/singles/types.d.ts'
-import type {ListSocketSettings, ListState, PaginatedResponse} from '@/store/lists/types.d.ts'
-import {HttpVerbs} from '@/store/forms/types/main'
+import type { SingleSocketSettings } from "@/store/singles/types.d.ts"
+import type {
+  ListSocketSettings,
+  ListState,
+  PaginatedResponse,
+} from "@/store/lists/types.d.ts"
+import { HttpVerbs } from "@/store/forms/types/main"
 
 function registerItems(store: Store<any>, state: ListState<any>, items: any[]) {
   if ((state as any).items === undefined) {
     // Build a namespace for the singles.
-    store.registerModule([...state.name.split('/'), 'items'], {
-      namespaced: true, getters: {}, mutations: {}, actions: {},
+    store.registerModule([...state.name.split("/"), "items"], {
+      namespaced: true,
+      getters: {},
+      mutations: {},
+      actions: {},
     })
   }
   const entries: string[] = []
   for (const item of items) {
-    const target = (state as any).items[item[state.keyProp] + '']
-    const path = [...state.name.split('/'), 'items', item[state.keyProp] + '']
+    const target = (state as any).items[item[state.keyProp] + ""]
+    const path = [...state.name.split("/"), "items", item[state.keyProp] + ""]
     if (target !== undefined) {
       store.unregisterModule(path)
     }
-    let socketSettings: SingleSocketSettings|null
+    let socketSettings: SingleSocketSettings | null
     if (state.socketSettings !== null) {
-      socketSettings = {...state.socketSettings}
+      socketSettings = { ...state.socketSettings }
     } else {
       socketSettings = null
     }
-    store.registerModule(path, new SingleModule({
-      x: item,
-      endpoint: state.endpoint + item[state.keyProp] + '/',
-      ready: true,
-      socketSettings: socketSettings,
-    }))
-    entries.push(item[state.keyProp] + '')
+    store.registerModule(
+      path,
+      new SingleModule({
+        x: item,
+        endpoint: state.endpoint + item[state.keyProp] + "/",
+        ready: true,
+        socketSettings: socketSettings,
+      }),
+    )
+    entries.push(item[state.keyProp] + "")
   }
   return entries
 }
@@ -78,18 +88,25 @@ export class ListModule<T extends object> {
   public namespaced: boolean
 
   public constructor(options: {
-                       grow?: boolean, currentPage?: number, endpoint: string, persistent?: boolean,
-                       keyProp?: keyof T, name: string, reverse?: boolean, failed?: boolean, stale?: boolean,
-                       socketSettings?: ListSocketSettings, params?: QueryParams,
-                     },
-  ) {
+    grow?: boolean
+    currentPage?: number
+    endpoint: string
+    persistent?: boolean
+    keyProp?: keyof T
+    name: string
+    reverse?: boolean
+    failed?: boolean
+    stale?: boolean
+    socketSettings?: ListSocketSettings
+    params?: QueryParams
+  }) {
     const defaults = {
       grow: false,
       response: null,
       refs: [],
       persistent: false,
       ready: false,
-      keyProp: 'id' as keyof T,
+      keyProp: "id" as keyof T,
       fetching: false,
       reverse: false,
       prependNew: false,
@@ -99,8 +116,8 @@ export class ListModule<T extends object> {
       socketSettings: null,
       stale: false,
     }
-    const cancel = {source: new AbortController()}
-    this.state = {...defaults, ...options}
+    const cancel = { source: new AbortController() }
+    this.state = { ...defaults, ...options }
     this.state.params = defaultParams(this.state, this.state.params)
     this.mutations = {
       setEndpoint(state: ListState<T>, endpoint: string) {
@@ -108,7 +125,7 @@ export class ListModule<T extends object> {
       },
       kill() {
         // Triggers the cancellation token.
-        cancel.source.abort('Killed.')
+        cancel.source.abort("Killed.")
         cancel.source = new AbortController()
       },
       setResponse(state: ListState<T>, response: PaginatedResponse) {
@@ -117,23 +134,43 @@ export class ListModule<T extends object> {
           return
         }
         // Other data is sent along. Drop it.
-        state.response = {size: response.size, count: response.count}
+        state.response = { size: response.size, count: response.count }
       },
       unshift(state, items) {
-        const entries = registerItems(this as unknown as Store<any>, state, items)
+        const entries = registerItems(
+          this as unknown as Store<any>,
+          state,
+          items,
+        )
         state.refs.unshift(...entries)
       },
       uniqueUnshift(state, items) {
-        const entries = registerItems(this as unknown as Store<any>, state, items)
-        state.refs.unshift(...entries.filter((ref: string) => state.refs.indexOf(ref) === -1))
+        const entries = registerItems(
+          this as unknown as Store<any>,
+          state,
+          items,
+        )
+        state.refs.unshift(
+          ...entries.filter((ref: string) => state.refs.indexOf(ref) === -1),
+        )
       },
       push(state, items) {
-        const entries = registerItems(this as unknown as Store<any>, state, items)
+        const entries = registerItems(
+          this as unknown as Store<any>,
+          state,
+          items,
+        )
         state.refs.push(...entries)
       },
       uniquePush(state, items) {
-        const entries = registerItems(this as unknown as Store<any>, state, items)
-        state.refs.push(...entries.filter((ref: string) => state.refs.indexOf(ref) === -1))
+        const entries = registerItems(
+          this as unknown as Store<any>,
+          state,
+          items,
+        )
+        state.refs.push(
+          ...entries.filter((ref: string) => state.refs.indexOf(ref) === -1),
+        )
       },
       setReady(state: ListState<T>, value: boolean) {
         state.ready = value
@@ -148,28 +185,35 @@ export class ListModule<T extends object> {
         state.stale = value
       },
       remove(state: ListState<T>, item: T) {
-        let index = state.refs.indexOf((item as any)[state.keyProp] + '')
+        let index = state.refs.indexOf((item as any)[state.keyProp] + "")
         if (index === -1) {
           return
         }
         while (index !== -1) {
           state.refs.splice(index, 1)
-          index = state.refs.indexOf((item as any)[state.keyProp] + '')
+          index = state.refs.indexOf((item as any)[state.keyProp] + "")
         }
         // @ts-expect-error Bad upstream declaration, I think.
-        this.unregisterModule([...state.name.split('/'), 'items', item[state.keyProp] + ''])
+        this.unregisterModule([
+          ...state.name.split("/"),
+          "items",
+          item[state.keyProp] + "",
+        ])
       },
       replace(state: ListState<T>, item: T) {
-        const index = state.refs.indexOf(item[state.keyProp] + '')
+        const index = state.refs.indexOf(item[state.keyProp] + "")
         if (index === -1) {
           return
         }
-        (state as any).items[(item as any)[state.keyProp]].x = item
+        ;(state as any).items[(item as any)[state.keyProp]].x = item
       },
       setList(state: ListState<T>, items: string[]) {
         state.refs = registerItems(this as unknown as Store<any>, state, items)
       },
-      setSocketSettings(state: ListState<T>, socketSettings: ListSocketSettings) {
+      setSocketSettings(
+        state: ListState<T>,
+        socketSettings: ListSocketSettings,
+      ) {
         state.socketSettings = socketSettings
       },
       setParams(state: ListState<T>, params: QueryParams) {
@@ -182,7 +226,11 @@ export class ListModule<T extends object> {
         if (state.reverse) {
           items = items.reverse()
         }
-        const entries = registerItems(this as unknown as Store<any>, state, items)
+        const entries = registerItems(
+          this as unknown as Store<any>,
+          state,
+          items,
+        )
         if (state.grow) {
           if (state.reverse) {
             state.refs.unshift(...entries)
@@ -194,7 +242,7 @@ export class ListModule<T extends object> {
         const toRemove = state.refs.filter((x) => entries.indexOf(x) === -1)
         toRemove.map((x: string) => {
           // @ts-expect-error Bad upstream declaration, I think.
-          this.unregisterModule([...state.name.split('/'), 'items', x])
+          this.unregisterModule([...state.name.split("/"), "items", x])
         })
         state.refs = entries
       },
@@ -206,16 +254,16 @@ export class ListModule<T extends object> {
       },
     }
     this.actions = {
-      async get({state, commit, dispatch}) {
+      async get({ state, commit, dispatch }) {
         /* istanbul ignore next */
         if (state.fetching) {
           cancel.source.abort()
           cancel.source = new AbortController()
         }
-        commit('setFetching', true)
+        commit("setFetching", true)
         const callOptions: ArtCallOptions = {
           url: state.endpoint,
-          method: 'get' as HttpVerbs,
+          method: "get" as HttpVerbs,
           signal: cancel.source.signal,
         }
         const params = state.params || {}
@@ -226,77 +274,83 @@ export class ListModule<T extends object> {
           /* istanbul ignore next */
           (err) => {
             if (!axios.isCancel(err)) {
-              commit('setFailed', true)
-              commit('setFetching', false)
+              commit("setFailed", true)
+              commit("setFetching", false)
               throw err
             }
-          })
+          },
+        )
         /* istanbul ignore if */
         if (response === undefined) {
           return
         }
-        return dispatch('buildResults', response)
+        return dispatch("buildResults", response)
       },
-      async firstRun({state, dispatch}) {
+      async firstRun({ state, dispatch }) {
         // Runs get if we've never succeeded before and are not fetching.
         // Otherwise, does nothing. Useful when Vue reloads components.
         if (state.ready || state.fetching) {
           return immediate(undefined)
         }
-        return dispatch('get')
+        return dispatch("get")
       },
-      async buildResults({state, commit}, response) {
+      async buildResults({ state, commit }, response) {
         if (state.paginated) {
           /* istanbul ignore if */
           if (response.results === undefined) {
             console.error(response, state.endpoint)
-            throw Error('No results list. Are you sure this endpoint is paginated?')
+            throw Error(
+              "No results list. Are you sure this endpoint is paginated?",
+            )
           }
-          commit('setPageItems', response.results)
-          commit('setResponse', response)
+          commit("setPageItems", response.results)
+          commit("setResponse", response)
         } else {
-          commit('setPageItems', response)
-          commit('setResponse', null)
+          commit("setPageItems", response)
+          commit("setResponse", null)
         }
-        commit('setFetching', false)
-        commit('setReady', true)
+        commit("setFetching", false)
+        commit("setReady", true)
       },
-      async post({state, commit}, item: Partial<T>) {
-        commit('kill')
+      async post({ state, commit }, item: Partial<T>) {
+        commit("kill")
         return artCall({
           url: state.endpoint,
-          method: 'post',
+          method: "post",
           data: item,
           signal: cancel.source.signal,
         })
       },
-      async reset({commit, dispatch}) {
-        commit('kill')
-        commit('setReady', false)
-        commit('setFetching', false)
-        commit('setList', [])
-        commit('setResponse', null)
-        commit('setCurrentPage', 1)
-        return dispatch('firstRun')
+      async reset({ commit, dispatch }) {
+        commit("kill")
+        commit("setReady", false)
+        commit("setFetching", false)
+        commit("setList", [])
+        commit("setResponse", null)
+        commit("setCurrentPage", 1)
+        return dispatch("firstRun")
       },
-      async next({state, dispatch}) {
-        if (state.params && pageFromParams(state.params) >= totalPages(state.response)) {
+      async next({ state, dispatch }) {
+        if (
+          state.params &&
+          pageFromParams(state.params) >= totalPages(state.response)
+        ) {
           return
         }
-        return dispatch('getPage', pageFromParams(state.params) + 1)
+        return dispatch("getPage", pageFromParams(state.params) + 1)
       },
-      async retryGet({commit, dispatch}) {
-        commit('setFailed', false)
-        commit('setReady', false)
-        return dispatch('get')
+      async retryGet({ commit, dispatch }) {
+        commit("setFailed", false)
+        commit("setReady", false)
+        return dispatch("get")
       },
-      async getPage({state, commit, dispatch}, pageNum: number) {
+      async getPage({ state, commit, dispatch }, pageNum: number) {
         if (pageFromParams(state.params) === pageNum) {
           return
         }
-        commit('setFailed', false)
-        commit('setCurrentPage', pageNum)
-        return dispatch('get')
+        commit("setFailed", false)
+        commit("setCurrentPage", pageNum)
+        return dispatch("get")
       },
     }
     this.namespaced = true

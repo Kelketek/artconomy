@@ -1,55 +1,64 @@
-import {differenceInYears} from 'date-fns'
-import {ProfileController} from '@/store/profiles/controller.ts'
-import {useStore} from 'vuex'
-import {useProfile} from '@/store/profiles/hooks.ts'
-import {ArtState} from '@/store/artState.ts'
-import {ArtStore} from '@/store/index.ts'
-import {computed, watch} from 'vue'
-import {SingleController} from '@/store/singles/controller.ts'
-import {parseISO} from '@/lib/otherFormatters.ts'
-import {Ratings} from '@/types/enums/Ratings.ts'
-import {AnonUser, StaffPower, User} from '@/store/profiles/types/main'
-import {RatingsValue} from '@/types/main'
+import { differenceInYears } from "date-fns"
+import { ProfileController } from "@/store/profiles/controller.ts"
+import { useStore } from "vuex"
+import { useProfile } from "@/store/profiles/hooks.ts"
+import { ArtState } from "@/store/artState.ts"
+import { ArtStore } from "@/store/index.ts"
+import { computed, watch } from "vue"
+import { SingleController } from "@/store/singles/controller.ts"
+import { parseISO } from "@/lib/otherFormatters.ts"
+import { Ratings } from "@/types/enums/Ratings.ts"
+import { AnonUser, StaffPower, User } from "@/store/profiles/types/main"
+import { RatingsValue } from "@/types/main"
 
 export interface AgeCheckArgs {
-  value: number,
-  force?: boolean,
+  value: number
+  force?: boolean
 }
 
-
-const checkStaff = (isLoggedIn: boolean, viewer: User|AnonUser|null) => {
+const checkStaff = (isLoggedIn: boolean, viewer: User | AnonUser | null) => {
   if (!isLoggedIn) {
     return false
   }
   return Boolean((viewer as User).is_staff)
 }
 
-const checkSuperuser = (isLoggedIn: boolean, viewer: User|AnonUser|null) => {
+const checkSuperuser = (
+  isLoggedIn: boolean,
+  viewer: User | AnonUser | null,
+) => {
   if (!isLoggedIn) {
     return false
   }
   return Boolean((viewer as User).is_superuser)
 }
 
-const loginCheck = (viewer: null|AnonUser|User) => {
+const loginCheck = (viewer: null | AnonUser | User) => {
   if (!viewer) {
     return false
   }
-  return Boolean(viewer.username !== '_')
+  return Boolean(viewer.username !== "_")
 }
 
-const checkRegistered = (isLoggedIn: boolean, viewer: User|AnonUser|null) => isLoggedIn && !(viewer as User).guest
+const checkRegistered = (isLoggedIn: boolean, viewer: User | AnonUser | null) =>
+  isLoggedIn && !(viewer as User).guest
 
 const getTheocraticBan = () => window.THEOCRATIC_BAN
 
-const getRating = (viewer: User|AnonUser|null) => {
-  if (!viewer || viewer.sfw_mode || (getTheocraticBan() && !viewer.verified_adult)) {
+const getRating = (viewer: User | AnonUser | null) => {
+  if (
+    !viewer ||
+    viewer.sfw_mode ||
+    (getTheocraticBan() && !viewer.verified_adult)
+  ) {
     return Ratings.GENERAL
   }
   return viewer.rating
 }
 
-const getRawRating = (viewer: User|AnonUser|null): RatingsValue|undefined => {
+const getRawRating = (
+  viewer: User | AnonUser | null,
+): RatingsValue | undefined => {
   // The default 'rating' computed property falls back to 0, which means that we ALWAYS change from 0 if we're logged
   // in and not currently using SFW settings. So, if we want to watch for this value's change, but we want to ignore
   // the default rating setting, we use this property instead.
@@ -62,8 +71,11 @@ const getRawRating = (viewer: User|AnonUser|null): RatingsValue|undefined => {
   return viewer.rating
 }
 
-
-const ageCheck = (store: ArtStore, viewer: AnonUser|User, {value, force}: AgeCheckArgs) => {
+const ageCheck = (
+  store: ArtStore,
+  viewer: AnonUser | User,
+  { value, force }: AgeCheckArgs,
+) => {
   if (window.PRERENDERING) {
     return
   }
@@ -78,79 +90,112 @@ const ageCheck = (store: ArtStore, viewer: AnonUser|User, {value, force}: AgeChe
       return
     }
   }
-  store.commit('setContentRating', value)
-  store.commit('setShowAgeVerification', true)
-  store.commit('setAgeAsked', true)
+  store.commit("setContentRating", value)
+  store.commit("setShowAgeVerification", true)
+  store.commit("setAgeAsked", true)
 }
 
-const isAdultAllowed = (viewerHandler: ProfileController, theocraticBan: boolean) => {
+const isAdultAllowed = (
+  viewerHandler: ProfileController,
+  theocraticBan: boolean,
+) => {
   if (viewerHandler.user.patchers.sfw_mode.model) {
     return false
   }
-  if (theocraticBan && !(viewerHandler.user as SingleController<User|AnonUser>).patchers.verified_adult.model) {
+  if (
+    theocraticBan &&
+    !(viewerHandler.user as SingleController<User | AnonUser>).patchers
+      .verified_adult.model
+  ) {
     return false
   }
-  const birthday = (viewerHandler.user as SingleController<AnonUser>).patchers.birthday.model
+  const birthday = (viewerHandler.user as SingleController<AnonUser>).patchers
+    .birthday.model
   if (birthday === null) {
     return false
   }
   return differenceInYears(new Date(), parseISO(birthday)) >= 18
 }
 
-const hasLandscape = (viewer: User|AnonUser|null) => {
+const hasLandscape = (viewer: User | AnonUser | null) => {
   if (!viewer) {
     return false
   }
-  if (!('landscape' in viewer)) {
+  if (!("landscape" in viewer)) {
     return false
   }
   return viewer.landscape
 }
 
 export const POWER_LIST: StaffPower[] = [
-  'handle_disputes', 'view_social_data', 'view_financials', 'moderate_content', 'moderate_discussion',
-  'table_seller', 'view_as', 'administrate_users',
+  "handle_disputes",
+  "view_social_data",
+  "view_financials",
+  "moderate_content",
+  "moderate_discussion",
+  "table_seller",
+  "view_as",
+  "administrate_users",
 ] as const
 
-export const buildPowers = (handler: ProfileController) => computed((): Record<StaffPower, boolean> => {
-  if (!handler.user.x?.is_staff || !handler.staffPowers.x) {
-    return Object.fromEntries(POWER_LIST.map((key) => [key, false])) as Record<StaffPower, boolean>
-  }
-  if (handler.user.x?.is_superuser) {
-    return Object.fromEntries(POWER_LIST.map((key) => [key, true])) as Record<StaffPower, boolean>
-  }
-  return Object.fromEntries(
-    Object.entries(handler.staffPowers.x).filter((item) => typeof item[1] === 'boolean')
-  ) as Record<StaffPower, boolean>
-})
-
+export const buildPowers = (handler: ProfileController) =>
+  computed((): Record<StaffPower, boolean> => {
+    if (!handler.user.x?.is_staff || !handler.staffPowers.x) {
+      return Object.fromEntries(
+        POWER_LIST.map((key) => [key, false]),
+      ) as Record<StaffPower, boolean>
+    }
+    if (handler.user.x?.is_superuser) {
+      return Object.fromEntries(POWER_LIST.map((key) => [key, true])) as Record<
+        StaffPower,
+        boolean
+      >
+    }
+    return Object.fromEntries(
+      Object.entries(handler.staffPowers.x).filter(
+        (item) => typeof item[1] === "boolean",
+      ),
+    ) as Record<StaffPower, boolean>
+  })
 
 export const useViewer = () => {
   const store = useStore<ArtState>()
-  const viewerHandler = useProfile(
-    store.state.profiles!.viewerRawUsername,
-    {persistent: true, viewer: true},
-  )
+  const viewerHandler = useProfile(store.state.profiles!.viewerRawUsername, {
+    persistent: true,
+    viewer: true,
+  })
   const viewerName = computed(() => viewerHandler.displayName)
   const rawViewerName = computed(() => store.state.profiles!.viewerRawUsername)
-  const viewer = computed(() => viewerHandler.user.x as User|AnonUser)
+  const viewer = computed(() => viewerHandler.user.x as User | AnonUser)
   const theocraticBan = computed(getTheocraticBan)
-  const adultAllowed = computed(() => isAdultAllowed(viewerHandler, theocraticBan.value))
+  const adultAllowed = computed(() =>
+    isAdultAllowed(viewerHandler, theocraticBan.value),
+  )
   const isLoggedIn = computed(() => loginCheck(viewer.value))
-  const isRegistered = computed(() => checkRegistered(isLoggedIn.value, viewer.value))
+  const isRegistered = computed(() =>
+    checkRegistered(isLoggedIn.value, viewer.value),
+  )
   // TODO: Remove once tests are updated.
   const isStaff = computed(() => checkStaff(isLoggedIn.value, viewer.value))
-  const isSuperuser = computed(() => checkSuperuser(isLoggedIn.value, viewer.value))
+  const isSuperuser = computed(() =>
+    checkSuperuser(isLoggedIn.value, viewer.value),
+  )
   const rating = computed(() => getRating(viewer.value))
   const rawRating = computed(() => getRawRating(viewer.value))
-  const unverifiedInTheocracy = computed(() => theocraticBan.value && !viewer.value.verified_adult)
+  const unverifiedInTheocracy = computed(
+    () => theocraticBan.value && !viewer.value.verified_adult,
+  )
   const landscape = computed(() => hasLandscape(viewer.value))
-  watch(() => viewer.value?.is_staff, (flag) => {
-    if (!flag) {
-      return
-    }
-    viewerHandler.staffPowers.get().catch(() => {})
-  }, {immediate: true})
+  watch(
+    () => viewer.value?.is_staff,
+    (flag) => {
+      if (!flag) {
+        return
+      }
+      viewerHandler.staffPowers.get().catch(() => {})
+    },
+    { immediate: true },
+  )
   const powers = buildPowers(viewerHandler)
 
   return {

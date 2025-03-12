@@ -1,5 +1,5 @@
-import {AxiosError} from 'axios'
-import {useStore} from 'vuex'
+import { AxiosError } from "axios"
+import { useStore } from "vuex"
 
 export const statusOk = (...statuses: number[]) => {
   return (error: AxiosError) => {
@@ -13,7 +13,7 @@ export const statusOk = (...statuses: number[]) => {
 export const useErrorHandling = () => {
   const store = useStore()
   const setError = (error: Error) => {
-    store.commit('errors/setError', error)
+    store.commit("errors/setError", error)
   }
-  return {setError, statusOk}
+  return { setError, statusOk }
 }

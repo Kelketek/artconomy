@@ -8,24 +8,22 @@
       A Dispute has been filed for Deliverable #{{ event.target.id }}.
     </template>
     <template #extra>
-      <v-btn
-        variant="flat"
-        small
-        @click="claimDispute"
-      >
-        Claim
-      </v-btn>
+      <v-btn variant="flat" small @click="claimDispute"> Claim </v-btn>
     </template>
   </ac-base-notification>
 </template>
 
 <script setup lang="ts">
-import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
-import {artCall} from '@/lib/lib.ts'
-import {useRouter} from 'vue-router'
-import {computed} from 'vue'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import type {Deliverable} from '@/types/main'
+import {
+  DisplayData,
+  NotificationProps,
+  useEvent,
+} from "../mixins/notification.ts"
+import { artCall } from "@/lib/lib.ts"
+import { useRouter } from "vue-router"
+import { computed } from "vue"
+import AcBaseNotification from "@/components/views/notifications/events/AcBaseNotification.vue"
+import type { Deliverable } from "@/types/main"
 
 const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
 const event = useEvent(props)
@@ -36,7 +34,7 @@ const url = computed(() => {
 })
 const casePath = computed(() => {
   return {
-    name: 'CaseDeliverableOverview',
+    name: "CaseDeliverableOverview",
     params: {
       orderId: event.value.target.order.id,
       username: props.username,
@@ -48,10 +46,9 @@ const visitOrder = () => router.push(casePath.value)
 const claimDispute = () => {
   artCall({
     url: `${url.value}claim/`,
-    method: 'post',
+    method: "post",
   }).then(visitOrder)
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

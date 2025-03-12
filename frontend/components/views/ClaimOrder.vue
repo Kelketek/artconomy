@@ -1,34 +1,18 @@
 <template>
   <v-container>
-    <ac-form-container
-      :sending="claimForm.sending"
-      :errors="claimForm.errors"
-    >
+    <ac-form-container :sending="claimForm.sending" :errors="claimForm.errors">
       <v-row no-gutters>
-        <v-col
-          class="text-center"
-          cols="12"
-        >
+        <v-col class="text-center" cols="12">
           <h1>Your Order is waiting!</h1>
         </v-col>
-        <v-col
-          class="text-center"
-          cols="12"
-        >
-          <v-img
-            :src="cheering"
-            max-height="30vh"
-            :contain="true"
-          />
+        <v-col class="text-center" cols="12">
+          <v-img :src="cheering" max-height="30vh" :contain="true" />
         </v-col>
-        <v-col
-          v-if="isRegistered"
-          class="text-center"
-          cols="12"
-        >
+        <v-col v-if="isRegistered" class="text-center" cols="12">
           <p>
-            You are currently logged in as <strong>{{ viewerName }}</strong>. Would you like to claim this order as
-            {{ viewerName }} or continue as a guest?
+            You are currently logged in as <strong>{{ viewerName }}</strong
+            >. Would you like to claim this order as {{ viewerName }} or
+            continue as a guest?
           </p>
         </v-col>
         <v-col
@@ -37,11 +21,7 @@
           cols="12"
           sm="6"
         >
-          <v-btn
-            color="green"
-            variant="flat"
-            @click="claimAsUser"
-          >
+          <v-btn color="green" variant="flat" @click="claimAsUser">
             Claim as {{ viewerName }}!
           </v-btn>
         </v-col>
@@ -51,12 +31,7 @@
           cols="12"
           sm="6"
         >
-          <v-btn
-            variant="flat"
-            @click="becomeGuest"
-          >
-            Continue as guest
-          </v-btn>
+          <v-btn variant="flat" @click="becomeGuest"> Continue as guest </v-btn>
         </v-col>
         <v-col
           v-for="field of claimForm.fields"
@@ -77,27 +52,33 @@
 </template>
 
 <script setup lang="ts">
-import {useViewer} from '@/mixins/viewer.ts'
-import {RouteLocationRaw, useRouter} from 'vue-router'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {BASE_URL} from '@/lib/lib.ts'
-import {useSocket} from '@/plugins/socket.ts'
-import {useForm} from '@/store/forms/hooks.ts'
-import {User} from '@/store/profiles/types/main'
+import { useViewer } from "@/mixins/viewer.ts"
+import { RouteLocationRaw, useRouter } from "vue-router"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import { BASE_URL } from "@/lib/lib.ts"
+import { useSocket } from "@/plugins/socket.ts"
+import { useForm } from "@/store/forms/hooks.ts"
+import { User } from "@/store/profiles/types/main"
 
-const cheering = new URL('static/images/cheering.png', BASE_URL).href
-const props = defineProps<{username?: string, orderId?: string, token?: string, deliverableId?: string, next?: string}>()
+const cheering = new URL("static/images/cheering.png", BASE_URL).href
+const props = defineProps<{
+  username?: string
+  orderId?: string
+  token?: string
+  deliverableId?: string
+  next?: string
+}>()
 const router = useRouter()
-const {rawViewerName, viewerName, viewerHandler, isRegistered} = useViewer()
+const { rawViewerName, viewerName, viewerHandler, isRegistered } = useViewer()
 const socket = useSocket()
 
-const claimForm = useForm('orderClaim', {
-  endpoint: '/api/sales/order-auth/',
+const claimForm = useForm("orderClaim", {
+  endpoint: "/api/sales/order-auth/",
   reset: false,
   fields: {
-    id: {value: props.orderId},
-    claim_token: {value: props.token},
-    chown: {value: false},
+    id: { value: props.orderId },
+    claim_token: { value: props.token },
+    chown: { value: false },
   },
 })
 
@@ -111,7 +92,7 @@ const visitOrder = (user: User) => {
     }
   } else {
     Object.assign(route, {
-      name: 'Order',
+      name: "Order",
       params: {
         orderId: props.orderId,
         username: rawViewerName.value,
@@ -119,7 +100,7 @@ const visitOrder = (user: User) => {
     })
     if (props.deliverableId) {
       Object.assign(route, {
-        name: 'OrderDeliverableOverview',
+        name: "OrderDeliverableOverview",
         params: {
           orderId: props.orderId,
           deliverableId: props.deliverableId,

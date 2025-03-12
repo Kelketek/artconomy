@@ -8,15 +8,8 @@
             cols="12"
             class="text-center text-md-right py-2"
           >
-            <v-btn
-              color="green"
-              variant="elevated"
-              @click="showNew = true"
-            >
-              <v-icon
-                left
-                :icon="mdiPlus"
-              />
+            <v-btn color="green" variant="elevated" @click="showNew = true">
+              <v-icon left :icon="mdiPlus" />
               New Conversation
             </v-btn>
           </v-col>
@@ -56,17 +49,28 @@
                     >
                       <v-list-item
                         v-if="conversation.x"
-                        :to="{name: 'Conversation', params: {username, conversationId: conversation.x!.id}}"
+                        :to="{
+                          name: 'Conversation',
+                          params: {
+                            username,
+                            conversationId: conversation.x!.id,
+                          },
+                        }"
                       >
                         <template #prepend>
-                          <img
-                            :src="avatarImage(conversation.x!)"
-                            alt=""
-                          >
+                          <img :src="avatarImage(conversation.x!)" alt="" />
                         </template>
-                        <v-list-item-title>{{ conversationTitle(conversation.x!) }}</v-list-item-title>
-                        <v-list-item-subtitle v-if="conversation.x!.last_comment">
-                          <span v-if="conversation.x!.last_comment.user">{{ conversation.x!.last_comment.user.username }}:</span>
+                        <v-list-item-title>{{
+                          conversationTitle(conversation.x!)
+                        }}</v-list-item-title>
+                        <v-list-item-subtitle
+                          v-if="conversation.x!.last_comment"
+                        >
+                          <span v-if="conversation.x!.last_comment.user"
+                            >{{
+                              conversation.x!.last_comment.user.username
+                            }}:</span
+                          >
                           {{ textualize(conversation.x!.last_comment.text) }}
                         </v-list-item-subtitle>
                       </v-list-item>
@@ -89,13 +93,7 @@
         title="Start a New Conversation"
         @submit="newConversation.submitThen(visitConversation)"
       >
-        <v-col
-          cols="12"
-          sm="10"
-          offset-sm="1"
-          offset-md="2"
-          md="8"
-        >
+        <v-col cols="12" sm="10" offset-sm="1" offset-md="2" md="8">
           <v-row>
             <v-col cols="12">
               <ac-bound-field
@@ -120,37 +118,40 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import {mdiPlus} from '@mdi/js'
-import {posse} from '@/lib/otherFormatters.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {useViewer} from '@/mixins/viewer.ts'
-import {ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {textualize} from '@/lib/markdown.ts'
-import type {Conversation, SubjectiveProps} from '@/types/main'
-import type {StaffPower, TerseUser} from '@/store/profiles/types/main'
-
+import { useSubject } from "@/mixins/subjective.ts"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcFormDialog from "@/components/wrappers/AcFormDialog.vue"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import { mdiPlus } from "@mdi/js"
+import { posse } from "@/lib/otherFormatters.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { useViewer } from "@/mixins/viewer.ts"
+import { ref } from "vue"
+import { useRouter } from "vue-router"
+import { textualize } from "@/lib/markdown.ts"
+import type { Conversation, SubjectiveProps } from "@/types/main"
+import type { StaffPower, TerseUser } from "@/store/profiles/types/main"
 
 const props = defineProps<SubjectiveProps>()
 const router = useRouter()
-const {rawViewerName} = useViewer()
-const {setError} = useErrorHandling()
-const {isCurrent} = useSubject({ props, privateView: true, controlPowers: ['view_as'] as StaffPower[] })
+const { rawViewerName } = useViewer()
+const { setError } = useErrorHandling()
+const { isCurrent } = useSubject({
+  props,
+  privateView: true,
+  controlPowers: ["view_as"] as StaffPower[],
+})
 const showNew = ref(false)
 
-const conversations = useList<Conversation>('conversations-' + props.username, {
+const conversations = useList<Conversation>("conversations-" + props.username, {
   endpoint: `/api/profiles/account/${props.username}/conversations/`,
 })
-const newConversation = useForm('new-conversation', {
+const newConversation = useForm("new-conversation", {
   fields: {
-    participants: {value: []},
-    captcha: {value: ''},
+    participants: { value: [] },
+    captcha: { value: "" },
   },
   endpoint: `/api/profiles/account/${rawViewerName.value}/conversations/`,
 })
@@ -158,7 +159,7 @@ conversations.firstRun().catch(setError)
 
 const otherParticipants = (participants: TerseUser[]) => {
   return participants.filter(
-      (participant) => participant.username !== props.username,
+    (participant) => participant.username !== props.username,
   )
 }
 
@@ -173,9 +174,12 @@ const avatarImage = (conversation: Conversation) => {
 const conversationTitle = (conversation: Conversation) => {
   const participants = otherParticipants(conversation.participants)
   if (!participants.length) {
-    return '(Abandoned Conversation)'
+    return "(Abandoned Conversation)"
   }
-  return posse(participants.map((participant) => participant.username), participantsCount(participants))
+  return posse(
+    participants.map((participant) => participant.username),
+    participantsCount(participants),
+  )
 }
 
 const participantsCount = (participants: TerseUser[]) => {
@@ -189,10 +193,10 @@ const participantsCount = (participants: TerseUser[]) => {
 
 const visitConversation = (conversation: Conversation) => {
   router.push({
-    name: 'Conversation',
+    name: "Conversation",
     params: {
       username: props.username,
-      conversationId: conversation.id + '',
+      conversationId: conversation.id + "",
     },
   })
 }

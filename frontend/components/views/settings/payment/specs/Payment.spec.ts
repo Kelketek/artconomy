@@ -1,44 +1,50 @@
-import {VueWrapper} from '@vue/test-utils'
-import {ArtStore, createStore} from '@/store/index.ts'
-import {Router, createRouter, createWebHistory} from 'vue-router'
-import {genUser} from '@/specs/helpers/fixtures.ts'
-import {cleanUp, flushPromises, mount, vueSetup} from '@/specs/helpers/index.ts'
-import Payment from '../Payment.vue'
-import SubjectiveComponent from '@/specs/helpers/dummy_components/subjective-component.vue'
-import {describe, expect, beforeEach, afterEach, test, vi} from 'vitest'
-import {setViewer} from '@/lib/lib.ts'
+import { VueWrapper } from "@vue/test-utils"
+import { ArtStore, createStore } from "@/store/index.ts"
+import { Router, createRouter, createWebHistory } from "vue-router"
+import { genUser } from "@/specs/helpers/fixtures.ts"
+import {
+  cleanUp,
+  flushPromises,
+  mount,
+  vueSetup,
+} from "@/specs/helpers/index.ts"
+import Payment from "../Payment.vue"
+import SubjectiveComponent from "@/specs/helpers/dummy_components/subjective-component.vue"
+import { describe, expect, beforeEach, afterEach, test, vi } from "vitest"
+import { setViewer } from "@/lib/lib.ts"
 
 vi.useFakeTimers()
 
 const paymentRoutes = [
   {
-    name: 'Payment',
-    path: '/accounts/settings/:username/payment',
+    name: "Payment",
+    path: "/accounts/settings/:username/payment",
     component: Payment,
     props: true,
     children: [
       {
-        name: 'Purchase',
-        path: 'purchase',
+        name: "Purchase",
+        path: "purchase",
         component: SubjectiveComponent,
         props: true,
       },
       {
-        name: 'Payout',
-        path: 'payout',
+        name: "Payout",
+        path: "payout",
         component: SubjectiveComponent,
         props: true,
       },
       {
-        name: 'TransactionHistory',
-        path: 'transactions',
+        name: "TransactionHistory",
+        path: "transactions",
         component: SubjectiveComponent,
         props: true,
       },
     ],
-  }]
+  },
+]
 
-describe('DeliverablePayment.vue', () => {
+describe("DeliverablePayment.vue", () => {
   let store: ArtStore
   let wrapper: VueWrapper<any>
   let router: Router
@@ -52,44 +58,44 @@ describe('DeliverablePayment.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Adds Purchase to the route if missing', async() => {
+  test("Adds Purchase to the route if missing", async () => {
     setViewer({ store, user: genUser() })
     await router.replace({
-      name: 'Payment',
-      params: {username: 'Fox'},
+      name: "Payment",
+      params: { username: "Fox" },
     })
     await flushPromises()
     wrapper = mount(Payment, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
-      props: {username: 'Fox'},
+      props: { username: "Fox" },
     })
     await wrapper.vm.$nextTick()
     await flushPromises()
-    expect(router.currentRoute.value.name).toBe('Purchase')
+    expect(router.currentRoute.value.name).toBe("Purchase")
   })
-  test('Loads the subordinate route', async() => {
+  test("Loads the subordinate route", async () => {
     setViewer({ store, user: genUser() })
     await router.push({
-      name: 'Payment',
-      params: {username: 'Fox'},
+      name: "Payment",
+      params: { username: "Fox" },
     })
     wrapper = mount(Payment, {
       ...vueSetup({
         store,
-router,
+        router,
       }),
-      props: {username: 'Fox'},
+      props: { username: "Fox" },
     })
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('#payout-component').exists()).toBe(false)
+    expect(wrapper.find("#payout-component").exists()).toBe(false)
     await router.push({
-      name: 'Payout',
-      params: {username: 'Fox'},
+      name: "Payout",
+      params: { username: "Fox" },
     })
     await wrapper.vm.$nextTick()
-    expect(wrapper.find('#payout-component').exists()).toBe(true)
+    expect(wrapper.find("#payout-component").exists()).toBe(true)
   })
 })

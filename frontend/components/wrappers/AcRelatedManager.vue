@@ -4,19 +4,12 @@
     :errors="fieldController.form.errors"
   >
     <v-row no-gutters>
-      <slot
-        v-for="item in listController.list"
-        name="preview"
-        :item="item"
-      >
+      <slot v-for="item in listController.list" name="preview" :item="item">
         <v-col cols="12">
           {{ item }}
         </v-col>
       </slot>
-      <slot
-        v-if="listController.empty"
-        name="empty"
-      />
+      <slot v-if="listController.empty" name="empty" />
       <v-col cols="12">
         <slot :filter="filter" />
       </v-col>
@@ -25,29 +18,43 @@
 </template>
 
 <script setup lang="ts">
-import {ListController} from '@/store/lists/controller.ts'
-import {FieldController} from '@/store/forms/field-controller.ts'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import {SingleController} from '@/store/singles/controller.ts'
-import {watch} from 'vue'
+import { ListController } from "@/store/lists/controller.ts"
+import { FieldController } from "@/store/forms/field-controller.ts"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import { SingleController } from "@/store/singles/controller.ts"
+import { watch } from "vue"
 
-const props = defineProps<{listController: ListController<any>, fieldController: FieldController}>()
+const props = defineProps<{
+  listController: ListController<any>
+  fieldController: FieldController
+}>()
 
-const filter = (entry: {id: number}, queryText: string, itemText: string) => {
+const filter = (entry: { id: number }, queryText: string, itemText: string) => {
   if (!queryText) {
     return false
   }
-  if (props.listController.list.map((item: SingleController<any>) => item.x.id).indexOf(entry.id) !== -1) {
+  if (
+    props.listController.list
+      .map((item: SingleController<any>) => item.x.id)
+      .indexOf(entry.id) !== -1
+  ) {
     return false
   }
-  return itemText.toLocaleLowerCase().indexOf(queryText.toLocaleLowerCase()) > -1
+  return (
+    itemText.toLocaleLowerCase().indexOf(queryText.toLocaleLowerCase()) > -1
+  )
 }
 
-watch(() => props.fieldController.value, (newVal) => {
-  if (newVal === null) {
-    return
-  }
-  props.fieldController.form.submitThen(props.listController.uniquePush).then()
-})
-defineExpose({filter})
+watch(
+  () => props.fieldController.value,
+  (newVal) => {
+    if (newVal === null) {
+      return
+    }
+    props.fieldController.form
+      .submitThen(props.listController.uniquePush)
+      .then()
+  },
+)
+defineExpose({ filter })
 </script>

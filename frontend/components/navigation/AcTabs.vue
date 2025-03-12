@@ -1,15 +1,6 @@
 <template>
-  <v-container
-    fluid
-    class="pa-0"
-  >
-    <v-tabs
-      v-model="tab"
-      grow
-      centered
-      show-arrows
-      class="hidden-sm-and-down"
-    >
+  <v-container fluid class="pa-0">
+    <v-tabs v-model="tab" grow centered show-arrows class="hidden-sm-and-down">
       <ac-tab
         v-for="item in items"
         :key="item.title"
@@ -32,20 +23,24 @@
 </template>
 
 <script setup lang="ts">
-import AcTab from '@/components/AcTab.vue'
-import {computed} from 'vue'
-import type {TabSpec} from '@/types/main'
+import AcTab from "@/components/AcTab.vue"
+import { computed } from "vue"
+import type { TabSpec } from "@/types/main"
 
-const props = defineProps<{modelValue: number, label: string, items: TabSpec[]}>()
-const emit = defineEmits<{'update:modelValue': [number]}>()
+const props = defineProps<{
+  modelValue: number
+  label: string
+  items: TabSpec[]
+}>()
+const emit = defineEmits<{ "update:modelValue": [number] }>()
 
 const tab = computed({
   get() {
     return props.modelValue
   },
   set(val: number) {
-    emit('update:modelValue', val)
-  }
+    emit("update:modelValue", val)
+  },
 })
 
 const renderText = (item: TabSpec) => {

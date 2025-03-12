@@ -13,33 +13,20 @@
             icon
             size="small"
             class="mr-1"
-            @click="toggle=true"
+            @click="toggle = true"
           >
-            <v-icon
-              :icon="mdiAccount"
-              size="x-large"
-            />
+            <v-icon :icon="mdiAccount" size="x-large" />
           </v-btn>
         </template>
         Edit Characters
       </v-tooltip>
-      <v-tooltip
-        v-else
-        top
-        aria-label="Tooltip for character listing"
-      >
+      <v-tooltip v-else top aria-label="Tooltip for character listing">
         <template #activator="activator">
-          <v-icon
-            v-bind="activator.props"
-            :icon="mdiAccountGroup"
-          />
+          <v-icon v-bind="activator.props" :icon="mdiAccountGroup" />
         </template>
         Characters
       </v-tooltip>
-      <v-col
-        v-if="controller.empty"
-        align-self="center"
-      >
+      <v-col v-if="controller.empty" align-self="center">
         No characters tagged.
       </v-col>
       <ac-mini-character
@@ -54,15 +41,13 @@
         v-model="toggle"
         aria-label="Character editing dialog"
       >
-        <template #title>
-          Characters
-        </template>
+        <template #title> Characters </template>
         <ac-related-manager
           :field-controller="tagCharacter.fields.character_id"
           :list-controller="controller"
           item-key="character"
         >
-          <template #preview="{item}">
+          <template #preview="{ item }">
             <ac-mini-character
               :character="item.x.character"
               :removable="true"
@@ -71,7 +56,7 @@
               @remove="item.delete().catch(tagCharacter.setErrors)"
             />
           </template>
-          <template #default="{filter}">
+          <template #default="{ filter }">
             <v-row class="mt-1">
               <v-col cols="12">
                 <ac-bound-field
@@ -94,21 +79,24 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '../../wrappers/AcLoadSection.vue'
-import AcRelatedManager from '../../wrappers/AcRelatedManager.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcMiniCharacter from '@/components/AcMiniCharacter.vue'
-import {mdiAccountGroup, mdiAccount} from '@mdi/js'
-import {ref} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import type {LinkedCharacter} from '@/types/main'
+import AcLoadSection from "../../wrappers/AcLoadSection.vue"
+import AcRelatedManager from "../../wrappers/AcRelatedManager.vue"
+import { ListController } from "@/store/lists/controller.ts"
+import AcExpandedProperty from "@/components/wrappers/AcExpandedProperty.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcMiniCharacter from "@/components/AcMiniCharacter.vue"
+import { mdiAccountGroup, mdiAccount } from "@mdi/js"
+import { ref } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import type { LinkedCharacter } from "@/types/main"
 
-const props = defineProps<{controller: ListController<LinkedCharacter>, editable: boolean}>()
+const props = defineProps<{
+  controller: ListController<LinkedCharacter>
+  editable: boolean
+}>()
 const toggle = ref(false)
-const tagCharacter = useForm(props.controller.name.value + '__tagCharacter', {
-  fields: {character_id: {value: null}},
+const tagCharacter = useForm(props.controller.name.value + "__tagCharacter", {
+  fields: { character_id: { value: null } },
   endpoint: props.controller.endpoint,
 })
 </script>

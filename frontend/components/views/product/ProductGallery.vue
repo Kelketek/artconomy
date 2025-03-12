@@ -4,16 +4,13 @@
       <v-container v-if="product.x">
         <v-btn
           color="primary"
-          :to="{name: 'Product', params: {username, productId}}"
+          :to="{ name: 'Product', params: { username, productId } }"
           variant="flat"
         >
           <v-icon :icon="mdiArrowLeftBold" />
           Back to {{ product.x.name }}
         </v-btn>
-        <ac-paginated
-          :list="gallery"
-          :track-pages="true"
-        >
+        <ac-paginated :list="gallery" :track-pages="true">
           <template #default>
             <v-row class="py-3">
               <v-col
@@ -34,7 +31,7 @@
         </ac-paginated>
         <v-btn
           color="primary"
-          :to="{name: 'Product', params: {username, productId}}"
+          :to="{ name: 'Product', params: { username, productId } }"
           variant="flat"
         >
           <v-icon :icon="mdiArrowLeftBold" />
@@ -46,22 +43,27 @@
 </template>
 
 <script setup lang="ts">
-import {useProduct} from '@/components/views/product/mixins/ProductCentric.ts'
+import { useProduct } from "@/components/views/product/mixins/ProductCentric.ts"
 
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {mdiArrowLeftBold} from '@mdi/js'
-import {useList} from '@/store/lists/hooks.ts'
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcGalleryPreview from "@/components/AcGalleryPreview.vue"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import { mdiArrowLeftBold } from "@mdi/js"
+import { useList } from "@/store/lists/hooks.ts"
 
-import type {LinkedSubmission, ProductProps, SubjectiveProps} from '@/types/main'
+import type {
+  LinkedSubmission,
+  ProductProps,
+  SubjectiveProps,
+} from "@/types/main"
 
 const props = defineProps<SubjectiveProps & ProductProps>()
-const {product, url} = useProduct(props)
-const gallery = useList<LinkedSubmission>(`product__${props.productId}__gallery`, {endpoint: `${url.value}samples/`})
+const { product, url } = useProduct(props)
+const gallery = useList<LinkedSubmission>(
+  `product__${props.productId}__gallery`,
+  { endpoint: `${url.value}samples/` },
+)
 gallery.firstRun()
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

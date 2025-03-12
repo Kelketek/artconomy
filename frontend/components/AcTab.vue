@@ -1,19 +1,7 @@
 <template>
-  <v-tab
-    :to="destination"
-    :value="value"
-  >
-    <v-icon
-      v-if="icon"
-      left
-      :icon="icon"
-      size="large"
-      class="mr-1"
-    />
-    <component
-      :is="tag"
-      class="text-button font-weight-bold"
-    >
+  <v-tab :to="destination" :value="value">
+    <v-icon v-if="icon" left :icon="icon" size="large" class="mr-1" />
+    <component :is="tag" class="text-button font-weight-bold">
       <slot />
     </component>
     <span v-if="count">&nbsp;({{ count }})</span>
@@ -21,23 +9,32 @@
 </template>
 
 <script setup lang="ts">
-import {ListController} from '@/store/lists/controller.ts'
-import {RouteLocationNamedRaw} from 'vue-router'
-import {computed} from 'vue'
-import {clone} from '@/lib/lib.ts'
+import { ListController } from "@/store/lists/controller.ts"
+import { RouteLocationNamedRaw } from "vue-router"
+import { computed } from "vue"
+import { clone } from "@/lib/lib.ts"
 
 declare interface TabProps {
-  icon?: string,
+  icon?: string
   list?: ListController<any>
-  count?: number,
-  to?: RouteLocationNamedRaw,
-  value?: number,
-  trackPages?: boolean,
-  pageVariable?: string,
-  tag?: string,
+  count?: number
+  to?: RouteLocationNamedRaw
+  value?: number
+  trackPages?: boolean
+  pageVariable?: string
+  tag?: string
 }
 
-const props = withDefaults(defineProps<TabProps>(), {trackPages: true, pageVariable: 'page', tag: 'span', icon: undefined, list: undefined, count: undefined, to: undefined, value: undefined})
+const props = withDefaults(defineProps<TabProps>(), {
+  trackPages: true,
+  pageVariable: "page",
+  tag: "span",
+  icon: undefined,
+  list: undefined,
+  count: undefined,
+  to: undefined,
+  value: undefined,
+})
 
 const destination = computed(() => {
   if (!props.to) {
@@ -52,7 +49,7 @@ const destination = computed(() => {
   const route = clone(props.to)
   if (props.list.currentPage > 1) {
     const query = route.query || {}
-    query[props.pageVariable] = props.list.currentPage + ''
+    query[props.pageVariable] = props.list.currentPage + ""
     route.query = query
   }
   return route

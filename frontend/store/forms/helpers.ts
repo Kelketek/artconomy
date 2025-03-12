@@ -1,32 +1,44 @@
-import {AxiosError} from 'axios'
-import {FormError, FormErrorSet} from '@/store/forms/types/main'
+import { AxiosError } from "axios"
+import { FormError, FormErrorSet } from "@/store/forms/types/main"
 
 export function missingFieldError(errors: FormError): string[] {
   const result: string[] = []
   for (const key of Object.keys(errors)) {
     result.push(
-      'Whoops! We had a coding error. Please contact support and tell them the following: ' +
-      key + ': ' + errors[key].join(' '))
+      "Whoops! We had a coding error. Please contact support and tell them the following: " +
+        key +
+        ": " +
+        errors[key].join(" "),
+    )
   }
   return result
 }
 
-const TRANSLATED: {[key: string]: string} = {
-  ECONNABORTED: 'Timed out or aborted. Please try again or contact support!',
+const TRANSLATED: { [key: string]: string } = {
+  ECONNABORTED: "Timed out or aborted. Please try again or contact support!",
 }
 
-export function deriveErrors(error: AxiosError<{detail: string} | Record<string, string[]>>, knownFields: string[]): FormErrorSet {
+export function deriveErrors(
+  error: AxiosError<{ detail: string } | Record<string, string[]>>,
+  knownFields: string[],
+): FormErrorSet {
   const errorSet: FormErrorSet = {
     fields: {},
     errors: [],
   }
-  if (!error.response || !error.response.data || !(typeof error.response.data === 'object')) {
+  if (
+    !error.response ||
+    !error.response.data ||
+    !(typeof error.response.data === "object")
+  ) {
     if (error.code && TRANSLATED[error.code]) {
       errorSet.errors.push(TRANSLATED[error.code])
       return errorSet
     }
     console.trace(error)
-    errorSet.errors = ['We had an issue contacting the server. Please try again later!']
+    errorSet.errors = [
+      "We had an issue contacting the server. Please try again later!",
+    ]
     return errorSet
   }
   const unresolved: FormError = {}
@@ -38,12 +50,15 @@ export function deriveErrors(error: AxiosError<{detail: string} | Record<string,
     if (knownFields.indexOf(key) !== -1) {
       // @ts-expect-error Forcible type munging.
       errorSet.fields[key] = error.response.data[key]
-    } else if (key !== 'detail') {
+    } else if (key !== "detail") {
       // @ts-expect-error ditto
       unresolved[key] = error.response.data[key]
     }
   }
-  if (error.response.data.detail && !Array.isArray(error.response.data.detail)) {
+  if (
+    error.response.data.detail &&
+    !Array.isArray(error.response.data.detail)
+  ) {
     errorSet.errors.push(error.response.data.detail)
   }
   if (Object.keys(unresolved).length) {

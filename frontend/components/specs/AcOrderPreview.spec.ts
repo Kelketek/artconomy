@@ -1,46 +1,45 @@
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
-import {ArtStore, createStore} from '@/store/index.ts'
-import {VueWrapper} from '@vue/test-utils'
-import {genOrder, genUser} from '@/specs/helpers/fixtures.ts'
-import AcOrderPreview from '@/components/AcOrderPreview.vue'
-import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {afterEach, beforeEach, describe, expect, test} from 'vitest'
-import {setViewer} from '@/lib/lib.ts'
-import type {Order} from '@/types/main'
+import { cleanUp, mount, vueSetup } from "@/specs/helpers/index.ts"
+import { ArtStore, createStore } from "@/store/index.ts"
+import { VueWrapper } from "@vue/test-utils"
+import { genOrder, genUser } from "@/specs/helpers/fixtures.ts"
+import AcOrderPreview from "@/components/AcOrderPreview.vue"
+import Empty from "@/specs/helpers/dummy_components/empty.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import { afterEach, beforeEach, describe, expect, test } from "vitest"
+import { setViewer } from "@/lib/lib.ts"
+import type { Order } from "@/types/main"
 
 let wrapper: VueWrapper<any>
 let store: ArtStore
 let order: SingleController<Order>
 
-describe('AcOrderPreview.ts', () => {
+describe("AcOrderPreview.ts", () => {
   beforeEach(() => {
     store = createStore()
     setViewer({ store, user: genUser() })
-    order = mount(Empty, vueSetup({store})).vm.$getSingle('order', {
-      endpoint: '#',
+    order = mount(Empty, vueSetup({ store })).vm.$getSingle("order", {
+      endpoint: "#",
       x: genOrder(),
     })
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Identifies whether the user is the buyer', async() => {
-    wrapper = mount(
-      AcOrderPreview, {
-        ...vueSetup({
-          store,
-          stubs: ['router-link'],
-        }),
-        props: {
-          order,
-          username: 'Fox',
-          type: 'Sale',
-        },
-      })
+  test("Identifies whether the user is the buyer", async () => {
+    wrapper = mount(AcOrderPreview, {
+      ...vueSetup({
+        store,
+        stubs: ["router-link"],
+      }),
+      props: {
+        order,
+        username: "Fox",
+        type: "Sale",
+      },
+    })
     const vm = wrapper.vm as any
     expect(vm.isBuyer).toBe(true)
-    setViewer({ store, user: genUser({ username: 'Vulpes' }) })
+    setViewer({ store, user: genUser({ username: "Vulpes" }) })
     await vm.$nextTick()
     expect(vm.isBuyer).toBe(false)
   })

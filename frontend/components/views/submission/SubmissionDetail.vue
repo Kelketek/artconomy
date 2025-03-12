@@ -1,17 +1,9 @@
 <template>
   <v-container fluid>
-    <ac-load-section
-      :controller="submission"
-      fluid
-    >
+    <ac-load-section :controller="submission" fluid>
       <template #default>
         <v-row dense>
-          <v-col
-            cols="12"
-            md="9"
-            lg="9"
-            xl="10"
-          >
+          <v-col cols="12" md="9" lg="9" xl="10">
             <ac-asset
               v-model="showEditAsset"
               :asset="submission.x"
@@ -31,10 +23,7 @@
                     <v-tab>Edit File</v-tab>
                     <v-tab>Preview Listing</v-tab>
                   </v-tabs>
-                  <v-window
-                    v-model="editAssetTab"
-                    class="pt-2"
-                  >
+                  <v-window v-model="editAssetTab" class="pt-2">
                     <v-window-item>
                       <ac-patch-field
                         field-type="ac-uppy-file"
@@ -45,11 +34,7 @@
                     </v-window-item>
                     <v-window-item>
                       <v-row no-gutters>
-                        <v-col
-                          class="d-flex"
-                          cols="12"
-                          sm="6"
-                        >
+                        <v-col class="d-flex" cols="12" sm="6">
                           <v-row
                             no-gutters
                             class="justify-content"
@@ -67,10 +52,7 @@
                             </v-col>
                           </v-row>
                         </v-col>
-                        <v-col
-                          cols="12"
-                          sm="6"
-                        >
+                        <v-col cols="12" sm="6">
                           <ac-gallery-preview :submission="submission.x!" />
                         </v-col>
                       </v-row>
@@ -80,12 +62,7 @@
               </template>
             </ac-asset>
           </v-col>
-          <v-col
-            cols="12"
-            md="3"
-            lg="3"
-            xl="2"
-          >
+          <v-col cols="12" md="3" lg="3" xl="2">
             <v-col>
               <v-row dense>
                 <v-col
@@ -94,24 +71,18 @@
                   sm="6"
                   md="12"
                   lg="5"
-                  :class="{sm3: commissionLink, sm6: !commissionLink}"
+                  :class="{ sm3: commissionLink, sm6: !commissionLink }"
                 >
                   <v-btn
                     variant="flat"
                     block
                     color="secondary"
-                    @click="submission.patch({favorites: !submission.x!.favorites})"
+                    @click="
+                      submission.patch({ favorites: !submission.x!.favorites })
+                    "
                   >
-                    <v-icon
-                      v-if="favorite"
-                      left
-                      :icon="mdiHeart"
-                    />
-                    <v-icon
-                      v-else
-                      left
-                      :icon="mdiHeartOutline"
-                    />
+                    <v-icon v-if="favorite" left :icon="mdiHeart" />
+                    <v-icon v-else left :icon="mdiHeartOutline" />
                     Fav
                   </v-btn>
                 </v-col>
@@ -121,13 +92,10 @@
                   sm="6"
                   md="12"
                   lg="7"
-                  :class="{sm4: commissionLink, sm6: !commissionLink}"
+                  :class="{ sm4: commissionLink, sm6: !commissionLink }"
                 >
                   <v-row no-gutters>
-                    <v-col
-                      cols="6"
-                      class="pr-1"
-                    >
+                    <v-col cols="6" class="pr-1">
                       <v-btn
                         color="primary"
                         variant="flat"
@@ -135,17 +103,11 @@
                         :href="submission.x!.file.full"
                         download
                       >
-                        <v-icon
-                          left
-                          :icon="mdiContentSaveOutline"
-                        />
+                        <v-icon left :icon="mdiContentSaveOutline" />
                         Save
                       </v-btn>
                     </v-col>
-                    <v-col
-                      cols="6"
-                      class="pl-1"
-                    >
+                    <v-col cols="6" class="pl-1">
                       <v-btn
                         color="primary"
                         variant="flat"
@@ -153,29 +115,20 @@
                         :href="submission.x!.file.full"
                         class=".rounded-e"
                       >
-                        <v-icon
-                          left
-                          :icon="mdiEye"
-                        />
+                        <v-icon left :icon="mdiEye" />
                         View
                       </v-btn>
                     </v-col>
                   </v-row>
                 </v-col>
-                <v-col
-                  v-if="commissionLink"
-                  cols="12"
-                >
+                <v-col v-if="commissionLink" cols="12">
                   <v-btn
                     color="green"
                     variant="flat"
                     block
                     :to="submission.x!.commission_link || undefined"
                   >
-                    <v-icon
-                      left
-                      :icon="mdiPalette"
-                    />
+                    <v-icon left :icon="mdiPalette" />
                     Commission me!
                   </v-btn>
                 </v-col>
@@ -189,10 +142,7 @@
                     <template #title>
                       Share {{ submission.x!.title }}
                     </template>
-                    <template
-                      v-if="controls"
-                      #footer
-                    >
+                    <template v-if="controls" #footer>
                       <ac-load-section :controller="sharedWith">
                         <ac-share-manager :controller="sharedWith" />
                       </ac-load-section>
@@ -244,14 +194,8 @@
             </v-col>
           </v-col>
           <v-container class="pt-3">
-            <v-toolbar
-              :density="editing ? 'default' : 'compact'"
-              color="black"
-            >
-              <v-toolbar-title
-                v-show="!editing"
-                class="wrap"
-              >
+            <v-toolbar :density="editing ? 'default' : 'compact'" color="black">
+              <v-toolbar-title v-show="!editing" class="wrap">
                 {{ submission.x!.title }}
               </v-toolbar-title>
               <ac-patch-field
@@ -261,14 +205,8 @@
                 :patcher="submission.patchers.title"
               />
               <v-toolbar-items>
-                <v-col
-                  class="hidden-xs-only mr-0 pr-1"
-                  align-self="center"
-                >
-                  <ac-avatar
-                    :user="submission.x!.owner"
-                    :show-name="false"
-                  />
+                <v-col class="hidden-xs-only mr-0 pr-1" align-self="center">
+                  <ac-avatar :user="submission.x!.owner" :show-name="false" />
                 </v-col>
                 <v-col
                   class="hidden-xs-only ml-0 pl-0 pr-1"
@@ -300,21 +238,13 @@
                   <v-list dense>
                     <v-list-item @click.stop="editing = !editing">
                       <template #prepend>
-                        <v-icon
-                          v-if="editing"
-                          :icon="mdiLock"
-                        />
-                        <v-icon
-                          v-else
-                          :icon="mdiPencil"
-                        />
+                        <v-icon v-if="editing" :icon="mdiLock" />
+                        <v-icon v-else :icon="mdiPencil" />
                       </template>
                       <v-list-item-title v-if="editing">
                         Lock
                       </v-list-item-title>
-                      <v-list-item-title v-else>
-                        Edit
-                      </v-list-item-title>
+                      <v-list-item-title v-else> Edit </v-list-item-title>
                     </v-list-item>
                     <v-list-item>
                       <template #prepend>
@@ -324,9 +254,7 @@
                           color="primary"
                         />
                       </template>
-                      <v-list-item-title>
-                        Private
-                      </v-list-item-title>
+                      <v-list-item-title> Private </v-list-item-title>
                     </v-list-item>
                     <v-list-item>
                       <template #prepend>
@@ -336,18 +264,13 @@
                           color="primary"
                         />
                       </template>
-                      <v-list-item-title>
-                        Comments Disabled
-                      </v-list-item-title>
+                      <v-list-item-title> Comments Disabled </v-list-item-title>
                     </v-list-item>
                     <ac-confirmation :action="deleteSubmission">
                       <template #default="confirmContext">
                         <v-list-item v-on="confirmContext.on">
                           <template #prepend>
-                            <v-icon
-                              class="delete-button"
-                              :icon="mdiDelete"
-                            />
+                            <v-icon class="delete-button" :icon="mdiDelete" />
                           </template>
                           <v-list-item-title>Delete</v-list-item-title>
                         </v-list-item>
@@ -360,11 +283,7 @@
             <v-card>
               <v-card-text>
                 <v-row no-gutters>
-                  <v-col
-                    cols="12"
-                    md="8"
-                    xl="9"
-                  >
+                  <v-col cols="12" md="8" xl="9">
                     <ac-rendered
                       v-show="!editing"
                       :value="submission.x!.caption"
@@ -380,12 +299,7 @@
                       :save-comparison="submission.x!.caption"
                     />
                   </v-col>
-                  <v-col
-                    cols="12"
-                    md="3"
-                    xl="2"
-                    offset-md="1"
-                  >
+                  <v-col cols="12" md="3" xl="2" offset-md="1">
                     <v-row no-gutters>
                       <v-col cols="12">
                         <h3>Info</h3>
@@ -394,7 +308,7 @@
                       <v-col
                         class="hidden-sm-and-up"
                         cols="4"
-                        :class="{'d-flex': xs}"
+                        :class="{ 'd-flex': xs }"
                       >
                         <v-row
                           no-gutters
@@ -404,43 +318,28 @@
                           <strong>Submitted by:</strong>
                         </v-row>
                       </v-col>
-                      <v-col
-                        class="pt-2 hidden-sm-and-up"
-                        cols="8"
-                      >
+                      <v-col class="pt-2 hidden-sm-and-up" cols="8">
                         <ac-avatar :user="submission.x!.owner" />
                       </v-col>
                       <v-col cols="4">
                         <strong>Views:</strong>
                       </v-col>
-                      <v-col
-                        class="text-center"
-                        cols="8"
-                      >
+                      <v-col class="text-center" cols="8">
                         {{ submission.x!.hits }}
                       </v-col>
                       <v-col cols="4">
                         <strong>Created on:</strong>
                       </v-col>
-                      <v-col
-                        class="text-center"
-                        cols="8"
-                      >
+                      <v-col class="text-center" cols="8">
                         {{ formatDateTime(submission.x!.created_on) }}
                       </v-col>
                       <v-col cols="4">
                         <strong>Favorites:</strong>
                       </v-col>
-                      <v-col
-                        class="text-center"
-                        cols="8"
-                      >
+                      <v-col class="text-center" cols="8">
                         {{ submission.x!.favorite_count }}
                       </v-col>
-                      <v-col
-                        v-if="submission.x!.order && controls"
-                        cols="4"
-                      >
+                      <v-col v-if="submission.x!.order && controls" cols="4">
                         <strong>From Deliverable:</strong>
                       </v-col>
                       <v-col
@@ -449,15 +348,20 @@
                         cols="8"
                       >
                         <router-link
-                          :to="{name: 'SaleDeliverable', params: {username: submission.x!.owner.username, orderId: submission.x!.order.order_id, deliverableId: submission.x!.order.deliverable_id}}"
+                          :to="{
+                            name: 'SaleDeliverable',
+                            params: {
+                              username: submission.x!.owner.username,
+                              orderId: submission.x!.order.order_id,
+                              deliverableId: submission.x!.order.deliverable_id,
+                            },
+                          }"
                         >
-                          {{ submission.x!.order.deliverable_id }} from order {{ submission.x!.order.order_id }}
+                          {{ submission.x!.order.deliverable_id }} from order
+                          {{ submission.x!.order.order_id }}
                         </router-link>
                       </v-col>
-                      <v-col
-                        class="text-center"
-                        cols="12"
-                      >
+                      <v-col class="text-center" cols="12">
                         <ac-rating-button
                           class="mx-0"
                           :controls="controls"
@@ -467,10 +371,7 @@
                           :editing="editing"
                         />
                       </v-col>
-                      <v-col
-                        class="text-center"
-                        cols="12"
-                      >
+                      <v-col class="text-center" cols="12">
                         <ac-report-button v-if="!isCurrent" />
                         <ac-kill-button
                           v-if="powers.moderate_content"
@@ -497,26 +398,26 @@
 </template>
 
 <script setup lang="ts">
-import {useViewer} from '@/mixins/viewer.ts'
-import {useDisplay} from 'vuetify'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcAsset from '@/components/AcAsset.vue'
-import AcTagDisplay from '@/components/AcTagDisplay.vue'
-import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import {setMetaContent, updateTitle} from '@/lib/lib.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
-import {useEditable} from '@/mixins/editable.ts'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcArtistDisplay from './AcArtistDisplay.vue'
-import AcCharacterDisplay from '@/components/views/submission/AcCharacterDisplay.vue'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import AcShareButton from '@/components/AcShareButton.vue'
-import AcShareManager from '@/components/AcShareManager.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {useSharable} from '@/mixins/sharable.ts'
+import { useViewer } from "@/mixins/viewer.ts"
+import { useDisplay } from "vuetify"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcAsset from "@/components/AcAsset.vue"
+import AcTagDisplay from "@/components/AcTagDisplay.vue"
+import AcCommentSection from "@/components/comments/AcCommentSection.vue"
+import { setMetaContent, updateTitle } from "@/lib/lib.ts"
+import AcAvatar from "@/components/AcAvatar.vue"
+import { useEditable } from "@/mixins/editable.ts"
+import AcRendered from "@/components/wrappers/AcRendered.ts"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcArtistDisplay from "./AcArtistDisplay.vue"
+import AcCharacterDisplay from "@/components/views/submission/AcCharacterDisplay.vue"
+import AcExpandedProperty from "@/components/wrappers/AcExpandedProperty.vue"
+import AcConfirmation from "@/components/wrappers/AcConfirmation.vue"
+import AcGalleryPreview from "@/components/AcGalleryPreview.vue"
+import AcShareButton from "@/components/AcShareButton.vue"
+import AcShareManager from "@/components/AcShareManager.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { useSharable } from "@/mixins/sharable.ts"
 import {
   mdiContentSaveOutline,
   mdiDelete,
@@ -527,71 +428,86 @@ import {
   mdiLock,
   mdiPalette,
   mdiPencil,
-} from '@mdi/js'
-import {Ratings} from '@/types/enums/Ratings.ts'
-import {formatDateTime, posse, profileLink} from '@/lib/otherFormatters.ts'
-import AcRatingButton from '@/components/AcRatingButton.vue'
-import {computed, ref, watch} from 'vue'
-import {listenForSingle, useSingle} from '@/store/singles/hooks.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {useRouter} from 'vue-router'
-import {textualize} from '@/lib/markdown.ts'
-import {useTargets} from '@/plugins/targets.ts'
-import type {ArtistTag, Comment, LinkedCharacter, RatingsValue, Submission} from '@/types/main'
-import {TerseUser, RelatedUser} from '@/store/profiles/types/main'
-import AcReportButton from '@/components/AcReportButton.vue'
-import AcKillButton from '@/components/AcKillButton.vue'
+} from "@mdi/js"
+import { Ratings } from "@/types/enums/Ratings.ts"
+import { formatDateTime, posse, profileLink } from "@/lib/otherFormatters.ts"
+import AcRatingButton from "@/components/AcRatingButton.vue"
+import { computed, ref, watch } from "vue"
+import { listenForSingle, useSingle } from "@/store/singles/hooks.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { useRouter } from "vue-router"
+import { textualize } from "@/lib/markdown.ts"
+import { useTargets } from "@/plugins/targets.ts"
+import type {
+  ArtistTag,
+  Comment,
+  LinkedCharacter,
+  RatingsValue,
+  Submission,
+} from "@/types/main"
+import { TerseUser, RelatedUser } from "@/store/profiles/types/main"
+import AcReportButton from "@/components/AcReportButton.vue"
+import AcKillButton from "@/components/AcKillButton.vue"
 
-const props = defineProps<{submissionId: string}>()
+const props = defineProps<{ submissionId: string }>()
 
 const showEditAsset = ref(false)
 const editAssetTab = ref(0)
-const {viewer, theocraticBan, rawViewerName, powers, isRegistered, ageCheck} = useViewer()
-const {menuTarget} = useTargets()
+const { viewer, theocraticBan, rawViewerName, powers, isRegistered, ageCheck } =
+  useViewer()
+const { menuTarget } = useTargets()
 const router = useRouter()
 
 const url = computed(() => {
   return `/api/profiles/submission/${props.submissionId}/`
 })
 
-const submission = useSingle<Submission>(
-    `submission__${props.submissionId}`, {
-      endpoint: url.value,
-      params: {view: 'true'},
-      socketSettings: {
-        appLabel: 'profiles',
-        modelName: 'Submission',
-        serializer: 'SubmissionSerializer',
-      },
-    },
+const submission = useSingle<Submission>(`submission__${props.submissionId}`, {
+  endpoint: url.value,
+  params: { view: "true" },
+  socketSettings: {
+    appLabel: "profiles",
+    modelName: "Submission",
+    serializer: "SubmissionSerializer",
+  },
+})
+const artists = useList<ArtistTag>(
+  `submission__${props.submissionId}__artists`,
+  {
+    endpoint: `${url.value}artists/`,
+    paginated: false,
+  },
 )
-const artists = useList<ArtistTag>(`submission__${props.submissionId}__artists`, {
-  endpoint: `${url.value}artists/`,
-  paginated: false,
+const characters = useList<LinkedCharacter>(
+  `submission__${props.submissionId}__characters`,
+  {
+    endpoint: `${url.value}characters/`,
+    paginated: false,
+  },
+)
+const sharedWith = useList<TerseUser>(
+  `submission__${props.submissionId}__share`,
+  {
+    endpoint: `${url.value}share/`,
+    paginated: false,
+  },
+)
+const comments = useList<Comment>(`submission-${props.submissionId}-comments`, {
+  endpoint: `/api/lib/comments/profiles.Submission/${props.submissionId}/`,
+  reverse: true,
+  grow: true,
+  params: { size: 5 },
 })
-const characters = useList<LinkedCharacter>(`submission__${props.submissionId}__characters`, {
-  endpoint: `${url.value}characters/`,
-  paginated: false,
-})
-const sharedWith = useList<TerseUser>(`submission__${props.submissionId}__share`, {
-  endpoint: `${url.value}share/`,
-  paginated: false,
-})
-const comments = useList<Comment>(
-    `submission-${props.submissionId}-comments`, {
-      endpoint: `/api/lib/comments/profiles.Submission/${props.submissionId}/`,
-      reverse: true,
-      grow: true,
-      params: {size: 5},
-    })
 const recommended = useList<Submission>(
-    `submission-${props.submissionId}-recommended`, {
-      endpoint: `${url.value}recommended/`,
-      params: {size: 6},
-    })
+  `submission-${props.submissionId}-recommended`,
+  {
+    endpoint: `${url.value}recommended/`,
+    params: { size: 6 },
+  },
+)
 
-const {setError, statusOk} = useErrorHandling()
+const { setError, statusOk } = useErrorHandling()
 
 submission.get().catch(setError)
 artists.firstRun()
@@ -601,13 +517,12 @@ recommended.firstRun()
 listenForSingle(`submission-${props.submissionId}-update-preview`)
 listenForSingle(`submission-${props.submissionId}-update`)
 
-
 const submissionAltText = computed(() => {
   if (!submission.x) {
-    return ''
+    return ""
   }
   if (!submission.x.title) {
-    return 'Untitled Submission'
+    return "Untitled Submission"
   }
   return `Submission entitled: ${submission.x.title}`
 })
@@ -623,7 +538,11 @@ const restrictedDownload = computed(() => {
   if (!submission.x.file) {
     return false
   }
-  return (theocraticBan.value && !viewer.value?.verified_adult) && submission.x.rating > Ratings.GENERAL;
+  return (
+    theocraticBan.value &&
+    !viewer.value?.verified_adult &&
+    submission.x.rating > Ratings.GENERAL
+  )
 })
 
 const isCurrent = computed(() => {
@@ -638,14 +557,14 @@ const controls = computed(() => {
   return powers.value.moderate_content || isCurrent.value
 })
 
-const {editing} = useEditable(controls)
+const { editing } = useEditable(controls)
 
 const deleteSubmission = async () => {
   const username = submission.x!.owner.username
   return submission.delete().then(() => {
     router.replace({
-      name: 'Profile',
-      params: {username},
+      name: "Profile",
+      params: { username },
     })
   })
 }
@@ -653,19 +572,21 @@ const deleteSubmission = async () => {
 const title = computed(() => {
   // istanbul ignore if
   if (!submission.x) {
-    return ''
+    return ""
   }
   let title = submission.x.title
   if (title) {
-    title += ' -- '
+    title += " -- "
   }
   if (artists.list.length) {
     if (title) {
-      title += 'by '
+      title += "by "
     } else {
-      title += 'By '
+      title += "By "
     }
-    const artistNames = artists.list.map((user) => (user.x!.user as RelatedUser).username)
+    const artistNames = artists.list.map(
+      (user) => (user.x!.user as RelatedUser).username,
+    )
     const firstNames = artistNames.slice(0, 4)
     title += posse(firstNames, artistNames.length - firstNames.length)
   } else {
@@ -676,12 +597,15 @@ const title = computed(() => {
 
 const windowTitle = computed(() => {
   let derivedTitle = title.value
-  derivedTitle += ' - (Artconomy.com)'
+  derivedTitle += " - (Artconomy.com)"
   return derivedTitle
 })
 
 const tagControls = computed(() => {
-  return !!((controls.value || submission.x?.owner.taggable) && isRegistered.value)
+  return !!(
+    (controls.value || submission.x?.owner.taggable) &&
+    isRegistered.value
+  )
 })
 
 const commissionLink = computed(() => {
@@ -693,34 +617,43 @@ const commissionLink = computed(() => {
 })
 
 const locked = computed(() => {
-  return !(submission.x) || submission.x.comments_disabled
+  return !submission.x || submission.x.comments_disabled
 })
 
 const shareMedia = computed(() => {
   return submission.x as Submission
 })
 
-const {xs} = useDisplay()
+const { xs } = useDisplay()
 
-const {shareMediaUrl, shareMediaClean} = useSharable(shareMedia)
+const { shareMediaUrl, shareMediaClean } = useSharable(shareMedia)
 
 const setMeta = (submissionData: Submission | null | false) => {
   if (!submissionData) {
     return
   }
   updateTitle(windowTitle.value)
-  setMetaContent('description', textualize(submissionData.caption).slice(0, 160))
+  setMetaContent(
+    "description",
+    textualize(submissionData.caption).slice(0, 160),
+  )
 }
 
-watch(() => submission.x?.rating, (value?: RatingsValue|null) => {
-  if (value) {
-    ageCheck({value})
-  }
-})
+watch(
+  () => submission.x?.rating,
+  (value?: RatingsValue | null) => {
+    if (value) {
+      ageCheck({ value })
+    }
+  },
+)
 
-watch(() => submission.x, (submissionData: Submission|null) => {
-  setMeta(submissionData)
-})
+watch(
+  () => submission.x,
+  (submissionData: Submission | null) => {
+    setMeta(submissionData)
+  },
+)
 </script>
 
 <style>

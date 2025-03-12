@@ -9,50 +9,32 @@
               <v-card-subtitle>Primary Credentials</v-card-subtitle>
             </v-col>
           </v-row>
-          <v-row
-            no-gutters
-            class="pb-3"
-          >
-            <v-col
-              class="text-center"
-              cols="12"
-              sm="4"
-              lg="4"
-            >
+          <v-row no-gutters class="pb-3">
+            <v-col class="text-center" cols="12" sm="4" lg="4">
               <v-btn
                 color="primary"
                 variant="elevated"
-                @click="showUsernameChange=true"
+                @click="showUsernameChange = true"
               >
                 Change Username
               </v-btn>
               <h3>Username: {{ subject!.username }}</h3>
             </v-col>
-            <v-col
-              class="text-center"
-              cols="12"
-              sm="4"
-              lg="4"
-            >
+            <v-col class="text-center" cols="12" sm="4" lg="4">
               <v-btn
                 color="primary"
                 variant="elevated"
-                @click="showPasswordChange=true"
+                @click="showPasswordChange = true"
               >
                 Change Password
               </v-btn>
               <h3>Password</h3>
             </v-col>
-            <v-col
-              class="text-center"
-              cols="12"
-              sm="4"
-              lg="4"
-            >
+            <v-col class="text-center" cols="12" sm="4" lg="4">
               <v-btn
                 color="primary"
                 variant="elevated"
-                @click="showEmailChange=true"
+                @click="showEmailChange = true"
               >
                 Change Email
               </v-btn>
@@ -67,37 +49,23 @@
           >
             <template #header>
               <v-row no-gutters>
-                <v-col
-                  class="text-center"
-                  cols="12"
-                  md="6"
-                  offset-md="3"
-                >
+                <v-col class="text-center" cols="12" md="6" offset-md="3">
                   <h3>
-                    Warning: Any links to your account, characters, submissions, etc, such as from search engines or
-                    other
-                    sites,
-                    will be broken by changing your username. This can affect SEO.
+                    Warning: Any links to your account, characters, submissions,
+                    etc, such as from search engines or other sites, will be
+                    broken by changing your username. This can affect SEO.
                   </h3>
                 </v-col>
               </v-row>
             </template>
             <v-row no-gutters>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="New Username"
                   v-bind="usernameForm.fields.username.bind"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="Password"
                   type="password"
@@ -116,11 +84,7 @@
             @submit.prevent="passwordForm.submitThen(save)"
           >
             <v-row no-gutters>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="Current Password"
                   type="password"
@@ -129,11 +93,7 @@
                   v-bind="passwordForm.fields.current_password.bind"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="New Password"
                   type="password"
@@ -141,11 +101,7 @@
                   v-bind="passwordForm.fields.new_password.bind"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="Confirm New Password"
                   type="password"
@@ -163,11 +119,7 @@
             @submit.prevent="emailForm.submitThen(save)"
           >
             <v-row no-gutters>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="New Email"
                   type="email"
@@ -175,11 +127,7 @@
                   v-bind="emailForm.fields.email.bind"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="Confirm New Email"
                   type="email"
@@ -187,11 +135,7 @@
                   v-bind="emailForm.fields.email2.bind"
                 />
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-                offset-md="3"
-              >
+              <v-col cols="12" md="6" offset-md="3">
                 <v-text-field
                   label="Current Password"
                   type="password"
@@ -220,19 +164,13 @@
             <v-col cols="12">
               <v-card-subtitle>Account Management</v-card-subtitle>
             </v-col>
-            <v-col
-              cols="12"
-              class="text-center"
-            >
+            <v-col cols="12" class="text-center">
               <v-btn
                 color="danger"
                 variant="elevated"
                 @click="showDeleteAccount = true"
               >
-                <v-icon
-                  left
-                  :icon="mdiDeleteForever"
-                />
+                <v-icon left :icon="mdiDeleteForever" />
                 Delete my account.
               </v-btn>
             </v-col>
@@ -246,49 +184,31 @@
             <template #default>
               <v-row>
                 <v-col cols="12">
-                  <v-alert
-                    color="danger"
-                    :value="true"
-                    class="mt-2"
-                  >
+                  <v-alert color="danger" :value="true" class="mt-2">
                     <template #prepend>
-                      <v-icon
-                        :icon="mdiAlert"
-                        size="x-large"
-                      />
+                      <v-icon :icon="mdiAlert" size="x-large" />
                     </template>
-                    Account deletion is PERMANENT. To make sure this is not a mistake, please fill in the following
-                    information to confirm. You must have no open orders and no outstanding balance before removing your
-                    account.
+                    Account deletion is PERMANENT. To make sure this is not a
+                    mistake, please fill in the following information to
+                    confirm. You must have no open orders and no outstanding
+                    balance before removing your account.
                   </v-alert>
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  offset-md="3"
-                >
+                <v-col cols="12" md="6" offset-md="3">
                   <ac-bound-field
                     :field="deleteUserForm.fields.username"
                     label="Username"
                     hint="The username of this account."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  offset-md="3"
-                >
+                <v-col cols="12" md="6" offset-md="3">
                   <ac-bound-field
                     :field="deleteUserForm.fields.email"
                     label="Email"
                     hint="The email we have on file for this account."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  offset-md="3"
-                >
+                <v-col cols="12" md="6" offset-md="3">
                   <ac-bound-field
                     :field="deleteUserForm.fields.password"
                     type="password"
@@ -296,11 +216,7 @@
                     hint="Your current password."
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  md="6"
-                  offset-md="3"
-                >
+                <v-col cols="12" md="6" offset-md="3">
                   <ac-bound-field
                     :field="deleteUserForm.fields.verify"
                     label="I Am Absolutely Sure"
@@ -320,18 +236,18 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
-import AcFormDialog from '@/components/wrappers/AcFormDialog.vue'
-import AcSetupTwoFactor from './AcSetupTwoFactor.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {useAlerts} from '@/mixins/alerts.ts'
-import {mdiAlert, mdiDeleteForever} from '@mdi/js'
-import {computed, ref, watch} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {AlertCategory} from '@/store/artState.ts'
-import type {SubjectiveProps} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
+import { useSubject } from "@/mixins/subjective.ts"
+import AcFormDialog from "@/components/wrappers/AcFormDialog.vue"
+import AcSetupTwoFactor from "./AcSetupTwoFactor.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import { useAlerts } from "@/mixins/alerts.ts"
+import { mdiAlert, mdiDeleteForever } from "@mdi/js"
+import { computed, ref, watch } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { AlertCategory } from "@/store/artState.ts"
+import type { SubjectiveProps } from "@/types/main"
+import { User } from "@/store/profiles/types/main"
 
 const showUsernameChange = ref(false)
 const showPasswordChange = ref(false)
@@ -340,11 +256,14 @@ const showDeleteAccount = ref(false)
 
 const props = defineProps<SubjectiveProps>()
 
-const {subject, subjectHandler} = useSubject({props, controlPowers: ['administrate_users']})
+const { subject, subjectHandler } = useSubject({
+  props,
+  controlPowers: ["administrate_users"],
+})
 
 const userSubject = computed(() => subject.value as User)
 
-const {sendAlert} = useAlerts()
+const { sendAlert } = useAlerts()
 
 const url = computed(() => {
   return `/api/profiles/account/${props.username}/auth/credentials/`
@@ -359,10 +278,18 @@ const passwordDisabled = computed(() => {
   if (passwordForm.disabled) {
     return true
   }
-  if (!(passwordForm.fields.new_password.value && passwordForm.fields.current_password.value)) {
+  if (
+    !(
+      passwordForm.fields.new_password.value &&
+      passwordForm.fields.current_password.value
+    )
+  ) {
     return true
   }
-  return passwordForm.fields.new_password.value !== passwordForm.fields.new_password2.value
+  return (
+    passwordForm.fields.new_password.value !==
+    passwordForm.fields.new_password2.value
+  )
 })
 
 const emailDisabled = computed(() => {
@@ -370,94 +297,107 @@ const emailDisabled = computed(() => {
   if (emailForm.disabled) {
     return true
   }
-  if (!(emailForm.fields.email.value && emailForm.fields.current_password.value)) {
+  if (
+    !(emailForm.fields.email.value && emailForm.fields.current_password.value)
+  ) {
     return true
   }
   return emailForm.fields.email.value !== emailForm.fields.email2.value
 })
 
-const usernameForm = useForm('usernameChange', {
+const usernameForm = useForm("usernameChange", {
   endpoint: url.value,
   fields: {
     username: {
-      value: '',
-      validators: [{name: 'required'}, {
-        name: 'username',
-        async: true,
-      }],
+      value: "",
+      validators: [
+        { name: "required" },
+        {
+          name: "username",
+          async: true,
+        },
+      ],
     },
     current_password: {
-      value: '',
-      validators: [{name: 'required'}],
+      value: "",
+      validators: [{ name: "required" }],
     },
   },
 })
 
-const passwordForm = useForm('passwordChange', {
+const passwordForm = useForm("passwordChange", {
   endpoint: url.value,
   fields: {
     new_password: {
-      value: '',
-      validators: [{name: 'required'}, {
-        name: 'password',
-        async: true,
-        args: ['password'],
-      }],
+      value: "",
+      validators: [
+        { name: "required" },
+        {
+          name: "password",
+          async: true,
+          args: ["password"],
+        },
+      ],
     },
     new_password2: {
-      value: '',
+      value: "",
       validators: [
-        {name: 'required'}, {
-          name: 'matches',
-          args: ['new_password', 'Passwords do not match.'],
+        { name: "required" },
+        {
+          name: "matches",
+          args: ["new_password", "Passwords do not match."],
         },
       ],
     },
     current_password: {
-      value: '',
-      validators: [{name: 'required'}],
+      value: "",
+      validators: [{ name: "required" }],
     },
   },
 })
 
-const emailForm = useForm('emailChange', {
+const emailForm = useForm("emailChange", {
   endpoint: url.value,
   fields: {
     email: {
-      value: '',
-      validators: [{name: 'email'}, {
-        name: 'email',
-        async: true,
-      }],
+      value: "",
+      validators: [
+        { name: "email" },
+        {
+          name: "email",
+          async: true,
+        },
+      ],
     },
     email2: {
-      value: '',
+      value: "",
       validators: [
-        {name: 'required'}, {
-          name: 'matches',
-          args: ['email', 'Emails do not match.'],
+        { name: "required" },
+        {
+          name: "matches",
+          args: ["email", "Emails do not match."],
         },
       ],
     },
     current_password: {
-      value: '',
-      validators: [{name: 'required'}],
+      value: "",
+      validators: [{ name: "required" }],
     },
   },
 })
 
-const deleteUserForm = useForm('deleteUserAccount', {
+const deleteUserForm = useForm("deleteUserAccount", {
   endpoint: deleteUrl.value,
   fields: {
     username: {
-      value: '',
+      value: "",
     },
     password: {
-      value: '',
+      value: "",
     },
     email: {
-      value: '',
-      validators: [{name: 'email'}, {name: 'email'}],
+      value: "",
+      validators: [{ name: "email" }, { name: "email" }],
     },
     verify: {
       value: false,
@@ -470,7 +410,10 @@ const save = (response: User) => {
   showUsernameChange.value = false
   showPasswordChange.value = false
   showEmailChange.value = false
-  sendAlert({message: 'Account updated successfully!', category: AlertCategory.SUCCESS})
+  sendAlert({
+    message: "Account updated successfully!",
+    category: AlertCategory.SUCCESS,
+  })
 }
 
 watch(url, (newVal: string) => {
@@ -483,14 +426,15 @@ watch(deleteUrl, (newVal: string) => {
   deleteUserForm.endpoint = newVal
 })
 
-
-watch(() => passwordForm.fields.new_password.value, () => {
-  if (passwordForm.fields.new_password.value) {
-    passwordForm.fields.new_password2.validate()
-  }
-}, {deep: true})
+watch(
+  () => passwordForm.fields.new_password.value,
+  () => {
+    if (passwordForm.fields.new_password.value) {
+      passwordForm.fields.new_password2.validate()
+    }
+  },
+  { deep: true },
+)
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -13,19 +13,17 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {DisplayData, NotificationProps} from '../mixins/notification.ts'
-import {computed} from 'vue'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import { DisplayData, NotificationProps } from "../mixins/notification.ts"
+import { computed } from "vue"
 
 const props = defineProps<NotificationProps<null, DisplayData>>()
 const assetLink = computed(() => ({
-  name: 'Sales',
+  name: "Sales",
   params: {
     username: props.username,
   },
 }))
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

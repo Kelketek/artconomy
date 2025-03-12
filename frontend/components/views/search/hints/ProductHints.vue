@@ -1,10 +1,7 @@
 <template>
   <v-col>
     <v-row no-gutters>
-      <v-col
-        class="text-center"
-        cols="12"
-      >
+      <v-col class="text-center" cols="12">
         Try terms like:
         <p class="mb-0">
           <v-chip
@@ -38,8 +35,8 @@
 </template>
 
 <script setup lang="ts">
-import {useForm} from '@/store/forms/hooks.ts'
+import { useForm } from "@/store/forms/hooks.ts"
 
-const searchForm = useForm('search')
-const search = (val: string) => searchForm.fields.q.model = val
+const searchForm = useForm("search")
+const search = (val: string) => (searchForm.fields.q.model = val)
 </script>

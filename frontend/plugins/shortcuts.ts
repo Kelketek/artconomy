@@ -1,35 +1,39 @@
-import {computed, createApp} from 'vue'
-import {v4 as uuidv4} from 'uuid'
-import {extPreview, getExt, isImage} from '@/mixins/asset_base.ts'
-import {useViewer} from '@/mixins/viewer.ts'
-import type {Asset, RatingsValue} from '@/types/main'
+import { computed, createApp } from "vue"
+import { v4 as uuidv4 } from "uuid"
+import { extPreview, getExt, isImage } from "@/mixins/asset_base.ts"
+import { useViewer } from "@/mixins/viewer.ts"
+import type { Asset, RatingsValue } from "@/types/main"
 
 export function Shortcuts(app: ReturnType<typeof createApp>): void {
   app.mixin({
     // eslint-disable-next-line vue/no-reserved-keys
-    data: () => ({_uid: uuidv4()}),
-    methods: {
-    },
+    data: () => ({ _uid: uuidv4() }),
+    methods: {},
   })
 }
 
-export const deriveImage = (asset: Asset|null, thumbName: string, fallback: boolean, rating: RatingsValue) => {
+export const deriveImage = (
+  asset: Asset | null,
+  thumbName: string,
+  fallback: boolean,
+  rating: RatingsValue,
+) => {
   if (!asset || !asset.file) {
-    return '/static/images/default-avatar.png'
+    return "/static/images/default-avatar.png"
   }
   // Viewer must be defined elsewhere. In near all cases, should be from the Viewer mixin.
   if (asset.rating > rating) {
     if (fallback) {
-      return '/static/images/default-avatar.png'
+      return "/static/images/default-avatar.png"
     }
-    return ''
+    return ""
   }
-  if (['gallery', 'full', 'preview'].indexOf(thumbName) === -1) {
+  if (["gallery", "full", "preview"].indexOf(thumbName) === -1) {
     if (asset.preview) {
       return asset.preview.thumbnail
     }
   }
-  if (getExt(asset.file.full) === 'SVG') {
+  if (getExt(asset.file.full) === "SVG") {
     return asset.file.full
   }
   if (!isImage(asset.file.full)) {
@@ -39,6 +43,6 @@ export const deriveImage = (asset: Asset|null, thumbName: string, fallback: bool
 }
 
 export const useImg = (asset: Asset, thumbName: string, fallback: boolean) => {
-  const {rating} = useViewer()
+  const { rating } = useViewer()
   return computed(() => deriveImage(asset, thumbName, fallback, rating.value))
 }

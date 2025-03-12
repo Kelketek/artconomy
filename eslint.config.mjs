@@ -2,6 +2,7 @@ import globals from "globals";
 import pluginVue from 'eslint-plugin-vue';
 import pluginJs from "@eslint/js";
 import typescriptEslint from 'typescript-eslint';
+import eslintConfigPrettier from 'eslint-config-prettier';
 
 
 export default typescriptEslint.config(
@@ -25,4 +26,5 @@ export default typescriptEslint.config(
       "vue/multi-word-component-names": "off",
     }
   },
+  eslintConfigPrettier,
 );

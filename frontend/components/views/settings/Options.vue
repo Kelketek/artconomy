@@ -2,19 +2,9 @@
   <v-card>
     <v-card-text>
       <v-list-subheader>Community</v-list-subheader>
-      <v-container
-        fluid
-        class="py-0"
-      >
-        <v-row
-          no-gutters
-          class="pb-4"
-        >
-          <v-col
-            cols="12"
-            sm="6"
-            md="4"
-          >
+      <v-container fluid class="py-0">
+        <v-row no-gutters class="pb-4">
+          <v-col cols="12" sm="6" md="4">
             <ac-patch-field
               field-type="v-switch"
               label="Favorites Hidden"
@@ -24,11 +14,7 @@
               :patcher="patchers.favorites_hidden"
             />
           </v-col>
-          <v-col
-            cols="12"
-            sm="6"
-            md="4"
-          >
+          <v-col cols="12" sm="6" md="4">
             <ac-patch-field
               label="Taggable"
               field-type="v-switch"
@@ -39,11 +25,7 @@
               color="primary"
             />
           </v-col>
-          <v-col
-            cols="12"
-            sm="6"
-            md="4"
-          >
+          <v-col cols="12" sm="6" md="4">
             <ac-patch-field
               field-type="v-switch"
               label="Artist Mode"
@@ -61,33 +43,32 @@
           <v-list-subheader>Content/Browsing</v-list-subheader>
           <v-card-text>
             <v-row>
-              <v-col
-                v-if="unverifiedInTheocracy"
-                cols="12"
-              >
+              <v-col v-if="unverifiedInTheocracy" cols="12">
                 <v-alert type="error">
-                  You are currently accessing Artconomy from a location that has restrictive laws on adult content.
-                  You will not be allowed to load adult content unless specific conditions are met.
-                  <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
+                  You are currently accessing Artconomy from a location that has
+                  restrictive laws on adult content. You will not be allowed to
+                  load adult content unless specific conditions are met.
+                  <a
+                    href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/"
+                    >Please read our blog post for more details.</a
+                  >
                 </v-alert>
               </v-col>
-              <v-col
-                v-else
-                cols="12"
-              >
+              <v-col v-else cols="12">
                 <v-alert
                   type="error"
                   :aria-hidden="patchers.sfw_mode.model ? undefined : true"
-                  :class="{invisible: !patchers.sfw_mode.model}"
+                  :class="{ invisible: !patchers.sfw_mode.model }"
                 >
-                  SFW Mode is enabled. Content settings are disabled while SFW mode is in use.
+                  SFW Mode is enabled. Content settings are disabled while SFW
+                  mode is in use.
                 </v-alert>
               </v-col>
               <v-col
                 cols="12"
                 offset-md="3"
                 md="6"
-                :class="{disabled: patchers.sfw_mode.model}"
+                :class="{ disabled: patchers.sfw_mode.model }"
               >
                 <ac-patch-field
                   field-type="ac-birthday-field"
@@ -98,10 +79,7 @@
                   hint="You must be at least 18 years old to view adult content."
                 />
               </v-col>
-              <v-col
-                cols="12"
-                md="6"
-              >
+              <v-col cols="12" md="6">
                 <ac-patch-field
                   field-type="ac-tag-field"
                   label="Blocked tags"
@@ -114,7 +92,7 @@
                 cols="12"
                 md="6"
                 class="text-center"
-                :class="{disabled: patchers.sfw_mode.model}"
+                :class="{ disabled: patchers.sfw_mode.model }"
               >
                 <ac-patch-field
                   field-type="ac-tag-field"
@@ -127,10 +105,12 @@
               <v-col
                 cols="12"
                 class="pt-5"
-                :class="{disabled: patchers.sfw_mode.model}"
+                :class="{ disabled: patchers.sfw_mode.model }"
               >
-                <strong>Select the maximum content rating
-                  you'd like to see when browsing.</strong>
+                <strong
+                  >Select the maximum content rating you'd like to see when
+                  browsing.</strong
+                >
               </v-col>
               <v-col cols="12">
                 <ac-patch-field
@@ -148,19 +128,9 @@
           </v-card-text>
         </v-col>
       </v-row>
-      <v-container
-        class="py-0"
-        fluid
-      >
-        <v-row
-          justify="center"
-          align="center"
-        >
-          <v-col
-            class="text-center"
-            cols="12"
-            sm="6"
-          >
+      <v-container class="py-0" fluid>
+        <v-row justify="center" align="center">
+          <v-col class="text-center" cols="12" sm="6">
             <ac-patch-field
               field-type="v-switch"
               label="SFW Mode"
@@ -173,20 +143,14 @@
               persistent-hint
             />
           </v-col>
-          <v-col
-            order="1"
-            cols="12"
-            sm="6"
-            class="text-center"
-          >
+          <v-col order="1" cols="12" sm="6" class="text-center">
             <v-btn
               color="secondary"
               variant="elevated"
               class="cookie-settings-button"
               @click="updateCookieSettings"
             >
-              Update Cookie
-              Settings
+              Update Cookie Settings
             </v-btn>
           </v-col>
         </v-row>
@@ -196,22 +160,22 @@
 </template>
 
 <script setup lang="ts">
-import {useViewer} from '@/mixins/viewer.ts'
-import {useSubject} from '@/mixins/subjective.ts'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import {differenceInYears} from 'date-fns'
-import {SingleController} from '@/store/singles/controller.ts'
-import {parseISO} from '@/lib/otherFormatters.ts'
-import {computed} from 'vue'
-import {useStore} from 'vuex'
-import {ArtState} from '@/store/artState.ts'
-import type {SubjectiveProps} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
+import { useViewer } from "@/mixins/viewer.ts"
+import { useSubject } from "@/mixins/subjective.ts"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import { differenceInYears } from "date-fns"
+import { SingleController } from "@/store/singles/controller.ts"
+import { parseISO } from "@/lib/otherFormatters.ts"
+import { computed } from "vue"
+import { useStore } from "vuex"
+import { ArtState } from "@/store/artState.ts"
+import type { SubjectiveProps } from "@/types/main"
+import { User } from "@/store/profiles/types/main"
 
 const props = defineProps<SubjectiveProps>()
 
-const {theocraticBan} = useViewer()
-const {subjectHandler} = useSubject({ props })
+const { theocraticBan } = useViewer()
+const { subjectHandler } = useSubject({ props })
 
 const patchers = computed(() => {
   return (subjectHandler.user as SingleController<User>).patchers
@@ -235,14 +199,14 @@ const adultAllowed = computed(() => {
 const store = useStore<ArtState>()
 
 const updateCookieSettings = () => {
-  store.commit('setShowCookieDialog', true)
+  store.commit("setShowCookieDialog", true)
 }
 </script>
 
 <!--suppress CssUnusedSymbol -->
 <style scoped>
 .disabled {
-  opacity: .5;
+  opacity: 0.5;
 }
 .invisible {
   opacity: 0;

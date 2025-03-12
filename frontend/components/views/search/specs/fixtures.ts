@@ -1,11 +1,11 @@
 export default function searchSchema() {
   return {
     // Endpoint will be ignored here.
-    endpoint: '/',
+    endpoint: "/",
     fields: {
       q: {
-        value: '',
-        omitIf: '',
+        value: "",
+        omitIf: "",
       },
       watch_list: {
         value: null,
@@ -36,27 +36,27 @@ export default function searchSchema() {
         omitIf: null,
       },
       content_ratings: {
-        value: '',
-        omitIf: '',
+        value: "",
+        omitIf: "",
       },
       minimum_content_rating: {
         value: 0,
         omitIf: 0,
       },
       max_price: {
-        value: '',
-        omitIf: '',
+        value: "",
+        omitIf: "",
       },
       min_price: {
-        value: '',
-        omitIf: '',
+        value: "",
+        omitIf: "",
       },
       max_turnaround: {
-        value: '',
-        omitIf: '',
+        value: "",
+        omitIf: "",
       },
-      size: {value: 24},
-      page: {value: 1},
+      size: { value: 24 },
+      page: { value: 1 },
     },
   }
 }

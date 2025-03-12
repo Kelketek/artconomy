@@ -13,12 +13,12 @@
 </template>
 
 <script setup lang="ts">
-import {RouteLocationRaw, useRouter} from 'vue-router'
-import {onMounted} from 'vue'
+import { RouteLocationRaw, useRouter } from "vue-router"
+import { onMounted } from "vue"
 
 const router = useRouter()
 
-const props = defineProps<{route: RouteLocationRaw}>()
+const props = defineProps<{ route: RouteLocationRaw }>()
 
 onMounted(() => {
   router.push(props.route)

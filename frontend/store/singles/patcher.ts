@@ -1,12 +1,19 @@
 // Patcher that allows more flexibility in defining how data will be sent. In most cases, you want patcher in the
 // singles module instead.
-import {artCall, clone, ComputedGetters, dotTraverse} from '@/lib/lib.ts'
-import debounce from 'lodash/debounce'
-import axios, {AxiosError} from 'axios'
-import {deriveErrors} from '@/store/forms/helpers.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {ComputedGetter, EffectScope, effectScope, ref, Ref, toValue} from 'vue'
-import {v4 as uuidv4} from 'uuid'
+import { artCall, clone, ComputedGetters, dotTraverse } from "@/lib/lib.ts"
+import debounce from "lodash/debounce"
+import axios, { AxiosError } from "axios"
+import { deriveErrors } from "@/store/forms/helpers.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import {
+  ComputedGetter,
+  EffectScope,
+  effectScope,
+  ref,
+  Ref,
+  toValue,
+} from "vue"
+import { v4 as uuidv4 } from "uuid"
 
 export function errorSend(config: Patch): (error: AxiosError) => void {
   return (error: AxiosError) => {
@@ -17,22 +24,24 @@ export function errorSend(config: Patch): (error: AxiosError) => void {
       return
     }
     const errors = deriveErrors(error, [attrName])
-    const message = (errors.fields[attrName] && errors.fields[attrName][0]) || errors.errors[0]
+    const message =
+      (errors.fields[attrName] && errors.fields[attrName][0]) ||
+      errors.errors[0]
     config.errors.value = [message]
     config.patching.value = false
   }
 }
 
 export interface PatcherArgs {
-  target: any,
-  modelProp: string,
-  attrName: string,
-  debounceRate?: number,
-  silent?: boolean,
+  target: any
+  modelProp: string
+  attrName: string
+  debounceRate?: number
+  silent?: boolean
   refresh?: boolean
 }
 
-const uncached = Symbol('Uncached')
+const uncached = Symbol("Uncached")
 
 @ComputedGetters
 export class Patch<T = any> {
@@ -47,13 +56,13 @@ export class Patch<T = any> {
   public silent: boolean
   public refresh: boolean
   public errors!: Ref<string[]>
-  public cached!: Ref<symbol|T>
+  public cached!: Ref<symbol | T>
   public patching!: Ref<boolean>
 
   constructor(args: PatcherArgs) {
     this.__getterMap = new Map()
     this.scope = effectScope(true)
-    this.target  = args.target
+    this.target = args.target
     this.modelProp = args.modelProp
     this.attrName = args.attrName
     this.debounceRate = args.debounceRate || 250
@@ -79,7 +88,9 @@ export class Patch<T = any> {
     const model = handler.x || {}
     const oldVal = model[this.attrName]
     if (oldVal === undefined) {
-      console.error(Error(`Cannot set undefined key on model: ${this.attrName}`))
+      console.error(
+        Error(`Cannot set undefined key on model: ${this.attrName}`),
+      )
       return undefined
     }
     const data: { [key: string]: any } = {}
@@ -87,7 +98,7 @@ export class Patch<T = any> {
     this.cancelSource.abort()
     this.cancelSource = new AbortController()
     this.errors.value = []
-    if (handler.endpoint === '#') {
+    if (handler.endpoint === "#") {
       // This is a special case where we're just using the single as scaffolding for Vuex storage.
       handler.updateX(data)
       return
@@ -95,21 +106,20 @@ export class Patch<T = any> {
     this.patching.value = true
     artCall({
       url: handler.endpoint,
-      method: 'patch',
+      method: "patch",
       data,
       signal: this.cancelSource.signal,
-    },
-    ).then(
-      (response) => {
+    })
+      .then((response) => {
         handler.updateX(response)
         this.patching.value = false
         if (this.cached.value === this.rawValue) {
           this.cached.value = uncached
         }
-      },
-    ).catch((err) => {
-      errorSend(this)(err)
-    })
+      })
+      .catch((err) => {
+        errorSend(this)(err)
+      })
   }
 
   public setValue = (val: T) => {
@@ -136,11 +146,13 @@ export class Patch<T = any> {
     const handler = this.handler
     const model = handler.x
     // Believe it or not, typeof null is 'object'.
-    if ((typeof model !== 'object') || model === null) {
+    if (typeof model !== "object" || model === null) {
       /* istanbul ignore else */
       if (!this.silent) {
         console.warn(
-          `Expected object in property named '${this.modelProp}', got `, model, ' instead.',
+          `Expected object in property named '${this.modelProp}', got `,
+          model,
+          " instead.",
         )
       }
       return false
@@ -148,7 +160,9 @@ export class Patch<T = any> {
     if (model[this.attrName] === undefined) {
       /* istanbul ignore else */
       if (!this.silent) {
-        console.error(`"${this.attrName}" is undefined on model "${this.modelProp}"`)
+        console.error(
+          `"${this.attrName}" is undefined on model "${this.modelProp}"`,
+        )
       }
       return false
     }
@@ -162,7 +176,7 @@ export class Patch<T = any> {
       return undefined
     }
     const value = model[this.attrName]
-    if (typeof value === 'object') {
+    if (typeof value === "object") {
       return clone(value)
     }
     return model[this.attrName]
@@ -188,15 +202,15 @@ export class Patch<T = any> {
   }
 
   public get debouncedSet() {
-    return debounce(this.rawSet, this.debounceRate, {trailing: true})
+    return debounce(this.rawSet, this.debounceRate, { trailing: true })
   }
 }
 
 export interface PatcherConfig {
-  target?: any,
+  target?: any
   modelProp: string
   attrName: string
-  debounceRate?: number,
-  refresh?: boolean,
-  silent?: boolean,
+  debounceRate?: number
+  refresh?: boolean
+  silent?: boolean
 }

@@ -1,27 +1,32 @@
 /* eslint-disable @typescript-eslint/no-unsafe-function-type */
-import {createApp, inject, markRaw} from 'vue'
-import ReconnectingWebSocket, {CloseEvent, Event} from 'reconnecting-websocket'
-import {log} from '@/lib/lib.ts'
+import { createApp, inject, markRaw } from "vue"
+import ReconnectingWebSocket, {
+  CloseEvent,
+  Event,
+} from "reconnecting-websocket"
+import { log } from "@/lib/lib.ts"
 
 export interface SocketManager {
-  socket?: ReconnectingWebSocket,
-  messageListeners: {[key: string]: {[key: string]: Function}},
-  connectListeners: {[key: string]: Function},
-  disconnectListeners: {[key: string]: Function},
-  addListener: (command: string, name: string, func: (any)) => void,
-  removeListener: (command: string, name: string) => void,
-  endpoint: string,
-  send: (command: string, payload: any) => void,
-  reset: () => void,
-  open: () => void,
+  socket?: ReconnectingWebSocket
+  messageListeners: { [key: string]: { [key: string]: Function } }
+  connectListeners: { [key: string]: Function }
+  disconnectListeners: { [key: string]: Function }
+  addListener: (command: string, name: string, func: any) => void
+  removeListener: (command: string, name: string) => void
+  endpoint: string
+  send: (command: string, payload: any) => void
+  reset: () => void
+  open: () => void
 }
 
 // Super hacky place to put this so that it can be mocked out. Side-steps Jest's unbearable module mocker.
-export const socketNameSpace: {socketClass: typeof WebSocket|typeof ReconnectingWebSocket} = {
+export const socketNameSpace: {
+  socketClass: typeof WebSocket | typeof ReconnectingWebSocket
+} = {
   socketClass: ReconnectingWebSocket,
 }
 
-export const buildSocketManger = (options: {endpoint: string}) => {
+export const buildSocketManger = (options: { endpoint: string }) => {
   const $sock: SocketManager = markRaw({
     messageListeners: {},
     connectListeners: {},
@@ -41,17 +46,21 @@ export const buildSocketManger = (options: {endpoint: string}) => {
       }
       $sock.socket.onmessage = (event: MessageEvent) => {
         const data = JSON.parse(event.data)
-        log.debug('Websocket receive:', data)
+        log.debug("Websocket receive:", data)
         if (!data.command) {
-          throw Error(`Received undefined command! Message data was: ${event.data}`)
+          throw Error(
+            `Received undefined command! Message data was: ${event.data}`,
+          )
         }
         if (data.exclude && data.exclude.includes(window.windowId)) {
           // This message is intended to be ignored by the current tab. Useful for when the tab is the one that
           // instigated the command.
           return
         }
-        const listeners = Object.values($sock.messageListeners[data.command] || {})
-        listeners.push(...(Object.values($sock.messageListeners['*'] || {})))
+        const listeners = Object.values(
+          $sock.messageListeners[data.command] || {},
+        )
+        listeners.push(...Object.values($sock.messageListeners["*"] || {}))
         for (const listener of listeners) {
           try {
             // Reparse each time to assure unique objects.
@@ -75,8 +84,8 @@ export const buildSocketManger = (options: {endpoint: string}) => {
       }
     },
     send(command: string, payload: any) {
-      log.debug('Sending: ', command, payload)
-      $sock.socket!.send(JSON.stringify({command, payload}))
+      log.debug("Sending: ", command, payload)
+      $sock.socket!.send(JSON.stringify({ command, payload }))
     },
     reset() {
       $sock.messageListeners = {}
@@ -87,9 +96,9 @@ export const buildSocketManger = (options: {endpoint: string}) => {
   return $sock
 }
 
-const socketKey = Symbol('SocketKey')
+const socketKey = Symbol("SocketKey")
 
-export const createVueSocket = (options: {endpoint: string}) => {
+export const createVueSocket = (options: { endpoint: string }) => {
   return {
     install(app: ReturnType<typeof createApp>): void {
       const $sock = buildSocketManger(options)
@@ -102,7 +111,6 @@ export const createVueSocket = (options: {endpoint: string}) => {
     },
   }
 }
-
 
 export const useSocket = () => {
   return inject(socketKey) as SocketManager

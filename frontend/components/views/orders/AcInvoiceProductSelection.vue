@@ -15,7 +15,16 @@
           md="4"
           lg="3"
         >
-          <ac-link :to="{name: 'NewOrder', params: {username, invoiceMode: 'invoice', productId: `${product.x!.id}`}}">
+          <ac-link
+            :to="{
+              name: 'NewOrder',
+              params: {
+                username,
+                invoiceMode: 'invoice',
+                productId: `${product.x!.id}`,
+              },
+            }"
+          >
             <ac-product-preview
               :product="product.x!"
               :show-username="false"
@@ -23,20 +32,11 @@
             />
           </ac-link>
         </v-col>
-        <v-col
-          cols="12"
-          sm="6"
-          md="4"
-          lg="3"
-        >
+        <v-col cols="12" sm="6" md="4" lg="3">
           <v-card>
             <v-card-title>Custom Project</v-card-title>
             <v-card-text>
-              <v-btn
-                color="green"
-                block
-                @click="showCustom = true"
-              >
+              <v-btn color="green" block @click="showCustom = true">
                 <v-icon :icon="mdiPlus" />Create Custom Invoice
               </v-btn>
             </v-card-text>
@@ -52,10 +52,7 @@
       @submit="customForm.submitThen(visitDeliverable)"
     >
       <v-row>
-        <v-col
-          cols="12"
-          md="6"
-        >
+        <v-col cols="12" md="6">
           <ac-bound-field
             :field="customForm.fields.buyer"
             label="Customer username/email"
@@ -104,11 +101,7 @@
             :persist="true"
           />
         </v-col>
-        <v-col
-          cols="12"
-          md="4"
-          offset-md="4"
-        >
+        <v-col cols="12" md="4" offset-md="4">
           <ac-bound-field
             field-type="ac-checkbox"
             :field="customForm.fields.hidden"
@@ -119,7 +112,8 @@
         </v-col>
         <v-col cols="12">
           <v-alert>
-            You will have the opportunity to add line items and make other adjustments on the next screen.
+            You will have the opportunity to add line items and make other
+            adjustments on the next screen.
           </v-alert>
         </v-col>
       </v-row>
@@ -128,49 +122,74 @@
 </template>
 
 <script setup lang="ts">
-import {flatten, prepopulateCharacters} from '@/lib/lib.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {useSubject} from '@/mixins/subjective.ts'
-import {useForm} from '@/store/forms/hooks.ts'
-import {defineAsyncComponent, ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {mdiPlus} from '@mdi/js'
-import type {Deliverable, Product, SubjectiveProps} from '@/types/main'
-import {Character} from '@/store/characters/types/main'
-import {StaffPower} from '@/store/profiles/types/main'
-const AcProductPreview = defineAsyncComponent(() => import('@/components/AcProductPreview.vue'))
-const AcFormDialog = defineAsyncComponent(() => import('@/components/wrappers/AcFormDialog.vue'))
-const AcBoundField = defineAsyncComponent(() => import('@/components/fields/AcBoundField.ts'))
-const AcPaginated = defineAsyncComponent(() => import('@/components/wrappers/AcPaginated.vue'))
+import { flatten, prepopulateCharacters } from "@/lib/lib.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { useSubject } from "@/mixins/subjective.ts"
+import { useForm } from "@/store/forms/hooks.ts"
+import { defineAsyncComponent, ref } from "vue"
+import { useRouter } from "vue-router"
+import { mdiPlus } from "@mdi/js"
+import type { Deliverable, Product, SubjectiveProps } from "@/types/main"
+import { Character } from "@/store/characters/types/main"
+import { StaffPower } from "@/store/profiles/types/main"
+const AcProductPreview = defineAsyncComponent(
+  () => import("@/components/AcProductPreview.vue"),
+)
+const AcFormDialog = defineAsyncComponent(
+  () => import("@/components/wrappers/AcFormDialog.vue"),
+)
+const AcBoundField = defineAsyncComponent(
+  () => import("@/components/fields/AcBoundField.ts"),
+)
+const AcPaginated = defineAsyncComponent(
+  () => import("@/components/wrappers/AcPaginated.vue"),
+)
 
 const props = defineProps<SubjectiveProps>()
 const router = useRouter()
 
-useSubject({ props, privateView: true, controlPowers: ['table_seller'] as StaffPower[] })
+useSubject({
+  props,
+  privateView: true,
+  controlPowers: ["table_seller"] as StaffPower[],
+})
 
-const products = useList<Product>(`${flatten(props.username)}-products`, {endpoint: `/api/sales/account/${props.username}/products/`})
+const products = useList<Product>(`${flatten(props.username)}-products`, {
+  endpoint: `/api/sales/account/${props.username}/products/`,
+})
 products.firstRun()
 
 const showCustom = ref(false)
 const showCharacters = ref(false)
 const initCharacters = ref<Character[]>([])
 
-const customForm = useForm('custom_work', {
+const customForm = useForm("custom_work", {
   endpoint: `/api/sales/account/${props.username}/create-invoice/`,
   fields: {
-    buyer: {value: null},
-    hidden: {value: false},
-    rating: {value: 0},
-    characters: {value: []},
-    details: {value: ''},
-    references: {value: []},
-  }
+    buyer: { value: null },
+    hidden: { value: false },
+    rating: { value: 0 },
+    characters: { value: [] },
+    details: { value: "" },
+    references: { value: [] },
+  },
 })
 
 const visitDeliverable = (deliverable: Deliverable) => {
-  router.push({name: 'SaleDeliverablePayment', params: {username: props.username, orderId: deliverable.order.id, deliverableId: deliverable.id}})
+  router.push({
+    name: "SaleDeliverablePayment",
+    params: {
+      username: props.username,
+      orderId: deliverable.order.id,
+      deliverableId: deliverable.id,
+    },
+  })
 }
 
-prepopulateCharacters(customForm.fields.characters, showCharacters, initCharacters)
+prepopulateCharacters(
+  customForm.fields.characters,
+  showCharacters,
+  initCharacters,
+)
 </script>

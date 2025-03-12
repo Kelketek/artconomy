@@ -23,29 +23,38 @@
 import {
   autocompleteDefaults,
   AutocompleteEmits,
-  AutocompleteProps, useAutocomplete,
-} from '@/components/fields/mixins/autocomplete.ts'
-import {ref, useAttrs} from 'vue'
-import {VAutocomplete} from 'vuetify/lib/components/VAutocomplete/index.mjs'
-import type {Product, SubjectiveProps} from '@/types/main'
+  AutocompleteProps,
+  useAutocomplete,
+} from "@/components/fields/mixins/autocomplete.ts"
+import { ref, useAttrs } from "vue"
+import { VAutocomplete } from "vuetify/lib/components/VAutocomplete/index.mjs"
+import type { Product, SubjectiveProps } from "@/types/main"
 
-const props = withDefaults(defineProps<AutocompleteProps & SubjectiveProps>(), autocompleteDefaults())
-const input = ref<null|typeof VAutocomplete>(null)
+const props = withDefaults(
+  defineProps<AutocompleteProps & SubjectiveProps>(),
+  autocompleteDefaults(),
+)
+const input = ref<null | typeof VAutocomplete>(null)
 const fieldAttrs = useAttrs()
-const emit = defineEmits<{'update:modelValue': [AutocompleteEmits]}>()
+const emit = defineEmits<{ "update:modelValue": [AutocompleteEmits] }>()
 const url = `/api/sales/search/product/${props.username}/`
-const {tags, query, items, itemFilter, searchTags} = useAutocomplete({ props, emit, input, endpoint: url })
+const { tags, query, items, itemFilter, searchTags } = useAutocomplete({
+  props,
+  emit,
+  input,
+  endpoint: url,
+})
 if (props.immediateSearch) {
-  searchTags(query.value || '')
+  searchTags(query.value || "")
 }
 
-const formatName = (item: Product|number|unknown[]) => {
+const formatName = (item: Product | number | unknown[]) => {
   /* istanbul ignore if */
   if (Array.isArray(item)) {
     // Type mismatch thrown by parent library. Return an empty string for this.
-    return ''
+    return ""
   }
-  if (typeof(item) === 'number') {
+  if (typeof item === "number") {
     // Don't have the definition, just the ID.
     return `Product #${item}`
   }

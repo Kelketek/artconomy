@@ -9,11 +9,7 @@
     <template #default>
       <v-row v-if="product.x">
         <template v-if="smAndDown">
-          <v-col
-            class="hidden-md-and-up"
-            cols="12"
-            style="position: relative"
-          >
+          <v-col class="hidden-md-and-up" cols="12" style="position: relative">
             <ac-sample-editor
               v-model="showChangePrimary"
               :large="true"
@@ -28,23 +24,13 @@
               class="edit-overlay"
               @click="showChangePrimary = true"
             >
-              <v-container
-                fluid
-                class="pa-0 edit-container"
-              >
+              <v-container fluid class="pa-0 edit-container">
                 <v-col class="edit-layout justify-content d-flex">
                   <v-col class="d-flex">
-                    <v-row
-                      no-gutters
-                      class="justify-content"
-                      align="center"
-                    >
+                    <v-row no-gutters class="justify-content" align="center">
                       <v-col class="edit-cta text-center">
                         <slot name="edit-prompt">
-                          <v-icon
-                            large
-                            :icon="mdiCameraBurst"
-                          />
+                          <v-icon large :icon="mdiCameraBurst" />
                           <p>Edit</p>
                         </slot>
                       </v-col>
@@ -71,10 +57,7 @@
                   :transition="false"
                 />
               </v-carousel-item>
-              <v-carousel-item
-                v-for="sample in slides"
-                :key="sample.id"
-              >
+              <v-carousel-item v-for="sample in slides" :key="sample.id">
                 <ac-gallery-preview
                   :submission="sample"
                   :aspect-ratio="1"
@@ -86,33 +69,21 @@
               </v-carousel-item>
             </v-carousel>
           </v-col>
-          <v-col
-            v-if="more"
-            class="hidden-md-and-up"
-            cols="12"
-          >
+          <v-col v-if="more" class="hidden-md-and-up" cols="12">
             <v-btn
               color="primary"
               block
-              :to="{name: 'ProductGallery', params: {productId, username}}"
+              :to="{ name: 'ProductGallery', params: { productId, username } }"
               variant="flat"
             >
-              Show full
-              gallery
+              Show full gallery
             </v-btn>
           </v-col>
         </template>
-        <v-col
-          v-else
-          md="4"
-          lg="5"
-        >
+        <v-col v-else md="4" lg="5">
           <v-responsive max-height="80vh">
             <v-row no-gutters>
-              <v-col
-                v-if="showExtra"
-                cols="2"
-              >
+              <v-col v-if="showExtra" cols="2">
                 <v-col>
                   <v-col
                     v-for="sample in slides"
@@ -128,12 +99,14 @@
                       :text="false"
                       :aspect-ratio="1"
                       :alt="assetAltText(sample)"
-                      :class="{submissionSelected: (shown && shown.id === sample.id)}"
+                      :class="{
+                        submissionSelected: shown && shown.id === sample.id,
+                      }"
                     />
                   </v-col>
                 </v-col>
               </v-col>
-              <v-col :class="{md10: showExtra, md12: !showExtra}">
+              <v-col :class="{ md10: showExtra, md12: !showExtra }">
                 <ac-link :to="shownSubmissionLink">
                   <ac-asset
                     v-model="showChangePrimary"
@@ -144,11 +117,7 @@
                     :alt="productAltText"
                   >
                     <template #edit-prompt>
-                      <v-icon
-                        size="x-large"
-                        large
-                        :icon="mdiCameraBurst"
-                      />
+                      <v-icon size="x-large" large :icon="mdiCameraBurst" />
                       <p>Add/Edit Samples</p>
                     </template>
                     <template #edit-menu>
@@ -164,39 +133,25 @@
                   </ac-asset>
                 </ac-link>
               </v-col>
-              <v-col
-                v-if="more"
-                cols="12"
-                class="pl-4 pt-2"
-              >
+              <v-col v-if="more" cols="12" class="pl-4 pt-2">
                 <v-btn
                   color="primary"
                   block
-                  :to="{name: 'ProductGallery', params: {productId, username}}"
+                  :to="{
+                    name: 'ProductGallery',
+                    params: { productId, username },
+                  }"
                   variant="flat"
                 >
-                  Show full
-                  gallery
+                  Show full gallery
                 </v-btn>
               </v-col>
             </v-row>
           </v-responsive>
         </v-col>
-        <v-col
-          cols="12"
-          md="5"
-          lg="5"
-          :class="{'px-2': mdAndUp}"
-        >
-          <v-toolbar
-            dense
-            color="black"
-          >
-            <ac-avatar
-              :username="username"
-              :show-name="false"
-              class="ml-3"
-            />
+        <v-col cols="12" md="5" lg="5" :class="{ 'px-2': mdAndUp }">
+          <v-toolbar dense color="black">
+            <ac-avatar :username="username" :show-name="false" class="ml-3" />
             <v-toolbar-title class="ml-1">
               <ac-link :to="profileLink(subject)">
                 {{ username }}
@@ -224,21 +179,11 @@
                 <v-list dense>
                   <v-list-item @click="editing = !editing">
                     <template #prepend>
-                      <v-icon
-                        v-if="editing"
-                        :icon="mdiLock"
-                      />
-                      <v-icon
-                        v-else
-                        :icon="mdiPencil"
-                      />
+                      <v-icon v-if="editing" :icon="mdiLock" />
+                      <v-icon v-else :icon="mdiPencil" />
                     </template>
-                    <v-list-item-title v-if="editing">
-                      Lock
-                    </v-list-item-title>
-                    <v-list-item-title v-else>
-                      Edit
-                    </v-list-item-title>
+                    <v-list-item-title v-if="editing"> Lock </v-list-item-title>
+                    <v-list-item-title v-else> Edit </v-list-item-title>
                   </v-list-item>
                   <v-list-item>
                     <template #prepend>
@@ -248,18 +193,13 @@
                         color="primary"
                       />
                     </template>
-                    <v-list-item-title>
-                      Hidden
-                    </v-list-item-title>
+                    <v-list-item-title> Hidden </v-list-item-title>
                   </v-list-item>
                   <ac-confirmation :action="deleteProduct">
                     <template #default="confirmContext">
                       <v-list-item v-on="confirmContext.on">
                         <template #prepend>
-                          <v-icon
-                            class="delete-button"
-                            :icon="mdiDelete"
-                          />
+                          <v-icon class="delete-button" :icon="mdiDelete" />
                         </template>
                         <v-list-item-title>Delete</v-list-item-title>
                       </v-list-item>
@@ -279,22 +219,16 @@
                     label="Title"
                     :patcher="product.patchers.name"
                   />
-                  <h1
-                    v-show="!editing"
-                    itemprop="name"
-                  >
+                  <h1 v-show="!editing" itemprop="name">
                     {{ product.x.name }}
                   </h1>
                 </v-col>
                 <v-col cols="12">
-                  <v-row
-                    dense
-                    class="py-3"
-                  >
+                  <v-row dense class="py-3">
                     <div class="d-inline-flex mr-1">
                       <router-link
                         v-if="product.x.user.stars"
-                        :to="{name: 'Ratings', params: {username}}"
+                        :to="{ name: 'Ratings', params: { username } }"
                         itemprop="aggregateRating"
                         itemscope
                         itemtype="http://schema.org/AggregateRating"
@@ -318,33 +252,17 @@
                         />
                       </router-link>
                     </div>
-                    <div
-                      v-if="product.x.user.stars"
-                      class="d-inline-flex mr-1"
-                    >
+                    <div v-if="product.x.user.stars" class="d-inline-flex mr-1">
                       <v-divider vertical />
                     </div>
                     <div class="d-inline-flex mr-1">
-                      <v-chip
-                        size="small"
-                        variant="flat"
-                      >
-                        <v-icon
-                          left
-                          :icon="mdiEye"
-                        />
+                      <v-chip size="small" variant="flat">
+                        <v-icon left :icon="mdiEye" />
                         {{ product.x.hits }}
                       </v-chip>
                     </div>
-                    <div
-                      v-if="product.x.featured"
-                      class="d-inline-flex mr-1"
-                    >
-                      <v-chip
-                        size="small"
-                        color="success"
-                        variant="flat"
-                      >
+                    <div v-if="product.x.featured" class="d-inline-flex mr-1">
+                      <v-chip size="small" color="success" variant="flat">
                         <v-avatar>
                           <v-icon :icon="mdiStar" />
                         </v-avatar>
@@ -354,10 +272,7 @@
                   </v-row>
                   <v-divider />
                 </v-col>
-                <v-col
-                  cols="12"
-                  class="pt-2"
-                >
+                <v-col cols="12" class="pt-2">
                   <ac-rendered
                     v-show="!editing"
                     :value="product.x.description"
@@ -374,10 +289,7 @@
                     :save-comparison="product.x.description"
                   />
                 </v-col>
-                <v-col
-                  cols="12"
-                  class="my-2"
-                >
+                <v-col cols="12" class="my-2">
                   <v-divider />
                 </v-col>
                 <v-col cols="12">
@@ -391,14 +303,8 @@
                 <v-col cols="12">
                   <ac-load-section :controller="subjectHandler.artistProfile">
                     <template #default>
-                      <v-row
-                        v-if="subjectHandler.artistProfile.x"
-                        no-gutters
-                      >
-                        <v-col
-                          cols="12"
-                          class="my-2"
-                        >
+                      <v-row v-if="subjectHandler.artistProfile.x" no-gutters>
+                        <v-col cols="12" class="my-2">
                           <strong>Maximum Content Ratings:</strong>
                           <v-btn
                             class="mx-2 rating-button"
@@ -408,11 +314,7 @@
                             :variant="editing ? 'elevated' : 'flat'"
                             @click="showRating"
                           >
-                            <v-icon
-                              v-if="editing"
-                              left
-                              :icon="mdiPencil"
-                            />
+                            <v-icon v-if="editing" left :icon="mdiPencil" />
                             {{ RATINGS_SHORT[product.x.max_rating] }}
                           </v-btn>
                           <ac-expanded-property
@@ -427,57 +329,65 @@
                           </ac-expanded-property>
                         </v-col>
                         <v-col cols="12">
-                          <v-list-subheader v-if="subjectHandler.artistProfile.x.commission_info || editing">
-                            Commission
-                            Info
-                          </v-list-subheader>
-                          <div
-                            v-if="editing"
-                            class="text-center"
+                          <v-list-subheader
+                            v-if="
+                              subjectHandler.artistProfile.x.commission_info ||
+                              editing
+                            "
                           >
+                            Commission Info
+                          </v-list-subheader>
+                          <div v-if="editing" class="text-center">
                             <v-btn
                               color="primary"
-                              :to="{name: 'Artist', params: {username}}"
+                              :to="{ name: 'Artist', params: { username } }"
                               variant="flat"
                             >
                               <span
-                                v-if="subjectHandler.artistProfile.x.commission_info"
-                              >Edit your Commission Info</span>
+                                v-if="
+                                  subjectHandler.artistProfile.x.commission_info
+                                "
+                                >Edit your Commission Info</span
+                              >
                               <span v-else>Set your commission info</span>
                             </v-btn>
                           </div>
                           <ac-rendered
-                            :value="subjectHandler.artistProfile.x.commission_info"
+                            :value="
+                              subjectHandler.artistProfile.x.commission_info
+                            "
                             :truncate="500"
                           />
                         </v-col>
-                        <v-col
-                          v-if="editing"
-                          cols="12"
-                          class="pt-3"
-                        >
+                        <v-col v-if="editing" cols="12" class="pt-3">
                           <v-expansion-panels>
                             <v-expansion-panel>
-                              <v-expansion-panel-title>Details Template</v-expansion-panel-title>
+                              <v-expansion-panel-title
+                                >Details Template</v-expansion-panel-title
+                              >
                               <v-expansion-panel-text>
                                 <v-row>
                                   <v-col cols="6">
-                                    Optional. You may include a template for the commissioner to fill out. You might do
-                                    this if you need to collect specific details for this commission and want to avoid
-                                    a lot of back and forth.
-
-                                    Here's an example template you might use:
+                                    Optional. You may include a template for the
+                                    commissioner to fill out. You might do this
+                                    if you need to collect specific details for
+                                    this commission and want to avoid a lot of
+                                    back and forth. Here's an example template
+                                    you might use:
                                   </v-col>
                                   <v-col cols="6">
                                     <blockquote>
-                                      Preferred colors:<br><br>
-                                      Do you want shading? (yes/no):<br><br>
-                                      What are your social media accounts you'd like me to tag when the piece is done?:
+                                      Preferred colors:<br /><br />
+                                      Do you want shading? (yes/no):<br /><br />
+                                      What are your social media accounts you'd
+                                      like me to tag when the piece is done?:
                                     </blockquote>
                                   </v-col>
                                   <v-col cols="12">
                                     <ac-patch-field
-                                      :patcher="product.patchers.details_template"
+                                      :patcher="
+                                        product.patchers.details_template
+                                      "
                                       label="Details Template"
                                       field-type="ac-editor"
                                       :persistent-hint="true"
@@ -497,11 +407,7 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col
-          cols="12"
-          md="3"
-          lg="2"
-        >
+        <v-col cols="12" md="3" lg="2">
           <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
@@ -509,13 +415,20 @@
                   <span
                     v-if="product.patchers.name_your_price.model"
                     class="text-h4"
-                  >Name Your Price!</span>
+                    >Name Your Price!</span
+                  >
                   <template v-else>
                     <div v-if="showDiscount">
-                      <span class="compare-at-price">${{ product.x.compare_at_price }}</span>
+                      <span class="compare-at-price"
+                        >${{ product.x.compare_at_price }}</span
+                      >
                     </div>
                     <span
-                      v-if="forceShield && !product.x.escrow_enabled && product.x.escrow_upgradable"
+                      v-if="
+                        forceShield &&
+                        !product.x.escrow_enabled &&
+                        product.x.escrow_upgradable
+                      "
                       itemprop="offers"
                       itemscope
                       itemtype="http://schema.org/Offer"
@@ -524,11 +437,13 @@
                         itemprop="priceCurrency"
                         content="USD"
                         class="text-h4"
-                      >$</span><span
+                        >$</span
+                      ><span
                         class="text-h4"
                         itemprop="price"
                         :content="product.x.shield_price"
-                      >{{ product.x.shield_price }}</span>
+                        >{{ product.x.shield_price }}</span
+                      >
                     </span>
                     <span
                       v-else
@@ -537,14 +452,13 @@
                       itemtype="http://schema.org/Offer"
                       class="text-h4"
                     >
-                      <span
-                        itemprop="priceCurrency"
-                        content="USD"
-                      >$</span><span
+                      <span itemprop="priceCurrency" content="USD">$</span
+                      ><span
                         itemprop="price"
                         class="text-h4"
                         :content="product.x.starting_price"
-                      >{{ product.x.starting_price }}</span>
+                        >{{ product.x.starting_price }}</span
+                      >
                     </span>
                   </template>
                   <v-btn
@@ -562,31 +476,20 @@
                     :large="true"
                     aria-label="Edit terms"
                   >
-                    <template #title>
-                      Edit Terms
-                    </template>
+                    <template #title> Edit Terms </template>
                     <v-row>
-                      <v-col
-                        cols="12"
-                        md="6"
-                      >
+                      <v-col cols="12" md="6">
                         <v-row>
                           <v-col cols="12">
                             <v-row>
-                              <v-col
-                                cols="12"
-                                md="6"
-                              >
+                              <v-col cols="12" md="6">
                                 <v-checkbox
                                   v-model="saleMode"
                                   label="Sale mode"
                                   hint="Check this to mark the item as on sale."
                                 />
                               </v-col>
-                              <v-col
-                                cols="12"
-                                md="6"
-                              >
+                              <v-col cols="12" md="6">
                                 <ac-patch-field
                                   :patcher="product.patchers.compare_at_price"
                                   label="Compare at price"
@@ -606,10 +509,7 @@
                               :hint="priceHint"
                             />
                           </v-col>
-                          <v-col
-                            cols="12"
-                            md="6"
-                          >
+                          <v-col cols="12" md="6">
                             <ac-patch-field
                               :patcher="product.patchers.cascade_fees"
                               field-type="v-switch"
@@ -623,10 +523,7 @@
                               color="primary"
                             />
                           </v-col>
-                          <v-col
-                            cols="12"
-                            md="6"
-                          >
+                          <v-col cols="12" md="6">
                             <ac-patch-field
                               :patcher="product.patchers.name_your_price"
                               field-type="v-switch"
@@ -657,11 +554,7 @@
                               color="primary"
                             />
                           </v-col>
-                          <v-col
-                            v-if="escrow"
-                            cols="12"
-                            sm="6"
-                          >
+                          <v-col v-if="escrow" cols="12" sm="6">
                             <ac-patch-field
                               :patcher="product.patchers.escrow_enabled"
                               field-type="v-switch"
@@ -673,11 +566,7 @@
                               color="primary"
                             />
                           </v-col>
-                          <v-col
-                            v-if="escrow"
-                            cols="12"
-                            sm="6"
-                          >
+                          <v-col v-if="escrow" cols="12" sm="6">
                             <ac-patch-field
                               :patcher="product.patchers.escrow_upgradable"
                               field-type="v-switch"
@@ -692,10 +581,7 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <v-col
-                        cols="12"
-                        md="6"
-                      >
+                      <v-col cols="12" md="6">
                         <ac-price-comparison
                           :username="username"
                           :line-item-set-maps="lineItemSetMaps"
@@ -703,10 +589,7 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-patch-field
                           :patcher="product.patchers.expected_turnaround"
                           number
@@ -715,10 +598,7 @@
                           :persistent-hint="true"
                         />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-patch-field
                           :patcher="product.patchers.revisions"
                           number
@@ -732,24 +612,37 @@
                   </ac-expanded-property>
                 </v-col>
                 <v-col>
-                  <p v-if="forceShield && product.x.escrow_upgradable && !product.x.escrow_enabled">
-                    <strong>${{ product.x.starting_price }}</strong> without Artconomy Shield
+                  <p
+                    v-if="
+                      forceShield &&
+                      product.x.escrow_upgradable &&
+                      !product.x.escrow_enabled
+                    "
+                  >
+                    <strong>${{ product.x.starting_price }}</strong> without
+                    Artconomy Shield
                   </p>
-                  <p v-else-if="product.x.escrow_upgradable && !product.x.escrow_enabled">
-                    <strong>${{ product.x.shield_price }}</strong> with Artconomy Shield
+                  <p
+                    v-else-if="
+                      product.x.escrow_upgradable && !product.x.escrow_enabled
+                    "
+                  >
+                    <strong>${{ product.x.shield_price }}</strong> with
+                    Artconomy Shield
                   </p>
                   <p v-if="product.x.revisions">
-                    <strong>{{ product.x.revisions }}</strong> revision<span v-if="product.x.revisions > 1">s</span>
+                    <strong>{{ product.x.revisions }}</strong> revision<span
+                      v-if="product.x.revisions > 1"
+                      >s</span
+                    >
                     included.
                   </p>
                   <p v-if="deliveryDate">
-                    Estimated completion: <strong>{{ formatDateTerse(deliveryDate) }}</strong>
+                    Estimated completion:
+                    <strong>{{ formatDateTerse(deliveryDate) }}</strong>
                   </p>
                 </v-col>
-                <v-col
-                  class="text-center"
-                  cols="12"
-                >
+                <v-col class="text-center" cols="12">
                   <ac-load-section :controller="subjectHandler.artistProfile">
                     <template #default>
                       <ac-escrow-label
@@ -761,14 +654,19 @@
                   </ac-load-section>
                 </v-col>
                 <v-col cols="12">
-                  <template v-if="product.x.available || powers.table_seller || isCurrent">
+                  <template
+                    v-if="
+                      product.x.available || powers.table_seller || isCurrent
+                    "
+                  >
                     <div
                       v-if="inventory.x && inventory.x.count"
                       class="text-center"
                     >
                       <p>
                         <strong>
-                          {{ inventory.x.count }} still available. Order now to get yours!
+                          {{ inventory.x.count }} still available. Order now to
+                          get yours!
                         </strong>
                       </p>
                     </div>
@@ -786,23 +684,17 @@
                       :to="orderLink"
                       variant="flat"
                     >
-                      <v-icon
-                        left
-                        :icon="mdiBasket"
-                      />
+                      <v-icon left :icon="mdiBasket" />
                       <span v-if="isCurrent">Create Invoice</span>
                       <span v-else>Order</span>
                     </v-btn>
-                    <v-alert
-                      v-else
-                      type="info"
-                    >
+                    <v-alert v-else type="info">
                       Visit our table to order!
                     </v-alert>
                   </template>
                   <v-alert
                     v-if="!product.x.available"
-                    :class="{'mt-2': isCurrent || powers.table_seller}"
+                    :class="{ 'mt-2': isCurrent || powers.table_seller }"
                     :value="true"
                     type="info"
                   >
@@ -817,37 +709,28 @@
                     :clean="shareMediaClean"
                   />
                 </v-col>
-                <v-col
-                  class="text-center"
-                  cols="12"
-                >
+                <v-col class="text-center" cols="12">
                   <v-col v-if="!product.x.escrow_enabled">
                     <p>
-                      Artconomy gives no guarantees on products ordered without Artconomy Shield, and <em><strong>ordering
-                        without Shield is
-                        at your own
-                        risk</strong></em>. Your artist will instruct you on how to pay them.
+                      Artconomy gives no guarantees on products ordered without
+                      Artconomy Shield, and
+                      <em
+                        ><strong
+                          >ordering without Shield is at your own risk</strong
+                        ></em
+                      >. Your artist will instruct you on how to pay them.
                     </p>
                   </v-col>
-                  <v-col v-else>
-                    Artconomy guarantees this purchase.
-                  </v-col>
+                  <v-col v-else> Artconomy guarantees this purchase. </v-col>
                 </v-col>
-                <v-col
-                  v-if="editing"
-                  class="text-center"
-                  cols="12"
-                >
+                <v-col v-if="editing" class="text-center" cols="12">
                   <v-btn
                     color="warning"
                     block
                     variant="flat"
                     @click="showWorkload = true"
                   >
-                    <v-icon
-                      left
-                      :icon="mdiCog"
-                    />
+                    <v-icon left :icon="mdiCog" />
                     Workload
                   </v-btn>
                   <ac-expanded-property
@@ -856,29 +739,25 @@
                     :large="true"
                     aria-label="Edit Workload Settings"
                   >
-                    <template #title>
-                      Edit Workload Settings
-                    </template>
+                    <template #title> Edit Workload Settings </template>
                     <v-row no-gutters>
-                      <v-col
-                        cols="12"
-                        class="text-center"
-                      >
+                      <v-col cols="12" class="text-center">
                         <h2>AWOO Workload Settings</h2>
                         <v-divider />
                         <p>
-                          You can set these settings to help the Artconomy Workload Organization and Overview tool
-                          manage your workload for you.
+                          You can set these settings to help the Artconomy
+                          Workload Organization and Overview tool manage your
+                          workload for you.
                         </p>
                         <p>
-                          <strong>If you're not sure what to do here, or would like to set these settings later, the
-                            defaults should be safe.</strong>
+                          <strong
+                            >If you're not sure what to do here, or would like
+                            to set these settings later, the defaults should be
+                            safe.</strong
+                          >
                         </p>
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <v-checkbox
                           v-model="limitAtOnce"
                           :persistent-hint="true"
@@ -887,10 +766,7 @@
                           hint="If you would like to make sure you're never doing more than a few of these at a time, check this box."
                         />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-patch-field
                           v-if="limitAtOnce"
                           :persistent-hint="true"
@@ -901,15 +777,17 @@
                           hint="If you already have this many orders of this product, don't allow customers to order any more."
                         />
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-patch-field
                           :patcher="product.patchers.wait_list"
                           label="Wait List Product"
                           field-type="ac-checkbox"
-                          :disabled="!(product.patchers.wait_list.model || subject!.landscape)"
+                          :disabled="
+                            !(
+                              product.patchers.wait_list.model ||
+                              subject!.landscape
+                            )
+                          "
                           hint="Marks this product as a waitlist product. Orders will be put in your
                                         waitlist queue which is separate from your normal order queue. You should specify
                                         your waitlist policy in the product description or in your commission info.
@@ -918,16 +796,13 @@
                         />
                         <div v-if="!subject!.landscape">
                           This feature only available to
-                          <router-link :to="{name: 'Upgrade'}">
+                          <router-link :to="{ name: 'Upgrade' }">
                             Landscape
                           </router-link>
                           subscribers.
                         </div>
                       </v-col>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-patch-field
                           :patcher="product.patchers.task_weight"
                           number
@@ -940,10 +815,7 @@
                       </v-col>
                     </v-row>
                     <v-row>
-                      <v-col
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col cols="12" sm="6">
                         <ac-patch-field
                           v-if="powers.table_seller || subject.landscape"
                           :patcher="product.patchers.track_inventory"
@@ -954,11 +826,7 @@
                           hint="Check if you only want to sell this product a limited number of times total."
                         />
                       </v-col>
-                      <v-col
-                        v-if="product.x.track_inventory"
-                        cols="12"
-                        sm="6"
-                      >
+                      <v-col v-if="product.x.track_inventory" cols="12" sm="6">
                         <ac-load-section :controller="inventory">
                           <template #default>
                             <ac-patch-field
@@ -1018,21 +886,12 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col
-          cols="12"
-          class="pt-5"
-        >
-          <v-toolbar
-            color="secondary"
-            dense
-          >
+        <v-col cols="12" class="pt-5">
+          <v-toolbar color="secondary" dense>
             <v-toolbar-title>You might also like...</v-toolbar-title>
           </v-toolbar>
           <v-card :color="current.colors['well-darken-4']">
-            <v-card-text
-              v-if="recommended"
-              class="px-0"
-            >
+            <v-card-text v-if="recommended" class="px-0">
               <ac-load-section :controller="recommended">
                 <template #default>
                   <v-row no-gutters>
@@ -1059,42 +918,58 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {SingleController} from '@/store/singles/controller.ts'
-import AcAsset from '@/components/AcAsset.vue'
-import {useEditable} from '@/mixins/editable.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcTagDisplay from '@/components/AcTagDisplay.vue'
-import AcSampleEditor from '@/components/views/product/AcSampleEditor.vue'
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import AcProductPreview from '@/components/AcProductPreview.vue'
-import {RouteLocationRaw, useRoute, useRouter} from 'vue-router'
-import {useProduct} from '@/components/views/product/mixins/ProductCentric.ts'
-import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {RATING_COLOR, RATINGS_SHORT, setMetaContent, starRound, updateTitle} from '@/lib/lib.ts'
-import AcShareButton from '@/components/AcShareButton.vue'
-import {useSharable} from '@/mixins/sharable.ts'
-import {deliverableLines} from '@/lib/lineItemFunctions.ts'
-import AcPriceComparison from '@/components/price_preview/AcPriceComparison.vue'
-import {mdiCog, mdiBasket, mdiPencil, mdiStar, mdiEye, mdiDelete, mdiLock, mdiDotsHorizontal, mdiCameraBurst} from '@mdi/js'
-import {computed, ComputedRef, ref, watch} from 'vue'
-import {useSubject} from '@/mixins/subjective.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {usePricing} from '@/mixins/PricingAware.ts'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {textualize} from '@/lib/markdown.ts'
-import {formatDateTerse, profileLink} from '@/lib/otherFormatters.ts'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {listenForForm} from '@/store/forms/hooks.ts'
-import {useViewer} from '@/mixins/viewer.ts'
-import {useTargets} from '@/plugins/targets.ts'
-import {ListController} from '@/store/lists/controller.ts'
-import {useTheme, useDisplay} from 'vuetify'
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import { SingleController } from "@/store/singles/controller.ts"
+import AcAsset from "@/components/AcAsset.vue"
+import { useEditable } from "@/mixins/editable.ts"
+import AcAvatar from "@/components/AcAvatar.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import AcConfirmation from "@/components/wrappers/AcConfirmation.vue"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcRendered from "@/components/wrappers/AcRendered.ts"
+import AcExpandedProperty from "@/components/wrappers/AcExpandedProperty.vue"
+import AcTagDisplay from "@/components/AcTagDisplay.vue"
+import AcSampleEditor from "@/components/views/product/AcSampleEditor.vue"
+import AcGalleryPreview from "@/components/AcGalleryPreview.vue"
+import AcProductPreview from "@/components/AcProductPreview.vue"
+import { RouteLocationRaw, useRoute, useRouter } from "vue-router"
+import { useProduct } from "@/components/views/product/mixins/ProductCentric.ts"
+import AcEscrowLabel from "@/components/AcEscrowLabel.vue"
+import {
+  RATING_COLOR,
+  RATINGS_SHORT,
+  setMetaContent,
+  starRound,
+  updateTitle,
+} from "@/lib/lib.ts"
+import AcShareButton from "@/components/AcShareButton.vue"
+import { useSharable } from "@/mixins/sharable.ts"
+import { deliverableLines } from "@/lib/lineItemFunctions.ts"
+import AcPriceComparison from "@/components/price_preview/AcPriceComparison.vue"
+import {
+  mdiCog,
+  mdiBasket,
+  mdiPencil,
+  mdiStar,
+  mdiEye,
+  mdiDelete,
+  mdiLock,
+  mdiDotsHorizontal,
+  mdiCameraBurst,
+} from "@mdi/js"
+import { computed, ComputedRef, ref, watch } from "vue"
+import { useSubject } from "@/mixins/subjective.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { usePricing } from "@/mixins/PricingAware.ts"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { textualize } from "@/lib/markdown.ts"
+import { formatDateTerse, profileLink } from "@/lib/otherFormatters.ts"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { listenForForm } from "@/store/forms/hooks.ts"
+import { useViewer } from "@/mixins/viewer.ts"
+import { useTargets } from "@/plugins/targets.ts"
+import { ListController } from "@/store/lists/controller.ts"
+import { useTheme, useDisplay } from "vuetify"
 import {
   Inventory,
   LineItem,
@@ -1104,9 +979,8 @@ import {
   RawLineItemSetMap,
   SubjectiveProps,
   Submission,
-} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
-
+} from "@/types/main"
+import { User } from "@/store/profiles/types/main"
 
 const props = defineProps<SubjectiveProps & ProductProps>()
 
@@ -1114,10 +988,10 @@ const showTerms = ref(false)
 const showWorkload = ref(false)
 const showChangePrimary = ref(false)
 const ratingDialog = ref(false)
-const shown = ref<Submission|null>(null)
-const {setError, statusOk} = useErrorHandling()
-const {current} = useTheme()
-const {smAndDown, mdAndUp} = useDisplay()
+const shown = ref<Submission | null>(null)
+const { setError, statusOk } = useErrorHandling()
+const { current } = useTheme()
+const { smAndDown, mdAndUp } = useDisplay()
 
 const shownSubmissionLink = computed(() => {
   if (!shown.value) {
@@ -1127,19 +1001,19 @@ const shownSubmissionLink = computed(() => {
     return null
   }
   return {
-    name: 'Submission',
-    params: {submissionId: shown.value.id + ''},
+    name: "Submission",
+    params: { submissionId: shown.value.id + "" },
   }
 })
 
-const {ageCheck, powers} = useViewer()
-const {subject, controls, isCurrent, subjectHandler} = useSubject({ props })
-const {editing} = useEditable(controls)
-const {product, deliveryDate, url} = useProduct(props)
-const {pricing} = usePricing()
+const { ageCheck, powers } = useViewer()
+const { subject, controls, isCurrent, subjectHandler } = useSubject({ props })
+const { editing } = useEditable(controls)
+const { product, deliveryDate, url } = useProduct(props)
+const { pricing } = usePricing()
 const route = useRoute()
 const router = useRouter()
-const {menuTarget} = useTargets()
+const { menuTarget } = useTargets()
 const fullSubject = subject as ComputedRef<User>
 const saleMode = computed({
   get: () => {
@@ -1182,7 +1056,7 @@ const assetAltText = (sample: Submission) => {
   return `Untitled sample submission for ${product.x?.name}`
 }
 
-const forceShield = computed(() => !!({...route.query}.forceShield))
+const forceShield = computed(() => !!{ ...route.query }.forceShield)
 
 const showRating = () => {
   if (editing.value) {
@@ -1191,30 +1065,34 @@ const showRating = () => {
 }
 
 const inventory = useSingle<Inventory>(
-  `product__${props.productId}__inventory`, {endpoint: `${url.value}inventory/`},
+  `product__${props.productId}__inventory`,
+  { endpoint: `${url.value}inventory/` },
 )
-const samples = useList<LinkedSubmission>(`product__${props.productId}__samples`, {endpoint: `${url.value}samples/`})
+const samples = useList<LinkedSubmission>(
+  `product__${props.productId}__samples`,
+  { endpoint: `${url.value}samples/` },
+)
 samples.firstRun().catch(statusOk(404))
 const recommended = useList<Product>(
-    `product__${props.productId}__recommendations`, {
-      endpoint: `${url.value}recommendations/`,
-      params: {size: 12},
-    },
+  `product__${props.productId}__recommendations`,
+  {
+    endpoint: `${url.value}recommendations/`,
+    params: { size: 12 },
+  },
 )
 recommended.firstRun().catch(statusOk(404))
 subjectHandler.artistProfile.get().catch(setError)
 listenForForm(`product${props.productId}__order`)
 
 const orderLink = computed(() => {
-
   if (isCurrent.value && product.x?.over_order_limit) {
     return {
-      name: 'Upgrade',
-      params: {username: props.username},
+      name: "Upgrade",
+      params: { username: props.username },
     }
   }
   const path: RouteLocationRaw = {
-    name: 'NewOrder',
+    name: "NewOrder",
     params: {
       username: props.username,
       productId: `${props.productId}`,
@@ -1222,15 +1100,15 @@ const orderLink = computed(() => {
   }
   path.query = {
     ...route.query,
-    stepId: '1',
+    stepId: "1",
   }
   if (isCurrent.value) {
-    path.params!.invoiceMode = 'invoice'
+    path.params!.invoiceMode = "invoice"
   }
   return path
 })
 
-const currentRoute = computed(() => route.name === 'Product')
+const currentRoute = computed(() => route.name === "Product")
 
 const limitAtOnce = computed({
   get: () => product.patchers.max_parallel.model !== 0,
@@ -1241,7 +1119,7 @@ const limitAtOnce = computed({
     } else {
       field.model = 0
     }
-  }
+  },
 })
 
 const shareMedia = computed(() => {
@@ -1256,23 +1134,23 @@ const shareMedia = computed(() => {
   return product.x.primary_submission
 })
 
-const {shareMediaUrl, shareMediaClean} = useSharable(shareMedia)
+const { shareMediaUrl, shareMediaClean } = useSharable(shareMedia)
 
 const more = computed(() => {
   let diff = 0
   if (product.x?.primary_submission) {
     diff = 1
   }
-  return (prunedSubmissions.value.length < (samples.list.length - diff))
+  return prunedSubmissions.value.length < samples.list.length - diff
 })
 
 const showExtra = computed(() => prunedSubmissions.value.length)
 
 const basePriceLabel = computed(() => {
   if (product.patchers.cascade_fees.model) {
-    return 'List Price'
+    return "List Price"
   } else {
-    return 'Take home amount'
+    return "Take home amount"
   }
 })
 
@@ -1294,10 +1172,13 @@ const rawLineItemSetMaps = computed(() => {
   const tableProduct = product.x.table_product
   let preferredLines: LineItem[] = []
   let appendPreferred = false
-  if (escrow.value && (product.x.escrow_enabled || product.x.escrow_upgradable)) {
+  if (
+    escrow.value &&
+    (product.x.escrow_enabled || product.x.escrow_upgradable)
+  ) {
     const options = {
       basePrice,
-      cascade: cascade && (product.x.escrow_enabled),
+      cascade: cascade && product.x.escrow_enabled,
       international,
       pricing: pricing.x,
       escrowEnabled: true,
@@ -1309,11 +1190,11 @@ const rawLineItemSetMaps = computed(() => {
       planName,
     })
     sets.push({
-      name: 'Shielded',
+      name: "Shielded",
       lineItems: escrowLines,
       offer: false,
     })
-    if (pricing.x && (planName !== pricing.x.preferred_plan)) {
+    if (pricing.x && planName !== pricing.x.preferred_plan) {
       preferredLines = deliverableLines({
         ...options,
         planName: pricing.x.preferred_plan,
@@ -1335,15 +1216,14 @@ const rawLineItemSetMaps = computed(() => {
     // This line causes an infinite recursion when this getter is run more than once in a test environment,
     // or in production, but not dev. Why?
     sets.push({
-      name: 'Unshielded',
+      name: "Unshielded",
       lineItems: nonEscrowLines,
       offer: false,
     })
   }
   if (appendPreferred) {
-
     sets.push({
-      name: pricing.x?.preferred_plan + '',
+      name: pricing.x?.preferred_plan + "",
       lineItems: preferredLines,
       offer: true,
     })
@@ -1368,10 +1248,10 @@ const maxSampleRating = computed(() => {
 
 const productAltText = computed(() => {
   if (!product.x) {
-    return ''
+    return ""
   }
   if (!product.x.primary_submission) {
-    return ''
+    return ""
   }
   const title = product.x.primary_submission.title
   if (!title) {
@@ -1385,8 +1265,8 @@ const prunedSubmissions = computed(() => {
   if (product.x && product.x.primary_submission) {
     const primary = product.x.primary_submission
     submissions = submissions.filter(
-        (submission: SingleController<LinkedSubmission>) =>
-            submission.x && submission.x.submission.id !== primary.id,
+      (submission: SingleController<LinkedSubmission>) =>
+        submission.x && submission.x.submission.id !== primary.id,
     )
   }
   return submissions.slice(0, 4)
@@ -1404,7 +1284,9 @@ const priceHint = computed(() => {
 })
 
 const slides = computed(() => {
-  const list = prunedSubmissions.value.map((x) => (x.x as LinkedSubmission).submission)
+  const list = prunedSubmissions.value.map(
+    (x) => (x.x as LinkedSubmission).submission,
+  )
   if (product.x && product.x.primary_submission) {
     list.unshift(product.x.primary_submission)
   }
@@ -1414,38 +1296,48 @@ const slides = computed(() => {
 const deleteProduct = async () => {
   product.delete().then(() => {
     router.replace({
-      name: 'Profile',
-      params: {username: props.username},
+      name: "Profile",
+      params: { username: props.username },
     })
   })
 }
 
-watch(() => product.x, (product: Product | null, oldProduct: Product | null) => {
-  if (!product) {
-    return
-  }
-  if (product && !oldProduct) {
-    shown.value = product.primary_submission
-  }
-  updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
-  let prefix: string
-  if (product.starting_price) {
-    prefix = `[Starts at $${product.starting_price}] - `
-  } else {
-    prefix = '[Starts at FREE] - '
-  }
-  const description = textualize(product.description).slice(0, 160 - prefix.length)
-  setMetaContent('description', prefix + description)
-}, {deep: true})
+watch(
+  () => product.x,
+  (product: Product | null, oldProduct: Product | null) => {
+    if (!product) {
+      return
+    }
+    if (product && !oldProduct) {
+      shown.value = product.primary_submission
+    }
+    updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
+    let prefix: string
+    if (product.starting_price) {
+      prefix = `[Starts at $${product.starting_price}] - `
+    } else {
+      prefix = "[Starts at FREE] - "
+    }
+    const description = textualize(product.description).slice(
+      0,
+      160 - prefix.length,
+    )
+    setMetaContent("description", prefix + description)
+  },
+  { deep: true },
+)
 
-watch(() => product.x?.track_inventory, (toggle: boolean|undefined) => {
-  if (!toggle) {
-    return
-  }
-  inventory.ready = false
-  inventory.setX(null)
-  inventory.get()
-})
+watch(
+  () => product.x?.track_inventory,
+  (toggle: boolean | undefined) => {
+    if (!toggle) {
+      return
+    }
+    inventory.ready = false
+    inventory.setX(null)
+    inventory.get()
+  },
+)
 
 watch(showWorkload, (newVal: boolean, oldVal: boolean) => {
   if (oldVal && !newVal) {
@@ -1453,42 +1345,60 @@ watch(showWorkload, (newVal: boolean, oldVal: boolean) => {
   }
 })
 
-watch(() => product.x?.primary_submission, (value: undefined | null | Submission) => {
-  if (value === undefined) {
-    return
-  }
-  shown.value = value
-})
+watch(
+  () => product.x?.primary_submission,
+  (value: undefined | null | Submission) => {
+    if (value === undefined) {
+      return
+    }
+    shown.value = value
+  },
+)
 
-const listControllerMaps = new Map(['Shielded', 'Unshielded', '__preferred'].map((name) => [name, useList<LineItem>(`product${props.productId}${name}`, {endpoint: '#', paginated: false})]))
+const listControllerMaps = new Map(
+  ["Shielded", "Unshielded", "__preferred"].map((name) => [
+    name,
+    useList<LineItem>(`product${props.productId}${name}`, {
+      endpoint: "#",
+      paginated: false,
+    }),
+  ]),
+)
 
 const lineItemSetMaps = computed(() => {
   const sets = []
   for (const set of rawLineItemSetMaps.value) {
-    const name = listControllerMaps.has(set.name) ? set.name : '__preferred'
+    const name = listControllerMaps.has(set.name) ? set.name : "__preferred"
     const controller = listControllerMaps.get(name) as ListController<LineItem>
-    sets.push({name: set.name, lineItems: controller, offer: set.offer})
+    sets.push({ name: set.name, lineItems: controller, offer: set.offer })
   }
   return sets
 })
 
-watch(rawLineItemSetMaps, (rawLineItemSetMaps: RawLineItemSetMap[]) => {
-  for (const set of rawLineItemSetMaps) {
-    const name = listControllerMaps.has(set.name) ? set.name : '__preferred'
-    const controller = listControllerMaps.get(name) as ListController<LineItem>
-    controller.makeReady(set.lineItems)
-  }
-}, {deep: true})
+watch(
+  rawLineItemSetMaps,
+  (rawLineItemSetMaps: RawLineItemSetMap[]) => {
+    for (const set of rawLineItemSetMaps) {
+      const name = listControllerMaps.has(set.name) ? set.name : "__preferred"
+      const controller = listControllerMaps.get(
+        name,
+      ) as ListController<LineItem>
+      controller.makeReady(set.lineItems)
+    }
+  },
+  { deep: true },
+)
 
 watch(maxSampleRating, (value: number) => {
-  ageCheck({value})
+  ageCheck({ value })
 })
 </script>
 
 <style scoped>
 .submissionSelected {
   -webkit-box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62);
-  box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62); }
+  box-shadow: 0 0 5px 3px rgba(255, 210, 149, 0.62);
+}
 
 .compare-at-price {
   text-decoration: line-through;
@@ -1498,20 +1408,25 @@ watch(maxSampleRating, (value: number) => {
   position: absolute;
   width: 100%;
   height: 100%;
-  z-index: 1; }
-  .edit-overlay .edit-container, .edit-overlay .edit-layout {
-    height: 100%; }
-  .edit-overlay .edit-layout {
-    position: relative; }
-  .edit-overlay .backdrop {
-    background-color: #000000;
-    opacity: .40;
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0; }
-  .edit-overlay .edit-cta {
-    position: relative;
-    z-index: 1; }
-
+  z-index: 1;
+}
+.edit-overlay .edit-container,
+.edit-overlay .edit-layout {
+  height: 100%;
+}
+.edit-overlay .edit-layout {
+  position: relative;
+}
+.edit-overlay .backdrop {
+  background-color: #000000;
+  opacity: 0.4;
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+}
+.edit-overlay .edit-cta {
+  position: relative;
+  z-index: 1;
+}
 </style>

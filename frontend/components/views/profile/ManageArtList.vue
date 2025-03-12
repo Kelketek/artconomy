@@ -2,21 +2,16 @@
   <v-row no-gutters>
     <v-col cols="12">
       <v-card-text class="text-center">
-        Click (or tap) and drag to rearrange your submissions. Drag onto the 'next' or
-        'previous' button to put the submission before or after to shift them into the
-        next or previous page. When you are finished, tap the 'finish' button.
+        Click (or tap) and drag to rearrange your submissions. Drag onto the
+        'next' or 'previous' button to put the submission before or after to
+        shift them into the next or previous page. When you are finished, tap
+        the 'finish' button.
       </v-card-text>
     </v-col>
     <v-col cols="12">
       <ac-draggable-list :list="list">
-        <template #default="{element, index}">
-          <v-col
-            :key="index"
-            cols="4"
-            sm="3"
-            lg="2"
-            class="draggable-item"
-          >
+        <template #default="{ element, index }">
+          <v-col :key="index" cols="4" sm="3" lg="2" class="draggable-item">
             <artist-tag-manager
               :key="index"
               :tag="element"
@@ -30,24 +25,26 @@
 </template>
 
 <script setup lang="ts">
-import {flatten} from '@/lib/lib.ts'
-import AcDraggableList from '@/components/AcDraggableList.vue'
-import ArtistTagManager from '@/components/views/profile/ArtistTagManager.vue'
-import {useList} from '@/store/lists/hooks.ts'
-import type {ArtistTag, SubjectiveProps} from '@/types/main'
+import { flatten } from "@/lib/lib.ts"
+import AcDraggableList from "@/components/AcDraggableList.vue"
+import ArtistTagManager from "@/components/views/profile/ArtistTagManager.vue"
+import { useList } from "@/store/lists/hooks.ts"
+import type { ArtistTag, SubjectiveProps } from "@/types/main"
 
-const props = defineProps<SubjectiveProps & {listName: string, endpoint: string}>()
+const props = defineProps<
+  SubjectiveProps & { listName: string; endpoint: string }
+>()
 let listName = props.listName
 if (props.username) {
   listName = `${flatten(props.username)}-${listName}-management`
 }
-const list = useList<ArtistTag>(listName, {endpoint: props.endpoint})
+const list = useList<ArtistTag>(listName, { endpoint: props.endpoint })
 list.firstRun()
 </script>
 
 <style>
 .disabled {
-  opacity: .5;
+  opacity: 0.5;
 }
 
 .page-setter .sortable-ghost {
@@ -63,6 +60,6 @@ list.firstRun()
 }
 
 .unavailable {
-  opacity: .5;
+  opacity: 0.5;
 }
 </style>

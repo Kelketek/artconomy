@@ -1,14 +1,13 @@
-import {computed} from 'vue'
-import type {AcNotification, Asset, SubjectiveProps} from '@/types/main'
-import {TerseUser} from '@/store/profiles/types/main'
-
+import { computed } from "vue"
+import type { AcNotification, Asset, SubjectiveProps } from "@/types/main"
+import { TerseUser } from "@/store/profiles/types/main"
 
 export interface NotificationProps<T, D> extends SubjectiveProps {
-  notification: AcNotification<T, D>,
+  notification: AcNotification<T, D>
 }
 
 export interface DisplayData<T extends Asset = Asset> {
-  display: T,
+  display: T
 }
 
 export type NotificationUser = TerseUser & Asset
@@ -17,13 +16,13 @@ export interface DisplayUser {
   display: NotificationUser
 }
 
-export const useEvent = <T, D>(props: NotificationProps<T, D>) => computed(() => props.notification.event)
+export const useEvent = <T, D>(props: NotificationProps<T, D>) =>
+  computed(() => props.notification.event)
 
 // Workaround for the notifications image. Sometimes we use a user as the image reference, with their avatar URL.
-export const useNotificationAvatar = (asset: Asset|TerseUser) => {
+export const useNotificationAvatar = (asset: Asset | TerseUser) => {
   if ((asset as TerseUser).avatar_url) {
     return computed(() => (asset as TerseUser).avatar_url)
   }
   return
 }
-

@@ -1,13 +1,7 @@
 <!--suppress JSUnusedLocalSymbols -->
 <template>
   <slot :on="on">
-    <v-btn
-      class="confirm-launch"
-      variant="flat"
-      @click="show"
-    >
-      Submit
-    </v-btn>
+    <v-btn class="confirm-launch" variant="flat" @click="show"> Submit </v-btn>
   </slot>
   <v-dialog
     v-model="showModal"
@@ -16,30 +10,16 @@
     :attach="modalTarget"
   >
     <v-card :class="cardClass">
-      <v-toolbar
-        flat
-        dark
-        color="secondary"
-      >
+      <v-toolbar flat dark color="secondary">
         <v-toolbar-title>
-          <slot name="title">
-            Are you sure?
-          </slot>
+          <slot name="title"> Are you sure? </slot>
         </v-toolbar-title>
         <v-spacer />
-        <v-btn
-          icon
-          dark
-          class="dialog-closer"
-          @click="showModal=false"
-        >
+        <v-btn icon dark class="dialog-closer" @click="showModal = false">
           <v-icon :icon="mdiClose" />
         </v-btn>
       </v-toolbar>
-      <div
-        v-if="sending"
-        class="loading-overlay"
-      >
+      <div v-if="sending" class="loading-overlay">
         <v-progress-circular
           indeterminate
           :size="70"
@@ -47,26 +27,19 @@
           color="purple"
         />
       </div>
-      <v-card-text :class="{'confirm-submitting': sending}">
-        <slot name="confirmation-text">
-          This cannot be undone.
-        </slot>
+      <v-card-text :class="{ 'confirm-submitting': sending }">
+        <slot name="confirmation-text"> This cannot be undone. </slot>
         <v-spacer />
       </v-card-text>
-      <v-card-actions
-        right
-        :class="{'confirm-submitting': sending}"
-      >
+      <v-card-actions right :class="{ 'confirm-submitting': sending }">
         <v-spacer />
         <v-btn
           variant="flat"
           :disabled="sending"
           class="cancel-button"
-          @click.stop="showModal=false"
+          @click.stop="showModal = false"
         >
-          <slot name="cancel-text">
-            Cancel
-          </slot>
+          <slot name="cancel-text"> Cancel </slot>
         </v-btn>
         <v-btn
           variant="flat"
@@ -75,9 +48,7 @@
           class="confirmation-button"
           @click.stop="submit"
         >
-          <slot name="confirm-text">
-            Yes, I am sure.
-          </slot>
+          <slot name="confirm-text"> Yes, I am sure. </slot>
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -85,14 +56,17 @@
 </template>
 
 <script setup lang="ts">
-import {mdiClose} from '@mdi/js'
-import {computed, ref} from 'vue'
-import {useTargets} from '@/plugins/targets.ts'
+import { mdiClose } from "@mdi/js"
+import { computed, ref } from "vue"
+import { useTargets } from "@/plugins/targets.ts"
 
-const props = defineProps<{action: () => Promise<unknown>, cardClass?: string}>()
+const props = defineProps<{
+  action: () => Promise<unknown>
+  cardClass?: string
+}>()
 const showModal = ref(false)
 const sending = ref(false)
-const {modalTarget} = useTargets()
+const { modalTarget } = useTargets()
 
 const dismiss = () => {
   showModal.value = false
@@ -109,7 +83,7 @@ const submit = () => {
   props.action().finally(dismiss)
 }
 
-const on = computed(() => ({click: show}))
+const on = computed(() => ({ click: show }))
 </script>
 
 <style>
@@ -129,6 +103,6 @@ const on = computed(() => ({click: show}))
 
 /*noinspection ALL*/
 .confirm-submitting {
-  opacity: .4;
+  opacity: 0.4;
 }
 </style>

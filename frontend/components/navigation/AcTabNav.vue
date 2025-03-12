@@ -1,14 +1,6 @@
 <template>
-  <v-container
-    fluid
-    class="pa-0"
-  >
-    <v-tabs
-      grow
-      centered
-      show-arrows
-      class="hidden-sm-and-down"
-    >
+  <v-container fluid class="pa-0">
+    <v-tabs grow centered show-arrows class="hidden-sm-and-down">
       <ac-tab
         v-for="item in items"
         :key="item.title"
@@ -32,14 +24,17 @@
 </template>
 
 <script setup lang="ts">
-import {RouteLocationRaw, useRoute, useRouter} from 'vue-router'
-import AcTab from '@/components/AcTab.vue'
-import {computed} from 'vue'
-import type {TabNavSpec} from '@/types/main'
+import { RouteLocationRaw, useRoute, useRouter } from "vue-router"
+import AcTab from "@/components/AcTab.vue"
+import { computed } from "vue"
+import type { TabNavSpec } from "@/types/main"
 
 const route = useRoute()
 const router = useRouter()
-const props = withDefaults(defineProps<{label: string, items: TabNavSpec[], headingLevel?: number}>(), {headingLevel: 0})
+const props = withDefaults(
+  defineProps<{ label: string; items: TabNavSpec[]; headingLevel?: number }>(),
+  { headingLevel: 0 },
+)
 
 const renderText = (item: TabNavSpec) => {
   if (item.count) {
@@ -50,21 +45,23 @@ const renderText = (item: TabNavSpec) => {
 
 const tagFor = (item: TabNavSpec) => {
   if (!props.headingLevel) {
-    return 'span'
+    return "span"
   }
   if (item === tab.value) {
     return `h${props.headingLevel}`
   }
-  return 'span'
+  return "span"
 }
 
 const tab = computed({
   get() {
     return props.items.filter(
-        (item) => route.matched.filter((match) => match.name === item.value.name).length)[0] as TabNavSpec
+      (item) =>
+        route.matched.filter((match) => match.name === item.value.name).length,
+    )[0] as TabNavSpec
   },
   set(val) {
     router.replace(val as RouteLocationRaw)
-  }
+  },
 })
 </script>

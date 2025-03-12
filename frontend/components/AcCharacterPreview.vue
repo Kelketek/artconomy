@@ -3,17 +3,14 @@
     v-if="smAndDown || mini"
     aspect-ratio="1"
     class="character"
-    :class="{unavailable}"
+    :class="{ unavailable }"
   >
     <v-card>
       <v-card-text class="pa-2">
         <v-row no-gutters>
           <v-col>
             <v-row no-gutters>
-              <v-col
-                cols="8"
-                offset="2"
-              >
+              <v-col cols="8" offset="2">
                 <ac-link :to="characterLink">
                   <ac-asset
                     :text="false"
@@ -38,14 +35,8 @@
       </v-card-text>
     </v-card>
   </v-responsive>
-  <v-card
-    v-else
-    class="character-card"
-    :class="{unavailable}"
-  >
-    <router-link
-      :to="characterLink"
-    >
+  <v-card v-else class="character-card" :class="{ unavailable }">
+    <router-link :to="characterLink">
       <ac-asset
         :asset="character.primary_submission"
         thumb-name="thumbnail"
@@ -56,9 +47,7 @@
       />
     </router-link>
     <v-card-title v-if="showFooter">
-      <router-link
-        :to="characterLink"
-      >
+      <router-link :to="characterLink">
         {{ character.name }}
       </router-link>
     </v-card-title>
@@ -66,24 +55,30 @@
 </template>
 
 <script setup lang="ts">
-import AcAsset from './AcAsset.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {computed} from 'vue'
-import {useDisplay} from 'vuetify'
-import {Character} from '@/store/characters/types/main'
+import AcAsset from "./AcAsset.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { computed } from "vue"
+import { useDisplay } from "vuetify"
+import { Character } from "@/store/characters/types/main"
 
-const {smAndDown} = useDisplay()
+const { smAndDown } = useDisplay()
 
 declare interface AcCharacterPreviewProps {
-  character: Character,
-  mini?: boolean,
-  showFooter?: boolean,
+  character: Character
+  mini?: boolean
+  showFooter?: boolean
 }
 
-const props = withDefaults(defineProps<AcCharacterPreviewProps>(), {showFooter: true, mini: false})
+const props = withDefaults(defineProps<AcCharacterPreviewProps>(), {
+  showFooter: true,
+  mini: false,
+})
 const characterLink = computed(() => ({
-  name: 'Character',
-  params: {username: props.character.user.username, characterName: props.character.name},
+  name: "Character",
+  params: {
+    username: props.character.user.username,
+    characterName: props.character.name,
+  },
 }))
 const characterAltText = computed(() => {
   if (props.character.primary_submission) {
@@ -93,7 +88,7 @@ const characterAltText = computed(() => {
     }
     return `Focus Submission for ${props.character.name} titled: ${title}`
   }
-  return ''
+  return ""
 })
 const unavailable = computed(() => props.character.private)
 </script>

@@ -4,14 +4,18 @@
     :asset-link="assetLink"
     :username="username"
   >
-    <template #title>
-      Your piece has been favorited!
-    </template>
+    <template #title> Your piece has been favorited! </template>
     <template #subtitle>
       <router-link :to="assetLink">
         {{ event.target.title }}
-      </router-link> has been favorited by
-      <router-link :to="{name: 'Profile', params: {username: event.data.user.username}}">
+      </router-link>
+      has been favorited by
+      <router-link
+        :to="{
+          name: 'Profile',
+          params: { username: event.data.user.username },
+        }"
+      >
         {{ event.data.user.username }}!
       </router-link>
     </template>
@@ -19,17 +23,24 @@
 </template>
 
 <script setup lang="ts">
-import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
-import AcBaseNotification from '@/components/views/notifications/events/AcBaseNotification.vue'
-import {computed} from 'vue'
-import type {Submission} from '@/types/main'
-import {TerseUser} from '@/store/profiles/types/main'
+import {
+  DisplayData,
+  NotificationProps,
+  useEvent,
+} from "../mixins/notification.ts"
+import AcBaseNotification from "@/components/views/notifications/events/AcBaseNotification.vue"
+import { computed } from "vue"
+import type { Submission } from "@/types/main"
+import { TerseUser } from "@/store/profiles/types/main"
 
 declare interface Favorite extends DisplayData {
-  user: TerseUser,
+  user: TerseUser
 }
 
 const props = defineProps<NotificationProps<Submission, Favorite>>()
 const event = useEvent(props)
-const assetLink = computed(() => ({name: 'Submission', params: {'submissionId': event.value.target.id}}))
+const assetLink = computed(() => ({
+  name: "Submission",
+  params: { submissionId: event.value.target.id },
+}))
 </script>

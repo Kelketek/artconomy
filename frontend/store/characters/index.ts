@@ -1,6 +1,9 @@
-import {ActionTree, GetterTree, MutationTree} from 'vuex'
-import {UserStoreState} from '@/store/profiles/types/main'
-import {CharacterModuleOpts, CharacterState} from '@/store/characters/types/main'
+import { ActionTree, GetterTree, MutationTree } from "vuex"
+import { UserStoreState } from "@/store/profiles/types/main"
+import {
+  CharacterModuleOpts,
+  CharacterState,
+} from "@/store/characters/types/main"
 
 export class CharacterModule {
   public state: CharacterState
@@ -9,11 +12,11 @@ export class CharacterModule {
   public getters: GetterTree<CharacterState, UserStoreState>
   public namespaced = true
   constructor(schema: CharacterModuleOpts) {
-    const defaults = {persistent: false}
+    const defaults = { persistent: false }
     this.mutations = {}
     this.actions = {}
     // Actual creation of the relevant singles will happen outside of this module.
-    this.state = {...defaults, ...schema}
+    this.state = { ...defaults, ...schema }
     this.getters = {}
   }
 }

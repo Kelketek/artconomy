@@ -1,19 +1,23 @@
-import {createStore as createVuexStore, Store as VuexStore, StoreOptions} from 'vuex'
-import {Alert, AlertCategory, ArtState} from './artState.ts'
-import {profiles, userModules} from './profiles/index.ts'
-import {errors} from './errors/index.ts'
-import {forms} from './forms/index.ts'
-import {lists} from './lists/index.ts'
-import {clone, genId} from '@/lib/lib.ts'
-import {singles} from './singles/index.ts'
-import {characterModules} from '@/store/characters/index.ts'
+import {
+  createStore as createVuexStore,
+  Store as VuexStore,
+  StoreOptions,
+} from "vuex"
+import { Alert, AlertCategory, ArtState } from "./artState.ts"
+import { profiles, userModules } from "./profiles/index.ts"
+import { errors } from "./errors/index.ts"
+import { forms } from "./forms/index.ts"
+import { lists } from "./lists/index.ts"
+import { clone, genId } from "@/lib/lib.ts"
+import { singles } from "./singles/index.ts"
+import { characterModules } from "@/store/characters/index.ts"
 
-import {RatingsValue} from '@/types/main'
+import { RatingsValue } from "@/types/main"
 
 export function storeDefaults(): StoreOptions<ArtState> {
   return {
     state: {
-      projectName: 'Artconomy',
+      projectName: "Artconomy",
       showSupport: false,
       showReport: false,
       markdownHelp: false,
@@ -40,7 +44,7 @@ export function storeDefaults(): StoreOptions<ArtState> {
           timeout: 7000,
           id: genId(),
         }
-        const compiled = {...defaults, ...alert}
+        const compiled = { ...defaults, ...alert }
         state.alerts.push(compiled)
       },
       setMarkdownHelp(state, value: boolean) {
@@ -72,14 +76,14 @@ export function storeDefaults(): StoreOptions<ArtState> {
       },
       setMessagesOpen(state, value: boolean) {
         state.messagesOpen = value
-      }
+      },
     },
     getters: {
       latestAlert(state) {
         return state.alerts[state.alerts.length - 1]
       },
       idMap(state) {
-        const results: {[key: number]: string} = {}
+        const results: { [key: number]: string } = {}
         const modules = (state as any).userModules
         for (const key of Object.keys(modules)) {
           /* istanbul ignore if */
@@ -112,7 +116,11 @@ export function storeDefaults(): StoreOptions<ArtState> {
 
 export type ArtStore = VuexStore<ArtState>
 
-
 export const createStore = (options?: StoreOptions<ArtState>): ArtStore => {
-  return createVuexStore<ArtState>({...clone(options || storeDefaults()), plugins: [/**myPlugin**/]})
+  return createVuexStore<ArtState>({
+    ...clone(options || storeDefaults()),
+    plugins: [
+      /**myPlugin**/
+    ],
+  })
 }

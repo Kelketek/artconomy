@@ -13,20 +13,23 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {DisplayData, NotificationProps, useEvent} from '../mixins/notification.ts'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import {
+  DisplayData,
+  NotificationProps,
+  useEvent,
+} from "../mixins/notification.ts"
 
-import {deriveDisplayName} from '@/lib/otherFormatters.ts'
-import {computed} from 'vue'
-import type {Deliverable} from '@/types/main'
-
+import { deriveDisplayName } from "@/lib/otherFormatters.ts"
+import { computed } from "vue"
+import type { Deliverable } from "@/types/main"
 
 const props = defineProps<NotificationProps<Deliverable, DisplayData>>()
 const event = useEvent(props)
 
 const assetLink = computed(() => {
   return {
-    name: 'SaleDeliverableOverview',
+    name: "SaleDeliverableOverview",
     params: {
       orderId: event.value.target.order.id,
       username: props.username,
@@ -40,6 +43,4 @@ const buyerName = computed(() => {
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

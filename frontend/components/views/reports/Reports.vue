@@ -8,15 +8,18 @@
 </template>
 
 <script setup lang="ts">
-import {useSubject} from '@/mixins/subjective.ts'
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcSiteFinancials from '@/components/views/reports/AcSiteFinancials.vue'
-import AcTaxReports from '@/components/views/reports/AcTaxReports.vue'
+import { useSubject } from "@/mixins/subjective.ts"
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcSiteFinancials from "@/components/views/reports/AcSiteFinancials.vue"
+import AcTaxReports from "@/components/views/reports/AcTaxReports.vue"
 
-import type {SubjectiveProps} from '@/types/main'
-import type {StaffPower} from '@/store/profiles/types/main'
-
+import type { SubjectiveProps } from "@/types/main"
+import type { StaffPower } from "@/store/profiles/types/main"
 
 const props = defineProps<SubjectiveProps>()
-const {subject, subjectHandler} = useSubject({ props, privateView: true, controlPowers: ['view_financials'] as StaffPower[] })
+const { subject, subjectHandler } = useSubject({
+  props,
+  privateView: true,
+  controlPowers: ["view_financials"] as StaffPower[],
+})
 </script>

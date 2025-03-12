@@ -1,15 +1,8 @@
 <template>
-  <v-container
-    fluid
-    class="pa-0"
-  >
+  <v-container fluid class="pa-0">
     <v-row dense>
       <v-col>
-        <v-tooltip
-          v-if="controls"
-          top
-          aria-label="Tooltip for tags"
-        >
+        <v-tooltip v-if="controls" top aria-label="Tooltip for tags">
           <template #activator="activator">
             <v-btn
               color="primary"
@@ -20,19 +13,12 @@
               aria-label="Edit tags"
               @click="editTags"
             >
-              <v-icon
-                size="x-large"
-                :icon="mdiTagMultiple"
-              />
+              <v-icon size="x-large" :icon="mdiTagMultiple" />
             </v-btn>
           </template>
           Edit Tags
         </v-tooltip>
-        <v-tooltip
-          v-else
-          top
-          aria-label="Tooltip for tags"
-        >
+        <v-tooltip v-else top aria-label="Tooltip for tags">
           <template #activator="activator">
             <v-icon
               v-bind="activator.props"
@@ -52,11 +38,7 @@
             {{ tag }}
           </ac-link>
         </v-chip>
-        <v-chip
-          v-if="moreTags"
-          class="show-more-tags ml-2"
-          @click="showMore"
-        >
+        <v-chip v-if="moreTags" class="show-more-tags ml-2" @click="showMore">
           ...
         </v-chip>
       </v-col>
@@ -67,28 +49,17 @@
           <span v-else>No tags set.</span>
         </span>
       </v-col>
-      <ac-expanded-property
-        v-model="toggle"
-        aria-label="Tag Editing Dialog"
-      >
-        <template #title>
-          All Tags
-        </template>
+      <ac-expanded-property v-model="toggle" aria-label="Tag Editing Dialog">
+        <template #title> All Tags </template>
         <v-row>
-          <v-col
-            v-if="editing && controls"
-            cols="12"
-          >
+          <v-col v-if="editing && controls" cols="12">
             <ac-patch-field
               field-type="ac-tag-field"
               :patcher="patcher"
               :autofocus="true"
             />
           </v-col>
-          <v-col
-            v-show="!editing"
-            cols="12"
-          >
+          <v-col v-show="!editing" cols="12">
             <v-chip
               v-for="tag in patcher.rawValue"
               :key="tag"
@@ -110,13 +81,7 @@
             color="primary"
           />
           <v-spacer />
-          <v-btn
-            color="primary"
-            type="submit"
-            variant="flat"
-          >
-            Done
-          </v-btn>
+          <v-btn color="primary" type="submit" variant="flat"> Done </v-btn>
         </template>
       </ac-expanded-property>
     </v-row>
@@ -124,27 +89,29 @@
 </template>
 
 <script setup lang="ts">
-import {Patch} from '@/store/singles/patcher.ts'
-import AcExpandedProperty from '@/components/wrappers/AcExpandedProperty.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {mdiTagMultiple} from '@mdi/js'
-import {computed, ref} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useRouter} from 'vue-router'
-import {useViewer} from '@/mixins/viewer.ts'
-import {useSubject} from '@/mixins/subjective.ts'
-import type {SubjectiveProps} from '@/types/main'
+import { Patch } from "@/store/singles/patcher.ts"
+import AcExpandedProperty from "@/components/wrappers/AcExpandedProperty.vue"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { mdiTagMultiple } from "@mdi/js"
+import { computed, ref } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useRouter } from "vue-router"
+import { useViewer } from "@/mixins/viewer.ts"
+import { useSubject } from "@/mixins/subjective.ts"
+import type { SubjectiveProps } from "@/types/main"
 
 declare interface AcTagDisplayProps {
-  patcher: Patch,
-  editable?: boolean,
-  scope: string,
+  patcher: Patch
+  editable?: boolean
+  scope: string
 }
-const props = withDefaults(defineProps<AcTagDisplayProps & SubjectiveProps>(), {editable: false})
+const props = withDefaults(defineProps<AcTagDisplayProps & SubjectiveProps>(), {
+  editable: false,
+})
 
-const {isRegistered, powers} = useViewer()
-const {isCurrent} = useSubject({ props })
+const { isRegistered, powers } = useViewer()
+const { isCurrent } = useSubject({ props })
 
 const router = useRouter()
 
@@ -163,8 +130,8 @@ const showMore = () => {
 
 const tagLink = (tag: string) => {
   return {
-    name: 'Search' + props.scope,
-    query: {q: tag},
+    name: "Search" + props.scope,
+    query: { q: tag },
   }
 }
 
@@ -174,7 +141,7 @@ const setSearch = (tag: string) => {
   router.push(tagLink(tag))
 }
 
-const searchForm = useForm('search')
+const searchForm = useForm("search")
 
 const displayedTags = computed(() => props.patcher.rawValue.slice(0, 10))
 
@@ -188,5 +155,7 @@ const controls = computed(() => {
   return powers.value.moderate_content
 })
 
-const moreTags = computed(() => props.patcher.rawValue.length - displayedTags.value.length)
+const moreTags = computed(
+  () => props.patcher.rawValue.length - displayedTags.value.length,
+)
 </script>

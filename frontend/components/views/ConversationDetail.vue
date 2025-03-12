@@ -1,29 +1,22 @@
 <template>
-  <v-row
-    :key="conversationId"
-    no-gutters
-  >
+  <v-row :key="conversationId" no-gutters>
     <v-col v-if="conversation.x">
       <v-container>
         <v-card>
           <v-row>
             <v-col
-              v-for="participant in conversation.x.participants.filter((x) => x.username !== rawViewerName)"
+              v-for="participant in conversation.x.participants.filter(
+                (x) => x.username !== rawViewerName,
+              )"
               :key="participant.id"
               class="shrink"
             >
-              <ac-avatar
-                :user="participant"
-                class="px-1"
-              />
+              <ac-avatar :user="participant" class="px-1" />
             </v-col>
             <v-spacer />
-            <v-col
-              class="shrink d-flex"
-              align-self="center"
-            >
+            <v-col class="shrink d-flex" align-self="center">
               <ac-confirmation :action="leaveConversation">
-                <template #default="{on}">
+                <template #default="{ on }">
                   <v-btn
                     icon
                     color="red"
@@ -36,8 +29,9 @@
                 </template>
                 <template #confirmation-text>
                   <v-col>
-                    Are you sure you wish to leave this conversation? This cannot be undone. Conversations are deleted
-                    when all users have left.
+                    Are you sure you wish to leave this conversation? This
+                    cannot be undone. Conversations are deleted when all users
+                    have left.
                   </v-col>
                 </template>
               </ac-confirmation>
@@ -50,63 +44,51 @@
         <v-row no-gutters>
           <v-col cols="12">
             <p>
-              <strong class="danger">WARNING:</strong> Do not discuss order details through private conversations. Add
-              any details
-              about the commission you want in an order. You can negotiate details and pricing and approve/disapprove as
-              needed within the order itself.
-              Requirements negotiated within a private conversation cannot be enforced by
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'shield'}}">
-                Artconomy Shield
-              </router-link>&nbsp;
-              <router-link :to="{name: 'BuyAndSell', params: {question: 'disputes'}}">
+              <strong class="danger">WARNING:</strong> Do not discuss order
+              details through private conversations. Add any details about the
+              commission you want in an order. You can negotiate details and
+              pricing and approve/disapprove as needed within the order itself.
+              Requirements negotiated within a private conversation cannot be
+              enforced by
+              <router-link
+                :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
+              >
+                Artconomy Shield </router-link
+              >&nbsp;
+              <router-link
+                :to="{ name: 'BuyAndSell', params: { question: 'disputes' } }"
+              >
                 dispute resolution.
               </router-link>
             </p>
           </v-col>
         </v-row>
       </v-container>
-      <v-container
-        fluid
-        class="pa-0"
-      >
+      <v-container fluid class="pa-0">
         <ac-comment-section
           :comment-list="conversationComments"
           :nesting="false"
-          :locked="(!inConversation) && locked"
+          :locked="!inConversation && locked"
         >
           <template #empty>
             <v-col class="text-center pt-1">
               <v-col>
                 <h2>Start a conversation</h2>
-                <p>
-                  Enter some text into the field below to start messaging!
-                </p>
+                <p>Enter some text into the field below to start messaging!</p>
               </v-col>
             </v-col>
           </template>
         </ac-comment-section>
         <v-row no-gutters>
-          <v-col
-            v-if="!inConversation"
-            class="text-center"
-            cols="12"
-          >
+          <v-col v-if="!inConversation" class="text-center" cols="12">
             <v-btn
               :block="xs"
               class="lock-toggle"
               variant="flat"
               @click="locked = !locked"
             >
-              <v-icon
-                v-if="locked"
-                left
-                :icon="mdiLock"
-              />
-              <v-icon
-                v-else
-                left
-                :icon="mdiLockOpen"
-              />
+              <v-icon v-if="locked" left :icon="mdiLock" />
+              <v-icon v-else left :icon="mdiLockOpen" />
               <span v-if="locked">Unlock to allow outside comment.</span>
               <span v-else>Lock to prevent outside comment.</span>
             </v-btn>
@@ -118,47 +100,49 @@
 </template>
 
 <script setup lang="ts">
-import AcCommentSection from '@/components/comments/AcCommentSection.vue'
-import AcAvatar from '@/components/AcAvatar.vue'
-import AcLoadingSpinner from '@/components/wrappers/AcLoadingSpinner.vue'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import {mdiLock, mdiDelete, mdiLockOpen} from '@mdi/js'
-import {computed, ref} from 'vue'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {useRouter} from 'vue-router'
-import {useViewer} from '@/mixins/viewer.ts'
-import {useDisplay} from 'vuetify'
-import type {Comment, Conversation, SubjectiveProps} from '@/types/main'
+import AcCommentSection from "@/components/comments/AcCommentSection.vue"
+import AcAvatar from "@/components/AcAvatar.vue"
+import AcLoadingSpinner from "@/components/wrappers/AcLoadingSpinner.vue"
+import AcConfirmation from "@/components/wrappers/AcConfirmation.vue"
+import { mdiLock, mdiDelete, mdiLockOpen } from "@mdi/js"
+import { computed, ref } from "vue"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { useRouter } from "vue-router"
+import { useViewer } from "@/mixins/viewer.ts"
+import { useDisplay } from "vuetify"
+import type { Comment, Conversation, SubjectiveProps } from "@/types/main"
 
-
-const props = defineProps<SubjectiveProps & {conversationId: number}>()
+const props = defineProps<SubjectiveProps & { conversationId: number }>()
 const router = useRouter()
-const {rawViewerName} = useViewer()
-const {setError} = useErrorHandling()
+const { rawViewerName } = useViewer()
+const { setError } = useErrorHandling()
 const locked = ref(true)
-const {xs} = useDisplay()
+const { xs } = useDisplay()
 
 const url = computed(() => {
   return `/api/profiles/account/${props.username}/conversations/${props.conversationId}/`
 })
-const conversation = useSingle<Conversation>('conversation-' + props.conversationId, {endpoint: url.value})
+const conversation = useSingle<Conversation>(
+  "conversation-" + props.conversationId,
+  { endpoint: url.value },
+)
 conversation.get().catch(setError)
 const conversationComments = useList<Comment>(
-    'conversation-' + props.conversationId + '-comments',
-    {
-      endpoint: `/api/lib/comments/profiles.Conversation/${props.conversationId}/`,
-      reverse: true,
-      grow: true,
-      params: {size: 5},
-    },
+  "conversation-" + props.conversationId + "-comments",
+  {
+    endpoint: `/api/lib/comments/profiles.Conversation/${props.conversationId}/`,
+    reverse: true,
+    grow: true,
+    params: { size: 5 },
+  },
 )
 
 const goBack = () => {
   router.push({
-    name: 'Conversations',
-    params: {username: props.username},
+    name: "Conversations",
+    params: { username: props.username },
   })
 }
 
@@ -171,10 +155,12 @@ const inConversation = computed(() => {
   if (!conversation.x) {
     return
   }
-  return conversation.x.participants.map((user) => user.username).indexOf(rawViewerName.value) !== -1
+  return (
+    conversation.x.participants
+      .map((user) => user.username)
+      .indexOf(rawViewerName.value) !== -1
+  )
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

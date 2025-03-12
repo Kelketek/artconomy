@@ -1,26 +1,12 @@
 <template>
-  <v-input
-    v-if="uppy"
-    v-bind="passedProps"
-    class="ac-uppy-file"
-  >
+  <v-input v-if="uppy" v-bind="passedProps" class="ac-uppy-file">
     <div class="flex flex-column">
-      <div
-        v-if="label"
-        class="flex text-center"
-      >
-        <v-label
-          :for="attrs.id"
-          :color="errorColor"
-          :focused="errorFocused"
-        >
+      <div v-if="label" class="flex text-center">
+        <v-label :for="attrs.id" :color="errorColor" :focused="errorFocused">
           {{ label }}
         </v-label>
       </div>
-      <div
-        :id="uppyId"
-        class="flex text-center"
-      >
+      <div :id="uppyId" class="flex text-center">
         <v-col class="dashboard-container" />
       </div>
       <div class="d-flex justify-center">
@@ -48,22 +34,24 @@
 </template>
 
 <script setup lang="ts">
-import Uppy, {Meta, UppyFile, Body} from '@uppy/core'
-import {toRaw, markRaw, ref, watch, onMounted, useAttrs} from 'vue'
-import Dashboard from '@uppy/dashboard'
-import XHRUpload from '@uppy/xhr-upload'
-import Url from '@uppy/url'
+import Uppy, { Meta, UppyFile, Body } from "@uppy/core"
+import { toRaw, markRaw, ref, watch, onMounted, useAttrs } from "vue"
+import Dashboard from "@uppy/dashboard"
+import XHRUpload from "@uppy/xhr-upload"
+import Url from "@uppy/url"
 
-import {genId, getCookie} from '@/lib/lib.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {GenericState, Listener} from '@uppy/store-default/src'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
+import { genId, getCookie } from "@/lib/lib.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import { GenericState, Listener } from "@uppy/store-default/src"
+import { useSingle } from "@/store/singles/hooks.ts"
+import {
+  ExtendedInputProps,
+  useExtendedInput,
+} from "@/components/fields/mixins/extended_input.ts"
 
 // Based on upstream's store. Looks like we can't use our own store directly,
 // we can only make a copy and work with that. Hell knows why.
 class ArtconomyUppyStore<T extends GenericState = GenericState> {
-
   public single: SingleController<T>
 
   public stateStore: T = markRaw({}) as T
@@ -112,38 +100,35 @@ class ArtconomyUppyStore<T extends GenericState = GenericState> {
 }
 
 declare interface AcUppyFileProps extends ExtendedInputProps {
-  endpoint?: string,
-  modelValue?: string|string[]|null,
-  inForm?: boolean,
-  showReset?: boolean,
-  showClear?: boolean,
-  maxNumberOfFiles?: number,
-  uppyId?: string,
-  persist?: boolean,
+  endpoint?: string
+  modelValue?: string | string[] | null
+  inForm?: boolean
+  showReset?: boolean
+  showClear?: boolean
+  maxNumberOfFiles?: number
+  uppyId?: string
+  persist?: boolean
 }
 
-const props = withDefaults(
-    defineProps<AcUppyFileProps>(),
-    {
-      endpoint: '/api/lib/asset/',
-      inForm: true,
-      showReset: true,
-      showClear: false,
-      maxNumberOfFiles: 1,
-      uppyId: genId,
-      persist: false,
-      modelValue: (props) => {
-        if (props.maxNumberOfFiles && props.maxNumberOfFiles > 1) {
-          return []
-        }
-        return ''
-      },
-    },
-)
+const props = withDefaults(defineProps<AcUppyFileProps>(), {
+  endpoint: "/api/lib/asset/",
+  inForm: true,
+  showReset: true,
+  showClear: false,
+  maxNumberOfFiles: 1,
+  uppyId: genId,
+  persist: false,
+  modelValue: (props) => {
+    if (props.maxNumberOfFiles && props.maxNumberOfFiles > 1) {
+      return []
+    }
+    return ""
+  },
+})
 
-const {passedProps, errorColor, errorFocused} = useExtendedInput(props)
+const { passedProps, errorColor, errorFocused } = useExtendedInput(props)
 
-const emit = defineEmits<{'update:modelValue': [string|string[]|null]}>()
+const emit = defineEmits<{ "update:modelValue": [string | string[] | null] }>()
 
 const originalState = ref({})
 
@@ -151,29 +136,31 @@ const attrs = useAttrs()
 
 const uppySingle = useSingle(props.uppyId, {
   x: {},
-  endpoint: '#',
+  endpoint: "#",
   persist: props.persist,
 })
 
-originalState.value = {...toRaw(uppySingle.x)}
+originalState.value = { ...toRaw(uppySingle.x) }
 
-const uppy = ref(new Uppy({
-  id: props.uppyId,
-  autoProceed: true,
-  debug: false,
-  // @ts-expect-error Upstream type incomplete.
-  store: new ArtconomyUppyStore<GenericState>(uppySingle),
-  restrictions: {
-    maxFileSize: null,
-    maxNumberOfFiles: props.maxNumberOfFiles,
-    minNumberOfFiles: 1,
-  },
-}))
+const uppy = ref(
+  new Uppy({
+    id: props.uppyId,
+    autoProceed: true,
+    debug: false,
+    // @ts-expect-error Upstream type incomplete.
+    store: new ArtconomyUppyStore<GenericState>(uppySingle),
+    restrictions: {
+      maxFileSize: null,
+      maxNumberOfFiles: props.maxNumberOfFiles,
+      minNumberOfFiles: 1,
+    },
+  }),
+)
 uppy.value.use(XHRUpload, {
   endpoint: `${window.location.origin}${props.endpoint}`,
-  fieldName: 'files[]',
+  fieldName: "files[]",
   headers: {
-    'X-CSRFToken': getCookie('csrftoken') + '',
+    "X-CSRFToken": getCookie("csrftoken") + "",
   },
 })
 
@@ -181,15 +168,18 @@ uppy.value.use(XHRUpload, {
 // be used somewhere. Maybe by an upstream callback?
 const unmounting = ref(false)
 
-watch(() => props.modelValue, (newVal: string|string[]|null, oldVal: string|string[]|null) => {
-  /* istanbul ignore if */
-  if (unmounting.value) {
-    return
-  }
-  if (!newVal && oldVal) {
-    uppy.value.cancelAll()
-  }
-})
+watch(
+  () => props.modelValue,
+  (newVal: string | string[] | null, oldVal: string | string[] | null) => {
+    /* istanbul ignore if */
+    if (unmounting.value) {
+      return
+    }
+    if (!newVal && oldVal) {
+      uppy.value.cancelAll()
+    }
+  },
+)
 
 const reset = () => {
   /* istanbul ignore if */
@@ -197,44 +187,49 @@ const reset = () => {
     return
   }
   uppy.value.cancelAll()
-  emit('update:modelValue', '')
+  emit("update:modelValue", "")
 }
 
 const clear = () => {
   uppy.value.cancelAll()
-  emit('update:modelValue', null)
+  emit("update:modelValue", null)
 }
-
 
 onMounted(() => {
   uppy.value.use(Dashboard, {
     inline: true,
     target: `#${props.uppyId} .dashboard-container`,
     replaceTargetContent: true,
-    note: 'Images only.',
+    note: "Images only.",
     height: 250,
     width: 250,
-    theme: 'dark',
+    theme: "dark",
     proudlyDisplayPoweredByUppy: false,
     showLinkToFileUploadResult: false,
     doneButtonHandler: null,
   })
   const companionUrl = `${window.location.origin}/companion/`
-    // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
-    uppy.value.use(Url, {
-      // @ts-expect-error Upstream type incomplete.
-      target: Dashboard,
-      companionUrl,
-      companionCookiesRule: 'include',
-    })
-  uppy.value.on('upload-success', (file: UppyFile<Meta, Body> | undefined, response: any) => {
-    if (props.maxNumberOfFiles > 1) {
-      emit('update:modelValue', [...props.modelValue || [], response.body.id])
-      return
-    } else  {
-      emit('update:modelValue', response.body.id)
-    }
+  // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
+  uppy.value.use(Url, {
+    // @ts-expect-error Upstream type incomplete.
+    target: Dashboard,
+    companionUrl,
+    companionCookiesRule: "include",
   })
+  uppy.value.on(
+    "upload-success",
+    (file: UppyFile<Meta, Body> | undefined, response: any) => {
+      if (props.maxNumberOfFiles > 1) {
+        emit("update:modelValue", [
+          ...(props.modelValue || []),
+          response.body.id,
+        ])
+        return
+      } else {
+        emit("update:modelValue", response.body.id)
+      }
+    },
+  )
   // If this component is remounted, Uppy is regenerated, and we have to restore state.
   /* istanbul ignore if */
   if (Object.keys(originalState.value).length) {

@@ -5,9 +5,7 @@
     :username="username"
   >
     <template #title>
-      <router-link
-        :to="transactionLink"
-      >
+      <router-link :to="transactionLink">
         Your subscription has renewed successfully!
       </router-link>
     </template>
@@ -15,29 +13,27 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
+import AcBaseNotification from "./AcBaseNotification.vue"
 import {
   DisplayData,
   NotificationProps,
   NotificationUser,
   useEvent,
-} from '@/components/views/notifications/mixins/notification.ts'
-import {computed} from 'vue'
+} from "@/components/views/notifications/mixins/notification.ts"
+import { computed } from "vue"
 
 const props = defineProps<NotificationProps<NotificationUser, DisplayData>>()
 const event = useEvent(props)
 
 const transactionLink = computed(() => ({
-  name: 'Settings',
+  name: "Settings",
   params: {
     username: event.value.target.username,
-    tabName: 'payment',
-    subTabName: 'transactions',
-    tertiaryTabName: 'purchases',
+    tabName: "payment",
+    subTabName: "transactions",
+    tertiaryTabName: "purchases",
   },
 }))
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

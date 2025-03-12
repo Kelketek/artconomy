@@ -3,15 +3,12 @@
     v-if="(smAndDown && showFooter) || mini"
     aspect-ratio="1"
     class="submission"
-    :class="{unavailable}"
+    :class="{ unavailable }"
   >
     <v-card>
       <v-card-text class="pa-2">
         <v-row no-gutters>
-          <v-col
-            cols="8"
-            offset="2"
-          >
+          <v-col cols="8" offset="2">
             <ac-link :to="submissionLink">
               <ac-asset
                 :text="false"
@@ -20,7 +17,7 @@
                 :allow-preview="false"
                 :alt="altText"
                 :aspect-ratio="1"
-                :class="{fade: unavailable}"
+                :class="{ fade: unavailable }"
               />
             </ac-link>
           </v-col>
@@ -41,11 +38,7 @@
       </v-card-text>
     </v-card>
   </v-responsive>
-  <v-card
-    v-else
-    class="submission"
-    :class="{unavailable}"
-  >
+  <v-card v-else class="submission" :class="{ unavailable }">
     <ac-link :to="submissionLink">
       <ac-asset
         :asset="submission"
@@ -59,14 +52,8 @@
         :alt="showFooter ? '' : altText"
       />
     </ac-link>
-    <ac-link
-      v-if="showFooter"
-      :to="submissionLink"
-    >
-      <v-card-text
-        v-if="submission.title"
-        class="pa-1"
-      >
+    <ac-link v-if="showFooter" :to="submissionLink">
+      <v-card-text v-if="submission.title" class="pa-1">
         <v-row dense>
           <v-col class="text-left">
             <strong>{{ submission.title }}</strong>
@@ -78,28 +65,28 @@
 </template>
 
 <script setup lang="ts">
-import AcAsset from './AcAsset.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {computed} from 'vue'
-import {useDisplay} from 'vuetify'
-import type {Submission} from '@/types/main'
+import AcAsset from "./AcAsset.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { computed } from "vue"
+import { useDisplay } from "vuetify"
+import type { Submission } from "@/types/main"
 
 declare interface AcGalleryPreviewProps {
-  submission: Submission,
-  thumbName?: string,
-  compact?: boolean,
-  contain?: boolean,
-  showFooter?: boolean,
-  aspectRatio?: number|null,
-  mini?: boolean,
-  text?: boolean,
-  linked?: boolean,
-  allowPreview?: boolean,
-  forceHidden?: boolean,
+  submission: Submission
+  thumbName?: string
+  compact?: boolean
+  contain?: boolean
+  showFooter?: boolean
+  aspectRatio?: number | null
+  mini?: boolean
+  text?: boolean
+  linked?: boolean
+  allowPreview?: boolean
+  forceHidden?: boolean
 }
 
 const props = withDefaults(defineProps<AcGalleryPreviewProps>(), {
-  thumbName: 'thumbnail',
+  thumbName: "thumbnail",
   compact: false,
   contain: false,
   showFooter: true,
@@ -111,19 +98,21 @@ const props = withDefaults(defineProps<AcGalleryPreviewProps>(), {
   forceHidden: false,
 })
 
-const {smAndDown} = useDisplay()
+const { smAndDown } = useDisplay()
 
 const submissionLink = computed(() => {
   if (!props.linked) {
     return null
   }
   return {
-    name: 'Submission',
-    params: {submissionId: props.submission.id}
+    name: "Submission",
+    params: { submissionId: props.submission.id },
   }
 })
-const altText = computed(() => props.submission.title || 'Untitled Submission.')
-const unavailable = computed(() => props.submission.private || props.forceHidden)
+const altText = computed(() => props.submission.title || "Untitled Submission.")
+const unavailable = computed(
+  () => props.submission.private || props.forceHidden,
+)
 </script>
 
 <style>
@@ -138,6 +127,6 @@ const unavailable = computed(() => props.submission.private || props.forceHidden
 
 <style scoped>
 .unavailable {
-  opacity: .5;
+  opacity: 0.5;
 }
 </style>

@@ -1,12 +1,6 @@
 <template>
   <v-row no-gutters>
-    <v-col
-      cols="12"
-      sm="6"
-      offset-sm="3"
-      md="4"
-      offset-md="4"
-    >
+    <v-col cols="12" sm="6" offset-sm="3" md="4" offset-md="4">
       <v-img
         v-if="asset.preview"
         :src="asset.preview.thumbnail"
@@ -17,12 +11,14 @@
     </v-col>
     <v-col cols="12">
       <v-expansion-panel v-if="compact && !popOut">
-        <v-expansion-panel-title><strong>Click to Read</strong></v-expansion-panel-title>
+        <v-expansion-panel-title
+          ><strong>Click to Read</strong></v-expansion-panel-title
+        >
         <v-expansion-panel-text>
           <v-card>
             <ac-rendered
               v-if="response !== null"
-              :classes="{'v-card-text': true, 'text-left': true}"
+              :classes="{ 'v-card-text': true, 'text-left': true }"
               :value="response"
               :truncate="false"
             />
@@ -30,12 +26,7 @@
         </v-expansion-panel-text>
       </v-expansion-panel>
       <div v-else-if="popOut">
-        <v-btn
-          variant="flat"
-          @click="toggle=true"
-        >
-          Click to read
-        </v-btn>
+        <v-btn variant="flat" @click="toggle = true"> Click to read </v-btn>
         <v-dialog
           ref="dialog"
           v-model="toggle"
@@ -46,33 +37,21 @@
           :attach="modalTarget"
         >
           <v-card tile>
-            <v-toolbar
-              flat
-              dark
-              color="primary"
-            >
-              <v-btn
-                icon
-                dark
-                @click="toggle = false"
-              >
+            <v-toolbar flat dark color="primary">
+              <v-btn icon dark @click="toggle = false">
                 <v-icon :icon="mdiClose" />
               </v-btn>
               <v-toolbar-title />
               <v-spacer />
               <v-toolbar-items>
-                <v-btn
-                  dark
-                  variant="text"
-                  @click.prevent="toggle = false"
-                >
+                <v-btn dark variant="text" @click.prevent="toggle = false">
                   Close
                 </v-btn>
               </v-toolbar-items>
             </v-toolbar>
             <ac-rendered
               v-if="response !== null"
-              :classes="{'v-card-text': true, 'text-left': true}"
+              :classes="{ 'v-card-text': true, 'text-left': true }"
               :value="response"
               :truncate="false"
             />
@@ -81,7 +60,7 @@
       </div>
       <v-col v-else-if="response">
         <ac-rendered
-          :classes="{'v-card-text': true, 'text-left': true}"
+          :classes="{ 'v-card-text': true, 'text-left': true }"
           :value="response"
           :truncate="false"
         />
@@ -97,17 +76,21 @@
 </template>
 
 <script setup lang="ts">
-import {ref} from 'vue'
-import {artCall} from '../lib/lib.ts'
-import {mdiClose} from '@mdi/js'
-import {useTargets} from '@/plugins/targets.ts'
-import type {Asset} from '@/types/main'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
+import { ref } from "vue"
+import { artCall } from "../lib/lib.ts"
+import { mdiClose } from "@mdi/js"
+import { useTargets } from "@/plugins/targets.ts"
+import type { Asset } from "@/types/main"
+import AcRendered from "@/components/wrappers/AcRendered.ts"
 
-const props = defineProps<{asset: Asset, compact?: boolean, popOut?: boolean}>()
-const response = ref<string|null>(null)
+const props = defineProps<{
+  asset: Asset
+  compact?: boolean
+  popOut?: boolean
+}>()
+const response = ref<string | null>(null)
 const toggle = ref(false)
-const {modalTarget} = useTargets()
+const { modalTarget } = useTargets()
 
 const loadFile = (responseText: string) => {
   response.value = responseText
@@ -115,6 +98,6 @@ const loadFile = (responseText: string) => {
 
 artCall({
   url: props.asset.file!.full,
-  method: 'get',
+  method: "get",
 }).then(loadFile)
 </script>

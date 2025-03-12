@@ -1,5 +1,5 @@
 export class NullClass {
   constructor() {
-    throw Error('Class not specified.')
+    throw Error("Class not specified.")
   }
 }

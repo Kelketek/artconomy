@@ -1,17 +1,23 @@
-import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, createTestRouter, mount, vueSetup, waitFor} from '@/specs/helpers/index.ts'
-import {VueWrapper} from '@vue/test-utils'
-import SessionSettings from '@/components/views/SessionSettings.vue'
-import {genAnon, genUser} from '@/specs/helpers/fixtures.ts'
-import {afterEach, beforeEach, describe, expect, test} from 'vitest'
-import {setViewer} from '@/lib/lib.ts'
-import {Router} from 'vue-router'
+import { ArtStore, createStore } from "@/store/index.ts"
+import {
+  cleanUp,
+  createTestRouter,
+  mount,
+  vueSetup,
+  waitFor,
+} from "@/specs/helpers/index.ts"
+import { VueWrapper } from "@vue/test-utils"
+import SessionSettings from "@/components/views/SessionSettings.vue"
+import { genAnon, genUser } from "@/specs/helpers/fixtures.ts"
+import { afterEach, beforeEach, describe, expect, test } from "vitest"
+import { setViewer } from "@/lib/lib.ts"
+import { Router } from "vue-router"
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
 let router: Router
 
-describe('SessionSettings.vue', () => {
+describe("SessionSettings.vue", () => {
   beforeEach(() => {
     store = createStore()
     router = createTestRouter()
@@ -19,50 +25,64 @@ describe('SessionSettings.vue', () => {
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Mounts a settings panel for an anonymous user', async() => {
+  test("Mounts a settings panel for an anonymous user", async () => {
     setViewer({ store, user: genAnon() })
-    wrapper = mount(SessionSettings, vueSetup({
-      store,
-      stubs: ['router-link'],
-    }))
+    wrapper = mount(
+      SessionSettings,
+      vueSetup({
+        store,
+        stubs: ["router-link"],
+      }),
+    )
   })
-  test('Redirects a registered user', async() => {
+  test("Redirects a registered user", async () => {
     setViewer({ store, user: genUser() })
-    await router.push('/')
+    await router.push("/")
     await router.isReady()
-    wrapper = mount(SessionSettings, vueSetup({
-      store,
-      router,
-    }))
-    await waitFor(() => expect(router.currentRoute.value.name).toEqual('Settings'))
-    expect(router.currentRoute.value.params).toEqual({username: 'Fox'})
+    wrapper = mount(
+      SessionSettings,
+      vueSetup({
+        store,
+        router,
+      }),
+    )
+    await waitFor(() =>
+      expect(router.currentRoute.value.name).toEqual("Settings"),
+    )
+    expect(router.currentRoute.value.params).toEqual({ username: "Fox" })
   })
-  test('Conditionally permits the rating to be adjusted per session', async() => {
+  test("Conditionally permits the rating to be adjusted per session", async () => {
     setViewer({ store, user: genAnon({ birthday: null }) })
-    wrapper = mount(SessionSettings, vueSetup({
-      store,
-      stubs: ['router-link'],
-    }))
+    wrapper = mount(
+      SessionSettings,
+      vueSetup({
+        store,
+        stubs: ["router-link"],
+      }),
+    )
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(vm.adultAllowed).toBe(false)
-    vm.viewerHandler.user.updateX({birthday: '1988-08-01'})
+    vm.viewerHandler.user.updateX({ birthday: "1988-08-01" })
     await vm.$nextTick()
     expect(vm.adultAllowed).toBe(true)
-    vm.viewerHandler.user.updateX({sfw_mode: true})
+    vm.viewerHandler.user.updateX({ sfw_mode: true })
     await vm.$nextTick()
     expect(vm.adultAllowed).toBe(false)
   })
-  test('Reopens the cookie dialog', async() => {
+  test("Reopens the cookie dialog", async () => {
     setViewer({ store, user: genAnon({ birthday: null }) })
-    wrapper = mount(SessionSettings, vueSetup({
-      store,
-      stubs: ['router-link'],
-    }))
+    wrapper = mount(
+      SessionSettings,
+      vueSetup({
+        store,
+        stubs: ["router-link"],
+      }),
+    )
     const vm = wrapper.vm as any
     await vm.$nextTick()
     expect(store.state.showCookieDialog).toBe(false)
-    await wrapper.find('.cookie-settings-button').trigger('click')
+    await wrapper.find(".cookie-settings-button").trigger("click")
     await vm.$nextTick()
     expect(store.state.showCookieDialog).toBe(true)
   })

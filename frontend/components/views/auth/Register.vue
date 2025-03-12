@@ -29,10 +29,7 @@
           prepend-icon="mdi-tag"
         />
         <v-row>
-          <v-col
-            cols="12"
-            sm="6"
-          >
+          <v-col cols="12" sm="6">
             <ac-bound-field
               label="Keep Me up to Date"
               hint="Keep up to date with the latest news on Artconomy using our mailing list"
@@ -41,10 +38,7 @@
               :persistent-hint="true"
             />
           </v-col>
-          <v-col
-            cols="12"
-            sm="6"
-          >
+          <v-col cols="12" sm="6">
             <ac-bound-field
               label="I'm an artist!"
               hint="Enable artist tools in your account. You can change this later."
@@ -54,10 +48,7 @@
             />
           </v-col>
         </v-row>
-        <v-input
-          v-bind="registerForm.fields.recaptcha.bind"
-          class="mt-4"
-        >
+        <v-input v-bind="registerForm.fields.recaptcha.bind" class="mt-4">
           <v-col class="text-center">
             <div style="display: inline-block">
               <vue-hcaptcha
@@ -72,11 +63,11 @@
         </v-input>
         <p>
           By Registering, you are agreeing to be bound by Artconomy's
-          <router-link :to="{name: 'TermsOfService'}">
+          <router-link :to="{ name: 'TermsOfService' }">
             Terms of Service
           </router-link>
           and
-          <router-link :to="{name: 'PrivacyPolicy'}">
+          <router-link :to="{ name: 'PrivacyPolicy' }">
             Privacy Policy
           </router-link>
           .
@@ -96,24 +87,25 @@
 </template>
 
 <script setup lang="ts">
-import {useAuth} from '@/components/views/auth/mixins/Auth.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import VueHcaptcha from '@/components/fields/hcaptcha/VueHcaptcha.vue'
-import {computed, ref, watch} from 'vue'
+import { useAuth } from "@/components/views/auth/mixins/Auth.ts"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcForm from "@/components/wrappers/AcForm.vue"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import VueHcaptcha from "@/components/fields/hcaptcha/VueHcaptcha.vue"
+import { computed, ref, watch } from "vue"
 
-const siteKey = computed(() => window.RECAPTCHA_SITE_KEY || 'undefined')
-const {registerForm, loginForm, loginHandler} = useAuth()
-const recaptcha = ref<null|typeof VueHcaptcha>()
-watch(() => registerForm.sending, (newVal, oldVal) => {
-  if (oldVal && !newVal) {
-    recaptcha.value?.reset();
-    registerForm.fields.recaptcha.update('', false)
-  }
-})
+const siteKey = computed(() => window.RECAPTCHA_SITE_KEY || "undefined")
+const { registerForm, loginForm, loginHandler } = useAuth()
+const recaptcha = ref<null | typeof VueHcaptcha>()
+watch(
+  () => registerForm.sending,
+  (newVal, oldVal) => {
+    if (oldVal && !newVal) {
+      recaptcha.value?.reset()
+      registerForm.fields.recaptcha.update("", false)
+    }
+  },
+)
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

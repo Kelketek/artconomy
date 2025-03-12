@@ -1,15 +1,7 @@
 <template>
-  <v-toolbar
-    density="compact"
-    color="black"
-    class="subjective-toolbar"
-  >
+  <v-toolbar density="compact" color="black" class="subjective-toolbar">
     <slot name="avatar">
-      <ac-avatar
-        :username="username"
-        :show-name="false"
-        class="ml-3"
-      />
+      <ac-avatar :username="username" :show-name="false" class="ml-3" />
       <v-toolbar-title class="ml-1">
         <ac-link :to="profileLink(subject)">
           {{ subjectHandler.displayName }}
@@ -34,18 +26,17 @@
 </template>
 
 <script setup lang="ts">
-import AcAvatar from '../AcAvatar.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {useSubject} from '@/mixins/subjective.ts'
-import {useDisplay} from 'vuetify'
+import AcAvatar from "../AcAvatar.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { useSubject } from "@/mixins/subjective.ts"
+import { useDisplay } from "vuetify"
 
-import {profileLink} from '@/lib/otherFormatters.ts'
-import type {SubjectiveProps} from '@/types/main'
+import { profileLink } from "@/lib/otherFormatters.ts"
+import type { SubjectiveProps } from "@/types/main"
 
 const props = defineProps<SubjectiveProps>()
-const {subjectHandler, subject} = useSubject({ props })
-const {xs} = useDisplay()
+const { subjectHandler, subject } = useSubject({ props })
+const { xs } = useDisplay()
 </script>
 
-<style>
-</style>
+<style></style>

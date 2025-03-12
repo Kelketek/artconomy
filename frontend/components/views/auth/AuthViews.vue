@@ -9,24 +9,21 @@
         offset-md="3"
         class="text-center"
       >
-        <v-tabs
-          class="inverse"
-          fixed-tabs
-        >
+        <v-tabs class="inverse" fixed-tabs>
           <v-tab
-            :to="{name: 'Login', query: {...route.query}}"
+            :to="{ name: 'Login', query: { ...route.query } }"
             :replace="true"
           >
             Login
           </v-tab>
           <v-tab
-            :to="{name: 'Register', query: {...route.query}}"
+            :to="{ name: 'Register', query: { ...route.query } }"
             :replace="true"
           >
             Register
           </v-tab>
           <v-tab
-            :to="{name: 'Forgot', query: {...route.query}}"
+            :to="{ name: 'Forgot', query: { ...route.query } }"
             :replace="true"
           >
             Forgot
@@ -39,13 +36,16 @@
 </template>
 
 <script setup lang="ts">
-import {useAuth} from '@/components/views/auth/mixins/Auth.ts'
-import {watch} from 'vue'
-import {useRoute} from 'vue-router'
-import {useViewer} from '@/mixins/viewer.ts'
+import { useAuth } from "@/components/views/auth/mixins/Auth.ts"
+import { watch } from "vue"
+import { useRoute } from "vue-router"
+import { useViewer } from "@/mixins/viewer.ts"
 
 declare type SyncFunc = (value: any) => void
-declare type AuthType = Omit<ReturnType<typeof useAuth>, 'loginHandler'|'sendToProfile'>
+declare type AuthType = Omit<
+  ReturnType<typeof useAuth>,
+  "loginHandler" | "sendToProfile"
+>
 
 const route = useRoute()
 const forms = useAuth()
@@ -65,19 +65,42 @@ const syncTo = (...fields: Array<[keyof AuthType, string]>): SyncFunc => {
   }
 }
 
-
-watch(() => forms.loginForm.fields.email.value, syncTo(['registerForm', 'email'], ['forgotForm', 'email']))
-watch(() => forms.registerForm.fields.email.value, syncTo(['loginForm', 'email'], ['forgotForm', 'email']))
-watch(() => forms.forgotForm.fields.email.value, syncTo(['loginForm', 'email'], ['registerForm', 'email']))
-watch(() => forms.loginForm.fields.password.value, syncTo(['registerForm', 'password']))
-watch(() => forms.registerForm.fields.password.value, syncTo(['loginForm', 'password']))
-watch(() => forms.loginForm.fields.order_claim.value, syncTo(['registerForm', 'order_claim']))
-watch(() => forms.registerForm.fields.order_claim.value, syncTo(['loginForm', 'order_claim']))
-forms.loginForm.fields.order_claim.update(route.query.claim || '', false)
-forms.registerForm.fields.artist_mode.update(((route.query.artist_mode && true) || false), false)
+watch(
+  () => forms.loginForm.fields.email.value,
+  syncTo(["registerForm", "email"], ["forgotForm", "email"]),
+)
+watch(
+  () => forms.registerForm.fields.email.value,
+  syncTo(["loginForm", "email"], ["forgotForm", "email"]),
+)
+watch(
+  () => forms.forgotForm.fields.email.value,
+  syncTo(["loginForm", "email"], ["registerForm", "email"]),
+)
+watch(
+  () => forms.loginForm.fields.password.value,
+  syncTo(["registerForm", "password"]),
+)
+watch(
+  () => forms.registerForm.fields.password.value,
+  syncTo(["loginForm", "password"]),
+)
+watch(
+  () => forms.loginForm.fields.order_claim.value,
+  syncTo(["registerForm", "order_claim"]),
+)
+watch(
+  () => forms.registerForm.fields.order_claim.value,
+  syncTo(["loginForm", "order_claim"]),
+)
+forms.loginForm.fields.order_claim.update(route.query.claim || "", false)
+forms.registerForm.fields.artist_mode.update(
+  (route.query.artist_mode && true) || false,
+  false,
+)
 forms.loginForm.clearErrors()
 forms.registerForm.clearErrors()
 // Used by tests.
-const {viewer} = useViewer()
-defineExpose({viewer})
+const { viewer } = useViewer()
+defineExpose({ viewer })
 </script>

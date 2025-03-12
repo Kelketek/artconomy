@@ -5,42 +5,44 @@
     variant="flat"
     size="small"
   >
-    <v-icon
-      left
-      :icon="STATUSES[invoice.status].icon"
-    />
+    <v-icon left :icon="STATUSES[invoice.status].icon" />
     {{ STATUSES[invoice.status].text }}
   </v-chip>
 </template>
 
 <script setup lang="ts">
-import {mdiInvoiceCheck, mdiInvoiceTextEdit, mdiInvoiceTextRemove, mdiStar} from '@mdi/js'
-import type {Invoice} from '@/types/main'
+import {
+  mdiInvoiceCheck,
+  mdiInvoiceTextEdit,
+  mdiInvoiceTextRemove,
+  mdiStar,
+} from "@mdi/js"
+import type { Invoice } from "@/types/main"
 
-defineProps<{invoice: Invoice}>()
+defineProps<{ invoice: Invoice }>()
 const STATUSES = {
   0: {
-    text: 'Draft',
+    text: "Draft",
     icon: mdiInvoiceTextEdit,
-    color: 'white',
+    color: "white",
     dark: false,
   },
   1: {
-    text: 'Open',
+    text: "Open",
     icon: mdiStar,
-    color: 'primary',
+    color: "primary",
     dark: true,
   },
   2: {
-    text: 'Paid',
+    text: "Paid",
     icon: mdiInvoiceCheck,
-    color: 'green',
+    color: "green",
     dark: true,
   },
   5: {
-    text: 'Void',
+    text: "Void",
     icon: mdiInvoiceTextRemove,
-    color: 'black',
+    color: "black",
     dark: true,
   },
 }

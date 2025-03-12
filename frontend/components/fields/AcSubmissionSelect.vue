@@ -1,17 +1,7 @@
 <template>
-  <v-input
-    v-bind="passedProps"
-    class="ac-uppy-file"
-  >
-    <v-col
-      v-if="label"
-      class="text-center mb-2"
-    >
-      <v-label
-        :for="attrs.id"
-        :color="errorColor"
-        :focused="errorFocused"
-      >
+  <v-input v-bind="passedProps" class="ac-uppy-file">
+    <v-col v-if="label" class="text-center mb-2">
+      <v-label :for="attrs.id" :color="errorColor" :focused="errorFocused">
         {{ label }}
       </v-label>
     </v-col>
@@ -29,10 +19,7 @@
           md="3"
           class="submission-container"
         >
-          <v-row
-            v-if="submission.x"
-            no-gutters
-          >
+          <v-row v-if="submission.x" no-gutters>
             <v-col cols="12">
               <ac-gallery-preview
                 :key="derived(submission).id"
@@ -59,11 +46,7 @@
                 </template>
               </ac-gallery-preview>
             </v-col>
-            <v-col
-              v-if="removable"
-              class="text-center"
-              cols="12"
-            >
+            <v-col v-if="removable" class="text-center" cols="12">
               <v-btn
                 color="danger"
                 class="remove-submission"
@@ -81,50 +64,59 @@
 </template>
 
 <script setup lang="ts">
-import {ListController} from '@/store/lists/controller.ts'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import {ExtendedInputProps, useExtendedInput} from '@/components/fields/mixins/extended_input.ts'
-import {genId} from '@/lib/lib.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {useList} from '@/store/lists/hooks.ts'
-import {computed, ref, useAttrs, watch} from 'vue'
-import {useTheme} from 'vuetify'
-import {mdiCheckCircle} from '@mdi/js'
-import type {Submission} from '@/types/main'
+import { ListController } from "@/store/lists/controller.ts"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcGalleryPreview from "@/components/AcGalleryPreview.vue"
+import {
+  ExtendedInputProps,
+  useExtendedInput,
+} from "@/components/fields/mixins/extended_input.ts"
+import { genId } from "@/lib/lib.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import { useList } from "@/store/lists/hooks.ts"
+import { computed, ref, useAttrs, watch } from "vue"
+import { useTheme } from "vuetify"
+import { mdiCheckCircle } from "@mdi/js"
+import type { Submission } from "@/types/main"
 
 declare interface AcSubmissionSelectProps {
-  list?: ListController<Submission>,
-  saveComparison?: Submission | null,
-  queryEndpoint?: string,
-  related?: boolean,
-  removable?: boolean,
-  modelValue: Submission | number | null,
+  list?: ListController<Submission>
+  saveComparison?: Submission | null
+  queryEndpoint?: string
+  related?: boolean
+  removable?: boolean
+  modelValue: Submission | number | null
 }
 
-const props = withDefaults(defineProps<AcSubmissionSelectProps & Partial<ExtendedInputProps>>(), {
-  related: false,
-  removable: false,
-  saveComparison: null,
-  queryEndpoint: '',
-  list: undefined,
-  label: '',
-  errorMessages: () => [],
-})
+const props = withDefaults(
+  defineProps<AcSubmissionSelectProps & Partial<ExtendedInputProps>>(),
+  {
+    related: false,
+    removable: false,
+    saveComparison: null,
+    queryEndpoint: "",
+    list: undefined,
+    label: "",
+    errorMessages: () => [],
+  },
+)
 
-const {current} = useTheme()
+const { current } = useTheme()
 const attrs = useAttrs()
 
-const {passedProps, errorFocused, errorColor} = useExtendedInput(props)
+const { passedProps, errorFocused, errorColor } = useExtendedInput(props)
 
-const emit = defineEmits<{'update:modelValue': [value: null|number], remove: [submission: SingleController<Submission>]}>()
+const emit = defineEmits<{
+  "update:modelValue": [value: null | number]
+  remove: [submission: SingleController<Submission>]
+}>()
 const listId = genId()
 
 let submissionList: ListController<Submission>
 if (props.queryEndpoint) {
-  submissionList = useList(listId, {endpoint: props.queryEndpoint})
+  submissionList = useList(listId, { endpoint: props.queryEndpoint })
 } else if (!props.list) {
-  throw Error('Neither queryEndpoint nor list provided!')
+  throw Error("Neither queryEndpoint nor list provided!")
 } else {
   submissionList = props.list
 }
@@ -145,14 +137,14 @@ const derived = (item: SingleController<Submission>) => {
   return item.x
 }
 
-const loading = ref<number|false>(false)
+const loading = ref<number | false>(false)
 
-watch(compare, () => loading.value = false)
+watch(compare, () => (loading.value = false))
 
 const select = (id: number) => {
   if (compare.value !== id) {
     loading.value = id
   }
-  emit('update:modelValue', id)
+  emit("update:modelValue", id)
 }
 </script>

@@ -12,14 +12,11 @@
       <div v-bind="activator.props">
         <v-text-field
           :model-value="modelValue"
-          v-bind="{...attrs, ...activator.props}"
+          v-bind="{ ...attrs, ...activator.props }"
           prepend-icon="mdi-event"
           readonly
         >
-          <template
-            v-for="name in slotNames"
-            #[name]
-          >
+          <template v-for="name in slotNames" #[name]>
             <slot :name="name" />
           </template>
         </v-text-field>
@@ -37,47 +34,47 @@
 </template>
 
 <script setup lang="ts">
-import {format, parseISO} from 'date-fns'
-import {VTextField} from 'vuetify/components/VTextField'
-import {computed, ref, useAttrs, useSlots, watch} from 'vue'
-import {VDatePicker, VMenu} from 'vuetify/components'
+import { format, parseISO } from "date-fns"
+import { VTextField } from "vuetify/components/VTextField"
+import { computed, ref, useAttrs, useSlots, watch } from "vue"
+import { VDatePicker, VMenu } from "vuetify/components"
 
-const props = defineProps<{modelValue: null|string}>()
+const props = defineProps<{ modelValue: null | string }>()
 const menuToggle = ref(false)
-const menu = ref<typeof VMenu|null>(null)
-const picker = ref<typeof VDatePicker|null>(null)
-const activePicker = ref<'year' | 'month' | 'months'>('year')
-const emit = defineEmits<{'update:modelValue': [string|null]}>()
+const menu = ref<typeof VMenu | null>(null)
+const picker = ref<typeof VDatePicker | null>(null)
+const activePicker = ref<"year" | "month" | "months">("year")
+const emit = defineEmits<{ "update:modelValue": [string | null] }>()
 const slots = useSlots()
 const attrs = useAttrs()
 
 const converted = computed({
-  get(): null|Date {
+  get(): null | Date {
     if (props.modelValue === null) {
       return props.modelValue
     }
     return parseISO(props.modelValue)
   },
-  set(val: Date|null) {
+  set(val: Date | null) {
     if (val === null) {
-      emit('update:modelValue', null)
+      emit("update:modelValue", null)
     } else {
-      emit('update:modelValue', format(val, 'yyyy-MM-dd'))
+      emit("update:modelValue", format(val, "yyyy-MM-dd"))
     }
     menuToggle.value = false
-  }
+  },
 })
 
 const slotNames = computed(() => {
-  return Object.keys(slots) as Array<keyof VTextField['$slots']>
+  return Object.keys(slots) as Array<keyof VTextField["$slots"]>
 })
 
 watch(menuToggle, (toggle: boolean) => {
   if (toggle) {
-    setTimeout(() => activePicker.value = 'year')
+    setTimeout(() => (activePicker.value = "year"))
   }
 })
 
 // Used in tests.
-defineExpose({menu, picker, activePicker})
+defineExpose({ menu, picker, activePicker })
 </script>

@@ -1,32 +1,19 @@
 <template>
-  <ac-load-section
-    :controller="colors"
-    class="color-section"
-  >
-    <v-row
-      v-if="colors.list.length || editing"
-      no-gutters
-      class="mt-3"
-    >
+  <ac-load-section :controller="colors" class="color-section">
+    <v-row v-if="colors.list.length || editing" no-gutters class="mt-3">
       <v-col
         v-for="color in colors.list"
         :key="color.x!.id"
         :style="'background-color: ' + color.x!.color + ';' + 'height: 3rem;'"
       />
     </v-row>
-    <v-row
-      v-else
-      no-gutters
-    />
+    <v-row v-else no-gutters />
     <v-expansion-panels v-if="colors.list.length || editing">
       <v-expansion-panel>
         <v-expansion-panel-title>
           <v-row no-gutters>
             <v-col class="text-center">
-              <v-icon
-                left
-                :icon="mdiPalette"
-              />
+              <v-icon left :icon="mdiPalette" />
               Color References
             </v-col>
           </v-row>
@@ -38,10 +25,7 @@
                 v-for="(color, index) in colors.list"
                 :key="color.x!.id"
               >
-                <ac-ref-color
-                  :color="color"
-                  :username="username"
-                />
+                <ac-ref-color :color="color" :username="username" />
                 <v-divider
                   v-if="index + 1 < colors.list.length"
                   :key="`color-${index}-divider`"
@@ -74,38 +58,39 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import {useSubject} from '@/mixins/subjective.ts'
-import AcRefColor from '@/components/views/character/AcRefColor.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import {useCharacter} from '@/store/characters/hooks.ts'
-import {useEditable} from '@/mixins/editable.ts'
-import {useForm} from '@/store/forms/hooks.ts'
-import {mdiPalette} from '@mdi/js'
-import type {CharacterProps} from '@/types/main'
-import {Color} from '@/store/characters/types/main'
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import { useSubject } from "@/mixins/subjective.ts"
+import AcRefColor from "@/components/views/character/AcRefColor.vue"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import AcForm from "@/components/wrappers/AcForm.vue"
+import { useCharacter } from "@/store/characters/hooks.ts"
+import { useEditable } from "@/mixins/editable.ts"
+import { useForm } from "@/store/forms/hooks.ts"
+import { mdiPalette } from "@mdi/js"
+import type { CharacterProps } from "@/types/main"
+import { Color } from "@/store/characters/types/main"
 
 const props = defineProps<CharacterProps>()
 
 const character = useCharacter(props)
-const {controls} = useSubject({ props })
+const { controls } = useSubject({ props })
 const colors = character.colors
-const {editing} = useEditable(controls)
+const { editing } = useEditable(controls)
 
 const exampleLines = [
-  {note: 'Soul', color: '#000000'},
-  {note: 'Beans', color: '#fa6982'},
-  {note: 'Friendship Bracelet', color: '#50c336'},
-  {note: 'Blood', color: '#151aaa'},
-  {note: 'Boogers', color: '#74a82a'},
-  {note: 'Skin Tone', color: '#631262'},
-  {note: 'Phone Case', color: '#f59b14'},
-  {note: 'Shoes', color: '#e9f514'},
-  {note: 'Hat', color: '#14f5ed'}
+  { note: "Soul", color: "#000000" },
+  { note: "Beans", color: "#fa6982" },
+  { note: "Friendship Bracelet", color: "#50c336" },
+  { note: "Blood", color: "#151aaa" },
+  { note: "Boogers", color: "#74a82a" },
+  { note: "Skin Tone", color: "#631262" },
+  { note: "Phone Case", color: "#f59b14" },
+  { note: "Shoes", color: "#e9f514" },
+  { note: "Hat", color: "#14f5ed" },
 ]
 
-const randomColor = () => exampleLines[Math.floor(Math.random() * exampleLines.length)]
+const randomColor = () =>
+  exampleLines[Math.floor(Math.random() * exampleLines.length)]
 
 const exampleLine = randomColor()
 

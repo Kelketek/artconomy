@@ -6,7 +6,7 @@
 </template>
 
 <script setup lang="ts">
-import {mdiCheckCircle, mdiCloseCircle} from '@mdi/js'
+import { mdiCheckCircle, mdiCloseCircle } from "@mdi/js"
 
-defineProps<{value: boolean}>()
+defineProps<{ value: boolean }>()
 </script>

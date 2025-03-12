@@ -9,5 +9,5 @@
   </div>
 </template>
 <script setup lang="ts">
-import AcShareButton from '../AcShareButton.vue'
+import AcShareButton from "../AcShareButton.vue"
 </script>

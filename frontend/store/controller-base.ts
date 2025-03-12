@@ -1,23 +1,27 @@
-import type {EffectScope, Ref} from 'vue'
-import {effectScope, h, ref, toValue} from 'vue'
-import {v4 as uuidv4} from 'uuid'
-import {NullClass} from '@/store/helpers/NullClass.ts'
-import deepEqual from 'fast-deep-equal'
-import {AttrKeys, ModuleName, Registry, RegistryRegistry} from '@/store/registry-base.ts'
-import {ArtStore} from '@/store/index.ts'
-import {SocketManager} from '@/plugins/socket.ts'
-import {Router} from 'vue-router'
-import type {ArtVueInterface} from '@/types/main'
+import type { EffectScope, Ref } from "vue"
+import { effectScope, h, ref, toValue } from "vue"
+import { v4 as uuidv4 } from "uuid"
+import { NullClass } from "@/store/helpers/NullClass.ts"
+import deepEqual from "fast-deep-equal"
+import {
+  AttrKeys,
+  ModuleName,
+  Registry,
+  RegistryRegistry,
+} from "@/store/registry-base.ts"
+import { ArtStore } from "@/store/index.ts"
+import { SocketManager } from "@/plugins/socket.ts"
+import { Router } from "vue-router"
+import type { ArtVueInterface } from "@/types/main"
 
 export interface ControllerArgs<S> {
-  initName: string,
-  schema: S,
-  $store: ArtStore,
-  $sock: SocketManager,
-  $router: Router,
-  $registries: RegistryRegistry,
+  initName: string
+  schema: S
+  $store: ArtStore
+  $sock: SocketManager
+  $router: Router
+  $registries: RegistryRegistry
 }
-
 
 export abstract class BaseController<S, D extends AttrKeys> {
   // Used by @ComputedGetters decorator
@@ -34,10 +38,10 @@ export abstract class BaseController<S, D extends AttrKeys> {
   public schema: S
 
   // Replace this with the default module new instances should be installed under, like 'lists' or 'singles'.
-  public baseModuleName = 'base'
+  public baseModuleName = "base"
 
   // Name of the type of objects, like 'List' or 'Single'.
-  public typeName: ModuleName = 'Single'
+  public typeName: ModuleName = "Single"
 
   public baseClass: any = NullClass
 
@@ -45,7 +49,14 @@ export abstract class BaseController<S, D extends AttrKeys> {
   // For some reason, Array<keyof D> set as the type does not work as expected, and so we lose some type safety here.
   public submoduleKeys: string[] = []
 
-  constructor({initName, schema, $store, $sock, $router, $registries}: ControllerArgs<S>) {
+  constructor({
+    initName,
+    schema,
+    $store,
+    $sock,
+    $router,
+    $registries,
+  }: ControllerArgs<S>) {
     this.__getterMap = new Map()
     this.scope = effectScope(true)
     this.initName = initName
@@ -67,7 +78,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
       return
     }
     for (const key of this.submoduleKeys) {
-      (this as any)[key].abandon((this as any)._uid)
+      ;(this as any)[key].abandon((this as any)._uid)
     }
     this.socketUnmount()
     this.kill()
@@ -81,36 +92,41 @@ export abstract class BaseController<S, D extends AttrKeys> {
 
   public kill = () => {
     // Kills any AJAX request this module is making.
-    this.commit('kill')
+    this.commit("kill")
   }
 
-  public register = (path?: string[])=> {
+  public register = (path?: string[]) => {
     let data: Partial<D> = {}
     path = path || this.path
     if (this.$sock) {
       this.$sock.connectListeners[`${(this as any)._uid}`] = this.socketOpened
-      this.$sock.disconnectListeners[`${(this as any)._uid}`] = this.socketClosed
+      this.$sock.disconnectListeners[`${(this as any)._uid}`] =
+        this.socketClosed
     }
     if (this.state) {
       if (deepEqual(path, this.path) || this.stateFor(path)) {
         // Already registered. Don't attempt to recreate the target module.
         return
       }
-      data = {...this.state}
+      data = { ...this.state }
     }
     for (const key of this.submoduleKeys) {
       delete data[key as keyof D]
     }
     try {
       this.$store.registerModule(
-
-        path, new this.baseClass({...this.schema, ...data, ...{name: path.join('/')}}),
+        path,
+        new this.baseClass({
+          ...this.schema,
+          ...data,
+          ...{ name: path.join("/") },
+        }),
       )
     } catch (err) {
       console.error(
         `Failed registering ${JSON.stringify(path)}.` +
-        'Likely, the parent path is not registered, but check error for more detail. It could also be an error ' +
-        'in a watcher/computed property.',
+          "Likely, the parent path is not registered, but check error for more detail. It could also be an error " +
+          "in a watcher/computed property.",
       )
       throw err
     }
@@ -126,9 +142,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
     // be placed here.
   }
 
-  public socketClosed = () => {
-
-  }
+  public socketClosed = () => {}
 
   public socketUnmount = () => {
     // Any actions that should be taken when unmounting as they pertain to sockets should be placed here.
@@ -147,14 +161,14 @@ export abstract class BaseController<S, D extends AttrKeys> {
     this.register(this.derivePath(name))
     this.name.value = name
     for (const key of this.submoduleKeys) {
-      (this as any)[key].migrate(this.prefix + key)
+      ;(this as any)[key].migrate(this.prefix + key)
     }
     this.registry.rename(oldName, name)
     this.$store.unregisterModule(this.derivePath(oldName))
   }
 
   public derivePath = (name: string) => {
-    const path = name.split('/')
+    const path = name.split("/")
     if (path.length === 1) {
       path.unshift(this.baseModuleName)
     }
@@ -188,7 +202,7 @@ export abstract class BaseController<S, D extends AttrKeys> {
   }
 
   public get prefix() {
-    return this.path.join('/') + '/'
+    return this.path.join("/") + "/"
   }
 
   public get purged() {
@@ -196,15 +210,23 @@ export abstract class BaseController<S, D extends AttrKeys> {
   }
 
   public getter = (getterName: string) => {
-    return (this as unknown as ArtVueInterface).$store.getters[`${this.prefix}${getterName}`]
+    return (this as unknown as ArtVueInterface).$store.getters[
+      `${this.prefix}${getterName}`
+    ]
   }
 
   public commit = (mutationName: string, payload?: any) => {
-    (this as unknown as ArtVueInterface).$store.commit(`${this.prefix}${mutationName}`, payload)
+    ;(this as unknown as ArtVueInterface).$store.commit(
+      `${this.prefix}${mutationName}`,
+      payload,
+    )
   }
 
   public dispatch = (actionName: string, payload?: any) => {
-    return (this as unknown as ArtVueInterface).$store.dispatch(`${this.prefix}${actionName}`, payload)
+    return (this as unknown as ArtVueInterface).$store.dispatch(
+      `${this.prefix}${actionName}`,
+      payload,
+    )
   }
 
   public get socketLabelBase() {
@@ -214,11 +236,11 @@ export abstract class BaseController<S, D extends AttrKeys> {
   // noinspection JSMethodCanBeStatic
   public render = () => {
     // Used in tests so we can mount directly.
-    return h('div')
+    return h("div")
   }
 
   public toJSON = (): object => {
     // Used to prevent the pretty printing service from exhausting all memory.
-    return {type: this.constructor.name, name: this.name, state: this.state}
+    return { type: this.constructor.name, name: this.name, state: this.state }
   }
 }

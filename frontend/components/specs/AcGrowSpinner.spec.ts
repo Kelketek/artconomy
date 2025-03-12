@@ -1,32 +1,32 @@
-import {ArtStore, createStore} from '@/store/index.ts'
-import {cleanUp, mount, vueSetup} from '@/specs/helpers/index.ts'
-import {VueWrapper} from '@vue/test-utils'
-import AcGrowSpinner from '@/components/AcGrowSpinner.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import Empty from '@/specs/helpers/dummy_components/empty.ts'
-import {afterEach, beforeEach, describe, expect, test, vi} from 'vitest'
+import { ArtStore, createStore } from "@/store/index.ts"
+import { cleanUp, mount, vueSetup } from "@/specs/helpers/index.ts"
+import { VueWrapper } from "@vue/test-utils"
+import AcGrowSpinner from "@/components/AcGrowSpinner.vue"
+import { ListController } from "@/store/lists/controller.ts"
+import Empty from "@/specs/helpers/dummy_components/empty.ts"
+import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 
 let store: ArtStore
 let list: ListController<any>
 let wrapper: VueWrapper<any>
 
-describe('AcGrowSpinner.vue', () => {
+describe("AcGrowSpinner.vue", () => {
   beforeEach(() => {
     store = createStore()
   })
   afterEach(() => {
     cleanUp(wrapper)
   })
-  test('Runs the grower', async() => {
-    list = mount(Empty, vueSetup({store})).vm.$getList('stuff', {
-      endpoint: '/',
+  test("Runs the grower", async () => {
+    list = mount(Empty, vueSetup({ store })).vm.$getList("stuff", {
+      endpoint: "/",
       grow: true,
     })
-    const mockWarn = vi.spyOn(console, 'warn')
+    const mockWarn = vi.spyOn(console, "warn")
     mockWarn.mockImplementationOnce(() => undefined)
     wrapper = mount(AcGrowSpinner, {
-      ...vueSetup({store}),
-      props: {list},
+      ...vueSetup({ store }),
+      props: { list },
     })
     expect(list.fetching).toBe(false)
     const vm = wrapper.vm as any

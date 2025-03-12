@@ -1,13 +1,6 @@
 <template>
-  <v-row
-    ref="root"
-    class="form-container"
-    no-gutters
-  >
-    <div
-      v-if="sending"
-      class="loading-overlay"
-    >
+  <v-row ref="root" class="form-container" no-gutters>
+    <div v-if="sending" class="loading-overlay">
       <v-progress-circular
         v-if="showSpinner"
         indeterminate
@@ -16,23 +9,21 @@
         color="purple"
       />
     </div>
-    <v-col
-      :class="{'form-sending': sending}"
-      cols="12"
-    >
+    <v-col :class="{ 'form-sending': sending }" cols="12">
       <slot />
     </v-col>
-    <template
-      v-for="(error, index) in savedErrors"
-      :key="index"
-    >
+    <template v-for="(error, index) in savedErrors" :key="index">
       <v-col cols="12">
         <v-alert
           :key="error"
           :value="true"
           type="error"
           closable
-          @update:model-value="(val) => {toggleError(val, index)}"
+          @update:model-value="
+            (val) => {
+              toggleError(val, index)
+            }
+          "
         >
           {{ error }}
         </v-alert>
@@ -42,15 +33,19 @@
 </template>
 
 <script setup lang="ts">
-import {nextTick, onMounted, ref, watch} from 'vue'
+import { nextTick, onMounted, ref, watch } from "vue"
 
 const props = withDefaults(
-    defineProps<{sending?: boolean, errors?: string[], showSpinner?: boolean}>(),
-    {
-      sending: false,
-      errors: () => [],
-      showSpinner: true,
-    }
+  defineProps<{
+    sending?: boolean
+    errors?: string[]
+    showSpinner?: boolean
+  }>(),
+  {
+    sending: false,
+    errors: () => [],
+    showSpinner: true,
+  },
 )
 
 const savedErrors = ref<string[]>([])
@@ -62,21 +57,24 @@ const toggleError = (val: boolean, index: number) => {
   savedErrors.value.splice(index, 1)
 }
 
-watch(() => props.errors, (val: string[]) => {
-  if (!Array.isArray(val)) {
-    return
-  }
-  savedErrors.value = [...val]
-})
+watch(
+  () => props.errors,
+  (val: string[]) => {
+    if (!Array.isArray(val)) {
+      return
+    }
+    savedErrors.value = [...val]
+  },
+)
 
-const root = ref<Element|null>(null)
+const root = ref<Element | null>(null)
 
 // Needed for tests.
 defineExpose(props)
 
 onMounted(() => {
   nextTick(() => {
-    window._paq.push(['FormAnalytics::scanForForms', root.value!.outerHTML])
+    window._paq.push(["FormAnalytics::scanForForms", root.value!.outerHTML])
   })
 })
 </script>
@@ -101,11 +99,11 @@ onMounted(() => {
 }
 
 .form-sending {
-  opacity: .25;
+  opacity: 0.25;
 }
 
 .error-right {
   float: right;
-  display: inline-block
+  display: inline-block;
 }
 </style>

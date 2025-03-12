@@ -18,21 +18,22 @@
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {DisplayData, NotificationProps} from '@/components/views/notifications/mixins/notification.ts'
-import {computed} from 'vue'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import {
+  DisplayData,
+  NotificationProps,
+} from "@/components/views/notifications/mixins/notification.ts"
+import { computed } from "vue"
 
 const props = defineProps<NotificationProps<null, DisplayData>>()
 const upgradeLink = computed(() => {
   return {
-    name: 'Upgrade',
+    name: "Upgrade",
     params: {
       username: props.username,
-    }
+    },
   }
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

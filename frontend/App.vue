@@ -10,10 +10,14 @@
         :expires="new Date(2024, 11, 5)"
       >
         <template #default>
-          Time is running out for holiday listings! Tag <router-link :to="{name: 'Products', params: {username: viewer.username}}">
+          Time is running out for holiday listings! Tag
+          <router-link
+            :to="{ name: 'Products', params: { username: viewer.username } }"
+          >
             your products
-          </router-link> that can be delivered in time for
-          Christmas with the <strong>blackfriday2024</strong> tag!
+          </router-link>
+          that can be delivered in time for Christmas with the
+          <strong>blackfriday2024</strong> tag!
         </template>
       </ac-cookied-alert>
       <!-- Remember to remove the special functions for this. -->
@@ -24,33 +28,33 @@
         :expires="new Date(2024, 11, 8)"
       >
         <template #default>
-          Grab a deal for the holidays! Check our <router-link
-            :to="{name: 'SearchProducts', query: {q: 'blackfriday2024'}}"
-            @click="search({q: 'blackfriday2024'})"
+          Grab a deal for the holidays! Check our
+          <router-link
+            :to="{ name: 'SearchProducts', query: { q: 'blackfriday2024' } }"
+            @click="search({ q: 'blackfriday2024' })"
           >
-            holiday listings
-          </router-link>!
+            holiday listings </router-link
+          >!
         </template>
       </ac-cookied-alert>
-      <router-view
-        v-if="displayRoute"
-        :key="routeKey"
-      />
+      <router-view v-if="displayRoute" :key="routeKey" />
       <ac-error v-else />
       <ac-form-dialog
         v-if="loadSupport"
         :model-value="store.state.showSupport"
         v-bind="supportForm.bind"
         title="Get Support or Give Feedback!"
-        @update:model-value="(val: boolean) => store.commit('supportDialog', val)"
+        @update:model-value="
+          (val: boolean) => store.commit('supportDialog', val)
+        "
         @submit="supportForm.submitThen(showSupportSuccess)"
       >
         <v-row no-gutters>
-          <v-col
-            cols="12"
-            class="text-center"
-          >
-            <span class="headline">We respond to all requests within 24 hours, and often within the same hour!</span>
+          <v-col cols="12" class="text-center">
+            <span class="headline"
+              >We respond to all requests within 24 hours, and often within the
+              same hour!</span
+            >
           </v-col>
           <v-col cols="12">
             <v-text-field
@@ -72,15 +76,16 @@
         :model-value="store.state.showReport"
         v-bind="reportForm.bind"
         title="Report Content"
-        @update:model-value="(val: boolean) => store.commit('reportDialog', val)"
+        @update:model-value="
+          (val: boolean) => store.commit('reportDialog', val)
+        "
         @submit="reportForm.submitThen(showReportSuccess)"
       >
         <v-row no-gutters>
-          <v-col
-            cols="12"
-            class="text-center"
-          >
-            <span class="headline">Please fill in these details for your report.</span>
+          <v-col cols="12" class="text-center">
+            <span class="headline"
+              >Please fill in these details for your report.</span
+            >
           </v-col>
           <v-col cols="12">
             <v-text-field
@@ -112,15 +117,12 @@
           </v-col>
         </v-row>
       </ac-form-dialog>
-      <v-dialog
-        v-model="showTicketSuccess"
-        width="500"
-        :attach="modalTarget"
-      >
+      <v-dialog v-model="showTicketSuccess" width="500" :attach="modalTarget">
         <v-card id="supportSuccess">
           <v-card-text>
-            Your request has been received, and our team has been contacted! If you do not receive a reply
-            soon, try emailing <a href="mailto:support@artconomy.com">support@artconomy.com</a>.
+            Your request has been received, and our team has been contacted! If
+            you do not receive a reply soon, try emailing
+            <a href="mailto:support@artconomy.com">support@artconomy.com</a>.
           </v-card-text>
 
           <v-divider />
@@ -145,26 +147,24 @@
         @submit="closeAgeVerification"
       >
         <v-row>
-          <v-col
-            v-if="unverifiedInTheocracy"
-            cols="12"
-          >
+          <v-col v-if="unverifiedInTheocracy" cols="12">
             <v-alert type="error">
-              You are currently accessing Artconomy from a location that has restrictive laws on adult content.
-              You will not be allowed to load adult content unless specific conditions are met.
-              <a href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/">Please read our blog post for more details.</a>
+              You are currently accessing Artconomy from a location that has
+              restrictive laws on adult content. You will not be allowed to load
+              adult content unless specific conditions are met.
+              <a
+                href="https://artconomy.com/blog/on-the-recent-anti-porn-laws-and-their-impact-on-artconomy/"
+                >Please read our blog post for more details.</a
+              >
             </v-alert>
           </v-col>
-          <v-col
-            cols="12"
-            class="text-center"
-          >
-            <span class="title">Warning: {{ RATINGS_SHORT[contentRating] }}. Please verify your age and content preferences.</span>
+          <v-col cols="12" class="text-center">
+            <span class="title"
+              >Warning: {{ RATINGS_SHORT[contentRating] }}. Please verify your
+              age and content preferences.</span
+            >
           </v-col>
-          <v-col
-            cols="12"
-            md="6"
-          >
+          <v-col cols="12" md="6">
             <ac-patch-field
               field-type="ac-birthday-field"
               label="Birthday"
@@ -175,10 +175,7 @@
               hint="You must be at least 18 years old to view adult content."
             />
           </v-col>
-          <v-col
-            cols="12"
-            sm="6"
-          >
+          <v-col cols="12" sm="6">
             <ac-patch-field
               field-type="v-switch"
               label="SFW Mode"
@@ -191,7 +188,9 @@
             />
           </v-col>
           <v-col cols="12">
-            <v-card-text :class="{disabled: viewerHandler.user.patchers.sfw_mode.model}">
+            <v-card-text
+              :class="{ disabled: viewerHandler.user.patchers.sfw_mode.model }"
+            >
               <ac-patch-field
                 field-type="ac-rating-field"
                 label="Select the maximum content rating you'd like to see when browsing."
@@ -205,11 +204,7 @@
           <v-col />
         </v-row>
         <template #bottom-buttons>
-          <v-card-actions
-            row
-            wrap
-            class="hidden-sm-and-down"
-          >
+          <v-card-actions row wrap class="hidden-sm-and-down">
             <v-spacer />
             <v-btn
               color="primary"
@@ -247,7 +242,12 @@
       <v-snackbar
         v-if="socketState.x && !devMode"
         :timeout="-1"
-        :model-value="!!(socketState.x.serverVersion && (socketState.x.version !== socketState.x.serverVersion))"
+        :model-value="
+          !!(
+            socketState.x.serverVersion &&
+            socketState.x.version !== socketState.x.serverVersion
+          )
+        "
         color="primary"
         shaped
         width="100vw"
@@ -256,7 +256,10 @@
       >
         <div class="d-flex text-center">
           <div class="align-self-center">
-            <strong>Artconomy has updated! Things might not quite work right until you refresh.</strong>
+            <strong
+              >Artconomy has updated! Things might not quite work right until
+              you refresh.</strong
+            >
           </div>
           <v-btn
             color="green"
@@ -272,114 +275,123 @@
       </v-snackbar>
       <v-snackbar
         :timeout="-1"
-        :model-value="!!(socketState.x!.serverVersion && socketState.x!.status === ConnectionStatus.CLOSED)"
+        :model-value="
+          !!(
+            socketState.x!.serverVersion &&
+            socketState.x!.status === ConnectionStatus.CLOSED
+          )
+        "
         color="info"
         shaped
         rounded="pill"
         :attach="statusTarget"
       >
-        <v-col
-          id="reconnection-status-bar"
-          class="text-center"
-        >
+        <v-col id="reconnection-status-bar" class="text-center">
           <strong>Reconnecting...</strong>
         </v-col>
       </v-snackbar>
-      <v-row
-        v-if="contentReady"
-        no-gutters
-        class="mb-4"
-      >
+      <v-row v-if="contentReady" no-gutters class="mb-4">
         <v-col class="text-center">
-          <router-link :to="{name: 'PrivacyPolicy'}">
+          <router-link :to="{ name: 'PrivacyPolicy' }">
             Privacy Policy
           </router-link>
           <span class="mx-3 d-inline-block">|</span>
-          <router-link :to="{name: 'TermsOfService'}">
+          <router-link :to="{ name: 'TermsOfService' }">
             Terms of Service
           </router-link>
         </v-col>
       </v-row>
       <ac-cookie-consent />
     </v-main>
-    <div
-      v-if="devMode"
-      class="dev-mode-overlay text-center"
-    >
-      <v-icon
-        size="50vw"
-        :icon="mdiHammerWrench"
-      />
+    <div v-if="devMode" class="dev-mode-overlay text-center">
+      <v-icon size="50vw" :icon="mdiHammerWrench" />
     </div>
   </v-app>
 </template>
 
 <script setup lang="ts">
 // Remove the need for these, so we can remove this dependency.
-import {computed, defineAsyncComponent, nextTick, ref, watch} from 'vue'
+import { computed, defineAsyncComponent, nextTick, ref, watch } from "vue"
 
-const AcError = defineAsyncComponent(() => import('@/components/navigation/AcError.vue'))
-import NavBar from '@/components/navigation/NavBar.vue'
-const AcFormDialog = defineAsyncComponent(() => import('@/components/wrappers/AcFormDialog.vue'))
-import {useViewer} from '@/mixins/viewer.ts'
-const AcMarkdownExplanation = defineAsyncComponent(() => import('@/components/fields/AcMarkdownExplination.vue'))
+const AcError = defineAsyncComponent(
+  () => import("@/components/navigation/AcError.vue"),
+)
+import NavBar from "@/components/navigation/NavBar.vue"
+const AcFormDialog = defineAsyncComponent(
+  () => import("@/components/wrappers/AcFormDialog.vue"),
+)
+import { useViewer } from "@/mixins/viewer.ts"
+const AcMarkdownExplanation = defineAsyncComponent(
+  () => import("@/components/fields/AcMarkdownExplination.vue"),
+)
 import {
   fallback,
-  fallbackBoolean, FLAGS_SHORT,
+  fallbackBoolean,
+  FLAGS_SHORT,
   genId,
-  getCookie, makeQueryParams,
+  getCookie,
+  makeQueryParams,
   paramsKey,
   RATINGS_SHORT,
   searchSchema as baseSearchSchema,
-  setCookie, useForceRecompute, useLazyInitializer,
-} from './lib/lib.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {ConnectionStatus} from '@/types/enums/ConnectionStatus.ts'
-const AcPatchField = defineAsyncComponent(() => import('@/components/fields/AcPatchField.vue'))
-const AcCookieConsent = defineAsyncComponent(() => import('@/components/AcCookieConsent.vue'))
-const AcReportFlagExplanations = defineAsyncComponent(() => import('@/components/AcReportFlagExplanations.vue'))
-import {useRoute, useRouter} from 'vue-router'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useSingle} from '@/store/singles/hooks.ts'
-import {useSocket} from '@/plugins/socket.ts'
-import {useStore} from 'vuex'
-import {useList} from '@/store/lists/hooks.ts'
-import {ArtState} from '@/store/artState.ts'
-import {useTargets} from '@/plugins/targets.ts'
-import {mdiHammerWrench, mdiUpdate} from '@mdi/js'
-import AcCookiedAlert from '@/components/AcCookiedAlert.vue'
-import type {Product, SocketState, Submission} from '@/types/main'
-import {TerseUser, User} from '@/store/profiles/types/main'
-import {Character} from '@/store/characters/types/main'
-import {RawData} from '@/store/forms/types/main'
+  setCookie,
+  useForceRecompute,
+  useLazyInitializer,
+} from "./lib/lib.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import { ConnectionStatus } from "@/types/enums/ConnectionStatus.ts"
+const AcPatchField = defineAsyncComponent(
+  () => import("@/components/fields/AcPatchField.vue"),
+)
+const AcCookieConsent = defineAsyncComponent(
+  () => import("@/components/AcCookieConsent.vue"),
+)
+const AcReportFlagExplanations = defineAsyncComponent(
+  () => import("@/components/AcReportFlagExplanations.vue"),
+)
+import { useRoute, useRouter } from "vue-router"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useSingle } from "@/store/singles/hooks.ts"
+import { useSocket } from "@/plugins/socket.ts"
+import { useStore } from "vuex"
+import { useList } from "@/store/lists/hooks.ts"
+import { ArtState } from "@/store/artState.ts"
+import { useTargets } from "@/plugins/targets.ts"
+import { mdiHammerWrench, mdiUpdate } from "@mdi/js"
+import AcCookiedAlert from "@/components/AcCookiedAlert.vue"
+import type { Product, SocketState, Submission } from "@/types/main"
+import { TerseUser, User } from "@/store/profiles/types/main"
+import { Character } from "@/store/characters/types/main"
+import { RawData } from "@/store/forms/types/main"
 
 const router = useRouter()
 const route = useRoute()
-const {viewer, viewerHandler, adultAllowed, unverifiedInTheocracy} = useViewer()
+const { viewer, viewerHandler, adultAllowed, unverifiedInTheocracy } =
+  useViewer()
 
 const sock = useSocket()
 const store = useStore<ArtState>()
 
 const showTicketSuccess = ref(false)
 
-const supportForm = useForm('supportRequest', {
-  endpoint: '/api/lib/support/request/',
+const supportForm = useForm("supportRequest", {
+  endpoint: "/api/lib/support/request/",
   reset: false,
   fields: {
-    body: {value: '', validators: [{name: 'required'}]},
-    email: {value: '', validators: [{name: 'email'}, {name: 'required'}]},
-    referring_url: {value: route.fullPath},
+    body: { value: "", validators: [{ name: "required" }] },
+    email: { value: "", validators: [{ name: "email" }, { name: "required" }] },
+    referring_url: { value: route.fullPath },
   },
 })
 
-const reportForm = useForm('report', {
-  endpoint: '/api/lib/support/report/',
+const reportForm = useForm("report", {
+  endpoint: "/api/lib/support/report/",
   reset: false,
   fields: {
-    body: {value: '', validators: [{name: 'required'}]},
-    email: {value: '', validators: [{name: 'email'}, {name: 'required'}]},
-    flag: {value: null, validators: [{name: 'required'}]},
-    referring_url: {value: route.fullPath},
+    body: { value: "", validators: [{ name: "required" }] },
+    email: { value: "", validators: [{ name: "email" }, { name: "required" }] },
+    flag: { value: null, validators: [{ name: "required" }] },
+    referring_url: { value: route.fullPath },
   },
 })
 
@@ -390,24 +402,50 @@ const latestAlert = computed(() => store.getters.latestAlert)
 const searchSchema = baseSearchSchema()
 
 // Build the search form, which can be used at any time, and thus must be set up in the root.
-const query = Object.fromEntries(new URLSearchParams(window.location.search).entries())
-searchSchema.fields.q.value = fallback(query, 'q', '')
-searchSchema.fields.content_ratings.value = fallback(query, 'content_ratings', '')
-searchSchema.fields.minimum_content_rating.value = fallback(query, 'minimum_content_rating', 0)
-searchSchema.fields.watch_list.value = fallbackBoolean(query, 'watch_list', false)
-searchSchema.fields.shield_only.value = fallbackBoolean(query, 'shield_only', false)
-searchSchema.fields.featured.value = fallbackBoolean(query, 'featured', false)
-searchSchema.fields.rating.value = fallbackBoolean(query, 'rating', false)
-searchSchema.fields.commissions.value = fallbackBoolean(query, 'commissions', false)
-searchSchema.fields.artists_of_color.value = fallbackBoolean(query, 'artists_of_color', false)
-searchSchema.fields.lgbt.value = fallbackBoolean(query, 'lgbt', false)
-searchSchema.fields.max_price.value = fallback(query, 'max_price', '')
-searchSchema.fields.min_price.value = fallback(query, 'min_price', '')
-searchSchema.fields.max_turnaround.value = fallback(query, 'max_turnaround', '')
-searchSchema.fields.page.value = fallback(query, 'page', 1)
+const query = Object.fromEntries(
+  new URLSearchParams(window.location.search).entries(),
+)
+searchSchema.fields.q.value = fallback(query, "q", "")
+searchSchema.fields.content_ratings.value = fallback(
+  query,
+  "content_ratings",
+  "",
+)
+searchSchema.fields.minimum_content_rating.value = fallback(
+  query,
+  "minimum_content_rating",
+  0,
+)
+searchSchema.fields.watch_list.value = fallbackBoolean(
+  query,
+  "watch_list",
+  false,
+)
+searchSchema.fields.shield_only.value = fallbackBoolean(
+  query,
+  "shield_only",
+  false,
+)
+searchSchema.fields.featured.value = fallbackBoolean(query, "featured", false)
+searchSchema.fields.rating.value = fallbackBoolean(query, "rating", false)
+searchSchema.fields.commissions.value = fallbackBoolean(
+  query,
+  "commissions",
+  false,
+)
+searchSchema.fields.artists_of_color.value = fallbackBoolean(
+  query,
+  "artists_of_color",
+  false,
+)
+searchSchema.fields.lgbt.value = fallbackBoolean(query, "lgbt", false)
+searchSchema.fields.max_price.value = fallback(query, "max_price", "")
+searchSchema.fields.min_price.value = fallback(query, "min_price", "")
+searchSchema.fields.max_turnaround.value = fallback(query, "max_turnaround", "")
+searchSchema.fields.page.value = fallback(query, "page", 1)
 // This variable is accessed in the tests to verify it's set up correctly, even though it does not appear to be used.
 
-const searchForm = useForm('search', searchSchema)
+const searchForm = useForm("search", searchSchema)
 
 // These next two functions stolen from Home-- remove when we no longer have the Black Friday banner or else
 // refactor.
@@ -421,91 +459,102 @@ const searchReplace = (data: RawData) => {
 const search = (data: RawData) => {
   searchReplace(data)
   router.push({
-    name: 'SearchProducts',
+    name: "SearchProducts",
     query: makeQueryParams(searchForm.rawData),
   })
 }
 
-watch(() => route.fullPath, (newPath: string) => {
-  supportForm.fields.referring_url.update(newPath)
-  reportForm.fields.referring_url.update(newPath)
-})
+watch(
+  () => route.fullPath,
+  (newPath: string) => {
+    supportForm.fields.referring_url.update(newPath)
+    reportForm.fields.referring_url.update(newPath)
+  },
+)
 
 // Do we still need this?
-store.commit('setSearchInitialized', true)
+store.commit("setSearchInitialized", true)
 
-const socketState = useSingle<SocketState>('socketState', {
-  endpoint: '#',
+const socketState = useSingle<SocketState>("socketState", {
+  endpoint: "#",
   persist: true,
   x: {
     status: ConnectionStatus.CONNECTING,
-    version: process.env['__COMMIT_HASH__'] || '',
-    serverVersion: '',
+    version: process.env["__COMMIT_HASH__"] || "",
+    serverVersion: "",
   },
 })
 
 const loadSupport = useLazyInitializer(() => store.state.showSupport)
 const loadReport = useLazyInitializer(() => store.state.showReport)
-const loadAgeVerification = useLazyInitializer(() => store.state.showAgeVerification)
+const loadAgeVerification = useLazyInitializer(
+  () => store.state.showAgeVerification,
+)
 
-watch(() => viewer.value?.username, (newName: string, oldName: string) => {
-  if (oldName && (oldName !== '_') && (newName === '_')) {
-    router.push('/')
-  }
-})
+watch(
+  () => viewer.value?.username,
+  (newName: string, oldName: string) => {
+    if (oldName && oldName !== "_" && newName === "_") {
+      router.push("/")
+    }
+  },
+)
 
-const getVersion = (versionData: {version: string}) => {
-  socketState.updateX({serverVersion: versionData.version})
+const getVersion = (versionData: { version: string }) => {
+  socketState.updateX({ serverVersion: versionData.version })
 }
 
-
 const socketStart = () => {
-  sock.addListener('version', 'App', getVersion)
-  sock.addListener('viewer', 'App', viewerHandler.user.makeReady)
-  sock.addListener('error', 'App', console.error)
-  sock.addListener('reset', 'App', () => {
+  sock.addListener("version", "App", getVersion)
+  sock.addListener("viewer", "App", viewerHandler.user.makeReady)
+  sock.addListener("error", "App", console.error)
+  sock.addListener("reset", "App", () => {
     sock.socket!.close()
     // Wait a second to reconnect to give a chance for all outstanding requests to complete.
     // We'll probably want to find a better way to handle this later.
-    setTimeout(() => { sock.socket!.reconnect() }, 2000)
+    setTimeout(() => {
+      sock.socket!.reconnect()
+    }, 2000)
   })
   sock.connectListeners.initialize = () => {
-    socketState.updateX({status: ConnectionStatus.CONNECTED})
-    sock.send('version', {})
-    sock.send('viewer', {socket_key: getCookie('ArtconomySocketKey')})
+    socketState.updateX({ status: ConnectionStatus.CONNECTED })
+    sock.send("version", {})
+    sock.send("viewer", { socket_key: getCookie("ArtconomySocketKey") })
   }
   sock.disconnectListeners.disconnected = () => {
-    socketState.updateX({status: ConnectionStatus.CLOSED})
+    socketState.updateX({ status: ConnectionStatus.CLOSED })
   }
   sock.open()
 }
 
-if (!getCookie('ArtconomySocketKey')) {
+if (!getCookie("ArtconomySocketKey")) {
   // Note: This cookie isn't secure from potential code injection attacks, so we only use it to determine
   // if we should reset the connection upon a login/logout event. The login cookie is HTTPS only.
-  setCookie('ArtconomySocketKey', genId())
+  setCookie("ArtconomySocketKey", genId())
 }
 
 nextTick(socketStart)
 
 const closeAgeVerification = () => {
-  store.commit('setShowAgeVerification', false)
+  store.commit("setShowAgeVerification", false)
 }
 
 const showSupportSuccess = () => {
-  store.commit('supportDialog', false)
-  supportForm.fields.body.update('', false)
+  store.commit("supportDialog", false)
+  supportForm.fields.body.update("", false)
   showTicketSuccess.value = true
 }
 
 const showReportSuccess = () => {
-  store.commit('reportDialog', false)
-  reportForm.fields.body.update('', false)
+  store.commit("reportDialog", false)
+  reportForm.fields.body.update("", false)
   reportForm.fields.flag.update(null, false)
   showTicketSuccess.value = true
 }
 
-const reportReasons = computed(() => Object.entries(FLAGS_SHORT).map(([value, title]) => ({title, value})))
+const reportReasons = computed(() =>
+  Object.entries(FLAGS_SHORT).map(([value, title]) => ({ title, value })),
+)
 
 const mode = () => {
   return process.env.NODE_ENV
@@ -515,14 +564,14 @@ const userHandler = computed(() => {
   return viewerHandler.user as SingleController<User>
 })
 
-const {check, recalculate} = useForceRecompute()
+const { check, recalculate } = useForceRecompute()
 
 const devMode = computed(() => {
   // Accessing a property registers that property as a listener. Even if we do nothing with it, changing its value
   // will force recomputation of this value.
 
   check()
-  return mode() === 'development'
+  return mode() === "development"
 })
 
 const routeKey = computed(() => {
@@ -540,8 +589,8 @@ const showMarkdownHelp = computed({
     return store.state.markdownHelp
   },
   set: (val: boolean) => {
-    store.commit('setMarkdownHelp', val)
-  }
+    store.commit("setMarkdownHelp", val)
+  },
 })
 
 // We have a conditional on the loading of the markdown component to avoid pulling down the
@@ -562,91 +611,103 @@ const showAlert = computed({
     if (!val) {
       alertDismissed.value = true
       nextTick(() => {
-        store.commit('popAlert')
+        store.commit("popAlert")
         alertDismissed.value = false
       })
     }
-  }
+  },
 })
 
 // Set up search list entries as early as possible.
-useList<Submission>('searchSubmissions', {
-  endpoint: '/api/profiles/search/submission/',
+useList<Submission>("searchSubmissions", {
+  endpoint: "/api/profiles/search/submission/",
   persistent: true,
 })
-useList<Product>('searchProducts', {
-  endpoint: '/api/sales/search/product/',
+useList<Product>("searchProducts", {
+  endpoint: "/api/sales/search/product/",
   persistent: true,
 })
-useList<Character>('searchCharacters', {
-  endpoint: '/api/profiles/search/character/',
+useList<Character>("searchCharacters", {
+  endpoint: "/api/profiles/search/character/",
   persistent: true,
 })
-useList<TerseUser>('searchProfiles', {
-  endpoint: '/api/profiles/search/user/',
+useList<TerseUser>("searchProfiles", {
+  endpoint: "/api/profiles/search/user/",
   persistent: true,
 })
 
 const displayRoute = computed(() => !store.state.errors!.code)
 
-watch(() => (viewer.value as User)?.email, (val?: string) => {
-  if (viewer.value && (viewer.value as User).guest_email) {
-    // Let the other watcher handle this.
-    return
-  }
-  supportForm.fields.email.update(val || '', false)
-  reportForm.fields.email.update(val || '', false)
-}, {immediate: true})
-
-watch(() => (viewer.value as User)?.guest_email, (val?: string) => {
-  if (!val) {
-    return
-  }
-  supportForm.fields.email.update(val, false)
-  reportForm.fields.email.update(val, false)
-}, {immediate: true})
-
-watch(() => route.fullPath, (newPath: string, oldPath?: string) => {
-    nextTick(() => {
-    window._paq.push(['setCustomUrl', window.location.origin + newPath])
-    window._paq.push(['setDocumentTitle', document.title])
-    if (oldPath) {
-      window._paq.push(['setReferrerUrl', window.location.origin + oldPath])
-    }
-    const excluded: any[] = ['FAQ', 'Profile', 'About', 'BuyAndSell', 'Other']
-    if (excluded.includes(route.name)) {
+watch(
+  () => (viewer.value as User)?.email,
+  (val?: string) => {
+    if (viewer.value && (viewer.value as User).guest_email) {
+      // Let the other watcher handle this.
       return
     }
-    window._paq.push(['trackPageView'])
-    window.fbq('track', 'PageView')
-  })
-}, {immediate: true})
+    supportForm.fields.email.update(val || "", false)
+    reportForm.fields.email.update(val || "", false)
+  },
+  { immediate: true },
+)
 
-const {modalTarget, snackbarTarget, statusTarget} = useTargets()
+watch(
+  () => (viewer.value as User)?.guest_email,
+  (val?: string) => {
+    if (!val) {
+      return
+    }
+    supportForm.fields.email.update(val, false)
+    reportForm.fields.email.update(val, false)
+  },
+  { immediate: true },
+)
+
+watch(
+  () => route.fullPath,
+  (newPath: string, oldPath?: string) => {
+    nextTick(() => {
+      window._paq.push(["setCustomUrl", window.location.origin + newPath])
+      window._paq.push(["setDocumentTitle", document.title])
+      if (oldPath) {
+        window._paq.push(["setReferrerUrl", window.location.origin + oldPath])
+      }
+      const excluded: any[] = ["FAQ", "Profile", "About", "BuyAndSell", "Other"]
+      if (excluded.includes(route.name)) {
+        return
+      }
+      window._paq.push(["trackPageView"])
+      window.fbq("track", "PageView")
+    })
+  },
+  { immediate: true },
+)
+
+const { modalTarget, snackbarTarget, statusTarget } = useTargets()
 
 const location = window.location
 
 const contentReady = ref(false)
 
-router.isReady().then(() => contentReady.value = true)
+router.isReady().then(() => (contentReady.value = true))
 
-defineExpose({recalculate})
+defineExpose({ recalculate })
 </script>
 
 <style scoped>
-  .main-content {
-    min-height: 90vh;
-  }
-  .dev-mode-overlay {
-    width: 100vw;
-    height: 100vh;
-    position: fixed;
-    top: 0;
-    z-index: 1000000;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    opacity: .1;
-    pointer-events: none;
-  }
+.main-content {
+  min-height: 90vh;
+}
+.dev-mode-overlay {
+  width: 100vw;
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  z-index: 1000000;
+  display: flex;
+  justify-content: center;
+  align-content: center;
+  opacity: 0.1;
+  pointer-events: none;
+}
 </style>

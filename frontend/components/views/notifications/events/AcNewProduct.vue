@@ -11,29 +11,35 @@
     </template>
     <template #subtitle>
       <ac-link :to="productLink">
-        By {{ event.data.product.user.username }} starting at
-        ${{ event.data.product.starting_price }}
+        By {{ event.data.product.user.username }} starting at ${{
+          event.data.product.starting_price
+        }}
       </ac-link>
     </template>
   </ac-base-notification>
 </template>
 
 <script setup lang="ts">
-import AcBaseNotification from './AcBaseNotification.vue'
-import {DisplayData, NotificationProps, NotificationUser, useEvent} from '../mixins/notification.ts'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {computed} from 'vue'
-import type {Product} from '@/types/main'
+import AcBaseNotification from "./AcBaseNotification.vue"
+import {
+  DisplayData,
+  NotificationProps,
+  NotificationUser,
+  useEvent,
+} from "../mixins/notification.ts"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { computed } from "vue"
+import type { Product } from "@/types/main"
 
 declare interface NewProduct extends DisplayData {
-  product: Product,
+  product: Product
 }
 
 const props = defineProps<NotificationProps<NotificationUser, NewProduct>>()
 const event = useEvent(props)
 
 const productLink = computed(() => ({
-  name: 'Product',
+  name: "Product",
   params: {
     productId: event.value.data.product.id,
     username: event.value.data.product.user.username,
@@ -41,6 +47,4 @@ const productLink = computed(() => ({
 }))
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

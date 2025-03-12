@@ -1,14 +1,14 @@
-import {RouteLocation, Router, useRoute, useRouter} from 'vue-router'
-import {computed, ComputedRef} from 'vue'
+import { RouteLocation, Router, useRoute, useRouter } from "vue-router"
+import { computed, ComputedRef } from "vue"
 
 const unlockRoute = async (router: Router, route: RouteLocation) => {
-  return router.replace({query: {...route.query, editing: 'true'}})
+  return router.replace({ query: { ...route.query, editing: "true" } })
 }
 
 const lockRoute = async (router: Router, route: RouteLocation) => {
-  const newQuery = {...route.query}
+  const newQuery = { ...route.query }
   delete newQuery.editing
-  return router.replace({query: newQuery})
+  return router.replace({ query: newQuery })
 }
 
 export const useEditable = (controls: ComputedRef<boolean>) => {
@@ -27,7 +27,7 @@ export const useEditable = (controls: ComputedRef<boolean>) => {
       } else {
         lock().then()
       }
-    }
+    },
   })
 
   return {

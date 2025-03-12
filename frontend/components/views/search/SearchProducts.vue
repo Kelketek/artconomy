@@ -1,13 +1,6 @@
 <template>
-  <v-container
-    fluid
-    class="pa-0"
-  >
-    <ac-paginated
-      :list="list"
-      :track-pages="true"
-      :auto-run="false"
-    >
+  <v-container fluid class="pa-0">
+    <ac-paginated :list="list" :track-pages="true" :auto-run="false">
       <template #default>
         <v-col
           v-for="product in list.list"
@@ -37,23 +30,23 @@
   </v-container>
 </template>
 <script setup lang="ts">
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcProductPreview from '@/components/AcProductPreview.vue'
-import {useList} from '@/store/lists/hooks.ts'
-import {onMounted} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useSearchList} from '@/components/views/search/mixins/SearchList.ts'
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcProductPreview from "@/components/AcProductPreview.vue"
+import { useList } from "@/store/lists/hooks.ts"
+import { onMounted } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useSearchList } from "@/components/views/search/mixins/SearchList.ts"
 
-import type {Product} from '@/types/main'
+import type { Product } from "@/types/main"
 
-const searchForm = useForm('search')
-const list = useList<Product>('searchProducts', {
-  endpoint: '/api/sales/search/product/',
+const searchForm = useForm("search")
+const list = useList<Product>("searchProducts", {
+  endpoint: "/api/sales/search/product/",
   persistent: true,
 })
 // We use this debouncedUpdate during testing.
- 
-const {rawUpdate} = useSearchList(searchForm, list)
+
+const { rawUpdate } = useSearchList(searchForm, list)
 onMounted(() => {
   rawUpdate(searchForm.rawData)
 })

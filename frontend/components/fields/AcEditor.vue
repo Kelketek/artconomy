@@ -2,21 +2,15 @@
 <template>
   <div class="flex ac-editor">
     <v-row dense>
-      <v-col
-        v-if="previewMode"
-        cols="12"
-      >
+      <v-col v-if="previewMode" cols="12">
         <v-row no-gutters>
           <ac-rendered
             :value="scratch"
-            :classes="{'editor-preview': true, col: true}"
+            :classes="{ 'editor-preview': true, col: true }"
           />
         </v-row>
       </v-col>
-      <v-col
-        v-else
-        cols="12"
-      >
+      <v-col v-else cols="12">
         <v-textarea
           v-bind="inputAttrs"
           ref="input"
@@ -29,55 +23,38 @@
       <v-col cols="12">
         <div class="d-flex">
           <div class="flex-shrink-1">
-            <v-tooltip
-              top
-              aria-label="Preview mode tooltip"
-            >
+            <v-tooltip top aria-label="Preview mode tooltip">
               <template #activator="activator">
                 <v-btn
                   size="small"
                   v-bind="activator.props"
                   class="preview-mode-toggle"
                   :icon="previewMode ? 'mdi-eye-off' : 'mdi-eye'"
-                  :class="{weakened: disabled}"
+                  :class="{ weakened: disabled }"
                   color="grey-darken-4"
                   :aria-label="`Preview mode ${previewMode ? 'on' : 'off'}`"
                   @click="previewMode = !previewMode"
                 >
-                  <v-icon
-                    v-if="previewMode"
-                    size="x-large"
-                    :icon="mdiEyeOff"
-                  />
-                  <v-icon
-                    v-else
-                    :icon="mdiEye"
-                    size="x-large"
-                  />
+                  <v-icon v-if="previewMode" size="x-large" :icon="mdiEyeOff" />
+                  <v-icon v-else :icon="mdiEye" size="x-large" />
                 </v-btn>
               </template>
               <span>Preview</span>
             </v-tooltip>
           </div>
           <div class="flex-shrink-1 mx-2">
-            <v-tooltip
-              top
-              aria-label="Tooltip for Formatting help button"
-            >
+            <v-tooltip top aria-label="Tooltip for Formatting help button">
               <template #activator="activator">
                 <v-btn
                   v-bind="activator.props"
-                  :class="{weakened: disabled}"
+                  :class="{ weakened: disabled }"
                   size="small"
                   icon
                   color="blue"
                   aria-label="Formatting help"
                   @click="store.commit('setMarkdownHelp', true)"
                 >
-                  <v-icon
-                    size="x-large"
-                    :icon="mdiHelpCircle"
-                  />
+                  <v-icon size="x-large" :icon="mdiHelpCircle" />
                 </v-btn>
               </template>
               <span>Formatting help</span>
@@ -88,10 +65,7 @@
             <div class="flex-shrink-1">
               <v-row dense>
                 <v-spacer />
-                <slot
-                  name="pre-actions"
-                  :disabled="disabled"
-                />
+                <slot name="pre-actions" :disabled="disabled" />
                 <v-col class="shrink">
                   <v-tooltip
                     v-if="saved && saveIndicator"
@@ -122,10 +96,7 @@
                     </template>
                     <span>Saved</span>
                   </v-tooltip>
-                  <v-tooltip
-                    v-else-if="saveIndicator"
-                    top
-                  >
+                  <v-tooltip v-else-if="saveIndicator" top>
                     <template #activator="activator">
                       <!-- Using a button here so the two elements are aligned. -->
                       <v-btn
@@ -151,10 +122,7 @@
                     <span>Unsaved</span>
                   </v-tooltip>
                 </v-col>
-                <v-col
-                  v-if="!autoSave"
-                  class="shrink"
-                >
+                <v-col v-if="!autoSave" class="shrink">
                   <v-tooltip top>
                     <template #activator="activator">
                       <v-btn
@@ -167,10 +135,7 @@
                         aria-label="Needs saving."
                         @click="save"
                       >
-                        <v-icon
-                          color="yellow"
-                          :icon="mdiContentSave"
-                        />
+                        <v-icon color="yellow" :icon="mdiContentSave" />
                       </v-btn>
                     </template>
                     <span>Save</span>
@@ -186,43 +151,52 @@
 </template>
 
 <script setup lang="ts">
-import AcRendered from '@/components/wrappers/AcRendered.ts'
-import {computed, ref, useAttrs, watch} from 'vue'
-import {mdiEyeOff, mdiEye, mdiHelpCircle, mdiCheckCircle, mdiAlert, mdiContentSave} from '@mdi/js'
-import {useRoute} from 'vue-router'
-import {VTextarea} from 'vuetify/lib/components/VTextarea/index.mjs'
-import {ArtState} from '@/store/artState.ts'
-import {useStore} from 'vuex'
+import AcRendered from "@/components/wrappers/AcRendered.ts"
+import { computed, ref, useAttrs, watch } from "vue"
+import {
+  mdiEyeOff,
+  mdiEye,
+  mdiHelpCircle,
+  mdiCheckCircle,
+  mdiAlert,
+  mdiContentSave,
+} from "@mdi/js"
+import { useRoute } from "vue-router"
+import { VTextarea } from "vuetify/lib/components/VTextarea/index.mjs"
+import { ArtState } from "@/store/artState.ts"
+import { useStore } from "vuex"
 
-
-const props = withDefaults(defineProps<{
-  modelValue: string,
-  autoSave?: boolean,
-  saveComparison?: string,
-  autoGrow?: boolean,
-  saveIndicator?: boolean,
-  disabled?: boolean,
-  errorMessages?: string[],
-}>(), {
-  autoSave: true,
-  autoGrow: true,
-  saveIndicator: true,
-  disabled: false,
-  saveComparison: undefined,
-  errorMessages: () => [],
-})
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    autoSave?: boolean
+    saveComparison?: string
+    autoGrow?: boolean
+    saveIndicator?: boolean
+    disabled?: boolean
+    errorMessages?: string[]
+  }>(),
+  {
+    autoSave: true,
+    autoGrow: true,
+    saveIndicator: true,
+    disabled: false,
+    saveComparison: undefined,
+    errorMessages: () => [],
+  },
+)
 const route = useRoute()
-const emit = defineEmits<{'update:modelValue': [string]}>()
+const emit = defineEmits<{ "update:modelValue": [string] }>()
 const extraAttrs = useAttrs()
 
-const input = ref<null|VTextarea>()
+const input = ref<null | VTextarea>()
 const previewMode = ref(false)
 const scratch = ref(props.modelValue)
 const store = useStore<ArtState>()
-const save = () => emit('update:modelValue', scratch.value)
+const save = () => emit("update:modelValue", scratch.value)
 
 const inputAttrs = computed(() => {
-  const attrs = {...extraAttrs}
+  const attrs = { ...extraAttrs }
   attrs.disabled = props.disabled
   delete attrs.value
   delete attrs.modelValue
@@ -230,9 +204,9 @@ const inputAttrs = computed(() => {
   delete attrs.onInput
   delete attrs.onChange
   delete attrs.onBlur
-  delete attrs['onUpdate:modelValue']
+  delete attrs["onUpdate:modelValue"]
   if (attrs.id) {
-    attrs['id'] += '__textarea'
+    attrs["id"] += "__textarea"
   }
   return attrs
 })
@@ -249,7 +223,7 @@ const triggerResize = () => {
   if (!input.value) {
     return
   }
-  input.value.querySelector('textarea')?.dispatchEvent(new Event('input'))
+  input.value.querySelector("textarea")?.dispatchEvent(new Event("input"))
 }
 
 // Hacky workaround for v-show. Use the same boolean for v-show as for this to force a recalculation when
@@ -261,13 +235,16 @@ watch(scratch, () => {
     save()
   }
 })
-watch(() => props.modelValue, (val) => {
-  if (props.autoSave) {
-    scratch.value = val
-  }
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (props.autoSave) {
+      scratch.value = val
+    }
+  },
+)
 // Used in tests
-defineExpose({emit, scratch})
+defineExpose({ emit, scratch })
 </script>
 
 <style lang="stylus">

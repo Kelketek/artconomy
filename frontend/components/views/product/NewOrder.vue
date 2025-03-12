@@ -1,15 +1,8 @@
 <template>
   <ac-load-section :controller="product">
     <template #default>
-      <v-row
-        v-if="product.x"
-        @click="recalculate"
-      >
-        <v-col
-          cols="12"
-          md="8"
-          offset-lg="1"
-        >
+      <v-row v-if="product.x" @click="recalculate">
+        <v-col cols="12" md="8" offset-lg="1">
           <ac-form @submit.prevent="submitAction">
             <ac-form-container
               :errors="orderForm.errors"
@@ -20,11 +13,7 @@
                 <v-card-title>
                   <span class="title">New Commission Order</span>
                 </v-card-title>
-                <v-toolbar
-                  v-if="isRegistered"
-                  dense
-                  color="black"
-                >
+                <v-toolbar v-if="isRegistered" dense color="black">
                   <ac-avatar
                     :user="viewer as User"
                     :show-name="false"
@@ -67,7 +56,11 @@
                     <v-stepper-window-item :value="1">
                       <v-row>
                         <v-col
-                          v-if="invoicing || !isRegistered || product.x.table_product"
+                          v-if="
+                            invoicing ||
+                            !isRegistered ||
+                            product.x.table_product
+                          "
                           cols="12"
                           sm="6"
                         >
@@ -104,7 +97,10 @@
                         >
                           <p>Or, if you have an account,</p>
                           <v-btn
-                            :to="{name: 'Login', query: {next: route.fullPath}}"
+                            :to="{
+                              name: 'Login',
+                              query: { next: route.fullPath },
+                            }"
                             color="primary"
                             variant="flat"
                           >
@@ -143,10 +139,7 @@
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col
-                          cols="12"
-                          sm="6"
-                        >
+                        <v-col cols="12" sm="6">
                           <ac-bound-field
                             field-type="ac-checkbox"
                             :field="orderForm.fields.private"
@@ -187,12 +180,7 @@
                             :save-indicator="false"
                           />
                         </v-col>
-                        <v-col
-                          cols="12"
-                          sm="6"
-                          order="1"
-                          order-sm="2"
-                        >
+                        <v-col cols="12" sm="6" order="1" order-sm="2">
                           <v-row>
                             <v-col
                               class="d-flex justify-content justify-center align-content-center"
@@ -209,22 +197,22 @@
                             </v-col>
                             <v-col cols="7">
                               <h2>Example description</h2>
-                              Vulpy:<br>
-                              * is a fox<br>
-                              * is about three feet tall<br>
-                              * has orange fur, with white on his belly, cheeks, 'socks', and inner ears<br>
-                              * has a paintbrush tail that can be any color, but is black for this piece.<br>
-                              * has pink pawpads<br><br>
-                              Please draw Vulpy sitting and typing away excitedly on a computer!
+                              Vulpy:<br />
+                              * is a fox<br />
+                              * is about three feet tall<br />
+                              * has orange fur, with white on his belly, cheeks,
+                              'socks', and inner ears<br />
+                              * has a paintbrush tail that can be any color, but
+                              is black for this piece.<br />
+                              * has pink pawpads<br /><br />
+                              Please draw Vulpy sitting and typing away
+                              excitedly on a computer!
                             </v-col>
                           </v-row>
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col
-                          cols="12"
-                          order="3"
-                        >
+                        <v-col cols="12" order="3">
                           <ac-bound-field
                             field-type="ac-uppy-file"
                             uppy-id="uppy-new-order"
@@ -242,11 +230,17 @@
                         <v-col cols="12">
                           <v-card>
                             <v-card-text>
-                              <p><span class="title">When you hit 'Create Invoice'...</span></p>
                               <p>
-                                You will be brought to an order page, where you can then adjust terms/line items and
-                                finalize once ready. Once finalized, the invoice will be sent to the customer
-                                (if you provided a username or email).
+                                <span class="title"
+                                  >When you hit 'Create Invoice'...</span
+                                >
+                              </p>
+                              <p>
+                                You will be brought to an order page, where you
+                                can then adjust terms/line items and finalize
+                                once ready. Once finalized, the invoice will be
+                                sent to the customer (if you provided a username
+                                or email).
                               </p>
                             </v-card-text>
                           </v-card>
@@ -259,48 +253,61 @@
                             type="warning"
                             :value="true"
                           >
-                            This order will be waitlisted. Waitlisted orders are not guaranteed to be accepted on any
-                            particular time table and may not be fulfilled in the order they are received. Please check
-                            the
-                            product description for further details or contact the artist if there is any confusion.
-                            <strong>You will not be expected to pay for this order unless and until it is
-                              accepted.</strong>
+                            This order will be waitlisted. Waitlisted orders are
+                            not guaranteed to be accepted on any particular time
+                            table and may not be fulfilled in the order they are
+                            received. Please check the product description for
+                            further details or contact the artist if there is
+                            any confusion.
+                            <strong
+                              >You will not be expected to pay for this order
+                              unless and until it is accepted.</strong
+                            >
                           </v-alert>
-                          <v-alert
-                            type="info"
-                            :value="true"
-                          >
-                            Once your order is placed, the artist will review your request, make any adjustments to the
-                            quote as needed, and present them for your approval and payment. We will update you via
-                            email as things progress.
+                          <v-alert type="info" :value="true">
+                            Once your order is placed, the artist will review
+                            your request, make any adjustments to the quote as
+                            needed, and present them for your approval and
+                            payment. We will update you via email as things
+                            progress.
                           </v-alert>
                         </v-col>
                         <v-col cols="12">
-                          <ac-load-section :controller="subjectHandler.artistProfile">
+                          <ac-load-section
+                            :controller="subjectHandler.artistProfile"
+                          >
                             <template #default>
-                              <v-list-subheader v-if="subjectHandler.artistProfile.x!.commission_info">
+                              <v-list-subheader
+                                v-if="
+                                  subjectHandler.artistProfile.x!
+                                    .commission_info
+                                "
+                              >
                                 Commission Info
                               </v-list-subheader>
                               <ac-rendered
-                                :value="subjectHandler.artistProfile.x!.commission_info"
+                                :value="
+                                  subjectHandler.artistProfile.x!
+                                    .commission_info
+                                "
                                 :truncate="500"
                               />
                             </template>
                           </ac-load-section>
                         </v-col>
                         <v-col cols="12">
-                          <v-alert
-                            type="info"
-                            :value="true"
-                          >
+                          <v-alert type="info" :value="true">
                             All orders are bound by the
-                            <router-link :to="{name: 'CommissionAgreement'}">
+                            <router-link :to="{ name: 'CommissionAgreement' }">
                               Commission Agreement.
                             </router-link>
                           </v-alert>
                         </v-col>
                         <v-col
-                          v-if="product.x.escrow_enabled || !product.x.escrow_upgradable"
+                          v-if="
+                            product.x.escrow_enabled ||
+                            !product.x.escrow_upgradable
+                          "
                           cols="12"
                         >
                           <ac-escrow-label
@@ -309,10 +316,7 @@
                           />
                         </v-col>
                         <template v-else>
-                          <v-col
-                            cols="12"
-                            sm="6"
-                          >
+                          <v-col cols="12" sm="6">
                             <ac-escrow-label
                               :escrow="product.x.escrow_enabled"
                               :upgrade-available="true"
@@ -331,10 +335,7 @@
                     </v-stepper-window-item>
                   </v-stepper-window>
                 </v-stepper>
-                <v-card-actions
-                  row
-                  wrap
-                >
+                <v-card-actions row wrap>
                   <v-spacer />
                   <v-btn
                     v-if="orderForm.step > 1"
@@ -362,33 +363,17 @@
                     class="submit-button"
                     variant="flat"
                   >
-                    <span v-if="invoicing">
-                      Create Invoice
-                    </span>
-                    <span v-else>
-                      Agree and Place Order
-                    </span>
+                    <span v-if="invoicing"> Create Invoice </span>
+                    <span v-else> Agree and Place Order </span>
                   </v-btn>
                 </v-card-actions>
               </v-card>
             </ac-form-container>
           </ac-form>
         </v-col>
-        <v-col
-          cols="12"
-          offset-md="1"
-          md="3"
-          lg="2"
-        >
-          <v-toolbar
-            dense
-            color="black"
-          >
-            <ac-avatar
-              :user="product.x.user"
-              :show-name="false"
-              class="ml-3"
-            />
+        <v-col cols="12" offset-md="1" md="3" lg="2">
+          <v-toolbar dense color="black">
+            <ac-avatar :user="product.x.user" :show-name="false" class="ml-3" />
             <v-toolbar-title class="ml-1">
               <ac-link :to="profileLink(product.x.user)">
                 {{ username }}
@@ -398,16 +383,8 @@
           <v-card :color="current.colors['well-darken-2']">
             <v-card-text>
               <v-row dense>
-                <v-col
-                  class="title"
-                  cols="12"
-                >
-                  Order Summary
-                </v-col>
-                <v-col
-                  class="subheading"
-                  cols="12"
-                >
+                <v-col class="title" cols="12"> Order Summary </v-col>
+                <v-col class="subheading" cols="12">
                   {{ product.x.name }}
                 </v-col>
                 <v-col cols="12">
@@ -425,26 +402,31 @@
                 >
                   Name your price!
                 </v-col>
-                <v-col
-                  v-else
-                  class="subtitle-1"
-                  cols="12"
-                >
+                <v-col v-else class="subtitle-1" cols="12">
                   Starts at ${{ currentPrice }}
                   <p v-if="shielded">
-                    <small>(${{ product.x.starting_price }} + ${{ shieldCost }} shield fee)</small>
+                    <small
+                      >(${{ product.x.starting_price }} + ${{
+                        shieldCost
+                      }}
+                      shield fee)</small
+                    >
                   </p>
                 </v-col>
                 <v-col>
                   <span v-if="product.x.revisions">
-                    <strong>{{ product.x.revisions }}</strong> revision<span v-if="product.x.revisions > 1">s</span> included.
+                    <strong>{{ product.x.revisions }}</strong> revision<span
+                      v-if="product.x.revisions > 1"
+                      >s</span
+                    >
+                    included.
                   </span>
                 </v-col>
-                <v-col
-                  v-if="deliveryDate"
-                  cols="12"
-                >
-                  <span>Estimated completion: <strong>{{ formatDateTerse(deliveryDate!) }}</strong></span>
+                <v-col v-if="deliveryDate" cols="12">
+                  <span
+                    >Estimated completion:
+                    <strong>{{ formatDateTerse(deliveryDate!) }}</strong></span
+                  >
                 </v-col>
               </v-row>
             </v-card-text>
@@ -456,49 +438,65 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {useProduct} from '@/components/views/product/mixins/ProductCentric.ts'
-import AcAsset from '@/components/AcAsset.vue'
-import AcAvatar from '@/components/AcAvatar.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcRendered from '@/components/wrappers/AcRendered.ts'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {artCall, BASE_URL, prepopulateCharacters, useForceRecompute} from '@/lib/lib.ts'
-import AcEscrowLabel from '@/components/AcEscrowLabel.vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {computed, onMounted, ref, watch} from 'vue'
-import {useViewer} from '@/mixins/viewer.ts'
-import {useRoute, useRouter} from 'vue-router'
-import {useSubject} from '@/mixins/subjective.ts'
-import {usePrerendering} from '@/mixins/prerendering.ts'
-import {formatDateTerse} from '@/lib/otherFormatters.ts'
-import {profileLink} from '@/lib/otherFormatters.ts'
-import debounce from 'lodash/debounce'
-import {statusOk} from '@/mixins/ErrorHandling.ts'
-import {useTheme} from 'vuetify'
-import type {Order, ProductProps, ShoppingCart, SubjectiveProps} from '@/types/main'
-import {User} from '@/store/profiles/types/main'
-import {RawData} from '@/store/forms/types/main'
-import {Character} from '@/store/characters/types/main'
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import { useProduct } from "@/components/views/product/mixins/ProductCentric.ts"
+import AcAsset from "@/components/AcAsset.vue"
+import AcAvatar from "@/components/AcAvatar.vue"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import AcRendered from "@/components/wrappers/AcRendered.ts"
+import AcForm from "@/components/wrappers/AcForm.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import {
+  artCall,
+  BASE_URL,
+  prepopulateCharacters,
+  useForceRecompute,
+} from "@/lib/lib.ts"
+import AcEscrowLabel from "@/components/AcEscrowLabel.vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { computed, onMounted, ref, watch } from "vue"
+import { useViewer } from "@/mixins/viewer.ts"
+import { useRoute, useRouter } from "vue-router"
+import { useSubject } from "@/mixins/subjective.ts"
+import { usePrerendering } from "@/mixins/prerendering.ts"
+import { formatDateTerse } from "@/lib/otherFormatters.ts"
+import { profileLink } from "@/lib/otherFormatters.ts"
+import debounce from "lodash/debounce"
+import { statusOk } from "@/mixins/ErrorHandling.ts"
+import { useTheme } from "vuetify"
+import type {
+  Order,
+  ProductProps,
+  ShoppingCart,
+  SubjectiveProps,
+} from "@/types/main"
+import { User } from "@/store/profiles/types/main"
+import { RawData } from "@/store/forms/types/main"
+import { Character } from "@/store/characters/types/main"
 
 declare interface NewOrderProps {
-  invoiceMode?: string,
+  invoiceMode?: string
 }
 
 const props = defineProps<NewOrderProps & SubjectiveProps & ProductProps>()
-const {product, deliveryDate} = useProduct(props)
+const { product, deliveryDate } = useProduct(props)
 const showCharacters = ref(false)
 const initCharacters = ref<Character[]>([])
-const {current} = useTheme()
+const { current } = useTheme()
 // Do we still need this? Or is there now a better way?
-const {check, recalculate} = useForceRecompute()
-const laptop = new URL('/static/images/laptop.png', BASE_URL)
+const { check, recalculate } = useForceRecompute()
+const laptop = new URL("/static/images/laptop.png", BASE_URL)
 
-const {viewer, viewerHandler, rawViewerName, powers, isRegistered, viewerName} = useViewer()
-const {isCurrent, subjectHandler} = useSubject({ props })
-
+const {
+  viewer,
+  viewerHandler,
+  rawViewerName,
+  powers,
+  isRegistered,
+  viewerName,
+} = useViewer()
+const { isCurrent, subjectHandler } = useSubject({ props })
 
 watch(viewer, () => {
   if (viewer && (viewer.value as User).guest_email) {
@@ -514,28 +512,30 @@ onMounted(() => window.scrollTo(0, 0))
 const route = useRoute()
 const router = useRouter()
 
-const forceShield = computed(() => !!({...route.query}.forceShield))
-const invoicing = computed(() => isCurrent.value || ((powers.value.table_seller) && !!props.invoiceMode))
+const forceShield = computed(() => !!{ ...route.query }.forceShield)
+const invoicing = computed(
+  () => isCurrent.value || (powers.value.table_seller && !!props.invoiceMode),
+)
 
-let step = parseInt(route.query.stepId + '') || 1
+let step = parseInt(route.query.stepId + "") || 1
 if (step > 3) {
   step = 3
 } else if (step < 1) {
   step = 1
 }
 
-const validators = [{name: 'email'}]
+const validators = [{ name: "email" }]
 if (props.invoiceMode) {
   validators.pop()
 }
 
 const cartDefaults: ShoppingCart = {
   product: parseInt(route.params.productId as string, 10),
-  email: ((viewer.value as User).guest_email || ''),
+  email: (viewer.value as User).guest_email || "",
   private: false,
   characters: [],
   rating: 0,
-  details: '',
+  details: "",
   references: [],
   named_price: null,
   escrow_upgrade: forceShield.value,
@@ -557,7 +557,7 @@ if (window.CART) {
 
 const orderUrl = computed(() => `${product.endpoint}order/`)
 
-const orderForm = useForm('newOrder', {
+const orderForm = useForm("newOrder", {
   endpoint: orderUrl.value,
   persistent: true,
   step,
@@ -569,7 +569,7 @@ const orderForm = useForm('newOrder', {
     //
     // It is also used to track the order for the purposes of someone returning to this 'cart'. The data in this form
     // must be synchronizable to the data in backend/apps/sales/models.py, in the ShoppingCart model.
-    product: {value: cartDefaults.product},
+    product: { value: cartDefaults.product },
     email: {
       value: cartDefaults.email,
       step: 1,
@@ -612,40 +612,59 @@ const orderForm = useForm('newOrder', {
   },
 })
 
-watch(orderUrl, (newURL) => {orderForm.endpoint = newURL}, {immediate: true})
+watch(
+  orderUrl,
+  (newURL) => {
+    orderForm.endpoint = newURL
+  },
+  { immediate: true },
+)
 
 orderForm.fields.invoicing.update(invoicing.value)
 
-onMounted(() => orderForm.step = step)
+onMounted(() => (orderForm.step = step))
 
-watch(() => product.x, (newProduct) => {
-  if (!newProduct) {
-    return
-  }
-  orderForm.fields.rating.model = Math.min(newProduct.max_rating, orderForm.fields.rating.value)
-  const newTemplate = (orderForm.fields.product.value !== newProduct.id) && newProduct.details_template.length
-  if (newTemplate || !orderForm.fields.details.value.length) {
-    orderForm.fields.details.model = newProduct.details_template
-  }
-  orderForm.fields.product.model = newProduct.id
-}, {deep: true, immediate: true})
+watch(
+  () => product.x,
+  (newProduct) => {
+    if (!newProduct) {
+      return
+    }
+    orderForm.fields.rating.model = Math.min(
+      newProduct.max_rating,
+      orderForm.fields.rating.value,
+    )
+    const newTemplate =
+      orderForm.fields.product.value !== newProduct.id &&
+      newProduct.details_template.length
+    if (newTemplate || !orderForm.fields.details.value.length) {
+      orderForm.fields.details.model = newProduct.details_template
+    }
+    orderForm.fields.product.model = newProduct.id
+  },
+  { deep: true, immediate: true },
+)
 
 // Keep the order form's step as part of the URL.
-watch(() => orderForm.step, (val: number) => {
-  router.replace({
-    query: {
-      ...route.query,
-      stepId: `${val}`,
-    },
-  })
-}, {immediate: true})
+watch(
+  () => orderForm.step,
+  (val: number) => {
+    router.replace({
+      query: {
+        ...route.query,
+        stepId: `${val}`,
+      },
+    })
+  },
+  { immediate: true },
+)
 
 const nextDisabled = computed(() => {
   // Touch the order form so this is re-evaluated whenever it changes.
   // Just checking the email field isn't enough since Vue can't listen for it.
 
   check()
-  const element = document.querySelector('#field-newOrder__email')
+  const element = document.querySelector("#field-newOrder__email")
   if (!element) {
     return false
   }
@@ -655,10 +674,10 @@ const nextDisabled = computed(() => {
 const goToOrder = (order: Order) => {
   // Could take a while. Let's not make it look like we're done.
   orderForm.sending = true
-  const link = {...order.default_path}
+  const link = { ...order.default_path }
   link.query = {
     ...link.query,
-    showConfirm: 'true',
+    showConfirm: "true",
   }
   if (!isRegistered.value) {
     link.params!.username = rawViewerName.value
@@ -669,15 +688,18 @@ const goToOrder = (order: Order) => {
     return
   }
   // Special case override for table events.
-  if ((product.x?.table_product && powers.value.table_seller) || invoicing.value) {
-    link.query.view_as = 'Seller'
-    link.name = 'SaleDeliverablePayment'
+  if (
+    (product.x?.table_product && powers.value.table_seller) ||
+    invoicing.value
+  ) {
+    link.query.view_as = "Seller"
+    link.name = "SaleDeliverablePayment"
     delete link.query.showConfirm
   }
   if (!props.invoiceMode) {
-    window.fbq('track', 'Purchase', {
+    window.fbq("track", "Purchase", {
       value: currentPrice.value,
-      currency: 'USD',
+      currency: "USD",
       content_ids: [product.x!.id],
       content_name: product.x!.name,
     })
@@ -701,7 +723,7 @@ const shielded = computed(() => {
   if (product.x.escrow_enabled) {
     return true
   }
-  return (product.x.escrow_upgradable && orderForm.fields.escrow_upgrade.value)
+  return product.x.escrow_upgradable && orderForm.fields.escrow_upgrade.value
 })
 
 const currentPrice = computed(() => {
@@ -714,32 +736,37 @@ const currentPrice = computed(() => {
   return product.x.starting_price
 })
 
-
 const shieldCost = computed(() => {
   if (!product.x) {
-    return '0'
+    return "0"
   }
-  return (parseFloat(product.x.shield_price) - parseFloat(product.x.starting_price)).toFixed(2)
+  return (
+    parseFloat(product.x.shield_price) - parseFloat(product.x.starting_price)
+  ).toFixed(2)
 })
 
 const shieldUpgradeLabel = computed(() => {
   if (!product.x) {
-    return 'Add Shield Protection'
+    return "Add Shield Protection"
   }
-  const text = 'Add Shield Protection for '
+  const text = "Add Shield Protection for "
   return text + `$${shieldCost.value}`
 })
 
 const privateHint = computed(() => {
   if (invoicing.value) {
-    return 'Mark if the client has requested that this piece be private-- which means that it will not be publicly ' +
-        'shown, and copyright will be assigned to them by default (if applicable and legally possible, and your ' +
-        'commission info in your artist settings does not explicitly say otherwise). You are advised to upcharge ' +
-        'for this if you do it.'
+    return (
+      "Mark if the client has requested that this piece be private-- which means that it will not be publicly " +
+      "shown, and copyright will be assigned to them by default (if applicable and legally possible, and your " +
+      "commission info in your artist settings does not explicitly say otherwise). You are advised to upcharge " +
+      "for this if you do it."
+    )
   } else {
-    return 'Hides the resulting submission from public view and tells the artist you want this commission ' +
-        'to be private. The artist may charge an additional fee, since they will not be able to use the piece ' +
-        'in their portfolio.'
+    return (
+      "Hides the resulting submission from public view and tells the artist you want this commission " +
+      "to be private. The artist may charge an additional fee, since they will not be able to use the piece " +
+      "in their portfolio."
+    )
   }
 })
 
@@ -751,22 +778,28 @@ const productSubmissionText = computed(() => {
     }
     return `Focus Submission for ${product.x.name} titled: ${title}`
   }
-  return ''
+  return ""
 })
 
-const {prerendering} = usePrerendering()
+const { prerendering } = usePrerendering()
 
 const rawUpdateCart = (rawData: RawData) => {
   if (invoicing.value) {
     return
   }
-  artCall({url: '/api/sales/cart/', method: 'patch', data: rawData}).catch(statusOk(400))
+  artCall({ url: "/api/sales/cart/", method: "patch", data: rawData }).catch(
+    statusOk(400),
+  )
 }
 
-const updateCart = debounce(rawUpdateCart, 250, {trailing: true})
+const updateCart = debounce(rawUpdateCart, 250, { trailing: true })
 
-watch(() => orderForm.rawData, updateCart, {deep: true, immediate: true})
+watch(() => orderForm.rawData, updateCart, { deep: true, immediate: true })
 
 subjectHandler.artistProfile.get().then()
-prepopulateCharacters(orderForm.fields.characters, showCharacters, initCharacters)
+prepopulateCharacters(
+  orderForm.fields.characters,
+  showCharacters,
+  initCharacters,
+)
 </script>

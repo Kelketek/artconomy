@@ -1,35 +1,17 @@
 <template>
   <v-container>
     <v-row>
-      <v-col
-        cols="6"
-        class="text-center"
-      >
+      <v-col cols="6" class="text-center">
         <div class="text-center">
-          <span
-            class="title"
-            aria-hidden="true"
-          >Start Date</span>
+          <span class="title" aria-hidden="true">Start Date</span>
         </div>
-        <v-date-picker
-          :model-value="startDate"
-          label="Start Date"
-        />
+        <v-date-picker :model-value="startDate" label="Start Date" />
       </v-col>
-      <v-col
-        cols="6"
-        class="text-center"
-      >
+      <v-col cols="6" class="text-center">
         <div class="text-center">
-          <span
-            class="title"
-            aria-hidden="true"
-          >End Date</span>
+          <span class="title" aria-hidden="true">End Date</span>
         </div>
-        <v-date-picker
-          v-model="endDate"
-          label="End Date"
-        />
+        <v-date-picker v-model="endDate" label="End Date" />
       </v-col>
     </v-row>
     <v-row>
@@ -42,7 +24,8 @@
             <a
               :href="`/api/sales/reports/customer-holdings/csv/${rangeString}`"
               download
-            >Download CSV</a>
+              >Download CSV</a
+            >
           </v-col>
         </v-row>
         <v-toolbar density="compact">
@@ -53,7 +36,8 @@
             <a
               :href="`/api/sales/reports/order-values/csv/${rangeString}`"
               download
-            >Download CSV</a>
+              >Download CSV</a
+            >
           </v-col>
         </v-row>
         <v-toolbar density="compact">
@@ -64,7 +48,8 @@
             <a
               :href="`/api/sales/reports/subscription-report/csv/${rangeString}`"
               download
-            >Download CSV</a>
+              >Download CSV</a
+            >
           </v-col>
         </v-row>
         <v-toolbar density="compact">
@@ -75,7 +60,8 @@
             <a
               :href="`/api/sales/reports/payout-report/csv/${rangeString}`"
               download
-            >Download CSV</a>
+              >Download CSV</a
+            >
           </v-col>
         </v-row>
         <v-toolbar density="compact">
@@ -86,7 +72,8 @@
             <a
               :href="`/api/sales/reports/unaffiliated-sales/csv/${rangeString}`"
               download
-            >Download CSV</a>
+              >Download CSV</a
+            >
           </v-col>
         </v-row>
         <v-toolbar density="compact">
@@ -97,7 +84,8 @@
             <a
               :href="`/api/sales/reports/tip-report/csv/${rangeString}`"
               download
-            >Download CSV</a>
+              >Download CSV</a
+            >
           </v-col>
         </v-row>
       </v-col>
@@ -106,6 +94,6 @@
 </template>
 
 <script setup lang="ts">
-import {useRangeReport} from '@/components/views/reports/mixins/RangeReport.ts'
-const {startDate, endDate, rangeString} = useRangeReport()
+import { useRangeReport } from "@/components/views/reports/mixins/RangeReport.ts"
+const { startDate, endDate, rangeString } = useRangeReport()
 </script>

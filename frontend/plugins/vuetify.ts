@@ -5,10 +5,10 @@
  */
 
 // Composables
-import DateFnsAdapter from '@date-io/date-fns'
-import {createVuetify as upstreamCreateVuetify} from 'vuetify'
-import {aliases, mdi} from 'vuetify/iconsets/mdi-svg'
-import colors from 'vuetify/util/colors'
+import DateFnsAdapter from "@date-io/date-fns"
+import { createVuetify as upstreamCreateVuetify } from "vuetify"
+import { aliases, mdi } from "vuetify/iconsets/mdi-svg"
+import colors from "vuetify/util/colors"
 
 const adapter = new DateFnsAdapter()
 
@@ -20,16 +20,16 @@ export const createVuetify = () => {
       adapter,
     },
     icons: {
-      defaultSet: 'mdi',
+      defaultSet: "mdi",
       aliases,
       sets: {
         mdi,
-      }
+      },
     },
     theme: {
-      defaultTheme: 'dark',
+      defaultTheme: "dark",
       variations: {
-        colors: ['primary', 'secondary', 'well'],
+        colors: ["primary", "secondary", "well"],
         lighten: 4,
         darken: 4,
       },

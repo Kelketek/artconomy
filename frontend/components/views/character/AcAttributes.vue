@@ -4,22 +4,14 @@
       We had an issue while trying to load {{ characterName }}'s attributes.
     </template>
     <v-container class="pa-0 compact-fields">
-      <v-row
-        v-if="controls"
-        v-show="editing"
-        no-gutters
-      >
+      <v-row v-if="controls" v-show="editing" no-gutters>
         <v-col
           v-for="attribute in character.attributes.list"
           :key="attribute.x!.id"
           cols="12"
         >
           <v-row no-gutters>
-            <v-col
-              v-if="attribute.x!.sticky"
-              cols="5"
-              class="attr-input"
-            >
+            <v-col v-if="attribute.x!.sticky" cols="5" class="attr-input">
               <ac-patch-field
                 :disabled="true"
                 :value="attribute.x!.key"
@@ -28,39 +20,23 @@
                 :patcher="attribute.patchers.key"
               />
             </v-col>
-            <v-col
-              v-else
-              class="d-flex attr-input"
-              cols="5"
-            >
+            <v-col v-else class="d-flex attr-input" cols="5">
               <ac-patch-field
                 disabled
                 :patcher="attribute.patchers.key"
                 density="compact"
               />
             </v-col>
-            <v-col
-              class="d-flex"
-              cols="5"
-              lg="6"
-            >
+            <v-col class="d-flex" cols="5" lg="6">
               <ac-patch-field
                 :patcher="attribute.patchers.value"
                 density="compact"
               />
             </v-col>
-            <v-col
-              v-if="!attribute.x!.sticky"
-              class="d-flex"
-              cols="2"
-              lg="1"
-            >
-              <v-row
-                no-gutters
-                class="text-center"
-              >
+            <v-col v-if="!attribute.x!.sticky" class="d-flex" cols="2" lg="1">
+              <v-row no-gutters class="text-center">
                 <ac-confirmation :action="attribute.delete">
-                  <template #default="{on}">
+                  <template #default="{ on }">
                     <v-btn
                       color="red"
                       icon
@@ -89,10 +65,7 @@
           :errors="newAttribute.errors"
         >
           <v-row no-gutters>
-            <v-col
-              class="attr-input"
-              cols="5"
-            >
+            <v-col class="attr-input" cols="5">
               <ac-bound-field
                 ref="attrKey"
                 :field="newAttribute.fields.key"
@@ -100,21 +73,14 @@
                 density="compact"
               />
             </v-col>
-            <v-col
-              cols="5"
-              lg="6"
-            >
+            <v-col cols="5" lg="6">
               <ac-bound-field
                 :field="newAttribute.fields.value"
                 label="Value"
                 density="compact"
               />
             </v-col>
-            <v-col
-              cols="2"
-              lg="1"
-              class="d-flex"
-            >
+            <v-col cols="2" lg="1" class="d-flex">
               <v-col class="text-center">
                 <v-btn
                   color="black"
@@ -124,10 +90,7 @@
                   size="x-small"
                   class="submit-attribute"
                 >
-                  <v-icon
-                    color="yellow"
-                    :icon="mdiContentSave"
-                  />
+                  <v-icon color="yellow" :icon="mdiContentSave" />
                 </v-btn>
               </v-col>
             </v-col>
@@ -140,10 +103,7 @@
         :key="attribute.x!.id"
       >
         <v-row no-gutters>
-          <v-col
-            class="attr-key"
-            cols="3"
-          >
+          <v-col class="attr-key" cols="3">
             {{ attribute.x!.key }}
           </v-col>
           <v-col cols="9">
@@ -162,53 +122,56 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcPatchField from '@/components/fields/AcPatchField.vue'
-import AcConfirmation from '@/components/wrappers/AcConfirmation.vue'
-import AcFormContainer from '@/components/wrappers/AcFormContainer.vue'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import {useSubject} from '@/mixins/subjective.ts'
-import {artCall} from '@/lib/lib.ts'
-import AcForm from '@/components/wrappers/AcForm.vue'
-import {mdiContentSave, mdiDelete} from '@mdi/js'
-import {useCharacter} from '@/store/characters/hooks.ts'
-import {computed, nextTick, ref, watch} from 'vue'
-import {useForm} from '@/store/forms/hooks.ts'
-import {useEditable} from '@/mixins/editable.ts'
-import type {Attribute, CharacterProps} from '@/types/main'
-import {Character} from '@/store/characters/types/main'
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcPatchField from "@/components/fields/AcPatchField.vue"
+import AcConfirmation from "@/components/wrappers/AcConfirmation.vue"
+import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import { useSubject } from "@/mixins/subjective.ts"
+import { artCall } from "@/lib/lib.ts"
+import AcForm from "@/components/wrappers/AcForm.vue"
+import { mdiContentSave, mdiDelete } from "@mdi/js"
+import { useCharacter } from "@/store/characters/hooks.ts"
+import { computed, nextTick, ref, watch } from "vue"
+import { useForm } from "@/store/forms/hooks.ts"
+import { useEditable } from "@/mixins/editable.ts"
+import type { Attribute, CharacterProps } from "@/types/main"
+import { Character } from "@/store/characters/types/main"
 
 const props = defineProps<CharacterProps>()
-const {controls} = useSubject({ props })
-const {editing} = useEditable(controls)
+const { controls } = useSubject({ props })
+const { editing } = useEditable(controls)
 const character = useCharacter(props)
 
 const cancelSource = ref(new AbortController())
 
-const newAttribute = useForm(`${character.attributes.name.value}__newAttribute`, {
-  endpoint: character.attributes.endpoint,
-  fields: {
-    key: {value: ''},
-    value: {value: ''},
+const newAttribute = useForm(
+  `${character.attributes.name.value}__newAttribute`,
+  {
+    endpoint: character.attributes.endpoint,
+    fields: {
+      key: { value: "" },
+      value: { value: "" },
+    },
   },
-})
+)
 character.attributes.firstRun().then()
 
 const stickies = computed(() => {
   const stickied: string[] = []
-  character.attributes.list.forEach(
-    (attribute) => {
-      if (attribute.x && attribute.x.sticky) {
-        stickied.push(attribute.x.value)
-      }
+  character.attributes.list.forEach((attribute) => {
+    if (attribute.x && attribute.x.sticky) {
+      stickied.push(attribute.x.value)
     }
-  )
+  })
   return new Set(stickied)
 })
 
 const addAttribute = (result: Attribute) => {
   character.attributes.push(result)
-  const element = document.querySelector('#' + newAttribute.fields.key.id) as HTMLInputElement
+  const element = document.querySelector(
+    "#" + newAttribute.fields.key.id,
+  ) as HTMLInputElement
   /* istanbul ignore if */
   if (!element) {
     return
@@ -222,9 +185,12 @@ const addAttribute = (result: Attribute) => {
   })
 }
 
-watch(() => character.attributes.endpoint, (value) => {
-  newAttribute.endpoint = value
-})
+watch(
+  () => character.attributes.endpoint,
+  (value) => {
+    newAttribute.endpoint = value
+  },
+)
 
 watch(stickies, (newVal: Set<string>, oldVal?: Set<string>) => {
   if (oldVal === undefined) {
@@ -238,17 +204,17 @@ watch(stickies, (newVal: Set<string>, oldVal?: Set<string>) => {
   cancelSource.value = new AbortController()
   artCall({
     url: character.profile.endpoint,
-    method: 'get',
+    method: "get",
     signal: cancelSource.value.signal,
-  }).then(
-      (characterData: Character) => {
-        character.profile.updateX({tags: characterData.tags})
+  }).then((characterData: Character) => {
+    character.profile.updateX({ tags: characterData.tags })
   })
 })
 </script>
 
 <style>
-.attr-key, .attr-input .v-text-field__slot input {
+.attr-key,
+.attr-input .v-text-field__slot input {
   font-weight: bold;
   text-transform: uppercase;
 }

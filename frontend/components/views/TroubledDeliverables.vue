@@ -28,7 +28,12 @@
                   <ac-deliverable-status :deliverable="deliverable.x!" />
                 </td>
                 <td>{{ formatDateTime(deliverable.x!.created_on) }}</td>
-                <td>{{ deliverable.x!.paid_on && formatDateTime(deliverable.x!.paid_on) }}</td>
+                <td>
+                  {{
+                    deliverable.x!.paid_on &&
+                    formatDateTime(deliverable.x!.paid_on)
+                  }}
+                </td>
                 <td>
                   <ac-avatar
                     v-if="deliverable.x!.order.buyer"
@@ -41,8 +46,18 @@
                 </td>
                 <td>
                   <ac-link
-                    v-if="deliverable.x!.arbitrator && deliverable.x!.arbitrator.username === viewer!.username"
-                    :to="{name: 'CaseDeliverableOverview', params: {orderId: `${deliverable.x!.order.id}`, deliverableId: `${deliverable.x!.id}`, username: viewer!.username}}"
+                    v-if="
+                      deliverable.x!.arbitrator &&
+                      deliverable.x!.arbitrator.username === viewer!.username
+                    "
+                    :to="{
+                      name: 'CaseDeliverableOverview',
+                      params: {
+                        orderId: `${deliverable.x!.order.id}`,
+                        deliverableId: `${deliverable.x!.id}`,
+                        username: viewer!.username,
+                      },
+                    }"
                   >
                     View
                   </ac-link>
@@ -65,23 +80,25 @@
 </template>
 
 <script setup lang="ts">
-import {useViewer} from '@/mixins/viewer.ts'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcDeliverableStatus from '@/components/AcDeliverableStatus.vue'
-import AcLink from '@/components/wrappers/AcLink.vue'
-import {artCall} from '@/lib/lib.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import AcAvatar from '@/components/AcAvatar.vue'
-import {useList} from '@/store/lists/hooks.ts'
-import {formatDateTime} from '@/lib/otherFormatters.ts'
-import type {Deliverable} from '@/types/main'
+import { useViewer } from "@/mixins/viewer.ts"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcDeliverableStatus from "@/components/AcDeliverableStatus.vue"
+import AcLink from "@/components/wrappers/AcLink.vue"
+import { artCall } from "@/lib/lib.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import AcAvatar from "@/components/AcAvatar.vue"
+import { useList } from "@/store/lists/hooks.ts"
+import { formatDateTime } from "@/lib/otherFormatters.ts"
+import type { Deliverable } from "@/types/main"
 
-const {viewer} = useViewer()
-const troubledDeliverables = useList<Deliverable>('troubledDeliverables', {endpoint: '/api/sales/reports/troubled-deliverables/'})
+const { viewer } = useViewer()
+const troubledDeliverables = useList<Deliverable>("troubledDeliverables", {
+  endpoint: "/api/sales/reports/troubled-deliverables/",
+})
 const claimDeliverable = async (deliverable: SingleController<Deliverable>) => {
   return artCall({
     url: `/api/sales/order/${deliverable.x!.order.id}/deliverables/${deliverable.x!.id}/claim/`,
-    method: 'post',
+    method: "post",
   }).then(deliverable.updateX)
 }
 </script>

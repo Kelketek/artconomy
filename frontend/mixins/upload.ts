@@ -1,6 +1,6 @@
-import {useStore} from 'vuex'
-import {ArtState} from '@/store/artState.ts'
-import {computed} from 'vue'
+import { useStore } from "vuex"
+import { ArtState } from "@/store/artState.ts"
+import { computed } from "vue"
 
 export const useUpload = () => {
   const store = useStore<ArtState>()
@@ -9,8 +9,8 @@ export const useUpload = () => {
       return store.state.uploadVisible
     },
     set(val: boolean) {
-      store.commit('setUploadVisible', val)
-    }
+      store.commit("setUploadVisible", val)
+    },
   })
-  return {showUpload}
+  return { showUpload }
 }

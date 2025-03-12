@@ -17,9 +17,9 @@
 </template>
 
 <script setup lang="ts">
-import {mdiAlertDecagram} from '@mdi/js'
+import { mdiAlertDecagram } from "@mdi/js"
 
-defineProps<{read: boolean}>()
+defineProps<{ read: boolean }>()
 </script>
 
 <style>

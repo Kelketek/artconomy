@@ -19,10 +19,7 @@
           sm="3"
           lg="2"
         >
-          <ac-gallery-preview
-            class="pa-1"
-            :submission="submission.x!"
-          />
+          <ac-gallery-preview class="pa-1" :submission="submission.x!" />
         </v-col>
       </ac-paginated>
     </ac-load-section>
@@ -30,18 +27,18 @@
 </template>
 
 <script setup lang="ts">
-import AcLoadSection from '@/components/wrappers/AcLoadSection.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcCharacterToolbar from '@/components/views/character/AcCharacterToolbar.vue'
-import AcGalleryPreview from '@/components/AcGalleryPreview.vue'
-import {useRatingRefresh} from '@/mixins/RatingRefresh.ts'
-import {useCharacter} from '@/store/characters/hooks.ts'
-import {useErrorHandling} from '@/mixins/ErrorHandling.ts'
-import type {CharacterProps} from '@/types/main'
+import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcCharacterToolbar from "@/components/views/character/AcCharacterToolbar.vue"
+import AcGalleryPreview from "@/components/AcGalleryPreview.vue"
+import { useRatingRefresh } from "@/mixins/RatingRefresh.ts"
+import { useCharacter } from "@/store/characters/hooks.ts"
+import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
+import type { CharacterProps } from "@/types/main"
 
 const props = defineProps<CharacterProps>()
 const character = useCharacter(props)
-const {setError} = useErrorHandling()
+const { setError } = useErrorHandling()
 character.profile.get().catch(setError)
 character.submissions.firstRun().catch(setError)
 

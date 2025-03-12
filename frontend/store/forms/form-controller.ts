@@ -1,14 +1,18 @@
-import {FieldController} from './field-controller.ts'
-import {MutationPayload} from 'vuex'
-import {formRegistry} from './registry.ts'
-import {deriveErrors} from './helpers.ts'
-import {BaseController, ControllerArgs} from '@/store/controller-base.ts'
-import {dataFromForm} from '@/store/forms/index.ts'
-import {ComputedGetters, flatten} from '@/lib/lib.ts'
-import {nextTick, toValue} from 'vue'
+import { FieldController } from "./field-controller.ts"
+import { MutationPayload } from "vuex"
+import { formRegistry } from "./registry.ts"
+import { deriveErrors } from "./helpers.ts"
+import { BaseController, ControllerArgs } from "@/store/controller-base.ts"
+import { dataFromForm } from "@/store/forms/index.ts"
+import { ComputedGetters, flatten } from "@/lib/lib.ts"
+import { nextTick, toValue } from "vue"
 
-import type {AcServerError} from '@/types/main'
-import StepSpec, {FormState, NamelessFormSchema, RawData} from '@/store/forms/types/main'
+import type { AcServerError } from "@/types/main"
+import StepSpec, {
+  FormState,
+  NamelessFormSchema,
+  RawData,
+} from "@/store/forms/types/main"
 
 export interface FieldBank {
   [key: string]: FieldController
@@ -18,24 +22,30 @@ export interface FieldBank {
 // At some point we should refactor this component to behave in the same way as the rest of the modules-- with fields
 // as their own component type with their own registry.
 @ComputedGetters
-export class FormController extends BaseController<NamelessFormSchema, FormState> {
+export class FormController extends BaseController<
+  NamelessFormSchema,
+  FormState
+> {
   public fields: FieldBank = {}
   public watcherMap: { [key: string]: (mutation: MutationPayload) => void } = {}
 
-  public baseModuleName = 'forms'
+  public baseModuleName = "forms"
 
-  public typeName = 'Form' as const
+  public typeName = "Form" as const
   // tslint:disable-next-line:no-empty
-  private unsubscribe: (() => void) = null as unknown as (() => void)
+  private unsubscribe: () => void = null as unknown as () => void
 
   constructor(args: ControllerArgs<NamelessFormSchema>) {
     super(args)
     this.watcherMap = {
-      'forms/addField': this.watchAddField,
-      'forms/delField': this.watchDelField,
-      'forms/delForm': this.watchDelForm,
+      "forms/addField": this.watchAddField,
+      "forms/delField": this.watchDelField,
+      "forms/delForm": this.watchDelForm,
     }
-    this.$store.commit('forms/initForm', {...{name: this.name.value}, ...this.schema})
+    this.$store.commit("forms/initForm", {
+      ...{ name: this.name.value },
+      ...this.schema,
+    })
     for (const key of Object.keys(this.schema.fields)) {
       this.fields[key] = new FieldController({
         $router: this.$router,
@@ -43,7 +53,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
         $sock: this.$sock,
         formName: this.name.value,
         fieldName: key,
-        $store: this.$store
+        $store: this.$store,
       })
     }
     this.unsubscribe = this.$store.subscribe(this.formWatch)
@@ -56,51 +66,64 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     }
   }
 
-  public submitThen = (success: (response: any) => void, error?: (response: AcServerError) => void) => {
+  public submitThen = (
+    success: (response: any) => void,
+    error?: (response: AcServerError) => void,
+  ) => {
     error = error || this.setErrors
     return this.submit().then(success).catch(error)
   }
 
-  public submit = () =>  {
+  public submit = () => {
     this.stopValidators()
-    return this.$store.dispatch('forms/submit', {name: this.name.value})
+    return this.$store.dispatch("forms/submit", { name: this.name.value })
   }
 
   public reset = () => {
-    this.$store.commit('forms/resetForm', {name: this.name.value})
+    this.$store.commit("forms/resetForm", { name: this.name.value })
   }
 
   public purge = () => {
     this.stopValidators()
-    this.$store.commit('forms/delForm', {name: this.name.value})
+    this.$store.commit("forms/delForm", { name: this.name.value })
   }
 
   public get errors() {
     if (this.purged) {
       return []
     }
-    return this.attr('errors')
+    return this.attr("errors")
   }
 
   public set errors(errors: string[]) {
-    this.$store.commit('forms/setMetaErrors', {name: toValue(this.name), errors})
+    this.$store.commit("forms/setMetaErrors", {
+      name: toValue(this.name),
+      errors,
+    })
   }
 
   public get disabled(): boolean {
-    return this.sending || this.attr('disabled')
+    return this.sending || this.attr("disabled")
   }
 
   public get sending(): boolean {
-    return this.attr('sending')
+    return this.attr("sending")
   }
 
   public set sending(value: boolean) {
     // Not only used internally -- Sometimes useful when doing custom error handling.
-    this.$store.commit('forms/updateMeta', {name: toValue(this.name), meta: {sending: value}})
+    this.$store.commit("forms/updateMeta", {
+      name: toValue(this.name),
+      meta: { sending: value },
+    })
   }
 
   public get bind() {
-    return {errors: this.errors, sending: this.sending, id: `form-${flatten(toValue(this.name))}`}
+    return {
+      errors: this.errors,
+      sending: this.sending,
+      id: `form-${flatten(toValue(this.name))}`,
+    }
   }
 
   public get rawData(): RawData {
@@ -108,19 +131,22 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public get endpoint() {
-    return this.attr('endpoint')
+    return this.attr("endpoint")
   }
 
   public set endpoint(endpoint) {
-    this.$store.commit('forms/setEndpoint', {name: toValue(this.name), endpoint})
+    this.$store.commit("forms/setEndpoint", {
+      name: toValue(this.name),
+      endpoint,
+    })
   }
 
   public get step() {
-    return this.attr('step')
+    return this.attr("step")
   }
 
   public set step(step: number) {
-    this.$store.commit('forms/setStep', {name: toValue(this.name), step})
+    this.$store.commit("forms/setStep", { name: toValue(this.name), step })
   }
 
   public get lastStep() {
@@ -145,13 +171,13 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public get steps() {
-    const steps: {[key: number]: StepSpec} = {}
+    const steps: { [key: number]: StepSpec } = {}
     const failedSteps = this.failedSteps
     for (let i = 1; i <= this.lastStep; i++) {
       const failed = failedSteps.includes(i)
       steps[i] = {
         failed,
-        complete: (this.step) > i && !failed,
+        complete: this.step > i && !failed,
         rules: [() => !failed],
       }
     }
@@ -164,7 +190,7 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public clearErrors = () => {
-    this.$store.commit('forms/clearErrors', {name: this.name.value})
+    this.$store.commit("forms/clearErrors", { name: this.name.value })
   }
 
   public formWatch = (mutation: MutationPayload) => {
@@ -209,17 +235,19 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
   }
 
   public scrollToError = () => {
-    let scrollables = document.querySelectorAll(`#${this.bind.id} .scrollableText`)
+    let scrollables = document.querySelectorAll(
+      `#${this.bind.id} .scrollableText`,
+    )
     if (!scrollables.length) {
       scrollables = document.querySelectorAll(`#${this.bind.id}`)
     }
     if (!scrollables.length) {
       // If this doesn't return something we're fucked anyway.
-      scrollables = document.querySelectorAll('body')
+      scrollables = document.querySelectorAll("body")
     }
-    const errors = scrollables[0].querySelectorAll(':scope .error--text')
+    const errors = scrollables[0].querySelectorAll(":scope .error--text")
     if (errors.length) {
-      errors[0].scrollIntoView({behavior: 'smooth', block: 'center'})
+      errors[0].scrollIntoView({ behavior: "smooth", block: "center" })
     }
   }
 
@@ -227,13 +255,17 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
     this.stopValidators()
     const errorSet = deriveErrors(error, Object.keys(this.fields))
     if (errorSet.errors.length && !Object.keys(errorSet.fields).length) {
-      this.$store.commit(
-        'forms/setMetaErrors',
-        {name: this.name.value, errors: errorSet.errors})
+      this.$store.commit("forms/setMetaErrors", {
+        name: this.name.value,
+        errors: errorSet.errors,
+      })
       this.sending = false
       return
     }
-    this.$store.commit('forms/setErrors', {name: this.name.value, errors: errorSet})
+    this.$store.commit("forms/setErrors", {
+      name: this.name.value,
+      errors: errorSet,
+    })
     this.sending = false
     nextTick(this.scrollToError)
     return error
@@ -241,6 +273,10 @@ export class FormController extends BaseController<NamelessFormSchema, FormState
 
   public toJSON = () => {
     // Used to prevent the pretty printing service from exhausting all memory.
-    return {type: this.constructor.name, name: this.name.value, state: this.rawData}
+    return {
+      type: this.constructor.name,
+      name: this.name.value,
+      state: this.rawData,
+    }
   }
 }

@@ -1,9 +1,6 @@
 <template>
   <v-row class="ac-invoice-form">
-    <v-col
-      cols="12"
-      sm="6"
-    >
+    <v-col cols="12" sm="6">
       <ac-bound-field
         :field="newInvoice.fields.product"
         field-type="ac-product-select"
@@ -20,10 +17,7 @@
       <v-col cols="12">
         <v-divider />
       </v-col>
-      <v-col
-        cols="12"
-        md="6"
-      >
+      <v-col cols="12" md="6">
         <v-row>
           <v-col cols="12">
             <ac-bound-field
@@ -46,10 +40,7 @@
           </v-col>
         </v-row>
       </v-col>
-      <v-col
-        cols="12"
-        sm="6"
-      >
+      <v-col cols="12" sm="6">
         <ac-price-preview
           :line-items="lineItems"
           :escrow="escrowEnabled"
@@ -57,11 +48,7 @@
         />
       </v-col>
     </v-row>
-    <v-col
-      cols="12"
-      sm="4"
-      offset-sm="4"
-    >
+    <v-col cols="12" sm="4" offset-sm="4">
       <ac-bound-field
         field-type="ac-checkbox"
         label="Hold for Edit"
@@ -77,10 +64,7 @@
         :field="newInvoice.fields.rating"
       />
     </v-col>
-    <v-col
-      cols="12"
-      sm="4"
-    >
+    <v-col cols="12" sm="4">
       <ac-bound-field
         label="Slots taken"
         :field="newInvoice.fields.task_weight"
@@ -88,10 +72,7 @@
         hint="How many of your slots this commission will take up."
       />
     </v-col>
-    <v-col
-      cols="12"
-      sm="4"
-    >
+    <v-col cols="12" sm="4">
       <ac-bound-field
         label="Revisions included"
         :field="newInvoice.fields.revisions"
@@ -100,10 +81,7 @@
                   This does not include the final, so if there are no revisions, set this to zero."
       />
     </v-col>
-    <v-col
-      cols="12"
-      sm="4"
-    >
+    <v-col cols="12" sm="4">
       <ac-bound-field
         label="Expected turnaround (days)"
         :field="newInvoice.fields.expected_turnaround"
@@ -125,11 +103,16 @@
 </template>
 
 <script setup lang="ts">
-import {FormController} from '@/store/forms/form-controller.ts'
-import AcBoundField from '@/components/fields/AcBoundField.ts'
-import AcPricePreview from '../../price_preview/AcPricePreview.vue'
-import {ListController} from '@/store/lists/controller.ts'
-import type {LineItem} from '@/types/main'
+import { FormController } from "@/store/forms/form-controller.ts"
+import AcBoundField from "@/components/fields/AcBoundField.ts"
+import AcPricePreview from "../../price_preview/AcPricePreview.vue"
+import { ListController } from "@/store/lists/controller.ts"
+import type { LineItem } from "@/types/main"
 
-defineProps<{newInvoice: FormController, escrowEnabled: boolean, lineItems: ListController<LineItem>, username: string}>()
+defineProps<{
+  newInvoice: FormController
+  escrowEnabled: boolean
+  lineItems: ListController<LineItem>
+  username: string
+}>()
 </script>

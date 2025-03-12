@@ -1,9 +1,6 @@
 <template>
   <v-row no-gutters>
-    <ac-paginated
-      :show-pagination="false"
-      :list="notifications"
-    >
+    <ac-paginated :show-pagination="false" :list="notifications">
       <template #default>
         <v-col cols="12">
           <v-list lines="three">
@@ -18,16 +15,15 @@
                   <component
                     :is="dynamicComponent(notification.x!.event.type)"
                     :key="notification.x!.id"
-                    v-observe-visibility="(value: boolean) => markRead(value, notification)"
+                    v-observe-visibility="
+                      (value: boolean) => markRead(value, notification)
+                    "
                     class="notification"
                     :notification="notification.x"
                     :username="username"
                   />
                 </div>
-                <v-list-item
-                  v-else
-                  :key="index"
-                >
+                <v-list-item v-else :key="index">
                   <v-row>
                     <v-col>
                       {{ error(notification.x) }}
@@ -49,43 +45,47 @@
 </template>
 
 <script setup lang="ts">
-import {artCall, flatten} from '@/lib/lib.ts'
-import {SingleController} from '@/store/singles/controller.ts'
-import {computed, defineComponent, onUnmounted, ref} from 'vue'
-import {ObserveVisibility as vObserveVisibility} from 'vue-observe-visibility'
-import AcRefund from './events/AcRefund.vue'
-import AcDispute from './events/AcDispute.vue'
-import AcFavorite from './events/AcFavorite.vue'
-import AcSaleUpdate from './events/AcSaleUpdate.vue'
-import AcOrderUpdate from './events/AcOrderUpdate.vue'
-import AcCharTag from './events/AcCharTag.vue'
-import AcSubmissionCharTag from './events/AcSubmissionCharTag.vue'
-import AcRevisionUploaded from './events/AcRevisionUploaded.vue'
-import AcCommentNotification from './events/AcCommentNotification.vue'
-import AcCharShared from './events/AcCharShared.vue'
-import AcNewCharacter from './events/AcNewCharacter.vue'
-import AcNewProduct from './events/AcNewProduct.vue'
-import AcStreaming from './events/AcStreaming.vue'
-import AcCommissionsOpen from './events/AcCommissionsOpen.vue'
-import AcRenewalFixed from './events/AcRenewalFixed.vue'
-import AcRenewalFailure from './events/AcRenewalFailure.vue'
-import AcSubscriptionDeactivated from './events/AcSubscriptionDeactivated.vue'
-import AcNewJournal from './events/AcNewJournal.vue'
-import AcWithdrawFailed from './events/AcWithdrawFailed.vue'
-import AcLandscapeReferral from './events/AcLandscapeReferral.vue'
-import AcSubmissionArtistTag from './events/AcSubmissionArtistTag.vue'
-import AcPaginated from '@/components/wrappers/AcPaginated.vue'
-import AcReferenceUploaded from '@/components/views/notifications/events/AcReferenceUploaded.vue'
-import AcSubmissionShared from '@/components/views/notifications/events/AcSubmissionShared.vue'
-import AcWaitlistUpdated from '@/components/views/notifications/events/AcWaitlistUpdated.vue'
-import AcTipReceived from '@/components/views/notifications/events/AcTipReceived.vue'
-import AcAutoClosed from '@/components/views/notifications/events/AcAutoClosed.vue'
-import AcRevisionApproved from '@/components/views/notifications/events/AcRevisionApproved.vue'
-import AcSubmissionKilled from '@/components/views/notifications/events/AcSubmissionKilled.vue'
-import {useList} from '@/store/lists/hooks.ts'
-import {useSubject} from '@/mixins/subjective.ts'
-import {useSingle} from '@/store/singles/hooks.ts'
-import type {AcNotification, NotificationStats, SubjectiveProps} from '@/types/main'
+import { artCall, flatten } from "@/lib/lib.ts"
+import { SingleController } from "@/store/singles/controller.ts"
+import { computed, defineComponent, onUnmounted, ref } from "vue"
+import { ObserveVisibility as vObserveVisibility } from "vue-observe-visibility"
+import AcRefund from "./events/AcRefund.vue"
+import AcDispute from "./events/AcDispute.vue"
+import AcFavorite from "./events/AcFavorite.vue"
+import AcSaleUpdate from "./events/AcSaleUpdate.vue"
+import AcOrderUpdate from "./events/AcOrderUpdate.vue"
+import AcCharTag from "./events/AcCharTag.vue"
+import AcSubmissionCharTag from "./events/AcSubmissionCharTag.vue"
+import AcRevisionUploaded from "./events/AcRevisionUploaded.vue"
+import AcCommentNotification from "./events/AcCommentNotification.vue"
+import AcCharShared from "./events/AcCharShared.vue"
+import AcNewCharacter from "./events/AcNewCharacter.vue"
+import AcNewProduct from "./events/AcNewProduct.vue"
+import AcStreaming from "./events/AcStreaming.vue"
+import AcCommissionsOpen from "./events/AcCommissionsOpen.vue"
+import AcRenewalFixed from "./events/AcRenewalFixed.vue"
+import AcRenewalFailure from "./events/AcRenewalFailure.vue"
+import AcSubscriptionDeactivated from "./events/AcSubscriptionDeactivated.vue"
+import AcNewJournal from "./events/AcNewJournal.vue"
+import AcWithdrawFailed from "./events/AcWithdrawFailed.vue"
+import AcLandscapeReferral from "./events/AcLandscapeReferral.vue"
+import AcSubmissionArtistTag from "./events/AcSubmissionArtistTag.vue"
+import AcPaginated from "@/components/wrappers/AcPaginated.vue"
+import AcReferenceUploaded from "@/components/views/notifications/events/AcReferenceUploaded.vue"
+import AcSubmissionShared from "@/components/views/notifications/events/AcSubmissionShared.vue"
+import AcWaitlistUpdated from "@/components/views/notifications/events/AcWaitlistUpdated.vue"
+import AcTipReceived from "@/components/views/notifications/events/AcTipReceived.vue"
+import AcAutoClosed from "@/components/views/notifications/events/AcAutoClosed.vue"
+import AcRevisionApproved from "@/components/views/notifications/events/AcRevisionApproved.vue"
+import AcSubmissionKilled from "@/components/views/notifications/events/AcSubmissionKilled.vue"
+import { useList } from "@/store/lists/hooks.ts"
+import { useSubject } from "@/mixins/subjective.ts"
+import { useSingle } from "@/store/singles/hooks.ts"
+import type {
+  AcNotification,
+  NotificationStats,
+  SubjectiveProps,
+} from "@/types/main"
 
 const components = {
   0: AcNewCharacter,
@@ -119,12 +119,14 @@ const components = {
 }
 
 declare interface NotificationsListProps extends SubjectiveProps {
-  autoRead?: boolean,
-  subset: string,
+  autoRead?: boolean
+  subset: string
 }
 
-const props = withDefaults(defineProps<NotificationsListProps>(), {autoRead: true})
-const {isCurrent} = useSubject({ props })
+const props = withDefaults(defineProps<NotificationsListProps>(), {
+  autoRead: true,
+})
+const { isCurrent } = useSubject({ props })
 
 const error = (x: any) => {
   console.error(x)
@@ -135,38 +137,47 @@ const dynamicComponent = (type: number): ReturnType<typeof defineComponent> => {
 }
 
 const readUrl = `/api/profiles/account/${props.username}/notifications/mark-read/`
-const notifications = useList<AcNotification<any, any>>(props.subset + 'Notifications' + '__' + flatten(props.username))
+const notifications = useList<AcNotification<any, any>>(
+  props.subset + "Notifications" + "__" + flatten(props.username),
+)
 const toMark = ref<Array<Partial<AcNotification<any, any>>>>([])
 const marking = ref<Array<Partial<AcNotification<any, any>>>>([])
 const marked = ref<Array<Partial<AcNotification<any, any>>>>([])
 
-const stats = useSingle<NotificationStats>('notifications_stats__' + flatten(props.username))
+const stats = useSingle<NotificationStats>(
+  "notifications_stats__" + flatten(props.username),
+)
 
-const clickRead = (notification: SingleController<AcNotification<any, any>>) => {
+const clickRead = (
+  notification: SingleController<AcNotification<any, any>>,
+) => {
   if (props.autoRead) {
     return
   }
   if (!isCurrent.value) {
     return
   }
-  notification.updateX({read: true})
+  notification.updateX({ read: true })
   artCall({
-        url: `/api/profiles/account/${props.username}/notifications/mark-read/`,
-        method: 'patch',
-        data: [{
-          id: (notification.x as AcNotification<any, any>).id,
-          read: true,
-        }],
+    url: `/api/profiles/account/${props.username}/notifications/mark-read/`,
+    method: "patch",
+    data: [
+      {
+        id: (notification.x as AcNotification<any, any>).id,
+        read: true,
       },
-  ).then(stats.refresh)
+    ],
+  }).then(stats.refresh)
 }
 
 const toMarkIDs = computed(() => toMark.value.map((x) => x.id))
 
 const markedIDs = computed(() => marked.value.map((x) => x.id))
 
-
-const markRead = (value: boolean, controller: SingleController<AcNotification<any, any>>) => {
+const markRead = (
+  value: boolean,
+  controller: SingleController<AcNotification<any, any>>,
+) => {
   const notification = controller.x as AcNotification<any, any>
   if (!props.autoRead) {
     return
@@ -212,13 +223,13 @@ const readMonitor = () => {
   }
   if (toMark.value.length && !marking.value.length) {
     marking.value = toMark.value
-    artCall(
-        {
-          url: readUrl,
-          method: 'patch',
-          data: marking.value,
-        },
-    ).then(postMark).catch(clearMarking)
+    artCall({
+      url: readUrl,
+      method: "patch",
+      data: marking.value,
+    })
+      .then(postMark)
+      .catch(clearMarking)
   }
 }
 
