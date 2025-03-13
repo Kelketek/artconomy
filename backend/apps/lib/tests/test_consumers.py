@@ -32,7 +32,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
         return com
 
     async def login(self, user):
-        return await self.async_client.login(email=user.email, password="Test")
+        return self.async_client.login(email=user.email, password="Test")
 
     async def test_non_logged_in_viewer(self):
         com = self.get_communicator()
@@ -81,7 +81,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
                 },
             },
         )
-        await com.receive_nothing()
+        await com.receive_nothing(timeout=1)
         deliverable.details = "boop"
         await SA(deliverable.save)()
         updated = await com.receive_json_from(timeout=1)
@@ -145,7 +145,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
                 },
             },
         )
-        await com.receive_nothing()
+        await com.receive_nothing(timeout=1)
         line_item = await SA(LineItemFactory.create)(invoice=deliverable.invoice)
         new_item = await com.receive_json_from(timeout=1)
         self.assertEqual(
@@ -170,7 +170,7 @@ class TestConsumer(EnsurePlansMixin, TransactionTestCase):
                 },
             },
         )
-        await com.receive_nothing()
+        await com.receive_nothing(timeout=1)
         # This will disappear when we delete.
         deliverable_id = deliverable.id
         await SA(deliverable.delete)()
