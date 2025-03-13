@@ -686,10 +686,10 @@ describe("Logger", () => {
   const error = vi.spyOn(console, "error")
   error.mockImplementation(() => undefined)
   beforeEach(() => {
-    debug.mockReset()
-    info.mockReset()
-    warn.mockReset()
-    error.mockReset()
+    debug.mockClear()
+    info.mockClear()
+    warn.mockClear()
+    error.mockClear()
   })
   const sendMessages = () => {
     log.debug("TestDebug")
