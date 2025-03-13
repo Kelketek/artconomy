@@ -8,9 +8,9 @@ adrf==0.1.9
     # via -r requirements.in
 aiofile==3.9.0
     # via -r requirements.in
-aiohappyeyeballs==2.4.6
+aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.11.12
+aiohttp==3.11.13
     # via
     #   discord-py-interactions
     #   geoip2
@@ -32,13 +32,13 @@ asttokens==3.0.0
     # via stack-data
 async-property==0.2.2
     # via adrf
-attrs==25.1.0
+attrs==25.2.0
     # via
     #   aiohttp
     #   discord-py-interactions
     #   service-identity
     #   twisted
-authlib==1.4.1
+authlib==1.5.1
     # via -r requirements.in
 autobahn==24.4.2
     # via daphne
@@ -50,8 +50,6 @@ beautifulsoup4==4.13.3
     # via bs4
 billiard==4.2.1
     # via celery
-black==25.1.0
-    # via -r requirements.in
 bs4==0.0.2
     # via -r requirements.in
 caio==0.9.21
@@ -79,7 +77,6 @@ charset-normalizer==3.4.1
     # via requests
 click==8.1.8
     # via
-    #   black
     #   celery
     #   click-didyoumean
     #   click-plugins
@@ -97,15 +94,15 @@ coverage==7.6.12
     # via -r requirements.in
 croniter==6.0.0
     # via discord-py-interactions
-cryptography==44.0.1
+cryptography==44.0.2
     # via
     #   authlib
     #   autobahn
     #   pyopenssl
     #   service-identity
-cssselect==1.2.0
+cssselect==1.3.0
     # via premailer
-cssselect2==0.7.0
+cssselect2==0.8.0
     # via svglib
 cssutils==2.11.1
     # via premailer
@@ -113,13 +110,13 @@ daphne==4.1.2
     # via channels
 ddt==1.7.2
     # via -r requirements.in
-decorator==5.1.1
+decorator==5.2.1
     # via ipython
 discord-py-interactions==5.14.0
     # via -r requirements.in
 discord-typings==0.9.0
     # via discord-py-interactions
-django==5.1.6
+django==5.1.7
     # via
     #   -r requirements.in
     #   adrf
@@ -141,7 +138,7 @@ django==5.1.6
     #   djangorestframework
     #   djangorestframework-bulk
     #   easy-thumbnails
-django-appconf==1.0.6
+django-appconf==1.1.0
     # via
     #   django-avatar
     #   django-celery-email
@@ -183,7 +180,7 @@ django-signal-disabler==0.1.1
     # via -r requirements.in
 django-static-sitemaps==5.0.0
     # via -r requirements.in
-django-vite==3.0.6
+django-vite==3.1.0
     # via -r requirements.in
 djangorestframework==3.15.2
     # via
@@ -209,7 +206,7 @@ executing==2.2.0
     # via stack-data
 factory-boy==3.3.3
     # via -r requirements.in
-faker==36.1.0
+faker==37.0.0
     # via factory-boy
 freezegun==1.5.1
     # via -r requirements.in
@@ -251,9 +248,11 @@ idna==3.10
     #   yarl
 incremental==24.7.2
     # via twisted
-ipython==8.32.0
+ipython==9.0.2
     # via -r requirements.in
-isort==6.0.0
+ipython-pygments-lexers==1.1.1
+    # via ipython
+isort==6.0.1
     # via -r requirements.in
 jedi==0.19.2
     # via ipython
@@ -288,18 +287,12 @@ multidict==6.1.0
     # via
     #   aiohttp
     #   yarl
-mypy-extensions==1.0.0
-    # via black
-numpy==2.2.2
+numpy==2.2.3
     # via pandas
-packaging==24.2
-    # via black
 pandas==2.2.3
     # via -r requirements.in
 parso==0.8.4
     # via jedi
-pathspec==0.12.1
-    # via black
 pexpect==4.9.0
     # via ipython
 pillow==11.1.0
@@ -307,21 +300,19 @@ pillow==11.1.0
     #   django-avatar
     #   easy-thumbnails
     #   reportlab
-platformdirs==4.3.6
-    # via black
 premailer==3.0.0
     # via django-premailer
 prompt-toolkit==3.0.50
     # via
     #   click-repl
     #   ipython
-propcache==0.2.1
+propcache==0.3.0
     # via
     #   aiohttp
     #   yarl
-psycopg[binary]==3.2.4
+psycopg[binary]==3.2.5
     # via -r requirements.in
-psycopg-binary==3.2.4
+psycopg-binary==3.2.5
     # via psycopg
 ptyprocess==0.7.0
     # via pexpect
@@ -340,7 +331,9 @@ pycountry==24.6.1
 pycparser==2.22
     # via cffi
 pygments==2.19.1
-    # via ipython
+    # via
+    #   ipython
+    #   ipython-pygments-lexers
 pyopenssl==25.0.0
     # via twisted
 python-dateutil==2.9.0.post0
@@ -372,7 +365,7 @@ redis==5.2.1
     #   celery
     #   channels-redis
     #   django-redis
-reportlab==4.3.0
+reportlab==4.3.1
     # via
     #   -r requirements.in
     #   svglib
@@ -383,7 +376,7 @@ requests==2.32.3
     #   geoip2
     #   premailer
     #   stripe
-ruff==0.9.6
+ruff==0.9.10
     # via -r requirements.in
 sendgrid==6.11.0
     # via django-sendgrid-v5
@@ -409,7 +402,7 @@ stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==11.5.0
+stripe==11.6.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
@@ -467,7 +460,7 @@ webencodings==0.5.1
     # via
     #   cssselect2
     #   tinycss2
-websockets==14.2
+websockets==15.0.1
     # via uvicorn
 yarl==1.18.3
     # via aiohttp

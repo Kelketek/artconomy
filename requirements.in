@@ -4,8 +4,6 @@ adrf
 aiofile
 # OAuth2 library used for our custom Discord Integration-- the non-bot part
 authlib
-# Handles formatting of Python code.
-black
 # BeautifulSoup is an HTML/XML processing library which we primarily use to manipulate HTML structures before
 # extracting their text for the text version of emails
 bs4
@@ -132,7 +130,7 @@ reportlab
 # The requests library is the most useful HTTP library in the Python ecosystem. It should probably be in the standard
 # library, and I think they were considering this at one point.
 requests
-# Code quality linter
+# Python Code quality linter and autoformatter.
 ruff
 # Library for generating shortcodes, built atop UUIDs but serializable to ASCII strings. Includes Django model and REST
 # framework fields
