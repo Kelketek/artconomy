@@ -845,11 +845,10 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
         )
         self.assertEqual(mock_drip.post.call_count, 1)
 
-    @override_settings()
     def test_cart_created(self, mock_drip):
         now = timezone.now()
         cart = ShoppingCartFactory.create(edited_on=now)
-        mock_drip.post.reset_mock()
+        drip_sync_cart(cart.id, now.isoformat())
         mock_drip.post.assert_called_with(
             "/v3/bork/shopper_activity/cart",
             json={
@@ -869,7 +868,6 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
             },
         )
 
-    @override_settings()
     def test_cart_sync(self, mock_drip):
         now = timezone.now()
         cart = ShoppingCartFactory.create(edited_on=now, last_synced=now)
@@ -894,7 +892,6 @@ class DripTaskTestCase(EnsurePlansMixin, TestCase):
             json=test_data,
         )
 
-    @override_settings()
     def test_cart_skips_unassigned(self, mock_drip):
         now = timezone.now()
         cart = ShoppingCartFactory.create(
