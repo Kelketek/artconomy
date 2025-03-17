@@ -10,7 +10,7 @@ from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import (
-    BANK,
+    PAYOUT_ACCOUNT,
     CANCELLED,
     CARD,
     CASH_WITHDRAW,
@@ -26,7 +26,6 @@ from apps.sales.constants import (
     OPEN,
     PAID,
     PAYMENT_PENDING,
-    PENDING,
     REVIEW,
     SUCCESS,
     VOID,
@@ -473,7 +472,7 @@ class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
         pool.map(wrapped_withdraw, [user.id] * 4)
         pool.close()
         pool.join()
-        records = TransactionRecord.objects.filter(destination=BANK)
+        records = TransactionRecord.objects.filter(destination=PAYOUT_ACCOUNT)
         self.assertEqual(records.count(), 1)
 
     @patch("apps.sales.tasks.record_to_invoice_map")
@@ -500,7 +499,7 @@ class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
             ref_for_instance(deliverable), ref_for_instance(deliverable.invoice)
         )
         withdraw_all(user.id)
-        transfer = TransactionRecord.objects.get(destination=BANK)
+        transfer = TransactionRecord.objects.get(destination=PAYOUT_ACCOUNT)
         self.assertCountEqual(
             [target.target for target in transfer.targets.all()],
             [deliverable, deliverable.invoice, account],
@@ -532,7 +531,7 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
         }
         stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
         record.refresh_from_db()
-        self.assertEqual(record.status, PENDING)
+        self.assertEqual(record.status, SUCCESS)
         mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
             metadata={"reference_transaction": record.id},
             transfer_group=f"ACInvoice#{deliverable.invoice.id}",
@@ -586,7 +585,7 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
         }
         stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
         record.refresh_from_db()
-        self.assertEqual(record.status, PENDING)
+        self.assertEqual(record.status, SUCCESS)
         mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
             metadata={"reference_transaction": record.id},
             transfer_group=f"ACInvoice#{deliverable.invoice.id}",
@@ -618,7 +617,7 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
         }
         stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
         record.refresh_from_db()
-        self.assertEqual(record.status, PENDING)
+        self.assertEqual(record.status, SUCCESS)
         mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
             metadata={"reference_transaction": record.id},
             transfer_group=f"ACInvoice#{deliverable.invoice.id}",

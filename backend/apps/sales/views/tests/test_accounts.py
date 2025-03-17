@@ -10,7 +10,7 @@ from apps.lib.test_resources import (
 from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import (
-    BANK,
+    PAYOUT_ACCOUNT,
     CARD,
     CASH_WITHDRAW,
     ESCROW,
@@ -68,7 +68,7 @@ class TestHistoryViews(SignalsDisabledMixin, APITestCase):
                 payee=self.user,
                 card=None,
                 source=HOLDINGS,
-                destination=BANK,
+                destination=PAYOUT_ACCOUNT,
                 category=CASH_WITHDRAW,
             )
             for amount in (1, 2, 3, 4)
@@ -146,7 +146,6 @@ class TestAccountBalance(APITestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["available"], "100.00")
         self.assertEqual(response.data["escrow"], "50.00")
-        self.assertEqual(response.data["pending"], "10.00")
 
     def test_account_balance_wrong_user(self):
         user = UserFactory.create()

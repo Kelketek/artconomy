@@ -4,7 +4,7 @@ import { useStore } from "vuex"
 import { useProfile } from "@/store/profiles/hooks.ts"
 import { ArtState } from "@/store/artState.ts"
 import { ArtStore } from "@/store/index.ts"
-import { computed, watch } from "vue"
+import { computed, watch, ComputedRef } from "vue"
 import { SingleController } from "@/store/singles/controller.ts"
 import { parseISO } from "@/lib/otherFormatters.ts"
 import { Ratings } from "@/types/enums/Ratings.ts"
@@ -138,21 +138,21 @@ export const POWER_LIST: StaffPower[] = [
   "administrate_users",
 ] as const
 
-export const buildPowers = (handler: ProfileController) =>
+export const buildPowers = (handler: ComputedRef<ProfileController>) =>
   computed((): Record<StaffPower, boolean> => {
-    if (!handler.user.x?.is_staff || !handler.staffPowers.x) {
+    if (!handler.value.user.x?.is_staff || !handler.value.staffPowers.x) {
       return Object.fromEntries(
         POWER_LIST.map((key) => [key, false]),
       ) as Record<StaffPower, boolean>
     }
-    if (handler.user.x?.is_superuser) {
+    if (handler.value.user.x?.is_superuser) {
       return Object.fromEntries(POWER_LIST.map((key) => [key, true])) as Record<
         StaffPower,
         boolean
       >
     }
     return Object.fromEntries(
-      Object.entries(handler.staffPowers.x).filter(
+      Object.entries(handler.value.staffPowers.x).filter(
         (item) => typeof item[1] === "boolean",
       ),
     ) as Record<StaffPower, boolean>
@@ -196,7 +196,7 @@ export const useViewer = () => {
     },
     { immediate: true },
   )
-  const powers = buildPowers(viewerHandler)
+  const powers = buildPowers(computed(() => viewerHandler))
 
   return {
     viewer,

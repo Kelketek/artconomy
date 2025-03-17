@@ -11,7 +11,7 @@ from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
-    BANK,
+    PAYOUT_ACCOUNT,
     CARD,
     CARD_TRANSACTION_FEES,
     CASH_DEPOSIT,
@@ -22,8 +22,6 @@ from apps.sales.constants import (
     OPEN,
     PAID,
     PAYMENT_PENDING,
-    PAYOUT_MIRROR_DESTINATION,
-    PAYOUT_MIRROR_SOURCE,
     PENDING,
     PROCESSING_FEE,
     SUBSCRIPTION_DUES,
@@ -35,7 +33,6 @@ from apps.sales.constants import (
 )
 from apps.sales.models import Deliverable, StripeAccount, TransactionRecord
 from apps.sales.tests.factories import (
-    BankAccountFactory,
     DeliverableFactory,
     InvoiceFactory,
     LineItemFactory,
@@ -221,7 +218,7 @@ class TestPayoutReport(APITestCase):
         source_transaction = TransactionRecordFactory.create()
         transaction = TransactionRecordFactory.create(
             source=HOLDINGS,
-            destination=BANK,
+            destination=PAYOUT_ACCOUNT,
             remote_ids=["1234", "5678"],
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -249,7 +246,7 @@ class TestPayoutReport(APITestCase):
         # Too old
         TransactionRecordFactory.create(
             source=HOLDINGS,
-            destination=BANK,
+            destination=PAYOUT_ACCOUNT,
             remote_ids=["1234", "5678"],
             created_on=utc_now().replace(month=1),
             finalized_on=utc_now().replace(month=1),
@@ -281,75 +278,6 @@ class TestPayoutReport(APITestCase):
         self.assertEqual(lines[0]["payee"], transaction.payee.username)
         self.assertEqual(lines[0]["total_drafted"], "22.00")
         self.assertEqual(lines[0]["fees"], "2.00")
-        self.assertEqual(parse(lines[0]["created_on"]), transaction.created_on)
-        self.assertEqual(parse(lines[0]["finalized_on"]), transaction.finalized_on)
-
-
-class TestUserPayoutReport(APITestCase):
-    @freeze_time("2022-03-25")
-    def test_payout_report(self):
-        user = UserFactory.create()
-        transaction = TransactionRecordFactory.create(
-            source=PAYOUT_MIRROR_SOURCE,
-            destination=PAYOUT_MIRROR_DESTINATION,
-            created_on=utc_now().replace(day=5),
-            finalized_on=utc_now().replace(day=5),
-            amount=Money("20.00", "GBP"),
-            payer=user,
-            payee=user,
-            status=SUCCESS,
-        )
-        submission = SubmissionFactory.create(owner=transaction.payer)
-        deleted_submission = SubmissionFactory.create()
-        bank_account = BankAccountFactory(user=transaction.payer)
-        stripe_account = StripeAccountFactory.create()
-        source_transaction = TransactionRecordFactory.create(
-            payer=transaction.payer, payee=transaction.payee
-        )
-        deliverable = DeliverableFactory.create(order__seller=transaction.payer)
-        transaction.targets.add(
-            ref_for_instance(submission),
-            ref_for_instance(deleted_submission),
-            ref_for_instance(stripe_account),
-            ref_for_instance(bank_account),
-            ref_for_instance(source_transaction),
-            ref_for_instance(deliverable),
-        )
-        deleted_submission.delete()
-        # Shouldn't be included
-        TransactionRecordFactory.create(source=CARD, destination=HOLDINGS)
-        # Too old
-        TransactionRecordFactory.create(
-            source=PAYOUT_MIRROR_SOURCE,
-            destination=PAYOUT_MIRROR_DESTINATION,
-            created_on=utc_now().replace(month=1),
-            finalized_on=utc_now().replace(month=1),
-            payer=user,
-            payee=user,
-            status=SUCCESS,
-        )
-        self.login(user)
-        response = self.client.get(
-            f"/api/sales/v1/account/{user.username}/reports/payout/",
-            {
-                "start_date": utc_now().replace(day=1).date().isoformat(),
-                "end_date": utc_now().date().isoformat(),
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        reader = DictReader(StringIO(response.content.decode("utf-8")))
-        lines = [line for line in reader]
-        self.assertEqual(len(lines), 1)
-        self.assertEqual(lines[0]["id"], transaction.id)
-        self.assertEqual(lines[0]["amount"], "20.00")
-        self.assertEqual(lines[0]["status"], "Successful")
-        self.assertEqual(
-            lines[0]["targets"],
-            f"Submission #{submission.id}, Sale #{deliverable.order.id} "
-            f"[{deliverable.name}], TransactionRecord #{source_transaction.id} "
-            f"($10.00)",
-        )
-        utc_now().isoformat()
         self.assertEqual(parse(lines[0]["created_on"]), transaction.created_on)
         self.assertEqual(parse(lines[0]["finalized_on"]), transaction.finalized_on)
 
@@ -403,7 +331,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=HOLDINGS,
-            destination=BANK,
+            destination=PAYOUT_ACCOUNT,
             category=CASH_WITHDRAW,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),
@@ -535,7 +463,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction = TransactionRecordFactory.create(
             source=HOLDINGS,
-            destination=BANK,
+            destination=PAYOUT_ACCOUNT,
             category=CASH_WITHDRAW,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),

@@ -11,6 +11,9 @@ from apps.sales.constants import (
     FUNDING,
     FUND,
     DEFAULT_TYPE_TO_CATEGORY_MAP,
+    HOLDINGS,
+    PAYOUT_ACCOUNT,
+    PENDING,
 )
 from apps.sales.models import TransactionRecord, Invoice, LineItem
 from django.core.management import BaseCommand
@@ -69,3 +72,8 @@ class Command(BaseCommand):
         for line_item in LineItem.objects.filter(category__isnull=True):
             line_item.category = DEFAULT_TYPE_TO_CATEGORY_MAP[line_item.type]
             line_item.save()
+        TransactionRecord.objects.filter(
+            source=HOLDINGS,
+            destination=PAYOUT_ACCOUNT,
+            status=PENDING,
+        ).update(status=SUCCESS)

@@ -28,7 +28,6 @@ from apps.sales.constants import (
     ACH_TRANSACTION_FEES,
     ADD_ON,
     AUTHORIZE,
-    BANK,
     BASE_PRICE,
     CARD,
     CARD_TRANSACTION_FEES,
@@ -71,7 +70,6 @@ from apps.sales.models import (
 from apps.sales.stripe import stripe
 from apps.sales.utils import (
     AVAILABLE,
-    PENDING,
     POSTED_ONLY,
     account_balance,
     lines_for_product,
@@ -1137,7 +1135,6 @@ class RevisionSerializer(serializers.ModelSerializer):
 class AccountBalanceSerializer(serializers.ModelSerializer):
     escrow = serializers.SerializerMethodField()
     available = serializers.SerializerMethodField()
-    pending = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
         return str(account_balance(obj, ESCROW))
@@ -1145,12 +1142,9 @@ class AccountBalanceSerializer(serializers.ModelSerializer):
     def get_available(self, obj):
         return str(account_balance(obj, HOLDINGS))
 
-    def get_pending(self, obj):
-        return str(account_balance(obj, BANK, PENDING))
-
     class Meta:
         model = User
-        fields = ("escrow", "available", "pending")
+        fields = ("escrow", "available")
 
 
 class BankAccountSerializer(serializers.ModelSerializer):
@@ -1719,60 +1713,6 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
             "amount",
             "fees",
             "total_drafted",
-            "remote_ids",
-            "created_on",
-            "finalized_on",
-            "targets",
-        )
-        read_only_fields = fields
-
-
-class UserPayoutTransactionSerializer(serializers.ModelSerializer):
-    id = ShortCodeField()
-    amount = serializers.SerializerMethodField()
-    currency = serializers.SerializerMethodField()
-    status = serializers.SerializerMethodField()
-    targets = serializers.SerializerMethodField()
-    remote_ids = serializers.SerializerMethodField()
-
-    def get_amount(self, obj: TransactionRecord):
-        return str(obj.amount.amount)
-
-    def get_currency(self, obj: TransactionRecord):
-        return str(obj.amount.currency.code)
-
-    def get_status(self, obj: TransactionRecord):
-        return obj.get_status_display()
-
-    def get_remote_ids(self, obj: TransactionRecord):
-        return ", ".join(obj.remote_ids)
-
-    def get_targets(self, obj: TransactionRecord):
-        targets = obj.targets.order_by("content_type_id").all()
-        items: List[str] = []
-        for target in targets:
-            if not target.target:
-                continue
-            model_class = target.content_type.model_class()
-            if model_class == StripeAccount:
-                continue
-            if model_class == BankAccount:
-                continue
-            base = f"{target.target.__class__.__name__} #{target.target.id}"
-            if model_class == Deliverable:
-                base = target.target.notification_name(self.context)
-            if target.content_type.model_class() == TransactionRecord:
-                base += f" ({target.target.amount})"
-            items.append(base)
-        return ", ".join(items)
-
-    class Meta:
-        model = TransactionRecord
-        fields = (
-            "id",
-            "status",
-            "amount",
-            "currency",
             "remote_ids",
             "created_on",
             "finalized_on",

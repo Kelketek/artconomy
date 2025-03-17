@@ -85,7 +85,7 @@
         <v-list-item-title>Sales/Invoicing</v-list-item-title>
       </v-list-item>
       <v-list-group
-        v-if="isLoggedIn && subject.is_staff"
+        v-if="isLoggedIn && powers.view_financials"
         value="Reports"
         nav
         role="listitem"
@@ -129,7 +129,9 @@
         </v-list-item>
       </v-list-group>
       <v-list-item
-        v-else-if="isLoggedIn && (subject.artist_mode || subject.is_superuser)"
+        v-else-if="
+          isLoggedIn && (powers.view_financials || powers.table_seller)
+        "
         :to="{ name: 'Reports', params: { username: subject.username } }"
         role="listitem"
         tabindex="0"
@@ -408,7 +410,8 @@ declare interface AcNavLinksProps {
 const props = withDefaults(defineProps<AcNavLinksProps>(), { embedded: false })
 const router = useRouter()
 const { viewerHandler } = useViewer()
-const powers = buildPowers(props.subjectHandler)
+const subjectHandler = computed(() => props.subjectHandler)
+const powers = buildPowers(subjectHandler)
 props.subjectHandler.staffPowers.get().catch(() => {})
 
 const openFirst = ref(["Openings", "Art"])

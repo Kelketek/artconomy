@@ -16,11 +16,8 @@
                     >
                   </p>
                   <p>
-                    <strong
-                      >In transit to your bank: ${{
-                        balance.x!.pending
-                      }}</strong
-                    >
+                    To see any active transfers, please check your Stripe
+                    Dashboard using the button below.
                   </p>
                 </v-card-text>
               </v-card>

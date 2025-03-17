@@ -201,7 +201,9 @@ TRANSACTION_STATUSES = (
 
 # Account types
 CARD = 300
-BANK = 301
+# Payout account on the payout provider. This is the artist's Stripe account, at
+# present.
+PAYOUT_ACCOUNT = 301
 ESCROW = 302
 HOLDINGS = 303
 # DEPRECATED: This used to be true and is no longer so. We now determine at the time of
@@ -237,9 +239,12 @@ FRAUD_LOSS = 312
 # before splitting into different accounts from there.
 FUND = 313
 
+# Used to keep track of money that landed in the user's stripe account and which they
+# are trying to withdraw.
+PAYOUT_EXTRACT = 314
+
 # For when a customer gives us cash, like at an event.
 CASH_DEPOSIT = 407
-
 
 # These next accounts are used to generate reports about what money was actually
 # deposited into the payee's currency for tax purposes.
@@ -254,7 +259,7 @@ PAYOUT_MIRROR_DESTINATION = 501
 ACCOUNT_TYPES = (
     (FUND, "Fund"),
     (CARD, "Credit Card"),
-    (BANK, "Bank Account"),
+    (PAYOUT_ACCOUNT, "Bank Account"),
     (ESCROW, "Escrow"),
     (HOLDINGS, "Finalized Earnings, available for withdraw"),
     (
@@ -323,7 +328,7 @@ CATEGORIES = (
     (THIRD_PARTY_REFUND, "Third party refund"),
     (EXTRA_ITEM, "Extra item"),
     (CORRECTION, "Correction"),
-    (TABLE_SERVICE, "Table Service"),
+    (TABLE_HANDLING, "Table Service"),
     (TAXES, "Taxes"),
     (VENDOR_PAYMENT, "Vendor Payment"),
     (PAYOUT_REVERSAL, "Payout Reversal"),

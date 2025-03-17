@@ -210,7 +210,6 @@ export interface Attribute {
 export interface Balance {
   escrow: string
   available: string
-  pending: string
 }
 
 export interface SubjectiveProps {

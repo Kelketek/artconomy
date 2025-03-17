@@ -16,7 +16,7 @@ from apps.lib.constants import (
 from apps.lib.utils import notify, require_lock, send_transaction_email, utc_now
 from apps.profiles.models import User
 from apps.sales.constants import (
-    BANK,
+    PAYOUT_ACCOUNT,
     CARD,
     CASH_WITHDRAW,
     DRAFT,
@@ -267,6 +267,7 @@ def auto_finalize_run():
 RecordMap = Dict[Invoice, TransactionRecord]
 
 
+# TODO: Reimplement this lock as an application lock.
 @require_lock(TransactionRecord, "ACCESS EXCLUSIVE")
 def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap:
     invoices = Invoice.objects.select_for_update(skip_locked=True).filter(
@@ -295,7 +296,7 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
             payee=user,
             payer=user,
             category=CASH_WITHDRAW,
-            destination=BANK,
+            destination=PAYOUT_ACCOUNT,
             status=PENDING,
             response_message="Failed to connect to server",
         )
@@ -340,7 +341,7 @@ def stripe_transfer(record_id: str, stripe_id: str, invoice_id: str) -> None:
             transfer = stripe_api.Transfer.create(
                 **base_settings,
             )
-            record.status = PENDING
+            record.status = SUCCESS
             record.remote_ids = [
                 transfer["destination_payment"],
                 transfer["id"],

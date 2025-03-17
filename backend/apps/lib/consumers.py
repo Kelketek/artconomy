@@ -81,7 +81,9 @@ def send_updated(instance, serializers=None):
     for serializer_name in [
         key for key in model.watch_permissions.keys() if key and key in serializers
     ]:
-        channel_name = f"{app_label}.{model_name}.update.{serializer_name}.{instance.pk}"
+        channel_name = (
+            f"{app_label}.{model_name}.update.{serializer_name}.{instance.pk}"
+        )
         async_to_sync(layer.group_send)(
             channel_name,
             {
@@ -331,7 +333,9 @@ async def watch(consumer, payload: Dict):
             serializer_name=serializer_name,
         ):
             raise ObjectDoesNotExist
-        channel_name = f"{app_label}.{model_name}.update.{serializer_name}.{instance.pk}"
+        channel_name = (
+            f"{app_label}.{model_name}.update.{serializer_name}.{instance.pk}"
+        )
         await consumer.channel_layer.group_add(
             channel_name,
             consumer.channel_name,

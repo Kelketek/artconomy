@@ -440,11 +440,6 @@ urlpatterns = [
         name="account_history",
     ),
     path(
-        "account/<username>/reports/payout/",
-        reports.UserPayoutReportCSV.as_view(),
-        name="account_payouts",
-    ),
-    path(
         "account/<username>/invoices/",
         main.UserInvoices.as_view(),
         name="user_invoices",

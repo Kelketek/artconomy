@@ -1,31 +1,20 @@
-import csv
 import json
 import logging
 from decimal import Decimal
-from io import StringIO
 from pprint import pformat
 from typing import Callable
 
-import dateutil
-import requests
 from rest_framework.generics import get_object_or_404
 
-from apps.lib.models import ref_for_instance
 from apps.lib.constants import TRANSFER_FAILED
 from apps.lib.utils import notify
 from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
 from apps.sales.constants import (
-    BANK,
-    CASH_WITHDRAW,
     FAILURE,
     HOLDINGS,
     NEW,
     PAYMENT_PENDING,
-    PAYOUT_MIRROR_DESTINATION,
-    PAYOUT_MIRROR_SOURCE,
-    PAYOUT_REVERSAL,
     STRIPE,
-    SUCCESS,
     TYPE_TRANSLATION,
     TIP,
     TIP_SEND,
@@ -57,9 +46,7 @@ from apps.sales.utils import (
 from django.conf import settings
 from django.db import transaction
 from django.db.transaction import atomic
-from django.utils import timezone
-from moneyed import Money, get_currency
-from requests.auth import HTTPBasicAuth
+from moneyed import Money
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -154,118 +141,16 @@ def account_updated(event):
         withdraw_all.delay(account.user.id)
 
 
-def pull_and_reconcile_payout_report(event, report):
-    """
-    Given a Stripe ReportRun object as specified by payout_paid,
-    fetch the report file and then update our database with the transfer information.
-    """
-    result = requests.get(
-        report["result"]["url"], auth=HTTPBasicAuth(settings.STRIPE_KEY, "")
-    )
-    result.raise_for_status()
-    reader = csv.DictReader(StringIO(result.content.decode("utf-8")))
-    # In reality, this should only ever be one row.
-    for row in reader:
-        parameters = event["data"]["object"]["parameters"]
-        currency = get_currency(row["currency"].upper())
-        amount = Money(Decimal(row["gross"]), currency)
-        old_source = HOLDINGS
-        old_destination = BANK
-        new_source = PAYOUT_MIRROR_SOURCE
-        new_destination = PAYOUT_MIRROR_DESTINATION
-        category = CASH_WITHDRAW
-        if amount < Money("0", currency):
-            new_source, new_destination = new_destination, new_source
-            old_source, old_destination = old_destination, old_source
-            amount = abs(amount)
-            category = PAYOUT_REVERSAL
-        try:
-            record = TransactionRecord.objects.get(
-                remote_ids__contains=row["source_id"] + "",
-                source=old_source,
-                destination=old_destination,
-            )
-        except TransactionRecord.DoesNotExist:
-            raise TransactionRecord.DoesNotExist(
-                f"Could not find corresponding record for {row['source_id']}."
-                f" It may need to be added manually or may be malformed. Please check "
-                f"https://dashboard.stripe.com/{parameters['connected_account']}/"
-                f"payouts/{parameters['payout']}"
-            )
-        if row["automatic_payout_effective_at_utc"]:
-            timestamp = dateutil.parser.isoparse(
-                row["automatic_payout_effective_at_utc"]
-            )
-            timestamp = timestamp.replace(tzinfo=dateutil.tz.UTC)
-        else:
-            timestamp = timezone.now()
-        record.finalized_on = timestamp
-        record.status = SUCCESS
-        record.remote_ids.append(parameters["payout"])
-        record.remote_ids = list(set(record.remote_ids))
-        record.save()
-        new_record = TransactionRecord.objects.get_or_create(
-            remote_ids=record.remote_ids,
-            amount=amount,
-            payer=record.payer,
-            payee=record.payee,
-            source=new_source,
-            destination=new_destination,
-            status=SUCCESS,
-            category=category,
-            created_on=record.created_on,
-            finalized_on=timestamp,
-        )[0]
-        new_record.targets.add(*record.targets.all())
-        new_record.targets.add(ref_for_instance(record))
-
-
-def reconcile_payout_report(event):
-    """
-    This event handles a webhook for the specific report type we run to reconcile
-    payouts with our own reporting.
-
-    This function might seem redundant, but it's possible for a report not attached to
-    an event to call it. An example of this is found in payout_paid.
-    """
-    pull_and_reconcile_payout_report(event, event["data"]["object"])
-
-
-def payout_paid(event):
-    """
-    Stripe webhook for the payout.paid event. Unfortunately the payout information does
-    not give us a full enough picture for what we want. So we force a report generation,
-    and then fetch the result of this information to get the remaining info.
-    """
-    payout_data = event["data"]["object"]
-    with stripe as stripe_api:
-        stripe_api.reporting.ReportRun.create(
-            report_type="connected_account_payout_reconciliation.by_id.itemized.4",
-            parameters={
-                "payout": payout_data["id"],
-                "connected_account": event["account"],
-                "columns": [
-                    "source_id",
-                    "gross",
-                    "net",
-                    "fee",
-                    "currency",
-                    "automatic_payout_effective_at_utc",
-                ],
-            },
-        )
-
-
 def transfer_failed(event):
     """
     Webhook for the transfer failed event from Stripe.
     """
     transfer = event["data"]["object"]["id"]
-    records = TransactionRecord.objects.filter(
+    record = TransactionRecord.objects.get(
         remote_ids__contains=transfer,
     )
-    records.update(status=FAILURE)
-    record = records.order_by("created_on")[0]
+    record.status = FAILURE
+    record.save()
     notify(
         TRANSFER_FAILED,
         record.payer,
@@ -296,18 +181,6 @@ def payment_method_attached(event):
         user.primary_card = card
         updated_fields.append("primary_card")
     user.save(update_fields=updated_fields)
-
-
-REPORT_ROUTES = {
-    "connected_account_payout_reconciliation.by_id.itemized.4": reconcile_payout_report,
-}
-
-
-def reporting_report_run_succeeded(event):
-    report_type = event["data"]["object"]["report_type"]
-    if report_type in REPORT_ROUTES:
-        REPORT_ROUTES[report_type](event)
-        return
 
 
 def mockable_dummy_event(event):
@@ -436,12 +309,10 @@ STRIPE_DIRECT_WEBHOOK_ROUTES = {
     "charge.succeeded": charge_succeeded,
     "charge.failed": charge_failed,
     "transfer.failed": transfer_failed,
-    "reporting.report_run.succeeded": reporting_report_run_succeeded,
     "payment_method.attached": payment_method_attached,
 }
 STRIPE_CONNECT_WEBHOOK_ROUTES = {
     "account.updated": account_updated,
-    "payout.paid": payout_paid,
 }
 PAYPAL_WEBHOOK_ROUTES = {
     "INVOICING.INVOICE.CANCELLED": paypal_invoice_cancelled,
@@ -454,7 +325,6 @@ PAYPAL_WEBHOOK_ROUTES = {
 if settings.TESTING:
     STRIPE_DIRECT_WEBHOOK_ROUTES["dummy_event"] = dummy_event
     STRIPE_CONNECT_WEBHOOK_ROUTES["dummy_connect_event"] = dummy_connect_event
-    REPORT_ROUTES["dummy_report"] = dummy_report_processor
 
 
 @atomic

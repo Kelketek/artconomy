@@ -7,9 +7,9 @@ from pytz import UTC
 from apps.lib.permissions import StaffPower, Or
 from apps.lib.utils import utc_now, utc
 from apps.profiles.models import User
-from apps.profiles.permissions import IsSuperuser, ObjectControls
+from apps.profiles.permissions import IsSuperuser
 from apps.sales.constants import (
-    BANK,
+    PAYOUT_ACCOUNT,
     CANCELLED,
     DISPUTED,
     FAILURE,
@@ -18,8 +18,6 @@ from apps.sales.constants import (
     NEW,
     PAID,
     PAYMENT_PENDING,
-    PAYOUT_MIRROR_DESTINATION,
-    PAYOUT_MIRROR_SOURCE,
     QUEUED,
     SALE,
     SUBSCRIPTION,
@@ -36,13 +34,11 @@ from apps.sales.serializers import (
     SubscriptionInvoiceSerializer,
     TipValuesSerializer,
     UnaffiliatedInvoiceSerializer,
-    UserPayoutTransactionSerializer,
 )
 from apps.sales.utils import PENDING
 from dateutil.parser import ParserError, parse
 from dateutil.relativedelta import relativedelta
 from django.db.models import F, Q
-from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from rest_framework.generics import ListAPIView
@@ -364,50 +360,12 @@ class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
             TransactionRecord.objects.filter(
                 payer=F("payee"),
                 source=HOLDINGS,
-                destination=BANK,
+                destination=PAYOUT_ACCOUNT,
             )
             .filter(self.date_filter)
             .exclude(payer=None)
             .exclude(status=FAILURE)
             .order_by("created_on")
-        )
-
-
-class UserPayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
-    serializer_class = UserPayoutTransactionSerializer
-    permission_classes = [Or(StaffPower("view_financials"), ObjectControls)]
-    pagination_class = None
-    date_fields = ["finalized_on"]
-    report_name = "user-payout-report"
-
-    def get_renderer_context(self):
-        context = super().get_renderer_context()
-        context["header"] = [
-            "id",
-            "status",
-            "targets",
-            "amount",
-            "currency",
-            "created_on",
-            "finalized_on",
-            "remote_ids",
-        ]
-        return context
-
-    def get_queryset(self):
-        user = get_object_or_404(User, username=self.kwargs["username"])
-        self.check_object_permissions(self.request, user)
-        return (
-            TransactionRecord.objects.filter(
-                payer=user,
-                payee=user,
-                source=PAYOUT_MIRROR_SOURCE,
-                destination=PAYOUT_MIRROR_DESTINATION,
-            )
-            .filter(self.date_filter)
-            .exclude(payer=None)
-            .exclude(status=FAILURE)
-            .order_by("finalized_on")
         )
 
 

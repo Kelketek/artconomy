@@ -1,10 +1,9 @@
 import json
 import time
-from datetime import date, datetime
+from datetime import date
 from decimal import Decimal
 from unittest.mock import Mock, patch
 
-import dateutil
 import stripe as stripe_api
 from apps.lib.models import (
     Notification,
@@ -16,21 +15,17 @@ from apps.lib.test_resources import APITestCase, EnsurePlansMixin
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     AUTHORIZE,
-    BANK,
     BASE_PRICE,
     CARD,
     CARD_TRANSACTION_FEES,
     COMPLETED,
     ESCROW,
     FAILURE,
-    HOLDINGS,
     IN_PROGRESS,
     NEW,
     OPEN,
     PAID,
     PAYMENT_PENDING,
-    PAYOUT_MIRROR_DESTINATION,
-    PAYOUT_MIRROR_SOURCE,
     PENDING,
     QUEUED,
     REVIEW,
@@ -68,14 +63,9 @@ from apps.sales.views.tests.fixtures.paypal_fixtures import (
     invoice_updated_event,
 )
 from apps.sales.views.tests.fixtures.stripe_fixtures import (
-    DUMMY_REPORT,
-    DUMMY_REPORT_NO_EFFECTIVE_TIME,
-    DUMMY_REVERSE_REPORT,
     base_account_updated_event,
     base_charge_succeeded_event,
     base_payment_method_attached_event,
-    base_payout_paid_event,
-    base_report_event,
 )
 from apps.sales.views.webhooks import StripeWebhooks, handle_stripe_event
 from dateutil.relativedelta import relativedelta
@@ -86,7 +76,6 @@ from django.test import RequestFactory, TestCase, override_settings
 from django.utils import timezone
 from freezegun import freeze_time
 from moneyed import Money
-from requests.auth import HTTPBasicAuth
 from rest_framework import status
 
 DUMMY_WEBHOOK_PAYLOAD = """{
@@ -186,23 +175,6 @@ class TestHandleEvent(EnsurePlansMixin, TestCase):
         event = base_charge_succeeded_event()
         WebhookEventRecord.objects.create(event_id=event["id"], data={})
         response = handle_stripe_event(event=event, connect=False)
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-    @patch("apps.sales.views.webhooks.mockable_dummy_report_processor")
-    def test_report_processor(self, mock_dummy_event):
-        event = base_report_event()
-        event["data"]["object"]["report_type"] = "dummy_report"
-        response = handle_stripe_event(event=event, connect=False)
-        mock_dummy_event.assert_called()
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
-    @patch("apps.sales.views.webhooks.mockable_dummy_report_processor")
-    def test_report_processor_unsupported(self, mock_dummy_event):
-        event = base_report_event()
-        event["data"]["object"]["report_type"] = "other_report"
-        response = handle_stripe_event(event=event, connect=False)
-        mock_dummy_event.assert_not_called()
-        # Should just ignore it and process happily.
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
 
@@ -850,145 +822,6 @@ class TestAccountUpdated(EnsurePlansMixin, TestCase):
         affected_deliverable.refresh_from_db()
         self.assertEqual(affected_deliverable.processor, AUTHORIZE)
         mock_withdraw_all.delay.assert_not_called()
-
-
-class TestPayoutPaid(EnsurePlansMixin, TestCase):
-    @patch("apps.sales.views.webhooks.pull_and_reconcile_payout_report")
-    @patch("apps.sales.views.webhooks.stripe")
-    def test_payout_paid_send_report_run(self, mock_stripe, mock_pull):
-        event = base_payout_paid_event()
-        event["data"]["object"]["id"] = "beep"
-        event["account"] = "acct_fox"
-        mock_response = Mock()
-        mock_response.result = None
-        mock_stripe.__enter__.return_value.reporting.ReportRun.create.return_value = (
-            mock_response
-        )
-        handle_stripe_event(connect=True, event=event)
-        mock_stripe.__enter__.return_value.reporting.ReportRun.create.assert_called_with(
-            report_type="connected_account_payout_reconciliation.by_id.itemized.4",
-            parameters={
-                "payout": "beep",
-                "connected_account": "acct_fox",
-                "columns": [
-                    "source_id",
-                    "gross",
-                    "net",
-                    "fee",
-                    "currency",
-                    "automatic_payout_effective_at_utc",
-                ],
-            },
-        )
-        mock_pull.assert_not_called()
-
-
-@patch("apps.sales.views.webhooks.requests")
-class TestReconcileReport(EnsurePlansMixin, TestCase):
-    @override_settings(STRIPE_KEY="beep")
-    def test_sends_useful_missing_error(self, mock_requests):
-        event = base_report_event()
-        event["data"]["object"]["result"]["url"] = "https://example.com/report.csv"
-        mock_requests.get.return_value.content = DUMMY_REPORT
-        with self.assertRaises(TransactionRecord.DoesNotExist) as err:
-            handle_stripe_event(connect=False, event=event)
-        self.assertEqual(
-            str(err.exception),
-            "Could not find corresponding record for py_xoser87gh23o8hwer. "
-            "It may need to be added manually or may be malformed. Please check "
-            "https://dashboard.stripe.com/acct_asdfawselkm/payouts/po_237uhawseivo2",
-        )
-        mock_requests.get.assert_called_with(
-            "https://example.com/report.csv", auth=HTTPBasicAuth("beep", "")
-        )
-
-    def test_updates_existing_transaction(self, mock_requests):
-        event = base_report_event()
-        mock_requests.get.return_value.content = DUMMY_REPORT
-        existing_record = TransactionRecordFactory.create(
-            remote_ids=["py_xoser87gh23o8hwer"],
-            source=HOLDINGS,
-            destination=BANK,
-            finalized_on=None,
-            status=PENDING,
-        )
-        handle_stripe_event(connect=False, event=event)
-        existing_record.refresh_from_db()
-        self.assertEqual(existing_record.status, SUCCESS)
-        self.assertEqual(
-            existing_record.finalized_on,
-            datetime(year=2022, month=10, day=1).replace(tzinfo=dateutil.tz.UTC),
-        )
-        self.assertCountEqual(
-            existing_record.remote_ids, ["py_xoser87gh23o8hwer", "po_237uhawseivo2"]
-        )
-
-    def test_creates_new_transaction(self, mock_requests):
-        event = base_report_event()
-        mock_requests.get.return_value.content = DUMMY_REPORT
-        existing_record = TransactionRecordFactory.create(
-            remote_ids=["py_xoser87gh23o8hwer"],
-            source=HOLDINGS,
-            destination=BANK,
-            finalized_on=None,
-            status=PENDING,
-        )
-        submission = SubmissionFactory.create(owner=existing_record.payee)
-        existing_record.targets.add(ref_for_instance(submission))
-        handle_stripe_event(connect=False, event=event)
-        transaction = TransactionRecord.objects.get(
-            source=PAYOUT_MIRROR_SOURCE, destination=PAYOUT_MIRROR_DESTINATION
-        )
-        self.assertEqual(transaction.amount, Money("47.86", "GBP"))
-        self.assertCountEqual(
-            transaction.remote_ids, ["py_xoser87gh23o8hwer", "po_237uhawseivo2"]
-        )
-        self.assertCountEqual(
-            [target.target for target in transaction.targets.all()],
-            [submission, existing_record],
-        )
-
-    def test_creates_reversed_transaction(self, mock_requests):
-        event = base_report_event()
-        mock_requests.get.return_value.content = DUMMY_REVERSE_REPORT
-        existing_record = TransactionRecordFactory.create(
-            remote_ids=["pyr_xoser87gh23o8hwer"],
-            source=BANK,
-            destination=HOLDINGS,
-            finalized_on=None,
-            status=PENDING,
-        )
-        submission = SubmissionFactory.create(owner=existing_record.payee)
-        existing_record.targets.add(ref_for_instance(submission))
-        handle_stripe_event(connect=False, event=event)
-        transaction = TransactionRecord.objects.get(
-            source=PAYOUT_MIRROR_DESTINATION, destination=PAYOUT_MIRROR_SOURCE
-        )
-        self.assertEqual(transaction.amount, Money("47.86", "GBP"))
-        self.assertCountEqual(
-            transaction.remote_ids, ["pyr_xoser87gh23o8hwer", "po_237uhawseivo2"]
-        )
-        self.assertCountEqual(
-            [target.target for target in transaction.targets.all()],
-            [submission, existing_record],
-        )
-
-    @freeze_time("2022-10-01")
-    def test_handles_missing_timestamp(self, mock_requests):
-        event = base_report_event()
-        mock_requests.get.return_value.content = DUMMY_REPORT_NO_EFFECTIVE_TIME
-        existing_record = TransactionRecordFactory.create(
-            remote_ids=["py_xoser87gh23o8hwer"],
-            source=HOLDINGS,
-            destination=BANK,
-            finalized_on=None,
-            status=PENDING,
-        )
-        submission = SubmissionFactory.create(owner=existing_record.payee)
-        existing_record.targets.add(ref_for_instance(submission))
-        handle_stripe_event(connect=False, event=event)
-        existing_record.refresh_from_db()
-        self.assertEqual(existing_record.finalized_on, timezone.now())
 
 
 def prep_for_invoice(event, invoice):
