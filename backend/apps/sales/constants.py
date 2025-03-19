@@ -310,10 +310,10 @@ PROCESSING_FEE = 418
 # TIP and TIPPING consts.
 TIP_SEND = 419
 # Client charges a card or sends cash as one transaction before forking elsewhere.
-FUNDING = 420
+PAYMENT = 420
 
 CATEGORIES = (
-    (FUNDING, "Funding"),
+    (PAYMENT, "Payment"),
     (SHIELD_FEE, "Artconomy Service Fee"),
     (PROCESSING_FEE, "Processing fee (non-shield)"),
     (ESCROW_HOLD, "Escrow hold"),

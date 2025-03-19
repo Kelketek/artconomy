@@ -24,6 +24,10 @@ from apps.sales.constants import (
     TERM,
     TIPPING,
     WAITING,
+    FUND,
+    CASH_DEPOSIT,
+    CARD,
+    SUCCESS,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.serializers import (
@@ -34,6 +38,7 @@ from apps.sales.serializers import (
     SubscriptionInvoiceSerializer,
     TipValuesSerializer,
     UnaffiliatedInvoiceSerializer,
+    ReconciliationRecordSerializer,
 )
 from apps.sales.utils import PENDING
 from dateutil.parser import ParserError, parse
@@ -331,6 +336,44 @@ class TipReportCSV(CSVReport, ListAPIView, DateConstrained):
             .order_by("paid_on")
         )
         return result
+
+
+class ReconciliationReport(CSVReport, ListAPIView, DateConstrained):
+    serializer_class = ReconciliationRecordSerializer
+    permission_classes = [StaffPower("view_financials")]
+    pagination_class = None
+    report_name = "reconciliation-report"
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context["header"] = [
+            "finalized_on",
+            "amount",
+            "deliverable",
+            "invoice",
+            "id",
+            "source",
+            "destination",
+            "payer",
+            "payee",
+            "category",
+            "remote_ids",
+            "targets",
+        ]
+        return context
+
+    def get_queryset(self):
+        return (
+            TransactionRecord.objects.filter(
+                status=SUCCESS,
+            )
+            .filter(
+                Q(destination=FUND, source__in=[CARD, CASH_DEPOSIT])
+                | Q(destination=PAYOUT_ACCOUNT)
+            )
+            .filter(self.date_filter)
+            .order_by("finalized_on")
+        )
 
 
 class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):

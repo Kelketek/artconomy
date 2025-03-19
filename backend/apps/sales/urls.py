@@ -516,6 +516,11 @@ urlpatterns = [
         name="payout_report_csv",
     ),
     path(
+        "reports/reconciliation-report/csv/",
+        reports.ReconciliationReport.as_view(),
+        name="reconciliation_report_csv",
+    ),
+    path(
         "reports/tip-report/csv/",
         reports.TipReportCSV.as_view(),
         name="tip_report_csv",

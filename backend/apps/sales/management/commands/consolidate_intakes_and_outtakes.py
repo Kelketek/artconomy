@@ -1,5 +1,6 @@
 from dateutil.relativedelta import relativedelta
 from django.db import transaction
+from django.db.models import F
 from moneyed import Money
 
 from apps.lib.models import ref_for_instance
@@ -8,7 +9,7 @@ from apps.sales.constants import (
     UNPROCESSED_EARNINGS,
     SUCCESS,
     CASH_DEPOSIT,
-    FUNDING,
+    PAYMENT,
     FUND,
     DEFAULT_TYPE_TO_CATEGORY_MAP,
     HOLDINGS,
@@ -46,7 +47,7 @@ class Command(BaseCommand):
                 source=reference.source,
                 destination=FUND,
                 amount=total,
-                category=FUNDING,
+                category=PAYMENT,
                 payer=reference.payer,
                 payee=reference.payer,
                 status=SUCCESS,
@@ -77,3 +78,8 @@ class Command(BaseCommand):
             destination=PAYOUT_ACCOUNT,
             status=PENDING,
         ).update(status=SUCCESS)
+        TransactionRecord.objects.filter(
+            source=HOLDINGS,
+            destination=PAYOUT_ACCOUNT,
+            status=SUCCESS,
+        ).update(finalized_on=F("created_on"))

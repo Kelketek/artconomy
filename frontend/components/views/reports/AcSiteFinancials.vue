@@ -5,7 +5,7 @@
         <div class="text-center">
           <span class="title" aria-hidden="true">Start Date</span>
         </div>
-        <v-date-picker :model-value="startDate" label="Start Date" />
+        <v-date-picker v-model="startDate" label="Start Date" />
       </v-col>
       <v-col cols="6" class="text-center">
         <div class="text-center">
@@ -23,6 +23,18 @@
           <v-col>
             <a
               :href="`/api/sales/reports/customer-holdings/csv/${rangeString}`"
+              download
+              >Download CSV</a
+            >
+          </v-col>
+        </v-row>
+        <v-toolbar density="compact">
+          <v-toolbar-title>Reconciliation Report</v-toolbar-title>
+        </v-toolbar>
+        <v-row no-gutters>
+          <v-col>
+            <a
+              :href="`/api/sales/reports/reconciliation-report/csv/${rangeString}`"
               download
               >Download CSV</a
             >

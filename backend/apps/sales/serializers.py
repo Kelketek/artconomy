@@ -46,6 +46,7 @@ from apps.sales.constants import (
     WAITING,
     WEIGHTED_STATUSES,
     FUND,
+    PAYOUT_ACCOUNT,
 )
 from apps.sales.line_item_funcs import get_totals, reckon_lines
 from apps.sales.models import (
@@ -93,6 +94,7 @@ from rest_framework.fields import (
     ListField,
     ModelField,
     SerializerMethodField,
+    CharField,
 )
 from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
@@ -1716,6 +1718,81 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
             "remote_ids",
             "created_on",
             "finalized_on",
+            "targets",
+        )
+        read_only_fields = fields
+
+
+class ReconciliationRecordSerializer(serializers.ModelSerializer):
+    id = ShortCodeField()
+    deliverable = SerializerMethodField()
+    invoice = SerializerMethodField()
+    payer = SerializerMethodField()
+    payee = SerializerMethodField()
+    targets = SerializerMethodField()
+    amount = SerializerMethodField()
+    source = CharField(source="get_source_display")
+    destination = CharField(source="get_destination_display")
+    category = CharField(source="get_category_display")
+    remote_ids = serializers.SerializerMethodField()
+
+    @lru_cache()
+    def obj_targets(self, obj):
+        return [target.target for target in obj.targets.all() if target.target]
+
+    def get_targets(self, obj):
+        return ", ".join(
+            sorted(
+                f"{item.__class__.__name__} #{item.id}"
+                for item in self.obj_targets(obj)
+            )
+        )
+
+    def targets_for_type(self, obj, model_type):
+        return [
+            target for target in self.obj_targets(obj) if isinstance(target, model_type)
+        ]
+
+    def get_payer(self, obj):
+        return (obj.payer and obj.payer.username) or "(Artconomy)"
+
+    def get_payee(self, obj):
+        return (obj.payee and obj.payee.username) or "(Artconomy)"
+
+    def get_invoice(self, obj):
+        return ", ".join(
+            f"[{invoice.get_type_display()}]#{invoice.id}"
+            for invoice in self.targets_for_type(obj, Invoice)
+        )
+
+    def get_deliverable(self, obj):
+        return ", ".join(
+            f"#{deliverable.id}"
+            for deliverable in self.targets_for_type(obj, Deliverable)
+        )
+
+    def get_amount(self, obj):
+        if obj.destination == PAYOUT_ACCOUNT:
+            return str(-obj.amount)
+        return str(obj.amount)
+
+    def get_remote_ids(self, obj: TransactionRecord):
+        return ", ".join(sorted(obj.remote_ids))
+
+    class Meta:
+        model = TransactionRecord
+        fields = (
+            "finalized_on",
+            "amount",
+            "deliverable",
+            "invoice",
+            "id",
+            "source",
+            "destination",
+            "payer",
+            "payee",
+            "category",
+            "remote_ids",
             "targets",
         )
         read_only_fields = fields

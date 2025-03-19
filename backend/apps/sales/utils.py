@@ -104,7 +104,7 @@ from apps.sales.constants import (
     LINE_ITEM_TYPES_TABLE,
     PRIORITY_MAP,
     FUND,
-    FUNDING,
+    PAYMENT,
     VENDOR,
 )
 from apps.sales.line_item_funcs import (
@@ -1411,7 +1411,7 @@ def invoice_initiate_transactions(
             payer=invoice.bill_to,
             status=FAILURE,
             payee=invoice.bill_to,
-            category=FUNDING,
+            category=PAYMENT,
             source=source,
             destination=FUND,
             amount=amount,
