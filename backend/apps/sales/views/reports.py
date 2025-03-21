@@ -349,6 +349,7 @@ class ReconciliationReport(CSVReport, ListAPIView, DateConstrained):
         context["header"] = [
             "finalized_on",
             "amount",
+            "invoice_type",
             "deliverable",
             "invoice",
             "id",
@@ -369,7 +370,7 @@ class ReconciliationReport(CSVReport, ListAPIView, DateConstrained):
             )
             .filter(
                 Q(destination=FUND, source__in=[CARD, CASH_DEPOSIT])
-                | Q(destination=PAYOUT_ACCOUNT)
+                | Q(destination__in=[PAYOUT_ACCOUNT, CARD, CASH_DEPOSIT])
             )
             .filter(self.date_filter)
             .order_by("finalized_on")

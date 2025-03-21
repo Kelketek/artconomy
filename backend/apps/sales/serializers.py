@@ -1726,6 +1726,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
 class ReconciliationRecordSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     deliverable = SerializerMethodField()
+    invoice_type = SerializerMethodField()
     invoice = SerializerMethodField()
     payer = SerializerMethodField()
     payee = SerializerMethodField()
@@ -1759,10 +1760,26 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
     def get_payee(self, obj):
         return (obj.payee and obj.payee.username) or "(Artconomy)"
 
+    def get_invoice_type(self, obj):
+        invoices = self.get_invoices(obj)
+        if not len(invoices):
+            invoice_type = ''
+        elif len(invoices) > 1:
+            invoice_type = 'MULTI'
+        else:
+            invoice_type = invoices[0].get_type_display()
+        if obj.destination in [CASH_DEPOSIT, CARD]:
+            return invoice_type + '[refund]'
+        return invoice_type
+
+    @lru_cache()
+    def get_invoices(self, obj):
+        return tuple((invoice for invoice in self.targets_for_type(obj, Invoice)))
+
     def get_invoice(self, obj):
         return ", ".join(
-            f"[{invoice.get_type_display()}]#{invoice.id}"
-            for invoice in self.targets_for_type(obj, Invoice)
+            f"{invoice.id}"
+            for invoice in self.get_invoices(obj)
         )
 
     def get_deliverable(self, obj):
@@ -1772,9 +1789,14 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
         )
 
     def get_amount(self, obj):
-        if obj.destination == PAYOUT_ACCOUNT:
-            return str(-obj.amount)
-        return str(obj.amount)
+        amount = obj.amount
+        if obj.destination == FUND and obj.source == CARD:
+            invoice = ref_for_instance(self.get_invoices(obj)[0])
+            fee = TransactionRecord.objects.get(source=FUND, destination=CARD_TRANSACTION_FEES, status=SUCCESS, targets=invoice).amount
+            amount -= fee
+        if obj.destination in [PAYOUT_ACCOUNT, CARD, CASH_DEPOSIT]:
+            return str(-amount)
+        return str(amount)
 
     def get_remote_ids(self, obj: TransactionRecord):
         return ", ".join(sorted(obj.remote_ids))
@@ -1784,6 +1806,7 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
         fields = (
             "finalized_on",
             "amount",
+            "invoice_type",
             "deliverable",
             "invoice",
             "id",

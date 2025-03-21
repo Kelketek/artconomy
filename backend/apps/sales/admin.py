@@ -51,14 +51,14 @@ class OrderAdmin(admin.ModelAdmin):
 
 class DeliverableAdmin(admin.ModelAdmin):
     inlines = [CommentInline]
-    raw_id_fields = [
+    raw_id_fields = (
         "arbitrator",
         "characters",
         "product",
         "order",
         "invoice",
         "tip_invoice",
-    ]
+    )
     list_display = (
         "id",
         "name",
@@ -74,6 +74,12 @@ class DeliverableAdmin(admin.ModelAdmin):
         "link",
     )
     list_filter = ("escrow_enabled", "status", "processor")
+    read_only_fields = ("link",)
+
+    def get_fields(self, request, obj = ...):
+        fields = super().get_fields(request, obj)
+        fields.insert(0, "link")
+        return fields
 
     def buyer(self, obj):
         return obj.order.buyer
@@ -150,10 +156,16 @@ class LineItemInline(admin.StackedInline):
 
 
 class InvoiceAdmin(admin.ModelAdmin):
-    raw_id_fields = ["bill_to", "issued_by", "targets"]
+    raw_id_fields = ("bill_to", "issued_by", "targets")
+    readonly_fields = ("link",)
     list_display = ("id", "type", "issuer", "payer", "status", "total", "link")
     list_filter = ("type", "status")
     inlines = [LineItemInline]
+
+    def get_fields(self, request, obj = ...):
+        fields = super().get_fields(request, obj=obj)
+        fields.insert(0, "link")
+        return fields
 
     def link(self, obj):
         target_user = obj.bill_to or get_anonymous_user()
