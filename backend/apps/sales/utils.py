@@ -108,9 +108,9 @@ from apps.sales.constants import (
     VENDOR,
 )
 from apps.sales.line_item_funcs import (
-    ceiling_context,
     down_context,
     get_totals,
+    half_up_context,
 )
 from apps.sales.paypal import clear_existing_invoice, paypal_api
 from apps.sales.stripe import (
@@ -1213,7 +1213,7 @@ def mark_successful(
     post_save(transactions, attempt, user, context)
 
 
-@ceiling_context
+@half_up_context
 def initialize_stripe_charge_fees(amount: Money, stripe_event: dict):
     """
     Return a set of initialized transactions that mark what fees we paid to stripe

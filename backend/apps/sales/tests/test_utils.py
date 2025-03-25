@@ -62,6 +62,7 @@ from apps.sales.utils import (
     update_downstream_pricing,
     verify_total,
     mark_adult,
+    initialize_stripe_charge_fees,
 )
 from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.relativedelta import relativedelta
@@ -801,4 +802,37 @@ class TestTermCharge(EnsurePlansMixin, TestCase):
             LineItem.objects.filter(
                 invoice=deliverable.invoice, type=DELIVERABLE_TRACKING
             ).exists()
+        )
+
+
+@ddt.ddt
+class TestInitializeStripeTransactionFees(TestCase):
+    @ddt.unpack
+    @ddt.data(
+        ("11.70", "0.64"),
+        ("160.00", "4.94"),
+        ("15.00", "0.74"),
+        ("30.00", "1.17"),
+        ("20.00", "0.88"),
+        ("225.00", "6.83"),
+        ("35.00", "1.32"),
+        ("30.00", "1.17"),
+    )
+    def test_fee_calculation(self, initial_value, fee):
+        event = base_charge_succeeded_event()["data"]["object"]
+        self.assertEqual(
+            initialize_stripe_charge_fees(Money(initial_value, "USD"), event)[0].amount,
+            Money(fee, "USD"),
+        )
+
+    @ddt.unpack
+    @ddt.data(
+        ("28.50", "1.55"),
+    )
+    def test_fee_international_calculation(self, initial_value, fee):
+        event = base_charge_succeeded_event()["data"]["object"]
+        event["payment_method_details"]["card"]["country"] = "MX"
+        self.assertEqual(
+            initialize_stripe_charge_fees(Money(initial_value, "USD"), event)[0].amount,
+            Money(fee, "USD"),
         )

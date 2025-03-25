@@ -607,47 +607,51 @@ CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = bool(
 CELERYBEAT_SCHEDULE = {
     "run_billing": {
         "task": "apps.sales.tasks.run_billing",
-        "schedule": crontab(minute=0, hour=0),
+        "schedule": crontab(minute="0", hour="0"),
     },
     "auto_finalize_run": {
         "task": "apps.sales.tasks.auto_finalize_run",
-        "schedule": crontab(hour=1, minute=0),
+        "schedule": crontab(hour="1", minute="0"),
     },
     "remind_sales": {
         "task": "apps.sales.tasks.remind_sales",
-        "schedule": crontab(hour=15, minute=30),
+        "schedule": crontab(hour="15", minute="30"),
     },
     "destroy_cancelled": {
         "task": "apps.sales.tasks.clear_cancelled_deliverables",
-        "schedule": crontab(hour=3, minute=10),
+        "schedule": crontab(hour="3", minute="10"),
     },
     "destroy_abandoned_tips": {
         "task": "apps.sales.tasks.destroy_abandoned_tips",
-        "schedule": crontab(hour=1, minute=45),
+        "schedule": crontab(hour="1", minute="45"),
     },
     "clear_hitcount_tables": {
         "task": "apps.lib.tasks.clear_hitcount_tables",
-        "schedule": crontab(hour=2, minute=30),
+        "schedule": crontab(hour="2", minute="30"),
     },
     "cancel_abandoned_orders": {
         "task": "apps.sales.tasks.cancel_abandoned_orders",
-        "schedule": crontab(hour=2, minute=45),
+        "schedule": crontab(hour="2", minute="45"),
     },
     "clear_old_carts": {
         "task": "apps.sales.tests.clear_old_carts",
-        "schedule": crontab(hour=3, minute=0),
+        "schedule": crontab(hour="3", minute="0"),
     },
     "clear_old_webhook_logs": {
         "task": "apps.sales.tests.clear_old_webhook_logs",
-        "schedule": crontab(hour=3, minute=0),
+        "schedule": crontab(hour="3", minute="0"),
     },
     "promote_top_sellers": {
         "task": "apps.sales.tasks.promote_top_sellers",
-        "schedule": crontab(hour=10, minute=30, day_of_month=1),
+        "schedule": crontab(hour="10", minute="30", day_of_month="1"),
     },
     "removed_expired_submissions": {
         "task": "apps.profiles.tasks.remove_expired_submissions",
-        "schedule": crontab(hour=3, minute=15),
+        "schedule": crontab(hour="3", minute="15"),
+    },
+    "run_balance_report": {
+        "task": "apps.sales.tasks.run_balance_report",
+        "schedule": crontab(hour="*", minute="0"),
     },
 }
 

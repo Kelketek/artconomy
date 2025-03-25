@@ -1,5 +1,5 @@
 from collections import defaultdict
-from decimal import ROUND_CEILING, ROUND_HALF_EVEN, Decimal, localcontext
+from decimal import ROUND_CEILING, ROUND_HALF_EVEN, Decimal, localcontext, ROUND_HALF_UP
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, List, Union
 
 from _decimal import ROUND_DOWN
@@ -36,6 +36,15 @@ def half_even_context(wrapped: Callable):
     def wrapper(*args, **kwargs):
         with localcontext() as ctx:
             ctx.rounding = ROUND_HALF_EVEN
+            return wrapped(*args, **kwargs)
+
+    return wrapper
+
+
+def half_up_context(wrapped: Callable):
+    def wrapper(*args, **kwargs):
+        with localcontext() as ctx:
+            ctx.rounding = ROUND_HALF_UP
             return wrapped(*args, **kwargs)
 
     return wrapper

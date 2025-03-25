@@ -1,9 +1,15 @@
+import csv
 import json
 import logging
+from datetime import datetime
 from decimal import Decimal
+from io import StringIO
 from pprint import pformat
 from typing import Callable
 
+import dateutil
+import requests
+from requests.auth import HTTPBasicAuth
 from rest_framework.generics import get_object_or_404
 
 from apps.lib.constants import TRANSFER_FAILED
@@ -18,6 +24,8 @@ from apps.sales.constants import (
     TYPE_TRANSLATION,
     TIP,
     TIP_SEND,
+    THIRD_PARTY_FEE,
+    FUND,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -44,9 +52,10 @@ from apps.sales.utils import (
     refund_deliverable,
 )
 from django.conf import settings
+from django.core.cache import cache
 from django.db import transaction
 from django.db.transaction import atomic
-from moneyed import Money
+from moneyed import Money, get_currency
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -183,6 +192,92 @@ def payment_method_attached(event):
     user.save(update_fields=updated_fields)
 
 
+def pull_report(report):
+    """
+    Fetches a report CSV from the server and returns a DictReader for it.
+    """
+    result = requests.get(
+        report["result"]["url"], auth=HTTPBasicAuth(settings.STRIPE_KEY, "")
+    )
+    result.raise_for_status()
+    reader = csv.DictReader(StringIO(result.content.decode("utf-8")))
+    return reader
+
+
+def get_amount(row):
+    """
+    Given a row from a report, return the amount it is concerning.
+    """
+    currency = get_currency(row["currency"].upper())
+    return Money(Decimal(row["gross"]), currency)
+
+
+def date_from_utc_stamp(date_string) -> datetime:
+    """
+    Given a UTC datestamp from Stripe's API, return a timezone-aware datetime.
+    """
+    timestamp = dateutil.parser.isoparse(date_string)
+    return timestamp.replace(tzinfo=dateutil.tz.UTC)
+
+
+def add_stripe_fee(row) -> TransactionRecord:
+    """
+    Given a row for a stripe fee in a balance report, make sure we have record of this
+    fee.
+    """
+    amount = abs(get_amount(row))
+    source = FUND
+    destination = THIRD_PARTY_FEE
+    try:
+        return TransactionRecord.objects.filter(
+            remote_id=row["balance_transaction_id"],
+            payer=None,
+            payee=None,
+            source=source,
+            destination=destination,
+        ).get()
+    except TransactionRecord.DoesNotExist:
+        pass
+    created_on = date_from_utc_stamp(row["created_on_utc"])
+    finalized_on = date_from_utc_stamp(row["available_on_utc"])
+    return TransactionRecord.objects.create(
+        amount=amount,
+        source=source,
+        destination=destination,
+        payer=None,
+        payee=None,
+        created_on=created_on,
+        finalized_on=finalized_on,
+        description=row["description"],
+    )
+
+
+def apply_stripe_balance_changes(event):
+    """
+    Pull all the balance changes that we wouldn't otherwise know about from the Stripe
+    report and add them to the database.
+    """
+    reader = pull_report(event["data"]["object"])
+    with cache.lock("stripe_balance_changes"):
+        for row in reader:
+            # TODO: Other transaction types need handling, but first we need to
+            # determine how they actually behave.
+            if row["report_category"] != "stripe_fee":
+                add_stripe_fee(row)
+
+
+REPORT_ROUTES = {
+    "balance_change_from_activity.itemized.3": apply_stripe_balance_changes,
+}
+
+
+def reporting_report_run_succeeded(event):
+    report_type = event["data"]["object"]["report_type"]
+    if report_type in REPORT_ROUTES:
+        REPORT_ROUTES[report_type](event)
+        return
+
+
 def mockable_dummy_event(event):
     """
     Mockable function for automated tests.
@@ -309,6 +404,7 @@ STRIPE_DIRECT_WEBHOOK_ROUTES = {
     "charge.succeeded": charge_succeeded,
     "charge.failed": charge_failed,
     "transfer.failed": transfer_failed,
+    "reporting.report_run.succeeded": reporting_report_run_succeeded,
     "payment_method.attached": payment_method_attached,
 }
 STRIPE_CONNECT_WEBHOOK_ROUTES = {

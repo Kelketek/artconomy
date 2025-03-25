@@ -621,3 +621,28 @@ def clear_old_webhook_logs():
     WebhookEventRecord.objects.filter(
         created_on__lte=timezone.now() - relativedelta(months=2),
     ).delete()
+
+
+@celery_app.task()
+def run_balance_report():
+    """
+    Ask Stripe to generate a balance report, which will then be sent to us via
+    webhook for reconciliation.
+    """
+    with stripe as stripe_api:
+        stripe_api.reporting.ReportRun.create(
+            report_type="balance_change_from_activity.itemized.3",
+            parameters={
+                "interval_start": (utc_now() - relativedelta(days=2)).isoformat(),
+                "interval_end": utc_now().isoformat(),
+                "columns": [
+                    "balance_transaction_id",
+                    "created_on_utc",
+                    "available_on_utc",
+                    "report_category",
+                    "gross",
+                    "currency",
+                    "description",
+                ],
+            },
+        )

@@ -76,7 +76,7 @@ class DeliverableAdmin(admin.ModelAdmin):
     list_filter = ("escrow_enabled", "status", "processor")
     read_only_fields = ("link",)
 
-    def get_fields(self, request, obj = ...):
+    def get_fields(self, request, obj=...):
         fields = super().get_fields(request, obj)
         fields.insert(0, "link")
         return fields
@@ -162,7 +162,7 @@ class InvoiceAdmin(admin.ModelAdmin):
     list_filter = ("type", "status")
     inlines = [LineItemInline]
 
-    def get_fields(self, request, obj = ...):
+    def get_fields(self, request, obj=...):
         fields = super().get_fields(request, obj=obj)
         fields.insert(0, "link")
         return fields

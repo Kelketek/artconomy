@@ -1763,13 +1763,13 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
     def get_invoice_type(self, obj):
         invoices = self.get_invoices(obj)
         if not len(invoices):
-            invoice_type = ''
+            invoice_type = ""
         elif len(invoices) > 1:
-            invoice_type = 'MULTI'
+            invoice_type = "MULTI"
         else:
             invoice_type = invoices[0].get_type_display()
         if obj.destination in [CASH_DEPOSIT, CARD]:
-            return invoice_type + '[refund]'
+            return invoice_type + "[refund]"
         return invoice_type
 
     @lru_cache()
@@ -1777,10 +1777,7 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
         return tuple((invoice for invoice in self.targets_for_type(obj, Invoice)))
 
     def get_invoice(self, obj):
-        return ", ".join(
-            f"{invoice.id}"
-            for invoice in self.get_invoices(obj)
-        )
+        return ", ".join(f"{invoice.id}" for invoice in self.get_invoices(obj))
 
     def get_deliverable(self, obj):
         return ", ".join(
@@ -1792,7 +1789,12 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
         amount = obj.amount
         if obj.destination == FUND and obj.source == CARD:
             invoice = ref_for_instance(self.get_invoices(obj)[0])
-            fee = TransactionRecord.objects.get(source=FUND, destination=CARD_TRANSACTION_FEES, status=SUCCESS, targets=invoice).amount
+            fee = TransactionRecord.objects.get(
+                source=FUND,
+                destination=CARD_TRANSACTION_FEES,
+                status=SUCCESS,
+                targets=invoice,
+            ).amount
             amount -= fee
         if obj.destination in [PAYOUT_ACCOUNT, CARD, CASH_DEPOSIT]:
             return str(-amount)
@@ -1807,6 +1809,7 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
             "finalized_on",
             "amount",
             "invoice_type",
+            "category",
             "deliverable",
             "invoice",
             "id",
@@ -1814,7 +1817,6 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
             "destination",
             "payer",
             "payee",
-            "category",
             "remote_ids",
             "targets",
         )
