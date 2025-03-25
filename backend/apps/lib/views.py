@@ -464,7 +464,7 @@ class AssetUpload(APIView):
         else:
             user = None
             prefix = ''
-        prefix = gen_shortcode() + '_' + prefix
+        prefix = gen_shortcode() + '_' + (prefix and prefix + '_')
         # Just in case usernames allow anything insane, which they might.
         name = parse.quote_plus(prefix + name)
         name = name[:50] + '.' + ext
