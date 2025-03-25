@@ -1,7 +1,9 @@
+
 from collections import OrderedDict
 
 from django.urls import reverse
 from short_stuff import gen_shortcode
+from urllib import parse
 
 from apps.lib.constants import FLAG_LOOKUP
 from apps.lib.middleware import OlderThanPagination
@@ -463,7 +465,8 @@ class AssetUpload(APIView):
             user = None
             prefix = ''
         prefix = gen_shortcode() + '_' + prefix
-        name = prefix + name
+        # Just in case usernames allow anything insane, which they might.
+        name = parse.quote_plus(prefix + name)
         name = name[:50] + '.' + ext
         file_obj.name = name
         digest, length = digest_for_file(file_obj)
