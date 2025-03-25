@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 from django.urls import reverse
+from short_stuff import gen_shortcode
 
 from apps.lib.constants import FLAG_LOOKUP
 from apps.lib.middleware import OlderThanPagination
@@ -448,11 +449,23 @@ class AssetUpload(APIView):
         if not file_obj:
             raise ValidationError({"files[]": ["This field is required."]})
         if "." not in file_obj.name:
-            raise ValidationError({"files[]:": ["This file is missing an extension."]})
+            raise ValidationError({"files[]": ["This file is missing an extension."]})
+        name, ext = file_obj.name.rsplit('.', maxsplit=1)
+        if len(ext) > 4:
+            raise ValidationError({"files[]": [
+                "This file's extension is nonsense. It should be no longer than 4 "
+                "characters, preferably 3."
+            ]})
         if request.user.is_authenticated:
             user = request.user
+            prefix = user.username
         else:
             user = None
+            prefix = ''
+        prefix = gen_shortcode() + '_' + prefix
+        name = prefix + name
+        name = name[:50] + '.' + ext
+        file_obj.name = name
         digest, length = digest_for_file(file_obj)
         if length == 0:
             raise ValidationError({"files[]": ["The uploaded file has no content."]})
