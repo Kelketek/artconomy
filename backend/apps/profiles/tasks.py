@@ -126,9 +126,13 @@ def clear_blank_conversations():
 
 @celery_app.task
 @transaction.atomic
-def create_or_update_stripe_user(user_id, force=False):
-    user = User.objects.select_for_update().get(id=user_id)
-    if user.stripe_token and not force:
+def create_or_update_stripe_user(user_id, force=False) -> None:
+    qs = User.objects.select_for_update().filter(id=user_id)
+    if force:
+        user = qs.first()
+    else:
+        user = qs.filter(stripe_token="").first()
+    if user is None:
         return
     if user.guest:
         return
