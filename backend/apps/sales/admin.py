@@ -1,3 +1,5 @@
+from django.db.models.functions import Collate
+
 from apps.lib.admin import CommentInline
 from apps.profiles.utils import get_anonymous_user
 from apps.sales.models import (
@@ -258,7 +260,7 @@ def reverse_transactions(modeladmin, request, queryset):
 
 class TransactionRecordAdmin(admin.ModelAdmin):
     actions = [reverse_transactions]
-    search_fields = ("id", "payee__username", "payer__username")
+    search_fields = ("id", "payee_username_case", "payer_username_case")
     raw_id_fields = ("payer", "payee", "targets")
     list_filter = ("category", "status", "source", "destination")
     list_display = (
@@ -274,6 +276,12 @@ class TransactionRecordAdmin(admin.ModelAdmin):
         "amount",
     )
     ordering = ("-created_on",)
+
+    def get_queryset(self, request):
+        return TransactionRecord.objects.all().annotate(
+            payer_username_case=Collate("payer__username", "und-x-icu"),
+            payee_username_case=Collate("payee__username", "und-x-icu"),
+        )
 
     def paid_by(self, obj):
         if obj.payer:
