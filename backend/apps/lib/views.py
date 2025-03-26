@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 from django.urls import reverse
@@ -452,22 +451,26 @@ class AssetUpload(APIView):
             raise ValidationError({"files[]": ["This field is required."]})
         if "." not in file_obj.name:
             raise ValidationError({"files[]": ["This file is missing an extension."]})
-        name, ext = file_obj.name.rsplit('.', maxsplit=1)
+        name, ext = file_obj.name.rsplit(".", maxsplit=1)
         if len(ext) > 4:
-            raise ValidationError({"files[]": [
-                "This file's extension is nonsense. It should be no longer than 4 "
-                "characters, preferably 3."
-            ]})
+            raise ValidationError(
+                {
+                    "files[]": [
+                        "This file's extension is nonsense. It should be no longer than 4 "
+                        "characters, preferably 3."
+                    ]
+                }
+            )
         if request.user.is_authenticated:
             user = request.user
             prefix = user.username
         else:
             user = None
-            prefix = ''
-        prefix = gen_shortcode() + '_' + (prefix and prefix + '_')
+            prefix = ""
+        prefix = gen_shortcode() + "_" + (prefix and prefix + "_")
         # Just in case usernames allow anything insane, which they might.
         name = parse.quote_plus(prefix + name)
-        name = name[:50] + '.' + ext
+        name = name[:50] + "." + ext
         file_obj.name = name
         digest, length = digest_for_file(file_obj)
         if length == 0:
