@@ -1115,7 +1115,10 @@ class MoneyToString(serializers.FloatField):
         # These values are hard-coded for the moment since we shouldn't expect to see
         # values like '$10,000' be valid any time soon, but that may change with
         # inflation or when currency support is expanded.
-        data = Money(data.amount.quantize(Decimal("0.00")), data.currency)
+        try:
+            data = Money(data.amount.quantize(Decimal("0.00")), data.currency)
+        except InvalidOperation:
+            self.fail("invalid")
         stringified = str(data.amount)
         segments = stringified.split(".")
         if sum([len(segment) for segment in segments]) > 6:
