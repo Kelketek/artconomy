@@ -269,7 +269,7 @@ def apply_stripe_balance_changes(event):
         for row in reader:
             # TODO: Other transaction types need handling, but first we need to
             # determine how they actually behave.
-            if row["reporting_category"] == "stripe_fee":
+            if row["reporting_category"] == "fee":
                 add_stripe_fee(row)
 
 
