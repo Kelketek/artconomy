@@ -185,7 +185,7 @@
                   xl="4"
                 >
                   <ac-gallery-preview
-                    :submission="submission.x!"
+                    :submission="recommendedSubmission.x!"
                     :show-footer="false"
                     :text="false"
                   />
