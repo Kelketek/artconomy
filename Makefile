@@ -67,10 +67,14 @@ test_frontend:
 test_backend:
 	${APP_COMMAND} ./manage.py test --keepdb --parallel=${TEST_THREADS}
 
-format:
+format.backend:
 	${APP_COMMAND} ruff check --fix backend
 	${APP_COMMAND} ruff format backend
+
+format.frontend:
 	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
+
+format: format.backend format.frontend
 
 upgrade:
 	rm -f requirements.txt && ${APP_COMMAND} pip-compile --resolver=backtracking requirements.in constraints.in --output-file=requirements.txt
