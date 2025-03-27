@@ -27,6 +27,7 @@ from apps.sales.constants import (
     THIRD_PARTY_FEE,
     FUND,
     SUCCESS,
+    CARD_TRANSACTION_FEES,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -228,7 +229,7 @@ def add_stripe_fee(row) -> TransactionRecord:
     """
     amount = abs(get_amount(row))
     source = FUND
-    destination = THIRD_PARTY_FEE
+    destination = CARD_TRANSACTION_FEES
     try:
         return TransactionRecord.objects.filter(
             status=SUCCESS,
