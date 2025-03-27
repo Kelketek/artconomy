@@ -26,6 +26,7 @@ from apps.sales.constants import (
     TIP_SEND,
     THIRD_PARTY_FEE,
     FUND,
+    SUCCESS,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -230,6 +231,7 @@ def add_stripe_fee(row) -> TransactionRecord:
     destination = THIRD_PARTY_FEE
     try:
         return TransactionRecord.objects.filter(
+            status=SUCCESS,
             remote_ids__contains=row["balance_transaction_id"],
             payer=None,
             payee=None,
@@ -242,6 +244,7 @@ def add_stripe_fee(row) -> TransactionRecord:
     created_on = date_from_utc_stamp(row["created_utc"])
     finalized_on = date_from_utc_stamp(row["available_on_utc"])
     return TransactionRecord.objects.create(
+        status=SUCCESS,
         amount=amount,
         source=source,
         destination=destination,
