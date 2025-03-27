@@ -111,7 +111,11 @@ import { computed, Ref } from "vue"
 import AcFormContainer from "@/components/wrappers/AcFormContainer.vue"
 import { useForm } from "@/store/forms/hooks.ts"
 import AcForm from "@/components/wrappers/AcForm.vue"
-import type { Balance, StripeAccount, SubjectiveProps } from "@/types/main"
+import type {
+  AccountSummary,
+  StripeAccount,
+  SubjectiveProps,
+} from "@/types/main"
 import { BankStatus } from "@/store/profiles/types/enums.ts"
 import type { StaffPower, User } from "@/store/profiles/types/main"
 
@@ -148,9 +152,12 @@ const stripeAccounts = useList<StripeAccount>(
   },
 )
 stripeAccounts.firstRun()
-const balance = useSingle<Balance>(`${flatten(props.username)}__balance`, {
-  endpoint: `/api/sales/account/${props.username}/balance/`,
-})
+const balance = useSingle<AccountSummary>(
+  `${flatten(props.username)}__balance`,
+  {
+    endpoint: `/api/sales/account/${props.username}/balance/`,
+  },
+)
 balance.get()
 
 const defending = new URL("/static/images/defending.png", BASE_URL)

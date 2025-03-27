@@ -20,8 +20,8 @@ const VID_TYPES = {
 }
 
 const props = defineProps<{ asset: Asset }>()
-// @ts-expect-error Explicitly handling undefined fallthrough.
 const type = computed(
+  // @ts-expect-error Explicitly handling undefined fallthrough.
   () => VID_TYPES[getExt(props.asset.file!.full)] || "type/unknown",
 )
 const width = 800

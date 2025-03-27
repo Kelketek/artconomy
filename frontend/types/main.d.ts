@@ -207,9 +207,15 @@ export interface Attribute {
   sticky: boolean
 }
 
+export interface AccountSummary {
+  escrow: string
+  available: string
+}
+
 export interface Balance {
   escrow: string
   available: string
+  pending: string
 }
 
 export interface SubjectiveProps {
