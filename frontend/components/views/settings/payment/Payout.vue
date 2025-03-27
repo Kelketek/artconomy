@@ -11,11 +11,6 @@
                     <strong>Escrow Balance: ${{ balance.x!.escrow }}</strong>
                   </p>
                   <p>
-                    <strong
-                      >Available Balance: ${{ balance.x!.available }}</strong
-                    >
-                  </p>
-                  <p>
                     To see any active transfers, please check your Stripe
                     Dashboard using the button below.
                   </p>

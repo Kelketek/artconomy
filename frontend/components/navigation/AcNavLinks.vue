@@ -313,7 +313,7 @@
     <v-list nav density="compact" role="list">
       <v-list-group
         v-if="isRegistered"
-        prepend-icon="mdi-cog"
+        :prepend-icon="mdiCog"
         value="Settings"
         role="listitem"
       >
