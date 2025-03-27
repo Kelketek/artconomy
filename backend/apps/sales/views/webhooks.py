@@ -234,6 +234,7 @@ def add_stripe_fee(row) -> TransactionRecord:
             payer=None,
             payee=None,
             source=source,
+            category=THIRD_PARTY_FEE,
             destination=destination,
         ).get()
     except TransactionRecord.DoesNotExist:
@@ -248,6 +249,7 @@ def add_stripe_fee(row) -> TransactionRecord:
         payee=None,
         created_on=created_on,
         finalized_on=finalized_on,
+        category=THIRD_PARTY_FEE,
         remote_ids=[row["balance_transaction_id"]],
         note=row["description"],
     )
