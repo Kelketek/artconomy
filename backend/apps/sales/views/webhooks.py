@@ -230,7 +230,7 @@ def add_stripe_fee(row) -> TransactionRecord:
     destination = THIRD_PARTY_FEE
     try:
         return TransactionRecord.objects.filter(
-            remote_id=row["balance_transaction_id"],
+            remote_ids__contains=row["balance_transaction_id"],
             payer=None,
             payee=None,
             source=source,
@@ -248,6 +248,7 @@ def add_stripe_fee(row) -> TransactionRecord:
         payee=None,
         created_on=created_on,
         finalized_on=finalized_on,
+        remote_ids=[row["balance_transaction_id"]],
         note=row["description"],
     )
 
