@@ -238,7 +238,7 @@ def add_stripe_fee(row) -> TransactionRecord:
         ).get()
     except TransactionRecord.DoesNotExist:
         pass
-    created_on = date_from_utc_stamp(row["created_on_utc"])
+    created_on = date_from_utc_stamp(row["created_utc"])
     finalized_on = date_from_utc_stamp(row["available_on_utc"])
     return TransactionRecord.objects.create(
         amount=amount,
@@ -248,7 +248,7 @@ def add_stripe_fee(row) -> TransactionRecord:
         payee=None,
         created_on=created_on,
         finalized_on=finalized_on,
-        description=row["description"],
+        note=row["description"],
     )
 
 
@@ -262,7 +262,7 @@ def apply_stripe_balance_changes(event):
         for row in reader:
             # TODO: Other transaction types need handling, but first we need to
             # determine how they actually behave.
-            if row["report_category"] != "stripe_fee":
+            if row["reporting_category"] != "stripe_fee":
                 add_stripe_fee(row)
 
 

@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime
 from typing import Dict, Optional, Any
 
 from dateutil.parser import parse
@@ -624,22 +625,34 @@ def clear_old_webhook_logs():
 
 
 @celery_app.task()
-def run_balance_report():
+def run_balance_report(
+    *, start_time: Optional[datetime] = None, end_time: Optional[datetime] = None
+):
     """
     Ask Stripe to generate a balance report, which will then be sent to us via
     webhook for reconciliation.
     """
     with stripe as stripe_api:
+        start_time_stamp: int = int(
+            (start_time and start_time.timestamp())
+            or (utc_now() - relativedelta(days=2)).timestamp()
+        )
+        end_time_stamp: int = int(
+            (end_time and end_time.timestamp())
+            or stripe_api.reporting.ReportType.retrieve("balance.summary.1")[
+                "data_available_end"
+            ]
+        )
         stripe_api.reporting.ReportRun.create(
             report_type="balance_change_from_activity.itemized.3",
             parameters={
-                "interval_start": (utc_now() - relativedelta(days=2)).isoformat(),
-                "interval_end": utc_now().isoformat(),
+                "interval_start": start_time_stamp,
+                "interval_end": end_time_stamp,
                 "columns": [
                     "balance_transaction_id",
-                    "created_on_utc",
+                    "created_utc",
                     "available_on_utc",
-                    "report_category",
+                    "reporting_category",
                     "gross",
                     "currency",
                     "description",
