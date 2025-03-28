@@ -220,10 +220,10 @@ UNPROCESSED_EARNINGS = 305
 CARD_TRANSACTION_FEES = 306
 CARD_MISC_FEES = 307
 
-# Fees from performing ACH transactions
-ACH_TRANSACTION_FEES = 308
+# Fees from performing bank transfers.
+BANK_TRANSFER_FEES = 308
 # Fees for other ACH-related items, like customer onboarding fees.
-ACH_MISC_FEES = 309
+BANK_MISC_FEES = 309
 
 # Tax held here until order finalized
 MONEY_HOLE_STAGE = 310
@@ -271,8 +271,8 @@ ACCOUNT_TYPES = (
     (CARD_TRANSACTION_FEES, "Card transaction fees"),
     (CARD_MISC_FEES, "Other card fees"),
     (CASH_DEPOSIT, "Cash deposit"),
-    (ACH_TRANSACTION_FEES, "ACH Transaction fees"),
-    (ACH_MISC_FEES, "Other ACH fees"),
+    (BANK_TRANSFER_FEES, "ACH Transaction fees"),
+    (BANK_MISC_FEES, "Other ACH fees"),
     (MONEY_HOLE_STAGE, "Tax staging"),
     (MONEY_HOLE, "Tax"),
     (FRAUD_LOSS, "Fraud loss"),

@@ -579,60 +579,6 @@ def base_payment_method_attached_event():
     }
 
 
-def base_report_event():
-    return {
-        "id": "evt_1Icyh5AhlvPza3BKV9A13pSj",
-        "object": "event",
-        "api_version": "2019-12-03",
-        "created": 1617653203,
-        "type": "reporting.report_run.succeeded",
-        "data": {
-            "object": {
-                "id": "frr_1LthdqAhlvPza3BKcoeR0Gxa",
-                "object": "reporting.report_run",
-                "created": 1665968238,
-                "error": None,
-                "livemode": True,
-                "parameters": {
-                    "columns": [
-                        "source_id",
-                        "gross",
-                        "net",
-                        "fee",
-                        "currency",
-                        "automatic_payout_effective_at_utc",
-                    ],
-                    "connected_account": "acct_asdfawselkm",
-                    "payout": "po_237uhawseivo2",
-                },
-                "report_type": "connected_account_payout_reconciliation"
-                ".by_id.itemized.4",
-                "result": {
-                    "id": "file_as8e7fh2w3eun",
-                    "object": "file",
-                    "created": 1665968255,
-                    "expires_at": 1697504255,
-                    "filename": "frr_ascivunw8ieu7n2.csv",
-                    "links": {
-                        "object": "list",
-                        "data": [],
-                        "has_more": False,
-                        "url": "/v1/file_links?file=file_asdvwoeudmva",
-                    },
-                    "purpose": "finance_report_run",
-                    "size": 162,
-                    "title": "FinanceReportRun frr_1LthdqAhlvPza3BKcoeR0Gxa",
-                    "type": "csv",
-                    "url": "https://files.stripe.com/v1/files/file_asdvwoeudmva/"
-                    "contents",
-                },
-                "status": "succeeded",
-                "succeeded_at": 1665968255,
-            }
-        },
-    }
-
-
 def base_account_updated_event():
     return {
         "id": "evt_1Icyh5AhlvPza3BKV9A13pSj",
@@ -766,57 +712,68 @@ def base_account_updated_event():
     }
 
 
-def base_payout_paid_event():
+def base_report_event():
     return {
-        "id": "evt_asevo8iwm3e9v8",
+        "id": "evt_1Icyh5AhlvPza3BKV9A13pSj",
         "object": "event",
-        "account": "acct_wileu4mg3io",
         "api_version": "2019-12-03",
-        "created": 1666051581,
-        "type": "payout.paid",
+        "created": 1617653203,
+        "type": "reporting.report_run.succeeded",
         "data": {
             "object": {
-                "id": "po_qwefoimwdv0wer",
-                "object": "payout",
-                "amount": 4786,
-                "arrival_date": 1666051200,
-                "automatic": True,
-                "balance_transaction": "txn_des4rlgiumwegji",
-                "created": 1665718571,
-                "currency": "gbp",
-                "description": "STRIPE PAYOUT",
-                "destination": "ba_1KslcPPTqmUQyuulPnZYDQWh",
-                "failure_balance_transaction": None,
-                "failure_code": None,
-                "failure_message": None,
-                "livemode": True,
-                "metadata": {},
-                "method": "standard",
-                "original_payout": None,
-                "reversed_by": None,
-                "source_type": "card",
-                "statement_descriptor": "ARTCONOMY",
-                "status": "paid",
-                "type": "bank_account",
-            }
+                "id": "frr_sdfbi7un4",
+                "object": "reporting.report_run",
+                "created": 1743188400,
+                "error": None,
+                "livemode": False,
+                "parameters": {
+                    "columns": [
+                        "balance_transaction_id",
+                        "created_utc",
+                        "available_on_utc",
+                        "reporting_category",
+                        "gross",
+                        "currency",
+                        "description",
+                    ],
+                    "interval_end": 1743163200,
+                    "interval_start": 1743015600,
+                },
+                "report_type": "balance_change_from_activity.itemized.3",
+                "result": {
+                    "id": "file_xdfgbkujnesrg",
+                    "object": "file",
+                    "created": 1743188434,
+                    "expires_at": 1774724434,
+                    "filename": "frr_sdfbi7un4.csv",
+                    "links": {
+                        "object": "list",
+                        "data": [],
+                        "has_more": False,
+                        "url": "/v1/file_links?file=file_xdfgbkujnesrg",
+                    },
+                    "purpose": "finance_report_run",
+                    "size": 1093,
+                    "title": "FinanceReportRun frr_sdfbi7un4",
+                    "type": "csv",
+                    "url": "https://files.stripe.com/v1/files/file_xdfgbkujnesrg/contents",
+                },
+                "status": "succeeded",
+                "succeeded_at": 1743188434,
+            },
+            "previous_attributes": None,
         },
-        "livemode": True,
-        "pending_webhooks": 1,
-        "request": {"id": None, "idempotency_key": None},
     }
 
 
-DUMMY_REPORT = b"""source_id,gross,net,fee,currency,automatic_payout_effective_at_utc
-py_xoser87gh23o8hwer,47.86,47.86,0,gbp,2022-10-01 00:00:00"""
-
-DUMMY_REVERSE_REPORT = (
-    b"source_id,gross,net,fee,currency,"
-    b"automatic_payout_effective_at_utc\npyr_xoser87gh23o8hwer,"
-    b"-47.86,-47.86,0,gbp,2022-10-01 00:00:00"
-)
-
-DUMMY_REPORT_NO_EFFECTIVE_TIME = (
-    b"source_id,gross,net,fee,currency,"
-    b"automatic_payout_effective_at_utc\n"
-    b"py_xoser87gh23o8hwer,47.86,47.86,0,gbp,"
-)
+DUMMY_BALANCE_REPORT = """balance_transaction_id,created_utc,available_on_utc,reporting_category,gross,currency,description
+txn_beep,2025-03-27 09:01:06,2025-03-27 09:01:06,fee,-0.08,usd,Radar (2025-03-26): Radar for Fraud Teams
+txn_boop,2025-03-27 11:34:37,2025-03-27 11:34:37,transfer,-113.25,usd,
+txn_foo,2025-03-27 19:09:17,2025-03-31 00:00:00,charge,80,usd,
+txn_bar,2025-03-27 20:56:49,2025-03-28 21:00:00,transfer,-37.34,usd,
+txn_wat,2025-03-27 23:11:51,2025-03-29 00:00:00,transfer,-71.15,usd,
+txn_do,2025-03-27 23:12:01,2025-03-31 00:00:00,charge,7.65,usd,
+txn_fox,2025-03-27 23:12:04,2025-03-31 00:00:00,transfer,-6.76,usd,
+txn_vix,2025-03-28 05:00:01,2025-04-01 00:00:00,charge,9,usd,
+txn_stuff,2025-03-28 09:18:43,2025-03-28 09:18:43,fee,-5.50,usd,Connect (2025-03-27): Cross-Border Transfers
+"""

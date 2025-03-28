@@ -260,7 +260,12 @@ def reverse_transactions(modeladmin, request, queryset):
 
 class TransactionRecordAdmin(admin.ModelAdmin):
     actions = [reverse_transactions]
-    search_fields = ("id", "payee_username_case", "payer_username_case", "remote_ids__contains")
+    search_fields = (
+        "id",
+        "payee_username_case",
+        "payer_username_case",
+        "remote_ids__contains",
+    )
     raw_id_fields = ("payer", "payee", "targets")
     list_filter = ("category", "status", "source", "destination")
     list_display = (

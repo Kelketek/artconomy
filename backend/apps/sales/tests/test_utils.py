@@ -9,7 +9,7 @@ from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
 from apps.sales.constants import (
-    ACH_MISC_FEES,
+    BANK_MISC_FEES,
     CANCELLED,
     CARD,
     COMPLETED,
@@ -105,7 +105,7 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
             payer=user2,
             payee=user1,
             source=ESCROW,
-            destination=ACH_MISC_FEES,
+            destination=BANK_MISC_FEES,
             amount=Money("3.00", "USD"),
             status=PENDING,
         )
@@ -114,7 +114,7 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
             payer=user2,
             payee=user1,
             source=ESCROW,
-            destination=ACH_MISC_FEES,
+            destination=BANK_MISC_FEES,
             amount=Money("3.00", "USD"),
             status=FAILURE,
         )
@@ -123,7 +123,7 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
             payer=user2,
             payee=None,
             source=ESCROW,
-            destination=ACH_MISC_FEES,
+            destination=BANK_MISC_FEES,
             amount=Money("0.50", "USD"),
             status=SUCCESS,
         )
@@ -133,7 +133,7 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
     def test_account_balance_available(self):
         self.assertEqual(account_balance(self.user2, ESCROW), Decimal("11.50"))
         self.assertEqual(account_balance(self.user1, RESERVE), Decimal("-5.00"))
-        self.assertEqual(account_balance(None, ACH_MISC_FEES), Decimal("0.50"))
+        self.assertEqual(account_balance(None, BANK_MISC_FEES), Decimal("0.50"))
 
     def test_account_balance_posted(self):
         self.assertEqual(
@@ -143,15 +143,17 @@ class BalanceTestCase(EnsurePlansMixin, SignalsDisabledMixin, TestCase):
             account_balance(self.user1, RESERVE, POSTED_ONLY), Decimal("-5.00")
         )
         self.assertEqual(
-            account_balance(None, ACH_MISC_FEES, POSTED_ONLY), Decimal("0.50")
+            account_balance(None, BANK_MISC_FEES, POSTED_ONLY), Decimal("0.50")
         )
 
     def test_account_balance_pending(self):
         self.assertEqual(account_balance(self.user2, ESCROW, PENDING), Decimal("-3.00"))
         self.assertEqual(account_balance(self.user1, RESERVE, PENDING), Decimal("0.00"))
-        self.assertEqual(account_balance(None, ACH_MISC_FEES, PENDING), Decimal("0.00"))
         self.assertEqual(
-            account_balance(self.user1, ACH_MISC_FEES, PENDING), Decimal("3.00")
+            account_balance(None, BANK_MISC_FEES, PENDING), Decimal("0.00")
+        )
+        self.assertEqual(
+            account_balance(self.user1, BANK_MISC_FEES, PENDING), Decimal("3.00")
         )
 
     def test_nonsense_balance(self):

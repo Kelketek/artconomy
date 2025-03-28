@@ -25,7 +25,7 @@ from apps.profiles.permissions import staff_power
 from apps.profiles.serializers import CharacterSerializer, SubmissionSerializer
 from apps.profiles.utils import available_users
 from apps.sales.constants import (
-    ACH_TRANSACTION_FEES,
+    BANK_TRANSFER_FEES,
     ADD_ON,
     AUTHORIZE,
     BASE_PRICE,
@@ -1688,7 +1688,7 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
             targets=ref_for_instance(obj),
             source=FUND,
             status=SUCCESS,
-            destination=ACH_TRANSACTION_FEES,
+            destination=BANK_TRANSFER_FEES,
         ).aggregate(total=Sum("amount"))["total"] or Decimal("0")
 
     def get_targets(self, obj: TransactionRecord):

@@ -10,7 +10,7 @@ from apps.lib.test_resources import APITestCase, DeliverableChargeMixin
 from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
-    ACH_TRANSACTION_FEES,
+    BANK_TRANSFER_FEES,
     PAYOUT_ACCOUNT,
     CARD,
     CARD_TRANSACTION_FEES,
@@ -229,7 +229,7 @@ class TestPayoutReport(APITestCase):
         )
         fee = TransactionRecordFactory.create(
             source=FUND,
-            destination=ACH_TRANSACTION_FEES,
+            destination=BANK_TRANSFER_FEES,
             amount=Money("2.00", "USD"),
         )
         fee.targets.add(ref_for_instance(transaction))
@@ -344,7 +344,7 @@ class TestTipReport(APITestCase):
         transaction.targets.set([ref_for_instance(invoice)])
         transaction_fee = TransactionRecordFactory.create(
             source=FUND,
-            destination=ACH_TRANSACTION_FEES,
+            destination=BANK_TRANSFER_FEES,
             category=THIRD_PARTY_FEE,
             created_on=utc_now().replace(day=5),
             finalized_on=utc_now().replace(day=5),

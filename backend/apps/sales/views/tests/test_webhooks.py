@@ -1,7 +1,9 @@
 import json
 import time
+from csv import DictReader
 from datetime import date
 from decimal import Decimal
+from io import StringIO
 from unittest.mock import Mock, patch
 
 import stripe as stripe_api
@@ -38,6 +40,8 @@ from apps.sales.constants import (
     CANCELLED,
     REFUNDED,
     FUND,
+    THIRD_PARTY_FEE,
+    BANK_TRANSFER_FEES,
 )
 from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord
 from apps.sales.stripe import money_to_stripe
@@ -66,6 +70,8 @@ from apps.sales.views.tests.fixtures.stripe_fixtures import (
     base_account_updated_event,
     base_charge_succeeded_event,
     base_payment_method_attached_event,
+    DUMMY_BALANCE_REPORT,
+    base_report_event,
 )
 from apps.sales.views.webhooks import StripeWebhooks, handle_stripe_event
 from dateutil.relativedelta import relativedelta
@@ -122,6 +128,29 @@ class TestStripeWebhook(APITestCase):
         }
         request.method = "post"
         return request
+
+    @patch("apps.sales.views.webhooks.pull_report")
+    def test_import_radar_fees(self, mock_pull):
+        self.assertEqual(TransactionRecord.objects.count(), 0)
+        mock_pull.return_value = DictReader(StringIO(DUMMY_BALANCE_REPORT))
+        event = base_report_event()
+        self.view(self.gen_request(event), False)
+        self.assertEqual(TransactionRecord.objects.count(), 2)
+        record = TransactionRecord.objects.get(remote_ids__contains="txn_beep")
+        self.assertEqual(record.source, FUND)
+        self.assertEqual(record.destination, CARD_TRANSACTION_FEES)
+        self.assertIsNone(record.payer)
+        self.assertIsNone(record.payee)
+        self.assertEqual(record.category, THIRD_PARTY_FEE)
+        self.assertEqual(record.amount, Money("0.08", "USD"))
+        self.assertIn("Radar for Fraud Teams", record.remote_ids)
+        record = TransactionRecord.objects.get(remote_ids__contains="txn_stuff")
+        self.assertEqual(record.source, FUND)
+        self.assertEqual(record.destination, BANK_TRANSFER_FEES)
+        self.assertIsNone(record.payer)
+        self.assertIsNone(record.payee)
+        self.assertEqual(record.category, THIRD_PARTY_FEE)
+        self.assertEqual(record.amount, Money("5.50", "USD"))
 
     @patch("apps.sales.views.webhooks.mockable_dummy_event")
     def test_validates_event(self, mockable_dummy_event):

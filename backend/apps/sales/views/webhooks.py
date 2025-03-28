@@ -28,6 +28,7 @@ from apps.sales.constants import (
     FUND,
     SUCCESS,
     CARD_TRANSACTION_FEES,
+    BANK_TRANSFER_FEES,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -229,7 +230,9 @@ def add_stripe_fee(row) -> TransactionRecord:
     """
     amount = abs(get_amount(row))
     source = FUND
-    destination = CARD_TRANSACTION_FEES
+    destination = (
+        BANK_TRANSFER_FEES if "Connect" in row["description"] else CARD_TRANSACTION_FEES
+    )
     try:
         return TransactionRecord.objects.filter(
             status=SUCCESS,
@@ -244,6 +247,9 @@ def add_stripe_fee(row) -> TransactionRecord:
         pass
     created_on = date_from_utc_stamp(row["created_utc"])
     finalized_on = date_from_utc_stamp(row["available_on_utc"])
+    # Overloading the remote_ids field here so we can identify consistently named fees
+    # from Stripe. Each fee they send has one of these labels.
+    tag = row["description"].split(":", maxsplit=1)[-1].strip()
     return TransactionRecord.objects.create(
         status=SUCCESS,
         amount=amount,
@@ -254,7 +260,7 @@ def add_stripe_fee(row) -> TransactionRecord:
         created_on=created_on,
         finalized_on=finalized_on,
         category=THIRD_PARTY_FEE,
-        remote_ids=[row["balance_transaction_id"]],
+        remote_ids=[row["balance_transaction_id"], tag],
         note=row["description"],
     )
 
@@ -267,7 +273,7 @@ def apply_stripe_balance_changes(event):
     reader = pull_report(event["data"]["object"])
     with cache.lock("stripe_balance_changes"):
         for row in reader:
-            # TODO: Other transaction types need handling, but first we need to
+            # TODO: Other transaction types may need handling, but first we need to
             # determine how they actually behave.
             if row["reporting_category"] == "fee":
                 add_stripe_fee(row)
