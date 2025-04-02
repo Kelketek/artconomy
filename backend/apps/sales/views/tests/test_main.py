@@ -3065,6 +3065,7 @@ class TestInvoicePayment(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         line_item.invoice.refresh_from_db()
         self.assertEqual(line_item.invoice.status, PAID)
+        self.assertTrue(line_item.invoice.payout_available)
 
     def test_pay_cash_vendor_non_superuser(self):
         line_item = LineItemFactory.create(invoice__status=OPEN, invoice__type=VENDOR)

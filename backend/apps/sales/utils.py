@@ -1415,7 +1415,7 @@ def invoice_initiate_transactions(
             source=source,
             destination=FUND,
             amount=amount,
-            response_message="Failed when contacting payment processor.",
+            response_message="Failed when allocating cash transfer.",
         )
     if not context["successful"]:
         assert funding_record, "Somehow failed to pay from cash. There must be a bug!"
@@ -1547,6 +1547,8 @@ def invoice_post_payment(
     if context["successful"]:
         invoice.paid_on = datetime.now(tz=UTC)
         invoice.status = PAID
+        if invoice.type == VENDOR:
+            invoice.payout_available = True
         invoice.save()
         freeze_line_items(invoice)
         if invoice.issued_by:
