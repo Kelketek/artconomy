@@ -89,8 +89,14 @@ from apps.sales.constants import (
     TAXES,
     SHIELD_FEE,
     SUBSCRIPTION_DUES,
+    CARD_FEE,
+    CROSS_BORDER_TRANSFER_FEE,
+    PAYOUT_FEE,
+    BANK_TRANSFER_FEES,
+    CONNECT_FEE,
+    ADD_ON,
 )
-from apps.sales.line_item_funcs import reckon_lines
+from apps.sales.line_item_funcs import reckon_lines, deliverable_lines
 from apps.sales.permissions import (
     OrderViewPermission,
     ReferenceViewPermission,
@@ -874,7 +880,72 @@ def delete(queryset):
         item.delete()
 
 
+# TODO: Lock invoice while we do this.
 def idempotent_lines(instance: Deliverable):
+    """
+    This is the previous version of the idempotent lines function, currently shimmed
+    back in while we test revising its functionality via the rust functions.
+    """
+    if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
+        return
+    if instance.status == PAYMENT_PENDING and instance.invoice.paypal_token:
+        # Line items are synced remotely.
+        return
+    main_qs = instance.invoice.lines_for(instance)
+    extra_lines = list(main_qs.filter(type__in=[ADD_ON, EXTRA, BASE_PRICE]))
+    if instance.product:
+        base_price = instance.product.base_price
+    else:
+        base_price = Money("0.00", settings.DEFAULT_CURRENCY)
+    lines = deliverable_lines(
+        base_price=base_price,
+        table_product=instance.table_order,
+        cascade=instance.cascade_fees,
+        escrow_enabled=instance.escrow_enabled,
+        extra_lines=extra_lines,
+        user_id=instance.order.seller.id,
+        international=instance.international,
+        plan_name=instance.order.seller.service_plan.name,
+    )
+    to_retain = []
+    for line in lines:
+        if line["id"] >= 0:
+            # Should be all the extra lines that we provided earlier.
+            # All the generated lines per spec have negative IDs.
+            to_retain.append(line["id"])
+            continue
+        db_line, created = main_qs.update_or_create(
+            defaults={
+                "percentage": line["percentage"],
+                "amount": Money(line["amount"], settings.DEFAULT_CURRENCY),
+                "priority": line["priority"],
+                "description": line["description"],
+                "cascade_amount": line["cascade_amount"],
+                "cascade_percentage": line["cascade_percentage"],
+                "back_into_percentage": line["back_into_percentage"],
+            },
+            type=line["kind"],
+            category=line["category"],
+            destination_account=line["destination_account"],
+            destination_user_id=line["destination_user_id"],
+            invoice=instance.invoice,
+        )
+        db_line.annotate(instance)
+        to_retain.append(db_line.id)
+    main_qs.exclude(id__in=to_retain).delete()
+    if instance.status == PAYMENT_PENDING and instance.invoice.status == DRAFT:
+        instance.invoice.status = OPEN
+    total = reckon_lines(main_qs.filter(priority__lt=PRIORITY_MAP[SHIELD]))
+    escrow_enabled = instance.escrow_enabled and total
+    instance.invoice.record_only = not instance.table_order and not escrow_enabled
+    instance.invoice.save()
+
+
+def _new_idempotent_lines(instance: Deliverable):
+    """
+    New intended version of idempotent lines. Needs to be replicated in rust after
+    validation that our method of using them together works.
+    """
     if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
     if instance.status == PAYMENT_PENDING and instance.invoice.paypal_token:
@@ -940,8 +1011,6 @@ def idempotent_lines(instance: Deliverable):
         instance.invoice.record_only = False
     elif escrow_enabled:
         percentage = plan.shield_percentage_price
-        if instance.international:
-            percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
         line = main_qs.update_or_create(
             defaults={
                 "percentage": percentage,
@@ -992,6 +1061,58 @@ def idempotent_lines(instance: Deliverable):
             )[0]
             line.annotate(instance)
         instance.invoice.record_only = True
+    if escrow_enabled:
+        # Should be run whether it's a table order or just a normal shield order.
+        main_qs.update_or_create(
+            defaults={
+                "amount": settings.STRIPE_CHARGE_STATIC,
+                "percentage": settings.STRIPE_BLENDED_RATE_PERCENTAGE,
+                "category": SHIELD_FEE,
+                "cascade_amount": instance.cascade_fees,
+            },
+            invoice=instance.invoice,
+            destination_user=None,
+            type=CARD_FEE,
+            destination_account=FUND,
+        )
+        percentage = settings.STRIPE_PAYOUT_PERCENTAGE
+        if instance.international:
+            main_qs.update_or_create(
+                defaults={
+                    "amount": settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE,
+                    "percentage": percentage,
+                    "category": BANK_TRANSFER_FEES,
+                    "cascade_percentage": instance.cascade_fees,
+                },
+                invoice=instance.invoice,
+                destination_user=None,
+                type=CROSS_BORDER_TRANSFER_FEE,
+                destination_account=FUND,
+            )
+        main_qs.update_or_create(
+            defaults={
+                "amount": settings.STRIPE_CHARGE_STATIC,
+                "percentage": percentage,
+                "category": SHIELD_FEE,
+                "cascade_amount": instance.cascade_fees,
+            },
+            invoice=instance.invoice,
+            destination_user=None,
+            type=PAYOUT_FEE,
+            destination_account=FUND,
+        )
+        if not plan.connection_fee_waived:
+            main_qs.update_or_create(
+                defaults={
+                    "amount": settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE,
+                    "category": SHIELD_FEE,
+                    "cascade_amount": instance.cascade_fees,
+                },
+                invoice=instance.invoice,
+                type=CONNECT_FEE,
+                destination_user=None,
+                destination_account=FUND,
+            )
     instance.invoice.save()
 
 
@@ -1446,7 +1567,7 @@ class LineItem(Model):
     # be run after lower numbers. If two items have the same priority, they will both be
     # run as if the other had not been run.
     priority = IntegerField(db_index=True)
-    category = IntegerField(choices=CATEGORIES, null=True, db_index=True)
+    category = IntegerField(choices=CATEGORIES, db_index=True)
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
     back_into_percentage = BooleanField(db_index=True, default=False)
@@ -1506,6 +1627,9 @@ class LineItem(Model):
 class LineItemSim:
     id: int
     priority: int
+    category: int
+    destination_account: int
+    destination_user_id: Optional[int]
     amount: Money = Money("0.00", "USD")
     percentage: Decimal = Decimal(0)
     frozen_value: Optional[Money] = Money("0.00", "USD")
@@ -1822,6 +1946,7 @@ class ServicePlan(models.Model):
     description = models.CharField(max_length=1000)
     features = JSONField(default=list)
     sort_value = models.IntegerField(default=0, db_index=True)
+    connection_fee_waived = models.BooleanField(default=False)
     monthly_charge = MoneyField(
         default=Money("0.00", "USD"),
         db_index=True,

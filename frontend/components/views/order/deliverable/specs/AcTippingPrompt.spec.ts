@@ -20,6 +20,7 @@ import { beforeEach, describe, expect, test, vi } from "vitest"
 import { parseISO } from "@/lib/otherFormatters.ts"
 
 import type { LineItem } from "@/types/main"
+import { LineCategory } from "@/types/enums/LineCategory.ts"
 
 let store: ArtStore
 let wrapper: VueWrapper<any>
@@ -35,8 +36,9 @@ const tipLines = (): LineItem[] => {
       amount: "0.50",
       frozen_value: null,
       type: LineType.PROCESSING,
-      destination_account: null,
-      destination_user: null,
+      category: LineCategory.PROCESSING_FEE,
+      destination_account: 313,
+      destination_user_id: null,
       description: "",
       cascade_percentage: true,
       cascade_amount: true,
@@ -49,8 +51,9 @@ const tipLines = (): LineItem[] => {
       amount: "7.00",
       frozen_value: null,
       type: LineType.TIP,
+      category: LineCategory.TIP_SEND,
       destination_account: 304,
-      destination_user: null,
+      destination_user_id: null,
       description: "",
       cascade_percentage: false,
       cascade_amount: false,

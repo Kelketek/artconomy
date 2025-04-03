@@ -24,7 +24,7 @@ def build_initial_plans():
             sort_value=0,
             max_simultaneous_orders=1,
             shield_static_price=Money("3.00", "USD"),
-            shield_percentage_price=Decimal("6.00"),
+            shield_percentage_price=Decimal("3.75"),
             features=[
                 "Slick, mobile-friendly storefront",
                 "Built-in order forms",
@@ -52,7 +52,7 @@ def build_initial_plans():
             paypal_invoicing=True,
             per_deliverable_price=Money("1.35", "USD"),
             shield_static_price=Money("2.75", "USD"),
-            shield_percentage_price=Decimal("5.75"),
+            shield_percentage_price=Decimal("3.50"),
             sort_value=1,
             features=[
                 "Slick, mobile-friendly storefront",
@@ -82,6 +82,7 @@ def build_initial_plans():
             tipping=True,
             waitlisting=True,
             paypal_invoicing=True,
+            connection_fee_waived=True,
             per_deliverable_price=Money("0.00", "USD"),
             shield_static_price=Money(".75", "USD"),
             shield_percentage_price=Decimal("5.00"),
@@ -106,6 +107,7 @@ def build_initial_plans():
                 "Waitlist",
                 "PayPal Invoicing",
                 "Multi-stage orders",
+                "Connection Fee Waived",
             ],
         ),
     )

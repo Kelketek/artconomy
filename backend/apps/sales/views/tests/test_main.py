@@ -1452,6 +1452,7 @@ class TestProductSearch(APITestCase):
             user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
             escrow_enabled=False,
             escrow_upgradable=True,
+            cascade_fees=False,
             base_price=Money("15.00", "USD"),
         )
         # Non-shielded

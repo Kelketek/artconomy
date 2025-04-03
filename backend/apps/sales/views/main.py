@@ -114,6 +114,7 @@ from apps.sales.constants import (
     VENDOR_PAYMENT,
     DEFAULT_TYPE_TO_CATEGORY_MAP,
     TAXES,
+    MONEY_HOLE_STAGE,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -213,6 +214,7 @@ from apps.sales.utils import (
     mark_deliverable_paid,
     cart_for_request,
     redact_deliverable,
+    pricing_spec,
 )
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -1249,7 +1251,7 @@ class DeliverableLineItems(ListCreateAPIView):
         if item_type in [TAX, EXTRA, TABLE_SERVICE]:
             destination_user = None
         accounts = {
-            TAX: MONEY_HOLE,
+            TAX: MONEY_HOLE_STAGE,
             ADD_ON: ESCROW,
             TIP: ESCROW,
             BASE_PRICE: ESCROW,
@@ -2604,22 +2606,9 @@ class RatingList(ListAPIView):
 class PricingInfo(APIView):
     # noinspection PyMethodMayBeStatic
     def get(self, _request):
-        plans = ServicePlan.objects.all().order_by("sort_value")
         return Response(
             status=status.HTTP_200_OK,
-            data={
-                "plans": ServicePlanSerializer(
-                    instance=plans, many=True, context={}
-                ).data,
-                "minimum_price": str(settings.MINIMUM_PRICE.amount),
-                "table_percentage": str(settings.TABLE_PERCENTAGE_FEE),
-                "table_static": str(settings.TABLE_STATIC_FEE.amount),
-                "table_tax": str(settings.TABLE_TAX),
-                "international_conversion_percentage": (
-                    str(settings.INTERNATIONAL_CONVERSION_PERCENTAGE)
-                ),
-                "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
-            },
+            data=pricing_spec(),
         )
 
 
@@ -2970,17 +2959,10 @@ class CreateInvoice(GenericAPIView):
             processor=STRIPE,
             **deliverable_facts,
         )
-        deliverable_target = ref_for_instance(deliverable)
-        item, _ = deliverable.invoice.line_items.get_or_create(
+        deliverable.invoice.line_items.filter(
             type=BASE_PRICE,
-            amount=facts["price"],
-            priority=0,
-            category=ESCROW_HOLD,
-            destination_account=ESCROW,
-            destination_user=order.seller,
-        )
-        item.targets.add(deliverable_target)
-        # Trigger line item creation.
+        ).update(amount=facts["price"])
+        # Trigger all signals/hooks to update calculations.
         deliverable.save()
         for asset in serializer.validated_data.get("references", []):
             reference = Reference.objects.create(
