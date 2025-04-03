@@ -82,6 +82,7 @@ def build_initial_plans():
             tipping=True,
             waitlisting=True,
             paypal_invoicing=True,
+            connection_fee_waived=True,
             per_deliverable_price=Money("0.00", "USD"),
             shield_static_price=Money(".75", "USD"),
             shield_percentage_price=Decimal("5.00"),
@@ -106,6 +107,7 @@ def build_initial_plans():
                 "Waitlist",
                 "PayPal Invoicing",
                 "Multi-stage orders",
+                "Connection Fee Waived",
             ],
         ),
     )

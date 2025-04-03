@@ -2094,6 +2094,7 @@ class ServicePlanSerializer(serializers.ModelSerializer):
             "description",
             "features",
             "monthly_charge",
+            "connection_fee_waived",
             "per_deliverable_price",
             "max_simultaneous_orders",
             "tipping",

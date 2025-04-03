@@ -62,6 +62,9 @@ pub struct LineItem {
     /// Used for percentage-based line items, such as proportional fees/discounts. Can be used in
     /// conjunction with amount to add a static amount on top of the percentage.
     pub percentage: String,
+    /// Used for determining the category of line items. This is primarily used by the backend for
+    /// later annotation of transactions.
+    pub category: i16,
     /// Whether the percentage calculated should be based on a target amount rather than added on
     /// top. That is, calculate all lower priority items to get their total, then find out the line
     /// item's percentage of that amount. Once found, remove that amount proportionally from all
@@ -83,6 +86,13 @@ pub struct LineItem {
     pub cascade_amount: bool,
 }
 
+/// LineItem struct. LineItems have several fields which affect their resolved value.
+#[cfg_attr(feature = "python", derive(FromPyObject))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ServicePlan {
+    
+}
+
 /// Only used in tests, so this should not have an opportunity to roll over.
 static mut COUNTER: i32 = 0;
 
@@ -96,6 +106,7 @@ impl Default for LineItem {
                 amount: String::from("0"),
                 frozen_value: None,
                 percentage: String::from("0"),
+                category: 0,
                 cascade_percentage: false,
                 back_into_percentage: false,
                 cascade_amount: false,

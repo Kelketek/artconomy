@@ -36,9 +36,11 @@ RECONCILIATION = 12
 # Fee charged for processing a card.
 CARD_FEE = 13
 # Stripe fee for cross-border transfer
-TRANSFER_FEE = 14
+CROSS_BORDER_TRANSFER_FEE = 14
 # Stripe fee for payout
 PAYOUT_FEE = 15
+# Stripe fee for connected accounts.
+CONNECT_FEE = 16
 
 PRIORITY_MAP = {
     BASE_PRICE: 0,
@@ -48,7 +50,8 @@ PRIORITY_MAP = {
     OTHER_FEE: 120,
     TIP: 200,
     PAYOUT_FEE: 250,
-    TRANSFER_FEE: 260,
+    CROSS_BORDER_TRANSFER_FEE: 244,
+    CONNECT_FEE: 260,
     SHIELD: 300,
     BONUS: 300,
     TABLE_SERVICE: 300,
@@ -73,6 +76,10 @@ LINE_ITEM_TYPES = (
     (PREMIUM_SUBSCRIPTION, "Premium Subscription"),
     (PROCESSING, "Processing Fee"),
     (RECONCILIATION, "Reconciliation"),
+    (PAYOUT_FEE, "Payout Fee"),
+    (CROSS_BORDER_TRANSFER_FEE, "Cross-border transfer fee"),
+    (CONNECT_FEE, "Stripe connection fee"),
+    (CARD_FEE, "Card processing fee"),
 )
 
 LINE_ITEM_TYPES_TABLE = dict(LINE_ITEM_TYPES)

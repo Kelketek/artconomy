@@ -833,19 +833,19 @@ mod helpers_tests {
     fn test_divide_amount() {
         assert_eq!(
             divide_amount(dec!(10), 3, 2),
-            [dec!(3.34), dec!(3.33), dec!(3.33)]
+            Ok(vec![dec!(3.34), dec!(3.33), dec!(3.33)]),
         );
         assert_eq!(
             divide_amount(dec!(10.01), 3, 2),
-            [dec!(3.34), dec!(3.34), dec!(3.33)]
+            Ok(vec![dec!(3.34), dec!(3.34), dec!(3.33)]),
         );
         assert_eq!(
             divide_amount(dec!(10.02), 3, 2),
-            [dec!(3.34), dec!(3.34), dec!(3.34)],
+            Ok(vec![dec!(3.34), dec!(3.34), dec!(3.34)]),
         );
         assert_eq!(
             divide_amount(dec!(10.03), 3, 2),
-            [dec!(3.35), dec!(3.34), dec!(3.34)],
+            Ok(vec![dec!(3.35), dec!(3.34), dec!(3.34)]),
         );
     }
 
@@ -853,15 +853,15 @@ mod helpers_tests {
     fn test_divide_non_subunit() {
         assert_eq!(
             divide_amount(dec!(10000), 3, 0),
-            [dec!(3334), dec!(3333), dec!(3333)],
+            Ok(vec![dec!(3334), dec!(3333), dec!(3333)]),
         );
         assert_eq!(
             divide_amount(dec!(10001), 3, 0),
-            [dec!(3334), dec!(3334), dec!(3333)],
+            Ok(vec![dec!(3334), dec!(3334), dec!(3333)]),
         );
         assert_eq!(
             divide_amount(dec!(10003), 3, 0),
-            [dec!(3335), dec!(3334), dec!(3334)],
+            Ok(vec![dec!(3335), dec!(3334), dec!(3334)]),
         );
     }
 }

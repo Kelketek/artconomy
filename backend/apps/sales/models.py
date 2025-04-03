@@ -89,6 +89,11 @@ from apps.sales.constants import (
     TAXES,
     SHIELD_FEE,
     SUBSCRIPTION_DUES,
+    CARD_FEE,
+    CROSS_BORDER_TRANSFER_FEE,
+    PAYOUT_FEE,
+    BANK_TRANSFER_FEES,
+    CONNECT_FEE,
 )
 from apps.sales.line_item_funcs import reckon_lines
 from apps.sales.permissions import (
@@ -998,12 +1003,23 @@ def idempotent_lines(instance: Deliverable):
             },
             invoice=instance.invoice,
             destination_user=None,
-            type=DELIVERABLE_TRACKING,
+            type=CARD_FEE,
             destination_account=FUND,
         )
         percentage = settings.STRIPE_PAYOUT_PERCENTAGE
         if instance.international:
-            percentage += settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE
+            main_qs.update_or_create(
+                defaults={
+                    "amount": settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE,
+                    "percentage": percentage,
+                    "category": BANK_TRANSFER_FEES,
+                    "cascade_percentage": instance.cascade_fees,
+                },
+                invoice=instance.invoice,
+                destination_user=None,
+                type=CROSS_BORDER_TRANSFER_FEE,
+                destination_account=FUND,
+            )
         main_qs.update_or_create(
             defaults={
                 "amount": settings.STRIPE_CHARGE_STATIC,
@@ -1013,9 +1029,21 @@ def idempotent_lines(instance: Deliverable):
             },
             invoice=instance.invoice,
             destination_user=None,
-            type=DELIVERABLE_TRACKING,
+            type=PAYOUT_FEE,
             destination_account=FUND,
         )
+        if not plan.connection_fee_waived:
+            main_qs.update_or_create(
+                defaults={
+                    "amount": settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE,
+                    "category": SHIELD_FEE,
+                    "cascade_amount": instance.cascade_fees,
+                },
+                invoice=instance.invoice,
+                type=CONNECT_FEE,
+                destination_user=None,
+                destination_account=FUND,
+            )
     instance.invoice.save()
 
 
@@ -1846,6 +1874,7 @@ class ServicePlan(models.Model):
     description = models.CharField(max_length=1000)
     features = JSONField(default=list)
     sort_value = models.IntegerField(default=0, db_index=True)
+    connection_fee_waived = models.BooleanField(default=False)
     monthly_charge = MoneyField(
         default=Money("0.00", "USD"),
         db_index=True,
