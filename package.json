@@ -7,7 +7,8 @@
   "author": "Fox Piacenti <fox@vulpinity.com>",
   "scripts": {
     "serve": "vite --host",
-    "build": "wasm-pack build --out-dir=../../frontend/lib/lines rust/line_items --features=wasm && vue-tsc --noEmit && vite build",
+    "build:wasm": "wasm-pack build --dev --out-dir=../../frontend/lib/lines rust/line_items --features=wasm",
+    "build": "wasm-pack build --release --out-dir=../../frontend/lib/lines rust/line_items --features=wasm && vue-tsc --noEmit && vite build",
     "build:quick": "vue-tsc --noEmit && vite build",
     "supportedBrowsers": "echo \"export default $(browserslist-useragent-regexp --allowHigherVersions);\" > frontend/supportedBrowsers.js",
     "lint": "eslint",
@@ -42,7 +43,7 @@
     "vue": "^3.5.13",
     "vue-observe-visibility": "^2.0.0-alpha.1",
     "vue-router": "^4.5.0",
-    "vuetify": "^3.7.15",
+    "vuetify": "^3.9.7",
     "vuex": "^4.1.0"
   },
   "devDependencies": {

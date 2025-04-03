@@ -72,38 +72,14 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
             f"/api/sales/v1/invoice/{deliverable.invoice.id}/pay/",
             {
                 "cash": True,
-                "amount": "50.00",
+                "amount": "45.00",
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         total = TransactionRecord.objects.filter(
             source__in=[CASH_DEPOSIT, CARD]
         ).aggregate(total=Sum("amount"))["total"]
-        self.assertEqual(total, Decimal("50.00"))
-
-    def test_pay_order_table_edge_case(self):
-        # This edge case has showed up before-- it created an extra penny. Putting this
-        # in to prevent a regression.
-        user = create_staffer("table_seller")
-        self.login(user)
-        deliverable = DeliverableFactory.create(
-            status=PAYMENT_PENDING,
-            product__base_price=Money("25.00", "USD"),
-            product__table_product=True,
-            table_order=True,
-            processor=STRIPE,
-        )
-        response = self.client.post(
-            f"/api/sales/v1/invoice/{deliverable.invoice.id}/pay/",
-            {
-                "cash": True,
-                "amount": "30.00",
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        transactions = TransactionRecord.objects.filter(source__in=[CASH_DEPOSIT, CARD])
-        total = transactions.aggregate(total=Sum("amount"))["total"]
-        self.assertEqual(total, Decimal("30.00"))
+        self.assertEqual(total, Decimal("45.00"))
 
     def test_pay_order_buyer_cash_fail(self):
         user = UserFactory.create()

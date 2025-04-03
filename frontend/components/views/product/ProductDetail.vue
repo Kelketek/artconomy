@@ -1166,8 +1166,8 @@ const rawLineItemSetMaps = computed(() => {
   }
   const basePrice = product.x.base_price
 
-  const planName = subject.value?.service_plan
-  const international = subject.value?.international
+  const planName = subject.value?.service_plan || null
+  const international = !!subject.value?.international
   const cascade = product.x.cascade_fees
   const tableProduct = product.x.table_product
   let preferredLines: LineItem[] = []
@@ -1313,7 +1313,7 @@ watch(
     }
     updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
     let prefix: string
-    if (product.starting_price) {
+    if (parseFloat(product.starting_price)) {
       prefix = `[Starts at $${product.starting_price}] - `
     } else {
       prefix = "[Starts at FREE] - "

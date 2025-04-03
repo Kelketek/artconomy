@@ -154,6 +154,7 @@ const ProductGallery = () =>
   import("@/components/views/product/ProductGallery.vue")
 const AcInvoiceProductSelection = () =>
   import("@/components/views/orders/AcInvoiceProductSelection.vue")
+const Calculator = () => import("@/components/views/calculator/Calculator.vue")
 
 const Empty = defineComponent({ data: () => ({}), render: () => h("div") })
 
@@ -341,6 +342,11 @@ export const routes: RouteRecordRaw[] = [
     path: "/contact/",
     name: "Contact",
     component: Contact,
+  },
+  {
+    path: "/calculator/",
+    name: "Calculator",
+    component: Calculator,
   },
   {
     path: "/store/:username/",

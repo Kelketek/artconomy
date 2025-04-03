@@ -4,6 +4,8 @@ import { LineType } from "@/types/enums/LineType.ts"
 import { useForm } from "@/store/forms/hooks.ts"
 import { getTotals } from "@/lib/lineItemFunctions.ts"
 import type { LineItem, LineTypeValue } from "@/types/main"
+import { LineCategory } from "@/types/enums/LineCategory.ts"
+import { AccountType } from "@/types/enums/AccountType.ts"
 
 export const useLineItems = (props: {
   lineItems: ListController<LineItem>
@@ -17,6 +19,7 @@ export const useLineItems = (props: {
       },
       description: { value: "" },
       type: { value: LineType.ADD_ON },
+      category: { value: LineCategory.ESCROW_HOLD },
       percentage: { value: "0" },
     },
   })
@@ -29,6 +32,7 @@ export const useLineItems = (props: {
       },
       description: { value: "" },
       type: { value: LineType.EXTRA },
+      category: { value: LineCategory.EXTRA_ITEM },
       percentage: { value: "0" },
     },
   })
@@ -42,8 +46,12 @@ export const useLineItems = (props: {
       back_into_percentage: false,
       percentage: addOnForm.fields.percentage.value,
       type: addOnForm.fields.type.value,
+      category: addOnForm.fields.category.value,
       priority: 100,
+      cascade_under: 100,
       description: addOnForm.fields.description.value,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: -1,
     }
   })
 
@@ -57,8 +65,12 @@ export const useLineItems = (props: {
       back_into_percentage: false,
       percentage: extraForm.fields.percentage.value,
       type: extraForm.fields.type.value,
+      category: extraForm.fields.category.value,
       priority: 400,
+      cascade_under: 101,
       description: extraForm.fields.description.value,
+      destination_account: AccountType.FUND,
+      destination_user_id: null,
     }
   })
   const rawLineItems = computed(() =>

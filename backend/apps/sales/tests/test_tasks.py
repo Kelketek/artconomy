@@ -70,6 +70,7 @@ from apps.sales.tests.factories import (
 )
 from apps.sales.utils import add_service_plan_line, get_term_invoice
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.core import mail
 from django.db import connection, IntegrityError
 from django.test import TestCase, TransactionTestCase, override_settings
@@ -440,6 +441,7 @@ class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
 
     @patch("apps.sales.tasks.account_balance")
     @patch("apps.sales.tasks.stripe_transfer.delay")
+    @override_settings(CACHES=settings.REDIS_CACHES)
     def test_withdraw_all_no_source_fails(self, stripe_transfer, mock_balance):
         user = UserFactory.create()
         user.artist_profile.save()

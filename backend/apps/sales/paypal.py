@@ -22,6 +22,8 @@ from apps.sales.constants import (
     MONEY_HOLE,
     TAXES,
     CORRECTION,
+    PRIORITY_MAP,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.line_item_funcs import get_totals, digits, down_context
 
@@ -321,6 +323,8 @@ def reconcile_invoices(
             description="Tax",
             amount=tax_total,
             frozen_value=tax_total,
+            priority=PRIORITY_MAP[TAX],
+            cascade_under=CASCADE_UNDER_MAP[TAX],
             # Required by database, but not used.
             destination_account=MONEY_HOLE,
             destination_user=deliverable.invoice.issued_by,
@@ -347,6 +351,8 @@ def reconcile_invoices(
             # Required by database, but not used.
             destination_account=HOLDINGS,
             destination_user=deliverable.invoice.issued_by,
+            priority=PRIORITY_MAP[RECONCILIATION],
+            cascade_under=CASCADE_UNDER_MAP[RECONCILIATION],
         )
 
 

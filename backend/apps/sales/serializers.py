@@ -100,6 +100,11 @@ from rest_framework.fields import (
 )
 from short_stuff import unslugify
 from short_stuff.django.serializers import ShortCodeField
+from line_items import (
+    LineType,
+    Category,
+    Account,
+)
 
 PRODUCT_HINTS = (
     "genre",
@@ -108,6 +113,24 @@ PRODUCT_HINTS = (
     "concept",
     "function/purpose (like a badge or a refsheet)",
 )
+
+LINE_TYPES = {
+    int(getattr(LineType, name)): getattr(LineType, name)
+    for name in dir(LineType)
+    if not name.startswith("_")
+}
+
+CATEGORIES = {
+    int(getattr(Category, name)): getattr(Category, name)
+    for name in dir(Category)
+    if not name.startswith("_")
+}
+
+ACCOUNTS = {
+    int(getattr(Account, name)): getattr(Account, name)
+    for name in dir(Account)
+    if not name.startswith("_")
+}
 
 
 class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
@@ -178,11 +201,23 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         revised.update(data)
         if not getattr(revised, "user", None):
             revised.user = self.context["request"].subject
+        if getattr(revised, "table_product", None) is None:
+            revised.table_product = False
+        if getattr(revised, "cascade_fees", None) is None:
+            revised.cascade_fees = False
+        revised.international = (
+            StripeAccount.objects.filter(
+                user=self.context["request"].subject,
+            )
+            .exclude(country=settings.SOURCE_COUNTRY)
+            .exists()
+        )
         escrow_enabled = (
-            revised.escrow_enabled
+            bool(revised.escrow_enabled)
             and self.context["request"].subject.artist_profile.escrow_enabled
         )
         data["escrow_enabled"] = escrow_enabled
+        revised.escrow_enabled = escrow_enabled
         minimum = settings.MINIMUM_PRICE
         total = reckon_lines(lines_for_product(revised))
         if escrow_enabled and (total < minimum):
@@ -839,18 +874,36 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
     percentage = serializers.CharField()
     amount = MoneyToString()
     frozen_value = MoneyToString()
+    kind = serializers.SerializerMethodField()
+    category = serializers.SerializerMethodField()
+    destination_account = serializers.SerializerMethodField()
+
+    def get_kind(self, instance: LineItem):
+        return LINE_TYPES[instance.type]
+
+    def get_category(self, instance: LineItem):
+        return CATEGORIES[instance.category]
+
+    def get_destination_account(self, instance: LineItem):
+        return ACCOUNTS[instance.destination_account]
 
     class Meta:
         model = LineItem
         fields = (
             "id",
             "priority",
+            "cascade_under",
             "percentage",
             "amount",
             "frozen_value",
             "cascade_percentage",
             "cascade_amount",
             "back_into_percentage",
+            "destination_account",
+            "destination_user_id",
+            "kind",
+            "description",
+            "category",
         )
         read_only_fields = fields
 
@@ -867,13 +920,14 @@ class LineItemSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "priority",
+            "cascade_under",
             "percentage",
             "amount",
             "frozen_value",
             "type",
             "category",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "description",
             "cascade_percentage",
             "cascade_amount",
@@ -883,9 +937,11 @@ class LineItemSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "priority",
+            "cascade_under",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "targets",
+            "category",
         )
 
     def __init__(self, *args, **kwargs):
@@ -2175,6 +2231,7 @@ class ServicePlanSerializer(serializers.ModelSerializer):
             "description",
             "features",
             "monthly_charge",
+            "connection_fee_waived",
             "per_deliverable_price",
             "max_simultaneous_orders",
             "tipping",

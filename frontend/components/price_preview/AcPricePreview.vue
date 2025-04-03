@@ -1,156 +1,155 @@
 <template>
   <ac-load-section ref="el" :controller="pricing" class="py-2">
-    <ac-load-section :controller="subjectHandler.user">
-      <template #default>
-        <ac-load-section
-          v-if="!!pricing.x"
-          :controller="lineItems"
-          class="compact-fields"
-        >
-          <template #default>
-            <template v-if="editable && editBase">
-              <ac-line-item-editor
-                v-for="(line, index) in baseItems"
-                :key="line.x!.id"
-                :line="line"
-                :price-data="priceData"
-                :disabled="disabled"
-                :editing="editable"
-                :enable-new-line="
-                  index === baseItems.length - 1 && !addOns.length
-                "
-                @new-line="postSubmitAdd(addOnForm)"
-              />
-            </template>
-            <template v-else>
-              <ac-line-item-preview
-                v-for="line in baseItems"
-                :key="line.x!.id"
-                :line="line.x!"
-                :price-data="priceData"
-                :editing="editable"
-                :transfer="transfer"
-              />
-            </template>
-            <template v-if="editable">
-              <ac-line-item-editor
-                v-for="(line, index) in addOns"
-                :key="line.x!.id"
-                :line="line"
-                :price-data="priceData"
-                :editing="editable"
-                :disabled="disabled"
-                :enable-new-line="index === addOns.length - 1"
-                @new-line="postSubmitAdd(addOnForm)"
-              />
-              <ac-new-line-skeleton v-if="addOnForm.sending" />
-              <ac-form-container v-bind="addOnForm.bind" :show-spinner="false">
-                <ac-form @submit.prevent="postSubmitAdd(addOnForm)">
-                  <ac-new-line-item :form="addOnForm" />
-                </ac-form>
-              </ac-form-container>
-            </template>
-            <template v-else>
-              <ac-line-item-preview
-                v-for="line in addOns"
-                :key="line.x!.id"
-                :line="line.x!"
-                :price-data="priceData"
-                :transfer="transfer"
-              />
-            </template>
-            <ac-line-item-preview
-              v-for="line in modifiers"
-              :key="line.id"
+    <template #default>
+      <ac-load-section
+        v-if="!!pricing.x"
+        :controller="lineItems"
+        class="compact-fields"
+      >
+        <template #default>
+          <template v-if="editable && editBase">
+            <ac-line-item-editor
+              v-for="(line, index) in baseItems"
+              :key="line.x!.id"
               :line="line"
               :price-data="priceData"
+              :disabled="disabled"
               :editing="editable"
-              :transfer="transfer"
+              :enable-new-line="
+                index === baseItems.length - 1 && !addOns.length
+              "
+              @new-line="postSubmitAdd(addOnForm)"
             />
-            <template v-if="editable && powers.table_seller">
-              <ac-line-item-editor
-                v-for="(line, index) in extras"
-                :key="line.x!.id"
-                :line="line"
-                :price-data="priceData"
-                :editing="editable"
-                :disabled="disabled"
-                :enable-new-line="index === extras.length - 1"
-                @new-line="postSubmitAdd(extraForm)"
-              />
-              <ac-new-line-skeleton v-if="extraForm.sending" />
-              <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
-                <ac-form
-                  @submit.prevent="extraForm.submitThen(lineItems.uniquePush)"
-                >
-                  <ac-new-line-item :form="extraForm" />
-                </ac-form>
-              </ac-form-container>
-            </template>
-            <template v-else>
-              <ac-line-item-preview
-                v-for="line in extras"
-                :key="line.x!.id"
-                :line="line.x!"
-                :price-data="priceData"
-              />
-            </template>
-            <ac-line-item-preview
-              v-for="line in taxes"
-              :key="line.id"
-              :line="line"
-              :price-data="priceData"
-              :editing="editable"
-              :transfer="transfer"
-            />
-            <v-row no-gutters>
-              <v-col class="text-right pr-1" cols="6">
-                <strong v-if="transfer">Total Charge:</strong>
-                <strong v-else>Total Price:</strong>
-              </v-col>
-              <v-col class="text-left pl-1" cols="6">
-                <v-chip v-if="isSeller" color="blue" variant="flat">
-                  ${{ rawPrice }}
-                </v-chip>
-                <span v-else>${{ rawPrice }}</span>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col v-if="isSeller && escrow" class="text-right pr-1" cols="6">
-                <strong>Your Payout:</strong>
-              </v-col>
-              <v-col
-                v-if="isSeller && escrow"
-                class="text-left pl-1"
-                align-self="center"
-                cols="6"
-              >
-                <v-chip color="green" variant="flat">
-                  <strong>${{ payout }}</strong>
-                </v-chip>
-              </v-col>
-              <v-col v-if="isSeller && !hideHourlyForm" cols="12" md="6">
-                <ac-bound-field
-                  :field="hourlyForm.fields.hours"
-                  type="number"
-                  label="If I worked for this many hours..."
-                  min="0"
-                  step="1"
-                />
-              </v-col>
-              <v-col
-                v-if="isSeller"
-                cols="12"
-                :class="{ transparent: !hourly }"
-                :aria-hidden="!hourly"
-              >
-                I would earn <strong>${{ hourly }}/hour.</strong>
-              </v-col>
-            </v-row>
           </template>
-        </ac-load-section>
-      </template>
-    </ac-load-section>
+          <template v-else>
+            <ac-line-item-preview
+              v-for="line in baseItems"
+              :key="line.x!.id"
+              :line="line.x!"
+              :price-data="priceData"
+              :editing="editable"
+              :transfer="transfer"
+            />
+          </template>
+          <template v-if="editable">
+            <ac-line-item-editor
+              v-for="(line, index) in addOns"
+              :key="line.x!.id"
+              :line="line"
+              :price-data="priceData"
+              :editing="editable"
+              :disabled="disabled"
+              :enable-new-line="index === addOns.length - 1"
+              @new-line="postSubmitAdd(addOnForm)"
+            />
+            <ac-new-line-skeleton v-if="addOnForm.sending" />
+            <ac-form-container v-bind="addOnForm.bind" :show-spinner="false">
+              <ac-form @submit.prevent="postSubmitAdd(addOnForm)">
+                <ac-new-line-item :form="addOnForm" />
+              </ac-form>
+            </ac-form-container>
+          </template>
+          <template v-else>
+            <ac-line-item-preview
+              v-for="line in addOns"
+              :key="line.x!.id"
+              :line="line.x!"
+              :price-data="priceData"
+              :transfer="transfer"
+            />
+          </template>
+          <ac-bundled-lines
+            v-model="expandFees"
+            hint="Applicable fees for this order. These fees are non-refundable."
+            :lines="modifiers"
+            label="Fees"
+            :editing="editable"
+            :price-data="priceData"
+            :transfer="transfer"
+          />
+          <template v-if="editable && powers.table_seller">
+            <ac-line-item-editor
+              v-for="(line, index) in extras"
+              :key="line.x!.id"
+              :line="line"
+              :price-data="priceData"
+              :editing="editable"
+              :disabled="disabled"
+              :enable-new-line="index === extras.length - 1"
+              @new-line="postSubmitAdd(extraForm)"
+            />
+            <ac-new-line-skeleton v-if="extraForm.sending" />
+            <ac-form-container v-bind="extraForm.bind" :show-spinner="false">
+              <ac-form
+                @submit.prevent="extraForm.submitThen(lineItems.uniquePush)"
+              >
+                <ac-new-line-item :form="extraForm" />
+              </ac-form>
+            </ac-form-container>
+          </template>
+          <template v-else>
+            <ac-line-item-preview
+              v-for="line in extras"
+              :key="line.x!.id"
+              :line="line.x!"
+              :price-data="priceData"
+            />
+          </template>
+          <ac-line-item-preview
+            v-for="line in taxes"
+            :key="line.id"
+            :line="line"
+            :price-data="priceData"
+            :editing="editable"
+            :transfer="transfer"
+          />
+          <v-row no-gutters>
+            <v-col class="text-right pr-1" cols="6">
+              <strong v-if="transfer">Total Charge:</strong>
+              <strong v-else>Total Price:</strong>
+            </v-col>
+            <v-col class="text-left pl-1" cols="6">
+              <v-chip v-if="isSeller" color="blue" variant="flat">
+                ${{ rawPrice }}
+              </v-chip>
+              <span v-else>${{ rawPrice }}</span>
+            </v-col>
+          </v-row>
+          <v-row>
+            <v-col v-if="isSeller && escrow" class="text-right pr-1" cols="6">
+              <strong>Your Payout:</strong>
+            </v-col>
+            <v-col
+              v-if="isSeller && escrow"
+              class="text-left pl-1"
+              align-self="center"
+              cols="6"
+            >
+              <v-chip color="green" variant="flat">
+                <strong>${{ payout }}</strong>
+              </v-chip>
+            </v-col>
+            <v-col v-if="isSeller && !hideHourlyForm" cols="12" md="6">
+              <ac-bound-field
+                :field="hourlyForm.fields.hours"
+                type="number"
+                label="If I worked for this many hours..."
+                min="0"
+                step="1"
+              />
+            </v-col>
+            <v-col
+              v-if="isSeller"
+              cols="12"
+              :class="{ transparent: !hourly }"
+              :aria-hidden="!hourly"
+            >
+              I would earn <strong>${{ hourly }}/hour.</strong>
+            </v-col>
+          </v-row>
+        </template>
+      </ac-load-section>
+    </template>
   </ac-load-section>
 </template>
 
@@ -171,24 +170,22 @@ import { useForm } from "@/store/forms/hooks.ts"
 import { useLineItems } from "@/components/price_preview/mixins/line_items.ts"
 import { computed, nextTick, ref } from "vue"
 import { usePricing } from "@/mixins/PricingAware.ts"
-import { useSubject } from "@/mixins/subjective.ts"
 import { useViewer } from "@/mixins/viewer.ts"
-import type { LineItem, LineTypeValue, SubjectiveProps } from "@/types/main"
+import type { LineItem, LineTypeValue } from "@/types/main"
+import AcBundledLines from "@/components/price_preview/AcBundledLines.vue"
 
 const props = withDefaults(
-  defineProps<
-    {
-      lineItems: ListController<LineItem>
-      isSeller?: boolean
-      escrow?: boolean
-      editable?: boolean
-      editBase?: boolean
-      hideHourlyForm?: boolean
-      transfer?: boolean
-      // Disables inputs, such as when performing another operation
-      disabled?: boolean
-    } & SubjectiveProps
-  >(),
+  defineProps<{
+    lineItems: ListController<LineItem>
+    isSeller?: boolean
+    escrow?: boolean
+    editable?: boolean
+    editBase?: boolean
+    hideHourlyForm?: boolean
+    transfer?: boolean
+    // Disables inputs, such as when performing another operation
+    disabled?: boolean
+  }>(),
   {
     escrow: true,
     editable: false,
@@ -199,7 +196,8 @@ const props = withDefaults(
   },
 )
 
-const { subjectHandler } = useSubject({ props })
+const expandFees = defineModel<boolean>()
+
 const { powers } = useViewer()
 
 const {
@@ -240,13 +238,16 @@ const payout = computed(() => {
 })
 
 const MODIFIER_TYPE_SETS = new Set([
-  LineType.TIP,
   LineType.SHIELD,
   LineType.BONUS,
   LineType.TABLE_SERVICE,
   LineType.PROCESSING,
   LineType.DELIVERABLE_TRACKING,
   LineType.RECONCILIATION,
+  LineType.CARD_FEE,
+  LineType.CROSS_BORDER_TRANSFER_FEE,
+  LineType.PAYOUT_FEE,
+  LineType.CONNECT_FEE,
 ] as LineTypeValue[])
 
 const moddedItems = computed(() => {
@@ -267,9 +268,8 @@ const taxes = computed(() =>
 )
 
 const modifiers = computed(() =>
-  moddedItems.value.filter(
-    // We include tips here since we will handle that with a different interface.
-    (line: LineItem) => MODIFIER_TYPE_SETS.has(line.type),
+  moddedItems.value.filter((line: LineItem) =>
+    MODIFIER_TYPE_SETS.has(line.type),
   ),
 )
 

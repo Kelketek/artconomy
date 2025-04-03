@@ -704,7 +704,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             f"{deliverable.id}/line-items/",
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 5)
 
     def test_add_line_item(self):
         user = UserFactory.create()
@@ -789,6 +789,8 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable = DeliverableFactory.create(
             order__seller=user2, order__buyer=user, product=None
         )
+        line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
+        self.assertNotEqual(line_item.amount, Money("15.00", "USD"))
         line_item = LineItemFactory.create(
             percentage=Decimal("0"),
             type=BASE_PRICE,
@@ -803,7 +805,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        line_item = deliverable.invoice.line_items.get(type=BASE_PRICE)
+        line_item.refresh_from_db()
         self.assertEqual(line_item.amount, Money("15.00", "USD"))
 
     def test_update_base_price_with_product_fails(self):

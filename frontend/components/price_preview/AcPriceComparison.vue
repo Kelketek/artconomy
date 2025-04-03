@@ -14,8 +14,8 @@
             <v-card>
               <v-card-text>
                 <ac-price-preview
+                  v-model="expandFees"
                   :line-items="lineItems"
-                  :username="username"
                   :hide-hourly-form="!single"
                   :is-seller="true"
                 />
@@ -73,6 +73,8 @@ declare type LineItemSetMaps = {
   offer: boolean
 }[]
 
+const expandFees = defineModel<boolean>()
+
 const props = defineProps<
   { lineItemSetMaps: LineItemSetMaps } & SubjectiveProps
 >()
@@ -104,6 +106,9 @@ const tabs: ComputedRef<TabSpec[]> = computed(() => {
 })
 const single = computed(() => {
   return props.lineItemSetMaps.length === 1
+})
+defineExpose({
+  tab: selectedTab,
 })
 </script>
 

@@ -114,6 +114,9 @@ from apps.sales.constants import (
     VENDOR_PAYMENT,
     DEFAULT_TYPE_TO_CATEGORY_MAP,
     TAXES,
+    MONEY_HOLE_STAGE,
+    PRIORITY_MAP,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -213,6 +216,7 @@ from apps.sales.utils import (
     mark_deliverable_paid,
     cart_for_request,
     redact_deliverable,
+    pricing_spec,
 )
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -592,6 +596,8 @@ class PlaceOrder(CreateAPIView):
             if difference:
                 LineItem.objects.create(
                     type=ADD_ON,
+                    priority=PRIORITY_MAP[ADD_ON],
+                    cascade_under=CASCADE_UNDER_MAP[ADD_ON],
                     category=ESCROW_HOLD,
                     invoice=deliverable.invoice,
                     description="Offer",
@@ -723,8 +729,9 @@ class OrderDeliverables(ListCreateAPIView):
         line, _ = deliverable.invoice.line_items.get_or_create(
             type=BASE_PRICE,
             amount=facts["price"],
-            priority=0,
             category=ESCROW_HOLD,
+            priority=PRIORITY_MAP[BASE_PRICE],
+            cascade_under=CASCADE_UNDER_MAP[BASE_PRICE],
             destination_account=ESCROW,
             destination_user=order.seller,
         )
@@ -733,7 +740,8 @@ class OrderDeliverables(ListCreateAPIView):
             line, _ = deliverable.invoice.line_items.get_or_create(
                 type=ADD_ON,
                 amount=facts["adjustment"],
-                priority=1,
+                priority=PRIORITY_MAP[ADD_ON],
+                cascade_under=CASCADE_UNDER_MAP[ADD_ON],
                 destination_account=ESCROW,
                 category=ESCROW_HOLD,
                 destination_user=order.seller,
@@ -1165,6 +1173,8 @@ class InvoiceLineItems(ListCreateAPIView):
             invoice=self.get_object(),
             destination_account=FUND,
             category=DEFAULT_TYPE_TO_CATEGORY_MAP[serializer.validated_data["type"]],
+            priority=PRIORITY_MAP[serializer.validated_data["type"]],
+            cascade_under=CASCADE_UNDER_MAP[serializer.validated_data["type"]],
         )
 
 
@@ -1249,7 +1259,7 @@ class DeliverableLineItems(ListCreateAPIView):
         if item_type in [TAX, EXTRA, TABLE_SERVICE]:
             destination_user = None
         accounts = {
-            TAX: MONEY_HOLE,
+            TAX: MONEY_HOLE_STAGE,
             ADD_ON: ESCROW,
             TIP: ESCROW,
             BASE_PRICE: ESCROW,
@@ -1263,6 +1273,8 @@ class DeliverableLineItems(ListCreateAPIView):
                 destination_account=destination_account,
                 invoice=deliverable.invoice,
                 category=DEFAULT_TYPE_TO_CATEGORY_MAP[item_type],
+                priority=CASCADE_UNDER_MAP[item_type],
+                cascade_under=CASCADE_UNDER_MAP[item_type],
             )
             line.annotate(deliverable)
             deliverable.save()
@@ -2604,22 +2616,9 @@ class RatingList(ListAPIView):
 class PricingInfo(APIView):
     # noinspection PyMethodMayBeStatic
     def get(self, _request):
-        plans = ServicePlan.objects.all().order_by("sort_value")
         return Response(
             status=status.HTTP_200_OK,
-            data={
-                "plans": ServicePlanSerializer(
-                    instance=plans, many=True, context={}
-                ).data,
-                "minimum_price": str(settings.MINIMUM_PRICE.amount),
-                "table_percentage": str(settings.TABLE_PERCENTAGE_FEE),
-                "table_static": str(settings.TABLE_STATIC_FEE.amount),
-                "table_tax": str(settings.TABLE_TAX),
-                "international_conversion_percentage": (
-                    str(settings.INTERNATIONAL_CONVERSION_PERCENTAGE)
-                ),
-                "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
-            },
+            data=pricing_spec(),
         )
 
 
@@ -2970,17 +2969,10 @@ class CreateInvoice(GenericAPIView):
             processor=STRIPE,
             **deliverable_facts,
         )
-        deliverable_target = ref_for_instance(deliverable)
-        item, _ = deliverable.invoice.line_items.get_or_create(
+        deliverable.invoice.line_items.filter(
             type=BASE_PRICE,
-            amount=facts["price"],
-            priority=0,
-            category=ESCROW_HOLD,
-            destination_account=ESCROW,
-            destination_user=order.seller,
-        )
-        item.targets.add(deliverable_target)
-        # Trigger line item creation.
+        ).update(amount=facts["price"])
+        # Trigger all signals/hooks to update calculations.
         deliverable.save()
         for asset in serializer.validated_data.get("references", []):
             reference = Reference.objects.create(
@@ -3393,7 +3385,8 @@ class CreateVendorInvoice(GenericAPIView):
             destination_account=HOLDINGS,
             category=VENDOR_PAYMENT,
             type=BASE_PRICE,
-            priority=0,
+            priority=PRIORITY_MAP[BASE_PRICE],
+            cascade_under=CASCADE_UNDER_MAP[BASE_PRICE],
             amount=Money("0.00", settings.DEFAULT_CURRENCY),
         )
         return Response(
@@ -3428,6 +3421,8 @@ class CreateAnonymousInvoice(GenericAPIView):
             destination_account=MONEY_HOLE,
             category=TAXES,
             type=TAX,
+            priority=PRIORITY_MAP[TAX],
+            cascade_under=CASCADE_UNDER_MAP[TAX],
         )
         return Response(
             data=self.get_serializer(

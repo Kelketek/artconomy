@@ -60,8 +60,12 @@ const BASIC_TYPES: { [key: number]: string } = {
   8: "Premium Subscription",
   9: "Other Fee",
   10: "Order Tracking",
-  11: "Processing",
+  11: "Handling fee",
   12: "Reconciliation",
+  13: "Card Processing",
+  14: "Cross-border transfer fee",
+  15: "Payout fee",
+  16: "Connect fee",
 }
 
 const label = computed(() => {
@@ -101,9 +105,17 @@ const TYPE_HINTS = {
   0:
     "This is the portion of the initial listing price that goes to the seller. This may be less than the listing " +
     "price if shield is enabled by default, or if a discount has been applied.",
+  1: "This is a manually added line item from the seller. If the description is not clear, please ask them for details.",
   2:
-    "This is a non-refundable fee for Artconomy Shield, including buyer/seller " +
+    "Fee for Artconomy Shield, including buyer/seller " +
     "protection and dispute resolution.",
+  4: "How much money the artist is expected to receive after all processing fees have been deducted",
+  5: "Cost to offset running convention table where you placed this order",
+  11: "Artconomy's fee to maintain the transaction system and offset risk.",
+  13: "Blended rate from our card processor for processing a credit card transaction.",
+  14: "Fee our payment processor charges for sending money internationally",
+  15: "Fee our payment processor charges to pay out to an artist's bank account",
+  16: "Fee our payment processor charges for having an active artist account in a given month",
 }
 
 const typeHint = computed(() => {

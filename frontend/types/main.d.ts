@@ -31,6 +31,7 @@ import { AccountType } from "@/types/enums/AccountType.ts"
 import { ConnectionStatus } from "@/types/enums/ConnectionStatus.ts"
 import { InvoiceType } from "@/types/enums/InvoiceType.ts"
 import { LineType } from "@/types/enums/LineType.ts"
+import { LineCategory } from "@/types/enums/LineCategory.ts"
 import { LogLevels } from "@/types/enums/LogLevels.ts"
 import { Ratings } from "@/types/enums/Ratings.ts"
 import { TransactionCategory } from "@/types/enums/TransactionCategory.ts"
@@ -371,10 +372,12 @@ export interface Journal {
 }
 
 export type LineTypeValue = (typeof LineType)[keyof typeof LineType]
+export type LineCategoryValue = (typeof LineCategory)[keyof typeof LineCategory]
 
 export interface LineItem {
   id: number
   priority: number
+  cascade_under: number
   amount: string
   frozen_value: string | null
   percentage: string
@@ -382,9 +385,10 @@ export interface LineItem {
   cascade_amount: boolean
   back_into_percentage: boolean
   type: LineTypeValue
+  category: LineCategoryValue
   description: string
-  destination_account?: number | null
-  destination_user?: number | null
+  destination_account: number
+  destination_user_id: number | null
   targets?: Array<{ model: string; id: string | number }>
 }
 
@@ -480,6 +484,7 @@ export interface ServicePlan {
   per_deliverable_price: string
   shield_percentage_price: string
   max_simultaneous_orders: number
+  connection_fee_waived: boolean
 }
 
 export interface Pricing {
@@ -490,6 +495,14 @@ export interface Pricing {
   table_tax: string
   international_conversion_percentage: string
   preferred_plan: string
+  stripe_blended_rate_percentage: string
+  stripe_blended_rate_static: string
+  stripe_payout_cross_border_percentage: string
+  stripe_active_account_monthly_fee: string
+  stripe_payout_static: string
+  stripe_payout_percentage: string
+  processing_percentage: string
+  processing_static: string
 }
 
 export interface Product {

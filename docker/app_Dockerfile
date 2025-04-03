@@ -33,14 +33,20 @@ WORKDIR /root/wasm-pack
 RUN cargo build --release
 RUN mkdir -p /home/app/.cargo/bin/
 RUN mv target/release/wasm-pack /home/app/.cargo/bin/
+RUN chown -R app:app /home/app/.cargo
 WORKDIR /home/app/artconomy/
 RUN rm -rvf /root/wasm-pack
 ADD --chown=app:app . ./
 WORKDIR /home/app/artconomy/rust/line_items
+USER app
+RUN python -m venv /home/app/venv
+# We make a virtualenv, since when developing if we have to change things,
+# it would otherwise require a full rebuild.
+ENV VIRTUAL_ENV=/home/app/venv
+ENV PATH=/home/app/venv/bin:$PATH
 RUN pip install maturin
 RUN maturin sdist
 WORKDIR /home/app/artconomy/
 RUN pip install --upgrade pip
 RUN pip install pip-tools
 RUN pip install -r /home/app/artconomy/requirements.txt
-USER app

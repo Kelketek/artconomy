@@ -82,3 +82,5 @@ Object.defineProperty(window, "matchMedia", {
     dispatchEvent: vi.fn(),
   })),
 })
+
+vi.stubGlobal("visualViewport", new EventTarget())

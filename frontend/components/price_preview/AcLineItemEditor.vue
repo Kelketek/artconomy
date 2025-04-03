@@ -30,6 +30,7 @@
         color="red"
         :disabled="disabled"
         class="align-self-start mt-1"
+        aria-label="Delete"
         @click.prevent="line.delete"
       >
         <v-icon :icon="mdiDelete" />

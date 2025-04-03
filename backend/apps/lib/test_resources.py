@@ -1,6 +1,7 @@
 import ctypes
 import multiprocessing
 import time
+from contextlib import contextmanager
 from decimal import Decimal
 from multiprocessing import Queue
 from pprint import pformat
@@ -11,12 +12,14 @@ from unittest.mock import Mock, patch
 
 import coverage
 import signal_disabler
+from django.core.cache.backends.locmem import LocMemCache
 
 from apps.profiles.constants import POWER, POWER_LIST
 from apps.sales.constants import CARD, CASH_DEPOSIT
 from apps.sales.models import ServicePlan, Deliverable
 from ddt import data, ddt
 from django.conf import settings
+from django.core.cache import cache
 from django.db import connections
 from django.test.runner import DiscoverRunner, ParallelTestSuite
 from django.test.utils import setup_test_environment
@@ -60,6 +63,7 @@ class EnsurePlansMixin:
                 "max_simultaneous_orders": 1,
             },
         )[0]
+        cache.delete("price_data")
 
 
 class APITestCase(EnsurePlansMixin, BaseAPITestCase):
@@ -614,3 +618,17 @@ class SignalsDisabledMixin:
         self.disabler.reconnect_all()
         for signal in signals:
             signal.sender_receivers_cache.clear()
+
+
+class TestMemCache(LocMemCache):
+    @contextmanager
+    def lock(self, value):
+        """
+        Mock lock that simulates locking an action within memory. This won't actually
+        do anything, so tests which rely on testing locking will
+        need to use a real caching backend.
+        """
+        try:
+            yield self.get(value)
+        finally:
+            return

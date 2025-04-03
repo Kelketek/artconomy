@@ -61,7 +61,6 @@ from apps.profiles.permissions import staff_power
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.sales.constants import (
     ADD_ON,
-    BASE_PRICE,
     CANCELLED,
     CARD,
     CARD_TRANSACTION_FEES,
@@ -86,20 +85,16 @@ from apps.sales.constants import (
     PAID,
     PAYMENT_PENDING,
     PREMIUM_SUBSCRIPTION,
-    PROCESSING,
-    PROCESSING_FEE,
     QUEUED,
     REFUNDED,
     RESERVE,
     REVIEW,
-    SHIELD,
     SHIELD_FEE,
     STRIPE,
     SUBSCRIPTION,
     SUBSCRIPTION_DUES,
     SUCCESS,
     TABLE_HANDLING,
-    TABLE_SERVICE,
     TAX,
     TERM,
     THIRD_PARTY_FEE,
@@ -109,16 +104,19 @@ from apps.sales.constants import (
     VOID,
     WAITING,
     LINE_ITEM_TYPES_TABLE,
-    PRIORITY_MAP,
     FUND,
     PAYMENT,
     VENDOR,
     WORK_IN_PROGRESS_STATUSES,
+    PRIORITY_MAP,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.line_item_funcs import (
     down_context,
     get_totals,
     half_up_context,
+    deliverable_lines,
+    tip_lines,
 )
 from apps.sales.paypal import clear_existing_invoice, paypal_api
 from apps.sales.stripe import (
@@ -130,6 +128,7 @@ from apps.sales.stripe import (
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
+from django.core.cache import cache
 from django.core.exceptions import MultipleObjectsReturned
 from django.db import IntegrityError, transaction
 from django.db.models import Case, F, IntegerField, Model, Q, Sum, When
@@ -305,6 +304,8 @@ def term_charge(deliverable: "Deliverable"):
                 destination_account=FUND,
                 category=SUBSCRIPTION_DUES,
                 type=DELIVERABLE_TRACKING,
+                priority=PRIORITY_MAP[DELIVERABLE_TRACKING],
+                cascade_under=CASCADE_UNDER_MAP[DELIVERABLE_TRACKING],
             )
             line.targets.add(ref_for_instance(deliverable))
     deliverable.term_billed = True
@@ -514,20 +515,25 @@ def initialize_tip_invoice(deliverable):
         expires_on=expires_on,
         payout_available=True,
     )
-    percentage = settings.PROCESSING_PERCENTAGE
-    if deliverable.international:
-        percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
-    LineItem.objects.create(
-        type=PROCESSING,
-        category=PROCESSING_FEE,
-        percentage=percentage,
-        amount=settings.PROCESSING_STATIC,
-        cascade_amount=True,
-        cascade_percentage=True,
-        invoice=invoice,
-        destination_user=None,
-        destination_account=FUND,
-    )
+    lines = tip_lines(international=deliverable.international)
+    for line in lines:
+        invoice.line_items.update_or_create(
+            defaults={
+                "percentage": line["percentage"],
+                "amount": Money(line["amount"], settings.DEFAULT_CURRENCY),
+                "priority": line["priority"],
+                "cascade_under": line["cascade_under"],
+                "description": line["description"],
+                "cascade_amount": line["cascade_amount"],
+                "cascade_percentage": line["cascade_percentage"],
+                "back_into_percentage": line["back_into_percentage"],
+            },
+            type=line["kind"],
+            category=line["category"],
+            destination_account=line["destination_account"],
+            destination_user_id=line["destination_user_id"],
+            invoice=invoice,
+        )
     amount = max(deliverable.invoice.total() * Decimal(".10"), settings.MINIMUM_TIP)
     line = LineItem.objects.create(
         type=TIP,
@@ -539,6 +545,8 @@ def initialize_tip_invoice(deliverable):
         invoice=invoice,
         destination_user=deliverable.order.seller,
         destination_account=HOLDINGS,
+        priority=PRIORITY_MAP[TIP],
+        cascade_under=CASCADE_UNDER_MAP[TIP],
     )
     line.targets.add(ref_for_instance(deliverable))
     deliverable.tip_invoice = invoice
@@ -1295,6 +1303,8 @@ def add_service_plan_line(invoice: "Invoice", service_plan: "ServicePlan"):
         defaults={
             "amount": amount,
             "category": SUBSCRIPTION_DUES,
+            "priority": PRIORITY_MAP[PREMIUM_SUBSCRIPTION],
+            "cascade_under": CASCADE_UNDER_MAP[PREMIUM_SUBSCRIPTION],
             "description": f"{service_plan.name} plan monthly dues",
         },
         destination_account=FUND,
@@ -1671,65 +1681,22 @@ def reverse_record(record: "TransactionRecord") -> (bool, "TransactionRecord"):
 def lines_for_product(product: "Product", force_shield=False) -> List["LineItemSim"]:
     from apps.sales.models import LineItemSim
 
-    lines = [
-        LineItemSim(amount=product.base_price, priority=0, type=BASE_PRICE, id=0),
-    ]
-    plan = product.user.service_plan
-    if product.table_product:
-        lines.extend(
-            [
-                LineItemSim(
-                    id=300,
-                    percentage=settings.TABLE_PERCENTAGE_FEE,
-                    priority=PRIORITY_MAP[TABLE_SERVICE],
-                    amount=settings.TABLE_STATIC_FEE,
-                    type=TABLE_SERVICE,
-                    cascade_percentage=product.cascade_fees,
-                    cascade_amount=False,
-                    back_into_percentage=not product.cascade_fees,
-                ),
-                LineItemSim(
-                    id=600,
-                    percentage=settings.TABLE_TAX,
-                    priority=PRIORITY_MAP[TAX],
-                    type=TAX,
-                    cascade_percentage=product.cascade_fees,
-                    cascade_amount=product.cascade_fees,
-                    back_into_percentage=True,
-                ),
-            ]
-        )
-    elif product.escrow_enabled or force_shield:
-        percentage_price = plan.shield_percentage_price
-        if product.international:
-            percentage_price += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
-        if (not product.escrow_enabled) and force_shield:
-            cascade_fees = False
-        else:
-            cascade_fees = product.cascade_fees
-        lines.append(
-            LineItemSim(
-                id=200,
-                amount=plan.shield_static_price,
-                percentage=plan.shield_percentage_price,
-                priority=PRIORITY_MAP[SHIELD],
-                type=SHIELD,
-                cascade_percentage=cascade_fees,
-                cascade_amount=cascade_fees,
-                back_into_percentage=not cascade_fees,
-            ),
-        )
-    if not (product.escrow_enabled or force_shield) and plan.per_deliverable_price:
-        lines.append(
-            LineItemSim(
-                id=250,
-                amount=plan.per_deliverable_price,
-                type=PRIORITY_MAP[DELIVERABLE_TRACKING],
-                cascade_amount=product.cascade_fees,
-                priority=250,
-            )
-        )
-    return lines
+    results = []
+    for line in deliverable_lines(
+        base_price=product.base_price,
+        extra_lines=[],
+        table_product=product.table_product,
+        escrow_enabled=force_shield or product.escrow_enabled,
+        plan_name=product.user.service_plan.name,
+        user_id=product.user.id,
+        international=product.international,
+        cascade=product.cascade_fees,
+    ):
+        line["type"] = int(line.pop("kind"))
+        line["category"] = int(line["category"])
+        line["destination_account"] = int(line["destination_account"])
+        results.append(LineItemSim(**line))
+    return results
 
 
 class PaymentIntentSettingsData(TypedDict):
@@ -2070,3 +2037,40 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
         deliverable.status = CANCELLED
     deliverable.redacted_on = timezone.now()
     deliverable.save()
+
+
+def _pricing_spec():
+    from apps.sales.models import ServicePlan
+    from apps.sales.serializers import ServicePlanSerializer
+
+    plans = ServicePlan.objects.all().order_by("sort_value")
+    return {
+        "plans": ServicePlanSerializer(instance=plans, many=True, context={}).data,
+        "minimum_price": str(settings.MINIMUM_PRICE.amount),
+        "table_percentage": str(settings.TABLE_PERCENTAGE_FEE),
+        "table_static": str(settings.TABLE_STATIC_FEE.amount),
+        "table_tax": str(settings.TABLE_TAX),
+        "international_conversion_percentage": (
+            str(settings.INTERNATIONAL_CONVERSION_PERCENTAGE)
+        ),
+        "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
+        "stripe_blended_rate_static": str(settings.STRIPE_BLENDED_RATE_STATIC.amount),
+        "stripe_blended_rate_percentage": str(settings.STRIPE_BLENDED_RATE_PERCENTAGE),
+        "stripe_payout_cross_border_percentage": str(
+            settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE
+        ),
+        "stripe_active_account_monthly_fee": str(
+            settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE.amount,
+        ),
+        "stripe_payout_static": str(settings.STRIPE_PAYOUT_STATIC.amount),
+        "stripe_payout_percentage": str(settings.STRIPE_PAYOUT_PERCENTAGE),
+        "processing_percentage": str(settings.PROCESSING_PERCENTAGE),
+        "processing_static": str(settings.PROCESSING_STATIC.amount),
+    }
+
+
+def pricing_spec():
+    """
+    Get the full pricing information for services.
+    """
+    return cache.get_or_set("price_data", _pricing_spec)

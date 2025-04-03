@@ -1,6 +1,7 @@
 from contextlib import contextmanager
 from dataclasses import dataclass
 from decimal import Decimal
+from django.core.cache import cache
 from math import ceil
 from typing import List, Union, Optional
 
@@ -48,14 +49,11 @@ from apps.profiles.permissions import BillTo, IssuedBy, ObjectControls
 from apps.sales.constants import (
     ACCOUNT_TYPES,
     BASE_PRICE,
-    BONUS,
     CARD_TYPES,
     CATEGORIES,
     COMPLETED,
     DELIVERABLE_STATUSES,
-    DELIVERABLE_TRACKING,
     DRAFT,
-    ESCROW,
     EXTRA,
     FAILURE,
     IN_PROGRESS,
@@ -63,34 +61,25 @@ from apps.sales.constants import (
     INVOICE_TYPES,
     LIMBO,
     LINE_ITEM_TYPES,
-    MONEY_HOLE_STAGE,
     NEW,
     OPEN,
     PAYMENT_PENDING,
     PRIORITY_MAP,
     PROCESSOR_CHOICES,
     QUEUED,
-    RESERVE,
     REVIEW,
     SALE,
     SHIELD,
     SUBSCRIPTION,
     SUCCESS,
-    TABLE_SERVICE,
-    TAX,
     TIP,
     TRANSACTION_STATUSES,
-    FUND,
     VISA,
     WAITING,
     WEIGHTED_STATUSES,
-    ESCROW_HOLD,
-    TABLE_HANDLING,
-    TAXES,
-    SHIELD_FEE,
-    SUBSCRIPTION_DUES,
+    ADD_ON,
 )
-from apps.sales.line_item_funcs import reckon_lines
+from apps.sales.line_item_funcs import reckon_lines, deliverable_lines
 from apps.sales.permissions import (
     OrderViewPermission,
     ReferenceViewPermission,
@@ -874,124 +863,65 @@ def delete(queryset):
         item.delete()
 
 
+# TODO: Lock invoice while we do this.
 def idempotent_lines(instance: Deliverable):
+    """
+    This is the previous version of the idempotent lines function, currently shimmed
+    back in while we test revising its functionality via the rust functions.
+    """
     if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
     if instance.status == PAYMENT_PENDING and instance.invoice.paypal_token:
         # Line items are synced remotely.
         return
     main_qs = instance.invoice.lines_for(instance)
+    extra_lines = list(main_qs.filter(type__in=[ADD_ON, EXTRA, BASE_PRICE]))
+    if instance.product:
+        base_price = instance.product.base_price
+    else:
+        base_price = Money("0.00", settings.DEFAULT_CURRENCY)
+    lines = deliverable_lines(
+        base_price=base_price,
+        table_product=instance.table_order,
+        cascade=instance.cascade_fees,
+        escrow_enabled=instance.escrow_enabled,
+        extra_lines=extra_lines,
+        user_id=instance.order.seller.id,
+        international=instance.international,
+        plan_name=instance.order.seller.service_plan.name,
+    )
+    to_retain = []
+    for line in lines:
+        if line["id"] >= 0:
+            # Should be all the extra lines that we provided earlier.
+            # All the generated lines per spec have negative IDs.
+            to_retain.append(line["id"])
+            continue
+        db_line, created = main_qs.update_or_create(
+            defaults={
+                "percentage": line["percentage"],
+                "amount": Money(line["amount"], settings.DEFAULT_CURRENCY),
+                "priority": line["priority"],
+                "cascade_under": line["cascade_under"],
+                "description": line["description"],
+                "cascade_amount": line["cascade_amount"],
+                "cascade_percentage": line["cascade_percentage"],
+                "back_into_percentage": line["back_into_percentage"],
+            },
+            type=line["kind"],
+            category=line["category"],
+            destination_account=line["destination_account"],
+            destination_user_id=line["destination_user_id"],
+            invoice=instance.invoice,
+        )
+        db_line.annotate(instance)
+        to_retain.append(db_line.id)
+    main_qs.exclude(id__in=to_retain).delete()
     if instance.status == PAYMENT_PENDING and instance.invoice.status == DRAFT:
         instance.invoice.status = OPEN
-    if instance.product:
-        line = main_qs.update_or_create(
-            # We can use the amount for a creation default, but we won't adjust the
-            # base price if it already exists. Doing so can (and has) resulted in
-            # negative payout amounts if the customer lowers their price to something
-            # that shield can't support.
-            create_defaults={
-                "amount": instance.product.base_price,
-                "category": ESCROW_HOLD,
-            },
-            invoice=instance.invoice,
-            type=BASE_PRICE,
-            destination_user=instance.order.seller,
-            destination_account=ESCROW,
-        )[0]
-        line.annotate(instance)
     total = reckon_lines(main_qs.filter(priority__lt=PRIORITY_MAP[SHIELD]))
     escrow_enabled = instance.escrow_enabled and total
-    plan = instance.order.seller.service_plan
-    # Once this is in production long enough and all lines for existing deliverables
-    # have been recalculated, this line can be removed.
-    delete(main_qs.filter(type=BONUS))
-    if instance.table_order:
-        line = main_qs.update_or_create(
-            defaults={
-                "percentage": settings.TABLE_PERCENTAGE_FEE,
-                "cascade_percentage": instance.cascade_fees,
-                "amount": settings.TABLE_STATIC_FEE,
-                "category": TABLE_HANDLING,
-                # We don't cascade this flat amount for table products. Might revisit
-                # this later.
-                "cascade_amount": False,
-            },
-            invoice=instance.invoice,
-            destination_user=None,
-            destination_account=RESERVE,
-            type=TABLE_SERVICE,
-        )[0]
-        line.annotate(instance)
-        line = main_qs.update_or_create(
-            defaults={
-                "percentage": settings.TABLE_TAX,
-                "category": TAXES,
-                "cascade_percentage": instance.cascade_fees,
-                "cascade_amount": instance.cascade_fees,
-                "back_into_percentage": instance.cascade_fees,
-            },
-            invoice=instance.invoice,
-            destination_user=None,
-            destination_account=MONEY_HOLE_STAGE,
-            type=TAX,
-        )[0]
-        line.annotate(instance)
-        delete(main_qs.filter(type__in=[BONUS, SHIELD]))
-        instance.invoice.record_only = False
-    elif escrow_enabled:
-        percentage = plan.shield_percentage_price
-        if instance.international:
-            percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
-        line = main_qs.update_or_create(
-            defaults={
-                "percentage": percentage,
-                "amount": plan.shield_static_price,
-                "category": SHIELD_FEE,
-                "cascade_percentage": instance.cascade_fees,
-                "cascade_amount": instance.cascade_fees,
-                "back_into_percentage": not instance.cascade_fees,
-            },
-            invoice=instance.invoice,
-            destination_user=None,
-            destination_account=FUND,
-            type=SHIELD,
-        )[0]
-        line.annotate(instance)
-        delete(
-            main_qs.filter(
-                type=EXTRA,
-                destination_account=RESERVE,
-                description="Table Service",
-                invoice=instance.invoice,
-            )
-        )
-        delete(main_qs.filter(type__in=[TAX, DELIVERABLE_TRACKING]))
-        instance.invoice.record_only = False
-    else:
-        delete(main_qs.filter(type__in=[BONUS, SHIELD]))
-        delete(
-            main_qs.filter(
-                type=EXTRA,
-                destination_account=RESERVE,
-                description="Table Service",
-                invoice=instance.invoice,
-            )
-        )
-        delete(main_qs.filter(type=TAX))
-        if plan.per_deliverable_price:
-            line = main_qs.update_or_create(
-                defaults={
-                    "amount": plan.per_deliverable_price,
-                    "category": SUBSCRIPTION_DUES,
-                    "cascade_amount": instance.cascade_fees,
-                },
-                invoice=instance.invoice,
-                destination_user=None,
-                type=DELIVERABLE_TRACKING,
-                destination_account=FUND,
-            )[0]
-            line.annotate(instance)
-        instance.invoice.record_only = True
+    instance.invoice.record_only = not instance.table_order and not escrow_enabled
     instance.invoice.save()
 
 
@@ -1446,7 +1376,8 @@ class LineItem(Model):
     # be run after lower numbers. If two items have the same priority, they will both be
     # run as if the other had not been run.
     priority = IntegerField(db_index=True)
-    category = IntegerField(choices=CATEGORIES, null=True, db_index=True)
+    cascade_under = IntegerField(db_index=True, null=True)
+    category = IntegerField(choices=CATEGORIES, db_index=True)
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
     back_into_percentage = BooleanField(db_index=True, default=False)
@@ -1497,8 +1428,6 @@ class LineItem(Model):
         return LineItemAnnotation.objects.get_or_create(target=ref, line_item=self)[0]
 
     def save(self, *args, **kwargs):
-        self.priority = PRIORITY_MAP[self.type]
-        assert self.category
         super().save(*args, **kwargs)
 
 
@@ -1506,6 +1435,10 @@ class LineItem(Model):
 class LineItemSim:
     id: int
     priority: int
+    cascade_under: int
+    category: int
+    destination_account: int
+    destination_user_id: Optional[int]
     amount: Money = Money("0.00", "USD")
     percentage: Decimal = Decimal(0)
     frozen_value: Optional[Money] = Money("0.00", "USD")
@@ -1822,6 +1755,7 @@ class ServicePlan(models.Model):
     description = models.CharField(max_length=1000)
     features = JSONField(default=list)
     sort_value = models.IntegerField(default=0, db_index=True)
+    connection_fee_waived = models.BooleanField(default=False)
     monthly_charge = MoneyField(
         default=Money("0.00", "USD"),
         db_index=True,
@@ -1875,6 +1809,11 @@ class ServicePlan(models.Model):
 
     def __str__(self):
         return f"{self.name} (#{self.id})"
+
+
+@receiver(post_save, sender=ServicePlan)
+def clear_pricing_cache(instance, *args, **kwargs):
+    cache.delete("price_data")
 
 
 class StripeLocation(models.Model):

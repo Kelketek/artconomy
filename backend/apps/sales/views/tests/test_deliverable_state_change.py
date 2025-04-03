@@ -588,7 +588,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
             ).count(),
             0,
         )
-        self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
+        self.assertEqual(refund_transaction.amount, Money("1.07", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertEqual(
             sorted(refund_transaction.remote_ids), ["pi_12345", "txn_test_balance"]

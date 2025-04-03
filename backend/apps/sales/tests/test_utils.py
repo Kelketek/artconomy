@@ -30,6 +30,8 @@ from apps.sales.constants import (
     MISSED,
     FUND,
     QUEUED,
+    SHIELD_FEE,
+    CROSS_BORDER_TRANSFER_FEE,
 )
 from apps.sales.models import LineItem, TransactionRecord, Deliverable, Reference
 from apps.sales.tests.factories import (
@@ -346,15 +348,16 @@ class TransactionCheckMixin:
             deliverable.invoice,
         )
         if landscape:
-            self.assertEqual(escrow.amount, Money("11.01", "USD"))
+            self.assertEqual(escrow.amount, Money("7.99", "USD"))
         else:
-            self.assertEqual(escrow.amount, Money("10.28", "USD"))
+            self.assertEqual(escrow.amount, Money("7.26", "USD"))
         self.assertEqual(escrow.payer, user)
         self.assertEqual(escrow.payee, deliverable.order.seller)
 
         shield_fee_candidates = TransactionRecord.objects.filter(
             source=FUND,
             destination=FUND,
+            category=SHIELD_FEE,
         )
         if remote_id:
             shield_fee_candidates = shield_fee_candidates.filter(
@@ -373,9 +376,9 @@ class TransactionCheckMixin:
             deliverable.invoice,
         )
         if landscape:
-            self.assertEqual(shield_fee.amount, Money("0.99", "USD"))
+            self.assertEqual(shield_fee.amount, Money("0.98", "USD"))
         else:
-            self.assertEqual(shield_fee.amount, Money("1.72", "USD"))
+            self.assertEqual(shield_fee.amount, Money("1.71", "USD"))
         if source == CARD:
             card_fee = TransactionRecord.objects.get(payer=None, payee=None)
             self.assertEqual(card_fee.amount, Money(".65", "USD"))
@@ -684,8 +687,12 @@ class TestInitializeTipInvoice(EnsurePlansMixin, TestCase):
         deliverable.order.seller.service_plan = self.landscape
         deliverable.order.seller.save()
         invoice = initialize_tip_invoice(deliverable)
-        line = invoice.line_items.filter(type=PROCESSING).get()
-        self.assertEqual(line.percentage, Decimal("7"))
+        processing_line = invoice.line_items.filter(type=PROCESSING).get()
+        international_conversion_line = invoice.line_items.filter(
+            type=CROSS_BORDER_TRANSFER_FEE,
+        ).get()
+        self.assertEqual(processing_line.percentage, Decimal("5"))
+        self.assertEqual(international_conversion_line.percentage, Decimal("1"))
 
 
 class TestInvoicePostPayment(EnsurePlansMixin, TestCase):
@@ -746,9 +753,10 @@ class TestSetServicePlan(EnsurePlansMixin, TestCase):
         third_deliverable = DeliverableFactory.create(
             status=LIMBO, order__seller=deliverable.order.seller
         )
+        service_plan = ServicePlanFactory.create(max_simultaneous_orders=2)
         set_service_plan(
             deliverable.order.seller,
-            ServicePlanFactory.create(max_simultaneous_orders=2),
+            service_plan,
         )
         deliverable.refresh_from_db()
         second_deliverable.refresh_from_db()

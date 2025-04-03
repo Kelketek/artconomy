@@ -287,11 +287,17 @@ STRIPE_CARD_PRESENT_PERCENTAGE = Decimal(
 STRIPE_CARD_PRESENT_STATIC = Money(
     get_env("STRIPE_CARD_PRESENT_PERCENTAGE", "0.05"), DEFAULT_CURRENCY
 )
+STRIPE_BLENDED_RATE_STATIC = Money(
+    get_env("STRIPE_BLENDED_RATE_STATIC", "0.35"), DEFAULT_CURRENCY
+)
+STRIPE_BLENDED_RATE_PERCENTAGE = Decimal(
+    get_env("STRIPE_BLENDED_RATE_PERCENTAGE", "3.30")
+)
 # Yes, this is .25% + $0.25. Not a copy-paste error.
 STRIPE_PAYOUT_STATIC = Money(get_env("STRIPE_PAYOUT_STATIC", "0.25"), DEFAULT_CURRENCY)
 STRIPE_PAYOUT_PERCENTAGE = Decimal(get_env("STRIPE_PAYOUT_PERCENTAGE", "0.25"))
 STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE = Decimal(
-    get_env("STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE", "0.25")
+    get_env("STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE", "1")
 )
 STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE = Money(
     get_env("STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE", "2.00"), DEFAULT_CURRENCY
@@ -411,8 +417,8 @@ INTERNATIONAL_CONVERSION_PERCENTAGE = Decimal(
 # minimally above Stripe's fees, since we're not handling disputes. However, we might
 # have to deal with a fraud issue, or a hidden stripe fee we're not calculating, so
 # having some buffer for these kinds of transactions is needed.
-PROCESSING_PERCENTAGE = Decimal(get_env("PROCESSING_PERCENTAGE", "3.4"))
-PROCESSING_STATIC = Money(get_env("PROCESSING_PERCENTAGE", ".55"), DEFAULT_CURRENCY)
+PROCESSING_PERCENTAGE = Decimal(get_env("PROCESSING_PERCENTAGE", "1"))
+PROCESSING_STATIC = Money(get_env("PROCESSING_PERCENTAGE", ".15"), DEFAULT_CURRENCY)
 # The country that the escrow account is housed in. In all reality this will probably
 # always be the US.
 SOURCE_COUNTRY = get_env("SOURCE_COUNTRY", "US")
@@ -686,6 +692,14 @@ CACHES = {
         "LOCATION": f"redis://{REDIS_HOST}:{REDIS_PORT}/1",
     },
 }
+
+if TESTING:
+    REDIS_CACHES = CACHES
+    CACHES = {
+        "default": {
+            "BACKEND": "apps.lib.test_resources.TestMemCache",
+        },
+    }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

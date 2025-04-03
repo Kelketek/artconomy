@@ -1,11 +1,24 @@
 from collections import defaultdict
-from decimal import ROUND_CEILING, ROUND_HALF_EVEN, Decimal, localcontext, ROUND_HALF_UP
+from decimal import (
+    ROUND_CEILING,
+    ROUND_DOWN,
+    ROUND_HALF_EVEN,
+    Decimal,
+    localcontext,
+    ROUND_HALF_UP,
+)
 from typing import TYPE_CHECKING, Callable, Dict, Iterator, List, Union
 
-from _decimal import ROUND_DOWN
+from django.conf import settings
 from moneyed import Currency, Money, get_currency
 
-from line_items import py_get_totals, py_reckon_lines, py_divide_amount
+from line_items import (
+    py_get_totals,
+    py_reckon_lines,
+    py_divide_amount,
+    py_deliverable_lines,
+    py_tip_fee_lines,
+)
 
 if TYPE_CHECKING:  # pragma: no cover
     from apps.sales.models import LineItem, LineItemSim
@@ -108,6 +121,18 @@ def zero_amount(currency: Currency):
     )
 
 
+def tip_lines(*, international: bool):
+    from apps.sales.utils import pricing_spec
+
+    return py_tip_fee_lines(
+        {
+            "pricing": pricing_spec(),
+            "international": international,
+            "quantization": digits(settings.PROCESSING_STATIC.currency),
+        }
+    )
+
+
 @down_context
 def divide_amount(amount: Money, divisor: int) -> List[Money]:
     """
@@ -128,3 +153,36 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
 
 def digits(currency: Currency) -> int:
     return len(str(currency.sub_unit)) - 1
+
+
+def deliverable_lines(
+    *,
+    base_price: Money,
+    table_product: bool,
+    cascade: bool,
+    escrow_enabled: bool,
+    international: bool,
+    extra_lines: list["LineItem"],
+    user_id: int,
+    plan_name: str,
+):
+    from apps.sales.serializers import LineItemCalculationSerializer
+    from apps.sales.utils import pricing_spec
+
+    return py_deliverable_lines(
+        {
+            "base_price": str(base_price.amount),
+            "table_product": table_product,
+            "cascade": cascade,
+            "escrow_enabled": escrow_enabled,
+            "international": international,
+            "user_id": user_id,
+            "extra_lines": LineItemCalculationSerializer(
+                many=True, instance=extra_lines
+            ).data,
+            "allow_soft_failure": False,
+            "pricing": pricing_spec(),
+            "plan_name": plan_name,
+            "quantization": digits(base_price.currency),
+        }
+    )

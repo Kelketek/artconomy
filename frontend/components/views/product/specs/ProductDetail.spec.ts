@@ -306,8 +306,8 @@ describe("ProductDetail.vue", () => {
       "[Starts at $10.00] - This is a test product",
     )
     data.productSingle.updateX({
-      base_price: 0,
-      starting_price: 0,
+      base_price: "0",
+      starting_price: "0",
     })
     await nextTick()
     description = document.querySelector('meta[name="description"]')
@@ -416,7 +416,7 @@ describe("ProductDetail.vue", () => {
           ),
           [LineType.TABLE_SERVICE],
         ),
-      ).toEqual("5.54"),
+      ).toEqual("6.00"),
     )
     expect(
       totalForTypes(
@@ -434,7 +434,7 @@ describe("ProductDetail.vue", () => {
           (x: SingleController<LineItem>) => x.x,
         ),
       ).total,
-    ).toEqual("15.00")
+    ).toEqual("10.00")
   })
   test("Handles a shield product", async () => {
     prepData()

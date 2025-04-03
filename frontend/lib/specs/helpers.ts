@@ -1,10 +1,14 @@
 import { LineType } from "@/types/enums/LineType.ts"
 import type { LineItem, Pricing } from "@/types/main"
+import { LineCategory } from "@/types/enums/LineCategory.ts"
+import { AccountType } from "@/types/enums/AccountType.ts"
 
 export function genLineItem(overrides: Partial<LineItem>): LineItem {
   return {
     id: -1,
     type: 0,
+    cascade_under: 0,
+    category: LineCategory.ESCROW_HOLD,
     amount: "0.00",
     frozen_value: null,
     percentage: "0",
@@ -13,6 +17,8 @@ export function genLineItem(overrides: Partial<LineItem>): LineItem {
     cascade_amount: false,
     back_into_percentage: false,
     description: "",
+    destination_user_id: -1,
+    destination_account: AccountType.ESCROW,
     ...overrides,
   }
 }
@@ -22,12 +28,14 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 21,
       priority: 300,
+      cascade_under: 300,
       percentage: "4",
       amount: "0.50",
+      category: LineCategory.ESCROW_HOLD,
       frozen_value: null,
       type: LineType.SHIELD,
-      destination_account: 304,
-      destination_user: null,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: null,
       description: "",
       cascade_percentage: true,
       cascade_amount: true,
@@ -36,12 +44,14 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 22,
       priority: 300,
+      cascade_under: 300,
       percentage: "4",
       amount: "0.25",
       frozen_value: null,
+      category: LineCategory.PREMIUM_BONUS,
       type: LineType.BONUS,
-      destination_account: 304,
-      destination_user: null,
+      destination_account: AccountType.BONUS_RESERVE,
+      destination_user_id: null,
       description: "",
       cascade_percentage: true,
       cascade_amount: true,
@@ -50,12 +60,14 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 20,
       priority: 0,
+      cascade_under: 0,
       percentage: "0",
       amount: "100.00",
       frozen_value: null,
       type: LineType.BASE_PRICE,
-      destination_account: 302,
-      destination_user: 1,
+      category: LineCategory.ESCROW_HOLD,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: 1,
       description: "",
       cascade_percentage: false,
       cascade_amount: false,
@@ -64,12 +76,14 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 23,
       priority: 100,
+      cascade_under: 100,
       percentage: "0",
       amount: "-20.00",
+      category: LineCategory.ESCROW_HOLD,
       frozen_value: null,
       type: LineType.ADD_ON,
-      destination_account: 302,
-      destination_user: 1,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: 1,
       description: "Discount",
       cascade_percentage: false,
       cascade_amount: false,
@@ -105,6 +119,7 @@ export function genPricing(): Pricing {
         shield_static_price: "3.50",
         shield_percentage_price: "5.5",
         paypal_invoicing: false,
+        connection_fee_waived: false,
       },
       {
         id: 8,
@@ -132,6 +147,7 @@ export function genPricing(): Pricing {
         shield_static_price: "3.50",
         shield_percentage_price: "5",
         paypal_invoicing: false,
+        connection_fee_waived: false,
       },
       {
         id: 9,
@@ -162,13 +178,22 @@ export function genPricing(): Pricing {
         shield_static_price: "0.75",
         shield_percentage_price: "4",
         paypal_invoicing: true,
+        connection_fee_waived: true,
       },
     ],
     minimum_price: "1.00",
     table_percentage: "10",
     table_static: "5.00",
     table_tax: "8.25",
+    stripe_blended_rate_percentage: "0.30",
+    stripe_blended_rate_static: "0.30",
+    stripe_payout_cross_border_percentage: "1",
+    stripe_active_account_monthly_fee: "2.00",
+    stripe_payout_static: "0.25",
+    stripe_payout_percentage: "1.25",
     international_conversion_percentage: "1",
     preferred_plan: "Landscape",
+    processing_percentage: "1.25",
+    processing_static: ".10",
   }
 }
