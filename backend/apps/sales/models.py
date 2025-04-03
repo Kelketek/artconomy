@@ -937,8 +937,6 @@ def idempotent_lines(instance: Deliverable):
         instance.invoice.record_only = False
     elif escrow_enabled:
         percentage = plan.shield_percentage_price
-        if instance.international:
-            percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
         line = main_qs.update_or_create(
             defaults={
                 "percentage": percentage,
@@ -989,6 +987,35 @@ def idempotent_lines(instance: Deliverable):
             )[0]
             line.annotate(instance)
         instance.invoice.record_only = True
+    if escrow_enabled:
+        # Should be run whether it's a table order or just a normal shield order.
+        main_qs.update_or_create(
+            defaults={
+                "amount": settings.STRIPE_CHARGE_STATIC,
+                "percentage": settings.STRIPE_BLENDED_PERCENTAGE,
+                "category": SHIELD_FEE,
+                "cascade_amount": instance.cascade_fees,
+            },
+            invoice=instance.invoice,
+            destination_user=None,
+            type=DELIVERABLE_TRACKING,
+            destination_account=FUND,
+        )
+        percentage = settings.STRIPE_PAYOUT_PERCENTAGE
+        if instance.international:
+            percentage += settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE
+        main_qs.update_or_create(
+            defaults={
+                "amount": settings.STRIPE_CHARGE_STATIC,
+                "percentage": percentage,
+                "category": SHIELD_FEE,
+                "cascade_amount": instance.cascade_fees,
+            },
+            invoice=instance.invoice,
+            destination_user=None,
+            type=DELIVERABLE_TRACKING,
+            destination_account=FUND,
+        )
     instance.invoice.save()
 
 

@@ -1636,8 +1636,8 @@ class TipValuesSerializer(serializers.ModelSerializer):
             .filter(
                 payer=obj.bill_to,
                 payee=None,
-                source__in=[CARD, CASH_DEPOSIT],
-                destination__in=[FUND],
+                source=FUND,
+                destination=FUND,
             )
         )
         return transactions.aggregate(total=Sum("amount"))["total"]
