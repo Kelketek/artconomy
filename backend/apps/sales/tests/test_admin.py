@@ -149,7 +149,7 @@ class TestKillFraudulent(EnsurePlansMixin, TestCase, DeliverableChargeMixin):
         self.assertEqual(record.payer, deliverable.order.seller)
         self.assertEqual(record.payee, deliverable.order.seller)
         self.assertIn("trr_12345", record.remote_ids)
-        self.assertEqual(record.amount, Money("13.05", "USD"))
+        self.assertEqual(record.amount, Money("9.91", "USD"))
         record = TransactionRecord.objects.get(
             source=HOLDINGS,
             destination=ESCROW,
@@ -158,4 +158,4 @@ class TestKillFraudulent(EnsurePlansMixin, TestCase, DeliverableChargeMixin):
         self.assertEqual(record.payer, deliverable.order.seller)
         self.assertEqual(record.payee, deliverable.order.seller)
         self.assertIn("pi_12345", record.remote_ids)
-        self.assertEqual(record.amount, Money("13.05", "USD"))
+        self.assertEqual(record.amount, Money("9.91", "USD"))

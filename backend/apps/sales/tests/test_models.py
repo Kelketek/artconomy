@@ -28,6 +28,7 @@ from apps.sales.constants import (
     TABLE_SERVICE,
     TAX,
     WAITING,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.models import (
     InventoryTracker,
@@ -385,7 +386,8 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
-        self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
+        self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
+        self.assertEqual(deliverable.invoice.line_items.all().count(), 5)
 
     @data(True, False)
     def test_create_line_items_escrow_international(self, cascade_fees):
@@ -410,7 +412,8 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
-        self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
+        self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
+        self.assertEqual(deliverable.invoice.line_items.all().count(), 6)
 
     def test_create_line_items_non_escrow_free(self):
         deliverable = DeliverableFactory.create(
@@ -455,11 +458,11 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(table_service.percentage, Decimal("20"))
         self.assertEqual(table_service.amount, Money("2.00", "USD"))
         self.assertEqual(table_service.cascade_percentage, cascade_fees)
-        self.assertFalse(table_service.cascade_amount)
+        self.assertTrue(table_service.cascade_amount)
         set_on_fire = deliverable.invoice.line_items.get(type=TAX)
         self.assertEqual(set_on_fire.percentage, Decimal("8"))
         self.assertEqual(set_on_fire.amount, Money("0.00", "USD"))
-        self.assertEqual(deliverable.invoice.line_items.all().count(), 3)
+        self.assertEqual(deliverable.invoice.line_items.all().count(), 6)
 
     @override_settings(AUTO_CANCEL_DAYS=5)
     @freeze_time("2023-01-01")
@@ -556,6 +559,15 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable.product.save()
         deliverable.refresh_from_db()
         deliverable.save()
+        assert total == deliverable.invoice.total()
+
+    def test_stable_lines(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money(10, "USD"))
+        total = deliverable.invoice.total()
+        lines = set(deliverable.invoice.line_items.all())
+        assert deliverable.invoice.total() == total
+        deliverable.save()
+        assert lines == set(deliverable.invoice.line_items.all())
         assert total == deliverable.invoice.total()
 
 

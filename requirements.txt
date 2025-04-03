@@ -268,7 +268,7 @@ markdown2==2.5.4
     # via django-markdown2
 matplotlib-inline==0.1.7
     # via ipython
-maturin==1.9.3
+maturin[patchelf]==1.9.3
     # via -r requirements.in
 maxminddb==2.8.2
     # via geoip2
@@ -290,6 +290,8 @@ pandas==2.3.2
     # via -r requirements.in
 parso==0.8.4
     # via jedi
+patchelf==0.17.2.4
+    # via maturin
 pexpect==4.9.0
     # via ipython
 pillow==11.3.0
