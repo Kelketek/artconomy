@@ -306,8 +306,8 @@ describe("ProductDetail.vue", () => {
       "[Starts at $10.00] - This is a test product",
     )
     data.productSingle.updateX({
-      base_price: 0,
-      starting_price: 0,
+      base_price: "0",
+      starting_price: "0",
     })
     await nextTick()
     description = document.querySelector('meta[name="description"]')

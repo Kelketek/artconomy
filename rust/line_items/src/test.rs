@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod interface_tests {
-    use crate::data::LineItem;
+    use crate::data::{LineItem};
     use crate::funcs::{get_totals, reckon_lines};
     use crate::s;
     use ntest::timeout;
@@ -814,13 +814,114 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let result = get_totals(input.clone(), 2);
+        let result = get_totals(input, 2);
         assert_eq!(
             result.err().unwrap().to_string(),
             "No line items to distribute difference to. \
         You may be missing a base price line item, which should be included even if the base price \
         would be zero."
         )
+    }
+}
+
+#[cfg(test)]
+mod line_item_preview_tests {
+    use ntest::timeout;
+    use crate::data::{DeliverableLinesContext, LineItem, Pricing, ServicePlan, Category, LineType};
+    use crate::funcs::deliverable_lines;
+    use crate::s;
+
+    fn gen_pricing() -> Pricing {
+        Pricing {
+            plans: vec![
+                ServicePlan {
+                    id: 7,
+                    name: s!("Free"),
+                    per_deliverable_price: s!("0.00"),
+                    max_simultaneous_orders: 1,
+                    waitlisting: false,
+                    shield_static_price: s!("3.50"),
+                    shield_percentage_price: s!("3.50"),
+                    paypal_invoicing: false,
+                    connection_fee_waived: false,
+                },
+                ServicePlan {
+                    id: 8,
+                    name: s!("Basic"),
+                    per_deliverable_price: s!("1.35"),
+                    max_simultaneous_orders: 0,
+                    waitlisting: false,
+                    shield_static_price: s!("3.50"),
+                    shield_percentage_price: s!("5"),
+                    paypal_invoicing: false,
+                    connection_fee_waived: false,
+                },
+                ServicePlan {
+                    id: 9,
+                    name: s!("Landscape"),
+                    per_deliverable_price: s!("0.75"),
+                    max_simultaneous_orders: 0,
+                    waitlisting: true,
+                    shield_static_price: s!("0.75"),
+                    shield_percentage_price: s!("4"),
+                    paypal_invoicing: true,
+                    connection_fee_waived: true,
+
+                }
+            ],
+            minimum_price: s!("1.00"),
+            table_percentage: s!("10"),
+            table_static: s!("5.00"),
+            table_tax: s!("8.25"),
+            international_conversion_percentage: s!("1"),
+            preferred_plan: s!("Landscape"),
+        }
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_basic_line_items() {
+        let lines_result = deliverable_lines(
+            DeliverableLinesContext {
+                escrow_enabled: true,
+                pricing: gen_pricing(),
+                base_price: s!("25.00"),
+                cascade: true,
+                international: false,
+                plan_name: s!("Basic"),
+                table_product: false,
+                extra_lines: vec![],
+            }
+        );
+        let expected = vec![
+            LineItem {
+                id: -1,
+                priority: 0,
+                kind: LineType::BASE_PRICE,
+                amount: s!("25.00"),
+                category: Category::ESCROW_HOLD,
+                frozen_value: None,
+                percentage: s!("0"),
+                description: s!(""),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            },
+            LineItem {
+                id: -5,
+                priority: 300,
+                kind: LineType::SHIELD,
+                cascade_percentage: true,
+                cascade_amount: true,
+                back_into_percentage: false,
+                amount: s!("3.50"),
+                category: Category::SHIELD_FEE,
+                frozen_value: None,
+                percentage: s!("5"),
+                description: s!(""),
+            }
+        ];
+        assert_eq!(lines_result, Ok(expected));
     }
 }
 

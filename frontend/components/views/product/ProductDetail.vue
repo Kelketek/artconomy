@@ -1313,7 +1313,7 @@ watch(
     }
     updateTitle(`${product.name} by ${product.user.username} -- Artconomy`)
     let prefix: string
-    if (product.starting_price) {
+    if (parseFloat(product.starting_price)) {
       prefix = `[Starts at $${product.starting_price}] - `
     } else {
       prefix = "[Starts at FREE] - "

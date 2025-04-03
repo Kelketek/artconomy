@@ -1,10 +1,12 @@
 import { LineType } from "@/types/enums/LineType.ts"
 import type { LineItem, Pricing } from "@/types/main"
+import { LineCategory } from "@/types/enums/LineCategory.ts"
 
 export function genLineItem(overrides: Partial<LineItem>): LineItem {
   return {
     id: -1,
     type: 0,
+    category: LineCategory.ESCROW_HOLD,
     amount: "0.00",
     frozen_value: null,
     percentage: "0",
@@ -24,6 +26,7 @@ export function dummyLineItems(): LineItem[] {
       priority: 300,
       percentage: "4",
       amount: "0.50",
+      category: LineCategory.ESCROW_HOLD,
       frozen_value: null,
       type: LineType.SHIELD,
       destination_account: 304,
@@ -39,6 +42,7 @@ export function dummyLineItems(): LineItem[] {
       percentage: "4",
       amount: "0.25",
       frozen_value: null,
+      category: LineCategory.PREMIUM_BONUS,
       type: LineType.BONUS,
       destination_account: 304,
       destination_user: null,
@@ -54,6 +58,7 @@ export function dummyLineItems(): LineItem[] {
       amount: "100.00",
       frozen_value: null,
       type: LineType.BASE_PRICE,
+      category: LineCategory.ESCROW_HOLD,
       destination_account: 302,
       destination_user: 1,
       description: "",
@@ -66,6 +71,7 @@ export function dummyLineItems(): LineItem[] {
       priority: 100,
       percentage: "0",
       amount: "-20.00",
+      category: LineCategory.ESCROW_HOLD,
       frozen_value: null,
       type: LineType.ADD_ON,
       destination_account: 302,
@@ -105,6 +111,7 @@ export function genPricing(): Pricing {
         shield_static_price: "3.50",
         shield_percentage_price: "5.5",
         paypal_invoicing: false,
+        connection_fee_waived: false,
       },
       {
         id: 8,
@@ -132,6 +139,7 @@ export function genPricing(): Pricing {
         shield_static_price: "3.50",
         shield_percentage_price: "5",
         paypal_invoicing: false,
+        connection_fee_waived: false,
       },
       {
         id: 9,
@@ -162,6 +170,7 @@ export function genPricing(): Pricing {
         shield_static_price: "0.75",
         shield_percentage_price: "4",
         paypal_invoicing: true,
+        connection_fee_waived: true,
       },
     ],
     minimum_price: "1.00",

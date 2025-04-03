@@ -31,6 +31,7 @@ import { AccountType } from "@/types/enums/AccountType.ts"
 import { ConnectionStatus } from "@/types/enums/ConnectionStatus.ts"
 import { InvoiceType } from "@/types/enums/InvoiceType.ts"
 import { LineType } from "@/types/enums/LineType.ts"
+import { LineCategory } from "@/types/enums/LineCategory.ts"
 import { LogLevels } from "@/types/enums/LogLevels.ts"
 import { Ratings } from "@/types/enums/Ratings.ts"
 import { TransactionCategory } from "@/types/enums/TransactionCategory.ts"
@@ -368,6 +369,7 @@ export interface Journal {
 }
 
 export type LineTypeValue = (typeof LineType)[keyof typeof LineType]
+export type LineCategoryValue = (typeof LineCategory)[keyof typeof LineCategory]
 
 export interface LineItem {
   id: number
@@ -379,6 +381,7 @@ export interface LineItem {
   cascade_amount: boolean
   back_into_percentage: boolean
   type: LineTypeValue
+  category: LineCategoryValue
   description: string
   destination_account?: number | null
   destination_user?: number | null
@@ -477,6 +480,7 @@ export interface ServicePlan {
   per_deliverable_price: string
   shield_percentage_price: string
   max_simultaneous_orders: number
+  connection_fee_waived: boolean
 }
 
 export interface Pricing {
