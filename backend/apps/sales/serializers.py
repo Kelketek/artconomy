@@ -178,11 +178,23 @@ class ProductSerializer(RelatedAtomicMixin, serializers.ModelSerializer):
         revised.update(data)
         if not getattr(revised, "user", None):
             revised.user = self.context["request"].subject
+        if getattr(revised, "table_product", None) is None:
+            revised.table_product = False
+        if getattr(revised, "cascade_fees", None) is None:
+            revised.cascade_fees = False
+        revised.international = (
+            StripeAccount.objects.filter(
+                user=self.context["request"].subject,
+            )
+            .exclude(country=settings.SOURCE_COUNTRY)
+            .exists()
+        )
         escrow_enabled = (
-            revised.escrow_enabled
+            bool(revised.escrow_enabled)
             and self.context["request"].subject.artist_profile.escrow_enabled
         )
         data["escrow_enabled"] = escrow_enabled
+        revised.escrow_enabled = escrow_enabled
         minimum = settings.MINIMUM_PRICE
         total = reckon_lines(lines_for_product(revised))
         if escrow_enabled and (total < minimum):
@@ -839,6 +851,10 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
     percentage = serializers.CharField()
     amount = MoneyToString()
     frozen_value = MoneyToString()
+    kind = serializers.SerializerMethodField()
+
+    def get_kind(self, instance: LineItem):
+        return instance.type
 
     class Meta:
         model = LineItem
@@ -851,6 +867,11 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
             "cascade_percentage",
             "cascade_amount",
             "back_into_percentage",
+            "destination_account",
+            "destination_user_id",
+            "kind",
+            "description",
+            "category",
         )
         read_only_fields = fields
 
@@ -873,7 +894,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             "type",
             "category",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "description",
             "cascade_percentage",
             "cascade_amount",
@@ -884,8 +905,9 @@ class LineItemSerializer(serializers.ModelSerializer):
             "id",
             "priority",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "targets",
+            "category",
         )
 
     def __init__(self, *args, **kwargs):
@@ -2175,6 +2197,7 @@ class ServicePlanSerializer(serializers.ModelSerializer):
             "description",
             "features",
             "monthly_charge",
+            "connection_fee_waived",
             "per_deliverable_price",
             "max_simultaneous_orders",
             "tipping",

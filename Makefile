@@ -71,10 +71,13 @@ format.backend:
 	${APP_COMMAND} ruff check --fix backend
 	${APP_COMMAND} ruff format backend
 
+format.rust:
+	${APP_COMMAND} cargo fmt --manifest-path rust/line_items/Cargo.toml
+
 format.frontend:
 	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
 
-format: format.backend format.frontend
+format: format.backend format.rust format.frontend
 
 upgrade:
 	rm -f requirements.txt && ${APP_COMMAND} pip-compile --resolver=backtracking requirements.in constraints.in --output-file=requirements.txt
