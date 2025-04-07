@@ -76,7 +76,7 @@ class DeliverableAdmin(admin.ModelAdmin):
         "link",
     )
     list_filter = ("escrow_enabled", "status", "processor")
-    read_only_fields = ("link",)
+    readonly_fields = ("link",)
 
     def get_fields(self, request, obj=...):
         fields = super().get_fields(request, obj)
