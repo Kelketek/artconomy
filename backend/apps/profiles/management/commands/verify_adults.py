@@ -1,5 +1,6 @@
+from apps.lib.constants import DISPUTE
 from apps.profiles.models import User
-from apps.sales.constants import REFUNDED, COMPLETED, QUEUED, REVIEW, PAID
+from apps.sales.constants import REFUNDED, COMPLETED, QUEUED, REVIEW, PAID, IN_PROGRESS
 from apps.sales.models import Invoice, Deliverable, CreditCardToken
 from django.core.management.base import BaseCommand
 
@@ -11,7 +12,7 @@ class Command(BaseCommand):
         User.objects.filter(stripe_account__active=True).update(verified_adult=True)
         for deliverable in Deliverable.objects.filter(
             escrow_enabled=True,
-            status__in=[QUEUED, REVIEW, COMPLETED, REFUNDED],
+            status__in=[QUEUED, IN_PROGRESS, REVIEW, DISPUTE, COMPLETED, REFUNDED],
             order__buyer__isnull=False,
         ):
             deliverable.order.buyer.verified_adult = True

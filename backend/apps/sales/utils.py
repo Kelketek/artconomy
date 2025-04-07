@@ -1726,7 +1726,7 @@ class PaymentIntentSettingsData(TypedDict):
 
 
 def get_invoice_intent(invoice: "Invoice", payment_settings: PaymentIntentSettingsData):
-    if invoice.bill_to.is_registered:
+    if invoice.bill_to and invoice.bill_to.is_registered:
         create_or_update_stripe_user(invoice.bill_to.id)
         invoice.bill_to.refresh_from_db()
     stripe_token = get_intent_card_token(
@@ -1764,7 +1764,7 @@ def get_invoice_intent(invoice: "Invoice", payment_settings: PaymentIntentSettin
             # Need to figure out how to do this per-currency.
             "amount": int(total.amount * total.currency.sub_unit),
             "currency": str(total.currency).lower(),
-            "customer": invoice.bill_to.stripe_token or None,
+            "customer": (invoice.bill_to and invoice.bill_to.stripe_token) or None,
             # Note: If we expand the payment types, we may need to take into account
             # that linking the charge_id to the source_transaction field of the payout
             # transfer could cause problems. See:
@@ -1829,7 +1829,7 @@ def mark_adult(deliverable):
     if deliverable.escrow_enabled or deliverable.invoice.paypal_token:
         if deliverable.order.buyer:
             deliverable.order.buyer.verified_adult = True
-            deliverable.order.buyer.save()
+            deliverable.order.buyer.save(update_fields=["verified_adult"])
 
 
 def credit_referral(deliverable):

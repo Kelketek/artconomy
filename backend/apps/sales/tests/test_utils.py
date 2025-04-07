@@ -8,6 +8,7 @@ from apps.lib.constants import ORDER_UPDATE
 from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
 from apps.profiles.models import User
 from apps.profiles.tests.factories import UserFactory
+from apps.profiles.utils import create_guest_user
 from apps.sales.constants import (
     BANK_MISC_FEES,
     CANCELLED,
@@ -561,9 +562,30 @@ class TestMarkAdult(EnsurePlansMixin, TestCase):
         deliverable.order.buyer.refresh_from_db()
         self.assertTrue(deliverable.order.buyer.verified_adult)
 
+    def test_mark_adult_guest_escrow_enabled(self):
+        deliverable = DeliverableFactory.create(
+            escrow_enabled=True,
+            order__buyer=create_guest_user(email="test@example.com"),
+        )
+        self.assertFalse(deliverable.order.buyer.verified_adult)
+        mark_adult(deliverable)
+        deliverable.order.buyer.refresh_from_db()
+        self.assertTrue(deliverable.order.buyer.verified_adult)
+
     def test_mark_adult_paypal_invoice(self):
         deliverable = DeliverableFactory.create(
             escrow_enabled=False, invoice__paypal_token="beep"
+        )
+        self.assertFalse(deliverable.order.buyer.verified_adult)
+        mark_adult(deliverable)
+        deliverable.order.buyer.refresh_from_db()
+        self.assertTrue(deliverable.order.buyer.verified_adult)
+
+    def test_mark_adult_guest_paypal_invoice(self):
+        deliverable = DeliverableFactory.create(
+            escrow_enabled=False,
+            invoice__paypal_token="beep",
+            order__buyer=create_guest_user(email="test@example.com"),
         )
         self.assertFalse(deliverable.order.buyer.verified_adult)
         mark_adult(deliverable)
