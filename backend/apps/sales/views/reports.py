@@ -29,6 +29,7 @@ from apps.sales.constants import (
     CARD,
     SUCCESS,
     ESCROW,
+    BANK_MISC_FEES,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.serializers import (
@@ -371,7 +372,8 @@ class ReconciliationReport(CSVReport, ListAPIView, DateConstrained):
             )
             .filter(
                 Q(destination=FUND, source__in=[CARD, CASH_DEPOSIT])
-                | Q(destination__in=[PAYOUT_ACCOUNT, CARD, CASH_DEPOSIT, ESCROW])
+                | Q(destination__in=[PAYOUT_ACCOUNT, CARD, CASH_DEPOSIT])
+                | Q(source=FUND, payer=None, payee=None)
             )
             .filter(self.date_filter)
             .order_by("finalized_on")

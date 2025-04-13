@@ -42,6 +42,8 @@ from apps.sales.constants import (
     FUND,
     THIRD_PARTY_FEE,
     BANK_TRANSFER_FEES,
+    CASH_DEPOSIT,
+    TOP_UP,
 )
 from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord
 from apps.sales.stripe import money_to_stripe
@@ -130,12 +132,12 @@ class TestStripeWebhook(APITestCase):
         return request
 
     @patch("apps.sales.views.webhooks.pull_report")
-    def test_import_radar_fees(self, mock_pull):
+    def test_import_balance_transactions_and_fees(self, mock_pull):
         self.assertEqual(TransactionRecord.objects.count(), 0)
         mock_pull.return_value = DictReader(StringIO(DUMMY_BALANCE_REPORT))
         event = base_report_event()
         self.view(self.gen_request(event), False)
-        self.assertEqual(TransactionRecord.objects.count(), 2)
+        self.assertEqual(TransactionRecord.objects.count(), 3)
         record = TransactionRecord.objects.get(remote_ids__contains="txn_beep")
         self.assertEqual(record.source, FUND)
         self.assertEqual(record.destination, CARD_TRANSACTION_FEES)
@@ -151,6 +153,14 @@ class TestStripeWebhook(APITestCase):
         self.assertIsNone(record.payee)
         self.assertEqual(record.category, THIRD_PARTY_FEE)
         self.assertEqual(record.amount, Money("5.50", "USD"))
+        record = TransactionRecord.objects.get(remote_ids__contains="txn_topup")
+        self.assertEqual(record.source, CASH_DEPOSIT)
+        self.assertEqual(record.destination, FUND)
+        self.assertIsNone(record.payer)
+        self.assertIsNone(record.payee)
+        self.assertEqual(record.amount, Money('100.00', 'USD'))
+        self.assertEqual(record.category, TOP_UP)
+        self.assertEqual(record.status, SUCCESS)
 
     @patch("apps.sales.views.webhooks.mockable_dummy_event")
     def test_validates_event(self, mockable_dummy_event):

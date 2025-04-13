@@ -29,6 +29,7 @@ from apps.sales.constants import (
     SUCCESS,
     CARD_TRANSACTION_FEES,
     BANK_TRANSFER_FEES,
+    CASH_DEPOSIT, TOP_UP,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -234,7 +235,7 @@ def add_stripe_fee(row) -> TransactionRecord:
         BANK_TRANSFER_FEES if "Connect" in row["description"] else CARD_TRANSACTION_FEES
     )
     try:
-        return TransactionRecord.objects.filter(
+        return TransactionRecord.objects.get(
             status=SUCCESS,
             remote_ids__contains=row["balance_transaction_id"],
             payer=None,
@@ -242,7 +243,7 @@ def add_stripe_fee(row) -> TransactionRecord:
             source=source,
             category=THIRD_PARTY_FEE,
             destination=destination,
-        ).get()
+        )
     except TransactionRecord.DoesNotExist:
         pass
     created_on = date_from_utc_stamp(row["created_utc"])
@@ -261,8 +262,44 @@ def add_stripe_fee(row) -> TransactionRecord:
         finalized_on=finalized_on,
         category=THIRD_PARTY_FEE,
         remote_ids=[row["balance_transaction_id"], tag],
-        note=row["description"],
+        note=row["description"] or '',
     )
+
+
+def add_top_up(row) -> TransactionRecord:
+    """
+    Given a row for a top-up, add the top-up to the fund account.
+    """
+    amount = abs(get_amount(row))
+    source = CASH_DEPOSIT
+    try:
+        return TransactionRecord.objects.get(
+            status=SUCCESS,
+            remote_ids__contains=row["balance_transaction_id"],
+            payer=None,
+            payee=None,
+            source=source,
+            destination=FUND,
+            category=TOP_UP,
+        )
+    except TransactionRecord.DoesNotExist:
+        pass
+    created_on = date_from_utc_stamp(row["created_utc"])
+    finalized_on = date_from_utc_stamp(row["available_on_utc"])
+    return TransactionRecord.objects.create(
+        status=SUCCESS,
+        amount=amount,
+        source=source,
+        destination=FUND,
+        payer=None,
+        payee=None,
+        created_on=created_on,
+        finalized_on=finalized_on,
+        category=TOP_UP,
+        remote_ids=[row["balance_transaction_id"]],
+        note=row["description"] or '',
+    )
+
 
 
 def apply_stripe_balance_changes(event):
@@ -277,6 +314,8 @@ def apply_stripe_balance_changes(event):
             # determine how they actually behave.
             if row["reporting_category"] == "fee":
                 add_stripe_fee(row)
+            elif row["reporting_category"] == "topup":
+                add_top_up(row)
 
 
 REPORT_ROUTES = {

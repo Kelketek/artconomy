@@ -311,6 +311,7 @@ PROCESSING_FEE = 418
 TIP_SEND = 419
 # Client charges a card or sends cash as one transaction before forking elsewhere.
 PAYMENT = 420
+TOP_UP =  421
 
 CATEGORIES = (
     (PAYMENT, "Payment"),
@@ -333,6 +334,7 @@ CATEGORIES = (
     (VENDOR_PAYMENT, "Vendor Payment"),
     (PAYOUT_REVERSAL, "Payout Reversal"),
     (TIP_SEND, "Tip"),
+    (TOP_UP, "Top-up")
 )
 
 
