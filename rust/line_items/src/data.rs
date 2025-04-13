@@ -90,7 +90,18 @@ pub struct LineItem {
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ServicePlan {
-    
+    /// The ID of the service plan.
+    pub id: i32,
+    /// The name of the service plan.
+    pub name: String,
+    /// Whether the client would be charged the connection fee from Stripe.
+    pub connection_fee_waived: bool,
+    /// How much we charge for each deliverable we're tracking. Only used when escrow is disabled.
+    pub per_deliverable_price: String,
+    /// The static portion of the shield price.
+    pub shield_static_price: String,
+    /// The percentage portion of the shield price.
+    pub shield_percentage_price: String,
 }
 
 /// Only used in tests, so this should not have an opportunity to roll over.
