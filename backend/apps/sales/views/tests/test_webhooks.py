@@ -44,6 +44,7 @@ from apps.sales.constants import (
     BANK_TRANSFER_FEES,
     CASH_DEPOSIT,
     TOP_UP,
+    CARD_MISC_FEES,
 )
 from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord
 from apps.sales.stripe import money_to_stripe
@@ -140,7 +141,7 @@ class TestStripeWebhook(APITestCase):
         self.assertEqual(TransactionRecord.objects.count(), 3)
         record = TransactionRecord.objects.get(remote_ids__contains="txn_beep")
         self.assertEqual(record.source, FUND)
-        self.assertEqual(record.destination, CARD_TRANSACTION_FEES)
+        self.assertEqual(record.destination, CARD_MISC_FEES)
         self.assertIsNone(record.payer)
         self.assertIsNone(record.payee)
         self.assertEqual(record.category, THIRD_PARTY_FEE)
@@ -158,7 +159,7 @@ class TestStripeWebhook(APITestCase):
         self.assertEqual(record.destination, FUND)
         self.assertIsNone(record.payer)
         self.assertIsNone(record.payee)
-        self.assertEqual(record.amount, Money('100.00', 'USD'))
+        self.assertEqual(record.amount, Money("100.00", "USD"))
         self.assertEqual(record.category, TOP_UP)
         self.assertEqual(record.status, SUCCESS)
 

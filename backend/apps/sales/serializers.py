@@ -47,6 +47,8 @@ from apps.sales.constants import (
     WEIGHTED_STATUSES,
     FUND,
     PAYOUT_ACCOUNT,
+    BANK_MISC_FEES,
+    CARD_MISC_FEES,
 )
 from apps.sales.line_item_funcs import get_totals, reckon_lines
 from apps.sales.models import (
@@ -1796,7 +1798,15 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
                 targets=invoice,
             ).amount
             amount -= fee
-        if obj.destination in [PAYOUT_ACCOUNT, CARD, CASH_DEPOSIT]:
+        if obj.destination in {
+            PAYOUT_ACCOUNT,
+            CARD,
+            CASH_DEPOSIT,
+            CARD_TRANSACTION_FEES,
+            CARD_MISC_FEES,
+            BANK_TRANSFER_FEES,
+            BANK_MISC_FEES,
+        }:
             return str(-amount)
         return str(amount)
 

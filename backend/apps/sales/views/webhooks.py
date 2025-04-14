@@ -29,7 +29,9 @@ from apps.sales.constants import (
     SUCCESS,
     CARD_TRANSACTION_FEES,
     BANK_TRANSFER_FEES,
-    CASH_DEPOSIT, TOP_UP,
+    CASH_DEPOSIT,
+    TOP_UP,
+    CARD_MISC_FEES,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -232,7 +234,7 @@ def add_stripe_fee(row) -> TransactionRecord:
     amount = abs(get_amount(row))
     source = FUND
     destination = (
-        BANK_TRANSFER_FEES if "Connect" in row["description"] else CARD_TRANSACTION_FEES
+        BANK_TRANSFER_FEES if "Connect" in row["description"] else CARD_MISC_FEES
     )
     try:
         return TransactionRecord.objects.get(
@@ -262,7 +264,7 @@ def add_stripe_fee(row) -> TransactionRecord:
         finalized_on=finalized_on,
         category=THIRD_PARTY_FEE,
         remote_ids=[row["balance_transaction_id"], tag],
-        note=row["description"] or '',
+        note=row["description"] or "",
     )
 
 
@@ -297,9 +299,8 @@ def add_top_up(row) -> TransactionRecord:
         finalized_on=finalized_on,
         category=TOP_UP,
         remote_ids=[row["balance_transaction_id"]],
-        note=row["description"] or '',
+        note=row["description"] or "",
     )
-
 
 
 def apply_stripe_balance_changes(event):

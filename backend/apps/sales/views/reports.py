@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Union
 
 from moneyed import Money
@@ -28,8 +29,7 @@ from apps.sales.constants import (
     CASH_DEPOSIT,
     CARD,
     SUCCESS,
-    ESCROW,
-    BANK_MISC_FEES,
+    CARD_TRANSACTION_FEES,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.serializers import (
@@ -374,9 +374,10 @@ class ReconciliationReport(CSVReport, ListAPIView, DateConstrained):
                 Q(destination=FUND, source__in=[CARD, CASH_DEPOSIT])
                 | Q(destination__in=[PAYOUT_ACCOUNT, CARD, CASH_DEPOSIT])
                 | Q(source=FUND, payer=None, payee=None)
-            )
+            ).exclude(Q(destination=CARD_TRANSACTION_FEES))
             .filter(self.date_filter)
             .order_by("finalized_on")
+            .exclude(amount=Decimal("0"))
             .distinct()
         )
 
