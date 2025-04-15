@@ -77,7 +77,7 @@ class DateConstrained:
         default_start -= relativedelta(months=2)
         date_string = self.request.GET.get("start_date", "")
         try:
-            start_date = make_aware(parse(date_string))
+            start_date = make_aware(parse(date_string), timezone=utc)
         except ParserError:
             pass
         if not start_date:
