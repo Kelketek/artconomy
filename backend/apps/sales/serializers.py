@@ -1807,8 +1807,8 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
             BANK_TRANSFER_FEES,
             BANK_MISC_FEES,
         }:
-            return str(-amount)
-        return str(amount)
+            return str(-amount.amount)
+        return str(amount.amount)
 
     def get_remote_ids(self, obj: TransactionRecord):
         return ", ".join(sorted(obj.remote_ids))

@@ -376,7 +376,7 @@ class ReconciliationReport(CSVReport, ListAPIView, DateConstrained):
                 | Q(source=FUND, payer=None, payee=None)
             ).exclude(Q(destination=CARD_TRANSACTION_FEES))
             .filter(self.date_filter)
-            .order_by("finalized_on")
+            .order_by("-finalized_on")
             .exclude(amount=Decimal("0"))
             .distinct()
         )
