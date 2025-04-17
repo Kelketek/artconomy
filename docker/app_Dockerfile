@@ -10,7 +10,7 @@ EXPOSE 8002
 # Install essential packages, plus a few packages for live diagnosis if needed.
 # Note: Currently, postgres15 is a version ahead of production, since we're on an LTS, but alpine doesn't have
 # 14 anymore.
-RUN apk add bash elfutils-dev geoip gettext git libc-dev linux-headers libmaxminddb-dev libmaxminddb musl-dev ncurses-dev postgresql15-client postgresql15-dev vim
+RUN apk add bash elfutils-dev geoip gettext git libc-dev linux-headers libmaxminddb-dev libmaxminddb musl-dev ncurses-dev postgresql15-client postgresql15-dev vim xz-dev xz-libs
 RUN addgroup -S app -g ${GROUP_GID}
 RUN adduser -S app -G app -h /home/app -s /bin/bash -u ${USER_UID}
 # Main dependencies
@@ -18,14 +18,21 @@ RUN mkdir /home/app/artconomy
 RUN mkdir /home/app/static
 RUN mkdir /home/app/media
 WORKDIR /home/app
-ENV LANG C.UTF-8
-ENV HOME /home/app
-ENV PATH $PATH:$HOME/.local/bin:$HOME/.cargo/bin
+ENV LANG=C.UTF-8
+ENV HOME=/home/app
+ENV PATH=$PATH:$HOME/.local/bin:$HOME/.cargo/bin
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup
 RUN chmod 755 rustup
 RUN ./rustup -y
 RUN rm rustup
+WORKDIR /root/
+RUN git clone --depth 1 https://github.com/rustwasm/wasm-pack.git
+WORKDIR /root/wasm-pack
+RUN cargo build --release
+RUN mkdir -p /home/app/.cargo/bin/
+RUN mv target/release/wasm-pack /home/app/.cargo/bin/
 WORKDIR /home/app/artconomy/
+RUN rm -rvf /root/wasm-pack
 ADD . .
 RUN chown -R app:app /home/app
 WORKDIR /home/app/artconomy/rust/line_items
@@ -35,5 +42,4 @@ WORKDIR /home/app/artconomy/
 RUN pip install --upgrade pip
 RUN pip install pip-tools
 RUN pip install -r /home/app/artconomy/requirements.txt
-RUN cargo install wasm-pack
 USER app

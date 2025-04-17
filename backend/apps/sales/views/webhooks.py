@@ -27,7 +27,6 @@ from apps.sales.constants import (
     THIRD_PARTY_FEE,
     FUND,
     SUCCESS,
-    CARD_TRANSACTION_FEES,
     BANK_TRANSFER_FEES,
     CASH_DEPOSIT,
     TOP_UP,

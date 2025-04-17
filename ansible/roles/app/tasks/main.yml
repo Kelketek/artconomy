@@ -160,7 +160,7 @@
 - name: Install WASM compiler
   become: yes
   become_user: "{{ env_prefix }}"
-  shell: "source ~/.profile && cargo install wasm-pack"
+  shell: "source ~/.profile && cargo install 'wasm-pack@0.13.0'"
   args:
     executable: "/bin/bash"
   when: rust_installed_status.changed

@@ -1,8 +1,8 @@
 #[cfg(feature = "python")]
-use dict_derive::{FromPyObject, IntoPyObject};
+use pyo3::prelude::*;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap};
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
@@ -44,7 +44,7 @@ impl core::fmt::Display for TabulationError {
 }
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
-#[cfg_attr(feature = "python", derive(FromPyObject))]
+#[cfg_attr(feature = "python", pyclass)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Debug, Clone)]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
@@ -120,7 +120,7 @@ pub type IdToMoneyVal = HashMap<i32, String>;
 /// 'Calculation' structure used as the basis of the return value for JS-based calls to the line
 /// item functions.
 #[derive(Serialize, Deserialize)]
-#[cfg_attr(feature = "python", derive(IntoPyObject))]
+#[cfg_attr(feature = "python", pyclass)]
 pub struct Calculation {
     /// Total value of the reckoned line items
     pub total: String,

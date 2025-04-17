@@ -33,9 +33,6 @@ macro_rules! set_trace {
 
 /// Line item calculation functions used for determining amounts on invoices.
 pub mod funcs {
-    #[cfg(feature = "python")]
-    use crate::data::Calculation;
-    #[cfg(feature = "wasm")]
     use crate::data::Calculation;
     use crate::data::{LineDecimalMap, LineItem, TabulationError};
     #[cfg(feature = "wasm")]
@@ -458,7 +455,7 @@ pub mod funcs {
     /// import the module.
     #[cfg(feature = "python")]
     #[pymodule]
-    fn line_items(_py: Python<'_>,  m: &PyModule) -> PyResult<()> {
+    fn line_items(m: &Bound<'_, PyModule>) -> PyResult<()> {
         m.add_function(wrap_pyfunction!(py_get_totals, m)?)?;
         m.add_function(wrap_pyfunction!(py_reckon_lines, m)?)?;
         m.add_function(wrap_pyfunction!(py_divide_amount, m)?)?;
