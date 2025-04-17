@@ -1955,8 +1955,10 @@ class SalesListBase(ListAPIView):
         except (ValueError, TypeError):
             kwargs = {}
         qs = qs.filter(**kwargs)
+        # Fox: Please note that this has been changed at user request at least once.
+        # if we get complaints again, we're going to have to enable user sorting.
         if not query:
-            return qs.distinct().order_by("-created_on")
+            return qs.distinct().order_by("created_on")
         qs = qs.annotate(
             buyer_username_case=Collate("buyer__username", "und-x-icu"),
         )

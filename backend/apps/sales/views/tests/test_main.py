@@ -197,12 +197,12 @@ class TestSaleLists(TestOrderListBase, APITestCase):
         )
         response = self.client.get(self.make_url(artist, "current"))
         first, second, third = response.data["results"]
-        self.assertEqual(first["id"], unregistered_deliverable.order.id)
-        self.assertEqual(first["guest_email"], "test2@example.com")
+        self.assertEqual(first["id"], normal_deliverable.order.id)
+        self.assertEqual(first["guest_email"], "")
         self.assertEqual(second["id"], guest_deliverable.order.id)
         self.assertEqual(second["guest_email"], "test@example.com")
-        self.assertEqual(third["id"], normal_deliverable.order.id)
-        self.assertEqual(third["guest_email"], "")
+        self.assertEqual(third["id"], unregistered_deliverable.order.id)
+        self.assertEqual(third["guest_email"], "test2@example.com")
 
 
 class TestCaseLists(TestOrderListBase, APITestCase):
