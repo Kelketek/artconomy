@@ -51,6 +51,8 @@ pub mod funcs {
     use std::panic;
     #[cfg(feature = "wasm")]
     use std::thread;
+    #[cfg(feature = "python")]
+    use pyo3::types::PyDict;
     #[cfg(feature = "wasm")]
     use wasm_bindgen::prelude::wasm_bindgen;
     #[cfg(feature = "wasm")]

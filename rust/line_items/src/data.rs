@@ -6,6 +6,8 @@ use std::collections::{HashMap};
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
+#[cfg(feature = "python")]
+use dict_derive::IntoPyObject;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::{JsError, JsValue};
 
@@ -44,23 +46,28 @@ impl core::fmt::Display for TabulationError {
 }
 
 /// LineItem struct. LineItems have several fields which affect their resolved value.
-#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", derive(FromPyObject))]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Debug, Clone)]
 pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub id: i32,
     /// All line items have a priority. This is used for determining which line items this line
     /// item's value effects. For instance, high priority percentages are calculated based on the
     /// value of lower-priority lines.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub priority: i16,
     /// A static amount this line item represents. Starts as a float to be converted into decimal.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub amount: String,
     /// A previous version of the line item calculations may have already run. If this happens,
     /// we will perform all operations with this frozen value. All line items should have this set
     /// if any do.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub frozen_value: Option<String>,
     /// Used for percentage-based line items, such as proportional fees/discounts. Can be used in
     /// conjunction with amount to add a static amount on top of the percentage.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub percentage: String,
     /// Whether the percentage calculated should be based on a target amount rather than added on
     /// top. That is, calculate all lower priority items to get their total, then find out the line
@@ -71,15 +78,18 @@ pub struct LineItem {
     /// This is useful for things like credit card fees, where we are charged a percent amount based
     /// on what we ran through the system, and no assumption is made about the line items
     /// of the relevant invoice.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub cascade_percentage: bool,
     /// In contrast to the method used by 'cascade_percentage' on its own, this assumes that the
     /// percentage amount would have been pre-applied to the lower line items and the result is the
     /// total. This is how taxes are normally done-- you have a base amount, and the tax is run on
     /// top of it, as opposed to the other method where the percentage is deducted from whatever
     /// the total ended up being.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub back_into_percentage: bool,
     /// Whether the amount is to be pulled out of lower priority line items rather than added on
     /// top.
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub cascade_amount: bool,
 }
 
@@ -120,7 +130,7 @@ pub type IdToMoneyVal = HashMap<i32, String>;
 /// 'Calculation' structure used as the basis of the return value for JS-based calls to the line
 /// item functions.
 #[derive(Serialize, Deserialize)]
-#[cfg_attr(feature = "python", pyclass)]
+#[cfg_attr(feature = "python", derive(IntoPyObject))]
 pub struct Calculation {
     /// Total value of the reckoned line items
     pub total: String,
