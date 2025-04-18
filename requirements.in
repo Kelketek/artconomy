@@ -44,10 +44,9 @@ git+https://github.com/thornomad/django-hitcount.git@fcf399698455d656810a9456ccd
 # Django removed the included markdown processing functionality in templates and this library picks
 # up where it left off.
 django-markdown2
-# Adds model fields for tracking money, creating a composite field that has both a currency column and an amount colum
+# Adds model fields for tracking money, creating a composite field that has both a currency column and an amount column
 # under the hood transparently.
-# Currently pinned to 3.2 until this issue is resolved: https://github.com/django-money/django-money/issues/731
-django-money==3.2
+django-money
 # Allows for some preprocessing of emails being sent out to do neat things like adjust URLs and CSS classes
 django-premailer
 # Library for providing One Time Passwords for 2FA apps
@@ -98,7 +97,7 @@ ipython
 # Utilities for lazy evaluation of properties on an object.
 lazy
 # Rust-based line item calculation library. Used for totaling up invoices.
-rust/line_items/target/wheels/line_items-0.1.0.tar.gz
+rust/line_items/target/wheels/line_items-0.1.1.tar.gz
 # The Luhn algorithm is used to check that a credit card number is technically valid. This is no longer used,
 # but code depending on it has not been removed.
 luhn

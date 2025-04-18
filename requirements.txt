@@ -158,7 +158,7 @@ django-hitcount @ git+https://github.com/thornomad/django-hitcount.git@fcf399698
     # via -r requirements.in
 django-markdown2==0.3.1
     # via -r requirements.in
-django-money==3.2.0
+django-money==3.5.4
     # via -r requirements.in
 django-otp==1.6.0
     # via -r requirements.in

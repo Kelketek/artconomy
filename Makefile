@@ -57,7 +57,7 @@ rust.frontend:
 	${APP_COMMAND} /home/app/.cargo/bin/wasm-pack build --dev --target=bundler --out-dir=../../frontend/lib/lines rust/line_items --features=wasm
 
 rust.backend:
-	${APP_COMMAND} bash -lc "cd rust/line_items && maturin sdist && pip install --force-reinstall target/wheels/line_items-0.1.0.tar.gz"
+	${APP_COMMAND} bash -lc "cd rust/line_items && maturin sdist && pip install --force-reinstall target/wheels/line_items-0.1.1.tar.gz"
 
 rust: rust.frontend rust.backend
 
