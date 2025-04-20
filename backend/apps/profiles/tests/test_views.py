@@ -832,6 +832,8 @@ class TestCharacterSearch(APITestCase):
         CharacterFactory.create(name="Terryvix", private=True, user=user2)
         blocked_character = CharacterFactory.create(name="Terrific")
         blocked_character.user.blocking.add(user)
+        blocked_by_character = CharacterFactory.create(name="Terruptious")
+        blocked_by_character.user.blocked_by.add(user)
         CharacterFactory.create(name="Stuff")
         CharacterFactory.create(name="Terrible", user__taggable=False)
         self.login(user)

@@ -76,6 +76,7 @@ def available_chars(
         )
     ) and requester.is_authenticated:
         exclude |= Q(user__blocking=requester)
+        exclude |= Q(user__blocked_by=requester)
     if commissions:
         exclude |= Q(open_requests=False)
     if query:
