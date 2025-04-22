@@ -182,12 +182,11 @@ def payment_method_attached(event):
         logger.warning(pformat(event))
         raise NotImplementedError
     user = User.objects.get(stripe_token=card_info["customer"])
-    card, _created = CreditCardToken.objects.get_or_create(
+    card, _created = CreditCardToken.objects.update_or_create(
         user=user,
         stripe_token=card_info["id"],
-        last_four=card_info["card"]["last4"],
         type=TYPE_TRANSLATION[card_info["card"]["brand"]],
-        defaults={"cvv_verified": True},
+        defaults={"cvv_verified": True, "last_four": card_info["card"]["last4"]},
     )
     updated_fields = ["verified_adult"]
     user.verified_adult = True
