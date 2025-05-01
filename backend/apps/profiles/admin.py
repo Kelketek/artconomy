@@ -31,6 +31,10 @@ class SocialLinkInline(StackedInline):
     model = SocialLink
 
 
+class ArtistProfileInline(StackedInline):
+    model = ArtistProfile
+
+
 class ArtconomyUserAdmin(EmailUserAdmin):
     fieldsets = (
         (None, {"fields": ("username", "email", "password", "guest_email", "notes")}),
@@ -95,6 +99,8 @@ class ArtconomyUserAdmin(EmailUserAdmin):
         inlines = []
         if hasattr(obj, "staff_powers"):
             inlines.append(StaffPowersInline)
+        if hasattr(obj, "artist_profile"):
+            inlines.append(ArtistProfileInline)
         inlines.extend([SocialSettingsInline, SocialLinkInline])
         return inlines
 
