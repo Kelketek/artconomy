@@ -306,11 +306,8 @@ class ArtistProfileSettings(RetrieveUpdateAPIView):
 
     def base_update(self, method, *args, **kwargs):
         artist_profile = self.get_object()
-        auto_withdraw = artist_profile.auto_withdraw
         self.check_object_permissions(self.request, artist_profile)
         response = getattr(super(), method)(*args, **kwargs)
-        if not auto_withdraw and artist_profile.auto_withdraw:
-            withdraw_all.apply_async((artist_profile.user_id,), countdown=10)
         return response
 
     def put(self, *args, **kwargs):

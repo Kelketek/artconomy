@@ -25,7 +25,6 @@ export interface ArtistProfile {
   public_queue: boolean
   has_products: boolean
   commission_info: string
-  auto_withdraw: boolean
   escrow_enabled: boolean
   lgbt: boolean
   artist_of_color: boolean

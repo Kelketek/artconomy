@@ -4,6 +4,7 @@ from typing import Union
 
 from moneyed import Money
 from pytz import UTC
+from rest_framework.response import Response
 
 from apps.lib.permissions import StaffPower, Or
 from apps.lib.utils import utc_now, utc
@@ -30,6 +31,7 @@ from apps.sales.constants import (
     CARD,
     SUCCESS,
     CARD_TRANSACTION_FEES,
+    ESCROW,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.serializers import (
@@ -42,13 +44,13 @@ from apps.sales.serializers import (
     UnaffiliatedInvoiceSerializer,
     ReconciliationRecordSerializer,
 )
-from apps.sales.utils import PENDING
+from apps.sales.utils import PENDING, account_balance, ALL
 from dateutil.parser import ParserError, parse
 from dateutil.relativedelta import relativedelta
 from django.db.models import F, Q
 from django.utils import timezone
 from django.utils.timezone import make_aware
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, GenericAPIView
 from rest_framework.request import Request
 from rest_framework_csv.renderers import CSVRenderer
 
@@ -385,7 +387,7 @@ class ReconciliationReport(CSVReport, ListAPIView, DateConstrained):
 
 class PayoutReportCSV(CSVReport, ListAPIView, DateConstrained):
     serializer_class = PayoutTransactionSerializer
-    permission_classes = [IsSuperuser]
+    permission_classes = [StaffPower("view_financials")]
     pagination_class = None
     report_name = "payout-report"
 
@@ -441,3 +443,53 @@ class TroubledDeliverables(ListAPIView):
             .exclude(Q(order__buyer__isnull=True) & Q(order__customer_email=""))
             .order_by("-status", "paid_on")
         )
+
+
+class BalanceReport(CSVReport, GenericAPIView, DateConstrained):
+    """
+    Report that shows the balance for accounts in a period.
+    """
+    report_name = "journal"
+    permission_classes = [IsSuperuser]
+
+    def get(self, request):
+        bank_starting_balance = account_balance(
+            user=ALL,
+            account_type=FUND,
+            additional_filters=[Q(finalized_on__lte=self.start_date)],
+        )
+        bank_ending_balance = account_balance(
+            user=ALL,
+            account_type=FUND,
+            additional_filters=[Q(finalized_on__lt=self.end_date)],
+        )
+        escrow_starting_balance = account_balance(
+            user=ALL,
+            account_type=ESCROW,
+            additional_filters=[Q(finalized_on__lte=self.start_date)],
+        )
+        escrow_ending_balance = account_balance(
+            user=ALL,
+            account_type=ESCROW,
+            additional_filters=[Q(finalized_on__lt=self.end_date)],
+        )
+
+
+
+        return Response(
+            data={
+                "bank_starting_balance": bank_starting_balance,
+                "bank_ending_balance": bank_ending_balance,
+                "escrow_starting_balance": escrow_starting_balance,
+                "escrow_ending_balance": escrow_ending_balance,
+            })
+
+    def get_renderer_context(self):
+        context = super().get_renderer_context()
+        context["header"] = [
+            "bank_starting_balance",
+            "bank_ending_balance",
+            "escrow_starting_balance",
+            "escrow_ending_balance",
+        ]
+        return context

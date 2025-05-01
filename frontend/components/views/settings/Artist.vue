@@ -8,7 +8,7 @@
               <strong> Workload </strong>
             </v-list-subheader>
             <v-row class="pb-4">
-              <v-col cols="12" sm="6" md="3">
+              <v-col cols="12" sm="6" md="4">
                 <ac-patch-field
                   label="Commissions Closed"
                   field-type="v-switch"
@@ -22,19 +22,7 @@
                   "
                 />
               </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <ac-patch-field
-                  label="Auto Withdraw"
-                  field-type="v-switch"
-                  hint="Automatically withdraws all funds you receive from commissions. You might turn this off if
-                          you're switching banks."
-                  :patcher="artistProfile.patchers.auto_withdraw"
-                  :save-indicator="false"
-                  color="primary"
-                  :persistent-hint="true"
-                />
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
+              <v-col cols="12" sm="6" md="4">
                 <ac-patch-field
                   label="Public Queue"
                   field-type="v-switch"
@@ -45,7 +33,7 @@
                   :persistent-hint="true"
                 />
               </v-col>
-              <v-col cols="12" sm="6" md="3">
+              <v-col cols="12" sm="12" md="4">
                 <v-row no-gutters>
                   <v-col cols="12">
                     <ac-patch-field

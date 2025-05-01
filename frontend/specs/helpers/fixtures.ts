@@ -85,7 +85,6 @@ export function genArtistProfile(
     dwolla_configured: false,
     has_products: false,
     commissions_closed: false,
-    auto_withdraw: true,
     lgbt: false,
     artist_of_color: false,
     escrow_enabled: true,

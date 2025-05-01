@@ -588,7 +588,6 @@ class ArtistProfileSerializer(serializers.ModelSerializer):
             "max_load",
             "commission_info",
             "public_queue",
-            "auto_withdraw",
             "escrow_enabled",
             "bank_account_status",
             "artist_of_color",

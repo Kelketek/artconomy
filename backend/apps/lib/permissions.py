@@ -95,17 +95,17 @@ def StaffPower(power: POWER):
         message = "You do not have sufficient privileges to perform this operation."
 
         def has_permission(self, request: Request, view: View) -> bool:
-            if not request.user.is_staff:
-                return False
             if request.user.is_superuser:
                 return True
+            if not request.user.is_staff:
+                return False
             return getattr(request.user.staff_powers, power)
 
         def has_object_permission(self, request: Request, view: View, obj: Or) -> bool:
-            if not request.user.is_staff:
-                return False
             if request.user.is_superuser:
                 return True
+            if not request.user.is_staff:
+                return False
             return getattr(request.user.staff_powers, power)
 
     return WrappedPermission

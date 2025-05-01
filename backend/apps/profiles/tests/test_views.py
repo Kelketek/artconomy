@@ -2017,31 +2017,6 @@ class TestAttributes(APITestCase):
         self.assertEqual(attribute.value, "Blorp")
 
 
-@ddt
-class TestWithdrawOnAutoWithdrawEnabled(APITestCase):
-    @unpack
-    @data(
-        (False, True, True),
-        (False, False, False),
-        (True, False, False),
-        (True, True, False),
-    )
-    @patch("apps.profiles.views.withdraw_all")
-    def test_auto_withdraw_triggers(
-        self, initial_value, new_value, triggered, mock_withdraw_all
-    ):
-        user = UserFactory.create(artist_profile__auto_withdraw=initial_value)
-        self.login(user)
-        self.client.patch(
-            f"/api/profiles/v1/account/{user.username}/artist-profile/",
-            {"auto_withdraw": new_value},
-        )
-        if triggered:
-            mock_withdraw_all.apply_async.assert_called_with((user.id,), countdown=10)
-        else:
-            mock_withdraw_all.apply_async.assert_not_called()
-
-
 class TestDestroyUser(APITestCase):
     def test_destroy_user(self):
         user = UserFactory.create()

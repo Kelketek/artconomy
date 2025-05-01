@@ -188,7 +188,7 @@ describe("Profile controller", () => {
       {},
     )
     const profile = genArtistProfile()
-    profile.auto_withdraw = false
+    profile.commissions_closed = true
     controller.artistProfile.setX(genArtistProfile())
     controller.artistProfile.fetching = false
     controller.artistProfile.ready = true
@@ -202,5 +202,6 @@ describe("Profile controller", () => {
     mockAxios.mockResponse(rs(genArtistProfile()))
     await flushPromises()
     expect(controller.artistProfile.x).not.toBeNull()
+    expect(controller.artistProfile.x.commissions_closed).toBe(false)
   })
 })

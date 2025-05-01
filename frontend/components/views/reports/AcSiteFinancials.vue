@@ -41,6 +41,18 @@
           </v-col>
         </v-row>
         <v-toolbar density="compact">
+          <v-toolbar-title>Journal Report</v-toolbar-title>
+        </v-toolbar>
+        <v-row no-gutters>
+          <v-col>
+            <a
+              :href="`/api/sales/reports/journal-report/csv/${rangeString}`"
+              download
+            >Download CSV</a
+            >
+          </v-col>
+        </v-row>
+        <v-toolbar density="compact">
           <v-toolbar-title>Order report</v-toolbar-title>
         </v-toolbar>
         <v-row no-gutters>
