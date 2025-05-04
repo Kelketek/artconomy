@@ -144,3 +144,5 @@ tblib
 uvicorn[standard]
 # uWSGI webserver for Python. Handles standard HTTP requests in production.
 uWSGI
+# XLSX Writer module used for reports.
+XlsxWriter

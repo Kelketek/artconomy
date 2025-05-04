@@ -522,7 +522,7 @@ urlpatterns = [
     ),
     path(
         "reports/journal-report/csv/",
-        reports.BalanceReport.as_view(),
+        reports.JournalReport.as_view(),
         name="balance_report_csv",
     ),
     path(

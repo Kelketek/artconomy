@@ -152,7 +152,6 @@ from apps.profiles.utils import (
 )
 from apps.sales.models import Reference, Revision
 from apps.sales.serializers import SearchQuerySerializer
-from apps.sales.tasks import withdraw_all
 from apps.sales.utils import claim_order_by_token
 from apps.tg_bot.models import TelegramDevice
 from avatar.models import Avatar

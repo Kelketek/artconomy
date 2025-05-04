@@ -14,7 +14,7 @@ install_frontend_prereqs:
 	docker compose run -u $$(id -u):$$(id -g) --rm frontend npm --prefix /app/ install
 
 build:
-	docker compose build
+	docker compose build web nginx
 
 build_frontend:
 	${FRONTEND_COMMAND} npm --prefix /app/ run build:quick
