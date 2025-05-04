@@ -48,7 +48,7 @@
             <a
               :href="`/api/sales/reports/journal-report/csv/${rangeString}`"
               download
-            >Download CSV</a
+              >Download CSV</a
             >
           </v-col>
         </v-row>

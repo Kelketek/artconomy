@@ -1407,6 +1407,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     sales_tax_collected = serializers.SerializerMethodField()
     our_fees = serializers.SerializerMethodField()
     card_fees = serializers.SerializerMethodField()
+    refunded = serializers.SerializerMethodField()
     refunded_on = serializers.SerializerMethodField()
     extra = serializers.SerializerMethodField()
     remote_ids = serializers.SerializerMethodField()
@@ -1511,7 +1512,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
                 payer=obj.order.buyer,
                 payee=None,
                 source=FUND,
-                destination__in=[FUND],
+                destination=FUND,
             )
             | Q(
                 payer=None,
@@ -1521,6 +1522,23 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             )
         )
         return transactions.aggregate(total=Sum("amount"))["total"]
+
+    def get_refunded(self, obj):
+        transactions = multi_filter(
+            TransactionRecord.objects.filter(
+                status=SUCCESS,
+            ),
+            self.qs_filters(obj),
+        ).filter(
+            Q(
+                payer=obj.order.seller,
+                payee=obj.order.buyer,
+                source=ESCROW,
+                destination__in=[FUND, CARD, CASH_DEPOSIT],
+            )
+        )
+        result = transactions.aggregate(total=Sum("amount"))["total"]
+        return result and -result
 
     @lru_cache
     def get_refunded_on(self, obj):
@@ -1555,6 +1573,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             "artist_earnings",
             "in_reserve",
             "sales_tax_collected",
+            "refunded",
             "refunded_on",
             "extra",
             "our_fees",
@@ -1807,8 +1826,8 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
             BANK_TRANSFER_FEES,
             BANK_MISC_FEES,
         }:
-            return str(-amount.amount)
-        return str(amount.amount)
+            return -amount.amount
+        return amount.amount
 
     def get_remote_ids(self, obj: TransactionRecord):
         return ", ".join(sorted(obj.remote_ids))
@@ -1833,22 +1852,72 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
-class SubscriptionInvoiceSerializer(serializers.ModelSerializer):
+class InvoiceReportSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     type = serializers.SerializerMethodField()
     status = serializers.SerializerMethodField()
-    bill_to = serializers.CharField(read_only=True, source="bill_to.username")
+    bill_to = serializers.SerializerMethodField()
+    issued_by = serializers.SerializerMethodField()
     source = serializers.SerializerMethodField()
-    total = MoneyToString()
+    total = serializers.SerializerMethodField()
+    card_fees = serializers.SerializerMethodField()
+    our_fees = serializers.SerializerMethodField()
     remote_ids = serializers.SerializerMethodField()
 
-    def get_type(self, obj):
+    def get_type(self, obj) -> str:
         return obj.get_type_display()
 
-    def get_status(self, obj):
+    def get_status(self, obj) -> str:
         return obj.get_status_display()
 
-    def get_source(self, obj):
+    def get_bill_to(self, obj) -> str:
+        if obj.bill_to is None:
+            return "(Artconomy)"
+        return obj.bill_to.username
+
+    def get_issued_by(self, obj) -> str:
+        if obj.issued_by is None:
+            return "(Artconomy)"
+        return obj.issued_by.username
+
+    def get_total(self, obj) -> Decimal:
+        return obj.total().amount
+
+    def get_card_fees(self, obj) -> Decimal:
+        return TransactionRecord.objects.filter(
+            targets=ref_for_instance(obj),
+            status=SUCCESS,
+            destination=CARD_TRANSACTION_FEES,
+        ).aggregate(total=Sum("amount"))["total"] or Decimal("0.00")
+
+    def get_our_fees(self, obj):
+        transactions = multi_filter(
+            TransactionRecord.objects.filter(
+                status=SUCCESS,
+            ),
+            self.qs_filters(obj),
+        ).filter(
+            Q(
+                payer=obj.bill_to,
+                payee=None,
+                source=FUND,
+                destination=FUND,
+            )
+            | Q(
+                payer=None,
+                payee=None,
+                source=RESERVE,
+                destination=FUND,
+            )
+        )
+        return transactions.aggregate(total=Sum("amount"))["total"]
+
+    @lru_cache(4)
+    def qs_filters(self, obj):
+        query_filters = [Q(targets=ref_for_instance(obj))]
+        return query_filters
+
+    def get_source(self, obj) -> str:
         record = TransactionRecord.objects.filter(
             targets=ref_for_instance(obj), status=SUCCESS
         ).first()
@@ -1857,7 +1926,7 @@ class SubscriptionInvoiceSerializer(serializers.ModelSerializer):
             return ""
         return record.get_source_display()
 
-    def get_remote_ids(self, obj: TransactionRecord):
+    def get_remote_ids(self, obj: TransactionRecord) -> str:
         ids = set()
         records = TransactionRecord.objects.filter(
             targets=ref_for_instance(obj), status=SUCCESS
@@ -1874,7 +1943,10 @@ class SubscriptionInvoiceSerializer(serializers.ModelSerializer):
             "source",
             "status",
             "bill_to",
+            "issued_by",
             "total",
+            "card_fees",
+            "our_fees",
             "remote_ids",
             "type",
             "created_on",

@@ -50,7 +50,6 @@ from apps.profiles.tests.helpers import gen_characters
 from apps.profiles.views import ArtistProfileSettings
 from apps.sales.tests.factories import PromoFactory
 from dateutil.relativedelta import relativedelta
-from ddt import data, ddt, unpack
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone

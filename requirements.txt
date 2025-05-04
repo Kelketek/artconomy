@@ -10,7 +10,7 @@ aiofile==3.9.0
     # via -r requirements.in
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.11.16
+aiohttp==3.11.18
     # via
     #   discord-py-interactions
     #   geoip2
@@ -52,13 +52,13 @@ billiard==4.2.1
     # via celery
 bs4==0.0.2
     # via -r requirements.in
-caio==0.9.22
+caio==0.9.24
     # via aiofile
-celery[redis]==5.5.1
+celery[redis]==5.5.2
     # via
     #   -r requirements.in
     #   django-celery-email
-certifi==2025.1.31
+certifi==2025.4.26
     # via
     #   httpcore
     #   httpx
@@ -73,7 +73,7 @@ channels-redis==4.2.1
     # via -r requirements.in
 chardet==5.2.0
     # via reportlab
-charset-normalizer==3.4.1
+charset-normalizer==3.4.2
     # via requests
 click==8.1.8
     # via
@@ -94,7 +94,7 @@ coverage==7.8.0
     # via -r requirements.in
 croniter==6.0.0
     # via discord-py-interactions
-cryptography==44.0.2
+cryptography==44.0.3
     # via
     #   authlib
     #   autobahn
@@ -222,13 +222,13 @@ gitdb==4.0.12
     # via gitpython
 gitpython==3.1.44
     # via -r requirements.in
-h11==0.14.0
+h11==0.16.0
     # via
     #   httpcore
     #   uvicorn
 html2text==2025.4.15
     # via -r requirements.in
-httpcore==1.0.8
+httpcore==1.0.9
     # via httpx
 httptools==0.6.4
     # via uvicorn
@@ -248,7 +248,7 @@ idna==3.10
     #   yarl
 incremental==24.7.2
     # via twisted
-ipython==9.1.0
+ipython==9.2.0
     # via -r requirements.in
 ipython-pygments-lexers==1.1.1
     # via ipython
@@ -260,11 +260,11 @@ kombu==5.5.3
     # via celery
 lazy==1.6
     # via -r requirements.in
-./rust/line_items/target/wheels/line_items-0.1.0.tar.gz
+./rust/line_items/target/wheels/line_items-0.1.1.tar.gz
     # via -r requirements.in
 luhn==0.2.0
     # via -r requirements.in
-lxml==5.3.2
+lxml==5.4.0
     # via
     #   -r requirements.in
     #   premailer
@@ -279,7 +279,7 @@ maturin==1.8.3
     # via -r requirements.in
 maxminddb==2.6.3
     # via geoip2
-more-itertools==10.6.0
+more-itertools==10.7.0
     # via cssutils
 msgpack==1.1.0
     # via channels-redis
@@ -287,9 +287,9 @@ multidict==6.4.3
     # via
     #   aiohttp
     #   yarl
-numpy==2.2.4
+numpy==2.2.5
     # via pandas
-packaging==24.2
+packaging==25.0
     # via django-csp
 pandas==2.2.3
     # via -r requirements.in
@@ -312,9 +312,9 @@ propcache==0.3.1
     # via
     #   aiohttp
     #   yarl
-psycopg[binary]==3.2.6
+psycopg[binary]==3.2.7
     # via -r requirements.in
-psycopg-binary==3.2.6
+psycopg-binary==3.2.7
     # via psycopg
 ptyprocess==0.7.0
     # via pexpect
@@ -336,6 +336,8 @@ pygments==2.19.1
     # via
     #   ipython
     #   ipython-pygments-lexers
+pyjwt==2.9.0
+    # via redis
 pyopenssl==25.0.0
     # via twisted
 python-dateutil==2.9.0.post0
@@ -360,9 +362,9 @@ pytz==2025.2
     #   pandas
 pyyaml==6.0.2
     # via uvicorn
-qrcode==8.1
+qrcode==8.2
     # via -r requirements.in
-redis==5.2.1
+redis==5.3.0
     # via
     #   celery
     #   channels-redis
@@ -378,7 +380,7 @@ requests==2.32.3
     #   geoip2
     #   premailer
     #   stripe
-ruff==0.11.6
+ruff==0.11.8
     # via -r requirements.in
 sendgrid==6.11.0
     # via django-sendgrid-v5
@@ -396,7 +398,7 @@ sniffio==1.3.1
     # via
     #   anyio
     #   httpx
-soupsieve==2.6
+soupsieve==2.7
     # via beautifulsoup4
 sqlparse==0.5.3
     # via django
@@ -404,7 +406,7 @@ stack-data==0.6.3
     # via ipython
 starkbank-ecdsa==2.2.0
     # via sendgrid
-stripe==12.0.0
+stripe==12.1.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
@@ -442,7 +444,7 @@ tzdata==2025.2
     #   pandas
 urllib3==2.4.0
     # via requests
-uvicorn[standard]==0.34.1
+uvicorn[standard]==0.34.2
     # via -r requirements.in
 uvloop==0.21.0
     # via uvicorn
@@ -463,6 +465,8 @@ webencodings==0.5.1
     #   tinycss2
 websockets==15.0.1
     # via uvicorn
+xlsxwriter==3.2.3
+    # via -r requirements.in
 yarl==1.20.0
     # via aiohttp
 zope-interface==7.2
