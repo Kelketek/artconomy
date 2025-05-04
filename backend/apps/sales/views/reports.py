@@ -4,6 +4,7 @@ from io import BytesIO
 from typing import Iterable, TypeVar, Any
 
 import xlsxwriter
+from django.contrib.contenttypes.models import ContentType
 from django.http import HttpResponse
 from django.views import View
 from moneyed import Money
@@ -39,6 +40,10 @@ from apps.sales.constants import (
     SUCCESS,
     CARD_TRANSACTION_FEES,
     TOP_UP,
+    CARD_MISC_FEES,
+    BANK_TRANSFER_FEES,
+    BANK_MISC_FEES,
+    VENDOR,
 )
 from apps.sales.models import Deliverable, Invoice, TransactionRecord
 from apps.sales.serializers import (
@@ -579,6 +584,111 @@ def write_revenue_entries(
         worksheet.write(row, column_number, f"=SUM({start_cell}:{end_cell})")
 
 
+def write_expense_entries(
+    worksheet: Worksheet,
+    entries: list[tuple[datetime, str, Any]],
+    date_format: Format,
+    headers: dict[str, int],
+    sum_columns: tuple[str, ...] = tuple(),
+    start_row: int = 1,
+):
+    row = start_row
+    invoice_type = ContentType.objects.get_for_model(Invoice)
+    for timestamp, label, entry in entries:
+        data = ReconciliationRecordSerializer(instance=entry).data
+        match label:
+            case "payouts":
+                invoice = entry.targets.filter(content_type=invoice_type).first()
+                invoice = invoice and invoice.target
+                if invoice is not None and invoice.type == VENDOR:
+                    data["vendor fees"] = data["amount"]
+                    del data["amount"]
+            case "fees":
+                data["processor fees"] = data["amount"]
+                del data["amount"]
+        for header, column in headers.items():
+            if header in data:
+                worksheet.write(row, column, data[header])
+        worksheet.write_datetime(row, headers["date"], timestamp, date_format)
+        row += 1
+    if row != start_row:
+        end_row = row - 1
+    else:
+        end_row = start_row
+    row += 1
+    for sum_column in sum_columns:
+        column_number = headers[sum_column]
+        start_cell = xl_rowcol_to_cell(start_row, column_number)
+        end_cell = xl_rowcol_to_cell(end_row, column_number)
+        worksheet.write(row, column_number, f"=SUM({start_cell}:{end_cell})")
+
+
+def populate_expense_worksheet(
+    worksheet: Worksheet,
+    *,
+    start_date: datetime,
+    end_date: datetime,
+    date_format: Format,
+) -> None:
+    """
+    Adds the contents of the expense worksheet.
+    """
+    payouts = TransactionRecord.objects.filter(
+        status=SUCCESS,
+        payer=F("payee"),
+        source=HOLDINGS,
+        destination=PAYOUT_ACCOUNT,
+        finalized_on__gt=start_date,
+        finalized_on__lte=end_date,
+    ).exclude(payer=None)
+    fees = TransactionRecord.objects.filter(
+        payer=None,
+        payee=None,
+        destination__in=[CARD_MISC_FEES, BANK_TRANSFER_FEES, BANK_MISC_FEES],
+        finalized_on__gt=start_date,
+        finalized_on__lte=end_date,
+    )
+    entries = all_by_date(
+        iterables=(
+            (payouts, "finalized_on", "payouts"),
+            (fees, "finalized_on", "fees"),
+        ),
+    )
+    headers: dict[str, int] = {
+        key: index
+        for index, key in enumerate(
+            (
+                "id",
+                "date",
+                "status",
+                "payee",
+                "targets",
+                "amount",
+                "vendor fees",
+                "processor fees",
+                "remote_ids",
+            )
+        )
+    }
+    row = 0
+    for header, column in headers.items():
+        worksheet.write(row, column, header)
+    write_expense_entries(
+        worksheet=worksheet,
+        entries=entries,
+        date_format=date_format,
+        headers=headers,
+        sum_columns=(
+            "amount",
+            "vendor fees",
+            "processor fees",
+        ),
+    )
+    worksheet.autofit()
+    worksheet.set_column(headers["date"], headers["date"], width=20)
+    worksheet.set_column(headers["amount"], headers["amount"], width=10)
+
+
 def populate_revenue_worksheet(
     worksheet: Worksheet,
     *,
@@ -680,15 +790,22 @@ def build_journal_report(*, start_date: datetime, end_date: datetime) -> BytesIO
             "remove_timezone": True,
         },
     )
-    revenue = workbook.add_worksheet("revenue")
     date_format = workbook.add_format(
         {
             "num_format": "dd/mm/yy hh:mm:ss",
             "align": "left",
         }
     )
+    revenue = workbook.add_worksheet("revenue")
+    expense = workbook.add_worksheet("expense")
     populate_revenue_worksheet(
         revenue,
+        start_date=start_date,
+        end_date=end_date,
+        date_format=date_format,
+    )
+    populate_expense_worksheet(
+        expense,
         start_date=start_date,
         end_date=end_date,
         date_format=date_format,
