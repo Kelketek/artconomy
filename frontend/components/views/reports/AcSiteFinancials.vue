@@ -17,6 +17,18 @@
     <v-row>
       <v-col cols="12">
         <v-toolbar density="compact">
+          <v-toolbar-title>Journal Report</v-toolbar-title>
+        </v-toolbar>
+        <v-row no-gutters>
+          <v-col>
+            <a
+              :href="`/api/sales/reports/journal-report/${rangeString}`"
+              download
+              >Download XLSX</a
+            >
+          </v-col>
+        </v-row>
+        <v-toolbar density="compact">
           <v-toolbar-title>Current Holdings by Customer</v-toolbar-title>
         </v-toolbar>
         <v-row no-gutters>
@@ -35,18 +47,6 @@
           <v-col>
             <a
               :href="`/api/sales/reports/reconciliation-report/csv/${rangeString}`"
-              download
-              >Download CSV</a
-            >
-          </v-col>
-        </v-row>
-        <v-toolbar density="compact">
-          <v-toolbar-title>Journal Report</v-toolbar-title>
-        </v-toolbar>
-        <v-row no-gutters>
-          <v-col>
-            <a
-              :href="`/api/sales/reports/journal-report/csv/${rangeString}`"
               download
               >Download CSV</a
             >

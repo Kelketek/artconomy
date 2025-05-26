@@ -47,7 +47,7 @@ def create_account(*, user: User, country: str):
             user=user,
             defaults={"token": "XXX", "country": country},
         )
-        if not account.active and account.country != country:
+        if (not account.active) and (account.country != country):
             account.delete()
             restart = True
         if created:

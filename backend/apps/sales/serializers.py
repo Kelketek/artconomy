@@ -1302,22 +1302,18 @@ class HoldingsSummarySerializer(serializers.ModelSerializer):
     holdings = serializers.SerializerMethodField()
 
     def get_escrow(self, obj):
-        return str(
-            account_balance(
-                obj,
-                ESCROW,
-                additional_filters=[Q(finalized_on__lt=self.context["end_date"])],
-            )
+        return account_balance(
+            obj,
+            ESCROW,
+            additional_filters=[Q(finalized_on__lt=self.context["end_date"])],
         )
 
     def get_holdings(self, obj):
-        return str(
-            account_balance(
-                obj,
-                HOLDINGS,
-                POSTED_ONLY,
-                additional_filters=[Q(finalized_on__lt=self.context["end_date"])],
-            )
+        return account_balance(
+            obj,
+            HOLDINGS,
+            POSTED_ONLY,
+            additional_filters=[Q(finalized_on__lt=self.context["end_date"])],
         )
 
     class Meta:

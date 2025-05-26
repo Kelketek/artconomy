@@ -499,16 +499,6 @@ class JournalReport(View, DateConstrained):
         response["Content-Disposition"] = f"attachment; filename={filename}"
         return response
 
-    def get_renderer_context(self):
-        context = super().get_renderer_context()
-        context["header"] = [
-            "bank_starting_balance",
-            "bank_ending_balance",
-            "escrow_starting_balance",
-            "escrow_ending_balance",
-        ]
-        return context
-
 
 T = TypeVar("T")
 
@@ -778,6 +768,55 @@ def populate_revenue_worksheet(
     worksheet.set_column(headers["price"], headers["price"], width=10)
 
 
+def populate_balances_worksheet(
+    worksheet: Worksheet,
+    *,
+    end_date: datetime,
+) -> None:
+    """
+    Populate the balances worksheet.
+    """
+
+    users = (
+        User.objects.filter(guest=False, sales__isnull=False)
+        .order_by("username")
+        .distinct()
+    )
+    context = {"end_date": end_date}
+    headers: dict[str, int] = {
+        key: index
+        for index, key in enumerate(
+            (
+                "username",
+                "escrow",
+                "holdings",
+            )
+        )
+    }
+    row = 0
+    for header, column in headers.items():
+        worksheet.write(row, column, header)
+    row += 1
+    start_row = row
+    for user in users:
+        summary = HoldingsSummarySerializer(instance=user, context=context).data
+        if summary["escrow"] == Decimal(0) and summary["holdings"] == Decimal(0):
+            continue
+        for header, column in headers.items():
+            worksheet.write(row, column, summary[header])
+        row += 1
+    end_row = row
+    row += 1
+    for sum_column in ("escrow", "holdings"):
+        column_number = headers[sum_column]
+        start_cell = xl_rowcol_to_cell(start_row, column_number)
+        end_cell = xl_rowcol_to_cell(end_row, column_number)
+        worksheet.write(row, column_number, f"=SUM({start_cell}:{end_cell})")
+
+    worksheet.autofit()
+    worksheet.set_column(headers["escrow"], headers["escrow"], width=10)
+
+
 def build_journal_report(*, start_date: datetime, end_date: datetime) -> BytesIO:
     """
     Build the journal report XLSX file.
@@ -798,6 +837,7 @@ def build_journal_report(*, start_date: datetime, end_date: datetime) -> BytesIO
     )
     revenue = workbook.add_worksheet("revenue")
     expense = workbook.add_worksheet("expense")
+    balances = workbook.add_worksheet("balances")
     populate_revenue_worksheet(
         revenue,
         start_date=start_date,
@@ -809,6 +849,10 @@ def build_journal_report(*, start_date: datetime, end_date: datetime) -> BytesIO
         start_date=start_date,
         end_date=end_date,
         date_format=date_format,
+    )
+    populate_balances_worksheet(
+        balances,
+        end_date=end_date,
     )
     workbook.close()
     output.seek(0)

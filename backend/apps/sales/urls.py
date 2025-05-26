@@ -521,9 +521,9 @@ urlpatterns = [
         name="reconciliation_report_csv",
     ),
     path(
-        "reports/journal-report/csv/",
+        "reports/journal-report/",
         reports.JournalReport.as_view(),
-        name="balance_report_csv",
+        name="journal_report",
     ),
     path(
         "reports/tip-report/csv/",
