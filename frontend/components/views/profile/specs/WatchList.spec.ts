@@ -62,6 +62,6 @@ describe("WatchList.vue", () => {
     vm.watch.fetching = false
     vm.watch.ready = true
     await wrapper.vm.$nextTick()
-    expect(wrapper.find(".ac-avatar").exists()).toBe(true)
+    expect(wrapper.find(".profile-card").exists()).toBe(true)
   })
 })

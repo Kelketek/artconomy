@@ -254,9 +254,7 @@ nextTick(() => {
       (x) => x.id,
     )
     const tags: string[] = []
-    props.characterInitItems.map(
-      (x) => tags.push(...x.tags)
-    )
+    props.characterInitItems.map((x) => tags.push(...x.tags))
     newUpload.fields.tags.model = tags
   }
 })

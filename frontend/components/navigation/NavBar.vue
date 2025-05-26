@@ -12,7 +12,13 @@
       <v-container fluid class="pa-0 fill-height">
         <v-row no-gutters>
           <v-col cols="12" class="hidden-md-and-down text-right">
-            <v-btn icon color="gray" variant="plain" @click="pinned = !pinned" aria-label="pin navigation menu">
+            <v-btn
+              icon
+              color="gray"
+              variant="plain"
+              aria-label="pin navigation menu"
+              @click="pinned = !pinned"
+            >
               <v-icon :icon="mdiPin" />
             </v-btn>
           </v-col>
@@ -232,7 +238,12 @@
 </template>
 
 <script setup lang="ts">
-import { makeQueryParams, BASE_URL, initDrawerValue, initFromStorage } from "@/lib/lib.ts"
+import {
+  makeQueryParams,
+  BASE_URL,
+  initDrawerValue,
+  initFromStorage,
+} from "@/lib/lib.ts"
 import { useViewer } from "@/mixins/viewer.ts"
 const AcBoundField = defineAsyncComponent(
   () => import("@/components/fields/AcBoundField.ts"),
@@ -271,7 +282,7 @@ const { mdAndDown } = useDisplay()
 const drawer = ref(initDrawerValue())
 const pinned = ref(initFromStorage("drawerPinned"))
 
-watch(pinned, (newVal: boolean|null) => {
+watch(pinned, (newVal: boolean | null) => {
   if (!localStorage) {
     // Can't save. Skip.
     return
@@ -283,15 +294,13 @@ watch(pinned, (newVal: boolean|null) => {
   // Unpinning the drawer automatically closes. Pinning the drawer requires it
   // to be open. So in either case, we need to set the default for open or
   // closed.
-  localStorage.setItem("drawerPinned", newVal + '')
-  localStorage.setItem("drawerOpen", newVal + '')
+  localStorage.setItem("drawerPinned", newVal + "")
+  localStorage.setItem("drawerOpen", newVal + "")
 })
 const temporary = computed(() => {
   if (mdAndDown.value) {
-    console.log("Smol and down.")
     return true
   }
-  console.log("Returning inverted value.")
   return !pinned.value
 })
 

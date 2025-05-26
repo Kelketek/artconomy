@@ -82,7 +82,7 @@ urlpatterns = [
         views.CharacterSearch.as_view(),
         name="indexed_character_search",
     ),
-    path("search/user/", views.UserSearch.as_view(), name="character_search"),
+    path("search/user/", views.UserSearch.as_view(), name="user_search"),
     path("search/tag/", views.TagSearch.as_view(), name="tag_search"),
     path(
         "search/submission/",

@@ -149,6 +149,7 @@ from apps.profiles.utils import (
     clear_user,
     empty_user,
     user_query,
+    available_users,
 )
 from apps.sales.models import Reference, Revision
 from apps.sales.serializers import SearchQuerySerializer
@@ -801,14 +802,35 @@ class CharacterSearch(ListAPIView):
         )
 
 
+def spiffy_users(user: User):
+    return (
+        available_users(user)
+        .annotate(
+            watcher_count=Count("watched_by"),
+            avatar_count=Count("avatar"),
+            available_product_count=Count(
+                "products", filter=Q(products__available=True)
+            ),
+        )
+        .exclude(avatar_count=0)
+        .order_by(
+            "-watcher_count",
+            "-available_product_count",
+            "-last_login",
+        )
+    )
+
+
 class UserSearch(ListAPIView):
     serializer_class = RelatedUserSerializer
 
     def get_queryset(self):
         query = self.request.GET.get("q", "")
         tagging = self.request.GET.get("tagging", False)
-        if not query:
+        if not query and tagging:
             return User.objects.none()
+        elif not query:
+            return spiffy_users(self.request.user)
         qs = User.objects.annotate(
             username_case=Collate("username", "und-x-icu"),
         ).filter(username_case__istartswith=query, is_active=True, guest=False)

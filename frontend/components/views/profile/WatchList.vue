@@ -1,14 +1,8 @@
 <template>
   <ac-paginated :list="watch" :track-pages="true">
     <v-row>
-      <v-col
-        v-for="user in watch.list"
-        :key="user.x!.id"
-        cols="3"
-        sm="2"
-        lg="1"
-      >
-        <ac-avatar :user="user.x" />
+      <v-col v-for="user in watch.list" :key="user.x!.id" cols="3" md="1">
+        <ac-profile-preview :user="user.x!" />
       </v-col>
     </v-row>
   </ac-paginated>
@@ -16,11 +10,11 @@
 
 <script setup lang="ts">
 import AcPaginated from "@/components/wrappers/AcPaginated.vue"
-import AcAvatar from "@/components/AcAvatar.vue"
 import { flatten } from "@/lib/lib.ts"
 import { useList } from "@/store/lists/hooks.ts"
 import type { SubjectiveProps } from "@/types/main"
 import { TerseUser } from "@/store/profiles/types/main"
+import AcProfilePreview from "@/components/AcProfilePreview.vue"
 
 const props = defineProps<
   SubjectiveProps & { endpoint: string; nameSpace: string }

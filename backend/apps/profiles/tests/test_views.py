@@ -45,6 +45,7 @@ from apps.profiles.tests.factories import (
     UserFactory,
     SocialSettingsFactory,
     SocialLinkFactory,
+    AvatarFactory,
 )
 from apps.profiles.tests.helpers import gen_characters
 from apps.profiles.views import ArtistProfileSettings
@@ -753,6 +754,25 @@ class TestUserSearch(APITestCase):
         results = [user["username"] for user in response.data["results"]]
         results.sort()
         self.assertEqual(results, ["Personal", "person"])
+
+    def test_empty_user_search(self):
+        UserFactory.create(username="person")
+        other = UserFactory.create(username="Personal")
+        user = UserFactory.create(username="Dude")
+        AvatarFactory.create(user=user)
+        AvatarFactory.create(user=other)
+        other.watched_by.add(user)
+        response = self.client.get("/api/profiles/v1/search/user/")
+        results = [user["username"] for user in response.data["results"]]
+        self.assertEqual(results, ["Personal", "Dude"])
+
+    def test_empty_user_search_tagging(self):
+        UserFactory.create(username="person")
+
+        UserFactory.create(username="Personal")
+        UserFactory.create(username="Dude")
+        response = self.client.get("/api/profiles/v1/search/user/?tagging=true")
+        self.assertEqual(response.data["results"], [])
 
 
 @override_settings(FORCE_THEOCRACY=False)
