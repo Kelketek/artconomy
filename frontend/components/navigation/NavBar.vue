@@ -6,11 +6,16 @@
       v-model="drawer"
       fixed
       app
-      temporary
+      :temporary="temporary"
       width="300"
     >
       <v-container fluid class="pa-0 fill-height">
         <v-row no-gutters>
+          <v-col cols="12" class="hidden-md-and-down text-right">
+            <v-btn icon color="gray" variant="plain" @click="pinned = !pinned" aria-label="pin navigation menu">
+              <v-icon :icon="mdiPin" />
+            </v-btn>
+          </v-col>
           <v-col cols="12">
             <ac-nav-links
               v-model="drawer"
@@ -227,7 +232,7 @@
 </template>
 
 <script setup lang="ts">
-import { makeQueryParams, BASE_URL } from "@/lib/lib.ts"
+import { makeQueryParams, BASE_URL, initDrawerValue, initFromStorage } from "@/lib/lib.ts"
 import { useViewer } from "@/mixins/viewer.ts"
 const AcBoundField = defineAsyncComponent(
   () => import("@/components/fields/AcBoundField.ts"),
@@ -237,13 +242,13 @@ const AcNavLinks = defineAsyncComponent(
   () => import("@/components/navigation/AcNavLinks.vue"),
 )
 import { siDiscord, siBluesky } from "simple-icons"
-import { computed, defineAsyncComponent, ref } from "vue"
+import { computed, defineAsyncComponent, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { useStore } from "vuex"
 import { ArtState } from "@/store/artState.ts"
 import { useSearchForm } from "@/components/views/search/hooks.ts"
 import { useDisplay } from "vuetify"
-import { mdiChatQuestion, mdiMagnify, mdiPencil } from "@mdi/js"
+import { mdiChatQuestion, mdiMagnify, mdiPencil, mdiPin } from "@mdi/js"
 import { User } from "@/store/profiles/types/main"
 const AcNotificationIndicator = defineAsyncComponent(
   () => import("@/components/navigation/AcNotificationIndicator.vue"),
@@ -263,7 +268,32 @@ const router = useRouter()
 const store = useStore<ArtState>()
 const { mdAndDown } = useDisplay()
 
-const drawer = ref(false)
+const drawer = ref(initDrawerValue())
+const pinned = ref(initFromStorage("drawerPinned"))
+
+watch(pinned, (newVal: boolean|null) => {
+  if (!localStorage) {
+    // Can't save. Skip.
+    return
+  }
+  if (newVal === null) {
+    // Should not happen naturally.
+    return
+  }
+  // Unpinning the drawer automatically closes. Pinning the drawer requires it
+  // to be open. So in either case, we need to set the default for open or
+  // closed.
+  localStorage.setItem("drawerPinned", newVal + '')
+  localStorage.setItem("drawerOpen", newVal + '')
+})
+const temporary = computed(() => {
+  if (mdAndDown.value) {
+    console.log("Smol and down.")
+    return true
+  }
+  console.log("Returning inverted value.")
+  return !pinned.value
+})
 
 const loginLink = computed(() => {
   if (route.name === "Login") {

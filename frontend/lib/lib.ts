@@ -546,18 +546,23 @@ export const log = {
   },
 }
 
-export const initDrawerValue = () => {
+export const initFromStorage = (key: string) => {
   // localStorage will be null on mobile, but that will always start closed anyway.
-  const startValue = localStorage && localStorage.getItem("drawerOpen")
+  const startValue = localStorage && localStorage.getItem(key)
   if (startValue !== null) {
     try {
       return JSON.parse(startValue) as boolean
     } catch (err) {
       console.log(err)
-      console.log("Returning null as initial drawer state.")
+      console.log(`Returning null as initial ${key} state.`)
     }
   }
   return null
+}
+
+export const initDrawerValue = () => {
+  // localStorage will be null on mobile, but that will always start closed anyway.
+  return initFromStorage("drawerOpen")
 }
 
 export const paypalTokenToUrl = (
