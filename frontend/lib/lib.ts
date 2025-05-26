@@ -280,8 +280,8 @@ export const RATING_LONG_DESC: Record<RatingsValue, string> = {
 export const RATING_COLOR: Record<RatingsValue, string> = {
   0: "green",
   1: "blue",
-  2: "red",
-  3: "black",
+  2: "purple",
+  3: "red",
 }
 
 export function dotTraverse(start: any, dotPath: string, silent?: boolean) {
