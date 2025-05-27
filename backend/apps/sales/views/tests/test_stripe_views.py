@@ -5,7 +5,7 @@ from apps.lib.tests.test_utils import create_staffer
 from apps.profiles.tests.factories import UserFactory
 from apps.sales import stripe as stripe_module
 from apps.sales.constants import OPEN, PAYMENT_PENDING, STRIPE
-from apps.sales.models import StripeAccount
+from apps.sales.models import StripeAccount, Deliverable
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
     DeliverableFactory,
@@ -79,6 +79,38 @@ class TestStripeAccountLink(APITestCase):
         # Old one should be, or else the ID should be updated.
         account = StripeAccount.objects.get()
         self.assertEqual(account.token, "6789")
+
+    @patch("apps.sales.models.stripe")
+    def test_stripe_link_change_country_deliverable_exists(
+        self,
+        mock_model_stripe,
+        mock_stripe,
+    ):
+        account = StripeAccountFactory.create(token="12345", country="US")
+        user = account.user
+        mock_stripe.__enter__.return_value.CountrySpec.retrieve.return_value = (
+            gen_stripe_countries_output()
+        )
+        mock_stripe.__enter__.return_value.Account.create.return_value = {"id": "6789"}
+        mock_stripe.__enter__.return_value.AccountLink.create.return_value = {
+            "url": "https://stripe.com/strope/"
+        }
+        self.login(user)
+        deliverable = DeliverableFactory.create(order__seller=user)
+        # Sidestep side effects when setting this field.
+        Deliverable.objects.filter(id=deliverable.id).update(escrow_enabled=True)
+        result = self.client.post(
+            f"/api/sales/v1/account/{user.username}/stripe-accounts/link/",
+            {"url": "https://example.com/", "country": "DE"},
+        )
+        self.assertEqual(
+            result.data["detail"],
+            "User already started escrow sales! Cannot redo Stripe account.",
+        )
+        # No change should have happened.
+        current_account = StripeAccount.objects.get()
+        self.assertEqual(account, current_account)
+        self.assertEqual(account.token, current_account.token)
 
     # Note: testserver is the server name of Django's test system.
     @override_settings(ALLOWED_HOSTS=("testserver",))

@@ -3,7 +3,13 @@ from apps.profiles.models import User
 from apps.profiles.permissions import IsRegistered, ObjectControls, BillTo
 from apps.profiles.tasks import create_or_update_stripe_user
 from apps.sales.constants import DRAFT, OPEN
-from apps.sales.models import Invoice, ServicePlan, StripeAccount, StripeReader
+from apps.sales.models import (
+    Invoice,
+    ServicePlan,
+    StripeAccount,
+    StripeReader,
+    Deliverable,
+)
 from apps.sales.permissions import InvoiceStatus
 from apps.sales.serializers import (
     PaymentIntentSettings,
@@ -48,6 +54,10 @@ def create_account(*, user: User, country: str):
             defaults={"token": "XXX", "country": country},
         )
         if (not account.active) and (account.country != country):
+            if Deliverable.objects.filter(escrow_enabled=True, order__seller=user):
+                raise IntegrityError(
+                    "User already started escrow sales! Cannot redo Stripe account."
+                )
             account.delete()
             restart = True
         if created:
