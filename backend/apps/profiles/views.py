@@ -1853,6 +1853,7 @@ class ConversationManager(RetrieveUpdateDestroyAPIView):
         count = instance.participants.all().count()
         if not count:
             instance.delete()
+            return
         elif count == 1:
             if not instance.comments.exclude(system=True).exists():
                 instance.delete()

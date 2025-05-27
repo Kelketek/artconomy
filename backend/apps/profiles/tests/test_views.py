@@ -32,7 +32,6 @@ from apps.lib.utils import watch_subscriptions
 from apps.profiles.models import (
     Character,
     Conversation,
-    ConversationParticipant,
     Submission,
     User,
 )
@@ -1581,6 +1580,17 @@ class TestFavorite(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
+def build_test_conversation():
+    # The view creates the subscriptions, so use it for this test.
+    user = UserFactory.create()
+    user2 = UserFactory.create()
+    user3 = UserFactory.create()
+    conversation = ConversationParticipantFactory.create(user=user).conversation
+    ConversationParticipantFactory.create(user=user2, conversation=conversation)
+    ConversationParticipantFactory.create(user=user3, conversation=conversation)
+    return (user, user2, user3), conversation
+
+
 class TestConversations(APITestCase):
     @patch("recaptcha.fields.ReCaptchaField.to_internal_value")
     def test_create_conversation(self, _mock_captcha):
@@ -1689,7 +1699,7 @@ class TestConversations(APITestCase):
         self.assertNotEqual(conversation2_id, conversation3_id)
 
     @patch("recaptcha.fields.ReCaptchaField.to_internal_value")
-    def test_conversation_no_delete_others(self, _mock_captcha):
+    def test_create_conversation_no_delete_others(self, _mock_captcha):
         # Apparently one of my serializers had a terrible side effect of deleting all
         # other conversations when a new one was created.
         relation = ConversationParticipantFactory.create()
@@ -1760,52 +1770,70 @@ class TestConversations(APITestCase):
         response = self.client.get(url)
         self.assertIs(response.data["read"], True)
 
-    def test_leave_conversation(self):
-        # The view creates the subscriptions, so use it for this test.
-        user = UserFactory.create()
-        user2 = UserFactory.create()
-        user3 = UserFactory.create()
-        conversation = ConversationParticipantFactory.create(user=user).conversation
-        ConversationParticipantFactory.create(user=user2, conversation=conversation)
-        ConversationParticipantFactory.create(user=user3, conversation=conversation)
-        subscriptions = Subscription.objects.filter(
-            type=COMMENT,
-            content_type=ContentType.objects.get_for_model(Conversation),
-            object_id=conversation.id,
-        )
-        self.assertEqual(subscriptions.count(), 3)
-        self.assertEqual(ConversationParticipant.objects.all().count(), 3)
+    def delete_conversation(self, conversation: Conversation, user: User):
+        """
+        Have a user delete a conversation.
+        """
         self.login(user)
         response = self.client.delete(
             "/api/profiles/v1/account/{}/conversations/{}/".format(
                 user.username, conversation.id
             ),
         )
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        subscriptions = Subscription.objects.filter(
-            type=COMMENT,
-            content_type=ContentType.objects.get_for_model(Conversation),
-            object_id=conversation.id,
-        )
-        self.assertEqual(ConversationParticipant.objects.all().count(), 2)
-        self.assertEqual(subscriptions.count(), 2)
+        return response
 
-        self.login(user2)
-        response = self.client.delete(
-            "/api/profiles/v1/account/{}/conversations/{}/".format(
-                user2.username, conversation.id
-            ),
-        )
+    def test_reap_empty_conversation(self):
+        (user, user2, user3), conversation = build_test_conversation()
+        response = self.delete_conversation(conversation, user)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-
+        response = self.delete_conversation(conversation, user2)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Should be automatically reaped since there's only one participant left and the
+        # convo is empty.
         subscriptions = Subscription.objects.filter(
             type=COMMENT,
             content_type=ContentType.objects.get_for_model(Conversation),
             object_id=conversation.id,
         )
         self.assertEqual(subscriptions.count(), 0)
-
         self.assertRaises(Conversation.DoesNotExist, conversation.refresh_from_db)
+
+    def test_preserve_populated_conversation(self):
+        (user, user2, user3), conversation = build_test_conversation()
+        CommentFactory.create(content_object=conversation, user=user)
+        response = self.delete_conversation(conversation, user)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        response = self.delete_conversation(conversation, user2)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Even though there's just one person left, we should still have the convo since
+        # there was a comment.
+        subscriptions = Subscription.objects.filter(
+            type=COMMENT,
+            content_type=ContentType.objects.get_for_model(Conversation),
+            object_id=conversation.id,
+        )
+        self.assertEqual(subscriptions.count(), 1)
+        # Should not raise.
+        conversation.refresh_from_db()
+
+    def test_deletes_populated_conversation_when_last_participant_leaves(self):
+        (user, user2, user3), conversation = build_test_conversation()
+        CommentFactory.create(content_object=conversation, user=user)
+        self.delete_conversation(conversation, user)
+        self.delete_conversation(conversation, user2)
+        response = self.delete_conversation(conversation, user3)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        # Even though there's just one person left, we should still have the convo since
+        # there was a comment.
+        subscriptions = Subscription.objects.filter(
+            type=COMMENT,
+            content_type=ContentType.objects.get_for_model(Conversation),
+            object_id=conversation.id,
+        )
+        self.assertEqual(subscriptions.count(), 0)
+        # Should raise, as this conversation should now be gone..
+        with self.assertRaises(Conversation.DoesNotExist):
+            conversation.refresh_from_db()
 
 
 class ListTestCase(APITestCase):
