@@ -1729,9 +1729,14 @@ def get_invoice_intent(invoice: "Invoice", payment_settings: PaymentIntentSettin
     if invoice.bill_to and invoice.bill_to.is_registered:
         create_or_update_stripe_user(invoice.bill_to.id)
         invoice.bill_to.refresh_from_db()
-    stripe_token = get_intent_card_token(
-        invoice.bill_to, payment_settings.get("card_id")
-    )
+    if invoice.bill_to:
+        stripe_token = get_intent_card_token(
+            invoice.bill_to, payment_settings.get("card_id")
+        )
+    else:
+        raise ValidationError(
+            "Cannot create a payment intent when there's no user to bill."
+        )
     use_terminal = payment_settings["use_reader"]
     save_card = payment_settings["save_card"] and not invoice.bill_to.guest
     make_primary = (

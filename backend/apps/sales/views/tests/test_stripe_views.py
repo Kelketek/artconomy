@@ -449,6 +449,26 @@ class TestInvoicePaymentIntent(APITestCase):
         params = mock_api.PaymentIntent.create.call_args_list[0][1]
         self.assertEqual(params["payment_method"], "butts")
 
+    @patch("apps.sales.utils.stripe")
+    def test_fail_no_bill_to(self, mock_stripe):
+        mock_api = Mock()
+        mock_stripe.__enter__.return_value = mock_api
+        mock_api.PaymentIntent.create.return_value = {
+            "id": "raw_id",
+            "client_secret": "sneak",
+        }
+        invoice = InvoiceFactory.create(bill_to=None, status=OPEN)
+        self.login(UserFactory.create(is_superuser=True, is_staff=True))
+        response = self.client.post(
+            f"/api/sales/v1/invoice/{invoice.id}/payment-intent/",
+        )
+        print(response.data)
+        self.assertEqual(
+            response.data,
+            ["Cannot create a payment intent when there's no user to bill."],
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_incompatible_card(self):
         deliverable = DeliverableFactory.create(
             status=PAYMENT_PENDING, processor=STRIPE, invoice__status=OPEN
