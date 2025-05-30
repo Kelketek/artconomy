@@ -18,6 +18,112 @@ pub enum TabulationError {
     ErrorString(String),
 }
 
+/// Line item types. Line items can have different types that explain their
+/// purpose. Some line items are the base price of a product/deliverable,
+/// some are extras, and some are various fees like shield or cross-border
+/// transfer fees.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum LineType {
+    /// Base price
+    BasePrice=0,
+    /// Add-on or discount
+    AddOn=1,
+    /// Artconomy's escrow service fee.
+    Shield=2,
+    /// Deprecated contingency bonus amount when using Landscape.
+    /// Should not actually be used anymore.
+    Bonus=3,
+    /// Amount a commissioner is tipping an artist.
+    Tip=4,
+    /// Additional fee levied when we're running the virtual table.
+    TableService=5,
+    /// Taxes.
+    Tax=6,
+    /// At the virtual table, if someone wants to buy merch at the same time
+    /// as they buy a commission, it goes under this line item.
+    Extra=7,
+    /// Fees for premium subscriptions, such as Landscape.
+    PremiumSubscription=8,
+    /// Any other uncategorized fee.
+    OtherFee=9,
+    /// Fee levied for tracking an order but not handling escrow for it.
+    DeliverableTracking=10,
+    /// Fee for processing a transaction where there's no other specific
+    /// value-add from us-- such as a tip.
+    Processing=11,
+    /// Line item type that indicates the discrepency between an externally
+    /// managed invoice and our expected amount (such as with PayPal
+    /// invoicing)
+    Reconciliation=12,
+    /// Line item that represents what we expect Stripe to charge us for
+    /// this transaction, factoring in the possibility of international
+    /// card fees.
+    CardFee=13,
+    /// Line item that covers the expected Stripe fees for transferring to
+    /// the artist if they are international.
+    CrossBorderTransferFee=14,
+    /// Line item that covers Stripe's fees for sending a payout to the
+    /// artist.
+    PayoutFee=15,
+    /// Fee assessed by Stripe for maintaining a connected account that is
+    /// active in any given month.
+    ConnectFee=16,
+}
+
+/// Categories for transactions. LineItems refer to these in order to make
+/// bundling them and creating later transactions easier.
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
+pub enum Category {
+    /// Artconomy's service fee for escrow payments.
+    ShieldFee = 400,
+    /// Amount to be held in escrow
+    EscrowHold = 401,
+    /// Amount to be released from escrow
+    EscrowRelease = 402,
+    /// Amount to be returned to commissioner from escrow
+    EscrowRefund = 403,
+    /// Transaction was for subscription dues
+    SubscriptionDues = 404,
+    /// Transaction was a refund on subscription dues
+    SubscriptionRefund = 405,
+    /// Transaction was a payout
+    CashWithdrawal = 406,
+    /// Transaction was a fee from a third party service provider
+    ThirdPartyFee = 408,
+    /// The extra money earned for subscribing to premium services and
+    /// completing a sale. This is no longer used, we just give a lower
+    /// percentage for shield on those sales.
+    PremiumBonus = 409,
+    /// 'Catch all' for any transfers between accounts.
+    InternalTransfer = 410,
+    /// Refunds from third party services.
+    ThirdPartyRefunds = 411,
+    /// For when we make a mistake and need to correct it somehow.
+    Correction = 412,
+    /// For fees levied at conventions
+    TableHandling = 413,
+    /// Taxes
+    Taxes = 414,
+    /// For things like inventory items sold at tables alongside the commission, like a pop
+    /// socket.
+    ExtraItem = 415,
+    /// For times when we're manually sending money to others for specific services that the
+    /// platform itself is paying for.
+    VendorPayment = 416,
+    /// Payout reversals
+    PayoutReversal = 417,
+    /// Used on items where we collect a slight processing fee, but not shield-level.
+    ProcessingFee = 418,
+    /// For tips. Given a slightly different name to make sure it's a distinct value from the
+    /// TIP and TIPPING consts.
+    TipSend = 419,
+    /// Client charges a card or sends cash as one transaction before forking elsewhere.
+    Payment = 420,
+    /// Money added to the Stripe account to cover any fees not otherwise
+    /// accounted for, or to pay out vendors for specific services.
+    TopUp = 421,
+}
+
 #[cfg(feature = "wasm")]
 impl From<TabulationError> for JsValue {
     fn from(val: TabulationError) -> Self {
@@ -57,6 +163,9 @@ pub struct LineItem {
     /// value of lower-priority lines.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub priority: i16,
+    /// The category of line item this is, such as the base price, an add-on, or some fee.
+    #[serde(rename = "type")]
+    pub kind: LineType,
     /// A static amount this line item represents. Starts as a float to be converted into decimal.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub amount: String,
@@ -71,7 +180,7 @@ pub struct LineItem {
     pub percentage: String,
     /// Used for determining the category of line items. This is primarily used by the backend for
     /// later annotation of transactions.
-    pub category: i16,
+    pub category: Category,
     /// Whether the percentage calculated should be based on a target amount rather than added on
     /// top. That is, calculate all lower priority items to get their total, then find out the line
     /// item's percentage of that amount. Once found, remove that amount proportionally from all
@@ -114,6 +223,27 @@ pub struct ServicePlan {
     pub shield_percentage_price: String,
 }
 
+/// Pricing context information. Used to inform the line item generators how they should behave.
+#[cfg_attr(feature = "python", derive(FromPyObject))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Pricing {
+    /// The available plans in the system.
+    pub plans: Vec<ServicePlan>,
+    /// The minimum price any deliverable with escrow may be.
+    pub minimum_price: String,
+    /// The service fee percentage for table transactions.
+    pub table_percentage: String,
+    /// The service fee static amount for table transactions.
+    pub table_static: String,
+    /// The tax rate for table transactions.
+    pub table_tax: String,
+    /// The percentage amount for converting to the artist's native currency.
+    pub international_conversion_percentage: String,
+    /// The preferred service plan. At the time of writing, this is 'Landscape'.
+    /// Used in comparisons.
+    pub preferred_plan: String,
+}
+
 /// Only used in tests, so this should not have an opportunity to roll over.
 static mut COUNTER: i32 = 0;
 
@@ -125,9 +255,10 @@ impl Default for LineItem {
                 id: COUNTER,
                 priority: 0,
                 amount: String::from("0"),
+                kind: LineType::AddOn,
                 frozen_value: None,
                 percentage: String::from("0"),
-                category: 0,
+                category: Category::Correction,
                 cascade_percentage: false,
                 back_into_percentage: false,
                 cascade_amount: false,

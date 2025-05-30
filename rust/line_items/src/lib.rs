@@ -33,8 +33,9 @@ macro_rules! set_trace {
 
 /// Line item calculation functions used for determining amounts on invoices.
 pub mod funcs {
-    use crate::data::Calculation;
+    use crate::data::{Calculation, Category, LineType, Pricing};
     use crate::data::{LineDecimalMap, LineItem, TabulationError};
+    use crate::s;
     #[cfg(feature = "wasm")]
     use js_sys::JsString;
     #[cfg(feature = "python")]
@@ -523,6 +524,123 @@ pub mod funcs {
             result.push(value_string(&entry, quantization))
         }
         Ok(result)
+    }
+
+    /// Returns the expected line items for a deliverable.
+    pub fn deliverable_lines(
+        base_price: String,
+        table_product: bool,
+        cascade: bool,
+        escrow_enabled: bool,
+        international: bool,
+        mut extra_lines: Vec<LineItem>,
+        plan_name: String,
+        pricing: Pricing,
+    ) -> Result<Vec<LineItem>, TabulationError> {
+        let mut lines: Vec<LineItem> = vec![];
+        let plan = match pricing.plans.iter().find(
+            |entry| entry.name == plan_name
+        ) {
+            Some(inner) => inner,
+            None => {
+                return Err(TabulationError::from(
+                    format!("Could not find {plan_name} in plan list.")
+                ))
+            }
+        };
+        let per_deliverable_price = match Decimal::from_str_exact(&plan.per_deliverable_price) {
+            Err(err) => return Err(TabulationError::from(err.to_string())),
+            Ok(result) => result,
+        };
+        lines.push(
+            LineItem {
+                id: -1,
+                priority: 0,
+                kind: LineType::BasePrice,
+                category: Category::EscrowHold,
+                frozen_value: None,
+                amount: base_price,
+                percentage: s!("0"),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            }
+        );
+        if table_product {
+            lines.push(
+                LineItem {
+                    id: -3,
+                    priority: 400,
+                    kind: LineType::TableService,
+                    category: Category::TableHandling,
+                    cascade_percentage: cascade,
+                    cascade_amount: false,
+                    amount: pricing.table_static,
+                    frozen_value: None,
+                    percentage: pricing.table_percentage,
+                    back_into_percentage: !cascade,
+                },
+            );
+            lines.push(
+                LineItem {
+                    id: -4,
+                    priority: 700,
+                    kind: LineType::Tax,
+                    category: Category::Taxes,
+                    cascade_percentage: cascade,
+                    cascade_amount: cascade,
+                    percentage: pricing.table_tax,
+                    back_into_percentage: true,
+                    amount: s!("0"),
+                    frozen_value: None,
+                }
+            )
+        } else if escrow_enabled {
+            let mut percentage_price = match Decimal::from_str_exact(&plan.shield_percentage_price) {
+                Ok(result) => result,
+                Err(err) => return Err(TabulationError::from(err.to_string()))
+            };
+            if international {
+                let international_conversion_percentage = match Decimal::from_str_exact(&pricing.international_conversion_percentage) {
+                    Ok(result) => result,
+                    Err(err) => return Err(TabulationError::from(err.to_string()))
+                };
+                percentage_price += international_conversion_percentage
+            }
+            lines.push(
+                LineItem {
+                    id: -5,
+                    priority: 300,
+                    kind: LineType::Shield,
+                    category: Category::ShieldFee,
+                    cascade_percentage: cascade,
+                    cascade_amount: cascade,
+                    amount: plan.shield_static_price.clone(),
+                    frozen_value: None,
+                    percentage: percentage_price.to_string(),
+                    back_into_percentage: !cascade,
+               }
+            )
+        } else if per_deliverable_price > dec!(0) {
+            lines.push(
+                LineItem {
+                    id: -6,
+                    priority: 300,
+                    kind: LineType::DeliverableTracking,
+                    category: Category::SubscriptionDues,
+                    cascade_percentage: cascade,
+                    cascade_amount: cascade,
+                    amount: plan.per_deliverable_price.clone(),
+                    frozen_value: None,
+                    percentage: s!("0"),
+                    back_into_percentage: !cascade,
+                }
+            )
+        }
+        for entry in extra_lines.drain(..) {
+            lines.push(entry)
+        }
+        Ok(lines)
     }
 }
 
