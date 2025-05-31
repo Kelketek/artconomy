@@ -2,7 +2,7 @@
 // to ensure that they're both updated at the same time, but they should, hopefully, be easy enough to keep in sync.
 // If enough code has to be repeated between the two bases it may be worth looking into a transpiler.
 import { LineType } from "@/types/enums/LineType.ts"
-import { js_get_totals, js_reckon_lines } from "@/lib/lines"
+import { js_get_totals, js_reckon_lines, js_deliverable_lines } from "@/lib/lines"
 import type {
   LineAccumulator,
   LineItem,
@@ -11,6 +11,7 @@ import type {
   Pricing,
   Product,
 } from "@/types/main"
+import { LineCategory } from "@/types/enums/LineCategory.ts"
 
 declare type RustedAccumulator = Omit<LineAccumulator, "subtotals"> & {
   subtotals: Map<number, string>
@@ -93,6 +94,7 @@ export function invoiceLines(options: {
       id: -2,
       priority: 100,
       type: LineType.ADD_ON,
+      category: LineCategory.ESCROW_HOLD,
       amount: addOnPrice.toFixed(2),
       frozen_value: null,
       percentage: "0",
@@ -118,106 +120,47 @@ export const deliverableLines = ({
   basePrice,
   tableProduct,
   cascade,
-  international,
-  pricing,
-  planName,
   escrowEnabled,
+  international,
   extraLines,
+  planName,
+  pricing,
 }: {
   basePrice: string
-  escrowEnabled: boolean
   tableProduct: boolean
-  international: boolean
   cascade: boolean
+  escrowEnabled: boolean
+  international: boolean
+  extraLines: LineItem[]
   planName: string | null | undefined
   pricing: Pricing | null
-  extraLines: LineItem[]
 }) => {
-  if (!planName || !pricing) {
+  if (!planName) {
     return []
   }
   if (isNaN(parseFloat(basePrice))) {
     return []
   }
-  const plan = pricing?.plans.filter((x) => x.name === planName)[0]
+  if (!pricing) {
+    return []
+  }
+  const plan = pricing.plans.filter((plan) => plan.name === planName)[0]
   if (!plan) {
     return []
   }
-  const lines: LineItem[] = []
-  lines.push({
-    id: -1,
-    priority: 0,
-    type: LineType.BASE_PRICE,
-    amount: basePrice,
-    frozen_value: null,
-    percentage: "0",
-    description: "",
-    cascade_amount: false,
-    cascade_percentage: false,
-    back_into_percentage: false,
-  })
-  if (tableProduct) {
-    lines.push(
-      {
-        id: -3,
-        priority: 400,
-        type: LineType.TABLE_SERVICE,
-        cascade_percentage: cascade,
-        // We don't cascade this flat amount for table products. Might revisit this later.
-        cascade_amount: false,
-        amount: pricing.table_static,
-        frozen_value: null,
-        percentage: pricing.table_percentage,
-        back_into_percentage: !cascade,
-        description: "",
-      },
-      {
-        id: -4,
-        priority: 700,
-        type: LineType.TAX,
-        cascade_percentage: cascade,
-        cascade_amount: cascade,
-        percentage: pricing.table_tax,
-        back_into_percentage: true,
-        description: "",
-        amount: "0",
-        frozen_value: null,
-      },
-    )
-  } else if (escrowEnabled) {
-    let percentagePrice = plan.shield_percentage_price
-    if (international) {
-      percentagePrice =
-        parseFloat(percentagePrice) +
-        parseFloat(pricing.international_conversion_percentage) +
-        ""
-    }
-    lines.push({
-      id: -5,
-      priority: 300,
-      type: LineType.SHIELD,
-      cascade_percentage: cascade,
-      cascade_amount: cascade,
-      amount: plan.shield_static_price,
-      frozen_value: null,
-      percentage: percentagePrice,
-      back_into_percentage: !cascade,
-      description: "",
-    })
-  } else if (parseFloat(plan.per_deliverable_price) !== 0) {
-    lines.push({
-      id: -6,
-      priority: 300,
-      type: LineType.DELIVERABLE_TRACKING,
-      cascade_percentage: cascade,
-      cascade_amount: cascade,
-      amount: plan.per_deliverable_price,
-      frozen_value: null,
-      percentage: "0",
-      back_into_percentage: !cascade,
-      description: "",
-    })
+  try {
+    return js_deliverable_lines(
+      basePrice,
+      tableProduct,
+      cascade,
+      escrowEnabled,
+      international,
+      extraLines,
+      planName,
+      pricing,
+    ).Ok
+  } catch (err) {
+    console.log("DELIVERABLE LINES FAILED!!")
+    throw err
   }
-  lines.push(...extraLines)
-  return lines
 }

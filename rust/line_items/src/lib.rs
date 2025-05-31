@@ -54,6 +54,9 @@ pub mod funcs {
     use std::thread;
     #[cfg(feature = "python")]
     use pyo3::types::PyDict;
+    use serde::Serialize;
+    #[cfg(feature = "wasm")]
+    use serde_wasm_bindgen::Serializer;
     #[cfg(feature = "wasm")]
     use wasm_bindgen::prelude::wasm_bindgen;
     #[cfg(feature = "wasm")]
@@ -556,11 +559,12 @@ pub mod funcs {
             LineItem {
                 id: -1,
                 priority: 0,
-                kind: LineType::BasePrice,
-                category: Category::EscrowHold,
+                kind: LineType::BASE_PRICE,
+                category: Category::ESCROW_HOLD,
                 frozen_value: None,
                 amount: base_price,
                 percentage: s!("0"),
+                description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
@@ -571,12 +575,13 @@ pub mod funcs {
                 LineItem {
                     id: -3,
                     priority: 400,
-                    kind: LineType::TableService,
-                    category: Category::TableHandling,
+                    kind: LineType::TABLE_SERVICE,
+                    category: Category::TABLE_HANDLING,
                     cascade_percentage: cascade,
                     cascade_amount: false,
                     amount: pricing.table_static,
                     frozen_value: None,
+                    description: s!(""),
                     percentage: pricing.table_percentage,
                     back_into_percentage: !cascade,
                 },
@@ -585,8 +590,9 @@ pub mod funcs {
                 LineItem {
                     id: -4,
                     priority: 700,
-                    kind: LineType::Tax,
-                    category: Category::Taxes,
+                    kind: LineType::TAX,
+                    description: s!(""),
+                    category: Category::TAXES,
                     cascade_percentage: cascade,
                     cascade_amount: cascade,
                     percentage: pricing.table_tax,
@@ -611,8 +617,9 @@ pub mod funcs {
                 LineItem {
                     id: -5,
                     priority: 300,
-                    kind: LineType::Shield,
-                    category: Category::ShieldFee,
+                    kind: LineType::SHIELD,
+                    description: s!(""),
+                    category: Category::SHIELD_FEE,
                     cascade_percentage: cascade,
                     cascade_amount: cascade,
                     amount: plan.shield_static_price.clone(),
@@ -626,8 +633,9 @@ pub mod funcs {
                 LineItem {
                     id: -6,
                     priority: 300,
-                    kind: LineType::DeliverableTracking,
-                    category: Category::SubscriptionDues,
+                    kind: LineType::DELIVERABLE_TRACKING,
+                    description: s!(""),
+                    category: Category::SUBSCRIPTION_DUES,
                     cascade_percentage: cascade,
                     cascade_amount: cascade,
                     amount: plan.per_deliverable_price.clone(),
@@ -641,6 +649,45 @@ pub mod funcs {
             lines.push(entry)
         }
         Ok(lines)
+    }
+
+    /// JavaScript binding for deliverable_lines
+    #[cfg(feature = "wasm")]
+    #[wasm_bindgen]
+    pub fn js_deliverable_lines(
+        base_price: String,
+        table_product: bool,
+        cascade: bool,
+        escrow_enabled: bool,
+        international: bool,
+        extra_lines: JsValue,
+        plan_name: String,
+        pricing: JsValue,
+    ) -> Result<JsValue, TabulationError>{
+        set_trace!();
+        let extra_lines = match serde_wasm_bindgen::from_value(extra_lines) {
+            Ok(result) => result,
+            Err(error) => return Err(TabulationError::from(error.to_string())),
+        };
+        let pricing = match serde_wasm_bindgen::from_value(pricing) {
+            Ok(result) => result,
+            Err(error) => return Err(TabulationError::from(error.to_string())),
+        };
+        let lines = deliverable_lines(
+            base_price,
+            table_product,
+            cascade,
+            escrow_enabled,
+            international,
+            extra_lines,
+            plan_name,
+            pricing,
+        );
+        let serializer = Serializer::json_compatible();
+        match Serialize::serialize(&lines, &serializer) {
+            Ok(result) => Ok(result),
+            Err(err) => Err(TabulationError::from(err.to_string())),
+        }
     }
 }
 
