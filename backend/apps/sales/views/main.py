@@ -1209,7 +1209,7 @@ class DeliverableLineItems(ListCreateAPIView):
                 destination_user=destination_user,
                 destination_account=destination_account,
                 invoice=deliverable.invoice,
-                category=accounts[item_type],
+                category=DEFAULT_TYPE_TO_CATEGORY_MAP[item_type],
             )
             line.annotate(deliverable)
             deliverable.save()

@@ -35,6 +35,7 @@ from apps.sales.constants import (
     SHIELD,
     TIP,
     FUND,
+    ESCROW_HOLD,
 )
 from apps.sales.models import Deliverable, Order, Revision
 from apps.sales.tests.factories import (
@@ -724,6 +725,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(line_item.amount, Money("2.03", "USD"))
         self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user)
+        self.assertEqual(line_item.category, ESCROW_HOLD)
 
     def test_add_line_item_too_low(self):
         user = UserFactory.create()

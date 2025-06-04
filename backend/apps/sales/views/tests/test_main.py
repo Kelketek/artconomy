@@ -56,6 +56,8 @@ from apps.sales.constants import (
     VOID,
     WAITING,
     VENDOR,
+    ESCROW_HOLD,
+    EXTRA_ITEM,
 )
 from apps.sales.models import (
     Deliverable,
@@ -66,6 +68,7 @@ from apps.sales.models import (
     ShoppingCart,
     Invoice,
     TransactionRecord,
+    LineItem,
 )
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -2841,6 +2844,18 @@ class TestInvoiceLineItems(APITestCase):
         self.assertEqual(response.data[0]["amount"], "10.00")
 
     def test_create_line_item(self):
+        deliverable = DeliverableFactory.create(
+            product__base_price=Money("10.00", "USD")
+        )
+        self.login(deliverable.order.seller)
+        # This version of the invoice can't be modified by normal users.
+        response = self.client.post(
+            f"/api/sales/invoice/{deliverable.invoice.id}/line-items/",
+            {"description": "Stuff", "amount": 5, "percentage": 0, "type": ADD_ON},
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_create_line_item_staff(self):
         staff = create_staffer("table_seller")
         deliverable = DeliverableFactory.create(
             product__base_price=Money("10.00", "USD")
@@ -2851,6 +2866,9 @@ class TestInvoiceLineItems(APITestCase):
             {"description": "Stuff", "amount": 5, "percentage": 0, "type": EXTRA},
         )
         self.assertEqual(response.data["amount"], "5.00")
+        item = LineItem.objects.get(type=EXTRA)
+        self.assertEqual(item.category, EXTRA_ITEM)
+        self.assertIsNone(item.destination_user)
 
     def test_modify_base_line_item(self):
         staff = create_staffer("table_seller")
