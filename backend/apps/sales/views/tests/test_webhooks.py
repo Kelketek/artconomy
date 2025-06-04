@@ -14,6 +14,7 @@ from apps.lib.models import (
 )
 from apps.lib.constants import SALE_UPDATE, TIP_RECEIVED
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin
+from apps.lib.utils import utc_now
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     AUTHORIZE,
@@ -45,6 +46,11 @@ from apps.sales.constants import (
     CASH_DEPOSIT,
     TOP_UP,
     CARD_MISC_FEES,
+    ESCROW_HOLD,
+    PAYMENT,
+    HOLDINGS,
+    PAYOUT_ACCOUNT,
+    CASH_WITHDRAW,
 )
 from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord
 from apps.sales.stripe import money_to_stripe
@@ -135,10 +141,66 @@ class TestStripeWebhook(APITestCase):
     @patch("apps.sales.views.webhooks.pull_report")
     def test_import_balance_transactions_and_fees(self, mock_pull):
         self.assertEqual(TransactionRecord.objects.count(), 0)
-        mock_pull.return_value = DictReader(StringIO(DUMMY_BALANCE_REPORT))
+        original = TransactionRecordFactory.create(
+            source=CARD,
+            destination=FUND,
+            category=PAYMENT,
+            status=PENDING,
+            remote_ids=["ch_foo"],
+        )
+        escrow_input = TransactionRecordFactory.create(
+            source=FUND,
+            destination=ESCROW,
+            category=ESCROW_HOLD,
+            status=PENDING,
+            remote_ids=["ch_foo"],
+        )
+        escrow_output = TransactionRecordFactory.create(
+            source=ESCROW,
+            destination=HOLDINGS,
+            status=PENDING,
+            remote_ids=["ch_foo"],
+        )
+        # Should not be affected from the charge's update.
+        transfer_output = TransactionRecordFactory.create(
+            source=HOLDINGS,
+            destination=PAYOUT_ACCOUNT,
+            status=PENDING,
+            remote_ids=["ch_foo"],
+            category=CASH_WITHDRAW,
+        )
+        settled_transfer = TransactionRecordFactory.create(
+            source=HOLDINGS,
+            destination=PAYOUT_ACCOUNT,
+            status=PENDING,
+            remote_ids=["tr_boop"],
+            category=CASH_WITHDRAW,
+        )
+        future_charge_settlement = TransactionRecordFactory.create(
+            source=CARD,
+            destination=ESCROW,
+            # Should be corrected.
+            status=SUCCESS,
+            remote_ids=["ch_derp"],
+        )
+        future_transfer_settlement = TransactionRecordFactory.create(
+            source=HOLDINGS,
+            destination=PAYOUT_ACCOUNT,
+            # Should be corrected.
+            status=SUCCESS,
+            remote_ids=["tr_herp"],
+            category=CASH_WITHDRAW,
+        )
+        # Make one of the charge transactions be in the future for settlement.
+        report_contents = DUMMY_BALANCE_REPORT.replace(
+            "#######",
+            (utc_now() + relativedelta(days=3)).isoformat(),
+        )
+        self.assertEqual(TransactionRecord.objects.count(), 7)
+        mock_pull.return_value = DictReader(StringIO(report_contents))
         event = base_report_event()
         self.view(self.gen_request(event), False)
-        self.assertEqual(TransactionRecord.objects.count(), 3)
+        self.assertEqual(TransactionRecord.objects.count(), 10)
         record = TransactionRecord.objects.get(remote_ids__contains="txn_beep")
         self.assertEqual(record.source, FUND)
         self.assertEqual(record.destination, CARD_MISC_FEES)
@@ -162,6 +224,20 @@ class TestStripeWebhook(APITestCase):
         self.assertEqual(record.amount, Money("100.00", "USD"))
         self.assertEqual(record.category, TOP_UP)
         self.assertEqual(record.status, SUCCESS)
+        original.refresh_from_db()
+        escrow_input.refresh_from_db()
+        escrow_output.refresh_from_db()
+        transfer_output.refresh_from_db()
+        future_charge_settlement.refresh_from_db()
+        future_transfer_settlement.refresh_from_db()
+        settled_transfer.refresh_from_db()
+        self.assertEqual(original.status, SUCCESS)
+        self.assertEqual(escrow_input.status, SUCCESS)
+        self.assertEqual(escrow_output.status, SUCCESS)
+        self.assertEqual(settled_transfer.status, SUCCESS)
+        self.assertEqual(transfer_output.status, PENDING)
+        self.assertEqual(future_charge_settlement.status, PENDING)
+        self.assertEqual(future_transfer_settlement.status, PENDING)
 
     @patch("apps.sales.views.webhooks.mockable_dummy_event")
     def test_validates_event(self, mockable_dummy_event):
@@ -247,18 +323,19 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             destination=FUND,
             payer=deliverable.order.buyer,
             payee=deliverable.order.buyer,
-            status=SUCCESS,
+            status=PENDING,
         )
         escrow_transaction = TransactionRecord.objects.get(
             source=FUND,
             destination=ESCROW,
             payer=deliverable.order.buyer,
             payee=deliverable.order.seller,
-            status=SUCCESS,
+            status=PENDING,
         )
         fee = TransactionRecord.objects.get(
             source=FUND,
             destination=CARD_TRANSACTION_FEES,
+            status=PENDING,
         )
         self.assertEqual(fee.amount, Money("0.74", "USD"))
         for transaction in [fund_transaction, escrow_transaction, fee]:

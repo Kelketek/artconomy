@@ -45,6 +45,7 @@ from apps.sales.constants import (
     TABLE_HANDLING,
     WAITING,
     FUND,
+    PENDING,
 )
 from apps.sales.models import Deliverable, TransactionRecord, idempotent_lines
 from apps.sales.tests.factories import (
@@ -515,7 +516,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
             ref_for_instance(self.deliverable.invoice),
         ]
         fund_transaction = TransactionRecord.objects.get(
-            status=SUCCESS,
+            status=PENDING,
             payee=self.deliverable.order.buyer,
             payer=self.deliverable.order.buyer,
             source=CARD,
@@ -533,7 +534,13 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertCountEqual(
-            refund_transaction.remote_ids, ["pi_12345", "refund123", "txn_test_balance"]
+            refund_transaction.remote_ids,
+            [
+                "ch_12345",
+                "pi_12345",
+                "refund123",
+                "txn_test_balance",
+            ],
         )
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
         mock_stripe.__enter__.return_value.Refund.create.assert_called_with(
@@ -577,7 +584,12 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertEqual(
-            sorted(refund_transaction.remote_ids), ["pi_12345", "txn_test_balance"]
+            sorted(refund_transaction.remote_ids),
+            [
+                "ch_12345",
+                "pi_12345",
+                "txn_test_balance",
+            ],
         )
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
         self.assertEqual(refund_transaction.response_message, "Failed!")
@@ -600,6 +612,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         CreditCardTokenFactory.create()
         self.deliverable.save()
         self.charge_transaction(self.deliverable)
+
         mock_refund_transaction.return_value = {"id": "123456"}
         self.state_assertion(
             "staffer", "refund/", initial_status=DISPUTED, target_status=REFUNDED

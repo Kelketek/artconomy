@@ -107,7 +107,7 @@ class DeliverableChargeMixin:
             "stripe_event": (
                 self.stripe_payment_event(deliverable) if source == CARD else None
             ),
-            "remote_ids": ["pi_12345"] if source == CARD else "",
+            "remote_ids": ["pi_12345", "ch_12345"] if source == CARD else "",
         }
         requesting_user = deliverable.order.buyer
         if source == CASH_DEPOSIT:

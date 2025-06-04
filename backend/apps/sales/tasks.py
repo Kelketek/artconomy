@@ -34,6 +34,7 @@ from apps.sales.constants import (
     VOID,
     WEIGHTED_STATUSES,
     COMPLETED,
+    CASH_DEPOSIT,
 )
 from apps.sales.mail_campaign import drip
 from apps.sales.models import (
@@ -58,6 +59,7 @@ from apps.sales.utils import (
     get_term_invoice,
     invoice_post_payment,
     update_downstream_pricing,
+    AVAILABLE,
 )
 from conf.celery_config import celery_app
 from dateutil.relativedelta import relativedelta
@@ -286,7 +288,7 @@ def record_to_invoice_map(user, bank: StripeAccount, amount: Money) -> RecordMap
             targets=target,
             payee=user,
             destination=HOLDINGS,
-            status=SUCCESS,
+            status__in=[SUCCESS, PENDING],
         )
         sub_amount = sum(sub_record.amount for sub_record in records)
         amount -= sub_amount
@@ -319,18 +321,18 @@ def stripe_transfer(record_id: str, stripe_id: str, invoice_id: str) -> None:
     invoice = Invoice.objects.get(id=invoice_id)
     base_settings["metadata"] = {"invoice_id": invoice.id}
     base_settings["transfer_group"] = f"ACInvoice#{invoice.id}"
-    source_record = TransactionRecord.objects.filter(
-        source=CARD,
+    # There must be an associated source record for this transfer.
+    source_record = TransactionRecord.objects.get(
+        source__in=[CARD, CASH_DEPOSIT],
         targets=ref_for_instance(invoice),
-        status=SUCCESS,
-    ).first()
-    if source_record:
-        try:
-            base_settings["source_transaction"] = fetch_prefixed(
-                "ch_", source_record.remote_ids
-            )
-        except ValueError:
-            pass
+        status__in=[SUCCESS, PENDING],
+    )
+    if source_record.source == CARD:
+        # If it's a card, we need to bind the transfer to the settlement of the card
+        # payment.
+        base_settings["source_transaction"] = fetch_prefixed(
+            "ch_", source_record.remote_ids
+        )
     assert invoice.issued_by == stripe_account.user
     record = TransactionRecord.objects.get(id=record_id)
     base_settings["amount"], base_settings["currency"] = money_to_stripe(record.amount)
@@ -371,7 +373,7 @@ def withdraw_all(user_id):
         return
     banks = [user.stripe_account]
     with cache.lock(f"account_user__{user.id}"):
-        balance = account_balance(user, HOLDINGS)
+        balance = account_balance(user, HOLDINGS, balance_type=AVAILABLE)
         if balance <= 0:
             return
         with transaction.atomic():
@@ -653,6 +655,7 @@ def run_balance_report(
                     "created_utc",
                     "available_on_utc",
                     "reporting_category",
+                    "source_id",
                     "gross",
                     "currency",
                     "description",

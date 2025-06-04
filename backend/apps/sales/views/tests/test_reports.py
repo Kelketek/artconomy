@@ -706,7 +706,7 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
             record = TransactionRecord.objects.get(
                 remote_ids__contains=f"outbound{deliverable.id}"
             )
-            record.status = SUCCESS
+            record.status = PENDING
             record.save()
 
     def test_participant_display(self):

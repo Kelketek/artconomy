@@ -317,6 +317,7 @@ class TransactionCheckMixin:
         source=CARD,
         landscape=False,
     ):
+        status = PENDING if source == CARD else SUCCESS
         fund_transaction = TransactionRecord.objects.get(
             source=source,
             destination=FUND,
@@ -359,7 +360,7 @@ class TransactionCheckMixin:
         else:
             shield_fee_candidates = shield_fee_candidates.filter(remote_ids=[])
         shield_fee = shield_fee_candidates.get()
-        self.assertEqual(shield_fee.status, SUCCESS)
+        self.assertEqual(shield_fee.status, status)
         self.assertEqual(
             shield_fee.targets.filter(content_type__model="deliverable").get().target,
             deliverable,

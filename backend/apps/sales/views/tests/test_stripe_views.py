@@ -462,7 +462,6 @@ class TestInvoicePaymentIntent(APITestCase):
         response = self.client.post(
             f"/api/sales/v1/invoice/{invoice.id}/payment-intent/",
         )
-        print(response.data)
         self.assertEqual(
             response.data,
             ["Cannot create a payment intent when there's no user to bill."],

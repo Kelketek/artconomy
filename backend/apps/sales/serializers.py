@@ -49,6 +49,7 @@ from apps.sales.constants import (
     PAYOUT_ACCOUNT,
     BANK_MISC_FEES,
     CARD_MISC_FEES,
+    PENDING,
 )
 from apps.sales.line_item_funcs import get_totals, reckon_lines
 from apps.sales.models import (
@@ -1427,7 +1428,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     def charge_transactions(self, obj):
         return multi_filter(
             TransactionRecord.objects.filter(
-                status=SUCCESS,
+                status__in=[SUCCESS, PENDING],
                 source__in=[CARD, CASH_DEPOSIT],
             ),
             self.qs_filters(obj),
@@ -1490,7 +1491,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             TransactionRecord.objects.filter(
                 payer=None,
                 payee=None,
-                status=SUCCESS,
+                status__in=[SUCCESS, PENDING],
                 source=FUND,
                 destination=CARD_TRANSACTION_FEES,
             ),
@@ -1500,7 +1501,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     def get_our_fees(self, obj):
         transactions = multi_filter(
             TransactionRecord.objects.filter(
-                status=SUCCESS,
+                status__in=[SUCCESS, PENDING],
             ),
             self.qs_filters(obj),
         ).filter(
@@ -1522,7 +1523,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
     def get_refunded(self, obj):
         transactions = multi_filter(
             TransactionRecord.objects.filter(
-                status=SUCCESS,
+                status__in=[SUCCESS, PENDING],
             ),
             self.qs_filters(obj),
         ).filter(
@@ -1542,7 +1543,7 @@ class DeliverableValuesSerializer(serializers.ModelSerializer):
             TransactionRecord.objects.filter(
                 source=ESCROW,
                 payer=obj.order.seller,
-                status=SUCCESS,
+                status__in=[SUCCESS, PENDING],
                 payee=obj.order.buyer,
             ),
             self.qs_filters(obj),

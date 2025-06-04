@@ -30,6 +30,7 @@ from apps.sales.constants import (
     SUCCESS,
     VOID,
     QUEUED,
+    CASH_DEPOSIT,
 )
 from apps.sales.models import (
     Deliverable,
@@ -326,7 +327,8 @@ class TestAutoRenewal(EnsurePlansMixin, TestCase):
         disable.refresh_from_db()
         self.assertFalse(disable.landscape_enabled)
         mock_renew.delay.assert_has_calls(
-            [call(renew_landscape.id), call(renew_basic.id)]
+            [call(renew_landscape.id), call(renew_basic.id)],
+            any_order=True,
         )
         self.assertEqual(
             Notification.objects.filter(event__type=SUBSCRIPTION_DEACTIVATED).count(), 1
@@ -514,8 +516,16 @@ class TestWithdrawAll(EnsurePlansMixin, TransactionTestCase):
 
 @patch("apps.sales.tasks.stripe")
 class TestStripeTransfer(EnsurePlansMixin, TestCase):
-    def test_send_transfer_deliverable(self, mock_stripe):
+    def test_send_transfer_deliverable_cash(self, mock_stripe):
         deliverable = DeliverableFactory.create()
+        # Required source record
+        source_record = TransactionRecordFactory.create(
+            payee=deliverable.order.seller,
+            source=CASH_DEPOSIT,
+            amount=Money("10.00", "USD"),
+            status=SUCCESS,
+        )
+        source_record.targets.add(ref_for_instance(deliverable.invoice))
         record = TransactionRecordFactory.create(
             payee=deliverable.order.seller,
             amount=Money("10.00", "USD"),
@@ -542,6 +552,15 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
 
     def test_send_transfer_failed(self, mock_stripe):
         deliverable = DeliverableFactory.create(invoice__payout_sent=True)
+        # Required source record
+        source_record = TransactionRecordFactory.create(
+            payee=deliverable.order.seller,
+            source=CARD,
+            amount=Money("10.00", "USD"),
+            remote_ids=["ch_12345"],
+            status=SUCCESS,
+        )
+        source_record.targets.add(ref_for_instance(deliverable.invoice))
         record = TransactionRecordFactory.create(
             payee=deliverable.order.seller,
             amount=Money("10.00", "USD"),
@@ -560,7 +579,7 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
         deliverable.refresh_from_db()
         self.assertFalse(deliverable.invoice.payout_sent)
 
-    def test_send_transfer_deliverable_with_source(self, mock_stripe):
+    def test_send_transfer_deliverable_card(self, mock_stripe):
         deliverable = DeliverableFactory.create()
         record = TransactionRecordFactory.create(
             payee=deliverable.order.seller,
@@ -593,37 +612,6 @@ class TestStripeTransfer(EnsurePlansMixin, TestCase):
             currency="usd",
             destination="foo",
             source_transaction="ch_stuff",
-        )
-
-    def test_send_transfer_deliverable_with_unmarked_source(self, mock_stripe):
-        deliverable = DeliverableFactory.create()
-        record = TransactionRecordFactory.create(
-            payee=deliverable.order.seller,
-            payer=deliverable.order.seller,
-            amount=Money("10.00", "USD"),
-            status=FAILURE,
-        )
-        source_record = TransactionRecordFactory.create(
-            source=CARD, destination=ESCROW, status=SUCCESS, remote_ids=["things"]
-        )
-        source_record.targets.add(ref_for_instance(deliverable.invoice))
-        account = StripeAccountFactory.create(
-            user=deliverable.order.seller, token="foo"
-        )
-        mock_stripe.__enter__.return_value.Transfer.create.return_value = {
-            "id": "beep",
-            "destination_payment": "boop",
-            "balance_transaction": "1234",
-        }
-        stripe_transfer(record.id, account.id, invoice_id=deliverable.invoice.id)
-        record.refresh_from_db()
-        self.assertEqual(record.status, SUCCESS)
-        mock_stripe.__enter__.return_value.Transfer.create.assert_called_with(
-            metadata={"reference_transaction": record.id},
-            transfer_group=f"ACInvoice#{deliverable.invoice.id}",
-            amount=1000,
-            currency="usd",
-            destination="foo",
         )
 
 

@@ -9,11 +9,12 @@ from typing import Callable
 
 import dateutil
 import requests
+from django.db.models import QuerySet
 from requests.auth import HTTPBasicAuth
 from rest_framework.generics import get_object_or_404
 
 from apps.lib.constants import TRANSFER_FAILED
-from apps.lib.utils import notify
+from apps.lib.utils import notify, utc_now
 from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
 from apps.sales.constants import (
     FAILURE,
@@ -31,6 +32,11 @@ from apps.sales.constants import (
     CASH_DEPOSIT,
     TOP_UP,
     CARD_MISC_FEES,
+    PAYOUT_ACCOUNT,
+    CASH_WITHDRAW,
+    PENDING,
+    CARD,
+    ESCROW,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -301,6 +307,56 @@ def add_top_up(row) -> TransactionRecord:
     )
 
 
+def update_transfer(row) -> TransactionRecord:
+    """
+    Given a row for a transfer, update the transfer to indicate its success.
+    """
+    assert row["source_id"]
+    record = TransactionRecord.objects.get(
+        status__in=[SUCCESS, PENDING],
+        remote_ids__contains=row["source_id"],
+        source=HOLDINGS,
+        destination=PAYOUT_ACCOUNT,
+        category=CASH_WITHDRAW,
+    )
+    created_on = date_from_utc_stamp(row["created_utc"])
+    finalized_on = date_from_utc_stamp(row["available_on_utc"])
+    record.created_on = created_on
+    record.finalized_on = finalized_on
+    record.status = SUCCESS if finalized_on < utc_now() else PENDING
+    record.save()
+    return record
+
+
+def update_charge(row) -> QuerySet[TransactionRecord]:
+    """
+    Given a row for a charge, update the charge transactions to indicate its success.
+    """
+    assert row["source_id"]
+    records = TransactionRecord.objects.filter(
+        status__in=[SUCCESS, PENDING],
+        remote_ids__contains=row["source_id"],
+        source__in=[CARD, FUND, ESCROW],
+    )
+    created_on = date_from_utc_stamp(row["created_utc"])
+    finalized_on = date_from_utc_stamp(row["available_on_utc"])
+    transaction_status = SUCCESS if finalized_on < utc_now() else PENDING
+    records.update(
+        finalized_on=finalized_on,
+        status=transaction_status,
+    )
+    records.filter(source=CARD).update(created_on=created_on)
+    return records
+
+
+BALANCE_RECORD_PROCESSORS = {
+    "fee": add_stripe_fee,
+    "topup": add_top_up,
+    "charge": update_charge,
+    "transfer": update_transfer,
+}
+
+
 def apply_stripe_balance_changes(event):
     """
     Pull all the balance changes that we wouldn't otherwise know about from the Stripe
@@ -309,12 +365,10 @@ def apply_stripe_balance_changes(event):
     reader = pull_report(event["data"]["object"])
     with cache.lock("stripe_balance_changes"):
         for row in reader:
-            # TODO: Other transaction types may need handling, but first we need to
-            # determine how they actually behave.
-            if row["reporting_category"] == "fee":
-                add_stripe_fee(row)
-            elif row["reporting_category"] == "topup":
-                add_top_up(row)
+            BALANCE_RECORD_PROCESSORS.get(
+                row["reporting_category"],
+                lambda x: None,
+            )(row)
 
 
 REPORT_ROUTES = {

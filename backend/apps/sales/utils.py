@@ -556,7 +556,7 @@ def finalize_deliverable(deliverable, user=None):
         records = TransactionRecord.objects.filter(
             payee=deliverable.order.seller,
             destination=ESCROW,
-            status=SUCCESS,
+            status__in=[SUCCESS, PENDING],
             targets__object_id=deliverable.id,
             targets__content_type=ContentType.objects.get_for_model(deliverable),
         )
@@ -569,7 +569,8 @@ def finalize_deliverable(deliverable, user=None):
             source=ESCROW,
             destination=HOLDINGS,
             category=ESCROW_RELEASE,
-            status=SUCCESS,
+            # Pending transactions won't be sent immediately.
+            status=record.status,
             remote_ids=record.remote_ids,
             auth_code=record.auth_code,
         )
@@ -1148,10 +1149,9 @@ def from_remote_id(
             ),
             error,
         )
-    # We don't support the 'pending' status because we don't record the transaction on
-    # our side until we actually run the charge-- earlier code should filter it out.
-    # Maybe we'll add it in the future, but it's not complexity we need right now.
+    # Stripe card transactions don't settle immediately. We mark as pending here.
     mark_successful(
+        pending=True,
         transactions=transactions,
         remote_ids=remote_ids,
         auth_code=auth_code,
@@ -1188,6 +1188,7 @@ def annotate_error(
 
 def mark_successful(
     *,
+    pending: bool = False,
     transactions: List["TransactionRecord"],
     remote_ids: List[str],
     auth_code: str,
@@ -1198,10 +1199,12 @@ def mark_successful(
     context: dict,
 ):
     """
-    Marks a set of transactions as successful.
+    Marks a set of transactions as 'successful'. These may actually be pending if we're
+    waiting for settlement by the payment provider.
     """
+    status = PENDING if pending else SUCCESS
     for record in transactions:
-        record.status = SUCCESS
+        record.status = status
         record.remote_ids.extend(remote_ids)
         record.remote_ids = list(set(record.remote_ids))
         record.auth_code = auth_code
@@ -1587,13 +1590,13 @@ def refund_deliverable(deliverable: "Deliverable", requesting_user=None) -> (boo
         payer=deliverable.order.buyer,
         payee=deliverable.order.buyer,
         destination=FUND,
-        status=SUCCESS,
+        status__in=[SUCCESS, PENDING],
     )
     transaction_set = TransactionRecord.objects.filter(
         source=FUND,
         payer=deliverable.order.buyer,
         targets=target,
-        status=SUCCESS,
+        status__in=[SUCCESS, PENDING],
     ).exclude(category=SHIELD_FEE)
     record = issue_refund(
         fund_transaction,

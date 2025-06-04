@@ -766,15 +766,12 @@ def base_report_event():
     }
 
 
-DUMMY_BALANCE_REPORT = """balance_transaction_id,created_utc,available_on_utc,reporting_category,gross,currency,description
-txn_beep,2025-03-27 09:01:06,2025-03-27 09:01:06,fee,-0.08,usd,Radar (2025-03-26): Radar for Fraud Teams
-txn_boop,2025-03-27 11:34:37,2025-03-27 11:34:37,transfer,-113.25,usd,
-txn_foo,2025-03-27 19:09:17,2025-03-31 00:00:00,charge,80,usd,
-txn_bar,2025-03-27 20:56:49,2025-03-28 21:00:00,transfer,-37.34,usd,
-txn_wat,2025-03-27 23:11:51,2025-03-29 00:00:00,transfer,-71.15,usd,
-txn_do,2025-03-27 23:12:01,2025-03-31 00:00:00,charge,7.65,usd,
-txn_fox,2025-03-27 23:12:04,2025-03-31 00:00:00,transfer,-6.76,usd,
-txn_vix,2025-03-28 05:00:01,2025-04-01 00:00:00,charge,9,usd,
-txn_stuff,2025-03-28 09:18:43,2025-03-28 09:18:43,fee,-5.50,usd,Connect (2025-03-27): Cross-Border Transfers
-txn_topup,2025-04-10 12:00:05,2025-04-10 12:00:05,topup,100,usd
+DUMMY_BALANCE_REPORT = """balance_transaction_id,source_id,created_utc,available_on_utc,reporting_category,gross,currency,description
+txn_beep,,2025-03-27 09:01:06,2025-03-27 09:01:06,fee,-0.08,usd,Radar (2025-03-26): Radar for Fraud Teams
+txn_boop,tr_boop,2025-03-27 11:34:37,2025-03-27 11:34:37,transfer,-113.25,usd,
+txn_foo,ch_foo,2025-03-27 19:09:17,2025-03-31 00:00:00,charge,80,usd,
+txn_derp,ch_derp,2025-03-27 19:09:17,#######,charge,80,usd,
+txn_herp,tr_herp,2025-03-27 19:09:17,#######,transfer,-113.25,usd,
+txn_stuff,,2025-03-28 09:18:43,2025-03-28 09:18:43,fee,-5.50,usd,Connect (2025-03-27): Cross-Border Transfers
+txn_topup,,2025-04-10 12:00:05,2025-04-10 12:00:05,topup,100,usd
 """
