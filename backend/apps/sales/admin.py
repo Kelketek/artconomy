@@ -1,7 +1,26 @@
+import html
+
+from django.conf import settings
 from django.db.models.functions import Collate
 
 from apps.lib.admin import CommentInline
+from apps.lib.models import ref_for_instance
+from apps.profiles.models import User
 from apps.profiles.utils import get_anonymous_user
+from apps.sales.constants import (
+    CANCELLED,
+    BEFORE_PAYMENT_STATUSES,
+    PAID_STATUSES,
+    REFUNDED,
+    SUCCESS,
+    FUND,
+    CARD,
+    ESCROW_REFUND,
+    FAILURE,
+    PAYOUT_ACCOUNT,
+    HOLDINGS,
+    ESCROW,
+)
 from apps.sales.models import (
     CreditCardToken,
     Deliverable,
@@ -20,7 +39,8 @@ from apps.sales.models import (
     WebhookRecord,
     PaypalConfig,
 )
-from apps.sales.utils import reverse_record
+from apps.sales.stripe import stripe, reverse_transfer
+from apps.sales.utils import reverse_record, issue_refund, fetch_prefixed
 from django import forms
 from django.contrib import admin, messages
 from django.core.exceptions import ValidationError
@@ -29,6 +49,7 @@ from django.db.transaction import atomic
 # Register your models here.
 from django.forms import ModelForm, TextInput
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 
@@ -51,7 +72,208 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ("buyer", "seller")
 
 
+def safe_display_banned_user(record: User):
+    """
+    Safely render a user's info such that no user-written characters are shown and
+    it can be HTML embedded in a message with a link.
+    """
+    return (
+        f'<a href="{reverse("admin:profiles_user_change", args=[record.id])}'
+        f'">{html.escape(record.username)}</a>'
+        f" was forcibly deactivated."
+    )
+
+
+def get_payout_link_message(seller):
+    """
+    Get the link to the payout page for this seller so that reversals can be done.
+    """
+    if settings.ENV_NAME == "prod":
+        base_url = "https://dashboard.stripe.com/"
+    else:
+        base_url = "https://dashboard.stripe.com/test/"
+    if not hasattr(seller, "stripe_account"):
+        return (
+            f"No stripe account on file for {seller.username}. "
+            f"Are you sure you picked the right order?"
+        )
+    return (
+        f'Visit <a href="{base_url}connect/accounts/'
+        f"{seller.stripe_account.token}/\">{html.escape(seller.username)}'s Stripe "
+        f"account</a> to reverse payouts."
+    )
+
+
+def deliverable_display(deliverable: Deliverable):
+    url = reverse("admin:sales_deliverable_change", args=[deliverable.id])
+    return f'<a href="{url}">Deliverable #{deliverable.id}</a>'
+
+
+def mark_refunded(deliverable: Deliverable):
+    deliverable.status = REFUNDED
+    deliverable.refunded_on = deliverable.refunded_on or timezone.now()
+    deliverable.save()
+
+
+def force_refund(*, model_admin, request, deliverable, ref) -> None:
+    fund_transaction = TransactionRecord.objects.filter(
+        status=SUCCESS,
+        destination=FUND,
+        source=CARD,
+        targets=ref,
+        payer=deliverable.order.buyer,
+    ).first()
+    if not fund_transaction:
+        model_admin.message_user(
+            request,
+            mark_safe(
+                f"Could not find card transaction for "
+                f"{deliverable_display(deliverable)}."
+            ),
+            level=messages.ERROR,
+        )
+        return
+    record = issue_refund(
+        fund_transaction,
+        TransactionRecord.objects.filter(
+            source=FUND,
+            payer=deliverable.order.buyer,
+            targets=ref,
+            status=SUCCESS,
+        ),
+        ESCROW_REFUND,
+        processor=deliverable.processor,
+    )[0]
+    if record.status == FAILURE:
+        model_admin.message_user(
+            request,
+            mark_safe(
+                f"Failed refunding {deliverable_display(deliverable)}. "
+                f"{html.escape(record.response_message)}"
+            ),
+            level=messages.ERROR,
+        )
+    else:
+        model_admin.message_user(
+            request,
+            mark_safe(f"Refunded {deliverable_display(deliverable)}."),
+            level=messages.SUCCESS,
+        )
+
+
+@admin.action(description="Force refund of fraudulent")
+def kill_fraudulent(model_admin, request, queryset):
+    queryset.filter(escrow_enabled=False).update(status=CANCELLED)
+    queryset.filter(status__in=BEFORE_PAYMENT_STATUSES).update(status=CANCELLED)
+    sellers = set()
+    users = set()
+    deliverables = set()
+    for deliverable in queryset:
+        users.add(deliverable.order.seller)
+        if deliverable.escrow_enabled:
+            sellers.add(deliverable.order.seller)
+        if deliverable.order.buyer:
+            users.add(deliverable.order.buyer)
+        if deliverable.status in PAID_STATUSES and deliverable.status != REFUNDED:
+            deliverables.add(deliverable)
+    for seller in sellers:
+        seller.artist_profile.auto_withdraw = False
+        seller.artist_profile.save()
+        message = get_payout_link_message(seller)
+        model_admin.message_user(
+            request, mark_safe(message), level=messages.WARNING, extra_tags="safe"
+        )
+    for user in users:
+        user.is_active = False
+        user.notes += (
+            f"\nBanned for fraud by {request.user.username} on {timezone.now()}"
+        )
+        user.save()
+        message = safe_display_banned_user(user)
+        model_admin.message_user(
+            request, mark_safe(message), level=messages.SUCCESS, extra_tags="safe"
+        )
+    for deliverable in deliverables:
+        ref = ref_for_instance(deliverable)
+        # First, we refund the card.
+        force_refund(
+            request=request, deliverable=deliverable, model_admin=model_admin, ref=ref
+        )
+        # Next, we reverse the intermediate escrow transaction. This may not exist if
+        # the deliverable wasn't finalized.
+        to_reverse = TransactionRecord.objects.filter(
+            destination=HOLDINGS,
+            source=ESCROW,
+            targets=ref,
+            payee=deliverable.order.seller,
+        ).first()
+        if to_reverse:
+            reverse_record(to_reverse)
+        # Finally, we reverse the transfer to the fraudster, if it exists.
+        transfer_record = TransactionRecord.objects.filter(
+            targets=ref,
+            source=HOLDINGS,
+            destination=PAYOUT_ACCOUNT,
+            payee=deliverable.order.seller,
+            payer=deliverable.order.seller,
+            status=SUCCESS,
+        ).first()
+        if not transfer_record:
+            mark_refunded(deliverable)
+            continue
+        result = fetch_prefixed("tr_", transfer_record.remote_ids)
+        if not result:
+            print("NO RESULT!")
+            model_admin.message_user(
+                request,
+                mark_safe(
+                    f"Failed reversing transfer for {deliverable_display(deliverable)}. "
+                    f"Could not determine remote ID!"
+                ),
+                level=messages.ERROR,
+            )
+            continue
+        with stripe as stripe_api:
+            is_new, new_record = reverse_record(transfer_record)
+            if not is_new:
+                model_admin.message_user(
+                    request,
+                    mark_safe(
+                        f"Failed reversing transfer for "
+                        f"{deliverable_display(deliverable)}. "
+                        f"Reverse transfer already exists!"
+                    ),
+                    level=messages.ERROR,
+                )
+                continue
+            new_record.status = FAILURE
+            new_record.save()
+            try:
+                transfer_info = reverse_transfer(
+                    transfer_id=result, total=transfer_record.amount, api=stripe_api
+                )
+            except Exception as err:
+                print("Failed reversing transfer!")
+                new_record.response_message = str(err)
+                new_record.save()
+                model_admin.message_user(
+                    request,
+                    mark_safe(
+                        f"Failed reversing transfer for "
+                        f"{deliverable_display(deliverable)}. "
+                        f"{err}"
+                    ),
+                    level=messages.ERROR,
+                )
+                continue
+            new_record.remote_ids.append(transfer_info["id"])
+            new_record.status = SUCCESS
+            new_record.save()
+            mark_refunded(deliverable)
+
+
 class DeliverableAdmin(admin.ModelAdmin):
+    actions = [kill_fraudulent]
     inlines = [CommentInline]
     raw_id_fields = (
         "arbitrator",
@@ -188,7 +410,7 @@ class InvoiceAdmin(admin.ModelAdmin):
             return "(Artconomy)"
 
 
-def safe_display(record):
+def safe_display_record(record):
     """
     Safely render a transaction name such that no user-written characters are shown and
     it can be HTML embedded in a message with a link.
@@ -203,7 +425,7 @@ def safe_display(record):
 
 def reverse_message(source: TransactionRecord, destination: TransactionRecord):
     return (
-        f"<p>{safe_display(source)} was reversed in "
+        f"<p>{safe_display_record(source)} was reversed in "
         f'<a href="'
         f"{reverse('admin:sales_transactionrecord_change', args=[destination.id])}"
         f'">{destination.id}</a></p>'
@@ -248,7 +470,7 @@ def reverse_transactions(modeladmin, request, queryset):
         )
     if wrong_status:
         entries = [
-            f"<p>{safe_display(record)} (status was: {record.get_status_display()})</p>"
+            f"<p>{safe_display_record(record)} (status was: {record.get_status_display()})</p>"
             for record in wrong_status
         ]
         message = (

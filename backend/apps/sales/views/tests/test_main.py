@@ -56,7 +56,6 @@ from apps.sales.constants import (
     VOID,
     WAITING,
     VENDOR,
-    ESCROW_HOLD,
     EXTRA_ITEM,
 )
 from apps.sales.models import (

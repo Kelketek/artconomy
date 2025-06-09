@@ -42,19 +42,23 @@ class EnsurePlansMixin:
         super().setUp()
         self.landscape = ServicePlan.objects.get_or_create(
             name="Landscape",
-            sort_value=1,
-            monthly_charge=Money("8.00", "USD"),
-            tipping=True,
-            shield_static_price=Money(".50", "USD"),
-            paypal_invoicing=True,
-            shield_percentage_price=Decimal("4"),
+            defaults={
+                "sort_value": 1,
+                "monthly_charge": Money("8.00", "USD"),
+                "tipping": True,
+                "shield_static_price": Money(".50", "USD"),
+                "paypal_invoicing": True,
+                "shield_percentage_price": Decimal("4"),
+            },
         )[0]
         self.free = ServicePlan.objects.get_or_create(
             name="Free",
-            sort_value=0,
-            shield_static_price=Money(".75", "USD"),
-            shield_percentage_price=Decimal("8"),
-            max_simultaneous_orders=1,
+            defaults={
+                "sort_value": 0,
+                "shield_static_price": Money(".75", "USD"),
+                "shield_percentage_price": Decimal("8"),
+                "max_simultaneous_orders": 1,
+            },
         )[0]
 
 

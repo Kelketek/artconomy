@@ -1618,9 +1618,6 @@ def reverse_record(record: "TransactionRecord") -> (bool, "TransactionRecord"):
     Creates an inverse record from an existing record. Note: This does NOT perform any
     particular API requests needed to support the reversal outside the system, such as
     refunding credit cards.
-
-    This function might be moved to utils if given a few more guards so that it can be
-    used safely.
     """
     from apps.sales.models import TransactionRecord
 

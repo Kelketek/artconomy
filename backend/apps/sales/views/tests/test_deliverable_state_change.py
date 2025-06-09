@@ -499,9 +499,6 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
 
     @freeze_time("2023-01-01")
     @patch("apps.sales.utils.stripe")
-    @override_settings(
-        PREMIUM_PERCENTAGE_FEE=Decimal("5"), PREMIUM_STATIC_FEE=Decimal("0.10")
-    )
     def test_refund_card_seller(self, mock_stripe, _mock_notify):
         mock_stripe.__enter__.return_value.Refund.create.return_value = {
             "id": "refund123"
@@ -541,9 +538,6 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         )
 
     @patch("apps.sales.utils.stripe")
-    @override_settings(
-        PREMIUM_PERCENTAGE_FEE=Decimal("5"), PREMIUM_STATIC_FEE=Decimal("0.10")
-    )
     def test_refund_card_seller_exception(self, mock_stripe, _mock_notify):
         mock_stripe.__enter__.return_value.Refund.create.side_effect = (
             InvalidRequestError("Failed!", param=["test"])

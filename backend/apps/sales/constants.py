@@ -150,6 +150,7 @@ WORK_IN_PROGRESS_STATUSES = (PAYMENT_PENDING, QUEUED, IN_PROGRESS, DISPUTED, REV
 # Used for determining if a user has made a purchase, or is in the process of making
 # one. Considers cases where the customer cancelled their order as not a purchase.
 PURCHASED_STATUSES = (NEW, IN_PROGRESS, QUEUED, REVIEW, COMPLETED, DISPUTED, REFUNDED)
+BEFORE_PAYMENT_STATUSES = (NEW, MISSED, LIMBO, WAITING, PAYMENT_PENDING)
 
 
 ####
