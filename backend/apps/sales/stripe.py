@@ -1,4 +1,4 @@
-from typing import List, Optional, Tuple, TypedDict
+from typing import List, Optional, Tuple, TypedDict, Literal
 
 import pycountry
 import stripe as stripe_api
@@ -105,3 +105,29 @@ def get_country_list(*, api: stripe_api) -> List[CountrySpec]:
 
 def remote_ids_from_charge(charge_event):
     return [charge_event["payment_intent"], charge_event["id"]]
+
+
+def neutralize_account(user, api: stripe_api):
+    api.Account.update(
+        user.stripe_account.token,
+        {
+            "charges_enabled": False,
+            "payouts_enabled": False,
+            "requirements": {"disabled_reason": "platform_paused"},
+        },
+    )
+
+
+REJECT_REASON = Literal["fraud", "terms_of_service", "other"]
+
+
+def reject_account(user, api: stripe_api, reason: REJECT_REASON = "fraud"):
+    stripe_api.Account.reject(user.stripe_account.token, reason=reason)
+
+
+def reverse_transfer(*, transfer_id: str, total: Money, api: stripe_api):
+    amount, _ = money_to_stripe(total)
+    return api.Transfer.create_reversal(
+        transfer_id,
+        amount=amount,
+    )
