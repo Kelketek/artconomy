@@ -223,7 +223,6 @@ def kill_fraudulent(model_admin, request, queryset):
             continue
         result = fetch_prefixed("tr_", transfer_record.remote_ids)
         if not result:
-            print("NO RESULT!")
             model_admin.message_user(
                 request,
                 mark_safe(
@@ -253,7 +252,6 @@ def kill_fraudulent(model_admin, request, queryset):
                     transfer_id=result, total=transfer_record.amount, api=stripe_api
                 )
             except Exception as err:
-                print("Failed reversing transfer!")
                 new_record.response_message = str(err)
                 new_record.save()
                 model_admin.message_user(
