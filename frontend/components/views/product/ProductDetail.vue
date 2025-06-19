@@ -1166,8 +1166,8 @@ const rawLineItemSetMaps = computed(() => {
   }
   const basePrice = product.x.base_price
 
-  const planName = subject.value?.service_plan
-  const international = subject.value?.international
+  const planName = subject.value?.service_plan || null
+  const international = !!subject.value?.international
   const cascade = product.x.cascade_fees
   const tableProduct = product.x.table_product
   let preferredLines: LineItem[] = []

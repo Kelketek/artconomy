@@ -64,7 +64,7 @@ function sum(list: number[]): string {
 }
 
 export function invoiceLines(options: {
-  planName: string | null | undefined
+  planName: string | null
   pricing: Pricing | null
   value: string
   international: boolean
@@ -136,7 +136,7 @@ export const deliverableLines = ({
   escrowEnabled: boolean
   international: boolean
   extraLines: LineItem[]
-  planName: string | null | undefined
+  planName: string | null
   pricing: Pricing | null
 }) => {
   if (!planName) {
@@ -152,19 +152,15 @@ export const deliverableLines = ({
   if (!plan) {
     return []
   }
-  try {
-    return js_deliverable_lines({
-      base_price: basePrice,
-      table_product: tableProduct,
-      cascade,
-      escrow_enabled: escrowEnabled,
-      international: international,
-      extra_lines: extraLines,
-      plan_name: planName,
-      pricing,
-    }).Ok
-  } catch (err) {
-    console.log("DELIVERABLE LINES FAILED!!")
-    throw err
-  }
+  return js_deliverable_lines({
+    base_price: basePrice,
+    table_product: tableProduct,
+    cascade,
+    escrow_enabled: escrowEnabled,
+    international: international,
+    extra_lines: extraLines,
+    plan_name: planName,
+    pricing,
+    allow_soft_failure: true,
+  }).Ok
 }

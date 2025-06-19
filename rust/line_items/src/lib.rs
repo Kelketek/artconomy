@@ -33,7 +33,7 @@ macro_rules! set_trace {
 
 /// Line item calculation functions used for determining amounts on invoices.
 pub mod funcs {
-    use crate::data::{Category, DeliverableLinesContext, LineType};
+    use crate::data::{Category, DeliverableLinesContext, LineType, Pricing};
     #[cfg(any(feature = "python", feature = "wasm"))]
     use crate::data::{Calculation};
     use crate::data::{LineDecimalMap, LineItem, TabulationError};
@@ -537,14 +537,54 @@ pub mod funcs {
         mut lines_context: DeliverableLinesContext,
     ) -> Result<Vec<LineItem>, TabulationError> {
         let mut lines: Vec<LineItem> = vec![];
-        let plan = match lines_context.pricing.plans.iter().find(
-            |entry| entry.name == lines_context.plan_name
+        let plan_name: String;
+
+        match lines_context.plan_name {
+            Some(name) => {
+                plan_name = name;
+            },
+            None => {
+                if lines_context.allow_soft_failure {
+                    return Ok(lines)
+                }
+                return Err(TabulationError::from("No plan name specified."))
+            }
+        }
+        let pricing: Pricing;
+        match lines_context.pricing {
+            Some(price_spec) => {
+                pricing = price_spec
+            },
+            None => {
+                if lines_context.allow_soft_failure {
+                    return Ok(lines)
+                }
+                return Err(TabulationError::from("Pricing specification not provided."))
+            }
+        }
+        let plan = match pricing.plans.iter().find(
+            |entry| entry.name == plan_name
         ) {
             Some(inner) => inner,
             None => {
-                return Err(TabulationError::from(
-                    format!("Could not find {0} in plan list.", lines_context.plan_name)
-                ))
+                return if lines_context.allow_soft_failure {
+                    Ok(lines)
+                } else {
+                    Err(TabulationError::from(
+                        format!("Could not find {plan_name} in plan list.")
+                    ))
+                }
+            }
+        };
+        // Sanity check.
+        match Decimal::from_str_exact(&lines_context.base_price) {
+            Ok(_) => { },
+            Err(err) => {
+                return if lines_context.allow_soft_failure {
+                    Ok(lines)
+                } else {
+                    Err(TabulationError::from(err.to_string()))
+                }
             }
         };
         let per_deliverable_price = match Decimal::from_str_exact(&plan.per_deliverable_price) {
@@ -575,10 +615,10 @@ pub mod funcs {
                     category: Category::TABLE_HANDLING,
                     cascade_percentage: lines_context.cascade,
                     cascade_amount: false,
-                    amount: lines_context.pricing.table_static,
+                    amount: pricing.table_static,
                     frozen_value: None,
                     description: s!(""),
-                    percentage: lines_context.pricing.table_percentage,
+                    percentage: pricing.table_percentage,
                     back_into_percentage: !lines_context.cascade,
                 },
             );
@@ -591,7 +631,7 @@ pub mod funcs {
                     category: Category::TAXES,
                     cascade_percentage: lines_context.cascade,
                     cascade_amount: lines_context.cascade,
-                    percentage: lines_context.pricing.table_tax,
+                    percentage: pricing.table_tax,
                     back_into_percentage: true,
                     amount: s!("0"),
                     frozen_value: None,
@@ -604,7 +644,7 @@ pub mod funcs {
             };
             if lines_context.international {
                 let international_conversion_percentage = match Decimal::from_str_exact(
-                    &lines_context.pricing.international_conversion_percentage
+                    &pricing.international_conversion_percentage
                 ) {
                     Ok(result) => result,
                     Err(err) => return Err(TabulationError::from(err.to_string()))

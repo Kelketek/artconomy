@@ -254,9 +254,12 @@ pub struct DeliverableLinesContext{
     /// Any lines to add in for the result.
     pub extra_lines: Vec<LineItem>,
     /// The name of the plan to derive fee structures from.
-    pub plan_name: String,
+    pub plan_name: Option<String>,
     /// Pricing variables and context, including available plans.
-    pub pricing: Pricing,
+    pub pricing: Option<Pricing>,
+    /// Allows return of an empty vector if base_price is invalid,
+    /// plan_name is unset or pricing isn't set.
+    pub allow_soft_failure: bool,
 }
 
 /// Pricing context information. Used to inform the line item generators how they should behave.

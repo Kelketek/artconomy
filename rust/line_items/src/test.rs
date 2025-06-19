@@ -884,13 +884,14 @@ mod line_item_preview_tests {
         let lines_result = deliverable_lines(
             DeliverableLinesContext {
                 escrow_enabled: true,
-                pricing: gen_pricing(),
+                pricing: Some(gen_pricing()),
                 base_price: s!("25.00"),
                 cascade: true,
                 international: false,
-                plan_name: s!("Basic"),
+                plan_name: Some(s!("Basic")),
                 table_product: false,
                 extra_lines: vec![],
+                allow_soft_failure: false,
             }
         );
         let expected = vec![
