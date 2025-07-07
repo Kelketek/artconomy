@@ -12,11 +12,14 @@ const mutations: MutationTree<ErrorState> = {
   ) {
     // Can't test this since mock-axios doesn't implement cancellation.
     /* istanbul ignore if */
-    // @ts-expect-error Checking potentially undefined prop.
-    if (error && error.message === "Killed.") {
+    if (
+      error &&
+      // @ts-expect-error Checking potentially undefined prop.
+      (error.message === "Killed." || error.message === "canceled")
+    ) {
       return
     }
-    state.code = (error.response || { status: 503 }).status
+    state.code = (error.response || { status: 1000 }).status
   },
 }
 

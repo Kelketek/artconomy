@@ -9,12 +9,12 @@ import {
 } from "@/lib/lib.ts"
 import { ViewerType } from "@/types/enums/ViewerType.ts"
 import { addBusinessDays, isAfter } from "date-fns"
-import { LocationQueryValue, useRoute } from "vue-router"
+import { LocationQueryValue, useRoute, Router, useRouter } from "vue-router"
 import { DeliverableStatus } from "@/types/enums/DeliverableStatus.ts"
 import { useForm } from "@/store/forms/hooks.ts"
 import { useList } from "@/store/lists/hooks.ts"
 import { useSingle } from "@/store/singles/hooks.ts"
-import { computed, nextTick, watch } from "vue"
+import { computed, nextTick, watch, ComputedRef } from "vue"
 import { useProfile } from "@/store/profiles/hooks.ts"
 import { parseISO } from "@/lib/otherFormatters.ts"
 import {
@@ -31,6 +31,7 @@ import {
 } from "@/types/main"
 import type { Revision } from "@/types/main"
 import { User } from "@/store/profiles/types/main"
+import { AxiosError } from "axios"
 
 export interface DeliverableProps extends OrderProps {
   deliverableId: string | number
@@ -93,13 +94,28 @@ const getOutput = (
   return outputs[0].x as Submission
 }
 
+export const requireAuth =
+  (router: Router, isLoggedIn: ComputedRef<boolean>) => (error: AxiosError) => {
+    if (error?.response?.status === 403 && !isLoggedIn.value) {
+      router
+        .replace({
+          name: "Login",
+          query: { next: router.currentRoute.value.fullPath },
+        })
+        .then()
+      return
+    }
+    throw error
+  }
+
 /*
 This composable is used by all deliverable routes. Some crucial operations only occur in DeliverableDetail as it is the
 host component and so can avoid running commands repeatedly, such as setting the buyer, seller, and arbitrator handlers.
 */
 export const useDeliverable = <T extends DeliverableProps>(props: T) => {
   const route = useRoute()
-  const { powers, rawViewerName } = useViewer()
+  const router = useRouter()
+  const { powers, rawViewerName, isLoggedIn } = useViewer()
   const prefix = computed(() => {
     return `order${props.orderId}__deliverable${props.deliverableId}`
   })
@@ -224,7 +240,7 @@ export const useDeliverable = <T extends DeliverableProps>(props: T) => {
       },
     },
   })
-  lineItems.firstRun().then()
+  lineItems.firstRun().catch(requireAuth(router, isLoggedIn))
   const outputUrl = computed(() => `${url.value}outputs/`)
   const outputs = useList<Submission>(`${prefix.value}__outputs`, {
     endpoint: outputUrl.value,

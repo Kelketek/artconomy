@@ -37,13 +37,16 @@ import AcDeliverablePreview from "@/components/AcDeliverablePreview.vue"
 import AcUnreadMarker from "@/components/AcUnreadMarker.vue"
 import { computed } from "vue"
 import { useSingle } from "@/store/singles/hooks.ts"
-import { useRoute } from "vue-router"
+import { useRoute, useRouter } from "vue-router"
 import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
 import { useList } from "@/store/lists/hooks.ts"
+import { useViewer } from "@/mixins/viewer.ts"
 import type { Deliverable, Order, OrderProps } from "@/types/main"
+import { requireAuth } from "@/components/views/order/mixins/DeliverableMixin.ts"
 
 const props = defineProps<OrderProps>()
 const route = useRoute()
+const router = useRouter()
 
 const isCurrentRoute = computed(() => {
   return ["Order", "Sale", "Case"].indexOf(String(route.name)) !== -1
@@ -54,14 +57,16 @@ const url = computed(() => {
 })
 
 const { setError } = useErrorHandling()
+const { isLoggedIn } = useViewer()
 
 const order = useSingle<Order>(`order${props.orderId}`, {
   endpoint: url.value,
 })
-order.get().catch(setError)
+const handleError = requireAuth(router, isLoggedIn)
+order.get().catch(handleError).catch(setError)
 const deliverables = useList<Deliverable>(
   `order${props.orderId}__deliverables`,
   { endpoint: `${url.value}deliverables/` },
 )
-deliverables.firstRun()
+deliverables.firstRun().catch(handleError)
 </script>

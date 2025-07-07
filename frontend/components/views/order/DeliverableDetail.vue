@@ -877,6 +877,7 @@ import {
   DeliverableProps,
   useDeliverable,
   ensureHandler,
+  requireAuth,
 } from "./mixins/DeliverableMixin.ts"
 import AcTabNav from "@/components/navigation/AcTabNav.vue"
 import { ViewerType } from "@/types/enums/ViewerType.ts"
@@ -944,7 +945,7 @@ const {
 } = useDeliverable(props)
 const { mdAndUp } = useDisplay()
 
-const { isRegistered, powers } = useViewer()
+const { isRegistered, powers, isLoggedIn } = useViewer()
 
 const { pricing } = usePricing()
 
@@ -1226,10 +1227,11 @@ onMounted(() => {
   }
   deliverable
     .get()
+    .catch(requireAuth(router, isLoggedIn))
     .then(() => markRead(deliverable, "sales.Deliverable"))
     .then(() => parentDeliverables.replace(deliverable.x as Deliverable))
     .catch(setError)
-  characters.firstRun().then(addTags)
+  characters.firstRun().then(addTags).catch(requireAuth(router, isLoggedIn))
   revisions.firstRun().catch(statusOk(403))
   references.firstRun()
 })
