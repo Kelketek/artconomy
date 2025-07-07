@@ -206,7 +206,7 @@
           </p>
           <p>
             Artists and commissioners who use Artconomy Shield help build trust
-            in the artistic community. However, use of Artconomy Sheild is
+            in the artistic community. However, use of Artconomy Shield is
             optional-- you can use whatever payment processor you like.
           </p>
           <p>
