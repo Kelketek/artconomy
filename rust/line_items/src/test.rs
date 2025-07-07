@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod interface_tests {
-    use crate::data::{LineItem};
+    use crate::data::LineItem;
     use crate::funcs::{get_totals, reckon_lines};
     use crate::s;
     use ntest::timeout;
@@ -826,10 +826,12 @@ mod interface_tests {
 
 #[cfg(test)]
 mod line_item_preview_tests {
-    use ntest::timeout;
-    use crate::data::{DeliverableLinesContext, LineItem, Pricing, ServicePlan, Category, LineType};
+    use crate::data::{
+        Category, DeliverableLinesContext, LineItem, LineType, Pricing, ServicePlan,
+    };
     use crate::funcs::deliverable_lines;
     use crate::s;
+    use ntest::timeout;
 
     fn gen_pricing() -> Pricing {
         Pricing {
@@ -866,8 +868,7 @@ mod line_item_preview_tests {
                     shield_percentage_price: s!("4"),
                     paypal_invoicing: true,
                     connection_fee_waived: true,
-
-                }
+                },
             ],
             minimum_price: s!("1.00"),
             table_percentage: s!("10"),
@@ -881,19 +882,17 @@ mod line_item_preview_tests {
     #[test]
     #[timeout(100)]
     fn test_basic_line_items() {
-        let lines_result = deliverable_lines(
-            DeliverableLinesContext {
-                escrow_enabled: true,
-                pricing: Some(gen_pricing()),
-                base_price: s!("25.00"),
-                cascade: true,
-                international: false,
-                plan_name: Some(s!("Basic")),
-                table_product: false,
-                extra_lines: vec![],
-                allow_soft_failure: false,
-            }
-        );
+        let lines_result = deliverable_lines(DeliverableLinesContext {
+            escrow_enabled: true,
+            pricing: Some(gen_pricing()),
+            base_price: s!("25.00"),
+            cascade: true,
+            international: false,
+            plan_name: Some(s!("Basic")),
+            table_product: false,
+            extra_lines: vec![],
+            allow_soft_failure: false,
+        });
         let expected = vec![
             LineItem {
                 id: -1,
@@ -920,7 +919,7 @@ mod line_item_preview_tests {
                 frozen_value: None,
                 percentage: s!("5"),
                 description: s!(""),
-            }
+            },
         ];
         assert_eq!(lines_result, Ok(expected));
     }

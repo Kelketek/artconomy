@@ -1,13 +1,13 @@
 #[cfg(feature = "python")]
+use dict_derive::IntoPyObject;
+#[cfg(feature = "python")]
 use pyo3::prelude::*;
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::collections::{HashMap};
+use std::collections::HashMap;
 use std::fmt;
 use std::fmt::{Debug, Formatter};
 use std::hash::Hash;
-#[cfg(feature = "python")]
-use dict_derive::IntoPyObject;
 #[cfg(feature = "wasm")]
 use wasm_bindgen::{JsError, JsValue};
 
@@ -213,7 +213,27 @@ pub struct LineItem {
     pub cascade_amount: bool,
 }
 
-/// LineItem struct. LineItems have several fields which affect their resolved value.
+/// Products. They are listings in our marketplace.
+#[cfg_attr(feature = "python", derive(FromPyObject))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Product {
+    /// The ID of the product.
+    pub id: u32,
+    /// The name of the product.
+    pub name: String,
+    /// The base price of the product.
+    pub base_price: String,
+    /// Whether the product is intended to be sold at the virtual table.
+    pub table_product: bool,
+    /// Whether the fees for the product should be cascaded.
+    pub cascade_fees: bool,
+    /// Whether the product can be upgraded for escrow.
+    pub escrow_upgradable: bool,
+    /// Whether the product is on escrow by default.
+    pub escrow_enabled: bool,
+}
+
+/// ServicePlan struct. ServicePlans define pricing structures for individual users.
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ServicePlan {
@@ -240,7 +260,7 @@ pub struct ServicePlan {
 /// DeliverableLinesContext. Used as the arguments for the deliverable_line_items function.
 #[cfg_attr(feature = "python", derive(FromPyObject))]
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct DeliverableLinesContext{
+pub struct DeliverableLinesContext {
     /// Base price for a deliverable.
     pub base_price: String,
     /// Whether the associated product is a table product.
@@ -260,6 +280,31 @@ pub struct DeliverableLinesContext{
     /// Allows return of an empty vector if base_price is invalid,
     /// plan_name is unset or pricing isn't set.
     pub allow_soft_failure: bool,
+}
+
+/// DeliverableLinesContext. Used as the arguments for the deliverable_line_items function.
+#[cfg_attr(feature = "python", derive(FromPyObject))]
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InvoiceLinesContext {
+    /// The name of the plan to derive fee structures from.
+    pub plan_name: Option<String>,
+    /// Pricing variables and context, including available plans.
+    pub pricing: Option<Pricing>,
+    /// Base price for a deliverable.
+    pub value: String,
+    /// Whether there's international interchange fees that will be due for this product.
+    pub international: bool,
+    /// Whether escrow is enabled for this deliverable.
+    pub escrow_enabled: bool,
+    /// Whether the seller's fees should be cascaded from the total, rather than applied atop.
+    pub product: Option<Product>,
+    /// Whether the seller's fees should be cascaded from the total.
+    pub cascade: bool,
+    /// Allows return of an empty vector if base_price is invalid,
+    /// plan_name is unset or pricing isn't set.
+    pub allow_soft_failure: bool,
+    /// The level of after-decimal precision desired in calculations.
+    pub quantization: u32,
 }
 
 /// Pricing context information. Used to inform the line item generators how they should behave.

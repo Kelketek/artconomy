@@ -1,11 +1,11 @@
 // The functions in this file are meant to mirror the functions in backend/apps/sales/utils. There's not a good way
 // to ensure that they're both updated at the same time, but they should, hopefully, be easy enough to keep in sync.
 // If enough code has to be repeated between the two bases it may be worth looking into a transpiler.
-import { LineType } from "@/types/enums/LineType.ts"
 import {
   js_get_totals,
   js_reckon_lines,
   js_deliverable_lines,
+  js_invoice_lines,
 } from "@/lib/lines"
 import type {
   LineAccumulator,
@@ -15,8 +15,6 @@ import type {
   Pricing,
   Product,
 } from "@/types/main"
-import { LineCategory } from "@/types/enums/LineCategory.ts"
-
 declare type RustedAccumulator = Omit<LineAccumulator, "subtotals"> & {
   subtotals: Map<number, string>
 }
@@ -81,43 +79,17 @@ export function invoiceLines(options: {
     product,
     cascade,
   } = options
-  const extraLines = []
-  let addOnPrice = parseFloat(value)
-  let basePrice: string
-
-  const tableProduct = !!product?.table_product
-  if (product) {
-    addOnPrice = addOnPrice - parseFloat(product.starting_price)
-    basePrice = product.base_price
-  } else {
-    basePrice = addOnPrice.toFixed(2)
-    addOnPrice = 0
-  }
-  if (!isNaN(addOnPrice) && addOnPrice) {
-    extraLines.push({
-      id: -2,
-      priority: 100,
-      type: LineType.ADD_ON,
-      category: LineCategory.ESCROW_HOLD,
-      amount: addOnPrice.toFixed(2),
-      frozen_value: null,
-      percentage: "0",
-      description: "",
-      cascade_amount: false,
-      cascade_percentage: false,
-      back_into_percentage: false,
-    })
-  }
-  return deliverableLines({
-    basePrice,
-    planName,
+  return js_invoice_lines({
+    plan_name: planName,
     pricing,
+    value,
     international,
-    escrowEnabled,
-    tableProduct,
+    escrow_enabled: escrowEnabled,
+    product,
     cascade,
-    extraLines,
-  })
+    allow_soft_failure: true,
+    quantization: 2,
+  }).Ok
 }
 
 export const deliverableLines = ({
@@ -139,19 +111,6 @@ export const deliverableLines = ({
   planName: string | null
   pricing: Pricing | null
 }) => {
-  if (!planName) {
-    return []
-  }
-  if (isNaN(parseFloat(basePrice))) {
-    return []
-  }
-  if (!pricing) {
-    return []
-  }
-  const plan = pricing.plans.filter((plan) => plan.name === planName)[0]
-  if (!plan) {
-    return []
-  }
   return js_deliverable_lines({
     base_price: basePrice,
     table_product: tableProduct,
