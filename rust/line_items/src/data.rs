@@ -329,14 +329,14 @@ pub struct Pricing {
 }
 
 /// Only used in tests, so this should not have an opportunity to roll over.
-static mut COUNTER: i32 = 0;
+static mut LINE_COUNTER: i32 = 0;
 
 impl Default for LineItem {
     fn default() -> Self {
         unsafe {
-            COUNTER += 1;
+            LINE_COUNTER += 1;
             LineItem {
-                id: COUNTER,
+                id: LINE_COUNTER,
                 priority: 0,
                 amount: String::from("0"),
                 kind: LineType::ADD_ON,
@@ -347,6 +347,26 @@ impl Default for LineItem {
                 cascade_percentage: false,
                 back_into_percentage: false,
                 cascade_amount: false,
+            }
+        }
+    }
+}
+
+
+/// Only used in tests, so this should not have an opportunity to roll over.
+static mut PRODUCT_COUNTER: u32 = 0;
+
+impl Default for Product {
+    fn default() -> Self {
+        unsafe {
+            Product {
+                id: PRODUCT_COUNTER,
+                name: String::from("Test Product"),
+                base_price: String::from("10.00"),
+                table_product: false,
+                cascade_fees: true,
+                escrow_upgradable: false,
+                escrow_enabled: true,
             }
         }
     }

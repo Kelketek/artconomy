@@ -826,10 +826,8 @@ mod interface_tests {
 
 #[cfg(test)]
 mod line_item_preview_tests {
-    use crate::data::{
-        Category, DeliverableLinesContext, LineItem, LineType, Pricing, ServicePlan,
-    };
-    use crate::funcs::deliverable_lines;
+    use crate::data::{Category, DeliverableLinesContext, InvoiceLinesContext, LineItem, LineType, Pricing, Product, ServicePlan};
+    use crate::funcs::{deliverable_lines, invoice_lines};
     use crate::s;
     use ntest::timeout;
 
@@ -922,6 +920,244 @@ mod line_item_preview_tests {
             },
         ];
         assert_eq!(lines_result, Ok(expected));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_generates_for_null_product() {
+        let lines_result = invoice_lines(InvoiceLinesContext {
+            escrow_enabled: true,
+            pricing: Some(gen_pricing()),
+            value: s!("25.00"),
+            cascade: true,
+            international: false,
+            plan_name: Some(s!("Basic")),
+            product: None,
+            allow_soft_failure: false,
+            quantization: 2,
+        });
+        let expected = vec![
+            LineItem {
+                id: -1,
+                priority: 0,
+                kind: LineType::BASE_PRICE,
+                amount: s!("25.00"),
+                category: Category::ESCROW_HOLD,
+                frozen_value: None,
+                percentage: s!("0"),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+                description: s!(""),
+            },
+            LineItem {
+                id: -5,
+                priority: 300,
+                kind: LineType::SHIELD,
+                cascade_percentage: true,
+                cascade_amount: true,
+                back_into_percentage: false,
+                amount: s!("3.50"),
+                category: Category::SHIELD_FEE,
+                frozen_value: None,
+                percentage: s!("5"),
+                description: s!(""),
+            }
+        ];
+        assert_eq!(lines_result, Ok(expected));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_generates_for_product() {
+        let lines_result = invoice_lines(InvoiceLinesContext {
+            escrow_enabled: true,
+            pricing: Some(gen_pricing()),
+            value: s!("25.00"),
+            cascade: true,
+            international: false,
+            plan_name: Some(s!("Basic")),
+            product: Some(Product {..Default::default()}),
+            allow_soft_failure: false,
+            quantization: 2,
+        });
+        let expected = vec![
+            LineItem {
+                id: -1,
+                priority: 0,
+                kind: LineType::BASE_PRICE,
+                amount: s!("10.00"),
+                frozen_value: None,
+                percentage: s!("0"),
+                description: s!(""),
+                category: Category::ESCROW_HOLD,
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            },
+            LineItem {
+                id: -5,
+                priority: 300,
+                kind: LineType::SHIELD,
+                cascade_percentage: true,
+                cascade_amount: true,
+                back_into_percentage: false,
+                category: Category::SHIELD_FEE,
+                amount: s!("3.50"),
+                frozen_value: None,
+                percentage: s!("5"),
+                description: s!(""),
+            },
+            LineItem {
+                id: -2,
+                priority: 100,
+                kind: 1,
+                amount: s!("15.00"),
+                frozen_value: None,
+                category: Category::ESCROW_HOLD,
+                percentage: s!("0"),
+                description: s!(""),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            }
+        ];
+        assert_eq!(lines_result, Ok(expected));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_generates_for_international_product() {
+        let line_items = invoice_lines(InvoiceLinesContext {
+            escrow_enabled: true,
+            pricing: Some(gen_pricing()),
+            value: s!("25.00"),
+            product: Some(Product {..Default::default()}),
+            cascade: true,
+            international: true,
+            plan_name: Some(s!("Basic")),
+            allow_soft_failure: false,
+            quantization: 2,
+        });
+        let expected = vec![
+            LineItem {
+                id: -1,
+                priority: 0,
+                kind: LineType::BASE_PRICE,
+                amount: s!("10.00"),
+                frozen_value: None,
+                percentage: s!("0"),
+                description: s!(""),
+                category: Category::ESCROW_HOLD,
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            },
+            LineItem {
+                id: -5,
+                priority: 300,
+                kind: LineType::SHIELD,
+                category: Category::SHIELD_FEE,
+                cascade_percentage: true,
+                cascade_amount: true,
+                back_into_percentage: false,
+                amount: s!("3.50"),
+                frozen_value: None,
+                percentage: s!("6"),
+                description: s!(""),
+            },
+            LineItem {
+                id: -2,
+                priority: 100,
+                kind: LineType::ADD_ON,
+                amount: s!("15.00"),
+                category: Category::ESCROW_HOLD,
+                frozen_value: None,
+                percentage: s!("0"),
+                description: s!(""),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            }
+        ];
+        assert_eq!(line_items, Ok(expected));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_generates_for_table_product() {
+        let line_items = invoice_lines(InvoiceLinesContext {
+            escrow_enabled: true,
+            pricing: Some(gen_pricing()),
+            value: s!("25.00"),
+            product: Some(Product {table_product: true, ..Default::default()}),
+            cascade: true,
+            international: false,
+            plan_name: Some(s!("Basic")),
+            allow_soft_failure: false,
+            quantization: 2,
+        });
+        let expected = vec![
+            LineItem {
+                id: -1,
+                priority: 0,
+                kind: LineType::BASE_PRICE,
+                category: Category::ESCROW_HOLD,
+                amount: s!("10.00"),
+                frozen_value: None,
+                percentage: s!("0"),
+                description: s!(""),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            },
+            LineItem {
+                id: -3,
+                priority: 400,
+                kind: LineType::TABLE_SERVICE,
+                cascade_percentage: true,
+                cascade_amount: false,
+                back_into_percentage: false,
+                amount: s!("5.00"),
+                category: Category::TABLE_HANDLING,
+                frozen_value: None,
+                percentage: s!("10"),
+                description: s!(""),
+            },
+            LineItem {
+                id: -4,
+                priority: 700,
+                kind: LineType::TAX,
+                cascade_amount: true,
+                cascade_percentage: true,
+                back_into_percentage: true,
+                category: Category::TAXES,
+                percentage: s!("8.25"),
+                description: s!(""),
+                amount: s!("0"),
+                frozen_value: None,
+            },
+            LineItem {
+                id: -2,
+                priority: 100,
+                kind: 1,
+                amount: s!("15.00"),
+                frozen_value: None,
+                percentage: s!("0"),
+                description: s!(""),
+                category: Category::ESCROW_HOLD,
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+            }
+        ];
+        assert_eq!(line_items, Ok(expected));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_generates_lines_null_product_no_escrow() {
+
     }
 }
 
