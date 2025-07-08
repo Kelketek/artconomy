@@ -277,7 +277,7 @@ export const routes: RouteRecordRaw[] = [
     component: Reload,
   },
   {
-    path: "/blog/",
+    path: "/blog/:subpaths*",
     name: "Blog",
     component: Refresh,
   },
