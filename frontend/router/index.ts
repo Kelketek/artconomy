@@ -16,6 +16,7 @@ import { ArtStore } from "@/store/index.ts"
 import { defineComponent, h } from "vue"
 
 const Reload = () => import("@/components/views/Reload.vue")
+const Refresh = () => import("@/components/views/Refresh.vue")
 const Login = () => import("@/components/views/auth/Login.vue")
 const Register = () => import("@/components/views/auth/Register.vue")
 const Forgot = () => import("@/components/views/auth/Forgot.vue")
@@ -274,6 +275,11 @@ export const routes: RouteRecordRaw[] = [
     path: "/Reload/:path",
     name: "Reload",
     component: Reload,
+  },
+  {
+    path: "/blog/",
+    name: "Blog",
+    component: Refresh,
   },
   {
     path: "/auth/",
