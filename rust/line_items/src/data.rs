@@ -352,7 +352,6 @@ impl Default for LineItem {
     }
 }
 
-
 /// Only used in tests, so this should not have an opportunity to roll over.
 static mut PRODUCT_COUNTER: u32 = 0;
 
