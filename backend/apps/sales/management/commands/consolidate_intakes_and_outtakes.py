@@ -23,7 +23,7 @@ from django.core.management import BaseCommand
 class Command(BaseCommand):
     """
     Goes through existing payment transactions and reformats them to go through the fund
-    intermediary account rather than immediately split so that reconsiliation is easier.
+    intermediary account rather than immediately split so that reconciliation is easier.
     """
 
     @transaction.atomic

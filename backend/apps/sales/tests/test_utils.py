@@ -28,7 +28,8 @@ from apps.sales.constants import (
     SUCCESS,
     VOID,
     MISSED,
-    FUND, QUEUED,
+    FUND,
+    QUEUED,
 )
 from apps.sales.models import LineItem, TransactionRecord, Deliverable, Reference
 from apps.sales.tests.factories import (
@@ -869,6 +870,7 @@ class TestRedactDeliverable(EnsurePlansMixin, TestCase):
     """
     Test that the redact deliverable function behaves as expected.
     """
+
     def test_raises_on_wip(self):
         deliverable = DeliverableFactory.create(status=QUEUED)
         with self.assertRaises(RedactionError):
@@ -879,14 +881,16 @@ class TestRedactDeliverable(EnsurePlansMixin, TestCase):
             status=COMPLETED,
             name="Beep",
             details="Draw some junk.",
-            notes="This is a difficult task!"
+            notes="This is a difficult task!",
         )
         comment = CommentFactory.create(top=deliverable)
         unrelated_comment = CommentFactory.create(top=DeliverableFactory.create())
         redact_deliverable(deliverable)
+        deliverable.refresh_from_db()
         self.assertEqual(deliverable.name, "Redacted")
         self.assertEqual(deliverable.details, "")
         self.assertEqual(deliverable.notes, "")
+        self.assertTrue(deliverable.redacted_on)
         # Should not raise.
         unrelated_comment.refresh_from_db()
         with self.assertRaises(Comment.DoesNotExist):
@@ -915,7 +919,8 @@ class TestRedactDeliverable(EnsurePlansMixin, TestCase):
         unrelated_reference = ReferenceFactory.create()
         related_reference.deliverables.add(deliverable)
         interrelated_reference.deliverables.add(
-            deliverable, DeliverableFactory.create(),
+            deliverable,
+            DeliverableFactory.create(),
         )
         DeliverableFactory.create().reference_set.add(interrelated_reference)
         comment = CommentFactory.create(top=related_reference)

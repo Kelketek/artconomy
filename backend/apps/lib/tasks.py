@@ -2,6 +2,7 @@ import random
 import socket
 
 from celery.signals import task_failure
+
 from conf.celery_config import celery_app
 from django.conf import settings
 from django.core.mail import mail_admins
@@ -37,11 +38,13 @@ def clear_hitcount_tables():
 
 
 @celery_app.task(bind=True)
-def check_asset_associations(self, asset_id: str):
+def check_asset_associations(self, asset_id: str, force: bool = False):
     from apps.lib.models import Asset
-    from apps.lib.utils import get_all_foreign_references
+    from apps.lib.utils import get_all_foreign_references, purge_asset
 
-    if settings.CELERY_ALWAYS_EAGER:
+    # Celery always eager is only set in tests and slows tests down.
+    # But if we're testing this task directly, we need to be able to force it.
+    if settings.CELERY_ALWAYS_EAGER and not force:
         return
     asset = Asset.objects.filter(id=asset_id).first()
     if not asset:
@@ -51,12 +54,7 @@ def check_asset_associations(self, asset_id: str):
         break
     else:
         try:
-            asset.file.delete_thumbnails()
-            asset.file.delete()
-            if asset.redacted_on:
-                # Preserve this hash.
-                return
-            asset.delete(cleanup=True)
+            purge_asset(asset)
         except Exception as err:
             self.retry(
                 exc=err,

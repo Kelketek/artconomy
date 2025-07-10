@@ -375,6 +375,7 @@ class Asset(Model):
         """
         Delete the associated file and blacklist it from being uploaded ever again.
         """
+        self.file.delete_thumbnails()
         self.file.delete()
         self.redacted_by = by
         self.redacted_reason = reason

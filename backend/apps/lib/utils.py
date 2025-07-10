@@ -1135,6 +1135,9 @@ def purge_asset(asset):
     """
     asset.file.delete_thumbnails()
     asset.file.delete()
+    if asset.redacted_on:
+        # Need to preserve the hash.
+        return
     asset.delete(cleanup=True)
 
 

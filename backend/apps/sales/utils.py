@@ -147,8 +147,6 @@ if TYPE_CHECKING:  # pragma: no cover
         Order,
         ServicePlan,
         TransactionRecord,
-        Revision,
-        Reference,
     )
 
     TransactionSpecKey = (Union[User, None], int, int)
@@ -2018,6 +2016,7 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
     old commissions without removing key financial information.
     """
     from apps.sales.models import Revision, Reference, Deliverable
+
     if deliverable.status in WORK_IN_PROGRESS_STATUSES:
         raise RedactionError(
             "Deliverable must be cancelled, finalized, or refunded first.",
@@ -2030,7 +2029,7 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
             check_asset_associations(file_id)
         Comment.objects.filter(
             top_content_type=ContentType.objects.get_for_model(Revision),
-            top_object_id=revision_id
+            top_object_id=revision_id,
         ).delete()
     for reference in deliverable.reference_set.all():
         reference_id = reference.id
@@ -2054,3 +2053,7 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
         top_content_type=ContentType.objects.get_for_model(Deliverable),
         top_object_id=deliverable.id,
     ).delete()
+    if deliverable.status in [NEW, PAYMENT_PENDING]:
+        deliverable.status = CANCELLED
+    deliverable.redacted_on = timezone.now()
+    deliverable.save()
