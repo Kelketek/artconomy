@@ -48,6 +48,7 @@ from apps.lib.constants import (
     REVISION_APPROVED,
 )
 from apps.lib.signals import broadcast_update
+from apps.lib.tasks import check_asset_associations
 from apps.lib.utils import multi_filter, notify, recall_notification
 from apps.profiles.models import User
 from apps.profiles.permissions import staff_power
@@ -106,6 +107,7 @@ from apps.sales.constants import (
     FUND,
     PAYMENT,
     VENDOR,
+    WORK_IN_PROGRESS_STATUSES,
 )
 from apps.sales.line_item_funcs import (
     down_context,
@@ -145,6 +147,8 @@ if TYPE_CHECKING:  # pragma: no cover
         Order,
         ServicePlan,
         TransactionRecord,
+        Revision,
+        Reference,
     )
 
     TransactionSpecKey = (Union[User, None], int, int)
@@ -2000,3 +2004,53 @@ def cart_for_request(request, create=False):
         return ShoppingCart.objects.create(
             user=user, session_key=session_key, product_id=product_id
         )
+
+
+class RedactionError(Exception):
+    """
+    Exception type for issues when redacting a deliverable.
+    """
+
+
+def redact_deliverable(deliverable: "Deliverable") -> None:
+    """
+    Destroys all specific information about a deliverable. Useful to clear out
+    old commissions without removing key financial information.
+    """
+    from apps.sales.models import Revision, Reference, Deliverable
+    if deliverable.status in WORK_IN_PROGRESS_STATUSES:
+        raise RedactionError(
+            "Deliverable must be cancelled, finalized, or refunded first.",
+        )
+    for revision in deliverable.revision_set.all():
+        with transaction.atomic():
+            revision_id = revision.id
+            file_id = revision.file.id
+            revision.delete()
+            check_asset_associations(file_id)
+        Comment.objects.filter(
+            top_content_type=ContentType.objects.get_for_model(Revision),
+            top_object_id=revision_id
+        ).delete()
+    for reference in deliverable.reference_set.all():
+        reference_id = reference.id
+        reference_removed = False
+        with transaction.atomic():
+            deliverable.reference_set.remove(reference)
+            if not reference.deliverables.exists():
+                file_id = reference.file.id
+                reference.delete()
+                reference_removed = True
+                check_asset_associations(file_id)
+        if reference_removed:
+            Comment.objects.filter(
+                top_content_type=ContentType.objects.get_for_model(Reference),
+                top_object_id=reference_id,
+            ).delete()
+    deliverable.details = ""
+    deliverable.notes = ""
+    deliverable.name = "Redacted"
+    Comment.objects.filter(
+        top_content_type=ContentType.objects.get_for_model(Deliverable),
+        top_object_id=deliverable.id,
+    ).delete()
