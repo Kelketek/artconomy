@@ -5,6 +5,8 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models import CASCADE, DateTimeField, ForeignKey
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 from django.utils import timezone
 from easy_thumbnails.alias import aliases
 from easy_thumbnails.engine import NoSourceGenerator
@@ -12,6 +14,7 @@ from easy_thumbnails.exceptions import InvalidImageFormatError
 from easy_thumbnails.fields import ThumbnailerImageField
 from easy_thumbnails.files import ThumbnailerImageFieldFile, get_thumbnailer
 from hitcount.models import HitCount
+
 from shortcuts import disable_on_load, make_url
 
 ALLOWED_EXTENSIONS = (
@@ -243,6 +246,17 @@ class ImageModel(AssetThumbnailMixin, models.Model):
         """
         ref_name = self.ref_name(field_name)
         return aliases.all(ref_name, include_global=True)
+
+
+@receiver(pre_delete, sender=ImageModel)
+@disable_on_load
+def auto_clear_assets(sender, instance, created=False, **_kwargs):
+    from apps.lib.tasks import check_asset_associations
+
+    if instance.file:
+        check_asset_associations.apply_async((instance.file.id,), countdown=15)
+    if instance.preview:
+        check_asset_associations.apply_async((instance.preview.id,), countdown=15)
 
 
 THUMBNAIL_IMAGE_EXTENSIONS = ["jpg", "jpeg", "bmp", "gif", "png", "webp"]

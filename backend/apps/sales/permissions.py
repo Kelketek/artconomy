@@ -305,3 +305,12 @@ class ValidPaypal(BasePermission):
         except PaypalConfig.DoesNotExist:
             return False
         return user.paypal_config.active
+
+
+class RedactionAvailableDatePermission(BasePermission):
+    message = "Redaction is not yet available for this deliverable."
+
+    def has_object_permission(self, request, view, obj):
+        if not obj.redact_available_on:
+            return False
+        return obj.redact_available_on <= timezone.now().date()

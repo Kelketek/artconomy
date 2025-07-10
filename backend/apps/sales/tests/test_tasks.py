@@ -55,6 +55,7 @@ from apps.sales.tasks import (
     drip_sync_cart,
     promote_top_sellers,
     clear_old_webhook_logs,
+    redact_scheduled_deliverables,
 )
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -1013,3 +1014,23 @@ class TestClearOldWebhookLogs(TestCase):
             to_delete.refresh_from_db()
         # Should not raise.
         to_preserve.refresh_from_db()
+
+
+class TestRedactScheduled(EnsurePlansMixin, TestCase):
+    def test_redact_scheduled(self):
+        null_date = DeliverableFactory.create(status=NEW, auto_redact_on=None)
+        due = DeliverableFactory.create(
+            status=NEW,
+            auto_redact_on=timezone.now().date() - relativedelta(days=1),
+        )
+        not_due = DeliverableFactory.create(
+            status=NEW,
+            auto_redact_on=timezone.now().date() + relativedelta(days=1),
+        )
+        redact_scheduled_deliverables()
+        null_date.refresh_from_db()
+        due.refresh_from_db()
+        not_due.refresh_from_db()
+        self.assertTrue(due.redacted_on)
+        self.assertFalse(null_date.redacted_on)
+        self.assertFalse(not_due.redacted_on)

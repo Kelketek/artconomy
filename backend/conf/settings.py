@@ -653,6 +653,10 @@ CELERYBEAT_SCHEDULE = {
         "task": "apps.sales.tasks.run_balance_report",
         "schedule": crontab(hour="*", minute="0"),
     },
+    "redact_scheduled_deliverables": {
+        "task": "apps.sales.tasks.redact_scheduled_deliverables",
+        "schedule": crontab(hour="5", minute="15"),
+    },
 }
 
 ENV_NAME = get_env("ENV_NAME", "prod")
@@ -899,3 +903,9 @@ BYPASS_THEOCRACIES = bool(int(get_env("BYPASS_THEOCRACIES", DEBUG)))
 FORCE_THEOCRACY = bool(int(get_env("FORCE_THEOCRACY", False)))
 
 GEOIP_PATH = get_env("GEO_IP_PATH", "/usr/share/GeoIP/")
+
+# How long in days after a commission with shield is finished, that an artist must wait
+# to be able to redact it.
+REDACTION_ALLOWED_WINDOW = int(get_env("REDACTION_ALLOWED_WINDOW", "175"))
+
+REDACTION_DELTA_WINDOW = int(get_env("REDACTION_DELTA_WINDOW", "30"))

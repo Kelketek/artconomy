@@ -181,7 +181,7 @@ class EventTargetRelatedField(serializers.RelatedField):
         return notification_serialize(value, self.context)
 
 
-# Custom image field - handles base 64 encoded images
+# Custom image field - prebuilds paths to thumbnails.
 class RelatedAssetField(serializers.UUIDField):
     default_error_messages = dict(
         **serializers.UUIDField.default_error_messages,

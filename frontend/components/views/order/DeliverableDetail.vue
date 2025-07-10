@@ -848,6 +848,7 @@
             </v-row>
           </v-col>
         </v-row>
+        <ac-redaction-controls :deliverable-id="deliverableId" :order-id="orderId" :base-name="baseName" />
         <v-card>
           <ac-tab-nav :items="navItems" label="See more" />
         </v-card>
@@ -905,6 +906,7 @@ import type {
   Submission,
 } from "@/types/main"
 import { Character } from "@/store/characters/types/main"
+import AcRedactionControls from "@/components/views/order/deliverable/AcRedactionControls.vue"
 
 const props = defineProps<{ username: string } & DeliverableProps>()
 

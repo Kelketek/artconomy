@@ -927,6 +927,56 @@
       </template>
     </ac-question>
     <ac-question>
+      <template #title> What is redaction? </template>
+      <template #default>
+        <v-card-text>
+          <p>
+            Artconomy believes in giving you tools to enhance your privacy and
+            the privacy of your commissioners. Redaction purges nearly all
+            details of an order, reducing the data footprint left behind after a
+            commission.
+          </p>
+          <p>
+            Artists may redact orders after enough time has passed for
+            Artconomy's legal/contractual obligations to hold them has passed.
+            For unshielded orders, this is immediately after an order is
+            completed.
+          </p>
+          <p>
+            For shielded orders, this is after any relevant chargeback windows
+            have passed. Artconomy fights chargebacks on your behalf so you
+            don't have to. To mount a defence, we retain order details as
+            needed. Once the chargeback window has passed, old orders may be
+            redacted.
+          </p>
+          <p>
+            Content such as the comments, the references, the revisions, the
+            linked characters, the title, and the requested details by the
+            commissioner are cleared.
+          </p>
+          <p>
+            Some data on an order can not be redacted as it may be required for
+            tax/legal/financial requirement purposes, such as invoices and their
+            line items, financial ledger entries, the buyer and seller, the link
+            to the product invoiced, and the copy of your terms of service at
+            the time of sale. If a submission has been created from an order,
+            that submission will remain.
+          </p>
+          <p>
+            The redaction functionality appears once a commission is in a closed
+            state. Simply visit your deliverable and follow the instructions. If
+            redaction is not yet available, but will be, the details on when to
+            expect the redaction to be available will be at the top of the
+            order.
+          </p>
+          <p>
+            Artconomy expects to provide auto-redaction functionality in a
+            future release.
+          </p>
+        </v-card-text>
+      </template>
+    </ac-question>
+    <ac-question>
       <template #title> Can I use PayPal? </template>
       <template #default>
         <v-card-text>
@@ -1277,6 +1327,7 @@ const { tab } = useQuestionSet([
   "invoicing",
   "waitlists",
   "why-commissions-disabled",
+  "what-is-redaction",
   "paypal",
   "patreon-comparison",
   "featured-products",

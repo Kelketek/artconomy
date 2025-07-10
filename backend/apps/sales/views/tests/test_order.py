@@ -1227,6 +1227,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(deliverable.status, REVIEW)
         self.assertEqual(deliverable.auto_finalize_on, date(2012, 8, 3))
         self.assertTrue(deliverable.final_uploaded)
+        self.assertIsNone(deliverable.redact_available_on)
 
     def test_order_mark_completed_payment_pending(self):
         user = UserFactory.create()
@@ -1266,6 +1267,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, COMPLETED)
         self.assertIsNone(deliverable.auto_finalize_on)
+        self.assertEqual(deliverable.redact_available_on, date(2012, 8, 1))
 
     @freeze_time("2012-08-01 12:00:00")
     def test_order_mark_complete_no_revisions(self):
@@ -1313,6 +1315,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
             status=COMPLETED,
             revisions=1,
             escrow_enabled=False,
+            redact_available_on=date(2012, 8, 1),
         )
         RevisionFactory.create(deliverable=deliverable)
         deliverable.refresh_from_db()
@@ -1417,6 +1420,9 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, REVIEW)
+        # Shouldn't be set until finalized, unless escrow is disabled, which it isn't
+        # here.
+        self.assertIsNone(deliverable.redact_available_on)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
             f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"

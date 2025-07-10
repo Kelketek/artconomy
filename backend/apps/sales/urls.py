@@ -145,6 +145,11 @@ urlpatterns = [
         name="cancel_order",
     ),
     path(
+        "order/<int:order_id>/deliverables/<int:deliverable_id>/redact/",
+        main.DeliverableRedact.as_view(),
+        name="redact_order",
+    ),
+    path(
         "order/<int:order_id>/deliverables/<int:deliverable_id>/mark-paid/",
         main.MarkPaid.as_view(),
         name="mark_paid",

@@ -3,11 +3,12 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import ddt
-from apps.lib.models import Notification, Subscription, ref_for_instance
+from apps.lib.models import Notification, Subscription, ref_for_instance, Comment
 from apps.lib.constants import ORDER_UPDATE
 from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
+from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import User
-from apps.profiles.tests.factories import UserFactory
+from apps.profiles.tests.factories import UserFactory, CharacterFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.constants import (
     BANK_MISC_FEES,
@@ -28,8 +29,9 @@ from apps.sales.constants import (
     VOID,
     MISSED,
     FUND,
+    QUEUED,
 )
-from apps.sales.models import LineItem, TransactionRecord, Deliverable
+from apps.sales.models import LineItem, TransactionRecord, Deliverable, Reference
 from apps.sales.tests.factories import (
     DeliverableFactory,
     InvoiceFactory,
@@ -64,6 +66,8 @@ from apps.sales.utils import (
     verify_total,
     mark_adult,
     initialize_stripe_charge_fees,
+    redact_deliverable,
+    RedactionError,
 )
 from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.relativedelta import relativedelta
@@ -860,3 +864,78 @@ class TestInitializeStripeTransactionFees(TestCase):
             initialize_stripe_charge_fees(Money(initial_value, "USD"), event)[0].amount,
             Money(fee, "USD"),
         )
+
+
+class TestRedactDeliverable(EnsurePlansMixin, TestCase):
+    """
+    Test that the redact deliverable function behaves as expected.
+    """
+
+    def test_raises_on_wip(self):
+        deliverable = DeliverableFactory.create(status=QUEUED)
+        with self.assertRaises(RedactionError):
+            redact_deliverable(deliverable)
+
+    def test_clears_metadata(self):
+        deliverable = DeliverableFactory.create(
+            status=COMPLETED,
+            name="Beep",
+            details="Draw some junk.",
+            notes="This is a difficult task!",
+        )
+        character = CharacterFactory.create()
+        deliverable.characters.add(character)
+        comment = CommentFactory.create(top=deliverable)
+        unrelated_comment = CommentFactory.create(top=DeliverableFactory.create())
+        redact_deliverable(deliverable)
+        deliverable.refresh_from_db()
+        self.assertEqual(deliverable.name, "Redacted")
+        self.assertEqual(deliverable.details, "")
+        self.assertEqual(deliverable.notes, "")
+        self.assertTrue(deliverable.redacted_on)
+        # Should not raise.
+        unrelated_comment.refresh_from_db()
+        with self.assertRaises(Comment.DoesNotExist):
+            comment.refresh_from_db()
+        self.assertFalse(deliverable.characters.exists())
+
+    def test_clears_revisions(self):
+        deliverable = DeliverableFactory.create(
+            status=COMPLETED,
+        )
+        related_revision = RevisionFactory.create(deliverable=deliverable)
+        unrelated_revision = RevisionFactory.create()
+        comment = CommentFactory.create(top=related_revision)
+        unrelated_comment = CommentFactory.create(top=unrelated_revision)
+        redact_deliverable(deliverable)
+        # Should not raise.
+        unrelated_comment.refresh_from_db()
+        with self.assertRaises(Comment.DoesNotExist):
+            comment.refresh_from_db()
+
+    def test_clears_references(self):
+        deliverable = DeliverableFactory.create(
+            status=COMPLETED,
+        )
+        related_reference = ReferenceFactory.create()
+        interrelated_reference = ReferenceFactory.create()
+        unrelated_reference = ReferenceFactory.create()
+        related_reference.deliverables.add(deliverable)
+        interrelated_reference.deliverables.add(
+            deliverable,
+            DeliverableFactory.create(),
+        )
+        DeliverableFactory.create().reference_set.add(interrelated_reference)
+        comment = CommentFactory.create(top=related_reference)
+        interrelated_comment = CommentFactory.create(top=interrelated_reference)
+        unrelated_comment = CommentFactory.create(top=unrelated_reference)
+        redact_deliverable(deliverable)
+        # Should not raise.
+        unrelated_comment.refresh_from_db()
+        interrelated_comment.refresh_from_db()
+        interrelated_reference.refresh_from_db()
+        unrelated_reference.refresh_from_db()
+        with self.assertRaises(Reference.DoesNotExist):
+            related_reference.refresh_from_db()
+        with self.assertRaises(Comment.DoesNotExist):
+            comment.refresh_from_db()
