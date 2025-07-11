@@ -1,4 +1,5 @@
-from dateutil.relativedelta import relativedelta
+from datetime import timedelta
+
 from django.db.models import F
 from django.utils import timezone
 
@@ -23,12 +24,12 @@ class Command(BaseCommand):
             escrow_enabled=True,
         ).update(
             redact_available_on=F("finalized_on")
-            + relativedelta(days=settings.REDACTION_ALLOWED_WINDOW)
+            + timedelta(days=settings.REDACTION_ALLOWED_WINDOW)
         )
         base_qs.filter(
             status=REFUNDED,
             escrow_enabled=True,
         ).update(
             redact_available_on=F("refunded_on")
-            + relativedelta(days=settings.REDACTION_ALLOWED_WINDOW)
+            + timedelta(days=settings.REDACTION_ALLOWED_WINDOW)
         )

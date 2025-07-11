@@ -8,7 +8,7 @@ from apps.lib.constants import ORDER_UPDATE
 from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.profiles.models import User
-from apps.profiles.tests.factories import UserFactory
+from apps.profiles.tests.factories import UserFactory, CharacterFactory
 from apps.profiles.utils import create_guest_user
 from apps.sales.constants import (
     BANK_MISC_FEES,
@@ -883,6 +883,8 @@ class TestRedactDeliverable(EnsurePlansMixin, TestCase):
             details="Draw some junk.",
             notes="This is a difficult task!",
         )
+        character = CharacterFactory.create()
+        deliverable.characters.add(character)
         comment = CommentFactory.create(top=deliverable)
         unrelated_comment = CommentFactory.create(top=DeliverableFactory.create())
         redact_deliverable(deliverable)
@@ -895,6 +897,7 @@ class TestRedactDeliverable(EnsurePlansMixin, TestCase):
         unrelated_comment.refresh_from_db()
         with self.assertRaises(Comment.DoesNotExist):
             comment.refresh_from_db()
+        self.assertFalse(deliverable.characters.exists())
 
     def test_clears_revisions(self):
         deliverable = DeliverableFactory.create(

@@ -21,19 +21,19 @@ export const truncateText = (text: string, maxLength: number) => {
   return newText + "..."
 }
 
-export function parseISO(dateString: string | Date) {
+export function parseISO(dateValue: string | Date) {
   // Mimics moment's behavior of taking either a string or a date and returning a date.
-  if (dateString instanceof Date) {
-    return dateString
+  if (dateValue instanceof Date) {
+    return dateValue
   }
-  return upstreamParseISO(dateString)
+  return upstreamParseISO(dateValue)
 }
 
-export function formatDateTime(dateString: string) {
-  return format(parseISO(dateString), "MMMM do yyyy, h:mm:ss aaa")
+export function formatDateTime(dateValue: string | Date) {
+  return format(parseISO(dateValue), "MMMM do yyyy, h:mm:ss aaa")
 }
 
-export function formatDate(dateString: string) {
+export function formatDate(dateString: string | Date) {
   return format(parseISO(dateString), "MMMM do yyyy")
 }
 

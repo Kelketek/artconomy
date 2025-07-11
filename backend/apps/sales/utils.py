@@ -2055,6 +2055,7 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
                 top_content_type=ContentType.objects.get_for_model(Reference),
                 top_object_id=reference_id,
             ).delete()
+    deliverable.characters.clear()
     deliverable.details = ""
     deliverable.notes = ""
     deliverable.name = "Redacted"

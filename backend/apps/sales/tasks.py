@@ -229,14 +229,20 @@ def run_billing():
     )
     for user in users:
         deactivate.delay(user.id)
-    users = User.objects.filter(
-        service_plan__isnull=False,
-        service_plan_paid_through__lte=timezone.now().date(),
-        service_plan_paid_through__gt=timezone.now().date()
-        - relativedelta(days=settings.TERM_GRACE_DAYS + 1),
-    ).exclude(
-        Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME)
-        & Q(service_plan__hidden=False)
+    users = (
+        User.objects.filter(
+            service_plan__isnull=False,
+            service_plan_paid_through__lte=timezone.now().date(),
+            service_plan_paid_through__gt=timezone.now().date()
+            - relativedelta(days=settings.TERM_GRACE_DAYS + 1),
+        )
+        .exclude(
+            Q(service_plan__name=settings.DEFAULT_SERVICE_PLAN_NAME)
+            & Q(service_plan__hidden=False)
+        )
+        .exclude(
+            is_active=False,
+        )
     )
     for user in users:
         renew.delay(user.id)

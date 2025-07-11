@@ -42,9 +42,7 @@
       :comment-list="referenceComments"
       :nesting="false"
       :locked="
-        !isInvolved ||
-        is(DeliverableStatus.MISSED) ||
-        is(DeliverableStatus.LIMBO)
+        !isInvolved || is(DeliverableStatus.MISSED, DeliverableStatus.LIMBO)
       "
       :guest-ok="true"
       :show-history="isArbitrator"

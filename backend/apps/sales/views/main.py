@@ -159,6 +159,7 @@ from apps.sales.permissions import (
     PlanDeliverableAddition,
     PublicQueue,
     RevisionsVisible,
+    RedactionAvailableDatePermission,
 )
 from apps.sales.serializers import (
     AccountBalanceSerializer,
@@ -211,6 +212,7 @@ from apps.sales.utils import (
     verify_total,
     mark_deliverable_paid,
     cart_for_request,
+    redact_deliverable,
 )
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -1053,6 +1055,57 @@ class DeliverableCancel(GenericAPIView):
     def post(self, request, order_id, deliverable_id):
         deliverable = self.get_object()
         cancel_deliverable(deliverable, self.request.user)
+        data = self.serializer_class(
+            instance=deliverable, context=self.get_serializer_context()
+        ).data
+        return Response(data)
+
+
+class DeliverableRedact(GenericAPIView):
+    permission_classes = [
+        Or(
+            And(
+                OrderSellerPermission,
+                DeliverableStatusPermission(
+                    CANCELLED,
+                    REFUNDED,
+                    COMPLETED,
+                    error_message="This order must be completed, "
+                    "cancelled, or refunded before it can be redacted.",
+                ),
+                RedactionAvailableDatePermission,
+            ),
+            And(
+                StaffPower("table_seller"),
+                DeliverableStatusPermission(
+                    CANCELLED,
+                    REFUNDED,
+                    COMPLETED,
+                    NEW,
+                    PAYMENT_PENDING,
+                    MISSED,
+                    LIMBO,
+                    error_message="This order is still in progress and must be "
+                    "completed, cancelled, or refunded first.",
+                ),
+            ),
+        ),
+    ]
+    serializer_class = DeliverableSerializer
+
+    def get_object(self):
+        deliverable = get_object_or_404(
+            Deliverable,
+            order_id=self.kwargs["order_id"],
+            id=self.kwargs["deliverable_id"],
+        )
+        self.check_object_permissions(self.request, deliverable)
+        return deliverable
+
+    # noinspection PyUnusedLocal
+    def post(self, request, order_id, deliverable_id):
+        deliverable = self.get_object()
+        redact_deliverable(deliverable)
         data = self.serializer_class(
             instance=deliverable, context=self.get_serializer_context()
         ).data

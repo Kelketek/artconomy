@@ -314,6 +314,9 @@ export interface Deliverable {
   expected_turnaround: number
   task_weight: number
   paid_on: null | string
+  auto_redact_on: string | null
+  redacted_on: string | null
+  redact_available_on: string | null
   trust_finalized: boolean
   dispute_available_on: null | string
   auto_finalize_on: null | string

@@ -61,12 +61,12 @@
                     <span v-else-if="isArbitrator">Case</span>
                     <span v-else>Order</span>
                     #{{ order.x.id }}
-                    <span v-if="!isSeller || !(is(s.NEW) || is(s.WAITING))"
+                    <span v-if="!isSeller || !is(s.NEW, s.WAITING)"
                       >- [{{ deliverable.x.name }}] Details:</span
                     >
                   </h2>
                   <ac-patch-field
-                    v-if="isSeller && (is(s.NEW) || is(s.WAITING))"
+                    v-if="isSeller && is(s.NEW, s.WAITING)"
                     :patcher="deliverable.patchers.name"
                     label="Deliverable Name"
                   />
@@ -128,12 +128,7 @@
                 v-if="
                   isSeller &&
                   (unregisteredBuyer || guestBuyer) &&
-                  !(
-                    is(s.COMPLETED) ||
-                    is(s.DISPUTED) ||
-                    is(s.REFUNDED) ||
-                    is(s.CANCELLED)
-                  )
+                  !is(s.COMPLETED, s.DISPUTED, s.REFUNDED, s.CANCELLED)
                 "
                 cols="12"
               >
@@ -318,7 +313,7 @@
         v-if="smAndDown"
         :comment-list="comments"
         :nesting="false"
-        :locked="!isInvolved || is(s.LIMBO) || is(s.MISSED)"
+        :locked="!isInvolved || is(s.LIMBO, s.MISSED)"
         :guest-ok="true"
         :show-history="isArbitrator"
       />
