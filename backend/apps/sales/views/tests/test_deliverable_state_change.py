@@ -45,6 +45,7 @@ from apps.sales.constants import (
     TABLE_HANDLING,
     WAITING,
     FUND,
+    CANCELLED,
 )
 from apps.sales.models import Deliverable, TransactionRecord, idempotent_lines
 from apps.sales.tests.factories import (
@@ -204,8 +205,13 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.deliverable.stream_link = "https://google.com/"
         self.state_assertion("seller", "start/", initial_status=QUEUED)
 
+    @freeze_time("2020-08-01")
+    @override_settings(REDACTION_ALLOWED_WINDOW=10)
     def test_cancel_deliverable(self, _mock_notify):
-        self.state_assertion("seller", "cancel/", initial_status=NEW)
+        self.state_assertion(
+            "seller", "cancel/", initial_status=NEW, target_status=CANCELLED
+        )
+        self.assertEqual(self.deliverable.redact_available_on, date(2020, 8, 1))
 
     def test_cancel_deliverable_buyer(self, _mock_notify):
         self.state_assertion("buyer", "cancel/", initial_status=PAYMENT_PENDING)
@@ -333,6 +339,8 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.assertFalse(self.deliverable.paypal)
 
     @patch("apps.sales.tasks.withdraw_all.delay")
+    @freeze_time("2020-08-01")
+    @override_settings(REDACTION_ALLOWED_WINDOW=10)
     def test_approve_deliverable_buyer(self, mock_withdraw, _mock_notify):
         record = TransactionRecordFactory.create(
             payee=self.deliverable.order.seller,
@@ -352,6 +360,8 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.assertEqual(payment.status, SUCCESS)
         self.assertEqual(payment.destination, HOLDINGS)
         mock_withdraw.assert_called_with(self.deliverable.order.seller.id)
+        self.deliverable.refresh_from_db()
+        self.assertEqual(self.deliverable.redact_available_on, date(2020, 8, 11))
 
     @patch("apps.sales.utils.recall_notification")
     def test_approve_deliverable_recall_notification(self, mock_recall, _mock_notify):
@@ -462,6 +472,8 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         )
         mock_withdraw.assert_called_with(self.deliverable.order.seller.id)
 
+    @freeze_time("2020-08-01")
+    @override_settings(REDACTION_ALLOWED_WINDOW=10)
     def test_refund_escrow_disabled(self, _mock_notify):
         self.deliverable.escrow_enabled = False
         self.deliverable.save()
@@ -469,7 +481,10 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.deliverable.refresh_from_db()
         self.assertEqual(self.deliverable.status, REFUNDED)
         self.assertEqual(TransactionRecord.objects.all().count(), 0)
+        self.assertEqual(self.deliverable.redact_available_on, date(2020, 8, 1))
 
+    @freeze_time("2020-08-01")
+    @override_settings(REDACTION_ALLOWED_WINDOW=10)
     def test_refund_cash_staffer(self, _mock_stripe):
         self.charge_transaction(self.deliverable, source=CASH_DEPOSIT)
         targets = [
@@ -496,8 +511,11 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.assertEqual(refund_transaction.remote_ids, [])
         self.assertCountEqual(list(fund_transaction.targets.all()), targets)
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
+        self.deliverable.refresh_from_db()
+        self.assertEqual(self.deliverable.redact_available_on, date(2020, 8, 11))
 
     @freeze_time("2023-01-01")
+    @override_settings(REDACTION_ALLOWED_WINDOW=10)
     @patch("apps.sales.utils.stripe")
     def test_refund_card_seller(self, mock_stripe, _mock_notify):
         mock_stripe.__enter__.return_value.Refund.create.return_value = {
@@ -536,6 +554,8 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         mock_stripe.__enter__.return_value.Refund.create.assert_called_with(
             amount=385, payment_intent="pi_12345"
         )
+        self.deliverable.refresh_from_db()
+        self.assertEqual(self.deliverable.redact_available_on, date(2023, 1, 11))
 
     @patch("apps.sales.utils.stripe")
     def test_refund_card_seller_exception(self, mock_stripe, _mock_notify):

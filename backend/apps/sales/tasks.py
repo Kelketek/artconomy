@@ -659,3 +659,21 @@ def run_balance_report(
                 ],
             },
         )
+
+
+@celery_app.task()
+def perform_redaction(deliverable_id: Deliverable) -> None:
+    from apps.sales.utils import redact_deliverable
+
+    deliverable = Deliverable.objects.get(id=deliverable_id)
+    redact_deliverable(deliverable)
+
+
+@celery_app.task()
+def redact_scheduled_deliverables() -> None:
+    for deliverable_id in (
+        Deliverable.objects.exclude(auto_redact_on=None)
+        .filter(auto_redact_on__lte=timezone.now().date())
+        .values_list("id", flat=True)
+    ):
+        perform_redaction.delay(deliverable_id)

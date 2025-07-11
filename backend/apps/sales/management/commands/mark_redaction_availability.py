@@ -15,22 +15,20 @@ class Command(BaseCommand):
             redact_available_on__isnull=True,
         )
         base_qs.filter(status=CANCELLED).update(redact_available_on=timezone.now())
-        base_qs.filter(
-            status__in=[COMPLETED, REFUNDED], escrow_enabled=False
-        ).update(
+        base_qs.filter(status__in=[COMPLETED, REFUNDED], escrow_enabled=False).update(
             redact_available_on=timezone.now(),
         )
         base_qs.filter(
-            status=COMPLETED, escrow_enabled=True,
+            status=COMPLETED,
+            escrow_enabled=True,
         ).update(
-            redact_available_on=F('finalized_on') + relativedelta(
-                days=settings.REDACTION_ALLOWED_WINDOW
-            )
+            redact_available_on=F("finalized_on")
+            + relativedelta(days=settings.REDACTION_ALLOWED_WINDOW)
         )
         base_qs.filter(
-            status=REFUNDED, escrow_enabled=True,
+            status=REFUNDED,
+            escrow_enabled=True,
         ).update(
-            redact_available_on=F('refunded_on') + relativedelta(
-                days=settings.REDACTION_ALLOWED_WINDOW
-            )
+            redact_available_on=F("refunded_on")
+            + relativedelta(days=settings.REDACTION_ALLOWED_WINDOW)
         )

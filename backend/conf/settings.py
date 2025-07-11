@@ -653,6 +653,10 @@ CELERYBEAT_SCHEDULE = {
         "task": "apps.sales.tasks.run_balance_report",
         "schedule": crontab(hour="*", minute="0"),
     },
+    "redact_scheduled_deliverables": {
+        "task": "apps.sales.tasks.redact_scheduled_deliverables",
+        "schedule": crontab(hour="5", minute="15"),
+    },
 }
 
 ENV_NAME = get_env("ENV_NAME", "prod")

@@ -552,6 +552,9 @@ def finalize_deliverable(deliverable, user=None):
             deliverable.disputed_on = None
         deliverable.status = COMPLETED
         deliverable.finalized_on = timezone.now()
+        deliverable.redact_available_on = timezone.now().date() + relativedelta(
+            days=settings.REDACTION_ALLOWED_WINDOW,
+        )
         deliverable.save()
         deliverable.invoice.payout_available = True
         deliverable.invoice.save(update_fields=["payout_available"])
@@ -680,8 +683,10 @@ def cancel_deliverable(deliverable, requested_by, skip_remote=False):
         with paypal_api(deliverable.order.seller) as paypal:
             clear_existing_invoice(paypal, deliverable.invoice)
     deliverable.cancelled_on = timezone.now()
+    deliverable.redact_available_on = timezone.now().date()
     deliverable.save()
     deliverable.invoice.status = VOID
+    deliverable.invoice.save()
     if requested_by != deliverable.order.seller:
         notify(SALE_UPDATE, deliverable, unique=True, mark_unread=True)
     if requested_by != deliverable.order.buyer:
@@ -1579,6 +1584,7 @@ def refund_deliverable(deliverable: "Deliverable", requesting_user=None) -> (boo
     assert deliverable.status in statuses
     if not deliverable.escrow_enabled:
         deliverable.status = REFUNDED
+        deliverable.redact_available_on = timezone.now().date()
         deliverable.save()
         notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         return True, ""
@@ -1607,6 +1613,9 @@ def refund_deliverable(deliverable: "Deliverable", requesting_user=None) -> (boo
         return False, record.response_message
     deliverable.status = REFUNDED
     deliverable.refunded_on = timezone.now()
+    deliverable.redact_available_on = timezone.now().date() + relativedelta(
+        days=settings.REDACTION_ALLOWED_WINDOW
+    )
     deliverable.save()
     notify(REFUND, deliverable, unique=True, mark_unread=True)
     notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
