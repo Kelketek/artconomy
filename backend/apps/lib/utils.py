@@ -926,6 +926,24 @@ def clear_events_subscriptions_and_comments(target: Model):
         real_destroy_comment(comment)
 
 
+def clear_comments_by_content_obj_ref(*, content_type, target_id):
+    Event.objects.filter(
+        content_type=content_type,
+        object_id=target_id,
+        type=COMMENT,
+    ).delete()
+    for comment in Comment.objects.filter(
+        top_content_type=content_type,
+        top_object_id=target_id,
+    ):
+        real_destroy_comment(comment)
+
+
+def clear_comments(target: Model):
+    content_type = ContentType.objects.get_for_model(target)
+    clear_comments_by_content_obj_ref(content_type=content_type, target_id=target.id)
+
+
 def websocket_send(
     *,
     group: str,

@@ -49,7 +49,13 @@ from apps.lib.constants import (
 )
 from apps.lib.signals import broadcast_update
 from apps.lib.tasks import check_asset_associations
-from apps.lib.utils import multi_filter, notify, recall_notification
+from apps.lib.utils import (
+    multi_filter,
+    notify,
+    recall_notification,
+    clear_comments_by_content_obj_ref,
+    clear_comments,
+)
 from apps.profiles.models import User
 from apps.profiles.permissions import staff_power
 from apps.profiles.tasks import create_or_update_stripe_user
@@ -2024,7 +2030,7 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
     Destroys all specific information about a deliverable. Useful to clear out
     old commissions without removing key financial information.
     """
-    from apps.sales.models import Revision, Reference, Deliverable
+    from apps.sales.models import Revision, Reference
 
     if deliverable.status in WORK_IN_PROGRESS_STATUSES:
         raise RedactionError(
@@ -2036,10 +2042,10 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
             file_id = revision.file.id
             revision.delete()
             check_asset_associations(file_id)
-        Comment.objects.filter(
-            top_content_type=ContentType.objects.get_for_model(Revision),
-            top_object_id=revision_id,
-        ).delete()
+        clear_comments_by_content_obj_ref(
+            content_type=ContentType.objects.get_for_model(Revision),
+            target_id=revision_id,
+        )
     for reference in deliverable.reference_set.all():
         reference_id = reference.id
         reference_removed = False
@@ -2051,18 +2057,15 @@ def redact_deliverable(deliverable: "Deliverable") -> None:
                 reference_removed = True
                 check_asset_associations(file_id)
         if reference_removed:
-            Comment.objects.filter(
-                top_content_type=ContentType.objects.get_for_model(Reference),
-                top_object_id=reference_id,
-            ).delete()
+            clear_comments_by_content_obj_ref(
+                content_type=ContentType.objects.get_for_model(Reference),
+                target_id=reference_id,
+            )
     deliverable.characters.clear()
     deliverable.details = ""
     deliverable.notes = ""
     deliverable.name = "Redacted"
-    Comment.objects.filter(
-        top_content_type=ContentType.objects.get_for_model(Deliverable),
-        top_object_id=deliverable.id,
-    ).delete()
+    clear_comments(deliverable)
     if deliverable.status in [NEW, PAYMENT_PENDING]:
         deliverable.status = CANCELLED
     deliverable.redacted_on = timezone.now()
