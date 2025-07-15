@@ -128,12 +128,12 @@
             </li>
             <li>Incitement to imminent lawless action</li>
             <li>
-              Visual art which appears to depict minors (human or
-              otherwise) in sexually explicit situations, or
-              depicted in situations of masochistic or sadistic abuse,
-              or interacting with bodily waste, even if these are not depictions
-              of real persons, and even if those depictions are of real adults
-              who have uncommon proportions yet have given consent.
+              Visual art which appears to depict minors (human or otherwise) in
+              sexually explicit situations, or depicted in situations of
+              masochistic or sadistic abuse, or interacting with bodily waste,
+              even if these are not depictions of real persons, and even if
+              those depictions are of real adults who have uncommon proportions
+              yet have given consent.
             </li>
           </ul>
 

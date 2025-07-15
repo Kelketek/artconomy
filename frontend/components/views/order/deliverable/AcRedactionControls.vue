@@ -30,11 +30,12 @@
             >
             this deliverable to clear most details.
             <ac-confirmation :action="performRedaction">
-              <template #default="{on}">
+              <template #default="{ on }">
                 <v-btn v-on="on">Redact</v-btn>
               </template>
               <template #confirmation-text>
-                This will remove most details from the order, including your revisions and the references given. This cannot be undone!
+                This will remove most details from the order, including your
+                revisions and the references given. This cannot be undone!
               </template>
             </ac-confirmation>
           </p>

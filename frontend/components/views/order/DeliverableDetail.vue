@@ -848,7 +848,11 @@
             </v-row>
           </v-col>
         </v-row>
-        <ac-redaction-controls :deliverable-id="deliverableId" :order-id="orderId" :base-name="baseName" />
+        <ac-redaction-controls
+          :deliverable-id="deliverableId"
+          :order-id="orderId"
+          :base-name="baseName"
+        />
         <v-card>
           <ac-tab-nav :items="navItems" label="See more" />
         </v-card>
