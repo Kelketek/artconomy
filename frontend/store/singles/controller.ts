@@ -180,7 +180,9 @@ export class SingleController<T extends object> extends BaseController<
   }
 
   public refresh = () => {
+    this.kill()
     this.ready = false
+    this.failed = false
     return this.get()
   }
 

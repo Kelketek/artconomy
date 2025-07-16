@@ -85,7 +85,12 @@
         <v-list-item-title>Sales/Invoicing</v-list-item-title>
       </v-list-item>
       <v-list-group
-        v-if="isLoggedIn && powers.view_financials"
+        v-if="
+          isLoggedIn &&
+          (powers.view_financials ||
+            powers.view_social_data ||
+            powers.handle_disputes)
+        "
         value="Reports"
         nav
         role="listitem"
@@ -367,7 +372,7 @@ import AcSettingNav from "@/components/navigation/AcSettingNav.vue"
 import { ProfileController } from "@/store/profiles/controller.ts"
 import AcPatchField from "@/components/fields/AcPatchField.vue"
 import { artCall, makeQueryParams } from "@/lib/lib.ts"
-import { computed, ref } from "vue"
+import { computed, ref, watch } from "vue"
 import { useForm } from "@/store/forms/hooks.ts"
 import { useRouter } from "vue-router"
 import {
@@ -413,6 +418,13 @@ const { viewerHandler } = useViewer()
 const subjectHandler = computed(() => props.subjectHandler)
 const powers = buildPowers(subjectHandler)
 props.subjectHandler.staffPowers.get().catch(() => {})
+
+watch(
+  () => subjectHandler.value.user.x?.username,
+  () => {
+    subjectHandler.value.staffPowers.refresh().catch(() => {})
+  },
+)
 
 const openFirst = ref(["Openings", "Art"])
 const openSecond = ref(["Reports"])
