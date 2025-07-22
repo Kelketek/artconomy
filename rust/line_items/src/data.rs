@@ -128,6 +128,71 @@ impl Category {
     pub const TOP_UP: u16 = 421;
 }
 
+/// Distinct accounts that line items may deposit into.
+#[non_exhaustive]
+pub struct Account;
+impl Account {
+    /// Account types
+    pub const CARD: u16 = 300;
+    /// Payout account on the payout provider. This is the artist's Stripe account, at
+    /// present.
+    pub const PAYOUT_ACCOUNT: u16 = 301;
+    /// Escrow holdings account for a particular user.
+    pub const ESCROW: u16 = 302;
+    /// Finalized earnings, available for withdrawal.
+    pub const HOLDINGS: u16 = 303;
+    /// DEPRECATED: This used to be true and is no longer so. We now determine at the time of
+    /// payment whether the amount to be taken is more or less due to landscape service.
+    /// OLD NOTE, NO LONGER CORRECT: All fees put the difference for premium bonus into
+    /// reserve until an order is complete. When complete, these amounts are deposited into
+    /// either the cash account of Artconomy, or added to the user's holdings.
+    pub const RESERVE: u16 = 304;
+    /// Earnings for which we have not yet subtracted card/bank transfer fees. DEPRECATED:
+    /// Use FUND instead.
+    pub const UNPROCESSED_EARNINGS: u16 = 305;
+    /// These two fee types will be used to keep track of fees that have been paid out to card
+    /// processors.
+    pub const CARD_TRANSACTION_FEES: u16 = 306;
+    /// Card fees that aren't directly related to a specific transaction.
+    pub const CARD_MISC_FEES: u16 = 307;
+
+    /// Fees from performing bank transfers.
+    pub const BANK_TRANSFER_FEES: u16 = 308;
+    /// Fees for other ACH-related items, like customer onboarding fees.
+    pub const BANK_MISC_FEES: u16 = 309;
+
+    /// Tax held here until order finalized
+    pub const MONEY_HOLE_STAGE: u16 = 310;
+
+    /// Where taxes go
+    pub const MONEY_HOLE: u16 = 311;
+
+    /// Similar to money hole, when money is stolen and there's no getting it back,
+    /// but a private actor instead of a public one. :/
+    pub const FRAUD_LOSS: u16 = 312;
+
+    /// Staging account where the actual transaction coming in (like a card payment) is sent
+    /// before splitting into different accounts from there.
+    pub const FUND: u16 = 313;
+
+    /// Used to keep track of money that landed in the user's stripe account and which they
+    /// are trying to withdraw.
+    pub const PAYOUT_EXTRACT: u16 = 314;
+
+    /// For when a customer gives us cash, like at an event.
+    pub const CASH_DEPOSIT: u16 = 407;
+
+    // These next accounts are used to generate reports about what money was actually
+    // deposited into the payee's currency for tax purposes.
+
+    /// The balance of this account will always be negative (or zero) and potentially
+    /// incalculable because the currency could vary.
+    pub const PAYOUT_MIRROR_SOURCE: u16 = 500;
+    /// The balance of this account will always be positive (or zero) and potentially
+    /// incalculable because the currency could vary.
+    pub const PAYOUT_MIRROR_DESTINATION: u16 = 501;
+}
+
 #[cfg(feature = "wasm")]
 impl From<TabulationError> for JsValue {
     fn from(val: TabulationError) -> Self {
@@ -189,6 +254,15 @@ pub struct LineItem {
     /// later annotation of transactions.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub category: u16,
+    /// Destination user ID for the line item. This is None if the destination account is the
+    /// platform, and an int if it's any other user. For some testing calculations, we might set
+    /// this to -1.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub destination_user_id: Option<i64>,
+    /// Account type for the destination user to credit this to, such as their escrow account or
+    /// their holdings.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub destination_account: u16,
     /// Whether the percentage calculated should be based on a target amount rather than added on
     /// top. That is, calculate all lower priority items to get their total, then find out the line
     /// item's percentage of that amount. Once found, remove that amount proportionally from all
@@ -277,6 +351,8 @@ pub struct DeliverableLinesContext {
     pub plan_name: Option<String>,
     /// Pricing variables and context, including available plans.
     pub pricing: Option<Pricing>,
+    /// The ID of the user that is issuing the invoice.
+    pub user_id: i64,
     /// Allows return of an empty vector if base_price is invalid,
     /// plan_name is unset or pricing isn't set.
     pub allow_soft_failure: bool,
@@ -300,6 +376,8 @@ pub struct InvoiceLinesContext {
     pub product: Option<Product>,
     /// Whether the seller's fees should be cascaded from the total.
     pub cascade: bool,
+    /// The ID of the user that is issuing the invoice.
+    pub user_id: i64,
     /// Allows return of an empty vector if base_price is invalid,
     /// plan_name is unset or pricing isn't set.
     pub allow_soft_failure: bool,
@@ -347,6 +425,8 @@ impl Default for LineItem {
                 cascade_percentage: false,
                 back_into_percentage: false,
                 cascade_amount: false,
+                destination_user_id: None,
+                destination_account: 0,
             }
         }
     }

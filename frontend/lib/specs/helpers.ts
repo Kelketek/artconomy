@@ -1,6 +1,7 @@
 import { LineType } from "@/types/enums/LineType.ts"
 import type { LineItem, Pricing } from "@/types/main"
 import { LineCategory } from "@/types/enums/LineCategory.ts"
+import { AccountType } from "@/types/enums/AccountType.ts"
 
 export function genLineItem(overrides: Partial<LineItem>): LineItem {
   return {
@@ -15,6 +16,8 @@ export function genLineItem(overrides: Partial<LineItem>): LineItem {
     cascade_amount: false,
     back_into_percentage: false,
     description: "",
+    destination_user_id: -1,
+    destination_account: AccountType.ESCROW,
     ...overrides,
   }
 }
@@ -29,8 +32,8 @@ export function dummyLineItems(): LineItem[] {
       category: LineCategory.ESCROW_HOLD,
       frozen_value: null,
       type: LineType.SHIELD,
-      destination_account: 304,
-      destination_user: null,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: null,
       description: "",
       cascade_percentage: true,
       cascade_amount: true,
@@ -44,8 +47,8 @@ export function dummyLineItems(): LineItem[] {
       frozen_value: null,
       category: LineCategory.PREMIUM_BONUS,
       type: LineType.BONUS,
-      destination_account: 304,
-      destination_user: null,
+      destination_account: AccountType.BONUS_RESERVE,
+      destination_user_id: null,
       description: "",
       cascade_percentage: true,
       cascade_amount: true,
@@ -59,8 +62,8 @@ export function dummyLineItems(): LineItem[] {
       frozen_value: null,
       type: LineType.BASE_PRICE,
       category: LineCategory.ESCROW_HOLD,
-      destination_account: 302,
-      destination_user: 1,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: 1,
       description: "",
       cascade_percentage: false,
       cascade_amount: false,
@@ -74,8 +77,8 @@ export function dummyLineItems(): LineItem[] {
       category: LineCategory.ESCROW_HOLD,
       frozen_value: null,
       type: LineType.ADD_ON,
-      destination_account: 302,
-      destination_user: 1,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: 1,
       description: "Discount",
       cascade_percentage: false,
       cascade_amount: false,

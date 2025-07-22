@@ -87,6 +87,7 @@ export function invoiceLines(options: {
     escrow_enabled: escrowEnabled,
     product,
     cascade,
+    user_id: -1,
     allow_soft_failure: true,
     quantization: 2,
   }).Ok
@@ -120,6 +121,7 @@ export const deliverableLines = ({
     extra_lines: extraLines,
     plan_name: planName,
     pricing,
+    user_id: -1,
     allow_soft_failure: true,
   }).Ok
 }

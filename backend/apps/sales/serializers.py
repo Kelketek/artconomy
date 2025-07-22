@@ -873,7 +873,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             "type",
             "category",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "description",
             "cascade_percentage",
             "cascade_amount",
@@ -884,7 +884,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             "id",
             "priority",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "targets",
         )
 

@@ -35,7 +35,7 @@ macro_rules! set_trace {
 pub mod funcs {
     #[cfg(any(feature = "python", feature = "wasm"))]
     use crate::data::Calculation;
-    use crate::data::{Category, DeliverableLinesContext, InvoiceLinesContext, LineType, Pricing};
+    use crate::data::{Account, Category, DeliverableLinesContext, InvoiceLinesContext, LineType, Pricing};
     use crate::data::{LineDecimalMap, LineItem, TabulationError};
     use crate::s;
     #[cfg(feature = "wasm")]
@@ -592,6 +592,8 @@ pub mod funcs {
                 back_into_percentage: false,
                 frozen_value: None,
                 percentage: s!("0"),
+                destination_user_id: Some(lines_context.user_id),
+                destination_account: Account::ESCROW,
             })
         }
         deliverable_lines(DeliverableLinesContext {
@@ -604,6 +606,7 @@ pub mod funcs {
             plan_name: lines_context.plan_name,
             pricing: lines_context.pricing,
             allow_soft_failure: lines_context.allow_soft_failure,
+            user_id: lines_context.user_id,
         })
     }
 
@@ -674,6 +677,8 @@ pub mod funcs {
             cascade_amount: false,
             cascade_percentage: false,
             back_into_percentage: false,
+            destination_account: Account::ESCROW,
+            destination_user_id: Some(lines_context.user_id),
         });
         if lines_context.table_product {
             lines.push(LineItem {
@@ -688,6 +693,8 @@ pub mod funcs {
                 description: s!(""),
                 percentage: pricing.table_percentage,
                 back_into_percentage: !lines_context.cascade,
+                destination_account: Account::RESERVE,
+                destination_user_id: None,
             });
             lines.push(LineItem {
                 id: -4,
@@ -701,6 +708,8 @@ pub mod funcs {
                 back_into_percentage: true,
                 amount: s!("0"),
                 frozen_value: None,
+                destination_account: Account::MONEY_HOLE_STAGE,
+                destination_user_id: None,
             })
         } else if lines_context.escrow_enabled {
             let mut percentage_price = match Decimal::from_str_exact(&plan.shield_percentage_price)
@@ -728,6 +737,8 @@ pub mod funcs {
                 frozen_value: None,
                 percentage: percentage_price.to_string(),
                 back_into_percentage: !lines_context.cascade,
+                destination_account: Account::FUND,
+                destination_user_id: None,
             })
         } else if per_deliverable_price > dec!(0) {
             lines.push(LineItem {
@@ -742,6 +753,8 @@ pub mod funcs {
                 frozen_value: None,
                 percentage: s!("0"),
                 back_into_percentage: !lines_context.cascade,
+                destination_account: Account::FUND,
+                destination_user_id: None,
             })
         }
         for entry in lines_context.extra_lines.drain(..) {

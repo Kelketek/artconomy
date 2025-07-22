@@ -386,8 +386,8 @@ export interface LineItem {
   type: LineTypeValue
   category: LineCategoryValue
   description: string
-  destination_account?: number | null
-  destination_user?: number | null
+  destination_account: number
+  destination_user_id: number | null
   targets?: Array<{ model: string; id: string | number }>
 }
 

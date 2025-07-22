@@ -5,6 +5,7 @@ import { useForm } from "@/store/forms/hooks.ts"
 import { getTotals } from "@/lib/lineItemFunctions.ts"
 import type { LineItem, LineTypeValue } from "@/types/main"
 import { LineCategory } from "@/types/enums/LineCategory.ts"
+import { AccountType } from "@/types/enums/AccountType.ts"
 
 export const useLineItems = (props: {
   lineItems: ListController<LineItem>
@@ -48,6 +49,8 @@ export const useLineItems = (props: {
       category: addOnForm.fields.category.value,
       priority: 100,
       description: addOnForm.fields.description.value,
+      destination_account: AccountType.ESCROW,
+      destination_user_id: -1,
     }
   })
 
@@ -64,6 +67,8 @@ export const useLineItems = (props: {
       category: extraForm.fields.category.value,
       priority: 400,
       description: extraForm.fields.description.value,
+      destination_account: AccountType.FUND,
+      destination_user_id: null,
     }
   })
   const rawLineItems = computed(() =>

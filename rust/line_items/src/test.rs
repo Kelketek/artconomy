@@ -826,10 +826,7 @@ mod interface_tests {
 
 #[cfg(test)]
 mod line_item_preview_tests {
-    use crate::data::{
-        Category, DeliverableLinesContext, InvoiceLinesContext, LineItem, LineType, Pricing,
-        Product, ServicePlan, TabulationError,
-    };
+    use crate::data::{Account, Category, DeliverableLinesContext, InvoiceLinesContext, LineItem, LineType, Pricing, Product, ServicePlan, TabulationError};
     use crate::funcs::{deliverable_lines, invoice_lines};
     use crate::s;
     use ntest::timeout;
@@ -893,6 +890,7 @@ mod line_item_preview_tests {
             table_product: false,
             extra_lines: vec![],
             allow_soft_failure: false,
+            user_id: -1,
         });
         let expected = vec![
             LineItem {
@@ -907,6 +905,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(-1),
+                destination_account: Account::ESCROW,
             },
             LineItem {
                 id: -5,
@@ -920,6 +920,8 @@ mod line_item_preview_tests {
                 frozen_value: None,
                 percentage: s!("5"),
                 description: s!(""),
+                destination_user_id: None,
+                destination_account: Account::FUND,
             },
         ];
         assert_eq!(lines_result, Ok(expected));
@@ -937,6 +939,7 @@ mod line_item_preview_tests {
             plan_name: Some(s!("Basic")),
             product: None,
             allow_soft_failure: false,
+            user_id: -2,
             quantization: 2,
         });
         let expected = vec![
@@ -952,6 +955,8 @@ mod line_item_preview_tests {
                 cascade_percentage: false,
                 back_into_percentage: false,
                 description: s!(""),
+                destination_user_id: Some(-2),
+                destination_account: Account::ESCROW,
             },
             LineItem {
                 id: -5,
@@ -965,6 +970,8 @@ mod line_item_preview_tests {
                 frozen_value: None,
                 percentage: s!("5"),
                 description: s!(""),
+                destination_user_id: None,
+                destination_account: Account::FUND,
             },
         ];
         assert_eq!(lines_result, Ok(expected));
@@ -985,6 +992,7 @@ mod line_item_preview_tests {
             }),
             allow_soft_failure: false,
             quantization: 2,
+            user_id: -1,
         });
         let expected = vec![
             LineItem {
@@ -999,6 +1007,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(-1),
+                destination_account: Account::ESCROW,
             },
             LineItem {
                 id: -5,
@@ -1012,6 +1022,8 @@ mod line_item_preview_tests {
                 frozen_value: None,
                 percentage: s!("5"),
                 description: s!(""),
+                destination_user_id: None,
+                destination_account: Account::FUND,
             },
             LineItem {
                 id: -2,
@@ -1025,6 +1037,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_account: Account::ESCROW,
+                destination_user_id: Some(-1)
             },
         ];
         assert_eq!(lines_result, Ok(expected));
@@ -1045,6 +1059,7 @@ mod line_item_preview_tests {
             plan_name: Some(s!("Basic")),
             allow_soft_failure: false,
             quantization: 2,
+            user_id: -1,
         });
         let expected = vec![
             LineItem {
@@ -1059,6 +1074,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(-1),
+                destination_account: Account::ESCROW,
             },
             LineItem {
                 id: -5,
@@ -1072,6 +1089,8 @@ mod line_item_preview_tests {
                 frozen_value: None,
                 percentage: s!("6"),
                 description: s!(""),
+                destination_account: Account::FUND,
+                destination_user_id: None,
             },
             LineItem {
                 id: -2,
@@ -1085,6 +1104,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(-1),
+                destination_account: Account::ESCROW,
             },
         ];
         assert_eq!(line_items, Ok(expected));
@@ -1104,6 +1125,7 @@ mod line_item_preview_tests {
             cascade: true,
             international: false,
             plan_name: Some(s!("Basic")),
+            user_id: -3,
             allow_soft_failure: false,
             quantization: 2,
         });
@@ -1120,6 +1142,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(-3),
+                destination_account: Account::ESCROW,
             },
             LineItem {
                 id: -3,
@@ -1133,6 +1157,8 @@ mod line_item_preview_tests {
                 frozen_value: None,
                 percentage: s!("10"),
                 description: s!(""),
+                destination_user_id: None,
+                destination_account: Account::RESERVE,
             },
             LineItem {
                 id: -4,
@@ -1146,6 +1172,8 @@ mod line_item_preview_tests {
                 description: s!(""),
                 amount: s!("0"),
                 frozen_value: None,
+                destination_user_id: None,
+                destination_account: Account::MONEY_HOLE_STAGE,
             },
             LineItem {
                 id: -2,
@@ -1159,6 +1187,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(-3),
+                destination_account: Account::ESCROW,
             },
         ];
         assert_eq!(line_items, Ok(expected));
@@ -1175,6 +1205,7 @@ mod line_item_preview_tests {
             cascade: true,
             international: false,
             plan_name: Some(s!("Basic")),
+            user_id: -1,
             allow_soft_failure: false,
             quantization: 2,
         });
@@ -1191,6 +1222,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(-1),
+                destination_account: Account::ESCROW,
             },
             LineItem {
                 id: -6,
@@ -1204,6 +1237,8 @@ mod line_item_preview_tests {
                 description: s!(""),
                 category: Category::SUBSCRIPTION_DUES,
                 frozen_value: None,
+                destination_account: Account::FUND,
+                destination_user_id: None,
             },
         ];
         assert_eq!(line_items, Ok(expected))
@@ -1222,6 +1257,7 @@ mod line_item_preview_tests {
             cascade: true,
             international: false,
             plan_name: Some(s!("Basic")),
+            user_id: 4,
             allow_soft_failure: false,
             quantization: 2,
         });
@@ -1238,6 +1274,8 @@ mod line_item_preview_tests {
                 cascade_amount: false,
                 cascade_percentage: false,
                 back_into_percentage: false,
+                destination_user_id: Some(4),
+                destination_account: Account::ESCROW,
             },
             LineItem {
                 id: -6,
@@ -1251,6 +1289,8 @@ mod line_item_preview_tests {
                 back_into_percentage: false,
                 frozen_value: None,
                 description: s!(""),
+                destination_account: Account::FUND,
+                destination_user_id: None,
             },
             LineItem {
                 id: -2,
@@ -1264,6 +1304,8 @@ mod line_item_preview_tests {
                 back_into_percentage: false,
                 frozen_value: None,
                 category: Category::ESCROW_HOLD,
+                destination_account: Account::ESCROW,
+                destination_user_id: Some(4),
             },
         ];
         assert_eq!(line_items, Ok(expected));
@@ -1282,6 +1324,7 @@ mod line_item_preview_tests {
             cascade: true,
             international: false,
             plan_name: Some(s!("Basic")),
+            user_id: -1,
             allow_soft_failure: false,
             quantization: 2,
         };
@@ -1304,6 +1347,7 @@ mod line_item_preview_tests {
             product: None,
             cascade: true,
             international: false,
+            user_id: -1,
             plan_name: Some(s!("Basic")),
             allow_soft_failure: false,
             quantization: 2,
@@ -1328,6 +1372,7 @@ mod line_item_preview_tests {
             cascade: true,
             international: false,
             plan_name: Some(s!("Basic")),
+            user_id: -1,
             allow_soft_failure: false,
             quantization: 2,
         };
@@ -1351,6 +1396,7 @@ mod line_item_preview_tests {
             cascade: true,
             international: false,
             plan_name: Some(s!("Backup")),
+            user_id: -1,
             allow_soft_failure: false,
             quantization: 2,
         };
