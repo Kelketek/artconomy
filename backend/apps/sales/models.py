@@ -880,6 +880,135 @@ def delete(queryset):
 
 
 def idempotent_lines(instance: Deliverable):
+    """
+    This is the previous version of the idempotent lines function, currently shimmed
+    back in while we test revising its functionality via the rust functions.
+    """
+    if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
+        return
+    if instance.status == PAYMENT_PENDING and instance.invoice.paypal_token:
+        # Line items are synced remotely.
+        return
+    main_qs = instance.invoice.lines_for(instance)
+    if instance.status == PAYMENT_PENDING and instance.invoice.status == DRAFT:
+        instance.invoice.status = OPEN
+    if instance.product:
+        line = main_qs.update_or_create(
+            # We can use the amount for a creation default, but we won't adjust the
+            # base price if it already exists. Doing so can (and has) resulted in
+            # negative payout amounts if the customer lowers their price to something
+            # that shield can't support.
+            create_defaults={
+                "amount": instance.product.base_price,
+                "category": ESCROW_HOLD,
+            },
+            invoice=instance.invoice,
+            type=BASE_PRICE,
+            destination_user=instance.order.seller,
+            destination_account=ESCROW,
+        )[0]
+        line.annotate(instance)
+    total = reckon_lines(main_qs.filter(priority__lt=PRIORITY_MAP[SHIELD]))
+    escrow_enabled = instance.escrow_enabled and total
+    plan = instance.order.seller.service_plan
+    # Once this is in production long enough and all lines for existing deliverables
+    # have been recalculated, this line can be removed.
+    delete(main_qs.filter(type=BONUS))
+    if instance.table_order:
+        line = main_qs.update_or_create(
+            defaults={
+                "percentage": settings.TABLE_PERCENTAGE_FEE,
+                "cascade_percentage": instance.cascade_fees,
+                "amount": settings.TABLE_STATIC_FEE,
+                "category": TABLE_HANDLING,
+                # We don't cascade this flat amount for table products. Might revisit
+                # this later.
+                "cascade_amount": False,
+            },
+            invoice=instance.invoice,
+            destination_user=None,
+            destination_account=RESERVE,
+            type=TABLE_SERVICE,
+        )[0]
+        line.annotate(instance)
+        line = main_qs.update_or_create(
+            defaults={
+                "percentage": settings.TABLE_TAX,
+                "category": TAXES,
+                "cascade_percentage": instance.cascade_fees,
+                "cascade_amount": instance.cascade_fees,
+                "back_into_percentage": instance.cascade_fees,
+            },
+            invoice=instance.invoice,
+            destination_user=None,
+            destination_account=MONEY_HOLE_STAGE,
+            type=TAX,
+        )[0]
+        line.annotate(instance)
+        delete(main_qs.filter(type__in=[BONUS, SHIELD]))
+        instance.invoice.record_only = False
+    elif escrow_enabled:
+        percentage = plan.shield_percentage_price
+        if instance.international:
+            percentage += settings.INTERNATIONAL_CONVERSION_PERCENTAGE
+        line = main_qs.update_or_create(
+            defaults={
+                "percentage": percentage,
+                "amount": plan.shield_static_price,
+                "category": SHIELD_FEE,
+                "cascade_percentage": instance.cascade_fees,
+                "cascade_amount": instance.cascade_fees,
+                "back_into_percentage": not instance.cascade_fees,
+            },
+            invoice=instance.invoice,
+            destination_user=None,
+            destination_account=FUND,
+            type=SHIELD,
+        )[0]
+        line.annotate(instance)
+        delete(
+            main_qs.filter(
+                type=EXTRA,
+                destination_account=RESERVE,
+                description="Table Service",
+                invoice=instance.invoice,
+            )
+        )
+        delete(main_qs.filter(type__in=[TAX, DELIVERABLE_TRACKING]))
+        instance.invoice.record_only = False
+    else:
+        delete(main_qs.filter(type__in=[BONUS, SHIELD]))
+        delete(
+            main_qs.filter(
+                type=EXTRA,
+                destination_account=RESERVE,
+                description="Table Service",
+                invoice=instance.invoice,
+            )
+        )
+        delete(main_qs.filter(type=TAX))
+        if plan.per_deliverable_price:
+            line = main_qs.update_or_create(
+                defaults={
+                    "amount": plan.per_deliverable_price,
+                    "category": SUBSCRIPTION_DUES,
+                    "cascade_amount": instance.cascade_fees,
+                },
+                invoice=instance.invoice,
+                destination_user=None,
+                type=DELIVERABLE_TRACKING,
+                destination_account=FUND,
+            )[0]
+            line.annotate(instance)
+        instance.invoice.record_only = True
+    instance.invoice.save()
+
+
+def _new_idempotent_lines(instance: Deliverable):
+    """
+    New intended version of idempotent lines. Needs to be replicated in rust after
+    validation that our method of using them together works.
+    """
     if instance.status not in [WAITING, NEW, PAYMENT_PENDING]:
         return
     if instance.status == PAYMENT_PENDING and instance.invoice.paypal_token:
@@ -1000,7 +1129,7 @@ def idempotent_lines(instance: Deliverable):
         main_qs.update_or_create(
             defaults={
                 "amount": settings.STRIPE_CHARGE_STATIC,
-                "percentage": settings.STRIPE_BLENDED_PERCENTAGE,
+                "percentage": settings.STRIPE_BLENDED_RATE_PERCENTAGE,
                 "category": SHIELD_FEE,
                 "cascade_amount": instance.cascade_fees,
             },
