@@ -1,5 +1,6 @@
 services:
   django:
+    image: artconomy_django
     build:
       context: .
       dockerfile: docker/app_Dockerfile
