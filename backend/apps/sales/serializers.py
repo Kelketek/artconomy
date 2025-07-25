@@ -839,6 +839,10 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
     percentage = serializers.CharField()
     amount = MoneyToString()
     frozen_value = MoneyToString()
+    kind = serializers.SerializerMethodField()
+
+    def get_kind(self, instance: LineItem):
+        return instance.type
 
     class Meta:
         model = LineItem
@@ -851,6 +855,11 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
             "cascade_percentage",
             "cascade_amount",
             "back_into_percentage",
+            "destination_account",
+            "destination_user_id",
+            "kind",
+            "description",
+            "category",
         )
         read_only_fields = fields
 
@@ -886,6 +895,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             "destination_account",
             "destination_user_id",
             "targets",
+            "category",
         )
 
     def __init__(self, *args, **kwargs):

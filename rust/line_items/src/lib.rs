@@ -800,6 +800,15 @@ pub mod funcs {
             Err(err) => Err(TabulationError::from(err.to_string())),
         }
     }
+    //
+    // /// Python binding for deliverable_lines
+    // #[cfg(feature = "python")]
+    // #[pyfunction]
+    // pub fn py_deliverable_lines(
+    //     provided_lines_context: DeliverableLinesContext,
+    // ) -> None {
+    //
+    // }
 }
 
 #[cfg(test)]

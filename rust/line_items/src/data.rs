@@ -234,6 +234,7 @@ pub struct LineItem {
     pub priority: i16,
     /// The category of line item this is, such as the base price, an add-on, or some fee.
     #[serde(rename = "type")]
+    #[cfg_attr(feature = "python", pyo3(item))]
     pub kind: u16,
     /// A static amount this line item represents. Starts as a float to be converted into decimal.
     #[cfg_attr(feature = "python", pyo3(item))]

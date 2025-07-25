@@ -1630,7 +1630,7 @@ class LineItem(Model):
     # be run after lower numbers. If two items have the same priority, they will both be
     # run as if the other had not been run.
     priority = IntegerField(db_index=True)
-    category = IntegerField(choices=CATEGORIES, null=True, db_index=True)
+    category = IntegerField(choices=CATEGORIES, db_index=True)
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
     back_into_percentage = BooleanField(db_index=True, default=False)
@@ -1690,6 +1690,9 @@ class LineItem(Model):
 class LineItemSim:
     id: int
     priority: int
+    category: int
+    destination_account: int
+    destination_user_id: Optional[int]
     amount: Money = Money("0.00", "USD")
     percentage: Decimal = Decimal(0)
     frozen_value: Optional[Money] = Money("0.00", "USD")
