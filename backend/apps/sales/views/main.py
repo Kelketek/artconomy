@@ -114,6 +114,7 @@ from apps.sales.constants import (
     VENDOR_PAYMENT,
     DEFAULT_TYPE_TO_CATEGORY_MAP,
     TAXES,
+    MONEY_HOLE_STAGE,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -1249,7 +1250,7 @@ class DeliverableLineItems(ListCreateAPIView):
         if item_type in [TAX, EXTRA, TABLE_SERVICE]:
             destination_user = None
         accounts = {
-            TAX: MONEY_HOLE,
+            TAX: MONEY_HOLE_STAGE,
             ADD_ON: ESCROW,
             TIP: ESCROW,
             BASE_PRICE: ESCROW,

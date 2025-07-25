@@ -33,17 +33,26 @@ macro_rules! set_trace {
 
 /// Line item calculation functions used for determining amounts on invoices.
 pub mod funcs {
+    #[cfg(any(feature = "python", feature = "wasm"))]
     use crate::data::Calculation;
+    use crate::data::{Account, Category, DeliverableLinesContext, InvoiceLinesContext, LineType, Pricing};
     use crate::data::{LineDecimalMap, LineItem, TabulationError};
+    use crate::s;
     #[cfg(feature = "wasm")]
     use js_sys::JsString;
     #[cfg(feature = "python")]
     use pyo3::exceptions::PyValueError;
     #[cfg(feature = "python")]
     use pyo3::prelude::*;
+    #[cfg(feature = "python")]
+    use pyo3::types::PyDict;
     use rust_decimal::prelude::ToPrimitive;
     use rust_decimal::Decimal;
     use rust_decimal_macros::dec;
+    #[cfg(feature = "wasm")]
+    use serde::Serialize;
+    #[cfg(feature = "wasm")]
+    use serde_wasm_bindgen::Serializer;
     use std::cmp::Ordering;
     use std::collections::HashMap;
     use std::error::Error;
@@ -51,8 +60,6 @@ pub mod funcs {
     use std::panic;
     #[cfg(feature = "wasm")]
     use std::thread;
-    #[cfg(feature = "python")]
-    use pyo3::types::PyDict;
     #[cfg(feature = "wasm")]
     use wasm_bindgen::prelude::wasm_bindgen;
     #[cfg(feature = "wasm")]
@@ -466,12 +473,18 @@ pub mod funcs {
 
     /// Splits an amount into a number of equal amounts, or as close as possible
     /// if there is a remainder.
-    pub fn divide_amount(amount: Decimal, divisor: u16, quantization: u32) -> Result<Vec<Decimal>, TabulationError> {
+    pub fn divide_amount(
+        amount: Decimal,
+        divisor: u16,
+        quantization: u32,
+    ) -> Result<Vec<Decimal>, TabulationError> {
         if amount != quantize(&amount, quantization) {
-            return Err(TabulationError::from("Amount is improperly quantized. Cannot divide."))
+            return Err(TabulationError::from(
+                "Amount is improperly quantized. Cannot divide.",
+            ));
         }
         if divisor == 0 {
-            return Err(TabulationError::from("Cannot divide by zero."))
+            return Err(TabulationError::from("Cannot divide by zero."));
         }
         let factor = Decimal::from(divisor);
         let target_amount = quantize(&(amount / factor), quantization);
@@ -509,14 +522,18 @@ pub mod funcs {
 
     #[cfg(feature = "python")]
     #[pyfunction]
-    fn py_divide_amount(source_amount: String, divisor: u16, quantization: u32) -> PyResult<Vec<String>> {
+    fn py_divide_amount(
+        source_amount: String,
+        divisor: u16,
+        quantization: u32,
+    ) -> PyResult<Vec<String>> {
         let amount = match Decimal::from_str_exact(&source_amount) {
             Ok(result) => result,
-            Err(err) => return Err(PyValueError::new_err(err.to_string()))
+            Err(err) => return Err(PyValueError::new_err(err.to_string())),
         };
         let mut entries = match divide_amount(amount, divisor, quantization) {
             Ok(result) => result,
-            Err(err) => return Err(PyValueError::new_err(err.to_string()))
+            Err(err) => return Err(PyValueError::new_err(err.to_string())),
         };
         let mut result: Vec<String> = vec![];
         for entry in entries.drain(..) {
@@ -524,6 +541,274 @@ pub mod funcs {
         }
         Ok(result)
     }
+
+    /// Convenience function for previewing line items that would be given for a particular
+    /// product.
+    pub fn invoice_lines(
+        lines_context: InvoiceLinesContext,
+    ) -> Result<Vec<LineItem>, TabulationError> {
+        let mut add_on_price: Decimal = match Decimal::from_str_exact(&lines_context.value) {
+            Ok(some) => some,
+            Err(err) => {
+                if lines_context.allow_soft_failure {
+                    return Ok(vec![]);
+                }
+                return Err(TabulationError::from(err.to_string()));
+            }
+        };
+        let base_price: Decimal;
+        let table_product: bool;
+        let zero = quantized_zero(lines_context.quantization);
+        match lines_context.product {
+            Some(value) => {
+                base_price = match Decimal::from_str_exact(&value.base_price) {
+                    Ok(some) => some,
+                    Err(err) => {
+                        let mut error_string = s!("Could not derive product price. ");
+                        error_string.push_str(&err.to_string());
+                        return Err(TabulationError::from(&error_string));
+                    }
+                };
+                table_product = value.table_product;
+                add_on_price = add_on_price - base_price
+            }
+            None => {
+                base_price = add_on_price;
+                add_on_price = zero;
+                table_product = false;
+            }
+        }
+        let mut extra_lines = vec![];
+        if add_on_price != zero {
+            extra_lines.push(LineItem {
+                id: -2,
+                priority: 100,
+                kind: LineType::ADD_ON,
+                category: Category::ESCROW_HOLD,
+                amount: value_string(&add_on_price, lines_context.quantization),
+                description: s!(""),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+                frozen_value: None,
+                percentage: s!("0"),
+                destination_user_id: Some(lines_context.user_id),
+                destination_account: Account::ESCROW,
+            })
+        }
+        deliverable_lines(DeliverableLinesContext {
+            base_price: value_string(&base_price, lines_context.quantization),
+            extra_lines,
+            table_product,
+            cascade: lines_context.cascade,
+            escrow_enabled: lines_context.escrow_enabled,
+            international: lines_context.international,
+            plan_name: lines_context.plan_name,
+            pricing: lines_context.pricing,
+            allow_soft_failure: lines_context.allow_soft_failure,
+            user_id: lines_context.user_id,
+        })
+    }
+
+    /// Returns the expected line items for a deliverable.
+    pub fn deliverable_lines(
+        mut lines_context: DeliverableLinesContext,
+    ) -> Result<Vec<LineItem>, TabulationError> {
+        let mut lines: Vec<LineItem> = vec![];
+        let plan_name: String;
+
+        match lines_context.plan_name {
+            Some(name) => {
+                plan_name = name;
+            }
+            None => {
+                if lines_context.allow_soft_failure {
+                    return Ok(lines);
+                }
+                return Err(TabulationError::from("No plan name specified."));
+            }
+        }
+        let pricing: Pricing;
+        match lines_context.pricing {
+            Some(price_spec) => pricing = price_spec,
+            None => {
+                if lines_context.allow_soft_failure {
+                    return Ok(lines);
+                }
+                return Err(TabulationError::from("Pricing specification not provided."));
+            }
+        }
+        let plan = match pricing.plans.iter().find(|entry| entry.name == plan_name) {
+            Some(inner) => inner,
+            None => {
+                return if lines_context.allow_soft_failure {
+                    Ok(lines)
+                } else {
+                    Err(TabulationError::from(format!(
+                        "Could not find {plan_name} in plan list."
+                    )))
+                }
+            }
+        };
+        // Sanity check.
+        match Decimal::from_str_exact(&lines_context.base_price) {
+            Ok(_) => {}
+            Err(err) => {
+                return if lines_context.allow_soft_failure {
+                    Ok(lines)
+                } else {
+                    Err(TabulationError::from(err.to_string()))
+                }
+            }
+        };
+        let per_deliverable_price = match Decimal::from_str_exact(&plan.per_deliverable_price) {
+            Err(err) => return Err(TabulationError::from(err.to_string())),
+            Ok(result) => result,
+        };
+        lines.push(LineItem {
+            id: -1,
+            priority: 0,
+            kind: LineType::BASE_PRICE,
+            category: Category::ESCROW_HOLD,
+            frozen_value: None,
+            amount: lines_context.base_price,
+            percentage: s!("0"),
+            description: s!(""),
+            cascade_amount: false,
+            cascade_percentage: false,
+            back_into_percentage: false,
+            destination_account: Account::ESCROW,
+            destination_user_id: Some(lines_context.user_id),
+        });
+        if lines_context.table_product {
+            lines.push(LineItem {
+                id: -3,
+                priority: 400,
+                kind: LineType::TABLE_SERVICE,
+                category: Category::TABLE_HANDLING,
+                cascade_percentage: lines_context.cascade,
+                cascade_amount: false,
+                amount: pricing.table_static,
+                frozen_value: None,
+                description: s!(""),
+                percentage: pricing.table_percentage,
+                back_into_percentage: !lines_context.cascade,
+                destination_account: Account::RESERVE,
+                destination_user_id: None,
+            });
+            lines.push(LineItem {
+                id: -4,
+                priority: 700,
+                kind: LineType::TAX,
+                description: s!(""),
+                category: Category::TAXES,
+                cascade_percentage: lines_context.cascade,
+                cascade_amount: lines_context.cascade,
+                percentage: pricing.table_tax,
+                back_into_percentage: true,
+                amount: s!("0"),
+                frozen_value: None,
+                destination_account: Account::MONEY_HOLE_STAGE,
+                destination_user_id: None,
+            })
+        } else if lines_context.escrow_enabled {
+            let mut percentage_price = match Decimal::from_str_exact(&plan.shield_percentage_price)
+            {
+                Ok(result) => result,
+                Err(err) => return Err(TabulationError::from(err.to_string())),
+            };
+            if lines_context.international {
+                let international_conversion_percentage =
+                    match Decimal::from_str_exact(&pricing.international_conversion_percentage) {
+                        Ok(result) => result,
+                        Err(err) => return Err(TabulationError::from(err.to_string())),
+                    };
+                percentage_price += international_conversion_percentage
+            }
+            lines.push(LineItem {
+                id: -5,
+                priority: 300,
+                kind: LineType::SHIELD,
+                description: s!(""),
+                category: Category::SHIELD_FEE,
+                cascade_percentage: lines_context.cascade,
+                cascade_amount: lines_context.cascade,
+                amount: plan.shield_static_price.clone(),
+                frozen_value: None,
+                percentage: percentage_price.to_string(),
+                back_into_percentage: !lines_context.cascade,
+                destination_account: Account::FUND,
+                destination_user_id: None,
+            })
+        } else if per_deliverable_price > dec!(0) {
+            lines.push(LineItem {
+                id: -6,
+                priority: 300,
+                kind: LineType::DELIVERABLE_TRACKING,
+                description: s!(""),
+                category: Category::SUBSCRIPTION_DUES,
+                cascade_percentage: lines_context.cascade,
+                cascade_amount: lines_context.cascade,
+                amount: plan.per_deliverable_price.clone(),
+                frozen_value: None,
+                percentage: s!("0"),
+                back_into_percentage: !lines_context.cascade,
+                destination_account: Account::FUND,
+                destination_user_id: None,
+            })
+        }
+        for entry in lines_context.extra_lines.drain(..) {
+            lines.push(entry)
+        }
+        Ok(lines)
+    }
+
+    /// JavaScript binding for invoice_lines
+    #[cfg(feature = "wasm")]
+    #[wasm_bindgen]
+    pub fn js_invoice_lines(provided_lines_context: JsValue) -> Result<JsValue, TabulationError> {
+        set_trace!();
+        let lines_context: InvoiceLinesContext =
+            match serde_wasm_bindgen::from_value(provided_lines_context) {
+                Ok(result) => result,
+                Err(error) => return Err(TabulationError::from(error.to_string())),
+            };
+        let lines = invoice_lines(lines_context);
+        let serializer = Serializer::json_compatible();
+        match Serialize::serialize(&lines, &serializer) {
+            Ok(result) => Ok(result),
+            Err(err) => Err(TabulationError::from(err.to_string())),
+        }
+    }
+
+    /// JavaScript binding for deliverable_lines
+    #[cfg(feature = "wasm")]
+    #[wasm_bindgen]
+    pub fn js_deliverable_lines(
+        provided_lines_context: JsValue,
+    ) -> Result<JsValue, TabulationError> {
+        set_trace!();
+        let lines_context: DeliverableLinesContext =
+            match serde_wasm_bindgen::from_value(provided_lines_context) {
+                Ok(result) => result,
+                Err(error) => return Err(TabulationError::from(error.to_string())),
+            };
+        let lines = deliverable_lines(lines_context);
+        let serializer = Serializer::json_compatible();
+        match Serialize::serialize(&lines, &serializer) {
+            Ok(result) => Ok(result),
+            Err(err) => Err(TabulationError::from(err.to_string())),
+        }
+    }
+    //
+    // /// Python binding for deliverable_lines
+    // #[cfg(feature = "python")]
+    // #[pyfunction]
+    // pub fn py_deliverable_lines(
+    //     provided_lines_context: DeliverableLinesContext,
+    // ) -> None {
+    //
+    // }
 }
 
 #[cfg(test)]

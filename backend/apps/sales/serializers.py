@@ -839,6 +839,10 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
     percentage = serializers.CharField()
     amount = MoneyToString()
     frozen_value = MoneyToString()
+    kind = serializers.SerializerMethodField()
+
+    def get_kind(self, instance: LineItem):
+        return instance.type
 
     class Meta:
         model = LineItem
@@ -851,6 +855,11 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
             "cascade_percentage",
             "cascade_amount",
             "back_into_percentage",
+            "destination_account",
+            "destination_user_id",
+            "kind",
+            "description",
+            "category",
         )
         read_only_fields = fields
 
@@ -873,7 +882,7 @@ class LineItemSerializer(serializers.ModelSerializer):
             "type",
             "category",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "description",
             "cascade_percentage",
             "cascade_amount",
@@ -884,8 +893,9 @@ class LineItemSerializer(serializers.ModelSerializer):
             "id",
             "priority",
             "destination_account",
-            "destination_user",
+            "destination_user_id",
             "targets",
+            "category",
         )
 
     def __init__(self, *args, **kwargs):
@@ -2175,6 +2185,7 @@ class ServicePlanSerializer(serializers.ModelSerializer):
             "description",
             "features",
             "monthly_charge",
+            "connection_fee_waived",
             "per_deliverable_price",
             "max_simultaneous_orders",
             "tipping",

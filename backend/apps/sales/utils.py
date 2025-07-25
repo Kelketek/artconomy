@@ -114,6 +114,8 @@ from apps.sales.constants import (
     PAYMENT,
     VENDOR,
     WORK_IN_PROGRESS_STATUSES,
+    TAXES,
+    ESCROW_HOLD,
 )
 from apps.sales.line_item_funcs import (
     down_context,
@@ -1672,7 +1674,15 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
     from apps.sales.models import LineItemSim
 
     lines = [
-        LineItemSim(amount=product.base_price, priority=0, type=BASE_PRICE, id=0),
+        LineItemSim(
+            amount=product.base_price,
+            priority=0,
+            type=BASE_PRICE,
+            category=ESCROW_HOLD,
+            id=0,
+            destination_user_id=-1,
+            destination_account=ESCROW,
+        ),
     ]
     plan = product.user.service_plan
     if product.table_product:
@@ -1684,6 +1694,9 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
                     priority=PRIORITY_MAP[TABLE_SERVICE],
                     amount=settings.TABLE_STATIC_FEE,
                     type=TABLE_SERVICE,
+                    category=TABLE_HANDLING,
+                    destination_account=FUND,
+                    destination_user_id=None,
                     cascade_percentage=product.cascade_fees,
                     cascade_amount=False,
                     back_into_percentage=not product.cascade_fees,
@@ -1693,6 +1706,9 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
                     percentage=settings.TABLE_TAX,
                     priority=PRIORITY_MAP[TAX],
                     type=TAX,
+                    category=TAXES,
+                    destination_user_id=None,
+                    destination_account=MONEY_HOLE_STAGE,
                     cascade_percentage=product.cascade_fees,
                     cascade_amount=product.cascade_fees,
                     back_into_percentage=True,
@@ -1713,6 +1729,9 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
                 amount=plan.shield_static_price,
                 percentage=plan.shield_percentage_price,
                 priority=PRIORITY_MAP[SHIELD],
+                category=SHIELD_FEE,
+                destination_user_id=None,
+                destination_account=FUND,
                 type=SHIELD,
                 cascade_percentage=cascade_fees,
                 cascade_amount=cascade_fees,
@@ -1723,10 +1742,13 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
         lines.append(
             LineItemSim(
                 id=250,
+                type=DELIVERABLE_TRACKING,
                 amount=plan.per_deliverable_price,
-                type=PRIORITY_MAP[DELIVERABLE_TRACKING],
+                priority=PRIORITY_MAP[DELIVERABLE_TRACKING],
                 cascade_amount=product.cascade_fees,
-                priority=250,
+                category=SUBSCRIPTION_DUES,
+                destination_user_id=None,
+                destination_account=FUND,
             )
         )
     return lines
