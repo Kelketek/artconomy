@@ -558,6 +558,15 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable.save()
         assert total == deliverable.invoice.total()
 
+    def test_stable_lines(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money(10, "USD"))
+        total = deliverable.invoice.total()
+        lines = set(deliverable.invoice.line_items.all())
+        assert deliverable.invoice.total() == total
+        deliverable.save()
+        assert lines == set(deliverable.invoice.line_items.all())
+        assert total == deliverable.invoice.total()
+
 
 class TestCreditCardToken(EnsurePlansMixin, TestCase):
     def test_string(self):
