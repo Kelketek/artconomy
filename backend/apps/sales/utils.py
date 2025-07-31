@@ -2043,4 +2043,8 @@ def pricing_spec():
             str(settings.INTERNATIONAL_CONVERSION_PERCENTAGE)
         ),
         "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
+        "stripe_charge_static": settings.STRIPE_CHARGE_STATIC,
+        "stripe_blended_rate_percentage": settings.STRIPE_BLENDED_RATE_PERCENTAGE,
+        "stripe_payout_percentage": settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE,
+        "stripe_active_account_monthly_fee": settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE,
     }

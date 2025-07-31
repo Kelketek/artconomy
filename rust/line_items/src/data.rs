@@ -441,6 +441,21 @@ pub struct Pricing {
     /// Used in comparisons.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub preferred_plan: String,
+    #[cfg_attr(feature = "python", pyo3(item))]
+    /// The static amount that is part of Stripe's charge fee.
+    pub stripe_charge_static: String,
+    /// A blended percentage rate that we expect Stripe to collect. It can vary based on various
+    /// circumstances, such as which card the country is from. This represents our historical
+    /// average.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub stripe_blended_rate_percentage: String,
+    /// The percentage additional that Stripe collects on top for international conversion of
+    /// money they transfer overseas.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub stripe_payout_cross_border_percentage: String,
+    /// The amount of money stripe collects for each active account each month.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub stripe_active_account_monthly_fee: String,
 }
 
 /// Only used in tests, so this should not have an opportunity to roll over.
