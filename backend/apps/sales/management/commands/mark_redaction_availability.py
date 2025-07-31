@@ -12,7 +12,7 @@ from apps.sales.models import Deliverable
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
-        base_qs = Deliverable.objects.filter(redacted_on=None).exclude(
+        base_qs = Deliverable.objects.filter(redacted_on=None).filter(
             redact_available_on__isnull=True,
         )
         base_qs.filter(status=CANCELLED).update(redact_available_on=timezone.now())
