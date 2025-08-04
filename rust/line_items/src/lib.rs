@@ -608,6 +608,7 @@ pub mod funcs {
             pricing: lines_context.pricing,
             allow_soft_failure: lines_context.allow_soft_failure,
             user_id: lines_context.user_id,
+            quantization: lines_context.quantization,
         })
     }
 
@@ -687,6 +688,17 @@ pub mod funcs {
                 destination_user_id: Some(lines_context.user_id),
             });
         }
+        let mut calc_lines = lines.clone();
+        calc_lines.extend(lines_context.extra_lines.clone());
+        let total = match reckon_lines(calc_lines, lines_context.quantization) {
+            Ok(some) => some,
+            Err(err) => return Err(TabulationError::from(err.to_string())),
+        };
+        let escrow_enabled = if total <= quantized_zero(lines_context.quantization) {
+            false
+        } else {
+            lines_context.escrow_enabled
+        };
         if lines_context.table_product {
             lines.push(LineItem {
                 id: -3,
@@ -718,7 +730,7 @@ pub mod funcs {
                 destination_account: Account::MONEY_HOLE_STAGE,
                 destination_user_id: None,
             })
-        } else if lines_context.escrow_enabled {
+        } else if escrow_enabled {
             let mut percentage_price = match Decimal::from_str_exact(&plan.shield_percentage_price)
             {
                 Ok(result) => result,

@@ -376,6 +376,9 @@ pub struct DeliverableLinesContext {
     /// plan_name is unset or pricing isn't set.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub allow_soft_failure: bool,
+    /// The level of after-decimal precision desired in calculations.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub quantization: u32,
 }
 
 /// DeliverableLinesContext. Used as the arguments for the deliverable_line_items function.

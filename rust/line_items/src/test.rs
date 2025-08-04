@@ -875,6 +875,10 @@ mod line_item_preview_tests {
             table_percentage: s!("10"),
             table_static: s!("5.00"),
             table_tax: s!("8.25"),
+            stripe_charge_static: s!("0.30"),
+            stripe_active_account_monthly_fee: s!("2.00"),
+            stripe_blended_rate_percentage: s!("3.30"),
+            stripe_payout_cross_border_percentage: s!("1"),
             international_conversion_percentage: s!("1"),
             preferred_plan: s!("Landscape"),
         }
@@ -894,6 +898,7 @@ mod line_item_preview_tests {
             extra_lines: vec![],
             allow_soft_failure: false,
             user_id: -1,
+            quantization: 2,
         });
         let expected = vec![
             LineItem {
@@ -932,6 +937,57 @@ mod line_item_preview_tests {
 
     #[test]
     #[timeout(100)]
+    fn test_basic_zero_line_items() {
+        let lines_result = deliverable_lines(DeliverableLinesContext {
+            escrow_enabled: true,
+            pricing: Some(gen_pricing()),
+            base_price: s!("0.00"),
+            cascade: true,
+            international: false,
+            plan_name: Some(s!("Basic")),
+            table_product: false,
+            extra_lines: vec![],
+            allow_soft_failure: false,
+            user_id: -1,
+            quantization: 2,
+        });
+        let expected = vec![
+            LineItem {
+                id: -1,
+                priority: 0,
+                kind: LineType::BASE_PRICE,
+                amount: s!("0.00"),
+                category: Category::ESCROW_HOLD,
+                frozen_value: None,
+                percentage: s!("0"),
+                description: s!(""),
+                cascade_amount: false,
+                cascade_percentage: false,
+                back_into_percentage: false,
+                destination_user_id: Some(-1),
+                destination_account: Account::ESCROW,
+            },
+            LineItem {
+                id: -6,
+                priority: 300,
+                kind: LineType::DELIVERABLE_TRACKING,
+                amount: s!("1.35"),
+                percentage: s!("0"),
+                back_into_percentage: false,
+                cascade_amount: true,
+                cascade_percentage: true,
+                description: s!(""),
+                category: Category::SUBSCRIPTION_DUES,
+                frozen_value: None,
+                destination_account: Account::FUND,
+                destination_user_id: None,
+            },
+        ];
+        assert_eq!(lines_result, Ok(expected));
+    }
+
+    #[test]
+    #[timeout(100)]
     fn test_skips_basic_if_in_extra() {
         let lines_result = deliverable_lines(DeliverableLinesContext {
             escrow_enabled: true,
@@ -958,6 +1014,7 @@ mod line_item_preview_tests {
             }],
             allow_soft_failure: false,
             user_id: -1,
+            quantization: 2,
         });
         let expected = vec![
             LineItem {
