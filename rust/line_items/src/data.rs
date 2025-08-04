@@ -539,3 +539,14 @@ macro_rules! s {
         String::from($str)
     };
 }
+
+/// Quick conversion macro that early returns a TabulationError upon failure.
+#[macro_export]
+macro_rules! dec_from_string {
+    ($str: expr) => {
+        match Decimal::from_str_exact(&$str) {
+            Ok(some) => some,
+            Err(err) => return Err(TabulationError::from(err.to_string()))
+        }
+    }
+}

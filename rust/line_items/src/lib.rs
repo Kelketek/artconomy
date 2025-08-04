@@ -39,7 +39,7 @@ pub mod funcs {
         Account, Category, DeliverableLinesContext, InvoiceLinesContext, LineType, Pricing,
     };
     use crate::data::{LineDecimalMap, LineItem, TabulationError};
-    use crate::s;
+    use crate::{dec_from_string, s};
     #[cfg(feature = "wasm")]
     use js_sys::JsString;
     #[cfg(feature = "python")]
@@ -144,7 +144,7 @@ pub mod funcs {
         current: (Decimal, Decimal, LineDecimalMap),
         quantization: u32,
         priority_set: Vec<LineItem>,
-    ) -> Result<(Decimal, Decimal, LineDecimalMap), Box<dyn Error>> {
+    ) -> Result<(Decimal, Decimal, LineDecimalMap), TabulationError> {
         /*
         Get the effect on the total of a priority set. First runs any percentage increase,
         then adds in the static amount. Calculates the difference of each separately to make
@@ -157,7 +157,7 @@ pub mod funcs {
         let zero = quantized_zero(quantization);
         let one = dec!(1);
         for line in priority_set.into_iter() {
-            let line_amount = Decimal::from_str_exact(&line.amount)?;
+            let line_amount = dec_from_string!(&line.amount);
             let mut cascaded_amount = quantized_zero(quantization);
             let mut added_amount = quantized_zero(quantization);
             let mut working_amount: Decimal;
@@ -166,7 +166,7 @@ pub mod funcs {
             } else {
                 added_amount += line_amount;
             }
-            let multiplier = dec!(0.01) * Decimal::from_str_exact(&line.percentage)?;
+            let multiplier = dec!(0.01) * dec_from_string!(line.percentage);
             if line.back_into_percentage {
                 let divisor = multiplier + one;
                 if line.cascade_percentage {
@@ -694,12 +694,19 @@ pub mod funcs {
             Ok(some) => some,
             Err(err) => return Err(TabulationError::from(err.to_string())),
         };
+        // Escrow is always enabled for table products, though we handle it a bit differently,
+        // since for table events we're actually willing to refund the full amount. That means
+        // we're not selling the escrow service in such cases-- we're selling the art. It also means
+        // we have to add a tax line, since selling art is taxable while selling payment services
+        // isn't.
         let escrow_enabled = if total <= quantized_zero(lines_context.quantization) {
             false
         } else {
-            lines_context.escrow_enabled
+            lines_context.escrow_enabled || lines_context.table_product
         };
         if lines_context.table_product {
+            // TODO: Table changes to numbers now that we're tabulating
+            // ours separately from the card charger's.
             lines.push(LineItem {
                 id: -3,
                 priority: 400,
@@ -727,22 +734,18 @@ pub mod funcs {
                 back_into_percentage: true,
                 amount: s!("0"),
                 frozen_value: None,
+                // TODO: Do these staging accounts actually help us or just make accounting
+                // more complicated? Ask the accountant. It may be especially useless for table
+                // cases.
                 destination_account: Account::MONEY_HOLE_STAGE,
                 destination_user_id: None,
             })
         } else if escrow_enabled {
-            let mut percentage_price = match Decimal::from_str_exact(&plan.shield_percentage_price)
-            {
-                Ok(result) => result,
-                Err(err) => return Err(TabulationError::from(err.to_string())),
-            };
+            let mut shield_percentage_price = dec_from_string!(&plan.shield_percentage_price);
             if lines_context.international {
                 let international_conversion_percentage =
-                    match Decimal::from_str_exact(&pricing.international_conversion_percentage) {
-                        Ok(result) => result,
-                        Err(err) => return Err(TabulationError::from(err.to_string())),
-                    };
-                percentage_price += international_conversion_percentage
+                    dec_from_string!(&pricing.international_conversion_percentage);
+                shield_percentage_price += international_conversion_percentage
             }
             lines.push(LineItem {
                 id: -5,
@@ -754,7 +757,7 @@ pub mod funcs {
                 cascade_amount: lines_context.cascade,
                 amount: plan.shield_static_price.clone(),
                 frozen_value: None,
-                percentage: percentage_price.to_string(),
+                percentage: shield_percentage_price.to_string(),
                 back_into_percentage: !lines_context.cascade,
                 destination_account: Account::FUND,
                 destination_user_id: None,
@@ -775,6 +778,58 @@ pub mod funcs {
                 destination_account: Account::FUND,
                 destination_user_id: None,
             })
+        }
+        // If any escrow/payment handling is done, we need to add the lines for upstream fees.
+        if escrow_enabled {
+            lines.push(LineItem {
+                id: -7,
+                priority: 350,
+                amount: pricing.stripe_charge_static,
+                percentage: pricing.stripe_blended_rate_percentage,
+                cascade_amount: lines_context.cascade,
+                cascade_percentage: lines_context.cascade,
+                kind: LineType::CARD_FEE,
+                destination_user_id: None,
+                destination_account: Account::FUND,
+                description: s!(""),
+                frozen_value: None,
+                category: Category::THIRD_PARTY_FEE,
+                back_into_percentage: false,
+            });
+            if lines_context.international {
+                lines.push(LineItem {
+                    id: -8,
+                    priority: 325,
+                    amount: s!("0"),
+                    percentage: pricing.stripe_payout_cross_border_percentage,
+                    category: Category::THIRD_PARTY_FEE,
+                    kind: LineType::CROSS_BORDER_TRANSFER_FEE,
+                    cascade_percentage: lines_context.cascade,
+                    cascade_amount: lines_context.cascade,
+                    back_into_percentage: false,
+                    destination_user_id: None,
+                    destination_account: Account::FUND,
+                    description: s!(""),
+                    frozen_value: None,
+                })
+            }
+            if !plan.connection_fee_waived {
+                lines.push(LineItem {
+                    id: -9,
+                    priority: 325,
+                    amount: pricing.stripe_active_account_monthly_fee,
+                    percentage: s!("0"),
+                    category: Category::THIRD_PARTY_FEE,
+                    kind: LineType::CONNECT_FEE,
+                    destination_user_id: None,
+                    destination_account: Account::FUND,
+                    cascade_percentage: lines_context.cascade,
+                    cascade_amount: lines_context.cascade,
+                    back_into_percentage: false,
+                    description: s!(""),
+                    frozen_value: None,
+                })
+            }
         }
         for entry in lines_context.extra_lines.drain(..) {
             lines.push(entry)
