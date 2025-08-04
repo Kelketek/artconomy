@@ -10,7 +10,7 @@ aiofile==3.9.0
     # via -r requirements.in
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.12.13
+aiohttp==3.12.15
     # via
     #   discord-py-interactions
     #   geoip2
@@ -18,11 +18,11 @@ aiosignal==1.4.0
     # via aiohttp
 amqp==5.3.1
     # via kombu
-anyio==4.9.0
+anyio==4.10.0
     # via
     #   httpx
     #   watchfiles
-asgiref==3.9.0
+asgiref==3.9.1
     # via
     #   channels
     #   channels-redis
@@ -38,7 +38,7 @@ attrs==25.3.0
     #   discord-py-interactions
     #   service-identity
     #   twisted
-authlib==1.6.0
+authlib==1.6.1
     # via -r requirements.in
 autobahn==24.4.2
     # via daphne
@@ -58,18 +58,18 @@ celery[redis]==5.5.3
     # via
     #   -r requirements.in
     #   django-celery-email
-certifi==2025.6.15
+certifi==2025.8.3
     # via
     #   httpcore
     #   httpx
     #   requests
 cffi==1.17.1
     # via cryptography
-channels[daphne]==4.2.2
+channels[daphne]==4.3.1
     # via
     #   -r requirements.in
     #   channels-redis
-channels-redis==4.2.1
+channels-redis==4.3.0
     # via -r requirements.in
 charset-normalizer==3.4.2
     # via
@@ -90,7 +90,7 @@ click-repl==0.3.0
     # via celery
 constantly==23.10.4
     # via twisted
-coverage==7.9.2
+coverage==7.10.2
     # via -r requirements.in
 croniter==6.0.0
     # via discord-py-interactions
@@ -160,7 +160,7 @@ django-markdown2==0.3.1
     # via -r requirements.in
 django-money==3.5.4
     # via -r requirements.in
-django-otp==1.6.0
+django-otp==1.6.1
     # via -r requirements.in
 django-pgactivity==1.7.1
     # via django-pglock
@@ -208,9 +208,9 @@ executing==2.2.0
     # via stack-data
 factory-boy==3.3.3
     # via -r requirements.in
-faker==37.4.0
+faker==37.5.3
     # via factory-boy
-freezegun==1.5.2
+freezegun==1.5.4
     # via -r requirements.in
 frozenlist==1.7.0
     # via
@@ -222,7 +222,7 @@ geoip2==5.1.0
     # via -r requirements.in
 gitdb==4.0.12
     # via gitpython
-gitpython==3.1.44
+gitpython==3.1.45
     # via -r requirements.in
 h11==0.16.0
     # via
@@ -273,15 +273,15 @@ lxml==6.0.0
     #   svglib
 markdown==3.8.2
     # via -r requirements.in
-markdown2==2.5.3
+markdown2==2.5.4
     # via django-markdown2
 markupsafe==3.0.2
     # via werkzeug
 matplotlib-inline==0.1.7
     # via ipython
-maturin==1.9.0
+maturin==1.9.3
     # via -r requirements.in
-maxminddb==2.7.0
+maxminddb==2.8.2
     # via geoip2
 more-itertools==10.7.0
     # via cssutils
@@ -291,13 +291,13 @@ multidict==6.6.3
     # via
     #   aiohttp
     #   yarl
-numpy==2.3.1
+numpy==2.3.2
     # via pandas
 packaging==25.0
     # via
     #   django-csp
     #   kombu
-pandas==2.3.0
+pandas==2.3.1
     # via -r requirements.in
 parso==0.8.4
     # via jedi
@@ -373,7 +373,7 @@ redis==5.2.1
     #   channels-redis
     #   django-redis
     #   kombu
-reportlab==4.4.2
+reportlab==4.4.3
     # via
     #   -r requirements.in
     #   svglib
@@ -384,7 +384,7 @@ requests==2.32.4
     #   geoip2
     #   premailer
     #   stripe
-ruff==0.12.2
+ruff==0.12.7
     # via -r requirements.in
 sendgrid==6.12.4
     # via django-sendgrid-v5
@@ -409,7 +409,7 @@ sqlparse==0.5.3
     # via django
 stack-data==0.6.3
     # via ipython
-stripe==12.3.0
+stripe==12.4.0
     # via -r requirements.in
 svglib==1.5.1
     # via -r requirements.in
