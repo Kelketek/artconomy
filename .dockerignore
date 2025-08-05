@@ -1,1 +1,6 @@
+media/art/
+media/avatars/**
+ansible/
 node_modules/
+.git/
+.idea/
