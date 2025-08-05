@@ -749,7 +749,7 @@ pub mod funcs {
             }
             lines.push(LineItem {
                 id: -5,
-                priority: 300,
+                priority: 330,
                 kind: LineType::SHIELD,
                 description: s!(""),
                 category: Category::SHIELD_FEE,

@@ -122,6 +122,7 @@ export const deliverableLines = ({
     plan_name: planName,
     pricing,
     user_id: -1,
+    quantization: 2,
     allow_soft_failure: true,
   }).Ok
 }

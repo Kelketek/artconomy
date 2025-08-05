@@ -1094,6 +1094,7 @@ class MoneyToString(serializers.FloatField):
     def to_representation(self, value):
         if isinstance(value, Money):
             value = value.amount
+        print("Value is", repr(value))
         return str(Decimal(value).quantize(Decimal("0.00")))
 
     def to_internal_value(self, data):

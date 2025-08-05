@@ -247,6 +247,10 @@ const MODIFIER_TYPE_SETS = new Set([
   LineType.PROCESSING,
   LineType.DELIVERABLE_TRACKING,
   LineType.RECONCILIATION,
+  LineType.CARD_FEE,
+  LineType.CROSS_BORDER_TRANSFER_FEE,
+  LineType.PAYOUT_FEE,
+  LineType.CONNECT_FEE,
 ] as LineTypeValue[])
 
 const moddedItems = computed(() => {
