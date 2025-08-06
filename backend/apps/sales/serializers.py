@@ -861,6 +861,7 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "priority",
+            "cascade_under",
             "percentage",
             "amount",
             "frozen_value",
@@ -888,6 +889,7 @@ class LineItemSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "priority",
+            "cascade_under",
             "percentage",
             "amount",
             "frozen_value",
@@ -904,6 +906,7 @@ class LineItemSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "priority",
+            "cascade_under",
             "destination_account",
             "destination_user_id",
             "targets",

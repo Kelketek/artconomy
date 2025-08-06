@@ -52,12 +52,14 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.00"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 percentage: s!("10"),
                 priority: 1,
+                cascade_under: 1,
                 cascade_percentage: true,
                 id: 2,
                 ..Default::default()
@@ -77,12 +79,14 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.00"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 percentage: s!("10.00"),
                 priority: 1,
+                cascade_under: 1,
                 cascade_percentage: true,
                 back_into_percentage: true,
                 id: 2,
@@ -107,6 +111,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.00"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
@@ -114,6 +119,7 @@ mod interface_tests {
                 percentage: s!("10"),
                 amount: s!("0.25"),
                 priority: 1,
+                cascade_under: 0,
                 id: 2,
                 ..Default::default()
             },
@@ -136,6 +142,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.00"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
@@ -145,6 +152,7 @@ mod interface_tests {
                 cascade_percentage: true,
                 cascade_amount: true,
                 priority: 1,
+                cascade_under: 1,
                 id: 2,
                 ..Default::default()
             },
@@ -174,6 +182,7 @@ mod interface_tests {
                 percentage: s!("10"),
                 amount: s!("0.25"),
                 priority: 1,
+                cascade_under: 1,
                 id: 2,
                 cascade_amount: false,
                 cascade_percentage: true,
@@ -198,18 +207,21 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.00"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 percentage: s!("10"),
                 priority: 1,
+                cascade_under: 1,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
                 percentage: s!("5"),
                 priority: 1,
+                cascade_under: 1,
                 id: 3,
                 ..Default::default()
             },
@@ -233,12 +245,14 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.00"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 percentage: s!("10"),
                 priority: 1,
+                cascade_under: 1,
                 cascade_percentage: true,
                 id: 2,
                 ..Default::default()
@@ -246,6 +260,7 @@ mod interface_tests {
             LineItem {
                 percentage: s!("5"),
                 priority: 1,
+                cascade_under: 1,
                 cascade_percentage: true,
                 id: 3,
                 ..Default::default()
@@ -270,18 +285,21 @@ mod interface_tests {
             LineItem {
                 amount: s!("2"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("8"),
                 priority: 0,
+                cascade_under: 0,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
                 percentage: s!("20"),
                 priority: 1,
+                cascade_under: 1,
                 cascade_percentage: true,
                 id: 3,
                 ..Default::default()
@@ -289,6 +307,7 @@ mod interface_tests {
             LineItem {
                 percentage: s!("10"),
                 priority: 2,
+                cascade_under: 2,
                 cascade_percentage: true,
                 id: 4,
                 ..Default::default()
@@ -319,12 +338,14 @@ mod interface_tests {
             LineItem {
                 amount: s!("100"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("5.00"),
                 priority: 100,
+                cascade_under: 100,
                 id: 2,
                 ..Default::default()
             },
@@ -332,6 +353,7 @@ mod interface_tests {
                 amount: s!("5.00"),
                 percentage: s!("10"),
                 priority: 300,
+                cascade_under: 300,
                 cascade_percentage: true,
                 id: 3,
                 ..Default::default()
@@ -340,6 +362,7 @@ mod interface_tests {
                 percentage: s!("8.25"),
                 cascade_percentage: true,
                 priority: 600,
+                cascade_under: 600,
                 id: 4,
                 ..Default::default()
             },
@@ -364,12 +387,14 @@ mod interface_tests {
             LineItem {
                 amount: s!("20"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("10.00"),
                 priority: 100,
+                cascade_under: 100,
                 id: 2,
                 ..Default::default()
             },
@@ -378,6 +403,7 @@ mod interface_tests {
                 percentage: s!("10"),
                 cascade_percentage: true,
                 priority: 300,
+                cascade_under: 300,
                 id: 3,
                 ..Default::default()
             },
@@ -385,6 +411,7 @@ mod interface_tests {
                 percentage: s!("8.25"),
                 cascade_percentage: true,
                 priority: 600,
+                cascade_under: 600,
                 id: 4,
                 ..Default::default()
             },
@@ -409,12 +436,14 @@ mod interface_tests {
             LineItem {
                 amount: s!("20"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("5"),
                 priority: 100,
+                cascade_under: 100,
                 id: 2,
                 ..Default::default()
             },
@@ -423,6 +452,7 @@ mod interface_tests {
                 percentage: s!("10"),
                 cascade_percentage: true,
                 priority: 300,
+                cascade_under: 300,
                 id: 3,
                 ..Default::default()
             },
@@ -430,6 +460,7 @@ mod interface_tests {
                 percentage: s!("8.25"),
                 cascade_percentage: true,
                 priority: 600,
+                cascade_under: 600,
                 id: 4,
                 ..Default::default()
             },
@@ -455,11 +486,13 @@ mod interface_tests {
                 id: 1,
                 amount: s!("0.00"),
                 priority: 0,
+                cascade_under: 0,
                 ..Default::default()
             },
             LineItem {
                 id: 2,
                 priority: 100,
+                cascade_under: 100,
                 amount: s!("8.00"),
                 cascade_percentage: true,
                 cascade_amount: true,
@@ -485,6 +518,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("19.56"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
@@ -494,18 +528,21 @@ mod interface_tests {
                 cascade_percentage: true,
                 cascade_amount: true,
                 priority: 300,
+                cascade_under: 300,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("520.36"),
                 priority: 100,
+                cascade_under: 100,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("0.00"),
                 priority: 100,
+                cascade_under: 100,
                 id: 4,
                 ..Default::default()
             },
@@ -530,30 +567,35 @@ mod interface_tests {
             LineItem {
                 amount: s!("0.01"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("0.01"),
                 priority: 100,
+                cascade_under: 100,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("0.01"),
                 priority: 100,
+                cascade_under: 100,
                 id: 3,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("-5.00"),
                 priority: 100,
+                cascade_under: 100,
                 id: 4,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("10.00"),
                 priority: 100,
+                cascade_under: 100,
                 id: 5,
                 ..Default::default()
             },
@@ -563,6 +605,7 @@ mod interface_tests {
                 cascade_percentage: true,
                 cascade_amount: true,
                 priority: 300,
+                cascade_under: 300,
                 id: 6,
                 ..Default::default()
             },
@@ -589,18 +632,21 @@ mod interface_tests {
             LineItem {
                 amount: s!("1"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("5"),
                 priority: 1,
+                cascade_under: 1,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("4"),
                 priority: 2,
+                cascade_under: 2,
                 id: 3,
                 ..Default::default()
             },
@@ -615,18 +661,21 @@ mod interface_tests {
             LineItem {
                 amount: s!("5"),
                 priority: 0,
+                cascade_under: 0,
                 id: 1,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("1"),
                 priority: 1,
+                cascade_under: 1,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
                 amount: s!("4"),
                 priority: 1,
+                cascade_under: 1,
                 id: 3,
                 ..Default::default()
             },
@@ -634,6 +683,7 @@ mod interface_tests {
                 percentage: s!("5"),
                 back_into_percentage: true,
                 priority: 100,
+                cascade_under: 100,
                 id: 4,
                 ..Default::default()
             },
@@ -654,6 +704,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("25.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 1,
                 ..Default::default()
@@ -661,6 +712,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("25.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 2,
                 ..Default::default()
@@ -668,6 +720,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("35.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 3,
                 ..Default::default()
@@ -675,6 +728,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("55.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 4,
                 ..Default::default()
@@ -682,6 +736,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 5,
                 ..Default::default()
@@ -689,6 +744,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("5.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 6,
                 ..Default::default()
@@ -696,6 +752,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("30.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 7,
                 ..Default::default()
@@ -703,6 +760,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("55.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 8,
                 ..Default::default()
@@ -710,6 +768,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("25.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 9,
                 ..Default::default()
@@ -717,6 +776,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("5.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 10,
                 ..Default::default()
@@ -724,6 +784,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("6.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 11,
                 ..Default::default()
@@ -731,6 +792,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("25.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 12,
                 ..Default::default()
@@ -738,6 +800,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("6.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 13,
                 ..Default::default()
@@ -745,6 +808,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("3.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 14,
                 ..Default::default()
@@ -752,6 +816,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("5.00"),
                 priority: 0,
+                cascade_under: 0,
                 cascade_amount: false,
                 id: 15,
                 ..Default::default()
@@ -759,6 +824,7 @@ mod interface_tests {
             LineItem {
                 amount: s!("10.06"),
                 priority: 1,
+                cascade_under: 1,
                 cascade_amount: true,
                 id: 16,
                 ..Default::default()
@@ -796,6 +862,7 @@ mod interface_tests {
             LineItem {
                 id: 21,
                 priority: 300,
+                cascade_under: 300,
                 amount: s!("0.50"),
                 percentage: s!("4"),
                 cascade_percentage: true,
@@ -806,6 +873,7 @@ mod interface_tests {
             LineItem {
                 id: 22,
                 priority: 300,
+                cascade_under: 300,
                 percentage: s!("4"),
                 amount: s!("0.50"),
                 cascade_percentage: true,
@@ -904,6 +972,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("25.00"),
                 category: Category::ESCROW_HOLD,
@@ -919,6 +988,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -5,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::SHIELD,
                 cascade_percentage: true,
                 cascade_amount: true,
@@ -955,6 +1025,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("0.00"),
                 category: Category::ESCROW_HOLD,
@@ -970,6 +1041,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -6,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::DELIVERABLE_TRACKING,
                 amount: s!("1.35"),
                 percentage: s!("0"),
@@ -1000,6 +1072,7 @@ mod line_item_preview_tests {
             extra_lines: vec![LineItem {
                 id: 5,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("8.50"),
                 category: Category::ESCROW_HOLD,
@@ -1020,6 +1093,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -5,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::SHIELD,
                 cascade_percentage: true,
                 cascade_amount: true,
@@ -1035,6 +1109,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: 5,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("8.50"),
                 category: Category::ESCROW_HOLD,
@@ -1070,6 +1145,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("25.00"),
                 category: Category::ESCROW_HOLD,
@@ -1085,6 +1161,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -5,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::SHIELD,
                 cascade_percentage: true,
                 cascade_amount: true,
@@ -1122,6 +1199,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("10.00"),
                 frozen_value: None,
@@ -1137,6 +1215,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -5,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::SHIELD,
                 cascade_percentage: true,
                 cascade_amount: true,
@@ -1152,6 +1231,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -2,
                 priority: 100,
+                cascade_under: 100,
                 kind: 1,
                 amount: s!("15.00"),
                 frozen_value: None,
@@ -1189,6 +1269,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("10.00"),
                 frozen_value: None,
@@ -1204,6 +1285,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -5,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::SHIELD,
                 category: Category::SHIELD_FEE,
                 cascade_percentage: true,
@@ -1219,6 +1301,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -2,
                 priority: 100,
+                cascade_under: 100,
                 kind: LineType::ADD_ON,
                 amount: s!("15.00"),
                 category: Category::ESCROW_HOLD,
@@ -1257,6 +1340,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 400,
                 kind: LineType::BASE_PRICE,
                 category: Category::ESCROW_HOLD,
                 amount: s!("10.00"),
@@ -1272,6 +1356,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -3,
                 priority: 400,
+                cascade_under: 400,
                 kind: LineType::TABLE_SERVICE,
                 cascade_percentage: true,
                 cascade_amount: false,
@@ -1287,6 +1372,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -4,
                 priority: 700,
+                cascade_under: 700,
                 kind: LineType::TAX,
                 cascade_amount: true,
                 cascade_percentage: true,
@@ -1302,6 +1388,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -2,
                 priority: 100,
+                cascade_under: 100,
                 kind: 1,
                 amount: s!("15.00"),
                 frozen_value: None,
@@ -1337,6 +1424,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("25.00"),
                 frozen_value: None,
@@ -1352,6 +1440,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -6,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::DELIVERABLE_TRACKING,
                 amount: s!("1.35"),
                 percentage: s!("0"),
@@ -1389,6 +1478,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 amount: s!("10.00"),
                 category: Category::ESCROW_HOLD,
@@ -1404,6 +1494,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -6,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::DELIVERABLE_TRACKING,
                 category: Category::SUBSCRIPTION_DUES,
                 amount: s!("1.35"),
@@ -1419,6 +1510,7 @@ mod line_item_preview_tests {
             LineItem {
                 id: -2,
                 priority: 100,
+                cascade_under: 100,
                 kind: LineType::ADD_ON,
                 amount: s!("15.00"),
                 percentage: s!("0"),

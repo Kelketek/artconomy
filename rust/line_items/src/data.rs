@@ -225,11 +225,16 @@ pub struct LineItem {
     /// All line items must have a unique ID, or else they will be clobbered.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub id: i32,
-    /// All line items have a priority. This is used for determining which line items this line
-    /// item's value effects. For instance, high priority percentages are calculated based on the
-    /// value of lower-priority lines.
+    /// All line items have a priority. This is used for determining atop which this line item's
+    /// value is calculated. So if the percentage is 5% and the lines at lower priority total to
+    /// 100, this line would be 5%, before any other modifiers applied by 'cascade_from'
     #[cfg_attr(feature = "python", pyo3(item))]
     pub priority: i16,
+    /// Any line whose priority is lower than this value will be taken from if cascading is
+    /// enabled through either cascade_amount or cascade_percentage as applicable.
+    /// TODO: Add tests for: this field's use, cascade_under higher than priority
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub cascade_under: i16,
     /// The category of line item this is, such as the base price, an add-on, or some fee.
     #[serde(rename = "type")]
     #[cfg_attr(feature = "python", pyo3(item))]
@@ -471,6 +476,7 @@ impl Default for LineItem {
             LineItem {
                 id: LINE_COUNTER,
                 priority: 0,
+                cascade_under: 0,
                 amount: String::from("0"),
                 kind: LineType::ADD_ON,
                 frozen_value: None,

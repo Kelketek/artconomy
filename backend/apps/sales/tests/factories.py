@@ -1,8 +1,10 @@
+import factory
 from short_stuff import gen_shortcode
 
 from apps.lib.tests.factories import AssetFactory
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.constants import ADD_ON, CARD, ESCROW, ESCROW_HOLD, SUCCESS
+from apps.sales.constants import ADD_ON, CARD, ESCROW, ESCROW_HOLD, SUCCESS, \
+    PRIORITY_MAP
 from apps.sales.models import (
     BankAccount,
     CreditCardToken,
@@ -159,6 +161,7 @@ class LineItemFactory(DjangoModelFactory):
     type = ADD_ON
     invoice = SubFactory(InvoiceFactory)
     priority = 1
+    cascade_under = factory.LazyAttribute(lambda x: x.priority)
     amount = Money("15.00", "USD")
     destination_user = None
     destination_account = ESCROW
@@ -210,6 +213,8 @@ def add_adjustment(deliverable, amount: Money):
         destination_account=ESCROW,
         amount=amount,
         type=ADD_ON,
+        priority=PRIORITY_MAP[ADD_ON],
+        cascade_under=PRIORITY_MAP[ADD_ON],
     )
 
 

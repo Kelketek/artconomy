@@ -192,7 +192,7 @@ pub mod funcs {
             if cascaded_amount != zero {
                 let mut line_values: LineDecimalMap = HashMap::new();
                 for key in subtotals.keys() {
-                    if key.priority < line.priority {
+                    if key.priority < line.cascade_under {
                         line_values.insert(
                             key.clone(),
                             *subtotals.get(key).ok_or(TabulationError::from(
@@ -584,6 +584,7 @@ pub mod funcs {
             extra_lines.push(LineItem {
                 id: -2,
                 priority: 100,
+                cascade_under: 100,
                 kind: LineType::ADD_ON,
                 category: Category::ESCROW_HOLD,
                 amount: value_string(&add_on_price, lines_context.quantization),
@@ -675,6 +676,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -1,
                 priority: 0,
+                cascade_under: 0,
                 kind: LineType::BASE_PRICE,
                 category: Category::ESCROW_HOLD,
                 frozen_value: None,
@@ -710,6 +712,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -3,
                 priority: 400,
+                cascade_under: 400,
                 kind: LineType::TABLE_SERVICE,
                 category: Category::TABLE_HANDLING,
                 cascade_percentage: lines_context.cascade,
@@ -725,6 +728,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -4,
                 priority: 700,
+                cascade_under: 700,
                 kind: LineType::TAX,
                 description: s!(""),
                 category: Category::TAXES,
@@ -750,6 +754,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -5,
                 priority: 330,
+                cascade_under:330,
                 kind: LineType::SHIELD,
                 description: s!(""),
                 category: Category::SHIELD_FEE,
@@ -766,6 +771,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -6,
                 priority: 300,
+                cascade_under: 300,
                 kind: LineType::DELIVERABLE_TRACKING,
                 description: s!(""),
                 category: Category::SUBSCRIPTION_DUES,
@@ -784,6 +790,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -7,
                 priority: 350,
+                cascade_under: 350,
                 amount: pricing.stripe_charge_static,
                 percentage: pricing.stripe_blended_rate_percentage,
                 cascade_amount: lines_context.cascade,
@@ -800,6 +807,7 @@ pub mod funcs {
                 lines.push(LineItem {
                     id: -8,
                     priority: 325,
+                    cascade_under: 325,
                     amount: s!("0"),
                     percentage: pricing.stripe_payout_cross_border_percentage,
                     category: Category::THIRD_PARTY_FEE,
@@ -817,6 +825,7 @@ pub mod funcs {
                 lines.push(LineItem {
                     id: -9,
                     priority: 325,
+                    cascade_under: 325,
                     amount: pricing.stripe_active_account_monthly_fee,
                     percentage: s!("0"),
                     category: Category::THIRD_PARTY_FEE,

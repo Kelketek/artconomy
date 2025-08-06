@@ -919,6 +919,7 @@ def idempotent_lines(instance: Deliverable):
                 "percentage": line["percentage"],
                 "amount": Money(line["amount"], settings.DEFAULT_CURRENCY),
                 "priority": line["priority"],
+                "cascade_under": line["cascade_under"],
                 "description": line["description"],
                 "cascade_amount": line["cascade_amount"],
                 "cascade_percentage": line["cascade_percentage"],
@@ -1392,6 +1393,7 @@ class LineItem(Model):
     # be run after lower numbers. If two items have the same priority, they will both be
     # run as if the other had not been run.
     priority = IntegerField(db_index=True)
+    cascade_under = IntegerField(db_index=True, null=True)
     category = IntegerField(choices=CATEGORIES, db_index=True)
     cascade_percentage = BooleanField(db_index=True, default=False)
     cascade_amount = BooleanField(db_index=True, default=False)
@@ -1452,6 +1454,7 @@ class LineItem(Model):
 class LineItemSim:
     id: int
     priority: int
+    cascade_under: int
     category: int
     destination_account: int
     destination_user_id: Optional[int]

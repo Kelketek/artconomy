@@ -110,6 +110,7 @@ from apps.sales.constants import (
     PAYMENT,
     VENDOR,
     WORK_IN_PROGRESS_STATUSES,
+    PRIORITY_MAP,
 )
 from apps.sales.line_item_funcs import (
     down_context,
@@ -302,6 +303,8 @@ def term_charge(deliverable: "Deliverable"):
                 destination_account=FUND,
                 category=SUBSCRIPTION_DUES,
                 type=DELIVERABLE_TRACKING,
+                priority=PRIORITY_MAP[DELIVERABLE_TRACKING],
+                cascade_under=PRIORITY_MAP[DELIVERABLE_TRACKING],
             )
             line.targets.add(ref_for_instance(deliverable))
     deliverable.term_billed = True
@@ -524,6 +527,8 @@ def initialize_tip_invoice(deliverable):
         invoice=invoice,
         destination_user=None,
         destination_account=FUND,
+        priority=PRIORITY_MAP[PROCESSING],
+        cascade_under=PRIORITY_MAP[PROCESSING],
     )
     amount = max(deliverable.invoice.total() * Decimal(".10"), settings.MINIMUM_TIP)
     line = LineItem.objects.create(
@@ -536,6 +541,8 @@ def initialize_tip_invoice(deliverable):
         invoice=invoice,
         destination_user=deliverable.order.seller,
         destination_account=HOLDINGS,
+        priority=PRIORITY_MAP[TIP],
+        cascade_under=PRIORITY_MAP[TIP],
     )
     line.targets.add(ref_for_instance(deliverable))
     deliverable.tip_invoice = invoice
@@ -1292,6 +1299,8 @@ def add_service_plan_line(invoice: "Invoice", service_plan: "ServicePlan"):
         defaults={
             "amount": amount,
             "category": SUBSCRIPTION_DUES,
+            "priority": PRIORITY_MAP[PREMIUM_SUBSCRIPTION],
+            "cascade_under": PRIORITY_MAP[PREMIUM_SUBSCRIPTION],
             "description": f"{service_plan.name} plan monthly dues",
         },
         destination_account=FUND,
