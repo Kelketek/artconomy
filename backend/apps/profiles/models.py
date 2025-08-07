@@ -92,7 +92,7 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator, RegexValidator, URLValidator
-from django.db import ProgrammingError, models
+from django.db import ProgrammingError, models, transaction
 from django.db.models import (
     CASCADE,
     PROTECT,
@@ -159,9 +159,10 @@ def default_plan():
     from apps.sales.models import ServicePlan
 
     try:
-        return ServicePlan.objects.filter(
-            name=settings.DEFAULT_SERVICE_PLAN_NAME
-        ).first()
+        with transaction.atomic():
+            return ServicePlan.objects.filter(
+                name=settings.DEFAULT_SERVICE_PLAN_NAME
+            ).first()
     except ProgrammingError:
         # During initialization, as Django is checking for common issues, it
         # instantiates a copy of the User model to verify that certain attributes are

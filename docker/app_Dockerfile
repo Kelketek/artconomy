@@ -33,8 +33,7 @@ RUN mkdir -p /home/app/.cargo/bin/
 RUN mv target/release/wasm-pack /home/app/.cargo/bin/
 WORKDIR /home/app/artconomy/
 RUN rm -rvf /root/wasm-pack
-ADD . .
-RUN chown -R app:app /home/app
+ADD --chown=app:app . ./
 WORKDIR /home/app/artconomy/rust/line_items
 RUN pip install maturin
 RUN maturin sdist
