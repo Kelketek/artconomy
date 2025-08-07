@@ -66,9 +66,15 @@ pub mod funcs {
     use wasm_bindgen::JsValue;
 
     /// Takes a list of line items, and builds them into lists of equal priority.
-    pub fn lines_by_priority(lines: Vec<LineItem>) -> Vec<Vec<LineItem>> {
+    pub fn lines_by_priority(lines: Vec<LineItem>) -> Result<Vec<Vec<LineItem>>, TabulationError> {
         let mut priority_sets: HashMap<i16, Vec<LineItem>> = HashMap::new();
         for line in lines.into_iter() {
+            if line.priority < line.cascade_under {
+                return Err(TabulationError::from(format!(
+                    "Line ID {} has higher cascade_under ({}) than priority ({}).",
+                    line.id, line.cascade_under, line.priority
+                )));
+            }
             let priority: i16 = line.priority;
             priority_sets.entry(priority).or_default().push(line);
         }
@@ -77,7 +83,7 @@ pub mod funcs {
             prioritized_lines.push(set);
         }
         prioritized_lines.sort_by(|entry_a, entry_b| entry_a[0].priority.cmp(&entry_b[0].priority));
-        prioritized_lines
+        Ok(prioritized_lines)
     }
 
     /// Return a quantized zero-value Money struct with a specific number of zeroes past the
@@ -111,24 +117,36 @@ pub mod funcs {
     fn distribute_reduction(
         total: Decimal,
         distributed_amount: Decimal,
+        cascade_under: i16,
         line_values: LineDecimalMap,
         quantization: u32,
     ) -> Result<LineDecimalMap, TabulationError> {
         let mut reductions = LineDecimalMap::new();
         let zero = quantized_zero(quantization);
-        for (line, original_value) in line_values.iter() {
+        let mut applicable_values = LineDecimalMap::new();
+        let mut proxy_total = total.clone();
+        for (key, value) in line_values {
+            if key.priority < cascade_under {
+                applicable_values.insert(key, value);
+            } else {
+                // Percentage allocations must be proportional to the applicable amount,
+                // so total must be reduced.
+                proxy_total -= value;
+            }
+        }
+        for (line, original_value) in applicable_values.iter() {
             if original_value < &zero {
                 continue;
             }
             let multiplier = if total == zero {
-                match line_values.len().to_i64() {
+                match applicable_values.len().to_i64() {
                     Some(denominator) => Ok(dec!(1) / Decimal::new(denominator, 0)),
                     None => Err(TabulationError::from(
                         "Way too many lines to distribute to!",
                     )),
                 }
             } else {
-                Ok(*original_value / total)
+                Ok(*original_value / proxy_total)
             };
             reductions.insert(line.clone(), distributed_amount * multiplier?);
         }
@@ -192,7 +210,7 @@ pub mod funcs {
             if cascaded_amount != zero {
                 let mut line_values: LineDecimalMap = HashMap::new();
                 for key in subtotals.keys() {
-                    if key.priority < line.cascade_under {
+                    if key.priority < line.priority {
                         line_values.insert(
                             key.clone(),
                             *subtotals.get(key).ok_or(TabulationError::from(
@@ -204,6 +222,7 @@ pub mod funcs {
                 let output = distribute_reduction(
                     current_total - discount,
                     cascaded_amount,
+                    line.cascade_under,
                     line_values,
                     quantization,
                 )?;
@@ -277,7 +296,7 @@ pub mod funcs {
         difference: Decimal,
         mut decimal_map: LineDecimalMap,
         quantization: u32,
-    ) -> Result<LineDecimalMap, Box<dyn Error>> {
+    ) -> Result<LineDecimalMap, TabulationError> {
         let zero = quantized_zero(quantization);
         let mut sorted_values: Vec<(LineItem, Decimal)> = decimal_map
             .iter()
@@ -303,10 +322,10 @@ pub mod funcs {
         sorted_values.sort_by(|a, b| cmp_to_key(redistribution_priority(difference > zero, a, b)));
         let mut current_values = sorted_values.clone();
         if current_values.is_empty() && remaining != zero {
-            return Err(Box::from(TabulationError::from(
+            return Err(TabulationError::from(
                 "No line items to distribute difference to. You may be missing a base price line \
                 item, which should be included even if the base price would be zero.",
-            )));
+            ));
         }
         while remaining != zero {
             if current_values.is_empty() {
@@ -342,7 +361,7 @@ pub mod funcs {
     fn normalized_lines(
         priority_sets: Vec<Vec<LineItem>>,
         quantization: u32,
-    ) -> Result<(Decimal, Decimal, LineDecimalMap), Box<dyn Error>> {
+    ) -> Result<(Decimal, Decimal, LineDecimalMap), TabulationError> {
         let zero = quantized_zero(quantization);
         let mut total = zero;
         let mut discount = zero;
@@ -367,8 +386,8 @@ pub mod funcs {
     pub fn get_totals(
         lines: Vec<LineItem>,
         quantization: u32,
-    ) -> Result<(Decimal, Decimal, LineDecimalMap), Box<dyn Error>> {
-        let priority_sets = lines_by_priority(lines);
+    ) -> Result<(Decimal, Decimal, LineDecimalMap), TabulationError> {
+        let priority_sets = lines_by_priority(lines)?;
         normalized_lines(priority_sets, quantization)
     }
 
@@ -754,7 +773,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -5,
                 priority: 330,
-                cascade_under:330,
+                cascade_under: 330,
                 kind: LineType::SHIELD,
                 description: s!(""),
                 category: Category::SHIELD_FEE,
@@ -899,7 +918,7 @@ pub mod funcs {
 
 #[cfg(test)]
 mod func_tests {
-    use crate::data::LineItem;
+    use crate::data::{LineItem, TabulationError};
     use crate::funcs::lines_by_priority;
     use crate::s;
 
@@ -943,10 +962,45 @@ mod func_tests {
                 ..Default::default()
             },
         ];
-        let priority_set = lines_by_priority(input.clone());
+        let priority_set = lines_by_priority(input.clone()).unwrap();
         assert_eq!(priority_set[0], vec![input[5].clone()]);
         assert_eq!(priority_set[1], vec![input[0].clone()]);
         assert_eq!(priority_set[2], vec![input[1].clone(), input[4].clone()]);
         assert_eq!(priority_set[3], vec![input[2].clone(), input[3].clone()]);
+    }
+
+    #[test]
+    fn test_sanity_check() {
+        let input = vec![
+            LineItem {
+                amount: s!("10.00"),
+                priority: 0,
+                cascade_under: 0,
+                id: 1,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("5.00"),
+                priority: 100,
+                cascade_under: 100,
+                id: 2,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("2.00"),
+                priority: 200,
+                cascade_under: 300,
+                cascade_amount: true,
+                id: 3,
+                ..Default::default()
+            },
+        ];
+        let result = lines_by_priority(input);
+        assert_eq!(
+            result,
+            Err(TabulationError::from(
+                "Line ID 3 has higher cascade_under (300) than priority (200)."
+            )),
+        );
     }
 }

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod interface_tests {
-    use crate::data::LineItem;
+    use crate::data::{LineItem, TabulationError};
     use crate::funcs::{get_totals, reckon_lines};
     use crate::s;
     use ntest::timeout;
@@ -70,6 +70,113 @@ mod interface_tests {
         assert_eq!(discount, dec!(0.00));
         assert_eq!(map[&input[0]], dec!(9.00));
         assert_eq!(map[&input[1]], dec!(1.00));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_get_totals_percentage_cascade_selective() {
+        let input = vec![
+            LineItem {
+                amount: s!("10.00"),
+                priority: 0,
+                cascade_under: 0,
+                id: 1,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("5.00"),
+                priority: 100,
+                cascade_under: 100,
+                id: 2,
+                ..Default::default()
+            },
+            LineItem {
+                percentage: s!("10"),
+                priority: 200,
+                cascade_under: 100,
+                cascade_percentage: true,
+                id: 3,
+                ..Default::default()
+            },
+        ];
+        let (total, discount, map) = get_totals(input.clone(), 2).unwrap();
+        assert_eq!(total, dec!(15.00));
+        assert_eq!(discount, dec!(0.00));
+        assert_eq!(map[&input[0]], dec!(8.50));
+        assert_eq!(map[&input[1]], dec!(5.00));
+        assert_eq!(map[&input[2]], dec!(1.50));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_get_totals_amount_cascade_selective() {
+        let input = vec![
+            LineItem {
+                amount: s!("10.00"),
+                priority: 0,
+                cascade_under: 0,
+                id: 1,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("5.00"),
+                priority: 100,
+                cascade_under: 100,
+                id: 2,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("2.00"),
+                priority: 200,
+                cascade_under: 100,
+                cascade_amount: true,
+                id: 3,
+                ..Default::default()
+            },
+        ];
+        let (total, discount, map) = get_totals(input.clone(), 2).unwrap();
+        assert_eq!(total, dec!(15.00));
+        assert_eq!(discount, dec!(0.00));
+        assert_eq!(map[&input[0]], dec!(8.00));
+        assert_eq!(map[&input[1]], dec!(5.00));
+        assert_eq!(map[&input[2]], dec!(2.00));
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_get_totals_amount_cascade_none_below() {
+        let input = vec![
+            LineItem {
+                amount: s!("10.00"),
+                priority: 100,
+                cascade_under: 0,
+                id: 1,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("5.00"),
+                priority: 200,
+                cascade_under: 200,
+                id: 2,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("2.00"),
+                priority: 300,
+                cascade_under: 0,
+                cascade_amount: true,
+                id: 3,
+                ..Default::default()
+            },
+        ];
+        let result = get_totals(input, 2);
+        assert_eq!(
+            result,
+            Err(TabulationError::from(
+                "No line items to distribute difference to. You may be missing a base price \
+                line item, which should be included even if the base price would be zero."
+            ))
+        )
     }
 
     #[test]
@@ -162,6 +269,47 @@ mod interface_tests {
         assert_eq!(discount, dec!(0.00));
         assert_eq!(map[&input[0]], dec!(8.75));
         assert_eq!(map[&input[1]], dec!(1.25));
+        assert_eq!(
+            total,
+            map.values().fold(dec!(0), |current, item| current + *item)
+        );
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_get_totals_percentage_with_static_cascade_under() {
+        let input = vec![
+            LineItem {
+                amount: s!("10.00"),
+                priority: 0,
+                cascade_under: 0,
+                id: 1,
+                ..Default::default()
+            },
+            LineItem {
+                amount: s!("5.00"),
+                priority: 100,
+                cascade_under: 100,
+                id: 2,
+                ..Default::default()
+            },
+            LineItem {
+                percentage: s!("10"),
+                amount: s!("0.25"),
+                cascade_percentage: true,
+                cascade_amount: true,
+                priority: 200,
+                cascade_under: 100,
+                id: 3,
+                ..Default::default()
+            },
+        ];
+        let (total, discount, map) = get_totals(input.clone(), 2).unwrap();
+        assert_eq!(total, dec!(15.00));
+        assert_eq!(discount, dec!(0.00));
+        assert_eq!(map[&input[0]], dec!(8.25));
+        assert_eq!(map[&input[1]], dec!(5.00));
+        assert_eq!(map[&input[2]], dec!(1.75));
         assert_eq!(
             total,
             map.values().fold(dec!(0), |current, item| current + *item)

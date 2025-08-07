@@ -231,8 +231,7 @@ pub struct LineItem {
     #[cfg_attr(feature = "python", pyo3(item))]
     pub priority: i16,
     /// Any line whose priority is lower than this value will be taken from if cascading is
-    /// enabled through either cascade_amount or cascade_percentage as applicable.
-    /// TODO: Add tests for: this field's use, cascade_under higher than priority
+    /// enabled through cascade_amount and/or cascade_percentage as applicable.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub cascade_under: i16,
     /// The category of line item this is, such as the base price, an add-on, or some fee.
@@ -552,7 +551,7 @@ macro_rules! dec_from_string {
     ($str: expr) => {
         match Decimal::from_str_exact(&$str) {
             Ok(some) => some,
-            Err(err) => return Err(TabulationError::from(err.to_string()))
+            Err(err) => return Err(TabulationError::from(err.to_string())),
         }
-    }
+    };
 }
