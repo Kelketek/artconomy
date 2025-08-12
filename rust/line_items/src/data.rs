@@ -463,6 +463,12 @@ pub struct Pricing {
     /// The amount of money stripe collects for each active account each month.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub stripe_active_account_monthly_fee: String,
+    /// Static amount levied on payouts.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub stripe_payout_static: String,
+    /// Percentage amount levied on payouts.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub stripe_payout_percentage: String,
 }
 
 /// Only used in tests, so this should not have an opportunity to roll over.

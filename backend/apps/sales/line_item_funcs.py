@@ -134,6 +134,7 @@ def divide_amount(amount: Money, divisor: int) -> List[Money]:
 def digits(currency: Currency) -> int:
     return len(str(currency.sub_unit)) - 1
 
+
 def deliverable_lines(
     *,
     base_price: Money,
@@ -162,6 +163,6 @@ def deliverable_lines(
             "allow_soft_failure": False,
             "pricing": pricing_spec(),
             "plan_name": plan_name,
-            "quantization": digits(base_price.currency)
+            "quantization": digits(base_price.currency),
         }
     )

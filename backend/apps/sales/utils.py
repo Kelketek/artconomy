@@ -111,6 +111,7 @@ from apps.sales.constants import (
     VENDOR,
     WORK_IN_PROGRESS_STATUSES,
     PRIORITY_MAP,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.line_item_funcs import (
     down_context,
@@ -304,7 +305,7 @@ def term_charge(deliverable: "Deliverable"):
                 category=SUBSCRIPTION_DUES,
                 type=DELIVERABLE_TRACKING,
                 priority=PRIORITY_MAP[DELIVERABLE_TRACKING],
-                cascade_under=PRIORITY_MAP[DELIVERABLE_TRACKING],
+                cascade_under=CASCADE_UNDER_MAP[DELIVERABLE_TRACKING],
             )
             line.targets.add(ref_for_instance(deliverable))
     deliverable.term_billed = True
@@ -528,7 +529,7 @@ def initialize_tip_invoice(deliverable):
         destination_user=None,
         destination_account=FUND,
         priority=PRIORITY_MAP[PROCESSING],
-        cascade_under=PRIORITY_MAP[PROCESSING],
+        cascade_under=CASCADE_UNDER_MAP[PROCESSING],
     )
     amount = max(deliverable.invoice.total() * Decimal(".10"), settings.MINIMUM_TIP)
     line = LineItem.objects.create(
@@ -542,7 +543,7 @@ def initialize_tip_invoice(deliverable):
         destination_user=deliverable.order.seller,
         destination_account=HOLDINGS,
         priority=PRIORITY_MAP[TIP],
-        cascade_under=PRIORITY_MAP[TIP],
+        cascade_under=CASCADE_UNDER_MAP[TIP],
     )
     line.targets.add(ref_for_instance(deliverable))
     deliverable.tip_invoice = invoice
@@ -1300,7 +1301,7 @@ def add_service_plan_line(invoice: "Invoice", service_plan: "ServicePlan"):
             "amount": amount,
             "category": SUBSCRIPTION_DUES,
             "priority": PRIORITY_MAP[PREMIUM_SUBSCRIPTION],
-            "cascade_under": PRIORITY_MAP[PREMIUM_SUBSCRIPTION],
+            "cascade_under": CASCADE_UNDER_MAP[PREMIUM_SUBSCRIPTION],
             "description": f"{service_plan.name} plan monthly dues",
         },
         destination_account=FUND,
@@ -2054,8 +2055,12 @@ def pricing_spec():
         "preferred_plan": settings.PREFERRED_SERVICE_PLAN_NAME,
         "stripe_charge_static": str(settings.STRIPE_CHARGE_STATIC.amount),
         "stripe_blended_rate_percentage": str(settings.STRIPE_BLENDED_RATE_PERCENTAGE),
-        "stripe_payout_cross_border_percentage": str(settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE),
+        "stripe_payout_cross_border_percentage": str(
+            settings.STRIPE_PAYOUT_CROSS_BORDER_PERCENTAGE
+        ),
         "stripe_active_account_monthly_fee": str(
             settings.STRIPE_ACTIVE_ACCOUNT_MONTHLY_FEE.amount,
         ),
+        "stripe_payout_static": str(settings.STRIPE_PAYOUT_STATIC.amount),
+        "stripe_payout_percentage": str(settings.STRIPE_PAYOUT_PERCENTAGE),
     }

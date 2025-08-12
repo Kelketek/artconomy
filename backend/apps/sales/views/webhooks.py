@@ -32,6 +32,7 @@ from apps.sales.constants import (
     TOP_UP,
     CARD_MISC_FEES,
     PRIORITY_MAP,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -413,7 +414,7 @@ def paypal_invoice_paid(event_data: dict, invoice: Invoice):
                 "frozen_value": tip,
                 "category": TIP_SEND,
                 "priority": PRIORITY_MAP[TIP],
-                "cascade_under": PRIORITY_MAP[TIP],
+                "cascade_under": CASCADE_UNDER_MAP[TIP],
                 # Not used, but required by DB schema.
                 "destination_account": HOLDINGS,
                 "destination_user": invoice.issued_by,

@@ -731,11 +731,11 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -3,
                 priority: 400,
-                cascade_under: 400,
+                cascade_under: 101,
                 kind: LineType::TABLE_SERVICE,
                 category: Category::TABLE_HANDLING,
                 cascade_percentage: lines_context.cascade,
-                cascade_amount: false,
+                cascade_amount: true,
                 amount: pricing.table_static,
                 frozen_value: None,
                 description: s!(""),
@@ -747,7 +747,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -4,
                 priority: 700,
-                cascade_under: 700,
+                cascade_under: 101,
                 kind: LineType::TAX,
                 description: s!(""),
                 category: Category::TAXES,
@@ -773,7 +773,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -5,
                 priority: 330,
-                cascade_under: 330,
+                cascade_under: 101,
                 kind: LineType::SHIELD,
                 description: s!(""),
                 category: Category::SHIELD_FEE,
@@ -790,7 +790,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -6,
                 priority: 300,
-                cascade_under: 300,
+                cascade_under: 101,
                 kind: LineType::DELIVERABLE_TRACKING,
                 description: s!(""),
                 category: Category::SUBSCRIPTION_DUES,
@@ -809,7 +809,7 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -7,
                 priority: 350,
-                cascade_under: 350,
+                cascade_under: 101,
                 amount: pricing.stripe_charge_static,
                 percentage: pricing.stripe_blended_rate_percentage,
                 cascade_amount: lines_context.cascade,
@@ -822,11 +822,27 @@ pub mod funcs {
                 category: Category::THIRD_PARTY_FEE,
                 back_into_percentage: false,
             });
+            lines.push(LineItem {
+                id: -9,
+                priority: 325,
+                cascade_under: 101,
+                amount: pricing.stripe_payout_static,
+                percentage: pricing.stripe_payout_percentage,
+                cascade_amount: lines_context.cascade,
+                cascade_percentage: lines_context.cascade,
+                back_into_percentage: false,
+                frozen_value: None,
+                category: Category::THIRD_PARTY_FEE,
+                kind: LineType::PAYOUT_FEE,
+                destination_user_id: None,
+                destination_account: Account::FUND,
+                description: s!(""),
+            });
             if lines_context.international {
                 lines.push(LineItem {
                     id: -8,
                     priority: 325,
-                    cascade_under: 325,
+                    cascade_under: 101,
                     amount: s!("0"),
                     percentage: pricing.stripe_payout_cross_border_percentage,
                     category: Category::THIRD_PARTY_FEE,
@@ -842,9 +858,9 @@ pub mod funcs {
             }
             if !plan.connection_fee_waived {
                 lines.push(LineItem {
-                    id: -9,
+                    id: -10,
                     priority: 325,
-                    cascade_under: 325,
+                    cascade_under: 101,
                     amount: pricing.stripe_active_account_monthly_fee,
                     percentage: s!("0"),
                     category: Category::THIRD_PARTY_FEE,
@@ -914,13 +930,23 @@ pub mod funcs {
             Err(error) => Err(PyValueError::new_err(error.to_string())),
         }
     }
+
+    /// Sum values in a vector, returning the result.
+    pub fn sum(values: Vec<String>) -> Result<Decimal, TabulationError> {
+        let mut total = dec!(0);
+        for entry in values {
+            total += dec_from_string!(entry)
+        }
+        Ok(total)
+    }
 }
 
 #[cfg(test)]
 mod func_tests {
     use crate::data::{LineItem, TabulationError};
-    use crate::funcs::lines_by_priority;
+    use crate::funcs::{lines_by_priority, sum};
     use crate::s;
+    use rust_decimal_macros::dec;
 
     #[test]
     fn test_line_sort() {
@@ -1002,5 +1028,20 @@ mod func_tests {
                 "Line ID 3 has higher cascade_under (300) than priority (200)."
             )),
         );
+    }
+
+    #[test]
+    fn test_sum() {
+        let result = sum(vec![s!("5.00"), s!("10.00"), s!("2.56")]);
+        assert_eq!(result, Ok(dec!(17.56)))
+    }
+
+    #[test]
+    fn test_sum_invalid_string() {
+        let result = sum(vec![s!("5.00"), s!("bork"), s!("2.56")]);
+        assert_eq!(
+            result,
+            Err(TabulationError::from("Invalid decimal: unknown character"))
+        )
     }
 }

@@ -107,7 +107,7 @@ const TYPE_HINTS = {
     "price if shield is enabled by default, or if a discount has been applied.",
   1: "This is a manually added line item from the seller. If the description is not clear, please ask them for details.",
   2:
-    "This is a non-refundable fee for Artconomy Shield, including buyer/seller " +
+    "Fee for Artconomy Shield, including buyer/seller " +
     "protection and dispute resolution.",
   4: "How much money the artist is expected to receive after all processing fees have been deducted",
   5: "Cost to offset running convention table where you placed this order",

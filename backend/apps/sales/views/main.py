@@ -116,6 +116,7 @@ from apps.sales.constants import (
     TAXES,
     MONEY_HOLE_STAGE,
     PRIORITY_MAP,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.models import (
     CreditCardToken,
@@ -596,7 +597,7 @@ class PlaceOrder(CreateAPIView):
                 LineItem.objects.create(
                     type=ADD_ON,
                     priority=PRIORITY_MAP[ADD_ON],
-                    cascade_under=PRIORITY_MAP[ADD_ON],
+                    cascade_under=CASCADE_UNDER_MAP[ADD_ON],
                     category=ESCROW_HOLD,
                     invoice=deliverable.invoice,
                     description="Offer",
@@ -730,7 +731,7 @@ class OrderDeliverables(ListCreateAPIView):
             amount=facts["price"],
             category=ESCROW_HOLD,
             priority=PRIORITY_MAP[BASE_PRICE],
-            cascade_under=PRIORITY_MAP[BASE_PRICE],
+            cascade_under=CASCADE_UNDER_MAP[BASE_PRICE],
             destination_account=ESCROW,
             destination_user=order.seller,
         )
@@ -740,7 +741,7 @@ class OrderDeliverables(ListCreateAPIView):
                 type=ADD_ON,
                 amount=facts["adjustment"],
                 priority=PRIORITY_MAP[ADD_ON],
-                cascade_under=PRIORITY_MAP[ADD_ON],
+                cascade_under=CASCADE_UNDER_MAP[ADD_ON],
                 destination_account=ESCROW,
                 category=ESCROW_HOLD,
                 destination_user=order.seller,
@@ -1173,7 +1174,7 @@ class InvoiceLineItems(ListCreateAPIView):
             destination_account=FUND,
             category=DEFAULT_TYPE_TO_CATEGORY_MAP[serializer.validated_data["type"]],
             priority=PRIORITY_MAP[serializer.validated_data["type"]],
-            cascade_under=PRIORITY_MAP[serializer.validated_data["type"]],
+            cascade_under=CASCADE_UNDER_MAP[serializer.validated_data["type"]],
         )
 
 
@@ -1272,8 +1273,8 @@ class DeliverableLineItems(ListCreateAPIView):
                 destination_account=destination_account,
                 invoice=deliverable.invoice,
                 category=DEFAULT_TYPE_TO_CATEGORY_MAP[item_type],
-                priority=PRIORITY_MAP[item_type],
-                cascade_under=PRIORITY_MAP[item_type],
+                priority=CASCADE_UNDER_MAP[item_type],
+                cascade_under=CASCADE_UNDER_MAP[item_type],
             )
             line.annotate(deliverable)
             deliverable.save()
@@ -3385,7 +3386,7 @@ class CreateVendorInvoice(GenericAPIView):
             category=VENDOR_PAYMENT,
             type=BASE_PRICE,
             priority=PRIORITY_MAP[BASE_PRICE],
-            cascade_under=PRIORITY_MAP[BASE_PRICE],
+            cascade_under=CASCADE_UNDER_MAP[BASE_PRICE],
             amount=Money("0.00", settings.DEFAULT_CURRENCY),
         )
         return Response(
@@ -3421,7 +3422,7 @@ class CreateAnonymousInvoice(GenericAPIView):
             category=TAXES,
             type=TAX,
             priority=PRIORITY_MAP[TAX],
-            cascade_under=PRIORITY_MAP[TAX],
+            cascade_under=CASCADE_UNDER_MAP[TAX],
         )
         return Response(
             data=self.get_serializer(

@@ -62,6 +62,30 @@ PRIORITY_MAP = {
     RECONCILIATION: 1000,
 }
 
+# Nearly everything cascades to Add-ons and under for now, but that might change
+# in the future. Some things should never be set cascaded, but if they were
+# accidentally, they should cascade against anything user definable to avoid issues
+# where we don't have enough money to pay payment processors.
+CASCADE_UNDER_MAP = {
+    BASE_PRICE: 0,
+    ADD_ON: 100,
+    PREMIUM_SUBSCRIPTION: 101,
+    DELIVERABLE_TRACKING: 101,
+    OTHER_FEE: 101,
+    TIP: 101,
+    PAYOUT_FEE: 101,
+    CROSS_BORDER_TRANSFER_FEE: 101,
+    CONNECT_FEE: 101,
+    SHIELD: 101,
+    BONUS: 101,
+    TABLE_SERVICE: 101,
+    PROCESSING: 101,
+    CARD_FEE: 101,
+    EXTRA: 101,
+    TAX: 101,
+    RECONCILIATION: 101,
+}
+
 LINE_ITEM_TYPES = (
     (BASE_PRICE, "Base Price"),
     (ADD_ON, "Add on or Discount"),

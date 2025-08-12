@@ -48,14 +48,11 @@ from apps.profiles.permissions import BillTo, IssuedBy, ObjectControls
 from apps.sales.constants import (
     ACCOUNT_TYPES,
     BASE_PRICE,
-    BONUS,
     CARD_TYPES,
     CATEGORIES,
     COMPLETED,
     DELIVERABLE_STATUSES,
-    DELIVERABLE_TRACKING,
     DRAFT,
-    ESCROW,
     EXTRA,
     FAILURE,
     IN_PROGRESS,
@@ -63,37 +60,22 @@ from apps.sales.constants import (
     INVOICE_TYPES,
     LIMBO,
     LINE_ITEM_TYPES,
-    MONEY_HOLE_STAGE,
     NEW,
     OPEN,
     PAYMENT_PENDING,
     PRIORITY_MAP,
     PROCESSOR_CHOICES,
     QUEUED,
-    RESERVE,
     REVIEW,
     SALE,
     SHIELD,
     SUBSCRIPTION,
     SUCCESS,
-    TABLE_SERVICE,
-    TAX,
     TIP,
     TRANSACTION_STATUSES,
-    FUND,
     VISA,
     WAITING,
     WEIGHTED_STATUSES,
-    ESCROW_HOLD,
-    TABLE_HANDLING,
-    TAXES,
-    SHIELD_FEE,
-    SUBSCRIPTION_DUES,
-    CARD_FEE,
-    CROSS_BORDER_TRANSFER_FEE,
-    PAYOUT_FEE,
-    BANK_TRANSFER_FEES,
-    CONNECT_FEE,
     ADD_ON,
 )
 from apps.sales.line_item_funcs import reckon_lines, deliverable_lines
@@ -1445,8 +1427,6 @@ class LineItem(Model):
         return LineItemAnnotation.objects.get_or_create(target=ref, line_item=self)[0]
 
     def save(self, *args, **kwargs):
-        self.priority = PRIORITY_MAP[self.type]
-        assert self.category
         super().save(*args, **kwargs)
 
 

@@ -3,8 +3,15 @@ from short_stuff import gen_shortcode
 
 from apps.lib.tests.factories import AssetFactory
 from apps.profiles.tests.factories import UserFactory
-from apps.sales.constants import ADD_ON, CARD, ESCROW, ESCROW_HOLD, SUCCESS, \
-    PRIORITY_MAP
+from apps.sales.constants import (
+    ADD_ON,
+    CARD,
+    ESCROW,
+    ESCROW_HOLD,
+    SUCCESS,
+    PRIORITY_MAP,
+    CASCADE_UNDER_MAP,
+)
 from apps.sales.models import (
     BankAccount,
     CreditCardToken,
@@ -214,7 +221,7 @@ def add_adjustment(deliverable, amount: Money):
         amount=amount,
         type=ADD_ON,
         priority=PRIORITY_MAP[ADD_ON],
-        cascade_under=PRIORITY_MAP[ADD_ON],
+        cascade_under=CASCADE_UNDER_MAP[ADD_ON],
     )
 
 

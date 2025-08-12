@@ -28,6 +28,7 @@ from apps.sales.constants import (
     TABLE_SERVICE,
     TAX,
     WAITING,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.models import (
     InventoryTracker,
@@ -385,6 +386,7 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
+        self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
     @data(True, False)
@@ -410,6 +412,7 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
+        self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
     def test_create_line_items_non_escrow_free(self):

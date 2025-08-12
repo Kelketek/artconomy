@@ -5,20 +5,19 @@ from django.db.models import F
 
 
 def set_cascade_from(apps, schema):
-    LineItem = apps.get_model('sales', 'LineItem')
-    LineItem.objects.all().update(cascade_under=F('priority'))
+    LineItem = apps.get_model("sales", "LineItem")
+    LineItem.objects.all().update(cascade_under=F("priority"))
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('sales', '0007_alter_lineitem_category'),
+        ("sales", "0007_alter_lineitem_category"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='lineitem',
-            name='cascade_under',
+            model_name="lineitem",
+            name="cascade_under",
             field=models.IntegerField(db_index=True, null=True),
         ),
         migrations.RunPython(
@@ -26,8 +25,8 @@ class Migration(migrations.Migration):
             reverse_code=lambda x, y: None,
         ),
         migrations.AlterField(
-            model_name='lineitem',
-            name='cascade_under',
-            field=models.IntegerField(db_index=True)
+            model_name="lineitem",
+            name="cascade_under",
+            field=models.IntegerField(db_index=True),
         ),
     ]
