@@ -6,6 +6,7 @@ import {
   js_reckon_lines,
   js_deliverable_lines,
   js_invoice_lines,
+  js_sum,
 } from "@/lib/lines"
 import type {
   LineAccumulator,
@@ -51,14 +52,10 @@ export function totalForTypes(
   const relevant = [...accumulator.subtotals.keys()].filter((line: LineItem) =>
     types.includes(line.type),
   )
-  const totals = relevant.map((line: LineItem) =>
-    parseFloat(accumulator.subtotals.get(line) as string),
+  const totals = relevant.map(
+    (line: LineItem) => accumulator.subtotals.get(line) as string,
   )
   return sum(totals)
-}
-
-function sum(list: number[]): string {
-  return list.reduce((a: number, b: number) => a + b, 0).toFixed(2)
 }
 
 export function invoiceLines(options: {
@@ -91,6 +88,10 @@ export function invoiceLines(options: {
     allow_soft_failure: true,
     quantization: 2,
   }).Ok
+}
+
+export const sum = (values: string[]): string => {
+  return js_sum(values)
 }
 
 export const deliverableLines = ({

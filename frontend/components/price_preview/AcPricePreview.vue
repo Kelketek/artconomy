@@ -59,12 +59,13 @@
                 :transfer="transfer"
               />
             </template>
-            <ac-line-item-preview
-              v-for="line in modifiers"
-              :key="line.id"
-              :line="line"
-              :price-data="priceData"
+            <ac-bundled-lines
+              v-model="expandFees"
+              hint="Applicable fees for this order. These fees are non-refundable."
+              :lines="modifiers"
+              label="Fees"
               :editing="editable"
+              :price-data="priceData"
               :transfer="transfer"
             />
             <template v-if="editable && powers.table_seller">
@@ -174,6 +175,7 @@ import { usePricing } from "@/mixins/PricingAware.ts"
 import { useSubject } from "@/mixins/subjective.ts"
 import { useViewer } from "@/mixins/viewer.ts"
 import type { LineItem, LineTypeValue, SubjectiveProps } from "@/types/main"
+import AcBundledLines from "@/components/price_preview/AcBundledLines.vue"
 
 const props = withDefaults(
   defineProps<
@@ -198,6 +200,8 @@ const props = withDefaults(
     disabled: false,
   },
 )
+
+const expandFees = defineModel<boolean>()
 
 const { subjectHandler } = useSubject({ props })
 const { powers } = useViewer()

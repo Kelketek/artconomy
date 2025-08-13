@@ -939,6 +939,20 @@ pub mod funcs {
         }
         Ok(total)
     }
+
+    /// JS binding for sum
+    #[cfg(feature = "wasm")]
+    #[wasm_bindgen]
+    pub fn js_sum(raw_values: JsValue) -> Result<JsString, TabulationError> {
+        let values: Vec<String> = match serde_wasm_bindgen::from_value(raw_values) {
+            Ok(result) => result,
+            Err(err) => return Err(TabulationError::from(err.to_string())),
+        };
+        match sum(values) {
+            Ok(val) => Ok(JsString::from(val.to_string())),
+            Err(err) => Err(err),
+        }
+    }
 }
 
 #[cfg(test)]

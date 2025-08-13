@@ -14,6 +14,7 @@
             <v-card>
               <v-card-text>
                 <ac-price-preview
+                  v-model="expandFees"
                   :line-items="lineItems"
                   :username="username"
                   :hide-hourly-form="!single"
@@ -72,6 +73,8 @@ declare type LineItemSetMaps = {
   lineItems: ListController<LineItem>
   offer: boolean
 }[]
+
+const expandFees = defineModel<boolean>()
 
 const props = defineProps<
   { lineItemSetMaps: LineItemSetMaps } & SubjectiveProps
