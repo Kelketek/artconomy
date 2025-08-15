@@ -360,26 +360,36 @@ mod interface_tests {
                 ..Default::default()
             },
             LineItem {
+                amount: s!("2.00"),
+                priority: 10,
+                cascade_under: 10,
+                id: 1,
+                ..Default::default()
+            },
+            LineItem {
                 percentage: s!("10"),
-                priority: 1,
-                cascade_under: 1,
+                amount: s!(".05"),
+                priority: 100,
+                cascade_under: 50,
                 id: 2,
                 ..Default::default()
             },
             LineItem {
                 percentage: s!("5"),
-                priority: 1,
-                cascade_under: 1,
+                amount: s!("0.08"),
+                priority: 100,
+                cascade_under: 50,
                 id: 3,
                 ..Default::default()
             },
         ];
         let (total, discount, map) = get_totals(input.clone(), 2).unwrap();
-        assert_eq!(total, dec!(11.50));
+        assert_eq!(total, dec!(13.93));
         assert_eq!(discount, dec!(0));
         assert_eq!(map[&input[0]], dec!(10.00));
-        assert_eq!(map[&input[1]], dec!(1));
-        assert_eq!(map[&input[2]], dec!(0.50));
+        assert_eq!(map[&input[1]], dec!(2.00));
+        assert_eq!(map[&input[2]], dec!(1.25));
+        assert_eq!(map[&input[3]], dec!(0.68));
         assert_eq!(
             total,
             map.values().fold(dec!(0), |current, item| current + *item)
@@ -1091,7 +1101,7 @@ mod line_item_preview_tests {
             table_percentage: s!("10"),
             table_static: s!("5.00"),
             table_tax: s!("8.25"),
-            stripe_charge_static: s!("0.30"),
+            stripe_blended_rate_static: s!("0.30"),
             stripe_active_account_monthly_fee: s!("2.00"),
             stripe_blended_rate_percentage: s!("3.30"),
             stripe_payout_cross_border_percentage: s!("1"),

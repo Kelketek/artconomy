@@ -628,6 +628,7 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
       offer: true,
     })
   }
+  console.log(sets)
   return sets
 })
 

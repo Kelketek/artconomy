@@ -76,18 +76,24 @@ export function invoiceLines(options: {
     product,
     cascade,
   } = options
-  return js_invoice_lines({
-    plan_name: planName,
-    pricing,
-    value,
-    international,
-    escrow_enabled: escrowEnabled,
-    product,
-    cascade,
-    user_id: -1,
-    allow_soft_failure: true,
-    quantization: 2,
-  }).Ok
+  try {
+    return js_invoice_lines({
+      plan_name: planName,
+      pricing,
+      value,
+      international,
+      escrow_enabled: escrowEnabled,
+      product,
+      cascade,
+      user_id: -1,
+      allow_soft_failure: true,
+      quantization: 2,
+    }).Ok
+  } catch (err) {
+    console.log("INVOICE_LINES FAILED!")
+    console.log(JSON.stringify(options, null, 2))
+    throw err
+  }
 }
 
 export const sum = (values: string[]): string => {

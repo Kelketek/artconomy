@@ -7,6 +7,7 @@ export function genLineItem(overrides: Partial<LineItem>): LineItem {
   return {
     id: -1,
     type: 0,
+    cascade_under: 0,
     category: LineCategory.ESCROW_HOLD,
     amount: "0.00",
     frozen_value: null,
@@ -27,6 +28,7 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 21,
       priority: 300,
+      cascade_under: 300,
       percentage: "4",
       amount: "0.50",
       category: LineCategory.ESCROW_HOLD,
@@ -42,6 +44,7 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 22,
       priority: 300,
+      cascade_under: 300,
       percentage: "4",
       amount: "0.25",
       frozen_value: null,
@@ -57,6 +60,7 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 20,
       priority: 0,
+      cascade_under: 0,
       percentage: "0",
       amount: "100.00",
       frozen_value: null,
@@ -72,6 +76,7 @@ export function dummyLineItems(): LineItem[] {
     {
       id: 23,
       priority: 100,
+      cascade_under: 100,
       percentage: "0",
       amount: "-20.00",
       category: LineCategory.ESCROW_HOLD,
@@ -180,6 +185,12 @@ export function genPricing(): Pricing {
     table_percentage: "10",
     table_static: "5.00",
     table_tax: "8.25",
+    stripe_blended_rate_percentage: "0.30",
+    stripe_blended_rate_static: "0.30",
+    stripe_payout_cross_border_percentage: "1",
+    stripe_active_account_monthly_fee: "2.00",
+    stripe_payout_static: "0.25",
+    stripe_payout_percentage: "1.25",
     international_conversion_percentage: "1",
     preferred_plan: "Landscape",
   }

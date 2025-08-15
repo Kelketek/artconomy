@@ -23,8 +23,8 @@ def build_initial_plans():
             """,
             sort_value=0,
             max_simultaneous_orders=1,
-            shield_static_price=Money("0.50", "USD"),
-            shield_percentage_price=Decimal("3.20"),
+            shield_static_price=Money("0.75", "USD"),
+            shield_percentage_price=Decimal("4.50"),
             features=[
                 "Slick, mobile-friendly storefront",
                 "Built-in order forms",
@@ -52,7 +52,7 @@ def build_initial_plans():
             paypal_invoicing=True,
             per_deliverable_price=Money("1.35", "USD"),
             shield_static_price=Money("0.50", "USD"),
-            shield_percentage_price=Decimal("3.10"),
+            shield_percentage_price=Decimal("4.25"),
             sort_value=1,
             features=[
                 "Slick, mobile-friendly storefront",
@@ -85,7 +85,7 @@ def build_initial_plans():
             connection_fee_waived=True,
             per_deliverable_price=Money("0.00", "USD"),
             shield_static_price=Money(".25", "USD"),
-            shield_percentage_price=Decimal("1.50"),
+            shield_percentage_price=Decimal("2.50"),
             monthly_charge=Money("9.00", "USD"),
             features=[
                 "Slick, mobile-friendly storefront",

@@ -244,7 +244,6 @@ const payout = computed(() => {
 })
 
 const MODIFIER_TYPE_SETS = new Set([
-  LineType.TIP,
   LineType.SHIELD,
   LineType.BONUS,
   LineType.TABLE_SERVICE,
@@ -276,7 +275,6 @@ const taxes = computed(() =>
 
 const modifiers = computed(() =>
   moddedItems.value.filter(
-    // We include tips here since we will handle that with a different interface.
     (line: LineItem) => MODIFIER_TYPE_SETS.has(line.type),
   ),
 )

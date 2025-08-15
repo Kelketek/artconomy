@@ -5,7 +5,7 @@ FRONTEND_COMMAND=docker compose exec frontend
 # Lower if you don't have a bunch of cores.
 TEST_THREADS=10
 
-.PHONY: rust
+.PHONY: *
 
 install_prereqs:
 	sudo apt install -y docker docker-ce

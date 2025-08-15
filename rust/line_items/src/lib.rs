@@ -740,7 +740,7 @@ pub mod funcs {
                 frozen_value: None,
                 description: s!(""),
                 percentage: pricing.table_percentage,
-                back_into_percentage: !lines_context.cascade,
+                back_into_percentage: false,
                 destination_account: Account::RESERVE,
                 destination_user_id: None,
             });
@@ -782,7 +782,7 @@ pub mod funcs {
                 amount: plan.shield_static_price.clone(),
                 frozen_value: None,
                 percentage: shield_percentage_price.to_string(),
-                back_into_percentage: !lines_context.cascade,
+                back_into_percentage: false,
                 destination_account: Account::FUND,
                 destination_user_id: None,
             })
@@ -799,7 +799,7 @@ pub mod funcs {
                 amount: plan.per_deliverable_price.clone(),
                 frozen_value: None,
                 percentage: s!("0"),
-                back_into_percentage: !lines_context.cascade,
+                back_into_percentage: false,
                 destination_account: Account::FUND,
                 destination_user_id: None,
             })
@@ -810,7 +810,7 @@ pub mod funcs {
                 id: -7,
                 priority: 350,
                 cascade_under: 101,
-                amount: pricing.stripe_charge_static,
+                amount: pricing.stripe_blended_rate_static,
                 percentage: pricing.stripe_blended_rate_percentage,
                 cascade_amount: lines_context.cascade,
                 cascade_percentage: lines_context.cascade,

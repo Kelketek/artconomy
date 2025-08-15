@@ -88,7 +88,7 @@ def get_payout_link_message(seller):
     """
     Get the link to the payout page for this seller so that reversals can be done.
     """
-    if settings.ENV_NAME == "prod":
+    if settings.ENV_NAME == "production":
         base_url = "https://dashboard.stripe.com/"
     else:
         base_url = "https://dashboard.stripe.com/test/"

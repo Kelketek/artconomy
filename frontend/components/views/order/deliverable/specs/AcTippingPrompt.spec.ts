@@ -32,6 +32,7 @@ const tipLines = (): LineItem[] => {
     {
       id: 21,
       priority: 300,
+      cascade_under: 300,
       percentage: "4",
       amount: "0.50",
       frozen_value: null,
@@ -47,6 +48,7 @@ const tipLines = (): LineItem[] => {
     {
       id: 22,
       priority: 200,
+      cascade_under: 200,
       percentage: "0",
       amount: "7.00",
       frozen_value: null,

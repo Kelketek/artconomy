@@ -377,6 +377,7 @@ export type LineCategoryValue = (typeof LineCategory)[keyof typeof LineCategory]
 export interface LineItem {
   id: number
   priority: number
+  cascade_under: number
   amount: string
   frozen_value: string | null
   percentage: string
@@ -494,6 +495,12 @@ export interface Pricing {
   table_tax: string
   international_conversion_percentage: string
   preferred_plan: string
+  stripe_blended_rate_percentage: string
+  stripe_blended_rate_static: string
+  stripe_payout_cross_border_percentage: string
+  stripe_active_account_monthly_fee: string
+  stripe_payout_static: string
+  stripe_payout_percentage: string
 }
 
 export interface Product {
