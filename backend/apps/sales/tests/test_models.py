@@ -28,6 +28,7 @@ from apps.sales.constants import (
     TABLE_SERVICE,
     TAX,
     WAITING,
+    CASCADE_UNDER_MAP,
 )
 from apps.sales.models import (
     InventoryTracker,
@@ -385,6 +386,7 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
+        self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
     @data(True, False)
@@ -410,6 +412,7 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(shield.cascade_percentage, cascade_fees)
         self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
+        self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
     def test_create_line_items_non_escrow_free(self):
@@ -556,6 +559,15 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable.product.save()
         deliverable.refresh_from_db()
         deliverable.save()
+        assert total == deliverable.invoice.total()
+
+    def test_stable_lines(self):
+        deliverable = DeliverableFactory.create(product__base_price=Money(10, "USD"))
+        total = deliverable.invoice.total()
+        lines = set(deliverable.invoice.line_items.all())
+        assert deliverable.invoice.total() == total
+        deliverable.save()
+        assert lines == set(deliverable.invoice.line_items.all())
         assert total == deliverable.invoice.total()
 
 

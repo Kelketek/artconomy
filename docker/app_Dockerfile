@@ -24,7 +24,9 @@ ENV PATH=$PATH:$HOME/.local/bin:$HOME/.cargo/bin
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs > rustup
 RUN chmod 755 rustup
 RUN ./rustup -y
+# Should be in the path now-- script no longer needed.
 RUN rm rustup
+RUN rustup target add wasm32-unknown-unknown
 WORKDIR /root/
 RUN git clone --depth 1 https://github.com/rustwasm/wasm-pack.git
 WORKDIR /root/wasm-pack
@@ -33,8 +35,7 @@ RUN mkdir -p /home/app/.cargo/bin/
 RUN mv target/release/wasm-pack /home/app/.cargo/bin/
 WORKDIR /home/app/artconomy/
 RUN rm -rvf /root/wasm-pack
-ADD . .
-RUN chown -R app:app /home/app
+ADD --chown=app:app . ./
 WORKDIR /home/app/artconomy/rust/line_items
 RUN pip install maturin
 RUN maturin sdist
