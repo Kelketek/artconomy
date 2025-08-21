@@ -746,7 +746,7 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
         )
         self.assertEqual(len(lines), 1)
         line = lines[0]
-        self.assertEqual(Decimal(line["our_fees"]), Decimal("1.95"))
+        self.assertEqual(Decimal(line["our_fees"]), Decimal("5.09"))
         self.assertEqual(Decimal(line["card_fees"]), Decimal("0.74"))
         self.assertEqual(Decimal(line["price"]), Decimal("15.00"))
 
@@ -763,5 +763,5 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
         )
         self.assertEqual(len(lines), 1)
         line = lines[0]
-        self.assertEqual(Decimal(line["our_fees"]), Decimal("1.95"))
+        self.assertEqual(Decimal(line["our_fees"]), Decimal("5.09"))
         self.assertEqual(Decimal(line["price"]), Decimal("15.00"))

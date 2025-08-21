@@ -5,7 +5,7 @@ FRONTEND_COMMAND=docker compose exec frontend
 # Lower if you don't have a bunch of cores.
 TEST_THREADS=10
 
-.PHONY: rust
+.PHONY: *
 
 install_prereqs:
 	sudo apt install -y docker docker-ce
@@ -71,10 +71,13 @@ format.backend:
 	${APP_COMMAND} ruff check --fix backend
 	${APP_COMMAND} ruff format backend
 
+format.rust:
+	${APP_COMMAND} cargo fmt --manifest-path rust/line_items/Cargo.toml
+
 format.frontend:
 	${FRONTEND_COMMAND} npm --prefix /app/ run lint:fix
 
-format: format.backend format.frontend
+format: format.backend format.rust format.frontend
 
 upgrade:
 	rm -f requirements.txt && ${APP_COMMAND} pip-compile --resolver=backtracking requirements.in constraints.in --output-file=requirements.txt

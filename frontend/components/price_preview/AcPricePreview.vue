@@ -59,12 +59,13 @@
                 :transfer="transfer"
               />
             </template>
-            <ac-line-item-preview
-              v-for="line in modifiers"
-              :key="line.id"
-              :line="line"
-              :price-data="priceData"
+            <ac-bundled-lines
+              v-model="expandFees"
+              hint="Applicable fees for this order. These fees are non-refundable."
+              :lines="modifiers"
+              label="Fees"
               :editing="editable"
+              :price-data="priceData"
               :transfer="transfer"
             />
             <template v-if="editable && powers.table_seller">
@@ -174,6 +175,7 @@ import { usePricing } from "@/mixins/PricingAware.ts"
 import { useSubject } from "@/mixins/subjective.ts"
 import { useViewer } from "@/mixins/viewer.ts"
 import type { LineItem, LineTypeValue, SubjectiveProps } from "@/types/main"
+import AcBundledLines from "@/components/price_preview/AcBundledLines.vue"
 
 const props = withDefaults(
   defineProps<
@@ -198,6 +200,8 @@ const props = withDefaults(
     disabled: false,
   },
 )
+
+const expandFees = defineModel<boolean>()
 
 const { subjectHandler } = useSubject({ props })
 const { powers } = useViewer()
@@ -240,13 +244,16 @@ const payout = computed(() => {
 })
 
 const MODIFIER_TYPE_SETS = new Set([
-  LineType.TIP,
   LineType.SHIELD,
   LineType.BONUS,
   LineType.TABLE_SERVICE,
   LineType.PROCESSING,
   LineType.DELIVERABLE_TRACKING,
   LineType.RECONCILIATION,
+  LineType.CARD_FEE,
+  LineType.CROSS_BORDER_TRANSFER_FEE,
+  LineType.PAYOUT_FEE,
+  LineType.CONNECT_FEE,
 ] as LineTypeValue[])
 
 const moddedItems = computed(() => {
@@ -267,9 +274,8 @@ const taxes = computed(() =>
 )
 
 const modifiers = computed(() =>
-  moddedItems.value.filter(
-    // We include tips here since we will handle that with a different interface.
-    (line: LineItem) => MODIFIER_TYPE_SETS.has(line.type),
+  moddedItems.value.filter((line: LineItem) =>
+    MODIFIER_TYPE_SETS.has(line.type),
   ),
 )
 
