@@ -371,7 +371,7 @@ EMAIL_USE_SSL = bool(int(get_env("EMAIL_USE_SSL", "0")))
 EMAIL_USE_TLS = bool(int(get_env("EMAIL_USE_TLS", "0")))
 
 CELERY_EMAIL_BACKEND = get_env(
-    "CELERY_EMAIL_BACKEND", "sendgrid_backend.SendgridBackend"
+    "CELERY_EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend"
 )
 if TESTING:
     EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
@@ -386,12 +386,7 @@ CELERY_EMAIL_TASK_CONFIG = {
     "ignore_result": True,
 }
 
-SENDGRID_API_KEY = get_env("SENDGRID_API_KEY", "")
-
 SANDBOX_APIS = bool(int(get_env("SANDBOX_APIS", "1")))
-
-SENDGRID_SANDBOX_MODE_IN_DEBUG = SANDBOX_APIS
-SENDGRID_ECHO_TO_STDOUT = DEBUG
 
 MAX_CHARACTER_COUNT = int(get_env("MAX_CHARACTER_COUNT", "30"))
 MAX_ATTRS = int(get_env("MAX_ATTRS", "10"))

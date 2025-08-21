@@ -68,14 +68,10 @@ djangorestframework-csv
 django-reversion
 # Generate sitemaps via celery task for serving by NginX
 django-static-sitemaps
-# Sendgrid support for sending email. I'm not entirely sure we're actually using this yet, but we might be.
-django-sendgrid-v5
 # Allows us to disable Django's signal feature-- useful sometimes during tests.
 django-signal-disabler
 # Allows us to read and parse a rollup manifest in order to render the correct script/link tags in the index HTML
 django-vite
-# Library for calling Dwolla services. Deprecated since we no longer use Dwolla.
-dwollav2
 # Used to generate thumbnails for submissions.
 easy_thumbnails
 # Factories for testing-- allowing us to create users, submissions, etc on the fly to test something.
