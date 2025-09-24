@@ -196,7 +196,6 @@ mod interface_tests {
                 priority: 1,
                 cascade_under: 1,
                 cascade_percentage: true,
-                back_into_percentage: true,
                 id: 2,
                 ..Default::default()
             },
@@ -840,7 +839,6 @@ mod interface_tests {
             },
             LineItem {
                 percentage: s!("5"),
-                back_into_percentage: true,
                 priority: 100,
                 cascade_under: 100,
                 id: 4,
@@ -1026,7 +1024,6 @@ mod interface_tests {
                 percentage: s!("4"),
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 ..Default::default()
             },
             LineItem {
@@ -1037,7 +1034,6 @@ mod interface_tests {
                 amount: s!("0.50"),
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 ..Default::default()
             },
         ];
@@ -1052,7 +1048,22 @@ mod interface_tests {
 }
 
 #[cfg(test)]
-macro_rules! reversable_tests {
+macro_rules! assert_same_subtotals {
+    ($left: expr, $right: expr) => {
+        let mut left_subtotals = HashMap::<LineType, String>::new();
+        for (key, value) in $left.into_iter() {
+            left_subtotals.insert(key.kind, value.to_string());
+        }
+        let mut right_subtotals = HashMap::<LineType, String>::new();
+        for (key, value) in $right.into_iter() {
+            right_subtotals.insert(key.kind, value.to_string());
+        }
+        assert_eq!(left_subtotals, right_subtotals)
+    };
+}
+
+#[cfg(test)]
+macro_rules! reversible_deliverable_lines {
     ($($name:ident: $value:expr,)*) => {
     $(
         #[test]
@@ -1072,33 +1083,18 @@ macro_rules! reversable_tests {
                 deliverable_lines(cascade_parameters).expect("Failed on cascade line generation!");
             let (_cascade_total, _cascade_discount, cascade_map) =
                 get_totals(cascade_lines.clone(), 2).expect("Failed on cascade tally.");
-            let mut non_cascade_subtotals = HashMap::<i32, String>::new();
-            for (key, value) in non_cascade_map.into_iter() {
-                non_cascade_subtotals.insert(key.id, value.to_string());
-            }
-            let mut cascade_subtotals = HashMap::<i32, String>::new();
-            for (key, value) in cascade_map.into_iter() {
-                cascade_subtotals.insert(key.id, value.to_string());
-            }
-            assert_eq!(non_cascade_subtotals, cascade_subtotals)
+            assert_same_subtotals!(non_cascade_map, cascade_map);
         }
     )*
     }
 }
 
 #[cfg(test)]
-mod line_item_generation_tests {
-    use crate::data::{
-        Account, Category, DeliverableLinesContext, InvoiceLinesContext, LineItem, LineType,
-        Pricing, Product, ServicePlan, TabulationError, TipLinesContext,
-    };
-    use crate::funcs::{deliverable_lines, get_totals, invoice_lines, tip_fee_lines};
+mod test_helpers {
+    use crate::data::{Pricing, ServicePlan};
     use crate::s;
-    use ntest::timeout;
-    use pretty_assertions::assert_eq;
-    use std::collections::HashMap;
 
-    fn gen_pricing() -> Pricing {
+    pub fn gen_pricing() -> Pricing {
         Pricing {
             plans: vec![
                 ServicePlan {
@@ -1151,6 +1147,19 @@ mod line_item_generation_tests {
             preferred_plan: s!("Landscape"),
         }
     }
+}
+
+#[cfg(test)]
+mod line_item_generation_tests {
+    use crate::data::{
+        Account, Category, DeliverableLinesContext, InvoiceLinesContext, LineItem, LineType,
+        Product, TabulationError, TipLinesContext,
+    };
+    use crate::funcs::{deliverable_lines, invoice_lines, tip_fee_lines};
+    use crate::s;
+    use crate::test::test_helpers::gen_pricing;
+    use ntest::timeout;
+    use pretty_assertions::assert_eq;
 
     #[test]
     #[timeout(100)]
@@ -1181,7 +1190,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
             },
@@ -1192,7 +1200,6 @@ mod line_item_generation_tests {
                 kind: LineType::Shield,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 amount: s!("3.50"),
                 category: Category::ShieldFee,
                 frozen_value: None,
@@ -1213,7 +1220,6 @@ mod line_item_generation_tests {
                 category: Category::ThirdPartyFee,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 destination_account: Account::Fund,
                 destination_user_id: None,
             },
@@ -1229,7 +1235,6 @@ mod line_item_generation_tests {
                 destination_account: Account::Fund,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 frozen_value: None,
                 description: s!(""),
             },
@@ -1244,7 +1249,6 @@ mod line_item_generation_tests {
                 cascade_amount: true,
                 description: s!(""),
                 frozen_value: None,
-                back_into_percentage: false,
                 category: Category::ThirdPartyFee,
                 destination_user_id: None,
                 destination_account: Account::Fund,
@@ -1282,7 +1286,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
             },
@@ -1293,7 +1296,6 @@ mod line_item_generation_tests {
                 kind: LineType::DeliverableTracking,
                 amount: s!("1.35"),
                 percentage: s!("0"),
-                back_into_percentage: false,
                 cascade_amount: true,
                 cascade_percentage: true,
                 description: s!(""),
@@ -1329,7 +1331,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
             }],
@@ -1345,7 +1346,6 @@ mod line_item_generation_tests {
                 kind: LineType::Shield,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 amount: s!("3.50"),
                 category: Category::ShieldFee,
                 frozen_value: None,
@@ -1367,7 +1367,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1383,7 +1382,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1399,7 +1397,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1414,7 +1411,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
             },
@@ -1449,7 +1445,6 @@ mod line_item_generation_tests {
                 percentage: s!("0"),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 description: s!(""),
                 destination_user_id: Some(-2),
                 destination_account: Account::Escrow,
@@ -1461,7 +1456,6 @@ mod line_item_generation_tests {
                 kind: LineType::Shield,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 amount: s!("3.50"),
                 category: Category::ShieldFee,
                 frozen_value: None,
@@ -1483,7 +1477,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1499,7 +1492,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1515,7 +1507,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
         ];
@@ -1552,7 +1543,6 @@ mod line_item_generation_tests {
                 category: Category::EscrowHold,
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
             },
@@ -1563,7 +1553,6 @@ mod line_item_generation_tests {
                 kind: LineType::Shield,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 category: Category::ShieldFee,
                 amount: s!("3.50"),
                 frozen_value: None,
@@ -1585,7 +1574,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1601,7 +1589,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1617,7 +1604,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1632,7 +1618,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_account: Account::Escrow,
                 destination_user_id: Some(-1),
             },
@@ -1670,7 +1655,6 @@ mod line_item_generation_tests {
                 category: Category::EscrowHold,
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
             },
@@ -1682,7 +1666,6 @@ mod line_item_generation_tests {
                 category: Category::ShieldFee,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 amount: s!("3.50"),
                 frozen_value: None,
                 percentage: s!("6"),
@@ -1703,7 +1686,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1719,7 +1701,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1735,7 +1716,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1751,7 +1731,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1767,7 +1746,6 @@ mod line_item_generation_tests {
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 cascade_amount: false,
             },
         ];
@@ -1805,7 +1783,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-3),
                 destination_account: Account::Escrow,
             },
@@ -1816,7 +1793,6 @@ mod line_item_generation_tests {
                 kind: LineType::TableService,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 amount: s!("5.00"),
                 category: Category::TableHandling,
                 frozen_value: None,
@@ -1832,7 +1808,6 @@ mod line_item_generation_tests {
                 kind: LineType::Tax,
                 cascade_amount: true,
                 cascade_percentage: true,
-                back_into_percentage: true,
                 category: Category::Taxes,
                 percentage: s!("8.25"),
                 description: s!(""),
@@ -1854,7 +1829,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1870,7 +1844,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1886,7 +1859,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -1901,7 +1873,6 @@ mod line_item_generation_tests {
                 category: Category::EscrowHold,
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-3),
                 destination_account: Account::Escrow,
             },
@@ -1937,7 +1908,6 @@ mod line_item_generation_tests {
                 category: Category::EscrowHold,
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(-1),
                 destination_account: Account::Escrow,
             },
@@ -1948,7 +1918,6 @@ mod line_item_generation_tests {
                 kind: LineType::DeliverableTracking,
                 amount: s!("1.35"),
                 percentage: s!("0"),
-                back_into_percentage: false,
                 cascade_amount: true,
                 cascade_percentage: true,
                 description: s!(""),
@@ -1991,7 +1960,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_user_id: Some(4),
                 destination_account: Account::Escrow,
             },
@@ -2005,7 +1973,6 @@ mod line_item_generation_tests {
                 percentage: s!("0"),
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 frozen_value: None,
                 description: s!(""),
                 destination_account: Account::Fund,
@@ -2021,7 +1988,6 @@ mod line_item_generation_tests {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 frozen_value: None,
                 category: Category::EscrowHold,
                 destination_account: Account::Escrow,
@@ -2151,7 +2117,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -2167,7 +2132,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -2183,7 +2147,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
         ];
@@ -2212,7 +2175,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -2228,7 +2190,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -2244,7 +2205,6 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
             LineItem {
@@ -2260,14 +2220,192 @@ mod line_item_generation_tests {
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 cascade_amount: true,
             },
         ];
         assert_eq!(tip_fee_lines(parameters), Ok(expected));
     }
+}
 
-    reversable_tests! {
+#[cfg(test)]
+mod cascade_reversability_tests {
+    use crate::data::{DeliverableLinesContext, LineItem, LineType};
+    use crate::funcs::{deliverable_lines, get_totals};
+    use crate::s;
+    use crate::test::test_helpers::gen_pricing;
+    use ntest::timeout;
+    use pretty_assertions::assert_eq;
+    use rust_decimal_macros::dec;
+    use std::collections::HashMap;
+
+    /// Test the simplest round-trip cascade-vs-non-cascade equivalent, to make it easier
+    /// to diagnose any issues.
+    #[test]
+    fn test_simplest_round_trip() {
+        let non_cascaded = vec![
+            LineItem {
+                id: 0,
+                kind: LineType::BasePrice,
+                priority: 0,
+                cascade_under: 0,
+                amount: s!("10.00"),
+                percentage: s!("0"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 1,
+                kind: LineType::CardFee,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 2,
+                kind: LineType::Shield,
+                priority: 2,
+                cascade_under: 2,
+                percentage: s!("10"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+        ];
+        let (non_cascade_total, _non_cascade_discount, non_cascaded_map) =
+            get_totals(non_cascaded, 2).unwrap();
+        assert_eq!(non_cascade_total, dec!(11.55));
+        let cascaded = vec![
+            LineItem {
+                id: 0,
+                kind: LineType::BasePrice,
+                priority: 0,
+                cascade_under: 0,
+                // Update this to match the previous total assertion to keep
+                // test valid, if changing.
+                amount: s!("11.55"),
+                percentage: s!("0"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 1,
+                kind: LineType::CardFee,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: true,
+
+                ..Default::default()
+            },
+            LineItem {
+                id: 2,
+                kind: LineType::Shield,
+                priority: 2,
+                cascade_under: 2,
+                percentage: s!("10"),
+                cascade_percentage: true,
+                ..Default::default()
+            },
+        ];
+        let (cascade_total, _cascade_discount, cascaded_map) = get_totals(cascaded, 2).unwrap();
+        assert_eq!(cascade_total, dec!(11.55));
+        assert_same_subtotals!(non_cascaded_map, cascaded_map);
+    }
+
+    /// Test the simplest round-trip cascade-vs-non-cascade equivalent, to make it easier
+    /// to diagnose any issues.
+    #[test]
+    fn test_parallel_priority_round_trip() {
+        let non_cascaded = vec![
+            LineItem {
+                id: 0,
+                kind: LineType::BasePrice,
+                priority: 0,
+                cascade_under: 0,
+                amount: s!("100.00"),
+                percentage: s!("0"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 1,
+                kind: LineType::CardFee,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 2,
+                kind: LineType::Processing,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 3,
+                kind: LineType::Shield,
+                priority: 2,
+                cascade_under: 2,
+                percentage: s!("10"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+        ];
+        let (non_cascade_total, _non_cascade_discount, non_cascaded_map) =
+            get_totals(non_cascaded, 2).unwrap();
+        assert_eq!(non_cascade_total, dec!(121.00));
+        let cascaded = vec![
+            LineItem {
+                id: 0,
+                kind: LineType::BasePrice,
+                priority: 0,
+                cascade_under: 0,
+                // Update this to match the previous total assertion to keep
+                // test valid, if changing.
+                amount: s!("121.000000"),
+                percentage: s!("0"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 1,
+                kind: LineType::CardFee,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: true,
+                ..Default::default()
+            },
+            LineItem {
+                id: 2,
+                kind: LineType::Processing,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: true,
+                ..Default::default()
+            },
+            LineItem {
+                id: 3,
+                kind: LineType::Shield,
+                priority: 2,
+                cascade_under: 2,
+                percentage: s!("10"),
+                cascade_percentage: true,
+                ..Default::default()
+            },
+        ];
+        let (cascade_total, _cascade_discount, cascaded_map) = get_totals(cascaded, 2).unwrap();
+        assert_eq!(cascade_total, dec!(121.00));
+        assert_same_subtotals!(non_cascaded_map, cascaded_map);
+    }
+
+    reversible_deliverable_lines! {
         test_reversible_basic: DeliverableLinesContext {
             escrow_enabled: true,
             table_product: false,

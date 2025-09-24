@@ -185,25 +185,12 @@ pub mod funcs {
                 added_amount += line_amount;
             }
             let multiplier = dec!(0.01) * dec_from_string!(line.percentage);
-            if line.back_into_percentage {
-                let divisor = multiplier + one;
-                if line.cascade_percentage {
-                    working_amount = (current_total / divisor) * multiplier;
-                } else {
-                    let factor = one / (one - multiplier);
-                    let mut additional = zero;
-                    if !line.cascade_amount {
-                        additional = line_amount;
-                    }
-                    let initial_amount = current_total + additional;
-                    working_amount = (initial_amount * factor) - initial_amount;
-                }
-            } else {
-                working_amount = current_total * multiplier;
-            }
             if line.cascade_percentage {
+                let divisor = multiplier + one;
+                working_amount = (current_total / divisor) * multiplier;
                 cascaded_amount += working_amount;
             } else {
+                working_amount = current_total * multiplier;
                 added_amount += working_amount;
             }
             working_amount += line_amount;
@@ -590,7 +577,6 @@ pub mod funcs {
                 description: s!(""),
                 frozen_value: None,
                 category: Category::ProcessingFee,
-                back_into_percentage: false,
             },
             LineItem {
                 id: -7,
@@ -606,7 +592,6 @@ pub mod funcs {
                 description: s!(""),
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
-                back_into_percentage: false,
             },
             LineItem {
                 id: -9,
@@ -616,7 +601,6 @@ pub mod funcs {
                 percentage: pricing.stripe_payout_percentage,
                 cascade_amount: true,
                 cascade_percentage: true,
-                back_into_percentage: false,
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
                 kind: LineType::PayoutFee,
@@ -636,7 +620,6 @@ pub mod funcs {
                 kind: LineType::CrossBorderTransferFee,
                 cascade_percentage: true,
                 cascade_amount: true,
-                back_into_percentage: false,
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 description: s!(""),
@@ -694,7 +677,6 @@ pub mod funcs {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 frozen_value: None,
                 percentage: s!("0"),
                 destination_user_id: Some(lines_context.user_id),
@@ -788,7 +770,6 @@ pub mod funcs {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
-                back_into_percentage: false,
                 destination_account: Account::Escrow,
                 destination_user_id: Some(lines_context.user_id),
             });
@@ -824,7 +805,6 @@ pub mod funcs {
                 frozen_value: None,
                 description: s!(""),
                 percentage: pricing.table_percentage,
-                back_into_percentage: false,
                 destination_account: Account::Reserve,
                 destination_user_id: None,
             });
@@ -838,7 +818,6 @@ pub mod funcs {
                 cascade_percentage: lines_context.cascade,
                 cascade_amount: lines_context.cascade,
                 percentage: pricing.table_tax,
-                back_into_percentage: true,
                 amount: s!("0"),
                 frozen_value: None,
                 // TODO: Do these staging accounts actually help us or just make accounting
@@ -881,7 +860,6 @@ pub mod funcs {
                 amount: plan.shield_static_price.clone(),
                 frozen_value: None,
                 percentage: shield_percentage_price.to_string(),
-                back_into_percentage: false,
                 destination_account: Account::Fund,
                 destination_user_id: None,
             })
@@ -898,7 +876,6 @@ pub mod funcs {
                 amount: plan.per_deliverable_price.clone(),
                 frozen_value: None,
                 percentage: s!("0"),
-                back_into_percentage: false,
                 destination_account: Account::Fund,
                 destination_user_id: None,
             })
@@ -919,7 +896,6 @@ pub mod funcs {
                 description: s!(""),
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
-                back_into_percentage: false,
             });
             lines.push(LineItem {
                 id: -9,
@@ -929,7 +905,6 @@ pub mod funcs {
                 percentage: pricing.stripe_payout_percentage,
                 cascade_amount: lines_context.cascade,
                 cascade_percentage: lines_context.cascade,
-                back_into_percentage: false,
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
                 kind: LineType::PayoutFee,
@@ -948,7 +923,6 @@ pub mod funcs {
                     kind: LineType::CrossBorderTransferFee,
                     cascade_percentage: lines_context.cascade,
                     cascade_amount: lines_context.cascade,
-                    back_into_percentage: false,
                     destination_user_id: None,
                     destination_account: Account::Fund,
                     description: s!(""),
@@ -968,7 +942,6 @@ pub mod funcs {
                     destination_account: Account::Fund,
                     cascade_percentage: lines_context.cascade,
                     cascade_amount: lines_context.cascade,
-                    back_into_percentage: false,
                     description: s!(""),
                     frozen_value: None,
                 })
