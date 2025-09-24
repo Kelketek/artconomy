@@ -163,23 +163,9 @@
                       <v-col cols="12" sm="6" lg="12">
                         <ac-bound-field
                           :field="newProduct.fields.base_price"
-                          :label="basePriceLabel"
+                          label="Take home amount"
                           field-type="ac-price-field"
                           :hint="priceHint"
-                        />
-                      </v-col>
-                      <v-col cols="12" sm="6">
-                        <ac-bound-field
-                          :field="newProduct.fields.cascade_fees"
-                          field-type="v-switch"
-                          label="Absorb fees"
-                          :persistent-hint="true"
-                          hint="If turned on, the price you set is the price your commissioner will see, and you
-                            will pay all fees from that price. If turned off, the price you set is the amount you
-                            take home, and the total the customer pays includes the fees."
-                          :true-value="true"
-                          :false-value="false"
-                          color="primary"
                         />
                       </v-col>
                       <v-col cols="12" sm="6">
@@ -473,10 +459,6 @@ const newProduct = useForm(`${flatten(props.username)}__newProduct`, {
     hidden: { value: false },
     table_product: { value: false },
     tags: { value: [] },
-    cascade_fees: {
-      value: false,
-      step: 2,
-    },
     escrow_enabled: {
       value: true,
       step: 2,
@@ -569,13 +551,11 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
 
   const planName = subject.value?.service_plan
   const international = !!subject.value?.international
-  const cascade = newProduct.fields.cascade_fees.value
   const tableProduct = newProduct.fields.table_product.value
   let preferredLines: LineItem[] = []
   let appendPreferred = false
   const options = {
     basePrice,
-    cascade: cascade && newProduct.fields.escrow_enabled.value,
     international,
     pricing: pricing.x,
     escrowEnabled: true,
@@ -607,7 +587,6 @@ const rawLineItemSetMaps = computed((): RawLineItemSetMap[] => {
   if (!escrow.value || !newProduct.fields.escrow_enabled.value) {
     const nonEscrowLines = deliverableLines({
       basePrice,
-      cascade,
       international,
       planName,
       pricing: pricing.x,
@@ -655,14 +634,6 @@ watch(
   },
   { deep: true, immediate: true },
 )
-
-const basePriceLabel = computed(() => {
-  if (newProduct.fields.cascade_fees.model) {
-    return "List Price"
-  } else {
-    return "Take home amount"
-  }
-})
 
 const toggle = (value: boolean) => {
   emit("update:modelValue", value)

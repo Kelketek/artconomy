@@ -92,18 +92,6 @@
                   color="primary"
                 />
               </v-col>
-              <v-col v-if="isSeller && editable" cols="12">
-                <ac-patch-field
-                  :patcher="deliverable.patchers.cascade_fees"
-                  field-type="v-switch"
-                  label="Absorb fees"
-                  :persistent-hint="true"
-                  hint="If turned on, the price you set is the price your commissioner will see, and you
-                            will pay all fees from that price. If turned off, the price you set is the amount you
-                            take home, and the total the customer pays includes the fees."
-                  color="primary"
-                />
-              </v-col>
             </v-col>
             <v-col cols="12" md="6">
               <v-col cols="12">

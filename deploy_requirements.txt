@@ -4,23 +4,23 @@
 #
 #    pip-compile deploy_requirements.in
 #
-ansible==11.9.0
+ansible==12.0.0
     # via -r deploy_requirements.in
-ansible-core==2.18.8
+ansible-core==2.19.2
     # via ansible
-cffi==1.17.1
+cffi==2.0.0
     # via cryptography
-cryptography==45.0.6
+cryptography==46.0.1
     # via ansible-core
 jinja2==3.1.6
     # via ansible-core
-markupsafe==3.0.2
+markupsafe==3.0.3
     # via jinja2
 packaging==25.0
     # via ansible-core
-pycparser==2.22
+pycparser==2.23
     # via cffi
-pyyaml==6.0.2
+pyyaml==6.0.3
     # via ansible-core
-resolvelib==1.0.1
+resolvelib==1.2.0
     # via ansible-core

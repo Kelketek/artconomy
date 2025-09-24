@@ -883,7 +883,6 @@ def idempotent_lines(instance: Deliverable):
     lines = deliverable_lines(
         base_price=base_price,
         table_product=instance.table_order,
-        cascade=instance.cascade_fees,
         escrow_enabled=instance.escrow_enabled,
         extra_lines=extra_lines,
         user_id=instance.order.seller.id,
@@ -902,11 +901,12 @@ def idempotent_lines(instance: Deliverable):
                 "percentage": line["percentage"],
                 "amount": Money(line["amount"], settings.DEFAULT_CURRENCY),
                 "priority": line["priority"],
-                "cascade_under": line["cascade_under"],
                 "description": line["description"],
-                "cascade_amount": line["cascade_amount"],
-                "cascade_percentage": line["cascade_percentage"],
                 "back_into_percentage": line["back_into_percentage"],
+                # These fields no longer used but not yet removed from the DB.
+                "cascade_under": 201,
+                "cascade_amount": False,
+                "cascade_percentage": False,
             },
             type=line["kind"],
             category=line["category"],

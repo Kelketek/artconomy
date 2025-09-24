@@ -459,16 +459,10 @@
             to protect your order.
           </p>
           <p>
-            When listing your products, you will have the option to pass on all
-            fees to the customer, or to absorb the fees into your pricing. By
-            default, new products pass on the fees. The customer will always see
-            the final price up front, so if you're passing on fees, and you
-            change your plan, your prices will change, too.
-          </p>
-          <p>
-            Alternatively, if you turn on 'absorb fees', you will have control
-            over the final price, but if you change plans, it will change how
-            much of that price goes to fees.
+            When listing your products, you set your take home amount. The
+            customer will always see the final price up front, so if our fees
+            change, or your plan changes to one that includes lower fees for
+            your clients, your take home amount does not change.
           </p>
           <p>
             The price calculator is available on every order and every product--
@@ -493,7 +487,7 @@
             credit card fees.
           </p>
           <p>
-            As a result, shield fees must always incorporate this cost. However,
+            As a result, fees must always incorporate this cost. However,
             with Landscape, this $2 (and other upstream fees) are chiefly
             covered every month by the subscription fee, so shield costs are
             able to be reduced significantly. This is also why tips are only
@@ -506,8 +500,8 @@
             charge a fee to offset costs on each non-shield order. We believe
             the order handling is the best out there for art commissions, and
             that the time saved will always be worth more than the fee. The net
-            for non-shield orders on our basic plan is calculated to be $1 after
-            Stripe's processing fees.
+            we receive for non-shield orders on our basic plan is calculated
+            to be $1 after Stripe's processing fees.
           </p>
           <p>
             Our goal, then, is to try to make at least a dollar on each order,

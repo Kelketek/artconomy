@@ -26,18 +26,6 @@
               label="Total Price"
             />
           </v-col>
-          <v-col cols="12">
-            <ac-bound-field
-              :field="newInvoice.fields.cascade_fees"
-              field-type="ac-checkbox"
-              label="Absorb Fees"
-              :false-value="false"
-              :persistent-hint="true"
-              hint="If turned on, the price you set is the price your commissioner will see, and you
-              will pay all fees from that price. If turned off, the price you set is the amount you
-              take home, and the total the customer pays includes the fees."
-            />
-          </v-col>
         </v-row>
       </v-col>
       <v-col cols="12" sm="6">

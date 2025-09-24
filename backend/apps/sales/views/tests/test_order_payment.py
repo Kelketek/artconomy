@@ -29,7 +29,7 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
             f"/api/sales/v1/invoice/{deliverable.invoice.id}/pay/",
             {
                 "cash": True,
-                "amount": "12.00",
+                "amount": "17.24",
             },
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
@@ -50,7 +50,7 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
             f"/api/sales/v1/invoice/{deliverable.invoice.id}/pay/",
             {
                 "cash": True,
-                "amount": "12.00",
+                "amount": "17.24",
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -72,14 +72,14 @@ class TestOrderInvoicePayment(TransactionCheckMixin, APITestCase):
             f"/api/sales/v1/invoice/{deliverable.invoice.id}/pay/",
             {
                 "cash": True,
-                "amount": "45.00",
+                "amount": "64.14",
             },
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         total = TransactionRecord.objects.filter(
             source__in=[CASH_DEPOSIT, CARD]
         ).aggregate(total=Sum("amount"))["total"]
-        self.assertEqual(total, Decimal("45.00"))
+        self.assertEqual(total, Decimal("64.14"))
 
     def test_pay_order_buyer_cash_fail(self):
         user = UserFactory.create()

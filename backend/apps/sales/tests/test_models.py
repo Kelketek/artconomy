@@ -232,9 +232,9 @@ class TestTransactionRecord(EnsurePlansMixin, TestCase):
 class TestDeliverable(EnsurePlansMixin, TestCase):
     def test_total(self):
         deliverable = DeliverableFactory.create(product__base_price=Money(5, "USD"))
-        self.assertEqual(deliverable.invoice.total(), Money("5.00", "USD"))
+        self.assertEqual(deliverable.invoice.total(), Money("9.35", "USD"))
         LineItemFactory.create(invoice=deliverable.invoice, amount=Money("2.00", "USD"))
-        self.assertEqual(deliverable.invoice.total(), Money("7.00", "USD"))
+        self.assertEqual(deliverable.invoice.total(), Money("11.61", "USD"))
 
     def deliverable_and_context(self):
         deliverable = DeliverableFactory.create()
@@ -363,9 +363,8 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(output["id"], revision.id)
         self.assertIn(revision.file.file.name, output["file"]["full"])
 
-    @data(True, False)
     @patch("apps.sales.stripe.stripe")
-    def test_create_line_items_escrow(self, cascade_fees, mock_stripe):
+    def test_create_line_items_escrow(self, mock_stripe):
         plan = ServicePlanFactory.create(
             name="Test Plan",
             shield_percentage_price=Decimal("9"),
@@ -374,7 +373,6 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         deliverable = DeliverableFactory.create(
             product__base_price=Money("15.00", "USD"),
             order__seller__service_plan=plan,
-            cascade_fees=cascade_fees,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money("15.00", "USD"))
@@ -383,14 +381,11 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         shield = deliverable.invoice.line_items.get(type=SHIELD)
         self.assertEqual(shield.percentage, Decimal("9"))
         self.assertEqual(shield.amount, Money(".35", "USD"))
-        self.assertEqual(shield.cascade_percentage, cascade_fees)
-        self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
         self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
         self.assertEqual(deliverable.invoice.line_items.all().count(), 5)
 
-    @data(True, False)
-    def test_create_line_items_escrow_international(self, cascade_fees):
+    def test_create_line_items_escrow_international(self):
         plan = ServicePlanFactory.create(
             name="Test Plan",
             shield_percentage_price=Decimal("9"),
@@ -399,7 +394,6 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         account = StripeAccountFactory.create(country="AU", user__service_plan=plan)
         deliverable = DeliverableFactory.create(
             product__base_price=Money("15.00", "USD"),
-            cascade_fees=cascade_fees,
             order__seller=account.user,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
@@ -409,8 +403,6 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         shield = deliverable.invoice.line_items.get(type=SHIELD)
         self.assertEqual(shield.percentage, Decimal("10"))
         self.assertEqual(shield.amount, Money(".35", "USD"))
-        self.assertEqual(shield.cascade_percentage, cascade_fees)
-        self.assertEqual(shield.cascade_amount, cascade_fees)
         self.assertEqual(shield.priority, PRIORITY_MAP[SHIELD])
         self.assertEqual(shield.cascade_under, CASCADE_UNDER_MAP[SHIELD])
         self.assertEqual(deliverable.invoice.line_items.all().count(), 6)
@@ -425,14 +417,12 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(base_price.priority, 0)
         self.assertEqual(deliverable.invoice.line_items.all().count(), 1)
 
-    @data(True, False)
-    def test_create_line_items_non_escrow_metered(self, cascade_fees):
+    def test_create_line_items_non_escrow_metered(self):
         plan = ServicePlanFactory.create(per_deliverable_price=Money("2.00", "USD"))
         deliverable = DeliverableFactory.create(
             product__base_price=Money("15.00", "USD"),
             escrow_enabled=False,
             order__seller__service_plan=plan,
-            cascade_fees=cascade_fees,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money("15.00", "USD"))
@@ -440,15 +430,12 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         self.assertEqual(base_price.priority, 0)
         meter_price = deliverable.invoice.line_items.get(type=DELIVERABLE_TRACKING)
         self.assertEqual(meter_price.amount, Money("2.00", "USD"))
-        self.assertEqual(meter_price.cascade_amount, cascade_fees)
         self.assertEqual(deliverable.invoice.line_items.all().count(), 2)
 
-    @data(True, False)
-    def test_create_line_items_table_service(self, cascade_fees):
+    def test_create_line_items_table_service(self):
         deliverable = DeliverableFactory.create(
             product__base_price=Money("15.00", "USD"),
             table_order=True,
-            cascade_fees=cascade_fees,
         )
         base_price = deliverable.invoice.line_items.get(type=BASE_PRICE)
         self.assertEqual(base_price.amount, Money("15.00", "USD"))
@@ -457,8 +444,6 @@ class TestDeliverable(EnsurePlansMixin, TestCase):
         table_service = deliverable.invoice.line_items.get(type=TABLE_SERVICE)
         self.assertEqual(table_service.percentage, Decimal("20"))
         self.assertEqual(table_service.amount, Money("2.00", "USD"))
-        self.assertEqual(table_service.cascade_percentage, cascade_fees)
-        self.assertTrue(table_service.cascade_amount)
         set_on_fire = deliverable.invoice.line_items.get(type=TAX)
         self.assertEqual(set_on_fire.percentage, Decimal("8"))
         self.assertEqual(set_on_fire.amount, Money("0.00", "USD"))
@@ -862,7 +847,7 @@ class TestInvoice(EnsurePlansMixin, TestCase):
             str(deliverable.invoice),
             f"Invoice {deliverable.invoice.id} [Sale] for "
             f"{deliverable.invoice.bill_to.username} in the amount of "
-            f"$15.00 for deliverable: Deliverable object ({deliverable.id})",
+            f"$20.62 for deliverable: Deliverable object ({deliverable.id})",
         )
 
 

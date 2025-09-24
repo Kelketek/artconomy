@@ -504,23 +504,9 @@
                           <v-col cols="12">
                             <ac-patch-field
                               :patcher="product.patchers.base_price"
-                              :label="basePriceLabel"
+                              label="Take home amount"
                               field-type="ac-price-field"
                               :hint="priceHint"
-                            />
-                          </v-col>
-                          <v-col cols="12" md="6">
-                            <ac-patch-field
-                              :patcher="product.patchers.cascade_fees"
-                              field-type="v-switch"
-                              label="Absorb fees"
-                              :persistent-hint="true"
-                              hint="If turned on, the price you set is the price your commissioner will see, and you
-                          will pay all fees from that price. If turned off, the price you set is the amount you
-                          take home, and the total the customer pays includes the fees."
-                              :true-value="true"
-                              :false-value="false"
-                              color="primary"
                             />
                           </v-col>
                           <v-col cols="12" md="6">
@@ -1146,14 +1132,6 @@ const more = computed(() => {
 
 const showExtra = computed(() => prunedSubmissions.value.length)
 
-const basePriceLabel = computed(() => {
-  if (product.patchers.cascade_fees.model) {
-    return "List Price"
-  } else {
-    return "Take home amount"
-  }
-})
-
 const escrow = computed(() => {
   const profile = subjectHandler.artistProfile.x
   return !!(profile && profile.escrow_enabled)
@@ -1168,7 +1146,6 @@ const rawLineItemSetMaps = computed(() => {
 
   const planName = subject.value?.service_plan || null
   const international = !!subject.value?.international
-  const cascade = product.x.cascade_fees
   const tableProduct = product.x.table_product
   let preferredLines: LineItem[] = []
   let appendPreferred = false
@@ -1178,7 +1155,6 @@ const rawLineItemSetMaps = computed(() => {
   ) {
     const options = {
       basePrice,
-      cascade: cascade && product.x.escrow_enabled,
       international,
       pricing: pricing.x,
       escrowEnabled: true,
@@ -1205,7 +1181,6 @@ const rawLineItemSetMaps = computed(() => {
   if (!escrow.value || !product.x.escrow_enabled) {
     const nonEscrowLines = deliverableLines({
       basePrice,
-      cascade,
       international,
       planName,
       pricing: pricing.x,

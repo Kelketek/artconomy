@@ -701,40 +701,6 @@ class TestProduct(APITestCase):
         self.assertCountEqual(result["tags"], ["a", "b", "c", "d"])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
-    @override_settings(MINIMUM_PRICE=Money("1.00", "USD"))
-    @patch("apps.sales.models.stripe")
-    def test_create_product_minimum_unmet(self, _mock_stripe):
-        account = StripeAccountFactory.create(active=True)
-        account.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
-        account.user.artist_profile.escrow_enabled = True
-        account.user.artist_profile.save()
-        self.login(account.user)
-        asset = AssetFactory.create(uploaded_by=account.user)
-        response = self.client.post(
-            "/api/sales/account/{}/products/".format(account.user.username),
-            {
-                "description": "I will draw you a porn.",
-                "file": str(asset.id),
-                "name": "Pornographic refsheet",
-                "revisions": 2,
-                "task_weight": 2,
-                "expected_turnaround": 3,
-                "base_price": "0.50",
-                "escrow_enabled": True,
-                "cascade_fees": True,
-                "tags": ["a", "b", "c", "d"],
-            },
-        )
-        result = response.data
-        self.assertEqual(
-            result["base_price"],
-            [
-                "Value too small to have shield enabled. Raise until the total is at "
-                "least $\xa01.00."
-            ],
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
     @override_settings(MINIMUM_PRICE=Money("5.00", "USD"))
     @patch("apps.sales.models.stripe")
     def test_create_product_negative_fails(self, _mock_stripe):
@@ -1463,18 +1429,6 @@ class TestProductSearch(APITestCase):
         self.assertIDInList(shielded, response.data["results"])
         self.assertIDInList(upgradable, response.data["results"])
         self.assertEqual(len(response.data["results"]), 2)
-        # Filter by shield and min_price
-        response = self.client.get(
-            "/api/sales/search/product/", {"shield_only": True, "min_price": "15.01"}
-        )
-        self.assertIDInList(upgradable, response.data["results"])
-        self.assertEqual(len(response.data["results"]), 1)
-        response = self.client.get(
-            "/api/sales/search/product/", {"shield_only": True, "max_price": "15.01"}
-        )
-        self.assertIDInList(shielded, response.data["results"])
-        self.assertEqual(len(response.data["results"]), 1)
-
 
 class TestCancelPremium(APITestCase):
     def test_cancel(self):

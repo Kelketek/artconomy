@@ -892,12 +892,9 @@ class LineItemCalculationSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "priority",
-            "cascade_under",
             "percentage",
             "amount",
             "frozen_value",
-            "cascade_percentage",
-            "cascade_amount",
             "back_into_percentage",
             "destination_account",
             "destination_user_id",

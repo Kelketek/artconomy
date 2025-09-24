@@ -103,7 +103,6 @@ export const sum = (values: string[]): string => {
 export const deliverableLines = ({
   basePrice,
   tableProduct,
-  cascade,
   escrowEnabled,
   international,
   extraLines,
@@ -112,7 +111,6 @@ export const deliverableLines = ({
 }: {
   basePrice: string
   tableProduct: boolean
-  cascade: boolean
   escrowEnabled: boolean
   international: boolean
   extraLines: LineItem[]
@@ -122,7 +120,6 @@ export const deliverableLines = ({
   return js_deliverable_lines({
     base_price: basePrice,
     table_product: tableProduct,
-    cascade,
     escrow_enabled: escrowEnabled,
     international: international,
     extra_lines: extraLines,

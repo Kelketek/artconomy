@@ -522,11 +522,11 @@ def initialize_tip_invoice(deliverable):
                 "percentage": line["percentage"],
                 "amount": Money(line["amount"], settings.DEFAULT_CURRENCY),
                 "priority": line["priority"],
-                "cascade_under": line["cascade_under"],
                 "description": line["description"],
-                "cascade_amount": line["cascade_amount"],
-                "cascade_percentage": line["cascade_percentage"],
                 "back_into_percentage": line["back_into_percentage"],
+                "cascade_amount": False,
+                "cascade_percentage": False,
+                "cascade_under": 201,
             },
             type=line["kind"],
             category=line["category"],
@@ -1690,11 +1690,14 @@ def lines_for_product(product: "Product", force_shield=False) -> List["LineItemS
         plan_name=product.user.service_plan.name,
         user_id=product.user.id,
         international=product.international,
-        cascade=product.cascade_fees,
     ):
         line["type"] = int(line.pop("kind"))
         line["category"] = int(line["category"])
         line["destination_account"] = int(line["destination_account"])
+        # We're not removing these just yet, but we intend to once things are stable.
+        line["cascade_amount"] = False
+        line["cascade_percentage"] = False
+        line["cascade_under"] = 201
         results.append(LineItemSim(**line))
     return results
 

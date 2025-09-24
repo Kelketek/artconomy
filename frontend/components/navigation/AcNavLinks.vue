@@ -43,6 +43,16 @@
         <v-list-item-title>Settings</v-list-item-title>
       </v-list-item>
       <v-list-item
+        :to="{name: 'Calculator'}"
+        role="listitem"
+        tabindex="0"
+      >
+        <template #prepend>
+          <v-icon :icon="mdiCalculator" />
+        </template>
+        <v-list-item-title>Calculator</v-list-item-title>
+      </v-list-item>
+      <v-list-item
         v-if="isRegistered"
         :to="{ name: 'Conversations', params: { username: subject.username } }"
         role="listitem"
@@ -379,7 +389,7 @@ import {
   mdiAlert,
   mdiArrowUp,
   mdiBasket,
-  mdiBullhorn,
+  mdiBullhorn, mdiCalculator,
   mdiCashMultiple,
   mdiChartBoxOutline,
   mdiCity,
@@ -397,7 +407,7 @@ import {
   mdiStar,
   mdiStore,
   mdiStoreCogOutline,
-  mdiStorefront,
+  mdiStorefront
 } from "@mdi/js"
 import { buildPowers, useViewer } from "@/mixins/viewer.ts"
 import { AnonUser, User } from "@/store/profiles/types/main"

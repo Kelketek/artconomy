@@ -62,13 +62,13 @@ describe("AcPricePreview.vue", () => {
       },
     })
     const vm = wrapper.vm as any
-    expect(vm.rawPrice).toEqual("80.00")
+    expect(vm.rawPrice).toEqual("87.15")
     vm.addOnForm.fields.amount.update("5.00")
     await nextTick()
-    expect(vm.rawPrice).toEqual("85.00")
+    expect(vm.rawPrice).toEqual("92.55")
     vm.extraForm.fields.amount.update("10.00")
     await nextTick()
-    expect(vm.rawPrice).toEqual("95.00")
+    expect(vm.rawPrice).toEqual("102.55")
   })
   test("Calculates hourly rate for escrow", async () => {
     setViewer({ store, user })
@@ -87,7 +87,7 @@ describe("AcPricePreview.vue", () => {
     const vm = wrapper.vm as any
     vm.hourlyForm.fields.hours.model = 2
     await vm.$nextTick()
-    expect(vm.hourly).toEqual("36.42")
+    expect(vm.hourly).toEqual("40.00")
   })
   test("Calculates hourly rate for non-escrow", async () => {
     setViewer({ store, user })
@@ -106,7 +106,7 @@ describe("AcPricePreview.vue", () => {
     const vm = wrapper.vm as any
     vm.hourlyForm.fields.hours.model = 2
     await vm.$nextTick()
-    expect(vm.hourly).toEqual("40.00")
+    expect(vm.hourly).toEqual("43.58")
   })
   afterEach(() => {
     cleanUp(wrapper)

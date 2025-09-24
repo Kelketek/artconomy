@@ -416,7 +416,7 @@ describe("ProductDetail.vue", () => {
           ),
           [LineType.TABLE_SERVICE],
         ),
-      ).toEqual("6.00"),
+      ).toEqual("6.27"),
     )
     expect(
       totalForTypes(
@@ -434,7 +434,7 @@ describe("ProductDetail.vue", () => {
           (x: SingleController<LineItem>) => x.x,
         ),
       ).total,
-    ).toEqual("10.00")
+    ).toEqual("20.53")
   })
   test("Handles a shield product", async () => {
     prepData()
@@ -463,7 +463,7 @@ describe("ProductDetail.vue", () => {
           ),
           [LineType.SHIELD],
         ),
-      ).toEqual("4.05"),
+      ).toEqual("4.42"),
     )
     expect(
       totalForTypes(

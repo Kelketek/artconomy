@@ -726,12 +726,15 @@ class OrderDeliverables(ListCreateAPIView):
             order=order,
             **deliverable_facts,
         )
+        # TODO: Replace this with the deliverable line items rust function
         line, _ = deliverable.invoice.line_items.get_or_create(
             type=BASE_PRICE,
             amount=facts["price"],
             category=ESCROW_HOLD,
             priority=PRIORITY_MAP[BASE_PRICE],
-            cascade_under=CASCADE_UNDER_MAP[BASE_PRICE],
+            defaults={
+                "cascade_under": CASCADE_UNDER_MAP[BASE_PRICE],
+            },
             destination_account=ESCROW,
             destination_user=order.seller,
         )
@@ -741,9 +744,12 @@ class OrderDeliverables(ListCreateAPIView):
                 type=ADD_ON,
                 amount=facts["adjustment"],
                 priority=PRIORITY_MAP[ADD_ON],
-                cascade_under=CASCADE_UNDER_MAP[ADD_ON],
+                defaults={
+                    "cascade_under": CASCADE_UNDER_MAP[ADD_ON],
+                    "destination_account": ESCROW,
+                    "category": ESCROW_HOLD,
+                },
                 destination_account=ESCROW,
-                category=ESCROW_HOLD,
                 destination_user=order.seller,
             )
             line.annotate(deliverable)

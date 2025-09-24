@@ -26,20 +26,10 @@
             />
           </v-col>
           <v-col cols="12" sm="6">
-            <v-switch
-              v-model="absorbFees"
-              label="Absorb Fees"
-              color="primary"
-              hint="Enable this to set your target price rather than your takehome amount."
-              :persistent-hint="true"
-              :disabled="escrowDisabled"
-            />
-          </v-col>
-          <v-col cols="12" sm="6">
             <ac-price-field
               v-model="price"
               :disabled="escrowDisabled"
-              :label="priceLabel"
+              label="Average take-home amount"
             />
           </v-col>
           <v-col v-if="!escrowDisabled" cols="12">
@@ -126,12 +116,6 @@ watch(
   { immediate: true, deep: true },
 )
 
-const absorbFees = ref(false)
-const priceLabel = computed(() =>
-  absorbFees.value
-    ? "Average Price per commission"
-    : "Average Takehome amount per commission",
-)
 const escrowDisabled = ref(false)
 const rawEscrowCount = ref(1)
 const price = ref("50.00")
@@ -159,7 +143,6 @@ const rawLineItemSetMaps: ComputedRef<RawLineItemSetMap[]> = computed(() => {
       lineItems: deliverableLines({
         basePrice: price.value,
         tableProduct: false,
-        cascade: absorbFees.value,
         escrowEnabled: true,
         international: international.value,
         extraLines: [],
