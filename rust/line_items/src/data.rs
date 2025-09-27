@@ -280,6 +280,13 @@ pub struct LineItem {
     /// of the relevant invoice.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub cascade_percentage: bool,
+    /// In contrast to the method used by 'cascade_percentage' on its own, this assumes that the
+    /// percentage amount would have been pre-applied to the lower line items and the result is the
+    /// total. This is how taxes are normally done-- you have a base amount, and the tax is run on
+    /// top of it, as opposed to the other method where the percentage is deducted from whatever
+    /// the total ended up being.
+    #[cfg_attr(feature = "python", pyo3(item))]
+    pub back_into_percentage: bool,
     /// Whether the amount is to be pulled out of lower priority line items rather than added on
     /// top.
     #[cfg_attr(feature = "python", pyo3(item))]
@@ -507,6 +514,7 @@ impl Default for LineItem {
                 percentage: String::from("0"),
                 category: Category::Correction,
                 cascade_percentage: false,
+                back_into_percentage: false,
                 cascade_amount: false,
                 destination_user_id: None,
                 destination_account: Account::Fund,

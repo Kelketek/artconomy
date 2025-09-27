@@ -185,12 +185,25 @@ pub mod funcs {
                 added_amount += line_amount;
             }
             let multiplier = dec!(0.01) * dec_from_string!(line.percentage);
-            if line.cascade_percentage {
+            if line.back_into_percentage {
                 let divisor = multiplier + one;
-                working_amount = (current_total / divisor) * multiplier;
-                cascaded_amount += working_amount;
+                if line.cascade_percentage {
+                    working_amount = (current_total / divisor) * multiplier;
+                } else {
+                    let factor = one / (one - multiplier);
+                    let mut additional = zero;
+                    if !line.cascade_amount {
+                        additional = line_amount;
+                    }
+                    let initial_amount = current_total + additional;
+                    working_amount = (initial_amount * factor) - initial_amount;
+                }
             } else {
                 working_amount = current_total * multiplier;
+            }
+            if line.cascade_percentage {
+                cascaded_amount += working_amount;
+            } else {
                 added_amount += working_amount;
             }
             working_amount += line_amount;
@@ -574,6 +587,7 @@ pub mod funcs {
                 amount: pricing.processing_static,
                 cascade_amount: true,
                 cascade_percentage: true,
+                back_into_percentage: false,
                 description: s!(""),
                 frozen_value: None,
                 category: Category::ProcessingFee,
@@ -586,6 +600,7 @@ pub mod funcs {
                 percentage: pricing.stripe_blended_rate_percentage,
                 cascade_amount: true,
                 cascade_percentage: true,
+                back_into_percentage: false,
                 kind: LineType::CardFee,
                 destination_user_id: None,
                 destination_account: Account::Fund,
@@ -601,6 +616,7 @@ pub mod funcs {
                 percentage: pricing.stripe_payout_percentage,
                 cascade_amount: true,
                 cascade_percentage: true,
+                back_into_percentage: false,
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
                 kind: LineType::PayoutFee,
@@ -619,6 +635,7 @@ pub mod funcs {
                 category: Category::ThirdPartyFee,
                 kind: LineType::CrossBorderTransferFee,
                 cascade_percentage: true,
+                back_into_percentage: false,
                 cascade_amount: true,
                 destination_user_id: None,
                 destination_account: Account::Fund,
@@ -677,6 +694,7 @@ pub mod funcs {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
+                back_into_percentage: false,
                 frozen_value: None,
                 percentage: s!("0"),
                 destination_user_id: Some(lines_context.user_id),
@@ -770,6 +788,7 @@ pub mod funcs {
                 description: s!(""),
                 cascade_amount: false,
                 cascade_percentage: false,
+                back_into_percentage: false,
                 destination_account: Account::Escrow,
                 destination_user_id: Some(lines_context.user_id),
             });
@@ -800,6 +819,7 @@ pub mod funcs {
                 kind: LineType::TableService,
                 category: Category::TableHandling,
                 cascade_percentage: lines_context.cascade,
+                back_into_percentage: false,
                 cascade_amount: true,
                 amount: pricing.table_static,
                 frozen_value: None,
@@ -816,6 +836,7 @@ pub mod funcs {
                 description: s!(""),
                 category: Category::Taxes,
                 cascade_percentage: lines_context.cascade,
+                back_into_percentage: true,
                 cascade_amount: lines_context.cascade,
                 percentage: pricing.table_tax,
                 amount: s!("0"),
@@ -856,6 +877,7 @@ pub mod funcs {
                 description: s!(""),
                 category: Category::ShieldFee,
                 cascade_percentage: lines_context.cascade,
+                back_into_percentage: false,
                 cascade_amount: lines_context.cascade,
                 amount: plan.shield_static_price.clone(),
                 frozen_value: None,
@@ -872,6 +894,7 @@ pub mod funcs {
                 description: s!(""),
                 category: Category::SubscriptionDues,
                 cascade_percentage: lines_context.cascade,
+                back_into_percentage: false,
                 cascade_amount: lines_context.cascade,
                 amount: plan.per_deliverable_price.clone(),
                 frozen_value: None,
@@ -890,6 +913,7 @@ pub mod funcs {
                 percentage: pricing.stripe_blended_rate_percentage,
                 cascade_amount: lines_context.cascade,
                 cascade_percentage: lines_context.cascade,
+                back_into_percentage: false,
                 kind: LineType::CardFee,
                 destination_user_id: None,
                 destination_account: Account::Fund,
@@ -905,6 +929,7 @@ pub mod funcs {
                 percentage: pricing.stripe_payout_percentage,
                 cascade_amount: lines_context.cascade,
                 cascade_percentage: lines_context.cascade,
+                back_into_percentage: false,
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
                 kind: LineType::PayoutFee,
@@ -923,6 +948,7 @@ pub mod funcs {
                     kind: LineType::CrossBorderTransferFee,
                     cascade_percentage: lines_context.cascade,
                     cascade_amount: lines_context.cascade,
+                    back_into_percentage: false,
                     destination_user_id: None,
                     destination_account: Account::Fund,
                     description: s!(""),
@@ -941,6 +967,7 @@ pub mod funcs {
                     destination_user_id: None,
                     destination_account: Account::Fund,
                     cascade_percentage: lines_context.cascade,
+                    back_into_percentage: false,
                     cascade_amount: lines_context.cascade,
                     description: s!(""),
                     frozen_value: None,
