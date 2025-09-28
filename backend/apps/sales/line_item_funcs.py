@@ -159,7 +159,6 @@ def deliverable_lines(
     *,
     base_price: Money,
     table_product: bool,
-    cascade: bool,
     escrow_enabled: bool,
     international: bool,
     extra_lines: list["LineItem"],
@@ -173,7 +172,6 @@ def deliverable_lines(
         {
             "base_price": str(base_price.amount),
             "table_product": table_product,
-            "cascade": cascade,
             "escrow_enabled": escrow_enabled,
             "international": international,
             "user_id": user_id,

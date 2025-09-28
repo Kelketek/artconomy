@@ -32,7 +32,6 @@ const tipLines = (): LineItem[] => {
     {
       id: 21,
       priority: 300,
-      cascade_under: 300,
       percentage: "4",
       amount: "0.50",
       frozen_value: null,
@@ -41,14 +40,11 @@ const tipLines = (): LineItem[] => {
       destination_account: 313,
       destination_user_id: null,
       description: "",
-      cascade_percentage: true,
-      cascade_amount: true,
       back_into_percentage: false,
     },
     {
       id: 22,
       priority: 200,
-      cascade_under: 200,
       percentage: "0",
       amount: "7.00",
       frozen_value: null,
@@ -57,8 +53,6 @@ const tipLines = (): LineItem[] => {
       destination_account: 304,
       destination_user_id: null,
       description: "",
-      cascade_percentage: false,
-      cascade_amount: false,
       back_into_percentage: false,
     },
   ]
@@ -123,7 +117,7 @@ describe("AcTippingPrompt", () => {
     await vm.$nextTick()
     await wrapper.find(".preset10").trigger("click")
     await vm.$nextTick()
-    expect(vm.tip.patchers.amount.model).toEqual("8.00")
+    expect(vm.tip.patchers.amount.model).toEqual("8.72")
   })
   test("Updates an existing tip line item", async () => {
     const fox = genUser()
@@ -165,6 +159,6 @@ describe("AcTippingPrompt", () => {
     mockAxios.reset()
     vm.setTip(0.25)
     await vm.$nextTick()
-    expect(vm.tip.patchers.amount.model).toEqual("20.00")
+    expect(vm.tip.patchers.amount.model).toEqual("21.79")
   })
 })

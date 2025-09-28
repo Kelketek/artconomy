@@ -70,14 +70,7 @@ pub mod funcs {
     pub fn lines_by_priority(lines: Vec<LineItem>) -> Result<Vec<Vec<LineItem>>, TabulationError> {
         let mut priority_sets: HashMap<i16, Vec<LineItem>> = HashMap::new();
         for line in lines.into_iter() {
-            if line.priority < line.cascade_under {
-                return Err(TabulationError::from(format!(
-                    "Line ID {} has higher cascade_under ({}) than priority ({}).",
-                    line.id, line.cascade_under, line.priority
-                )));
-            }
-            let priority: i16 = line.priority;
-            priority_sets.entry(priority).or_default().push(line);
+            priority_sets.entry(line.priority).or_default().push(line);
         }
         let mut prioritized_lines: Vec<Vec<LineItem>> = Vec::new();
         for (_, set) in priority_sets.into_iter() {
@@ -111,48 +104,6 @@ pub mod funcs {
         quantize(amount, quantization).to_string()
     }
 
-    /// Given a total, and an amount that needs to be proportionally pulled from the lines (such as a
-    /// discount amount, or a calculated fee based on the total), and a current LineMoneyMap, produces
-    /// a new, revalued LineMoneyMap with the Money amounts reduced proportionally in a way that adds
-    /// up to the distributed_amount. Note that this reduction is not quantized or rounded.
-    fn distribute_reduction(
-        total: Decimal,
-        distributed_amount: Decimal,
-        cascade_under: i16,
-        line_values: LineDecimalMap,
-    ) -> Result<LineDecimalMap, TabulationError> {
-        let mut reductions = LineDecimalMap::new();
-        let zero = dec!(0);
-        let mut applicable_values = LineDecimalMap::new();
-        let mut proxy_total = total;
-        for (key, value) in line_values {
-            if key.priority < cascade_under {
-                applicable_values.insert(key, value);
-            } else {
-                // Percentage allocations must be proportional to the applicable amount,
-                // so total must be reduced.
-                proxy_total -= value;
-            }
-        }
-        for (line, original_value) in applicable_values.iter() {
-            if original_value < &zero {
-                continue;
-            }
-            let multiplier = if total == zero {
-                match applicable_values.len().to_i64() {
-                    Some(denominator) => Ok(dec!(1) / Decimal::new(denominator, 0)),
-                    None => Err(TabulationError::from(
-                        "Way too many lines to distribute to!",
-                    )),
-                }
-            } else {
-                Ok(*original_value / proxy_total)
-            };
-            reductions.insert(line.clone(), distributed_amount * multiplier?);
-        }
-        Ok(reductions)
-    }
-
     /// Determine the total value of a set of a 'priority set' of lines.
     /// Line items are arranged in a vector of vectors. The outer vector is sorted according to
     /// priority by the 'lines_by_priority' function. They are then folded using this function to
@@ -171,62 +122,23 @@ pub mod funcs {
         let (current_total, mut discount, subtotals) = current;
         let mut working_subtotals: LineDecimalMap = HashMap::new();
         let mut summable_totals: LineDecimalMap = HashMap::new();
-        let mut reductions: Vec<LineDecimalMap> = Vec::new();
         let zero = quantized_zero(quantization);
         let one = dec!(1);
         for line in priority_set.into_iter() {
             let line_amount = dec_from_string!(&line.amount);
-            let mut cascaded_amount = quantized_zero(quantization);
             let mut added_amount = quantized_zero(quantization);
             let mut working_amount: Decimal;
-            if line.cascade_amount {
-                cascaded_amount += line_amount;
-            } else {
-                added_amount += line_amount;
-            }
+            added_amount += line_amount;
             let multiplier = dec!(0.01) * dec_from_string!(line.percentage);
             if line.back_into_percentage {
-                let divisor = multiplier + one;
-                if line.cascade_percentage {
-                    working_amount = (current_total / divisor) * multiplier;
-                } else {
-                    let factor = one / (one - multiplier);
-                    let mut additional = zero;
-                    if !line.cascade_amount {
-                        additional = line_amount;
-                    }
-                    let initial_amount = current_total + additional;
-                    working_amount = (initial_amount * factor) - initial_amount;
-                }
+                let factor = one / (one - multiplier);
+                let initial_amount = current_total + line_amount;
+                working_amount = (initial_amount * factor) - initial_amount;
             } else {
                 working_amount = current_total * multiplier;
             }
-            if line.cascade_percentage {
-                cascaded_amount += working_amount;
-            } else {
-                added_amount += working_amount;
-            }
+            added_amount += working_amount;
             working_amount += line_amount;
-            if cascaded_amount != zero {
-                let mut line_values: LineDecimalMap = HashMap::new();
-                for key in subtotals.keys() {
-                    if key.priority < line.priority {
-                        line_values.insert(
-                            key.clone(),
-                            *subtotals.get(key).ok_or(TabulationError::from(
-                                "Line item missing from Subtotals hash. How?",
-                            ))?,
-                        );
-                    }
-                }
-                let output = distribute_reduction(
-                    current_total - discount,
-                    cascaded_amount,
-                    line.cascade_under,
-                    line_values,
-                )?;
-                reductions.push(output)
-            }
             if added_amount != zero {
                 summable_totals.insert(line.clone(), added_amount);
             }
@@ -235,17 +147,11 @@ pub mod funcs {
                 discount += working_amount;
             }
         }
-        let mut new_subtotals = subtotals.clone();
-        for reduction_set in reductions.iter() {
-            for (line, reduction) in reduction_set.iter() {
-                new_subtotals.insert(line.clone(), new_subtotals[line] - *reduction);
-            }
-        }
         let mut add_on: Decimal = zero;
         for operand in summable_totals.values() {
             add_on += *operand;
         }
-        let mut new_totals = new_subtotals.clone();
+        let mut new_totals = subtotals.clone();
         for (key, value) in working_subtotals.iter() {
             new_totals.insert(key.clone(), *value);
         }
@@ -377,6 +283,7 @@ pub mod funcs {
         if difference != zero {
             subtotals = distribute_difference(difference, subtotals, quantization)?;
         }
+        discount = quantize(&discount, quantization);
         Ok((total, discount, subtotals))
     }
 
@@ -581,12 +488,9 @@ pub mod funcs {
                 priority: 300,
                 destination_user_id: None,
                 destination_account: Account::Fund,
-                cascade_under: 201,
                 kind: LineType::Processing,
                 percentage: processing_percentage.to_string(),
                 amount: pricing.processing_static,
-                cascade_amount: true,
-                cascade_percentage: true,
                 back_into_percentage: false,
                 description: s!(""),
                 frozen_value: None,
@@ -595,11 +499,8 @@ pub mod funcs {
             LineItem {
                 id: -7,
                 priority: 350,
-                cascade_under: 201,
                 amount: pricing.stripe_blended_rate_static,
                 percentage: pricing.stripe_blended_rate_percentage,
-                cascade_amount: true,
-                cascade_percentage: true,
                 back_into_percentage: false,
                 kind: LineType::CardFee,
                 destination_user_id: None,
@@ -611,11 +512,8 @@ pub mod funcs {
             LineItem {
                 id: -9,
                 priority: 325,
-                cascade_under: 201,
                 amount: pricing.stripe_payout_static,
                 percentage: pricing.stripe_payout_percentage,
-                cascade_amount: true,
-                cascade_percentage: true,
                 back_into_percentage: false,
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
@@ -629,14 +527,11 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -8,
                 priority: 325,
-                cascade_under: 201,
                 amount: s!("0"),
                 percentage: pricing.stripe_payout_cross_border_percentage,
                 category: Category::ThirdPartyFee,
                 kind: LineType::CrossBorderTransferFee,
-                cascade_percentage: true,
                 back_into_percentage: false,
-                cascade_amount: true,
                 destination_user_id: None,
                 destination_account: Account::Fund,
                 description: s!(""),
@@ -687,13 +582,10 @@ pub mod funcs {
             extra_lines.push(LineItem {
                 id: -2,
                 priority: 100,
-                cascade_under: 100,
                 kind: LineType::AddOn,
                 category: Category::EscrowHold,
                 amount: value_string(&add_on_price, lines_context.quantization),
                 description: s!(""),
-                cascade_amount: false,
-                cascade_percentage: false,
                 back_into_percentage: false,
                 frozen_value: None,
                 percentage: s!("0"),
@@ -705,7 +597,6 @@ pub mod funcs {
             base_price: value_string(&base_price, lines_context.quantization),
             extra_lines,
             table_product,
-            cascade: lines_context.cascade,
             escrow_enabled: lines_context.escrow_enabled,
             international: lines_context.international,
             plan_name: lines_context.plan_name,
@@ -779,15 +670,12 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -1,
                 priority: 0,
-                cascade_under: 0,
                 kind: LineType::BasePrice,
                 category: Category::EscrowHold,
                 frozen_value: None,
                 amount: lines_context.base_price,
                 percentage: s!("0"),
                 description: s!(""),
-                cascade_amount: false,
-                cascade_percentage: false,
                 back_into_percentage: false,
                 destination_account: Account::Escrow,
                 destination_user_id: Some(lines_context.user_id),
@@ -815,12 +703,9 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -3,
                 priority: 400,
-                cascade_under: 201,
                 kind: LineType::TableService,
                 category: Category::TableHandling,
-                cascade_percentage: lines_context.cascade,
                 back_into_percentage: false,
-                cascade_amount: true,
                 amount: pricing.table_static,
                 frozen_value: None,
                 description: s!(""),
@@ -831,13 +716,10 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -4,
                 priority: 700,
-                cascade_under: 201,
                 kind: LineType::Tax,
                 description: s!(""),
                 category: Category::Taxes,
-                cascade_percentage: lines_context.cascade,
-                back_into_percentage: true,
-                cascade_amount: lines_context.cascade,
+                back_into_percentage: false,
                 percentage: pricing.table_tax,
                 amount: s!("0"),
                 frozen_value: None,
@@ -872,13 +754,10 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -5,
                 priority: 330,
-                cascade_under: 201,
                 kind: LineType::Shield,
                 description: s!(""),
                 category: Category::ShieldFee,
-                cascade_percentage: lines_context.cascade,
-                back_into_percentage: false,
-                cascade_amount: lines_context.cascade,
+                back_into_percentage: true,
                 amount: plan.shield_static_price.clone(),
                 frozen_value: None,
                 percentage: shield_percentage_price.to_string(),
@@ -889,13 +768,10 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -6,
                 priority: 300,
-                cascade_under: 201,
                 kind: LineType::DeliverableTracking,
                 description: s!(""),
                 category: Category::SubscriptionDues,
-                cascade_percentage: lines_context.cascade,
                 back_into_percentage: false,
-                cascade_amount: lines_context.cascade,
                 amount: plan.per_deliverable_price.clone(),
                 frozen_value: None,
                 percentage: s!("0"),
@@ -908,12 +784,9 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -7,
                 priority: 350,
-                cascade_under: 201,
                 amount: pricing.stripe_blended_rate_static,
                 percentage: pricing.stripe_blended_rate_percentage,
-                cascade_amount: lines_context.cascade,
-                cascade_percentage: lines_context.cascade,
-                back_into_percentage: false,
+                back_into_percentage: true,
                 kind: LineType::CardFee,
                 destination_user_id: None,
                 destination_account: Account::Fund,
@@ -924,12 +797,9 @@ pub mod funcs {
             lines.push(LineItem {
                 id: -9,
                 priority: 325,
-                cascade_under: 201,
                 amount: pricing.stripe_payout_static,
                 percentage: pricing.stripe_payout_percentage,
-                cascade_amount: lines_context.cascade,
-                cascade_percentage: lines_context.cascade,
-                back_into_percentage: false,
+                back_into_percentage: true,
                 frozen_value: None,
                 category: Category::ThirdPartyFee,
                 kind: LineType::PayoutFee,
@@ -941,14 +811,11 @@ pub mod funcs {
                 lines.push(LineItem {
                     id: -8,
                     priority: 325,
-                    cascade_under: 201,
                     amount: s!("0"),
                     percentage: pricing.stripe_payout_cross_border_percentage,
                     category: Category::ThirdPartyFee,
                     kind: LineType::CrossBorderTransferFee,
-                    cascade_percentage: lines_context.cascade,
-                    cascade_amount: lines_context.cascade,
-                    back_into_percentage: false,
+                    back_into_percentage: true,
                     destination_user_id: None,
                     destination_account: Account::Fund,
                     description: s!(""),
@@ -959,16 +826,13 @@ pub mod funcs {
                 lines.push(LineItem {
                     id: -10,
                     priority: 325,
-                    cascade_under: 201,
                     amount: pricing.stripe_active_account_monthly_fee,
                     percentage: s!("0"),
                     category: Category::ThirdPartyFee,
                     kind: LineType::ConnectFee,
                     destination_user_id: None,
                     destination_account: Account::Fund,
-                    cascade_percentage: lines_context.cascade,
                     back_into_percentage: false,
-                    cascade_amount: lines_context.cascade,
                     description: s!(""),
                     frozen_value: None,
                 })
@@ -1118,41 +982,6 @@ mod func_tests {
         assert_eq!(priority_set[1], vec![input[0].clone()]);
         assert_eq!(priority_set[2], vec![input[1].clone(), input[4].clone()]);
         assert_eq!(priority_set[3], vec![input[2].clone(), input[3].clone()]);
-    }
-
-    #[test]
-    fn test_sanity_check() {
-        let input = vec![
-            LineItem {
-                amount: s!("10.00"),
-                priority: 0,
-                cascade_under: 0,
-                id: 1,
-                ..Default::default()
-            },
-            LineItem {
-                amount: s!("5.00"),
-                priority: 100,
-                cascade_under: 100,
-                id: 2,
-                ..Default::default()
-            },
-            LineItem {
-                amount: s!("2.00"),
-                priority: 200,
-                cascade_under: 300,
-                cascade_amount: true,
-                id: 3,
-                ..Default::default()
-            },
-        ];
-        let result = lines_by_priority(input);
-        assert_eq!(
-            result,
-            Err(TabulationError::from(
-                "Line ID 3 has higher cascade_under (300) than priority (200)."
-            )),
-        );
     }
 
     #[test]

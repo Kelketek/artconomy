@@ -229,14 +229,10 @@ pub struct LineItem {
     #[cfg_attr(feature = "python", pyo3(item))]
     pub id: i32,
     /// All line items have a priority. This is used for determining atop which this line item's
-    /// value is calculated. So if the percentage is 5% and the lines at lower priority total to
-    /// 100, this line would be 5%, before any other modifiers applied by 'cascade_from'
+    /// value is calculated. So if the percentage is 25% and the lines at lower priority total to
+    /// 20, this line would be 5.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub priority: i16,
-    /// Any line whose priority is lower than this value will be taken from if cascading is
-    /// enabled through cascade_amount and/or cascade_percentage as applicable.
-    #[cfg_attr(feature = "python", pyo3(item))]
-    pub cascade_under: i16,
     /// The category of line item this is, such as the base price, an add-on, or some fee.
     #[serde(rename = "type")]
     #[cfg_attr(feature = "python", pyo3(item))]
@@ -269,28 +265,13 @@ pub struct LineItem {
     /// their holdings.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub destination_account: Account,
-    /// Whether the percentage calculated should be based on a target amount rather than added on
-    /// top. That is, calculate all lower priority items to get their total, then find out the line
-    /// item's percentage of that amount. Once found, remove that amount proportionally from all
-    /// lower line items so that the total amount doesn't change, but this line item's percentage is
-    /// accounted for.
-    ///
-    /// This is useful for things like credit card fees, where we are charged a percent amount based
-    /// on what we ran through the system, and no assumption is made about the line items
-    /// of the relevant invoice.
-    #[cfg_attr(feature = "python", pyo3(item))]
-    pub cascade_percentage: bool,
-    /// In contrast to the method used by 'cascade_percentage' on its own, this assumes that the
-    /// percentage amount would have been pre-applied to the lower line items and the result is the
-    /// total. This is how taxes are normally done-- you have a base amount, and the tax is run on
-    /// top of it, as opposed to the other method where the percentage is deducted from whatever
-    /// the total ended up being.
+    /// When applying a percentage, we could either apply it directly on top of the amount, or we
+    /// could apply it in such a way that, if we ended up with a total, and then checked the
+    /// percentage of the total, it would be this amount. This flag enabled the latter option,
+    /// which is especially useful for things like deriving credit card fees, which are pulled from
+    /// the total amount charged.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub back_into_percentage: bool,
-    /// Whether the amount is to be pulled out of lower priority line items rather than added on
-    /// top.
-    #[cfg_attr(feature = "python", pyo3(item))]
-    pub cascade_amount: bool,
 }
 
 /// Products. They are listings in our marketplace.
@@ -305,8 +286,6 @@ pub struct Product {
     pub base_price: String,
     /// Whether the product is intended to be sold at the virtual table.
     pub table_product: bool,
-    /// Whether the fees for the product should be cascaded.
-    pub cascade_fees: bool,
     /// Whether the product can be upgraded for escrow.
     pub escrow_upgradable: bool,
     /// Whether the product is on escrow by default.
@@ -357,9 +336,6 @@ pub struct DeliverableLinesContext {
     /// Whether the associated product is a table product.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub table_product: bool,
-    /// Whether the seller's fees should be cascaded from the total, rather than applied atop.
-    #[cfg_attr(feature = "python", pyo3(item))]
-    pub cascade: bool,
     /// Whether escrow is enabled for this deliverable.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub escrow_enabled: bool,
@@ -407,12 +383,9 @@ pub struct InvoiceLinesContext {
     /// Whether escrow is enabled for this deliverable.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub escrow_enabled: bool,
-    /// Whether the seller's fees should be cascaded from the total, rather than applied atop.
+    /// The product this invoice is based on, if any.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub product: Option<Product>,
-    /// Whether the seller's fees should be cascaded from the total.
-    #[cfg_attr(feature = "python", pyo3(item))]
-    pub cascade: bool,
     /// The ID of the user that is issuing the invoice.
     #[cfg_attr(feature = "python", pyo3(item))]
     pub user_id: i64,
@@ -506,16 +479,13 @@ impl Default for LineItem {
             LineItem {
                 id: LINE_COUNTER,
                 priority: 0,
-                cascade_under: 0,
                 amount: String::from("0"),
                 kind: LineType::AddOn,
                 frozen_value: None,
                 description: String::from(""),
                 percentage: String::from("0"),
                 category: Category::Correction,
-                cascade_percentage: false,
                 back_into_percentage: false,
-                cascade_amount: false,
                 destination_user_id: None,
                 destination_account: Account::Fund,
             }
@@ -534,7 +504,6 @@ impl Default for Product {
                 name: String::from("Test Product"),
                 base_price: String::from("10.00"),
                 table_product: false,
-                cascade_fees: true,
                 escrow_upgradable: false,
                 escrow_enabled: true,
             }

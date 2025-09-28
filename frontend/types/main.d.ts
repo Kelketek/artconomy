@@ -377,12 +377,9 @@ export type LineCategoryValue = (typeof LineCategory)[keyof typeof LineCategory]
 export interface LineItem {
   id: number
   priority: number
-  cascade_under: number
   amount: string
   frozen_value: string | null
   percentage: string
-  cascade_percentage: boolean
-  cascade_amount: boolean
   back_into_percentage: boolean
   type: LineTypeValue
   category: LineCategoryValue
