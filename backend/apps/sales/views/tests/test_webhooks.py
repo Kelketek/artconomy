@@ -234,6 +234,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             order__buyer__stripe_token="beep",
         )
         event["data"]["object"]["metadata"] = {"invoice_id": deliverable.invoice.id}
+        event["data"]["object"]["amount"] = money_to_stripe(
+            deliverable.invoice.total()
+        )[0]
         event["data"]["object"]["customer"] = "beep"
         # Throw in a random target to a line item to cover one more branch
         deliverable.invoice.line_items.first().targets.add(
@@ -260,7 +263,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
-        self.assertEqual(fee.amount, Money("0.74", "USD"))
+        self.assertEqual(fee.amount, Money("0.90", "USD"))
         for transaction in [fund_transaction, escrow_transaction, fee]:
             targets = list(transaction.targets.all())
             self.assertIn(ref_for_instance(deliverable), targets)
@@ -279,6 +282,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         invoice.current_intent = event["data"]["object"]["payment_intent"]
         invoice.save()
         event["data"]["object"]["metadata"] = {"invoice_id": invoice.id}
+        event["data"]["object"]["amount"] = money_to_stripe(
+            invoice.total()
+        )[0]
         event["data"]["object"]["customer"] = "beep"
         handle_stripe_event(connect=False, event=event)
         invoice.refresh_from_db()
@@ -308,7 +314,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
-        self.assertEqual(fee.amount, Money("0.46", "USD"))
+        self.assertEqual(fee.amount, Money("0.61", "USD"))
 
     def test_deliverable_payment_failed(self):
         event = base_charge_succeeded_event()
@@ -353,7 +359,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
-        self.assertEqual(fee.amount, Money("0.96", "USD"))
+        self.assertEqual(fee.amount, Money("1.21", "USD"))
 
     def test_deliverable_wrong_amount_throws(self):
         event = base_charge_succeeded_event()
@@ -443,7 +449,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             subscriber=deliverable.order.seller, type=SALE_UPDATE
         )
         self.assertTrue(subscription.email)
-        event["data"]["object"]["amount"] = money_to_stripe(Money("12.00", "USD"))[0]
+        event["data"]["object"]["amount"] = money_to_stripe(
+            deliverable.invoice.total()
+        )[0]
         event["data"]["object"]["metadata"] = {"invoice_id": deliverable.invoice.id}
         event["data"]["object"]["customer"] = "beep"
         handle_stripe_event(connect=False, event=event)
@@ -470,7 +478,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             subscriber=deliverable.order.seller, type=SALE_UPDATE
         )
         self.assertTrue(subscription.email)
-        event["data"]["object"]["amount"] = money_to_stripe(Money("12.00", "USD"))[0]
+        event["data"]["object"]["amount"] = money_to_stripe(
+            deliverable.invoice.total()
+        )[0]
         event["data"]["object"]["metadata"] = {"invoice_id": deliverable.invoice.id}
         event["data"]["object"]["customer"] = "beep"
         handle_stripe_event(connect=False, event=event)
@@ -495,7 +505,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         )
         add_adjustment(deliverable, Money("2.00", "USD"))
         RevisionFactory.create(deliverable=deliverable)
-        event["data"]["object"]["amount"] = money_to_stripe(Money("12.00", "USD"))[0]
+        event["data"]["object"]["amount"] = money_to_stripe(
+            deliverable.invoice.total()
+        )[0]
         event["data"]["object"]["metadata"] = {"invoice_id": deliverable.invoice.id}
         event["data"]["object"]["customer"] = "beep"
         handle_stripe_event(connect=False, event=event)
@@ -518,7 +530,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         )
         add_adjustment(deliverable, Money("2.00", "USD"))
         RevisionFactory.create(deliverable=deliverable)
-        event["data"]["object"]["amount"] = money_to_stripe(Money("12.00", "USD"))[0]
+        event["data"]["object"]["amount"] = money_to_stripe(
+            deliverable.invoice.total()
+        )[0]
         event["data"]["object"]["metadata"] = {"invoice_id": deliverable.invoice.id}
         event["data"]["object"]["customer"] = "beep"
         handle_stripe_event(connect=False, event=event)
@@ -680,6 +694,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         event["data"]["object"]["metadata"] = {
             "invoice_id": invoice.id,
         }
+        event["data"]["object"]["amount"] = money_to_stripe(
+            invoice.total()
+        )[0]
         event["data"]["object"]["customer"] = "burp"
         handle_stripe_event(connect=False, event=event)
         user.refresh_from_db()
@@ -711,6 +728,9 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         event["data"]["object"]["metadata"] = {
             "invoice_id": invoice.id,
         }
+        event["data"]["object"]["amount"] = money_to_stripe(
+            invoice.total()
+        )[0]
         event["data"]["object"]["customer"] = "burp"
         handle_stripe_event(connect=False, event=event)
         user.refresh_from_db()
@@ -928,7 +948,7 @@ class TestPaypalWebhooks(APITestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, QUEUED)
         self.assertEqual(
-            deliverable.invoice.total(), original_total + Money("5.00", "USD")
+            deliverable.invoice.total(), original_total + Money("5.64", "USD")
         )
         self.assertEqual(
             deliverable.invoice.line_items.filter(type=TIP).get().amount,

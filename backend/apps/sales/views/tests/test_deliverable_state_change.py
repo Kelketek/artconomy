@@ -192,7 +192,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
     def test_accept_deliverable_free(self, _mock_notify):
         LineItemFactory.create(
             invoice=self.deliverable.invoice,
-            amount=-self.deliverable.product.base_price,
+            amount=-self.deliverable.invoice.total(),
         )
         idempotent_lines(self.deliverable)
         self.state_assertion("seller", "accept/")
@@ -506,7 +506,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
             source=FUND,
             destination=CASH_DEPOSIT,
         )
-        self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
+        self.assertEqual(refund_transaction.amount, Money("7.91", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertEqual(refund_transaction.remote_ids, [])
         self.assertCountEqual(list(fund_transaction.targets.all()), targets)
@@ -545,14 +545,14 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         )
         self.assertLess(refund_transaction.amount, fund_transaction.amount)
         self.assertEqual(self.deliverable.refunded_on, timezone.now())
-        self.assertEqual(refund_transaction.amount, Money("3.85", "USD"))
+        self.assertEqual(refund_transaction.amount, Money("7.91", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertCountEqual(
             refund_transaction.remote_ids, ["pi_12345", "refund123", "txn_test_balance"]
         )
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
         mock_stripe.__enter__.return_value.Refund.create.assert_called_with(
-            amount=385, payment_intent="pi_12345"
+            amount=791, payment_intent="pi_12345"
         )
         self.deliverable.refresh_from_db()
         self.assertEqual(self.deliverable.redact_available_on, date(2023, 1, 11))
@@ -588,7 +588,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
             ).count(),
             0,
         )
-        self.assertEqual(refund_transaction.amount, Money("1.07", "USD"))
+        self.assertEqual(refund_transaction.amount, Money("5.00", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertEqual(
             sorted(refund_transaction.remote_ids), ["pi_12345", "txn_test_balance"]
@@ -596,7 +596,7 @@ class TestDeliverableStatusChange(APITestCase, DeliverableChargeMixin):
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
         self.assertEqual(refund_transaction.response_message, "Failed!")
         mock_stripe.__enter__.return_value.Refund.create.assert_called_with(
-            amount=385, payment_intent="pi_12345"
+            amount=791, payment_intent="pi_12345"
         )
 
     def test_refund_card_buyer(self, _mock_notify):

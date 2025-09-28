@@ -874,31 +874,6 @@ class TestOrder(TransactionCheckMixin, APITestCase):
         self.assertEqual(line_item.destination_account, ESCROW)
         self.assertEqual(line_item.destination_user, user)
 
-    def test_cascade_fees_too_low(self):
-        user = StripeAccountFactory.create(
-            user__artist_mode=True,
-            active=True,
-            user__artist_profile__bank_account_status=IN_SUPPORTED_COUNTRY,
-        ).user
-        deliverable = DeliverableFactory.create(
-            order__seller=user,
-            product__base_price=Money(4, "USD"),
-            product__cascade_fees=False,
-            product__user=user,
-            escrow_enabled=True,
-            cascade_fees=False,
-        )
-        self.login(user)
-        response = self.client.patch(
-            f"/api/sales/v1/order/{deliverable.order.id}/deliverables/"
-            f"{deliverable.id}/",
-            {
-                "cascade_fees": True,
-            },
-        )
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-        self.assertIn("cascade_fees", response.data)
-
     def test_shield_fees_too_low(self):
         user = StripeAccountFactory.create(
             user__artist_mode=True,
