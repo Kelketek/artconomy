@@ -2420,6 +2420,88 @@ mod cascade_reversability_tests {
         assert_same_subtotals!(non_cascaded_map, cascaded_map);
     }
 
+    #[test]
+    fn test_back_into_percentage_matters() {
+        let non_cascaded = vec![
+            LineItem {
+                id: 0,
+                kind: LineType::BasePrice,
+                priority: 0,
+                cascade_under: 0,
+                amount: s!("100.00"),
+                percentage: s!("0"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 1,
+                kind: LineType::CardFee,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+        ];
+        let (non_cascade_total, _non_cascade_discount, non_cascaded_map) =
+            get_totals(non_cascaded, 2).unwrap();
+        assert_eq!(non_cascade_total, dec!(105.00));
+        let cascaded = vec![
+            LineItem {
+                id: 0,
+                kind: LineType::BasePrice,
+                priority: 0,
+                cascade_under: 0,
+                // Update this to match the previous total assertion to keep
+                // test valid, if changing.
+                amount: s!("105.00"),
+                percentage: s!("0"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 1,
+                kind: LineType::CardFee,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: true,
+                back_into_percentage: false,
+                ..Default::default()
+            },
+        ];
+        let (cascade_total, _cascade_discount, cascaded_map) = get_totals(cascaded, 2).unwrap();
+        assert_eq!(cascade_total, dec!(105.00));
+        assert_same_subtotals!(non_cascaded_map.clone(), cascaded_map);
+        let back_into_cascaded = vec![
+            LineItem {
+                id: 0,
+                kind: LineType::BasePrice,
+                priority: 0,
+                cascade_under: 0,
+                // Update this to match the previous total assertion to keep
+                // test valid, if changing.
+                amount: s!("105.00"),
+                percentage: s!("0"),
+                cascade_percentage: false,
+                ..Default::default()
+            },
+            LineItem {
+                id: 1,
+                kind: LineType::CardFee,
+                priority: 1,
+                cascade_under: 1,
+                percentage: s!("5"),
+                cascade_percentage: true,
+                back_into_percentage: false,
+                ..Default::default()
+            },
+        ];
+        let (back_into_total, _back_into_discount, back_into_map) = get_totals(back_into_cascaded, 2).unwrap();
+        assert_eq!(back_into_total, dec!(10.50));
+        assert_same_subtotals!(non_cascaded_map, back_into_map);
+    }
+
     /// Test the simplest round-trip cascade-vs-non-cascade equivalent, to make it easier
     /// to diagnose any issues.
     #[test]
