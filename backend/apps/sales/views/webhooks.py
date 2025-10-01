@@ -66,7 +66,7 @@ from moneyed import Money, get_currency
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from stripe.error import SignatureVerificationError
+from stripe import SignatureVerificationError
 
 
 logger = logging.getLogger(__name__)

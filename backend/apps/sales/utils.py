@@ -140,7 +140,7 @@ from django.utils.module_loading import import_string
 from moneyed import Money
 from rest_framework.exceptions import ValidationError
 from short_stuff import gen_shortcode
-from stripe.error import InvalidRequestError
+from stripe import InvalidRequestError
 
 if TYPE_CHECKING:  # pragma: no cover
     from apps.sales.models import (

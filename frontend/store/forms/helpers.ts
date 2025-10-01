@@ -18,8 +18,10 @@ const TRANSLATED: { [key: string]: string } = {
   ECONNABORTED: "Timed out or aborted. Please try again or contact support!",
 }
 
+export type AcError = AxiosError<{ detail: string } | Record<string, string[]>>
+
 export function deriveErrors(
-  error: AxiosError<{ detail: string } | Record<string, string[]>>,
+  error: AcError,
   knownFields: string[],
 ): FormErrorSet {
   const errorSet: FormErrorSet = {

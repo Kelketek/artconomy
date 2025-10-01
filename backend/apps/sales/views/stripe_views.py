@@ -35,7 +35,7 @@ from rest_framework import status
 from rest_framework.generics import GenericAPIView, ListAPIView
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from stripe.error import InvalidRequestError
+from stripe import InvalidRequestError
 
 
 def create_account(*, user: User, country: str):

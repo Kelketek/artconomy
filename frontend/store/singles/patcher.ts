@@ -2,8 +2,8 @@
 // singles module instead.
 import { artCall, clone, ComputedGetters, dotTraverse } from "@/lib/lib.ts"
 import debounce from "lodash/debounce"
-import axios, { AxiosError } from "axios"
-import { deriveErrors } from "@/store/forms/helpers.ts"
+import axios from "axios"
+import { AcError, deriveErrors } from "@/store/forms/helpers.ts"
 import { SingleController } from "@/store/singles/controller.ts"
 import {
   ComputedGetter,
@@ -15,8 +15,8 @@ import {
 } from "vue"
 import { v4 as uuidv4 } from "uuid"
 
-export function errorSend(config: Patch): (error: AxiosError) => void {
-  return (error: AxiosError) => {
+export function errorSend(config: Patch): (error: AcError) => void {
+  return (error: AcError) => {
     const attrName = config.attrName
     if (axios.isCancel(error)) {
       // We recalled the request deliberately. This is not an error, so ignore. Also, this should only happen when

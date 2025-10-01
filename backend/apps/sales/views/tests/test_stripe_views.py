@@ -19,7 +19,7 @@ from apps.sales.views.tests.fixtures.stripe_fixtures import (
 )
 from django.test import override_settings
 from rest_framework import status
-from stripe.error import InvalidRequestError
+from stripe import InvalidRequestError
 
 
 class TestStripeCountries(APITestCase):

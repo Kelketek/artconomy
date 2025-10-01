@@ -5,7 +5,7 @@ from django.core.cache import cache
 from math import ceil
 from typing import List, Union, Optional
 
-from stripe.error import PermissionError as StripePermissionError
+from stripe import PermissionError as StripePermissionError
 
 from apps.lib.abstract_models import (
     GENERAL,

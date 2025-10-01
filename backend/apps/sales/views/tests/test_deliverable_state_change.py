@@ -65,7 +65,7 @@ from django.utils import timezone
 from freezegun import freeze_time
 from moneyed import Money
 from rest_framework import status
-from stripe.error import InvalidRequestError
+from stripe import InvalidRequestError
 
 
 @patch("apps.sales.views.main.notify")

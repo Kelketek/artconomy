@@ -6,12 +6,12 @@ import { cleanUp, mount, rq, rs, vueSetup } from "@/specs/helpers/index.ts"
 import { ArtStore, createStore } from "@/store/index.ts"
 import { genUser } from "@/specs/helpers/fixtures.ts"
 import { errorSend } from "@/store/singles/patcher.ts"
-import { AxiosError } from "axios"
 import { ViewerType } from "@/types/enums/ViewerType.ts"
 import Empty from "@/specs/helpers/dummy_components/empty.ts"
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest"
 import { nextTick, toValue } from "vue"
 import { setViewer } from "@/lib/lib.ts"
+import { AcError } from "@/store/forms/helpers.ts"
 
 let store: ArtStore
 const mockWarn = vi.spyOn(console, "warn")
@@ -154,7 +154,7 @@ describe("Patcher", () => {
     errorSend((wrapper.vm as any).subjectHandler.user.patchers.sfw_mode)({
       config: {},
       __CANCEL__: true,
-    } as unknown as AxiosError)
+    } as unknown as AcError)
     expect(mockTrace).not.toHaveBeenCalled()
     expect(mockError).not.toHaveBeenCalled()
     expect(

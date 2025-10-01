@@ -962,11 +962,13 @@ import {
   LinkedSubmission,
   Product,
   ProductProps,
+  RatingsValue,
   RawLineItemSetMap,
   SubjectiveProps,
   Submission,
 } from "@/types/main"
 import { User } from "@/store/profiles/types/main"
+import { Ratings } from "@/types/enums/Ratings.ts"
 
 const props = defineProps<SubjectiveProps & ProductProps>()
 
@@ -1206,7 +1208,7 @@ const rawLineItemSetMaps = computed(() => {
   return sets
 })
 
-const maxSampleRating = computed(() => {
+const maxSampleRating = computed((): RatingsValue => {
   const list = samples.list
   const ratings = list.map((x) => {
     const linkedSubmission = x.x as LinkedSubmission
@@ -1216,9 +1218,9 @@ const maxSampleRating = computed(() => {
     ratings.push(product.x.primary_submission.rating)
   }
   if (!ratings.length) {
-    return 0
+    return Ratings.GENERAL
   }
-  return Math.max(...ratings)
+  return Math.max(...ratings) as RatingsValue
 })
 
 const productAltText = computed(() => {
@@ -1364,7 +1366,7 @@ watch(
   { deep: true },
 )
 
-watch(maxSampleRating, (value: number) => {
+watch(maxSampleRating, (value: RatingsValue) => {
   ageCheck({ value })
 })
 </script>
