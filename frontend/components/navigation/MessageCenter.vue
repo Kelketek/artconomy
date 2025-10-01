@@ -23,6 +23,16 @@
             >
           </v-tab>
         </v-tabs>
+        <v-spacer />
+        <v-btn
+          variant="flat"
+          icon
+          color="primary"
+          aria-label="Mark all as read"
+          @click="markAllRead"
+        >
+          <v-icon :icon="mdiRead" />
+        </v-btn>
       </v-toolbar>
     </template>
     <v-window v-model="section">
@@ -49,12 +59,16 @@ import { useSubject } from "@/mixins/subjective.ts"
 import { useSingle } from "@/store/singles/hooks.ts"
 import { computed, ref, watch } from "vue"
 import { useDisplay } from "vuetify"
-import { mdiChevronRight } from "@mdi/js"
+import { mdiChevronRight, mdiRead } from "@mdi/js"
 import NotificationsList from "@/components/views/notifications/NotificationsList.vue"
 import { useList } from "@/store/lists/hooks.ts"
 import { useErrorHandling } from "@/mixins/ErrorHandling.ts"
-import { flatten } from "@/lib/lib.ts"
-import type { NotificationStats, SubjectiveProps } from "@/types/main"
+import { artCall, flatten } from "@/lib/lib.ts"
+import type {
+  AcNotification,
+  NotificationStats,
+  SubjectiveProps,
+} from "@/types/main"
 
 const drawer = defineModel<boolean>({ required: true })
 const display = useDisplay()
@@ -72,7 +86,7 @@ const width = computed(() => {
   return "500"
 })
 
-const community = useList(
+const community = useList<AcNotification<any, any>>(
   "communityNotifications" + "__" + flatten(props.username),
   {
     grow: true,
@@ -92,22 +106,25 @@ const community = useList(
   },
 )
 
-const sales = useList("salesNotifications" + "__" + flatten(props.username), {
-  grow: true,
-  prependNew: true,
-  endpoint: `/api/profiles/account/${props.username}/notifications/sales/`,
-  socketSettings: {
-    appLabel: "lib",
-    modelName: "Notification",
-    serializer: "NotificationSerializer",
-    list: {
-      appLabel: "profiles",
-      modelName: "User",
-      pk: `${subject.value.id}`,
-      listName: "sales_notifications",
+const sales = useList<AcNotification<any, any>>(
+  "salesNotifications" + "__" + flatten(props.username),
+  {
+    grow: true,
+    prependNew: true,
+    endpoint: `/api/profiles/account/${props.username}/notifications/sales/`,
+    socketSettings: {
+      appLabel: "lib",
+      modelName: "Notification",
+      serializer: "NotificationSerializer",
+      list: {
+        appLabel: "profiles",
+        modelName: "User",
+        pk: `${subject.value.id}`,
+        listName: "sales_notifications",
+      },
     },
   },
-})
+)
 
 const { setError } = useErrorHandling()
 community.firstRun().catch(setError)
@@ -135,4 +152,23 @@ watch(
   },
   { immediate: true },
 )
+
+const readUrl = computed(
+  () => `/api/profiles/account/${props.username}/notifications/mark-read/`,
+)
+
+const markAllRead = () => {
+  artCall({
+    url: readUrl.value,
+    method: "post",
+  }).then(() => {
+    stats.refresh()
+    community.list.map((controller) => {
+      controller.x!.read = true
+    })
+    sales.list.map((controller) => {
+      controller.x!.read = true
+    })
+  })
+}
 </script>

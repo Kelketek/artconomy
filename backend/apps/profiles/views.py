@@ -1301,6 +1301,16 @@ class MarkNotificationsRead(BulkUpdateAPIView):
         send_updated(self.get_object(), serializers=["UnreadNotificationsSerializer"])
         return result
 
+    def post(self, *args, **kwargs):
+        """
+        When using post, we just mark everything read.
+        """
+        user = self.get_object()
+        self.check_object_permissions(self.request, user)
+        Notification.objects.filter(user=user).update(read=True)
+        send_updated(user, serializers=["UnreadNotificationSerializer"])
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class WatchListSubmissions(ListAPIView):
     serializer_class = SubmissionSerializer
