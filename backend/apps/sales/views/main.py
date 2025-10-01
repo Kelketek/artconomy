@@ -2246,7 +2246,7 @@ class MakePrimary(APIView):
         card = self.get_object()
         self.check_object_permissions(self.request, card)
         card.user.primary_card = card
-        card.user.save()
+        card.user.save(update_fields=["primary_card"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

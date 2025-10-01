@@ -1715,7 +1715,7 @@ class TestOrder(TransactionCheckMixin, APITestCase):
     def test_place_order_guest_user_new_email(self):
         user = create_guest_user("stuff@example.com")
         user.set_password("Test")
-        user.save()
+        user.save(update_fields=["password"])
         product = ProductFactory.create()
         self.login(user)
         response = self.client.post(

@@ -44,7 +44,7 @@ async def start(update, context):
         return
     user.tg_chat_id = update.message.chat_id
     user.tg_key = tg_key_gen()
-    await sync_to_async(user.save)()
+    await sync_to_async(user.save)(update_fields=["tg_key", "tg_chat_id"])
     await context.bot.send_message(
         chat_id=update.message.chat_id,
         text=f"Hi! I'm the Artconomy bot. I'll send messages for {user.username}'s Two "

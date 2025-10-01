@@ -703,7 +703,7 @@ class TestUpdateDownstreamPricing(EnsurePlansMixin, TestCase):
         original_deliverable_price = deliverable.invoice.total()
         service_plan = ServicePlanFactory(per_deliverable_price=Money("1.00", "USD"))
         product.user.service_plan = service_plan
-        product.user.save()
+        product.user.save(update_fields=["service_plan"])
         update_downstream_pricing(product.user)
         product.refresh_from_db()
         deliverable.refresh_from_db()
@@ -804,7 +804,7 @@ class TestTermCharge(EnsurePlansMixin, TestCase):
         plan = ServicePlanFactory.create(per_deliverable_price=Money("1.00", "USD"))
         StripeAccountFactory.create(user=user, active=True)
         user.service_plan = plan
-        user.save()
+        user.save(update_fields=["service_plan"])
         deliverable = DeliverableFactory.create(
             order__seller=user, escrow_enabled=False
         )
@@ -820,7 +820,7 @@ class TestTermCharge(EnsurePlansMixin, TestCase):
         plan = ServicePlanFactory.create(per_deliverable_price=Money("1.00", "USD"))
         StripeAccountFactory.create(user=user, active=True)
         user.service_plan = plan
-        user.save()
+        user.save(update_fields=["service_plan"])
         deliverable = DeliverableFactory.create(order__seller=user, escrow_enabled=True)
         term_charge(deliverable)
         self.assertFalse(

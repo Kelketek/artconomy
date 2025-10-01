@@ -188,7 +188,7 @@ def kill_fraudulent(model_admin, request, queryset):
         user.notes += (
             f"\nBanned for fraud by {request.user.username} on {timezone.now()}"
         )
-        user.save()
+        user.save(update_fields=["is_active", "notes"])
         message = safe_display_banned_user(user)
         model_admin.message_user(
             request, mark_safe(message), level=messages.SUCCESS, extra_tags="safe"

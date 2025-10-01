@@ -1901,7 +1901,7 @@ class StartPasswordReset(APIView):
 
         user.reset_token = uuid.uuid4()
         user.token_expiry = timezone.now() + relativedelta(days=1)
-        user.save()
+        user.save(update_fields=["reset_token", "token_expiry"])
         subject = "Password reset request"
         to = [user.email]
         from_email = settings.DEFAULT_FROM_EMAIL
@@ -1960,7 +1960,7 @@ class PasswordReset(GenericAPIView):
         # Make sure there's no default value in case there's a bug here.
         user.reset_token = uuid.uuid4()
         user.token_expiry = timezone.now() - relativedelta(days=100)
-        user.save()
+        user.save(update_fields=["token_expiry", "reset_token"])
         user.credit_cards.all().update(cvv_verified=False)
         data = UserSerializer(instance=user, context=self.get_serializer_context()).data
         return Response(status=status.HTTP_200_OK, data=data)
@@ -2146,14 +2146,14 @@ class MailingListPref(APIView):
     # noinspection PyMethodMayBeStatic
     def post(self, request):
         request.user.offered_mailchimp = True
-        request.user.save()
+        request.user.save(update_fields=["offered_mailchimp"])
         drip_subscribe.delay(request.user.id)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     # noinspection PyMethodMayBeStatic
     def delete(self, request):
         request.user.offered_mailchimp = True
-        request.user.save()
+        request.user.save(update_fields=["offered_mailchimp"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 

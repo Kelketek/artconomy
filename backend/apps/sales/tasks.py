@@ -204,7 +204,7 @@ def deactivate(user_id: int):
     # We only have delinquency for term invoices, but we may some day need to make this
     # work more generally.
     user.delinquent = True
-    user.save()
+    user.save(update_fields=["service_plan", "next_service_plan", "delinquent"])
     # Update the user's current term invoice to use the default service plan. This might
     # make it a zero invoice, which would clear it below.
     invoice = get_term_invoice(user)

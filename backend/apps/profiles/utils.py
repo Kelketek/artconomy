@@ -151,7 +151,7 @@ def extend_landscape(user, months):
         start_point = today
     user.service_plan_paid_through = start_point + relativedelta(months=months)
     user.service_plan = ServicePlan.objects.get(name="Landscape")
-    user.save()
+    user.save(update_fields=["service_plan", "service_plan_paid_through"])
 
 
 def empty_user(*, session, user, ip):
@@ -177,7 +177,7 @@ def create_guest_user(email: str) -> User:
     # if the user is not yet loaded.
     user.username = f"__{user.id}"
     user.email = f"__{user.id}@localhost"
-    user.save()
+    user.save(update_fields=["username", "email"])
     return user
 
 
@@ -229,12 +229,10 @@ def clear_user(user: User):
     ):
         invoice.delete()
 
-    notes = user.notes
-    if notes:
-        notes += (
-            f"\n\nUsername: {user.username}, Email: {user.email}, removed on "
-            f"{timezone.now()}"
-        )
+    user.notes += (
+        f"\n\nUsername: {user.username}, Email: {user.email}, removed on "
+        f"{timezone.now()}"
+    )
     for account in StripeAccount.objects.filter(user=user):
         try:
             account.delete()
@@ -274,7 +272,17 @@ def clear_user(user: User):
     for avatar in Avatar.objects.filter(user=user):
         avatar.delete()
     user.avatar_url = avatar_url(user)
-    user.save()
+    user.save(
+        update_fields=[
+            "username",
+            "password",
+            "email",
+            "is_active",
+            "next_service_plan",
+            "avatar_url",
+            "notes",
+        ]
+    )
 
 
 def leave_conversation(user: User, conversation: Conversation):

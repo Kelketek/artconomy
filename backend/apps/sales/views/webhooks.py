@@ -153,7 +153,7 @@ def account_updated(event):
         account.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         account.user.artist_profile.save()
         account.user.verified_adult = True
-        account.user.save()
+        account.user.save(update_fields=["verified_adult"])
         withdraw_all.delay(account.user.id)
 
 

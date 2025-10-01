@@ -1181,7 +1181,7 @@ class CreditCardToken(Model):
             cards = self.user.credit_cards.filter(active=True).order_by("-created_on")
             if cards:
                 self.user.primary_card = cards[0]
-            self.user.save()
+            self.user.save(update_fields=["primary_card"])
 
     def announce_channels(self):
         return [
