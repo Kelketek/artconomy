@@ -14,6 +14,7 @@ from apps.lib.models import (
 )
 from apps.lib.constants import SALE_UPDATE, TIP_RECEIVED
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin
+from apps.profiles.models import IN_SUPPORTED_COUNTRY, UNSET
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     AUTHORIZE,
@@ -46,7 +47,8 @@ from apps.sales.constants import (
     TOP_UP,
     CARD_MISC_FEES,
 )
-from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord
+from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord, \
+    StripeAccount
 from apps.sales.stripe import money_to_stripe
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -75,6 +77,7 @@ from apps.sales.views.tests.fixtures.stripe_fixtures import (
     base_payment_method_attached_event,
     DUMMY_BALANCE_REPORT,
     base_report_event,
+    base_account_removed_event,
 )
 from apps.sales.views.webhooks import StripeWebhooks, handle_stripe_event
 from dateutil.relativedelta import relativedelta
@@ -882,6 +885,28 @@ class TestAccountUpdated(EnsurePlansMixin, TestCase):
         affected_deliverable.refresh_from_db()
         self.assertEqual(affected_deliverable.processor, AUTHORIZE)
         mock_withdraw_all.delay.assert_not_called()
+
+
+class TestAccountRemoved(EnsurePlansMixin, TestCase):
+    @patch("apps.sales.models.stripe")
+    def test_remove_account(self, mock_stripe):
+        to_keep = StripeAccountFactory(active=True, token='bork')
+        to_keep.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        to_keep_profile = to_keep.user.artist_profile
+        to_keep_profile.save()
+        to_destroy = StripeAccountFactory(active=True, token='beep')
+        to_destroy.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
+        to_destroy.user.artist_profile.save()
+        to_destroy_profile = to_destroy.user.artist_profile
+        event = base_account_removed_event()
+        event["account"] = to_destroy.token
+        to_destroy.save()
+        handle_stripe_event(connect=True, event=event)
+        with self.assertRaises(StripeAccount.DoesNotExist):
+            to_destroy.refresh_from_db()
+        to_destroy_profile.refresh_from_db()
+        self.assertFalse(to_destroy_profile.escrow_enabled)
+        self.assertEqual(to_destroy_profile.bank_account_status, UNSET)
 
 
 def prep_for_invoice(event, invoice):

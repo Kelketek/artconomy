@@ -698,6 +698,8 @@ def sync_escrow_status(sender, instance, **kwargs):
         instance.escrow_enabled = StripeAccount.objects.filter(
             user=instance.user, active=True
         ).exists()
+    else:
+        instance.escrow_enabled = False
 
 
 @receiver(post_save, sender=ArtistProfile)

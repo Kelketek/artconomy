@@ -5,6 +5,8 @@ from django.core.cache import cache
 from math import ceil
 from typing import List, Union, Optional
 
+from stripe.error import PermissionError as StripePermissionError
+
 from apps.lib.abstract_models import (
     GENERAL,
     RATINGS,
@@ -1730,9 +1732,13 @@ class StripeAccount(Model):
     def announce_channels(self):
         return [f"profiles.User.pk.{self.user_id}.stripe_accounts"]
 
-    def delete(self, using=None, keep_parents=False):
+    def delete(self, using=None, keep_parents=False, force=False):
         with stripe as api:
-            api.Account.delete(self.token)
+            try:
+                api.Account.delete(self.token)
+            except StripePermissionError as err:
+                if not force:
+                    raise err
         return super(StripeAccount, self).delete()
 
 
@@ -1742,6 +1748,12 @@ def update_stripe_products(instance, *args, **kwargs):
     # Need to invoke post_save hooks on the products
     for product in instance.user.products.all():
         product.international = international
+        product.save()
+
+@receiver(post_delete, sender=StripeAccount)
+def update_products_post_stripe_account_delete(instance, *args, **kwargs):
+    for product in Product.objects.filter(user_id=instance.user_id):
+        # Force updates
         product.save()
 
 

@@ -14,7 +14,7 @@ from rest_framework.generics import get_object_or_404
 
 from apps.lib.constants import TRANSFER_FAILED
 from apps.lib.utils import notify
-from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
+from apps.profiles.models import IN_SUPPORTED_COUNTRY, User, UNSET
 from apps.sales.constants import (
     FAILURE,
     HOLDINGS,
@@ -155,6 +155,15 @@ def account_updated(event):
         account.user.verified_adult = True
         account.user.save()
         withdraw_all.delay(account.user.id)
+
+
+@transaction.atomic
+def account_removed(event):
+    account = StripeAccount.objects.get(token=event["account"])
+    artist_profile = account.user.artist_profile
+    account.delete(force=True)
+    artist_profile.bank_account_status = UNSET
+    artist_profile.save()
 
 
 def transfer_failed(event):
@@ -464,6 +473,7 @@ STRIPE_DIRECT_WEBHOOK_ROUTES = {
 }
 STRIPE_CONNECT_WEBHOOK_ROUTES = {
     "account.updated": account_updated,
+    "account.application.deauthorized": account_removed,
 }
 PAYPAL_WEBHOOK_ROUTES = {
     "INVOICING.INVOICE.CANCELLED": paypal_invoice_cancelled,

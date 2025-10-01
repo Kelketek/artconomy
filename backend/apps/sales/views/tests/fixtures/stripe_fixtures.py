@@ -712,6 +712,32 @@ def base_account_updated_event():
     }
 
 
+def base_account_removed_event():
+    return {
+        "account": "acct_1SDE38AAWhwb9OkL",
+        "api_version": "2019-12-03",
+        "context": "acct_1SDE38AAWhwb9OkL",
+        "created": 1759279195,
+        "data": {
+            "object": {
+                "id": "ca_QpxCtOG3nKHISr5onHT2FB7fkepMSKRv",
+                "name": "Artconomy.com",
+                "object": "application"
+            }
+        },
+        "id": "evt_1SDE5HAAWhwb9OkLe3c07q1x",
+        "livemode": False,
+        "object": "event",
+        "pending_webhooks": 1,
+        "request": {
+            "id": None,
+            "idempotency_key": None,
+        },
+        "type": "account.application.deauthorized"
+    }
+
+
+
 def base_report_event():
     return {
         "id": "evt_1Icyh5AhlvPza3BKV9A13pSj",
