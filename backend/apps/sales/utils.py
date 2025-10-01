@@ -606,7 +606,7 @@ def finalize_deliverable(deliverable, user=None):
     withdraw_all.delay(deliverable.order.seller.id)
 
 
-def claim_order_by_token(order_claim, user, force=False):
+def claim_order_by_token(order_claim, user):
     from apps.sales.models import Order
 
     if not order_claim:
@@ -626,10 +626,10 @@ def claim_order_by_token(order_claim, user, force=False):
         # This should never happen, but just in case...
         order.claim_token = None
         order.save(update_fields=["claim_token"])
-    transfer_order(order, order.buyer, user, force=force)
+    transfer_order(order, order.buyer, user)
 
 
-def transfer_order(order, old_buyer, new_buyer, force=False, skip_notification=False):
+def transfer_order(order, old_buyer, new_buyer, skip_notification=False, force=False):
     """
     Sets the buyer from one user (or None) to a new buyer.
 
@@ -640,10 +640,15 @@ def transfer_order(order, old_buyer, new_buyer, force=False, skip_notification=F
         ORDER_UPDATE,
         CreditCardToken,
         Revision,
+        Reference,
         buyer_subscriptions,
     )
 
-    if (old_buyer == new_buyer) and not force:
+    if (
+        old_buyer
+        and old_buyer.is_registered
+        and new_buyer.is_registered
+    ) and not force:
         raise AssertionError("Tried to claim an order, but it was already claimed!")
     order.buyer = new_buyer
     for deliverable in order.deliverables.all():
@@ -657,10 +662,11 @@ def transfer_order(order, old_buyer, new_buyer, force=False, skip_notification=F
         Subscription.objects.bulk_create(
             buyer_subscriptions(deliverable), ignore_conflicts=True
         )
-        if not skip_notification:
+        if not (skip_notification or (old_buyer == new_buyer)):
             notify(ORDER_UPDATE, deliverable, unique=True, mark_unread=True)
         update_order_payments(deliverable)
     revision_type = ContentType.objects.get_for_model(Revision)
+    reference_type = ContentType.objects.get_for_model(Reference)
     Subscription.objects.bulk_create(
         [
             Subscription(
@@ -675,9 +681,26 @@ def transfer_order(order, old_buyer, new_buyer, force=False, skip_notification=F
         ],
         ignore_conflicts=True,
     )
+    Subscription.objects.bulk_create(
+        [
+            Subscription(
+                subscriber=new_buyer,
+                object_id=reference_id,
+                content_type=reference_type,
+                type=COMMENT,
+            )
+            for reference_id in Reference.objects.filter(
+                deliverables__order=order
+            ).values_list("id", flat=True)
+        ],
+        ignore_conflicts=True,
+    )
     if not old_buyer:
         return
     if old_buyer == new_buyer:
+        return
+    if old_buyer.is_registered:
+        # Can't delete the below safely.
         return
     Subscription.objects.filter(subscriber=old_buyer).delete()
     Notification.objects.filter(user=old_buyer).update(user=new_buyer)

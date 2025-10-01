@@ -261,7 +261,7 @@ class Register(CreateAPIView):
             drip_subscribe.delay(instance.id)
         login(self.request, instance)
         order_claim = serializer.validated_data.get("order_claim", None)
-        claim_order_by_token(order_claim, instance, force=True)
+        claim_order_by_token(order_claim, instance)
 
     def get_serializer(self, instance=None, data=None, many=False, partial=False):
         return self.serializer_class(

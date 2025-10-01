@@ -197,22 +197,6 @@ class TestClaim(EnsurePlansMixin, TestCase):
         self.assertEqual(order.buyer, user)
         self.assertIsNone(order.claim_token)
 
-    def test_force_claim(self):
-        user = UserFactory.create()
-        order = DeliverableFactory.create(
-            order__buyer=user, order__claim_token=gen_shortcode()
-        ).order
-        Subscription.objects.filter(
-            content_type=ContentType.objects.get_for_model(order), object_id=order.id
-        ).delete()
-        claim_order_by_token(str(order.claim_token), user, force=True)
-        order.refresh_from_db()
-        self.assertEqual(order.buyer, user)
-        self.assertIsNone(order.claim_token)
-        Subscription.objects.filter(
-            content_type=ContentType.objects.get_for_model(order), object_id=order.id
-        ).exists()
-
     def test_order_claim_fail_self(self):
         user = UserFactory.create()
         order = DeliverableFactory.create(

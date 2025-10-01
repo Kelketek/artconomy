@@ -1906,7 +1906,7 @@ class TestRegister(APITestCase):
             },
         )
         user = User.objects.get(username="Goober")
-        mock_claim.assert_called_with("XtFxMb7qTJ-A", user, force=True)
+        mock_claim.assert_called_with("XtFxMb7qTJ-A", user)
 
 
 class TestLogin(APITestCase):
