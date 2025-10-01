@@ -289,6 +289,7 @@ class ProductList(ListCreateAPIView):
             IsSafeMethod,
             And(
                 IsRegistered,
+                BankingConfigured,
                 Or(
                     ObjectControls,
                     StaffPower("table_seller"),

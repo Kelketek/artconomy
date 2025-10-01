@@ -648,7 +648,9 @@ class TestProduct(APITestCase):
         self.assertIDInList(hidden, response.data["results"])
 
     def test_create_product(self):
-        user = UserFactory.create()
+        user = UserFactory.create(
+            artist_profile__bank_account_status=NO_SUPPORTED_COUNTRY
+        )
         self.login(user)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
@@ -675,7 +677,9 @@ class TestProduct(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_create_product_free(self):
-        user = UserFactory.create()
+        user = UserFactory.create(
+            artist_profile__bank_account_status=NO_SUPPORTED_COUNTRY
+        )
         self.login(user)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
@@ -774,7 +778,10 @@ class TestProduct(APITestCase):
 
     @override_settings(MINIMUM_PRICE=Money("1.00", "USD"))
     def test_create_product_minimum_irrelevant(self):
-        user = UserFactory.create(artist_profile__escrow_enabled=False)
+        user = UserFactory.create(
+            artist_profile__escrow_enabled=False,
+            artist_profile__bank_account_status=NO_SUPPORTED_COUNTRY,
+        )
         self.login(user)
         asset = AssetFactory.create(uploaded_by=user)
         response = self.client.post(
@@ -832,7 +839,9 @@ class TestProduct(APITestCase):
 
     def test_create_product_staff(self):
         staffer = create_staffer("table_seller")
-        user = UserFactory.create()
+        user = UserFactory.create(
+            artist_profile__bank_account_status=NO_SUPPORTED_COUNTRY,
+        )
         asset = AssetFactory.create(uploaded_by=staffer)
         self.login(staffer)
         response = self.client.post(

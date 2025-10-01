@@ -139,6 +139,6 @@ const setDefaultRoute = () => {
   }
 }
 
-watch(() => subject.value?.artist_mode, setDefaultRoute)
-watch(() => route.name, setDefaultRoute)
+watch(() => subject.value?.artist_mode, setDefaultRoute, {immediate: true})
+watch(() => route.name, setDefaultRoute, {immediate: true})
 </script>
