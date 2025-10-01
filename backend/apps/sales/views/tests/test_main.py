@@ -1439,6 +1439,7 @@ class TestProductSearch(APITestCase):
         self.assertIDInList(upgradable, response.data["results"])
         self.assertEqual(len(response.data["results"]), 2)
 
+
 class TestCancelPremium(APITestCase):
     def test_cancel(self):
         user = UserFactory.create()

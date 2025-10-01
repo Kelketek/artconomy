@@ -722,7 +722,7 @@ def base_account_removed_event():
             "object": {
                 "id": "ca_QpxCtOG3nKHISr5onHT2FB7fkepMSKRv",
                 "name": "Artconomy.com",
-                "object": "application"
+                "object": "application",
             }
         },
         "id": "evt_1SDE5HAAWhwb9OkLe3c07q1x",
@@ -733,9 +733,8 @@ def base_account_removed_event():
             "id": None,
             "idempotency_key": None,
         },
-        "type": "account.application.deauthorized"
+        "type": "account.application.deauthorized",
     }
-
 
 
 def base_report_event():

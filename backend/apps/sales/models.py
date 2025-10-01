@@ -1750,6 +1750,7 @@ def update_stripe_products(instance, *args, **kwargs):
         product.international = international
         product.save()
 
+
 @receiver(post_delete, sender=StripeAccount)
 def update_products_post_stripe_account_delete(instance, *args, **kwargs):
     for product in Product.objects.filter(user_id=instance.user_id):

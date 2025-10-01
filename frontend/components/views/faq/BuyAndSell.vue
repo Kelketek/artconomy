@@ -487,11 +487,11 @@
             credit card fees.
           </p>
           <p>
-            As a result, fees must always incorporate this cost. However,
-            with Landscape, this $2 (and other upstream fees) are chiefly
-            covered every month by the subscription fee, so shield costs are
-            able to be reduced significantly. This is also why tips are only
-            available to Landscape users.
+            As a result, fees must always incorporate this cost. However, with
+            Landscape, this $2 (and other upstream fees) are chiefly covered
+            every month by the subscription fee, so shield costs are able to be
+            reduced significantly. This is also why tips are only available to
+            Landscape users.
           </p>
           <p>
             For non-shield orders, there are still costs with hosting and
@@ -500,8 +500,8 @@
             charge a fee to offset costs on each non-shield order. We believe
             the order handling is the best out there for art commissions, and
             that the time saved will always be worth more than the fee. The net
-            we receive for non-shield orders on our basic plan is calculated
-            to be $1 after Stripe's processing fees.
+            we receive for non-shield orders on our basic plan is calculated to
+            be $1 after Stripe's processing fees.
           </p>
           <p>
             Our goal, then, is to try to make at least a dollar on each order,

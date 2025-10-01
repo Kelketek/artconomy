@@ -3,7 +3,7 @@ from decimal import Decimal
 from unittest.mock import MagicMock, patch
 
 import ddt
-from apps.lib.models import Notification, Subscription, ref_for_instance, Comment
+from apps.lib.models import Notification, ref_for_instance, Comment
 from apps.lib.constants import ORDER_UPDATE
 from apps.lib.test_resources import EnsurePlansMixin, SignalsDisabledMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
@@ -73,7 +73,6 @@ from apps.sales.utils import (
 )
 from apps.sales.views.tests.fixtures.stripe_fixtures import base_charge_succeeded_event
 from dateutil.relativedelta import relativedelta
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError
 from django.db.models import Q, Sum
@@ -368,7 +367,7 @@ class TransactionCheckMixin:
         if source == CARD:
             card_fee = TransactionRecord.objects.get(payer=None, payee=None)
             if landscape:
-                card_fee_amount = Money('0.77', 'USD')
+                card_fee_amount = Money("0.77", "USD")
             else:
                 card_fee_amount = Money(".65", "USD")
             self.assertEqual(card_fee.amount, card_fee_amount)

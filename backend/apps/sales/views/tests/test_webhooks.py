@@ -47,8 +47,12 @@ from apps.sales.constants import (
     TOP_UP,
     CARD_MISC_FEES,
 )
-from apps.sales.models import CreditCardToken, TransactionRecord, WebhookEventRecord, \
-    StripeAccount
+from apps.sales.models import (
+    CreditCardToken,
+    TransactionRecord,
+    WebhookEventRecord,
+    StripeAccount,
+)
 from apps.sales.stripe import money_to_stripe
 from apps.sales.tests.factories import (
     CreditCardTokenFactory,
@@ -285,9 +289,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         invoice.current_intent = event["data"]["object"]["payment_intent"]
         invoice.save()
         event["data"]["object"]["metadata"] = {"invoice_id": invoice.id}
-        event["data"]["object"]["amount"] = money_to_stripe(
-            invoice.total()
-        )[0]
+        event["data"]["object"]["amount"] = money_to_stripe(invoice.total())[0]
         event["data"]["object"]["customer"] = "beep"
         handle_stripe_event(connect=False, event=event)
         invoice.refresh_from_db()
@@ -697,9 +699,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         event["data"]["object"]["metadata"] = {
             "invoice_id": invoice.id,
         }
-        event["data"]["object"]["amount"] = money_to_stripe(
-            invoice.total()
-        )[0]
+        event["data"]["object"]["amount"] = money_to_stripe(invoice.total())[0]
         event["data"]["object"]["customer"] = "burp"
         handle_stripe_event(connect=False, event=event)
         user.refresh_from_db()
@@ -731,9 +731,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
         event["data"]["object"]["metadata"] = {
             "invoice_id": invoice.id,
         }
-        event["data"]["object"]["amount"] = money_to_stripe(
-            invoice.total()
-        )[0]
+        event["data"]["object"]["amount"] = money_to_stripe(invoice.total())[0]
         event["data"]["object"]["customer"] = "burp"
         handle_stripe_event(connect=False, event=event)
         user.refresh_from_db()
@@ -890,11 +888,11 @@ class TestAccountUpdated(EnsurePlansMixin, TestCase):
 class TestAccountRemoved(EnsurePlansMixin, TestCase):
     @patch("apps.sales.models.stripe")
     def test_remove_account(self, mock_stripe):
-        to_keep = StripeAccountFactory(active=True, token='bork')
+        to_keep = StripeAccountFactory(active=True, token="bork")
         to_keep.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         to_keep_profile = to_keep.user.artist_profile
         to_keep_profile.save()
-        to_destroy = StripeAccountFactory(active=True, token='beep')
+        to_destroy = StripeAccountFactory(active=True, token="beep")
         to_destroy.user.artist_profile.bank_account_status = IN_SUPPORTED_COUNTRY
         to_destroy.user.artist_profile.save()
         to_destroy_profile = to_destroy.user.artist_profile

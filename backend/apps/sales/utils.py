@@ -645,9 +645,7 @@ def transfer_order(order, old_buyer, new_buyer, skip_notification=False, force=F
     )
 
     if (
-        old_buyer
-        and old_buyer.is_registered
-        and new_buyer.is_registered
+        old_buyer and old_buyer.is_registered and new_buyer.is_registered
     ) and not force:
         raise AssertionError("Tried to claim an order, but it was already claimed!")
     order.buyer = new_buyer
