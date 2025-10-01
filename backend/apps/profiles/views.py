@@ -2052,6 +2052,12 @@ class CharacterPreview(BasePreview):
         char_context["image_links"] = [character.preview_image(self.request)] + [
             submission.preview_link for submission in submissions[:24]
         ]
+        adult = False
+        if character.primary_submission:
+            adult = character.primary_submission.rating != GENERAL
+        if character.nsfw:
+            adult = True
+        char_context["adult"] = adult
         return char_context
 
 
@@ -2124,6 +2130,7 @@ class SubmissionPreview(BasePreview):
         data = {
             "title": demark(submission.title),
             "description": demark(submission.caption),
+            "adult": submission.rating != GENERAL,
         }
         if image:
             data["image_links"] = [image]

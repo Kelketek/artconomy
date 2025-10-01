@@ -11,6 +11,7 @@ from django.urls import reverse
 from rest_framework.renderers import JSONRenderer
 from short_stuff import gen_shortcode
 
+from apps.lib.abstract_models import GENERAL
 from apps.lib.models import (
     Comment,
     Subscription,
@@ -2682,6 +2683,10 @@ class ProductPreview(BasePreview):
         data = {
             "title": demark(product.name),
             "description": product.preview_description,
+            "adult": (
+                product.primary_submission
+                and product.primary_submission.rating != GENERAL
+            ),
             "image_links": [
                 preview_rating(self.request, sample.rating, sample.preview_link)
                 for sample in product.samples.filter(private=False)

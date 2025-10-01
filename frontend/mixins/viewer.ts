@@ -10,9 +10,10 @@ import { parseISO } from "@/lib/otherFormatters.ts"
 import { Ratings } from "@/types/enums/Ratings.ts"
 import { AnonUser, StaffPower, User } from "@/store/profiles/types/main"
 import { RatingsValue } from "@/types/main"
+import { clearMetaTag, setMetaContent } from "@/lib/lib.ts"
 
 export interface AgeCheckArgs {
-  value: number
+  value: RatingsValue
   force?: boolean
 }
 
@@ -71,6 +72,14 @@ const getRawRating = (
   return viewer.rating
 }
 
+export const adultTag = (value: RatingsValue): void => {
+  if (value !== Ratings.GENERAL) {
+    setMetaContent("rating", "", { content: "adult" })
+    return
+  }
+  clearMetaTag("rating")
+}
+
 const ageCheck = (
   store: ArtStore,
   viewer: AnonUser | User,
@@ -91,6 +100,7 @@ const ageCheck = (
     }
   }
   store.commit("setContentRating", value)
+  adultTag(value)
   store.commit("setShowAgeVerification", true)
   store.commit("setAgeAsked", true)
 }

@@ -398,7 +398,7 @@
 </template>
 
 <script setup lang="ts">
-import { useViewer } from "@/mixins/viewer.ts"
+import { adultTag, useViewer } from "@/mixins/viewer.ts"
 import { useDisplay } from "vuetify"
 import AcLoadSection from "@/components/wrappers/AcLoadSection.vue"
 import AcAsset from "@/components/AcAsset.vue"
@@ -633,6 +633,7 @@ const setMeta = (submissionData: Submission | null | false) => {
     return
   }
   updateTitle(windowTitle.value)
+  adultTag(submissionData.rating)
   setMetaContent(
     "description",
     textualize(submissionData.caption).slice(0, 160),

@@ -18,6 +18,9 @@
   {% for link in image_links %}
     <link rel="preload" as="image" href="{{link}}" />
   {% endfor %}
+  {% if adult %}
+    <meta name="rating" content="adult">
+  {% endif %}
   <style>
       body {
           background-color: #303030;
