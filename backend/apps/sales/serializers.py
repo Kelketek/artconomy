@@ -1,3 +1,4 @@
+import logging
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
@@ -1796,6 +1797,9 @@ class PayoutTransactionSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+logger = logging.getLogger(__name__)
+
+
 class ReconciliationRecordSerializer(serializers.ModelSerializer):
     id = ShortCodeField()
     deliverable = SerializerMethodField()
@@ -1862,13 +1866,15 @@ class ReconciliationRecordSerializer(serializers.ModelSerializer):
         amount = obj.amount
         if obj.destination == FUND and obj.source == CARD:
             invoice = ref_for_instance(self.get_invoices(obj)[0])
-            fee = TransactionRecord.objects.get(
+            fee_total = Money("0", amount.currency)
+            for fee in TransactionRecord.objects.filter(
                 source=FUND,
                 destination=CARD_TRANSACTION_FEES,
                 status=SUCCESS,
                 targets=invoice,
-            ).amount
-            amount -= fee
+            ):
+                fee_total += fee.amount
+            amount -= fee_total
         if obj.destination in {
             PAYOUT_ACCOUNT,
             CARD,
