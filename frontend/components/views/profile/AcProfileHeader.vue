@@ -7,7 +7,7 @@
       </ac-link>
     </v-toolbar-title>
     <v-spacer />
-    <v-toolbar-items v-if="subject && isRegistered && display.smAndUp">
+    <v-toolbar-items v-if="subject && isRegistered && display.smAndUp.value">
       <v-btn
         v-if="showEdit && controls"
         color="secondary"
