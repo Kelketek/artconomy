@@ -533,7 +533,11 @@ class SubmissionManager(RetrieveUpdateDestroyAPIView):
                 SubmissionViewPermission,
             ),
             StaffPower("moderate_content"),
-            ObjectControls,
+            And(ObjectControls, IsSafeMethod),
+            And(
+                Living,
+                ObjectControls,
+            ),
         ),
     ]
     queryset = Submission.objects.all()

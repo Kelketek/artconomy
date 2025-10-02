@@ -316,6 +316,24 @@ class TestSubmission(APITestCase):
         self.assertEqual(response.data["private"], False)
         self.assertEqual(response.data["rating"], GENERAL)
 
+    def test_kill_submission_prevents_edit(self):
+        staffer = create_staffer("moderate_content")
+        submission = SubmissionFactory.create(
+            removed_by=staffer, removed_on=timezone.now()
+        )
+        self.login(submission.owner)
+        response = self.client.patch(
+            "/api/profiles/v1/submission/{}/".format(submission.id),
+            {
+                "title": "Porn",
+                "tags": ["a", "b", "c", "d", "e"],
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        submission.refresh_from_db()
+        self.assertIn("This resource has been removed", response.data["detail"])
+
     def test_submission_hidden(self):
         user2 = UserFactory.create()
         self.login(user2)
