@@ -33,6 +33,16 @@
                   </v-btn>
                 </v-col>
                 <v-col cols="12">
+                  <v-alert v-if="international" type="info">
+                    Please check the
+                    <a
+                      href="https://docs.stripe.com/connect/cross-border-payouts/special-requirements#cross-border-minimum-payout-amounts-table"
+                      >minimum earnings required</a
+                    >
+                    to have a payout in your country.
+                  </v-alert>
+                </v-col>
+                <v-col cols="12">
                   <v-list-subheader>Can't find your country?</v-list-subheader>
                 </v-col>
                 <v-col cols="12">
@@ -197,6 +207,10 @@ const stripeCountries = useSingle<StripeCountryList>("stripeCountries", {
 })
 stripeCountries.get()
 stripeAccounts.firstRun()
+
+const international = computed(
+  () => !["US", ""].includes(stripeSetupForm.fields.country.value),
+)
 
 /* istanbul ignore next */
 const redirect = ({ link }: { link: string }) => {
