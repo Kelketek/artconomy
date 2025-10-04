@@ -404,8 +404,8 @@ def base_charge_succeeded_event():
             "object": {
                 "id": "ch_test",
                 "object": "charge",
-                "amount": 2062,
-                "amount_captured": 2062,
+                "amount": 2043,
+                "amount_captured": 2043,
                 "amount_refunded": 0,
                 "application": None,
                 "application_fee": None,

@@ -746,9 +746,9 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
         )
         self.assertEqual(len(lines), 1)
         line = lines[0]
-        self.assertEqual(Decimal(line["our_fees"]), Decimal("5.62"))
-        self.assertEqual(Decimal(line["card_fees"]), Decimal("0.90"))
-        self.assertEqual(Decimal(line["price"]), Decimal("20.62"))
+        self.assertEqual(Decimal(line["our_fees"]), Decimal("5.43"))
+        self.assertEqual(Decimal(line["card_fees"]), Decimal("0.89"))
+        self.assertEqual(Decimal(line["price"]), Decimal("20.43"))
 
     def test_refunded_transaction(self):
         deliverable = DeliverableFactory.create(
@@ -763,5 +763,5 @@ class TestOrderValues(APITestCase, DeliverableChargeMixin):
         )
         self.assertEqual(len(lines), 1)
         line = lines[0]
-        self.assertEqual(Decimal(line["our_fees"]), Decimal("5.62"))
-        self.assertEqual(Decimal(line["price"]), Decimal("20.62"))
+        self.assertEqual(Decimal(line["our_fees"]), Decimal("5.43"))
+        self.assertEqual(Decimal(line["price"]), Decimal("20.43"))

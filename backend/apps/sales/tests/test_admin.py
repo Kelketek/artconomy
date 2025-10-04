@@ -75,7 +75,7 @@ class TestKillFraudulent(EnsurePlansMixin, TestCase, DeliverableChargeMixin):
         )
         self.assertEqual(refund_transaction.amount, fund_transaction.amount)
         self.assertEqual(deliverable.refunded_on, timezone.now())
-        self.assertEqual(refund_transaction.amount, Money("20.62", "USD"))
+        self.assertEqual(refund_transaction.amount, Money("20.43", "USD"))
         self.assertEqual(refund_transaction.category, ESCROW_REFUND)
         self.assertCountEqual(
             refund_transaction.remote_ids,
@@ -87,7 +87,7 @@ class TestKillFraudulent(EnsurePlansMixin, TestCase, DeliverableChargeMixin):
         )
         self.assertCountEqual(list(refund_transaction.targets.all()), targets)
         mock_stripe.__enter__.return_value.Refund.create.assert_called_with(
-            amount=2062, payment_intent="pi_12345"
+            amount=2043, payment_intent="pi_12345"
         )
 
     @freeze_time("2023-01-01")

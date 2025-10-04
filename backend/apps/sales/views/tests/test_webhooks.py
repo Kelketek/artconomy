@@ -270,7 +270,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
-        self.assertEqual(fee.amount, Money("0.90", "USD"))
+        self.assertEqual(fee.amount, Money("0.89", "USD"))
         for transaction in [fund_transaction, escrow_transaction, fee]:
             targets = list(transaction.targets.all())
             self.assertIn(ref_for_instance(deliverable), targets)
@@ -319,7 +319,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
-        self.assertEqual(fee.amount, Money("0.61", "USD"))
+        self.assertEqual(fee.amount, Money("0.60", "USD"))
 
     def test_deliverable_payment_failed(self):
         event = base_charge_succeeded_event()
@@ -364,7 +364,7 @@ class TestHandleChargeEvent(EnsurePlansMixin, TransactionCheckMixin, TestCase):
             source=FUND,
             destination=CARD_TRANSACTION_FEES,
         )
-        self.assertEqual(fee.amount, Money("1.21", "USD"))
+        self.assertEqual(fee.amount, Money("1.20", "USD"))
 
     def test_deliverable_wrong_amount_throws(self):
         event = base_charge_succeeded_event()
@@ -971,7 +971,7 @@ class TestPaypalWebhooks(APITestCase):
         deliverable.refresh_from_db()
         self.assertEqual(deliverable.status, QUEUED)
         self.assertEqual(
-            deliverable.invoice.total(), original_total + Money("5.64", "USD")
+            deliverable.invoice.total(), original_total + Money("5.60", "USD")
         )
         self.assertEqual(
             deliverable.invoice.line_items.filter(type=TIP).get().amount,

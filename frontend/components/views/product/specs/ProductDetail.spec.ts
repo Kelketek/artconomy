@@ -463,7 +463,7 @@ describe("ProductDetail.vue", () => {
           ),
           [LineType.SHIELD],
         ),
-      ).toEqual("4.42"),
+      ).toEqual("4.18"),
     )
     expect(
       totalForTypes(

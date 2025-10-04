@@ -232,9 +232,9 @@ class TestTransactionRecord(EnsurePlansMixin, TestCase):
 class TestDeliverable(EnsurePlansMixin, TestCase):
     def test_total(self):
         deliverable = DeliverableFactory.create(product__base_price=Money(5, "USD"))
-        self.assertEqual(deliverable.invoice.total(), Money("9.35", "USD"))
+        self.assertEqual(deliverable.invoice.total(), Money("9.24", "USD"))
         LineItemFactory.create(invoice=deliverable.invoice, amount=Money("2.00", "USD"))
-        self.assertEqual(deliverable.invoice.total(), Money("11.61", "USD"))
+        self.assertEqual(deliverable.invoice.total(), Money("11.47", "USD"))
 
     def deliverable_and_context(self):
         deliverable = DeliverableFactory.create()
@@ -847,7 +847,7 @@ class TestInvoice(EnsurePlansMixin, TestCase):
             str(deliverable.invoice),
             f"Invoice {deliverable.invoice.id} [Sale] for "
             f"{deliverable.invoice.bill_to.username} in the amount of "
-            f"$20.62 for deliverable: Deliverable object ({deliverable.id})",
+            f"$20.43 for deliverable: Deliverable object ({deliverable.id})",
         )
 
 

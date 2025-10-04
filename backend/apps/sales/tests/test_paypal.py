@@ -221,7 +221,7 @@ class TestSerializeLineItem(EnsurePlansMixin, TestCase):
                 "name": f"Order #{deliverable.order.id} "
                 f"[{deliverable.name}] - Boop sketch",
                 "quantity": 1,
-                "unit_amount": {"currency_code": "USD", "value": "20.62"},
+                "unit_amount": {"currency_code": "USD", "value": "20.43"},
                 "unit_of_measure": "AMOUNT",
             },
         )

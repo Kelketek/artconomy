@@ -312,9 +312,9 @@ class TransactionCheckMixin:
         )
         if landscape:
             # This is wrong, fix it.
-            expected_total = Money("16.27", "USD")
+            expected_total = Money("16.23", "USD")
         else:
-            expected_total = Money("17.24", "USD")
+            expected_total = Money("17.08", "USD")
         self.assertEqual(fund_transaction.amount, expected_total)
         escrow_transactions = TransactionRecord.objects.filter(
             source=FUND,
@@ -361,9 +361,9 @@ class TransactionCheckMixin:
             deliverable.invoice,
         )
         if landscape:
-            self.assertEqual(shield_fee.amount, Money("1.11", "USD"))
+            self.assertEqual(shield_fee.amount, Money("1.07", "USD"))
         else:
-            self.assertEqual(shield_fee.amount, Money("2.05", "USD"))
+            self.assertEqual(shield_fee.amount, Money("1.89", "USD"))
         if source == CARD:
             card_fee = TransactionRecord.objects.get(payer=None, payee=None)
             if landscape:
