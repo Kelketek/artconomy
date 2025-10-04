@@ -914,6 +914,28 @@ pub mod funcs {
         Ok(total)
     }
 
+    /// Multiply values in a vector, returning the result.
+    pub fn multiply(
+        mut values: Vec<String>,
+        quantization: u32,
+    ) -> Result<Decimal, TabulationError> {
+        let mut total: Decimal = match values.pop() {
+            Some(x) => dec_from_string!(x),
+            None => return Err(TabulationError::from("Cannot multiply empty vector.")),
+        };
+        let mut operand_count = 0;
+        for operand in values.drain(..) {
+            total *= dec_from_string!(operand);
+            operand_count += 1;
+        }
+        if operand_count == 0 {
+            return Err(TabulationError::from(
+                "Cannot multiply a vector with only one entry.",
+            ));
+        }
+        Ok(quantize(&total, quantization))
+    }
+
     /// JS binding for sum
     #[cfg(feature = "wasm")]
     #[wasm_bindgen]
@@ -923,6 +945,22 @@ pub mod funcs {
             Err(err) => return Err(TabulationError::from(err.to_string())),
         };
         match sum(values, quantization) {
+            Ok(val) => Ok(JsString::from(val.to_string())),
+            Err(err) => Err(err),
+        }
+    }
+    /// JS binding for multiply
+    #[cfg(feature = "wasm")]
+    #[wasm_bindgen]
+    pub fn js_multiply(
+        raw_values: JsValue,
+        quantization: u32,
+    ) -> Result<JsString, TabulationError> {
+        let values: Vec<String> = match serde_wasm_bindgen::from_value(raw_values) {
+            Ok(result) => result,
+            Err(err) => return Err(TabulationError::from(err.to_string())),
+        };
+        match multiply(values, quantization) {
             Ok(val) => Ok(JsString::from(val.to_string())),
             Err(err) => Err(err),
         }

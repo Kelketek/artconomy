@@ -7,6 +7,7 @@ import {
   js_deliverable_lines,
   js_invoice_lines,
   js_sum,
+  js_multiply,
 } from "@/lib/lines"
 import type {
   LineAccumulator,
@@ -129,4 +130,8 @@ export const deliverableLines = ({
     quantization: 2,
     allow_soft_failure: true,
   }).Ok
+}
+
+export const multiply = (args: string[]): string => {
+  return js_multiply(args, 2)
 }

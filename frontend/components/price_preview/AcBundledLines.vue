@@ -10,15 +10,14 @@
         {{ label }}:
       </v-col>
       <v-col cols="4" class="pl-1 text-left align-content-center"
-        ><span v-if="!open">${{ subtotal }}</span></v-col
-      >
-      <v-col cols="2">
-        <v-btn
+        ><span :class="{ concealed: open }" :aria-hidden="!open"
+          >${{ subtotal }}</span
+        ><v-btn
           v-if="nonZero"
-          size="x-small"
+          size="xs"
           icon
           color="info"
-          class="align-self-start mt-1"
+          class="align-self-start my-0 ml-2 py-0"
           :aria-label="open ? 'Collapse' : 'Expand'"
           @click="toggle"
         >
@@ -64,11 +63,18 @@ const emits = defineEmits<{ "update:modelValue": [boolean] }>()
 
 const innerModel: Ref<boolean> = ref(!!props.modelValue)
 
-const open = computed(() => {
+const rawOpen = computed(() => {
   if (props.modelValue !== undefined) {
     return props.modelValue
   }
   return innerModel.value
+})
+
+const open = computed(() => {
+  if (rawOpen.value && parseFloat(subtotal.value) !== 0) {
+    return rawOpen.value
+  }
+  return false
 })
 
 const subtotal = computed(() => {
@@ -89,3 +95,9 @@ const toggle = () => {
   innerModel.value = !open.value
 }
 </script>
+
+<style scoped>
+.concealed {
+  opacity: 0;
+}
+</style>

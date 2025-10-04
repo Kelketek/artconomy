@@ -104,11 +104,17 @@ const tabs: ComputedRef<TabSpec[]> = computed(() => {
     title: entry.name,
   }))
 })
+const selection = computed(() => {
+  if (!props.lineItemSetMaps.length) {
+    return ""
+  }
+  return props.lineItemSetMaps[selectedTab.value].name
+})
 const single = computed(() => {
   return props.lineItemSetMaps.length === 1
 })
 defineExpose({
-  tab: selectedTab,
+  selection,
 })
 </script>
 

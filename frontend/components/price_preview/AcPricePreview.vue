@@ -103,7 +103,7 @@
             :editing="editable"
             :transfer="transfer"
           />
-          <v-row no-gutters>
+          <v-row no-gutters class="mt-1">
             <v-col class="text-right pr-1" cols="6">
               <strong v-if="transfer">Total Charge:</strong>
               <strong v-else>Total Price:</strong>
@@ -167,7 +167,10 @@ import AcForm from "@/components/wrappers/AcForm.vue"
 import AcNewLineSkeleton from "@/components/price_preview/AcNewLineSkeleton.vue"
 import AcBoundField from "@/components/fields/AcBoundField.ts"
 import { useForm } from "@/store/forms/hooks.ts"
-import { useLineItems } from "@/components/price_preview/mixins/line_items.ts"
+import {
+  MODIFIER_TYPE_SETS,
+  useLineItems,
+} from "@/components/price_preview/mixins/line_items.ts"
 import { computed, nextTick, ref } from "vue"
 import { usePricing } from "@/mixins/PricingAware.ts"
 import { useViewer } from "@/mixins/viewer.ts"
@@ -236,19 +239,6 @@ const payout = computed(() => {
   const types = [LineType.BASE_PRICE, LineType.ADD_ON, LineType.TIP]
   return totalForTypes(priceData.value, types)
 })
-
-const MODIFIER_TYPE_SETS = new Set([
-  LineType.SHIELD,
-  LineType.BONUS,
-  LineType.TABLE_SERVICE,
-  LineType.PROCESSING,
-  LineType.DELIVERABLE_TRACKING,
-  LineType.RECONCILIATION,
-  LineType.CARD_FEE,
-  LineType.CROSS_BORDER_TRANSFER_FEE,
-  LineType.PAYOUT_FEE,
-  LineType.CONNECT_FEE,
-] as LineTypeValue[])
 
 const moddedItems = computed(() => {
   // Modify the items for user-facing calculation.
