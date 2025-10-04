@@ -90,7 +90,7 @@
   shell: "source ~/.profile && source ~/bin/activate && cd ~/artconomy && ./manage.py initial_service_plans && touch {{home}}/.initial-service-plans-created"
   args:
     executable: "/bin/bash"
-    creates: "{{ home }}/.initial-service-plans-created"
+    creates: "{{ home }}/.initial-service-plans-synced-2025"
 
 - name: Perform post-planning-refactor price bump
   become: yes
