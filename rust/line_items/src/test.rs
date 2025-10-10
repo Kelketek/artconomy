@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod interface_tests {
-    use crate::data::LineItem;
-    use crate::funcs::{get_totals, reckon_lines};
+    use crate::data::{LineItem, TabulationError};
+    use crate::funcs::{frozen_lines, get_totals, reckon_lines};
     use crate::s;
     use ntest::timeout;
     use pretty_assertions::assert_eq;
@@ -173,6 +173,81 @@ mod interface_tests {
             total,
             map.values().fold(dec!(0), |current, item| current + *item)
         );
+    }
+
+    #[test]
+    #[timeout(100)]
+    fn test_frozen_values() {
+        let input = vec![
+            LineItem {
+                id: 1,
+                amount: s!("10.00"),
+                priority: 0,
+                frozen_value: Some(s!("4.00")),
+                ..Default::default()
+            },
+            LineItem {
+                id: 2,
+                priority: 100,
+                percentage: s!("-10.00"),
+                frozen_value: Some(s!("3.50")),
+                ..Default::default()
+            },
+        ];
+        let (total, discount, map) = get_totals(input.clone(), 2).unwrap();
+        assert_eq!(total, dec!(7.50));
+        assert_eq!(discount, dec!(0));
+        assert_eq!(map[&input[0]], dec!(4));
+        assert_eq!(map[&input[1]], dec!(3.50));
+    }
+
+    #[test]
+    fn test_errors_on_mixed_frozenness() {
+        let input = vec![
+            LineItem {
+                id: 1,
+                amount: s!("10.00"),
+                priority: 0,
+                frozen_value: Some(s!("4.00")),
+                ..Default::default()
+            },
+            LineItem {
+                id: 2,
+                priority: 100,
+                percentage: s!("-10.00"),
+                frozen_value: None,
+                ..Default::default()
+            },
+        ];
+        let error = get_totals(input, 2);
+        assert_eq!(
+            error,
+            Err(TabulationError::from(
+                "Found a mixture of frozen and unfrozen lines!"
+            ))
+        )
+    }
+
+    #[test]
+    fn test_errors_on_mixed_frozenness_inner() {
+        let input = vec![
+            LineItem {
+                id: 1,
+                amount: s!("10.00"),
+                priority: 0,
+                frozen_value: Some(s!("4.00")),
+                ..Default::default()
+            },
+            LineItem {
+                id: 2,
+                priority: 100,
+                percentage: s!("-10.00"),
+                frozen_value: None,
+                ..Default::default()
+            },
+        ];
+        let error = frozen_lines(input);
+        assert_eq!(error, Err(TabulationError::from("Unfrozen line found!")))
     }
 
     #[test]

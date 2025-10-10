@@ -287,12 +287,60 @@ pub mod funcs {
         Ok((total, discount, subtotals))
     }
 
+    /// Check if the lines given are a set of frozen line items. Line items that have historical
+    /// calculated values based on previous versions of this code should be not be recalculated.
+    /// They represent transactions that happened in the past.
+    pub fn is_frozen_set(lines: &Vec<LineItem>) -> Result<bool, TabulationError> {
+        let mut found_non_frozen = false;
+        let mut found_frozen = false;
+        for line in lines.into_iter() {
+            match &line.frozen_value {
+                Some(_x) => found_frozen = true,
+                None => found_non_frozen = true,
+            }
+        }
+        if found_non_frozen && found_frozen {
+            return Err(TabulationError::from(
+                "Found a mixture of frozen and unfrozen lines!",
+            ));
+        }
+        return Ok(found_frozen);
+    }
+
+    /// Returns the values for line items which have already been frozen, to avoid returning values
+    /// that would disagree with historical calculation values. This does require all lines to have
+    /// been previously frozen, or else an error will be returned.
+    pub fn frozen_lines(
+        mut lines: Vec<LineItem>,
+    ) -> Result<(Decimal, Decimal, LineDecimalMap), TabulationError> {
+        let mut subtotals = LineDecimalMap::new();
+        let zero = dec!(0);
+        let mut discount = dec!(0);
+        let mut total = dec!(0);
+        for line in (lines).drain(..) {
+            let frozen_value: Decimal = match &line.frozen_value {
+                Some(x) => dec_from_string!(x),
+                None => return Err(TabulationError::from("Unfrozen line found!")),
+            };
+            if frozen_value < zero {
+                discount += frozen_value
+            }
+            total += frozen_value;
+            subtotals.insert(line, frozen_value);
+        }
+        Ok((total, discount, subtotals))
+    }
+
     /// Get the total, discounted amount, and full LineMoneyMap with resultant amount for
     /// each line item. If you just need the total, use reckon_lines instead.
     pub fn get_totals(
         lines: Vec<LineItem>,
         quantization: u32,
     ) -> Result<(Decimal, Decimal, LineDecimalMap), TabulationError> {
+        let is_frozen = is_frozen_set(&lines)?;
+        if is_frozen {
+            return frozen_lines(lines);
+        }
         let priority_sets = lines_by_priority(lines)?;
         normalized_lines(priority_sets, quantization)
     }
