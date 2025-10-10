@@ -14,13 +14,22 @@
         <ac-load-section :controller="pricing">
           <template v-if="selection === null" #default>
             <v-row>
+              <v-col cols="12" class="mt-5 mb-0">
+                <v-alert type="info" class="ma-0">
+                  Not sure which plan is best for you? Want to get a REAL
+                  rundown of fees?
+                  <router-link :to="{ name: 'Calculator' }"
+                    >Check out our calculator!</router-link
+                  >
+                </v-alert>
+              </v-col>
               <v-col
                 v-for="(plan, index) in plans"
                 :id="`plan-${flatten(plan.name)}-column`"
                 :key="plan.id"
                 cols="12"
                 md="4"
-                class="mt-3 plan-column"
+                class="plan-column"
               >
                 <v-card
                   style="height: 100%"
@@ -130,7 +139,15 @@
                                   pricing.x!
                                     .international_conversion_percentage
                                 }}% conversion fee.</sup
-                              >
+                              ><br />
+                              <sup>
+                                Additional fees levied by stripe apply to all
+                                shielded transactions. Please check the
+                                <router-link :to="{ name: 'Calculator' }"
+                                  >calculator</router-link
+                                >
+                                for details.
+                              </sup>
                             </div>
                           </v-card-text>
                         </v-card>

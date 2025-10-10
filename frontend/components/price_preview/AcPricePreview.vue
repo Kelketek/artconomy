@@ -106,6 +106,7 @@
           <v-row no-gutters class="mt-1">
             <v-col class="text-right pr-1" cols="6">
               <strong v-if="transfer">Total Charge:</strong>
+              <strong v-else-if="isSeller">Customer Pays:</strong>
               <strong v-else>Total Price:</strong>
             </v-col>
             <v-col class="text-left pl-1" cols="6">
@@ -174,7 +175,7 @@ import {
 import { computed, nextTick, ref } from "vue"
 import { usePricing } from "@/mixins/PricingAware.ts"
 import { useViewer } from "@/mixins/viewer.ts"
-import type { LineItem, LineTypeValue } from "@/types/main"
+import type { LineItem } from "@/types/main"
 import AcBundledLines from "@/components/price_preview/AcBundledLines.vue"
 
 const props = withDefaults(
@@ -240,25 +241,12 @@ const payout = computed(() => {
   return totalForTypes(priceData.value, types)
 })
 
-const moddedItems = computed(() => {
-  // Modify the items for user-facing calculation.
-  if (props.isSeller) {
-    return rawLineItems.value
-  }
-  // We eliminate the Deliverable tracking fee since that's just for the artist's reference-- it doesn't affect
-  // the price charged. It just tells the artist what they will be charged later.
-  return rawLineItems.value.filter(
-    (line: LineItem) =>
-      !([LineType.DELIVERABLE_TRACKING] as LineTypeValue[]).includes(line.type),
-  )
-})
-
 const taxes = computed(() =>
-  moddedItems.value.filter((line: LineItem) => line.type === LineType.TAX),
+  rawLineItems.value.filter((line: LineItem) => line.type === LineType.TAX),
 )
 
 const modifiers = computed(() =>
-  moddedItems.value.filter((line: LineItem) =>
+  rawLineItems.value.filter((line: LineItem) =>
     MODIFIER_TYPE_SETS.has(line.type),
   ),
 )

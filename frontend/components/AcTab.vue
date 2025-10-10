@@ -2,7 +2,9 @@
   <v-tab :to="destination" :value="value">
     <v-icon v-if="icon" left :icon="icon" size="large" class="mr-1" />
     <component :is="tag" class="text-button font-weight-bold">
-      <slot />
+      <template #default>
+        <slot />
+      </template>
     </component>
     <span v-if="count">&nbsp;({{ count }})</span>
   </v-tab>

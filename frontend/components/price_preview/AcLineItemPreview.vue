@@ -46,22 +46,22 @@ const price = computed(() => {
 })
 
 const BASIC_TYPES: { [key: number]: string } = {
-  0: "Base price",
-  2: "Shield protection",
-  3: "Landscape bonus",
-  4: "Tip net",
-  5: "Table service",
-  6: "Tax",
-  7: "Accessory item",
-  8: "Premium Subscription",
-  9: "Other Fee",
-  10: "Order Tracking",
-  11: "Handling fee",
-  12: "Reconciliation",
-  13: "Card Processing",
-  14: "Cross-border transfer fee",
-  15: "Payout fee",
-  16: "Connect fee",
+  [LineType.BASE_PRICE]: "Base price",
+  [LineType.SHIELD]: "Shield protection",
+  [LineType.BONUS]: "Landscape bonus",
+  [LineType.TIP]: "Tip net",
+  [LineType.TABLE_SERVICE]: "Table service",
+  [LineType.TAX]: "Tax",
+  [LineType.EXTRA]: "Accessory item",
+  [LineType.PREMIUM_SUBSCRIPTION]: "Premium Subscription",
+  [LineType.OTHER_FEE]: "Other Fee",
+  [LineType.DELIVERABLE_TRACKING]: "Order Tracking",
+  [LineType.PROCESSING]: "Handling fee",
+  [LineType.RECONCILIATION]: "Reconciliation",
+  [LineType.CARD_FEE]: "Card Processing",
+  [LineType.CROSS_BORDER_TRANSFER_FEE]: "Cross-border transfer fee",
+  [LineType.PAYOUT_FEE]: "Payout fee",
+  [LineType.CONNECT_FEE]: "Connect fee",
 }
 
 const label = computed(() => {
@@ -98,20 +98,30 @@ const label = computed(() => {
 })
 
 const TYPE_HINTS = {
-  0:
+  [LineType.BASE_PRICE]:
     "This is the portion of the initial listing price that goes to the seller. This may be less than the listing " +
     "price if shield is enabled by default, or if a discount has been applied.",
-  1: "This is a manually added line item from the seller. If the description is not clear, please ask them for details.",
-  2:
+  [LineType.ADD_ON]:
+    "This is a manually added line item from the seller. If the description is not clear, please ask them for details.",
+  [LineType.SHIELD]:
     "Fee for Artconomy Shield, including buyer/seller " +
     "protection and dispute resolution.",
-  4: "How much money the artist is expected to receive after all processing fees have been deducted",
-  5: "Cost to offset running convention table where you placed this order",
-  11: "Artconomy's fee to maintain the transaction system and offset risk.",
-  13: "Blended rate from our card processor for processing a credit card transaction.",
-  14: "Fee our payment processor charges for sending money internationally",
-  15: "Fee our payment processor charges to pay out to an artist's bank account",
-  16: "Fee our payment processor charges for having an active artist account in a given month",
+  [LineType.TIP]:
+    "How much money the artist is expected to receive from the tip after all processing fees have been deducted",
+  [LineType.TABLE_SERVICE]:
+    "Cost to offset running convention table where you placed this order",
+  [LineType.PROCESSING]:
+    "Artconomy's fee to maintain the transaction system and offset risk.",
+  [LineType.CARD_FEE]:
+    "Blended rate from our card processor for processing a credit card transaction.",
+  [LineType.CROSS_BORDER_TRANSFER_FEE]:
+    "Fee our payment processor charges for sending money internationally",
+  [LineType.PAYOUT_FEE]:
+    "Fee our payment processor charges to pay out to an artist's bank account",
+  [LineType.CONNECT_FEE]:
+    "Fee our payment processor charges for having an active artist account in a given month",
+  [LineType.DELIVERABLE_TRACKING]:
+    "Fee for tracking this order, invoiced to the artist at the end of the month, but included here to ensure it's accounted for in the price",
 }
 
 const typeHint = computed(() => {

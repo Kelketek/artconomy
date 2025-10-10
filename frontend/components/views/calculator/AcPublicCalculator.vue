@@ -29,6 +29,7 @@
             <ac-price-field
               v-model="price"
               label="Average take-home amount per commission"
+              :disabled="escrowDisabled"
             />
           </v-col>
           <v-col cols="12" md="6" offset-md="3">
@@ -45,27 +46,79 @@
               :disabled="escrowDisabled"
               :min="0"
               label="Shielded Commission count"
-              :persistent-hint="true"
-              hint="How many orders protected by Artconomy Shield you expect to have on average each month."
             />
+            <small :class="{ faded: escrowDisabled }"
+              >How many orders protected by Artconomy Shield you expect to have
+              on average each month.</small
+            >
           </v-col>
           <v-col cols="12" md="4">
             <v-number-input
               v-model="nonEscrowCount"
               :min="0"
               label="Unshielded Commission count"
-              :persistent-hint="true"
-              hint="How many orders per month you want to track using Artconomy's organizational tools, but don't want us to handle payment for."
             />
+            <small
+              >How many orders per month you want to track using Artconomy's
+              organizational tools, but don't want us to handle payment
+              for.</small
+            >
           </v-col>
         </v-row>
-        <v-card-title>Totals</v-card-title>
-        <v-row>
-          <v-col>Total amount processed: ${{ totalProcessed }}</v-col>
-          <v-col>Tracking Fees: ${{ trackingFees }}</v-col>
-          <v-col>Processing Fees: ${{ processingFees }}</v-col>
-          <v-col>Total Fees: ${{ totalFees }}</v-col>
-          <v-col>Monthly invoice total: ${{ invoiceAmount }}</v-col>
+        <v-card-title>Monthly Totals</v-card-title>
+        <v-row v-if="tooMany">
+          <v-col cols="12">
+            <v-alert type="warning"
+              >Cannot calculate totals. The {{ selectedPlan }} plan can only
+              support up to {{ maxSimultaneous }} {{ noun }} at a time.</v-alert
+            >
+          </v-col>
+        </v-row>
+        <v-row v-else>
+          <v-col cols="6" md="4" offset-md="2">
+            <v-card-subtitle>Total earned</v-card-subtitle>
+            ${{ totalProcessed }}
+          </v-col>
+          <v-col cols="6" md="4">
+            <v-card-subtitle>Tracking Fees</v-card-subtitle>
+            ${{ trackingFees }}
+            <div><small>Added to your monthly invoice</small></div>
+          </v-col>
+          <v-col cols="6" md="4" offset-md="2">
+            <v-card-subtitle>Processing Fees</v-card-subtitle>
+            ${{ processingFees }}
+            <div>
+              <small>Paid by client, included in commission price</small>
+            </div>
+          </v-col>
+          <v-col cols="6" md="4">
+            <v-card-subtitle>Total Fees</v-card-subtitle>
+            ${{ totalFees }}
+            <div>
+              <small
+                >All fees paid between you and your clients for Artconomy's
+                services</small
+              >
+            </div>
+          </v-col>
+          <v-col cols="6" md="4" offset-md="2">
+            <v-card-subtitle>Monthly Subscription Fee</v-card-subtitle>
+            ${{ monthlySubscriptionFee }}
+            <div><small>Added to your monthly invoice</small></div>
+          </v-col>
+          <v-col cols="6" md="4">
+            <v-card-subtitle>Monthly invoice total</v-card-subtitle>
+            ${{ invoiceAmount }}
+            <div>
+              <small>Total amount charged to your card each month</small>
+            </div>
+          </v-col>
+          <v-col cols="12" class="text-center">
+            <v-card-title
+              >Recommended Plan:
+              <strong>{{ recommendedPlan }}</strong></v-card-title
+            >
+          </v-col>
         </v-row>
       </v-card-text>
     </v-card>
@@ -80,6 +133,7 @@ import {
   Pricing,
   RawLineItemSetMap,
   StripeCountryList,
+  ServicePlan,
 } from "@/types/main"
 import AcPriceField from "@/components/fields/AcPriceField.vue"
 import { useList } from "@/store/lists/hooks.ts"
@@ -92,6 +146,7 @@ import {
 import { ListController } from "@/store/lists/controller.ts"
 import { useViewer } from "@/mixins/viewer.ts"
 import AcPriceComparison from "@/components/price_preview/AcPriceComparison.vue"
+import { MODIFIER_TYPE_SETS } from "@/components/price_preview/mixins/line_items.ts"
 
 // Non-reactive. We need to keep the keys we get during setup.
 const { pricing } = defineProps<{ pricing: Pricing }>()
@@ -105,6 +160,12 @@ const listControllerMaps = new Map(
     }),
   ]),
 )
+
+const planMap: Record<string, ServicePlan> = {}
+pricing.plans.forEach((plan) => {
+  planMap[plan.name] = plan
+})
+
 // const planNames = pricing.plans.map((servicePlan) => servicePlan.name)
 const { viewer } = useViewer()
 const priceComparison: Ref<null | typeof AcPriceComparison> = ref(null)
@@ -179,39 +240,62 @@ const lineItemSetMaps = computed(() => {
 })
 
 declare interface Tallies {
-  totalProcessed: string
+  tooMany: boolean
+  maxSimultaneous: number
+  totalEarned: string
   processingFees: string
   trackingFees: string
   totalFees: string
   invoiceAmount: string
+  monthlySubscriptionFee: string
 }
 
 const tallies = computed(() => {
   const results: { [key: string]: Tallies } = {}
   for (const [name, controller] of listControllerMaps) {
+    const plan = pricing.plans.filter((plan) => plan.name === name)[0]
     const totals = getTotals(controller.list.map((x) => x.x!))
-    const totalProcessed = multiply([
-      sum(totals.subtotals.values()),
+    const earningsLines = controller.list
+      .filter((x) => x.x!.destination_user_id)
+      .map((x) => x.x!)
+    const totalEarned = multiply([
+      sum(earningsLines.map((x) => totals.subtotals.get(x)!)),
       escrowCount.value + "",
     ])
-    const processingFees = multiply(["0", "1"])
-    const plan = pricing.plans.filter((plan) => plan.name === name)[0]
+    const processingFeeLines = controller.list
+      .filter((x) => MODIFIER_TYPE_SETS.has(x.x!.type))
+      .map((x) => x.x!)
+    const processingFees = multiply([
+      sum(processingFeeLines.map((x) => totals.subtotals.get(x)!)),
+      escrowCount.value + "",
+    ])
     const trackingFees = multiply([
       plan.per_deliverable_price,
       nonEscrowCount.value + "",
     ])
+    let tooMany: boolean
+    const maxSimultaneous = plan.max_simultaneous_orders
+    if (maxSimultaneous) {
+      tooMany = escrowCount.value + nonEscrowCount.value > maxSimultaneous
+    } else {
+      tooMany = false
+    }
+    const monthlySubscriptionFee = plan.monthly_charge
     results[name] = {
-      totalProcessed,
+      tooMany,
+      maxSimultaneous,
+      totalEarned,
       processingFees,
+      monthlySubscriptionFee,
       trackingFees,
-      totalFees: sum([processingFees, trackingFees]),
+      totalFees: sum([processingFees, trackingFees, monthlySubscriptionFee]),
       invoiceAmount: sum([trackingFees, plan.monthly_charge]),
     }
   }
   return results
 })
 
-const currentValue = (entry: keyof Tallies): string => {
+const currentValue = (entry: keyof Tallies) => {
   return () => {
     if (!selectedPlan.value) {
       return "0"
@@ -220,9 +304,40 @@ const currentValue = (entry: keyof Tallies): string => {
   }
 }
 
-const totalProcessed = computed(currentValue("totalProcessed"))
+const totalProcessed = computed(currentValue("totalEarned"))
 const processingFees = computed(currentValue("processingFees"))
 const trackingFees = computed(currentValue("trackingFees"))
 const totalFees = computed(currentValue("totalFees"))
 const invoiceAmount = computed(currentValue("invoiceAmount"))
+const tooMany = computed(currentValue("tooMany"))
+const maxSimultaneous = computed(currentValue("maxSimultaneous"))
+const monthlySubscriptionFee = computed(currentValue("monthlySubscriptionFee"))
+const noun = computed(() => (maxSimultaneous.value === 1 ? "order" : "orders"))
+
+const recommendedPlan = computed(() => {
+  const totalOrders = escrowCount.value + nonEscrowCount.value
+  const possibilities = pricing.plans.filter(
+    (plan) =>
+      !plan.max_simultaneous_orders ||
+      plan.max_simultaneous_orders >= totalOrders,
+  )
+  let planName = "Unknown"
+  let amount = Infinity
+  for (const possibility of possibilities) {
+    const candidateAmount = parseFloat(
+      tallies.value[possibility.name].totalFees,
+    )
+    if (candidateAmount < amount) {
+      planName = possibility.name
+      amount = candidateAmount
+    }
+  }
+  return planName
+})
 </script>
+
+<style scoped>
+.faded {
+  opacity: 0.25;
+}
+</style>
