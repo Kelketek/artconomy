@@ -38,6 +38,7 @@ from apps.sales.models import (
     TransactionRecord,
     WebhookRecord,
     PaypalConfig,
+    StripeAccount,
 )
 from apps.sales.stripe import stripe, reverse_transfer
 from apps.sales.utils import reverse_record, issue_refund, fetch_prefixed
@@ -607,6 +608,16 @@ class PaypalConfigAdmin(admin.ModelAdmin):
     form = PaypalConfigAdminForm
 
 
+class StripeAccountAdmin(admin.ModelAdmin):
+    raw_id_fields = ["user"]
+    search_fields = ["user_username_case", "user__email", "token"]
+
+    def get_queryset(self, request):
+        return StripeAccount.objects.all().annotate(
+            user_username_case=Collate("user__username", "und-x-icu"),
+        )
+
+
 admin.site.register(Product, ProductAdmin)
 admin.site.register(Order, OrderAdmin)
 admin.site.register(Deliverable, DeliverableAdmin)
@@ -622,3 +633,4 @@ admin.site.register(StripeLocation, StripeLocationAdmin)
 admin.site.register(StripeReader, StripeReaderAdmin)
 admin.site.register(CreditCardToken, CreditCardTokenAdmin)
 admin.site.register(PaypalConfig, PaypalConfigAdmin)
+admin.site.register(StripeAccount, StripeAccountAdmin)

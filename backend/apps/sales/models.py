@@ -1729,6 +1729,12 @@ class StripeAccount(Model):
         ]
     }
 
+    def __str__(self):
+        return (
+            f"StripeAccount for {self.user and self.user.username} "
+            f"({'active' if self.active else 'inactive'})"
+        )
+
     def announce_channels(self):
         return [f"profiles.User.pk.{self.user_id}.stripe_accounts"]
 
