@@ -29,6 +29,8 @@
       - libmaxminddb0
       - libmaxminddb-dev
       - mmdb-bin
+      - cmake
+      - libcairo2-dev
 
 - name: Enable redis service
   service: name=redis-server enabled=true
