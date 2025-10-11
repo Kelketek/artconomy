@@ -14,7 +14,8 @@ from rest_framework.generics import get_object_or_404
 
 from apps.lib.constants import TRANSFER_FAILED
 from apps.lib.utils import notify
-from apps.profiles.models import IN_SUPPORTED_COUNTRY, User, UNSET
+from apps.profiles.models import User
+from apps.profiles.constants import IN_SUPPORTED_COUNTRY
 from apps.sales.constants import (
     FAILURE,
     HOLDINGS,
@@ -159,11 +160,11 @@ def account_updated(event):
 
 @transaction.atomic
 def account_removed(event):
-    account = StripeAccount.objects.get(token=event["account"])
-    artist_profile = account.user.artist_profile
+    account = StripeAccount.objects.filter(token=event["account"]).first()
+    if account is None:
+        # We don't have this account on file. We might have done the deleting.
+        return
     account.delete(force=True)
-    artist_profile.bank_account_status = UNSET
-    artist_profile.save()
 
 
 def transfer_failed(event):

@@ -69,7 +69,13 @@ from apps.lib.utils import (
     websocket_send,
     post_commit_defer,
 )
-from apps.profiles.constants import POWER_LIST
+from apps.profiles.constants import (
+    POWER_LIST,
+    UNSET,
+    IN_SUPPORTED_COUNTRY,
+    NO_SUPPORTED_COUNTRY,
+    BANK_STATUS_CHOICES,
+)
 from apps.profiles.permissions import (
     IsRegistered,
     JournalCommentPermission,
@@ -170,16 +176,6 @@ def default_plan():
         # means that the tables for ServicePlan have not yet been created, so we have to
         # catch the resulting exception in order to move forward.
         return None
-
-
-UNSET = 0
-IN_SUPPORTED_COUNTRY = 1
-NO_SUPPORTED_COUNTRY = 2
-BANK_STATUS_CHOICES = (
-    (UNSET, "Unset"),
-    (IN_SUPPORTED_COUNTRY, "In supported country"),
-    (NO_SUPPORTED_COUNTRY, "No supported country"),
-)
 
 
 class User(AbstractEmailUser, HitsMixin):

@@ -14,7 +14,7 @@ from apps.lib.models import (
 )
 from apps.lib.constants import SALE_UPDATE, TIP_RECEIVED
 from apps.lib.test_resources import APITestCase, EnsurePlansMixin
-from apps.profiles.models import IN_SUPPORTED_COUNTRY, UNSET
+from apps.profiles.constants import UNSET, IN_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     AUTHORIZE,
@@ -905,6 +905,17 @@ class TestAccountRemoved(EnsurePlansMixin, TestCase):
         to_destroy_profile.refresh_from_db()
         self.assertFalse(to_destroy_profile.escrow_enabled)
         self.assertEqual(to_destroy_profile.bank_account_status, UNSET)
+        # Should not raise
+        to_keep.refresh_from_db()
+        to_keep_profile.refresh_from_db()
+        self.assertEqual(to_keep_profile.bank_account_status, IN_SUPPORTED_COUNTRY)
+
+    @patch("apps.sales.models.stripe")
+    def test_remove_account_does_not_exist(self, mock_stripe):
+        event = base_account_removed_event()
+        event["account"] = "wat_do"
+        # Should not raise when no matching account exists.
+        handle_stripe_event(connect=True, event=event)
 
 
 def prep_for_invoice(event, invoice):

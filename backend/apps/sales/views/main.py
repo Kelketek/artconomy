@@ -53,13 +53,13 @@ from apps.lib.utils import (
 )
 from apps.lib.views import BasePreview, PositionShift
 from apps.profiles.models import (
-    IN_SUPPORTED_COUNTRY,
     ArtistProfile,
     ArtistTag,
     Submission,
     User,
     trigger_reconnect,
 )
+from apps.profiles.constants import IN_SUPPORTED_COUNTRY
 from apps.profiles.permissions import (
     AccountCurrentPermission,
     BillTo,

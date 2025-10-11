@@ -15,3 +15,11 @@ POWER_LIST = (
     "administrate_users",
 )
 POWER = Literal[*POWER_LIST]
+UNSET = 0
+IN_SUPPORTED_COUNTRY = 1
+NO_SUPPORTED_COUNTRY = 2
+BANK_STATUS_CHOICES = (
+    (UNSET, "Unset"),
+    (IN_SUPPORTED_COUNTRY, "In supported country"),
+    (NO_SUPPORTED_COUNTRY, "No supported country"),
+)

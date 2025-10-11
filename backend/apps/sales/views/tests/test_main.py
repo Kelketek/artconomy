@@ -17,12 +17,10 @@ from apps.lib.tests.factories import AssetFactory, TagFactory
 from apps.lib.tests.test_utils import create_staffer
 from apps.lib.utils import set_tags
 from apps.profiles.models import (
-    IN_SUPPORTED_COUNTRY,
-    NO_SUPPORTED_COUNTRY,
-    UNSET,
     ArtistTag,
     User,
 )
+from apps.profiles.constants import UNSET, IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import (
     CharacterFactory,
     SubmissionFactory,

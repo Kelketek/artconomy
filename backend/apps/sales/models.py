@@ -81,6 +81,7 @@ from apps.sales.constants import (
     WEIGHTED_STATUSES,
     ADD_ON,
 )
+from apps.profiles.constants import UNSET
 from apps.sales.line_item_funcs import reckon_lines, deliverable_lines
 from apps.sales.permissions import (
     OrderViewPermission,
@@ -1745,7 +1746,13 @@ class StripeAccount(Model):
             except StripePermissionError as err:
                 if not force:
                     raise err
-        return super(StripeAccount, self).delete()
+        artist_profile = getattr(self.user, "artist_profile", None)
+        super(StripeAccount, self).delete()
+        if artist_profile is None:
+            # Should never happen, but theoretically could.
+            return
+        artist_profile.bank_account_status = UNSET
+        artist_profile.save()
 
 
 @receiver(post_save, sender=StripeAccount)

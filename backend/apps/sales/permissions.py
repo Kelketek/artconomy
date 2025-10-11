@@ -1,6 +1,7 @@
 from typing import Any
 
-from apps.profiles.models import UNSET, User
+from apps.profiles.models import User
+from apps.profiles.constants import UNSET
 from apps.profiles.permissions import derive_user, staff_power
 from apps.sales.constants import CONCURRENCY_STATUSES, LIMBO, MISSED
 from apps.sales.utils import available_products_from_user

@@ -11,7 +11,7 @@ from apps.lib.constants import COMMENT, NEW_PRODUCT, REVISION_APPROVED
 from apps.lib.test_resources import EnsurePlansMixin
 from apps.lib.tests.factories_interdepend import CommentFactory
 from apps.lib.utils import FakeRequest
-from apps.profiles.models import IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY
+from apps.profiles.constants import IN_SUPPORTED_COUNTRY, NO_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import SubmissionFactory, UserFactory
 from apps.sales.constants import (
     BASE_PRICE,

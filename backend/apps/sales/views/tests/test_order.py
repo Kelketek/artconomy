@@ -12,7 +12,8 @@ from apps.lib.constants import COMMENT, ORDER_UPDATE, SALE_UPDATE, WAITLIST_UPDA
 from apps.lib.test_resources import APITestCase
 from apps.lib.tests.factories import AssetFactory
 from apps.lib.tests.test_utils import create_staffer
-from apps.profiles.models import IN_SUPPORTED_COUNTRY, User
+from apps.profiles.models import User
+from apps.profiles.constants import IN_SUPPORTED_COUNTRY
 from apps.profiles.tests.factories import (
     CharacterFactory,
     SubmissionFactory,
