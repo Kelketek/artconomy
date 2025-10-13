@@ -56,7 +56,7 @@ services:
 
   frontend:
     command: npm --prefix /app/ run serve
-    image: node:20.17-alpine
+    image: node:22.19-alpine
     networks:
       artconomy:
         ipv4_address: 10.5.0.7
@@ -76,7 +76,8 @@ services:
       - COMPANION_DATADIR=/app/media/companion/
       - COMPANION_PATH=/companion/
       - COMPANION_PORT=3020
-    image: node:20.17-alpine
+      - COMPANION_ENABLE_URL_ENDPOINT=true
+    image: node:22.19-alpine
     networks:
       artconomy:
         ipv4_address: 10.5.0.8

@@ -8,7 +8,7 @@ import "@/window-type.d.ts"
 
 vi.mock("axios", async (importOriginal) => {
   const realAxios = await importOriginal<typeof import("axios")>()
-  const mockAxios = await vi.importActual("vitest-mock-axios")
+  const mockAxios = await vi.importActual("@artconomy/vitest-mock-axios")
   return {
     default: mockAxios.default,
     AxiosHeaders: realAxios.AxiosHeaders,

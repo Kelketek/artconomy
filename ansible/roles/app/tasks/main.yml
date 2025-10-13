@@ -45,7 +45,7 @@
 - name: Check for outdated node
   check_mode: true
   file:
-    path: /root/.node_20_installed
+    path: /root/.node_22_installed
     state: absent
   register: node_marker_status
 
@@ -65,7 +65,7 @@
   when: outdated_node
 
 - name: Install NPM repos
-  shell: "curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash - && touch /root/.node_20_installed"
+  shell: "curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && touch /root/.node_22_installed"
   args:
     creates: "/root/.node_20_installed"
   register: node_installed
@@ -87,8 +87,8 @@
   register: node_version
 
 - name: Ensure correct version of node
-  shell: n 20.17.0
-  when: node_version.stdout != "v20.17.0"
+  shell: n 22.19.0
+  when: node_version.stdout != "v22.19.0"
 
 - name: Add app user
   user:

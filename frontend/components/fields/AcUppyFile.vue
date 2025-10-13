@@ -42,7 +42,7 @@ import Url from "@uppy/url"
 
 import { genId, getCookie } from "@/lib/lib.ts"
 import { SingleController } from "@/store/singles/controller.ts"
-import { GenericState, Listener } from "@uppy/store-default/src"
+import { GenericState, Listener } from "@uppy/store-default"
 import { useSingle } from "@/store/singles/hooks.ts"
 import {
   ExtendedInputProps,
@@ -142,21 +142,19 @@ const uppySingle = useSingle(props.uppyId, {
 
 originalState.value = { ...toRaw(uppySingle.x) }
 
-const uppy = ref(
-  new Uppy({
-    id: props.uppyId,
-    autoProceed: true,
-    debug: false,
-    // @ts-expect-error Upstream type incomplete.
-    store: new ArtconomyUppyStore<GenericState>(uppySingle),
-    restrictions: {
-      maxFileSize: null,
-      maxNumberOfFiles: props.maxNumberOfFiles,
-      minNumberOfFiles: 1,
-    },
-  }),
-)
-uppy.value.use(XHRUpload, {
+const uppy = new Uppy({
+  id: props.uppyId,
+  autoProceed: true,
+  debug: false,
+  // @ts-expect-error Upstream type incomplete.
+  store: new ArtconomyUppyStore<GenericState>(uppySingle),
+  restrictions: {
+    maxFileSize: null,
+    maxNumberOfFiles: props.maxNumberOfFiles,
+    minNumberOfFiles: 1,
+  },
+})
+uppy.use(XHRUpload, {
   endpoint: `${window.location.origin}${props.endpoint}`,
   fieldName: "files[]",
   headers: {
@@ -176,7 +174,7 @@ watch(
       return
     }
     if (!newVal && oldVal) {
-      uppy.value.cancelAll()
+      uppy.cancelAll()
     }
   },
 )
@@ -186,17 +184,17 @@ const reset = () => {
   if (unmounting.value) {
     return
   }
-  uppy.value.cancelAll()
+  uppy.cancelAll()
   emit("update:modelValue", "")
 }
 
 const clear = () => {
-  uppy.value.cancelAll()
+  uppy.cancelAll()
   emit("update:modelValue", null)
 }
 
 onMounted(() => {
-  uppy.value.use(Dashboard, {
+  uppy.use(Dashboard, {
     inline: true,
     target: `#${props.uppyId} .dashboard-container`,
     replaceTargetContent: true,
@@ -209,14 +207,16 @@ onMounted(() => {
     doneButtonHandler: null,
   })
   const companionUrl = `${window.location.origin}/companion/`
-  // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/4909
-  uppy.value.use(Url, {
-    // @ts-expect-error Upstream type incomplete.
-    target: Dashboard,
-    companionUrl,
-    companionCookiesRule: "include",
-  })
-  uppy.value.on(
+  // Uppy's implementation of this is currently broken in Firefox. Issue link: https://github.com/transloadit/uppy/issues/5095
+  if (window.chrome) {
+    uppy.use(Url, {
+      // @ts-expect-error Upstream type incomplete.
+      target: Dashboard,
+      companionUrl,
+      companionCookiesRule: "include",
+    })
+  }
+  uppy.on(
     "upload-success",
     (file: UppyFile<Meta, Body> | undefined, response: any) => {
       if (props.maxNumberOfFiles > 1) {
@@ -233,7 +233,7 @@ onMounted(() => {
   // If this component is remounted, Uppy is regenerated, and we have to restore state.
   /* istanbul ignore if */
   if (Object.keys(originalState.value).length) {
-    uppy.value.setState(originalState.value)
+    uppy.setState(originalState.value)
   }
 })
 </script>
@@ -276,8 +276,8 @@ onMounted(() => {
 }
 </style>
 
-<style src="@uppy/core/dist/style.css"></style>
-<style src="@uppy/dashboard/dist/style.css"></style>
+<style src="@uppy/core/css/style.min.css"></style>
+<style src="@uppy/dashboard/css/style.min.css"></style>
 
 <style lang="stylus">
 .uppy-DashboardContent-bar {
