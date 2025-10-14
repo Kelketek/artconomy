@@ -513,8 +513,10 @@ class SubmissionManagementSerializer(
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         user = self.context["request"].user
-        if (not (user == self.instance.owner)) and not staff_power(
-            user, "moderate_content"
+        if (
+            self.instance is not None
+            and (not (user == self.instance.owner))
+            and not staff_power(user, "moderate_content")
         ):
             exempt = ["subscribed", "favorites"]
             for key, value in self.fields.items():

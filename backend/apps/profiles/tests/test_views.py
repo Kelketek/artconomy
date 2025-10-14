@@ -288,6 +288,10 @@ class TestSubmission(APITestCase):
         self.assertEqual(submission.private, False)
         self.assertEqual(submission.rating, ADULT)
 
+    def test_non_existent(self):
+        response = self.client.get("/api/profiles/v1/submission/9999999/")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
     def test_submission_edit_forbidden(self):
         user2 = UserFactory.create()
         self.login(user2)
