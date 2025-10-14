@@ -202,7 +202,7 @@ mod interface_tests {
     }
 
     #[test]
-    fn test_errors_on_mixed_frozenness() {
+    fn test_ignores_on_mixed_frozenness() {
         let input = vec![
             LineItem {
                 id: 1,
@@ -219,13 +219,15 @@ mod interface_tests {
                 ..Default::default()
             },
         ];
-        let error = get_totals(input, 2);
+        let (total, discount, map) = get_totals(input.clone(), 2).unwrap();
+        assert_eq!(total, dec!(9));
+        assert_eq!(discount, dec!(-1));
+        assert_eq!(map[&input[0]], dec!(10));
+        assert_eq!(map[&input[1]], dec!(-1.00));
         assert_eq!(
-            error,
-            Err(TabulationError::from(
-                "Found a mixture of frozen and unfrozen lines!"
-            ))
-        )
+            total,
+            map.values().fold(dec!(0), |current, item| current + *item)
+        );
     }
 
     #[test]

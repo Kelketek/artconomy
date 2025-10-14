@@ -290,21 +290,18 @@ pub mod funcs {
     /// Check if the lines given are a set of frozen line items. Line items that have historical
     /// calculated values based on previous versions of this code should be not be recalculated.
     /// They represent transactions that happened in the past.
-    pub fn is_frozen_set(lines: &Vec<LineItem>) -> Result<bool, TabulationError> {
-        let mut found_non_frozen = false;
-        let mut found_frozen = false;
+    ///
+    /// However, there are cases when we may have added new lines, like during tests or intermediate
+    /// states. In these cases, ignore the frozen values. Only use them when all lines have them.
+    pub fn is_frozen_set(lines: &Vec<LineItem>) -> bool {
+        let mut found_any: bool = false;
         for line in lines.into_iter() {
-            match &line.frozen_value {
-                Some(_x) => found_frozen = true,
-                None => found_non_frozen = true,
+            found_any = match &line.frozen_value {
+                Some(_x) => true,
+                None => return false,
             }
         }
-        if found_non_frozen && found_frozen {
-            return Err(TabulationError::from(
-                "Found a mixture of frozen and unfrozen lines!",
-            ));
-        }
-        return Ok(found_frozen);
+        found_any
     }
 
     /// Returns the values for line items which have already been frozen, to avoid returning values
@@ -337,7 +334,7 @@ pub mod funcs {
         lines: Vec<LineItem>,
         quantization: u32,
     ) -> Result<(Decimal, Decimal, LineDecimalMap), TabulationError> {
-        let is_frozen = is_frozen_set(&lines)?;
+        let is_frozen = is_frozen_set(&lines);
         if is_frozen {
             return frozen_lines(lines);
         }
