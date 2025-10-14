@@ -4,9 +4,9 @@
 #
 #    pip-compile --cert=None --client-cert=None --index-url=None --pip-args=None deploy_requirements.in
 #
-ansible==12.0.0
+ansible==12.1.0
     # via -r deploy_requirements.in
-ansible-core==2.19.2
+ansible-core==2.19.3
     # via ansible
 cffi==2.0.0
     # via cryptography
@@ -22,5 +22,5 @@ pycparser==2.23
     # via cffi
 pyyaml==6.0.3
     # via ansible-core
-resolvelib==1.2.0
+resolvelib==1.2.1
     # via ansible-core
