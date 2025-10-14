@@ -228,6 +228,47 @@
       </template>
     </ac-question>
     <ac-question>
+      <template #title>
+        Can artists/commissioners see my personal information?
+      </template>
+      <template #default>
+        <v-card-text>
+          <p>
+            For most payment processing services, you must disclose your
+            personal information to artists and vice versa. With
+            <router-link
+              :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
+              >Artconomy Shield</router-link
+            >
+            your information is not revealed to the other party, as the payment
+            is made to us and the payout is made from us. If there is a dispute,
+            we mediate it, removing the need for direct exchange of personal
+            information.
+          </p>
+          <p>
+            Onboarding does require artists to share their information with us,
+            for tax reporting, bank transfer, and fraud prevention purposes.
+            However, we do not share this with clients, greatly improving
+            privacy.
+          </p>
+          <p>
+            Commissioner information is also likewise guarded. In some cases,
+            guest orders may display the email of the buyer to the seller.
+            Registered accounts do not show anything other than the
+            commissioner's Artconomy username/profile link.
+          </p>
+          <p>
+            <strong
+              >Unshielded transactions do not have these protections,</strong
+            >
+            as they are processed through third party payment processors. In
+            most cases, you can expect your information to be traded like any
+            other transaction using those processors.
+          </p>
+        </v-card-text>
+      </template>
+    </ac-question>
+    <ac-question>
       <template #title> How are disputes handled? </template>
       <template #default>
         <v-card-text>
@@ -235,9 +276,8 @@
             When a commission with
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
+              >Artconomy Shield</router-link
             >
-              Artconomy Shield
-            </router-link>
             is finished, or an extended period between the task's acceptance and
             its completion has elapsed, a commissioner will have the option to
             file a dispute. Disputes will come up for review by our staff.
@@ -337,9 +377,8 @@
             For extra protection on an order, you can enable
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
+              >Artconomy Shield,</router-link
             >
-              Artconomy Shield,
-            </router-link>
             our escrow service, or you can use your payment processor of choice
             to handle the payment.
           </p>
@@ -372,10 +411,8 @@
             To learn more about
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'landscape' } }"
-            >
-              Landscape,
-            </router-link>
-            check its main FAQ entry.
+              >Landscape</router-link
+            >, check its main FAQ entry.
           </p>
           <p v-if="isRegistered">
             <router-link
@@ -415,9 +452,8 @@
                   name: 'BuyAndSell',
                   params: { question: 'virtual-table' },
                 }"
+                >Virtual Table Events.</router-link
               >
-                Virtual Table Events.
-              </router-link>
             </li>
           </ul>
           <router-link
@@ -447,9 +483,8 @@
                 name: 'BuyAndSell',
                 params: { question: 'compare-and-contrast-plans' },
               }"
+              >plan</router-link
             >
-              plan
-            </router-link>
             and whether or not you're using
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
@@ -567,10 +602,8 @@
             can accommodate at a time during the event. Priority always goes to
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'landscape' } }"
-            >
-              Landscape subscribers.
-            </router-link>
-            Service fee pricing depends on the event.
+              >Landscape subscribers</router-link
+            >. Service fee pricing depends on the event.
           </p>
           <p>
             If you're interested in joining a virtual table event,
@@ -592,11 +625,9 @@
             Many countries are supported and their banks can be linked to use
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
-            >
-              Artconomy Shield.
-            </router-link>
-            When new countries are available from our processor, this list will
-            be updated. However, Artconomy Shield is not required to list
+              >Artconomy Shield</router-link
+            >. When new countries are available from our processor, this list
+            will be updated. However, Artconomy Shield is not required to list
             products and take orders on Artconomy. If your country is not yet
             supported, you can still take orders without Shield protection.
           </p>
@@ -648,9 +679,8 @@
             <router-link
               v-if="isRegistered"
               :to="{ name: 'Sales', params: { username: viewerName } }"
+              >Sales</router-link
             >
-              Sales
-            </router-link>
             <span v-else>'Sales'</span>
             button in your sidebar will take you to the Workload panel, which
             shows all of your orders. Any with new activity are highlighted, and
@@ -675,9 +705,8 @@
             You can also use the green
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'invoicing' } }"
+              >'New Invoice'</router-link
             >
-              'New Invoice'
-            </router-link>
             button to invoice out to a client rather than having them place an
             order.
           </p>
@@ -688,9 +717,8 @@
             <router-link
               v-if="isRegistered"
               :to="{ name: 'BuyAndSell', params: { questions: 'options' } }"
+              >Slots, configurable in your settings.</router-link
             >
-              Slots, configurable in your settings.
-            </router-link>
             <span v-else> Slots, configurable in your settings. </span>
             Your slots are the number of open spaces you have for commissions.
             Most commissions should take up one slot, but if you offer a product
@@ -725,9 +753,8 @@
                 name: 'BuyAndSell',
                 params: { question: 'why-commissions-disabled' },
               }"
+              >'Why are my Commissions Disabled?'</router-link
             >
-              'Why are my Commissions Disabled?'
-            </router-link>
             for more information as to why this may happen.
           </p>
           <p>
@@ -740,9 +767,8 @@
                 name: 'Settings',
                 params: { username: viewer!.username, tabName: 'options' },
               }"
+              >Commissions Closed setting.</router-link
             >
-              Commissions Closed setting.
-            </router-link>
             <span v-else>
               Commissions Closed setting, available on your settings page.
             </span>
@@ -786,17 +812,15 @@
                 name: 'BuyAndSell',
                 params: { question: 'workload-management' },
               }"
+              >AWOO</router-link
             >
-              AWOO
-            </router-link>
             can help you keep track of these orders. You can create a new
             invoice from your
             <router-link
               v-if="isRegistered && viewer!.artist_mode"
               :to="{ name: 'Sales', params: { username: viewer!.username } }"
+              >sales page</router-link
             >
-              sales page
-            </router-link>
             <span v-else>sales page</span>. Just click the green button in the
             lower right to get started!
           </p>
@@ -860,8 +884,7 @@
               You have a
               <a
                 href="https://www.findlaw.com/legalblogs/small-business/top-5-tips-to-keep-raffles-contests-legal/#section-1-2-no-purchase-necessary"
-              >
-                no-entry-cost raffle</a
+                >no-entry-cost raffle</a
               >
               where customers enter commission information.
             </li>
@@ -891,9 +914,8 @@
                 name: 'BuyAndSell',
                 params: { question: 'workload-management' },
               }"
+              >AWOO</router-link
             >
-              AWOO
-            </router-link>
             uses a smart algorithm to help determine if you should be considered
             open for commissions. On your sales page, you will see information
             about your current commission status and any reasons why you may not
@@ -979,22 +1001,19 @@
             payment off-site with PayPal. If you have a
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'Landscape' } }"
+              >Landscape subscription,</router-link
             >
-              Landscape subscription,
-            </router-link>
             Artconomy can generate
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'Landscape' } }"
+              >invoices on PayPal for you,</router-link
             >
-              invoices on PayPal for you,
-            </router-link>
             and add orders to your queue once those invoices are paid. However,
             you might want to consider using
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
+              >Artconomy Shield</router-link
             >
-              Artconomy Shield
-            </router-link>
             instead.
           </p>
           <p>PayPal has several key limitations:</p>
@@ -1021,9 +1040,8 @@
             For these reasons, we recommend using
             <router-link
               :to="{ name: 'BuyAndSell', params: { question: 'shield' } }"
+              >Artconomy Shield</router-link
             >
-              Artconomy Shield
-            </router-link>
             to protect your orders.
           </p>
           <p>
@@ -1033,9 +1051,8 @@
             together. Setup for PayPal integration is in your
             <router-link
               :to="{ name: 'MyView', params: { viewName: 'Premium' } }"
+              >Premium Settings.</router-link
             >
-              Premium Settings.
-            </router-link>
           </p>
         </v-card-text>
       </template>
@@ -1170,9 +1187,9 @@
                   subTabName: 'two-factor',
                 },
               }"
+              >Two-factor authentication, configurable in your
+              settings,</router-link
             >
-              Two-factor authentication, configurable in your settings,
-            </router-link>
             <span v-else>
               Two-factor authentication, configurable in your settings,
             </span>
@@ -1205,9 +1222,8 @@
                   subTabName: 'disbursement',
                 },
               }"
+              >you may submit a withdrawal request.</router-link
             >
-              you may submit a withdrawal request.
-            </router-link>
             <span v-else> you may submit a withdrawal request. </span>
             Payouts take up to 5 business days to complete, but usually complete
             in 2-3. If you're having an issue with your payout,
@@ -1311,6 +1327,7 @@ const { tab } = useQuestionSet([
   "how-to-buy",
   "how-to-sell",
   "shield",
+  "personal-information",
   "disputes",
   "compare-and-contrast-plans",
   "landscape",
