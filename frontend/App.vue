@@ -5,9 +5,9 @@
     <v-main class="main-content">
       <ac-cookied-alert
         v-if="viewer && viewer.artist_mode"
-        cookie="artist2024BlackFriday"
+        cookie="artist2025BlackFriday"
         type="warning"
-        :expires="new Date(2024, 11, 5)"
+        :expires="new Date(2025, 12, 1)"
       >
         <template #default>
           Time is running out for holiday listings! Tag
@@ -17,21 +17,21 @@
             your products
           </router-link>
           that can be delivered in time for Christmas with the
-          <strong>blackfriday2024</strong> tag!
+          <strong>Holiday2025</strong> tag!
         </template>
       </ac-cookied-alert>
-      <!-- Remember to remove the special functions for this. -->
       <ac-cookied-alert
         v-else-if="viewer"
-        cookie="2024BlackFriday"
+        cookie="2025BlackFriday"
         type="info"
-        :expires="new Date(2024, 11, 8)"
+        :appears="new Date(2025, 11, 12)"
+        :expires="new Date(2025, 12, 15)"
       >
         <template #default>
           Grab a deal for the holidays! Check our
           <router-link
-            :to="{ name: 'SearchProducts', query: { q: 'blackfriday2024' } }"
-            @click="search({ q: 'blackfriday2024' })"
+            :to="{ name: 'SearchProducts', query: { q: 'Holidays2025' } }"
+            @click="search({ q: 'Holidays2025' })"
           >
             holiday listings </router-link
           >!

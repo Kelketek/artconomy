@@ -33,6 +33,26 @@ describe("AcCookiedAlert.vue", () => {
     })
     expect(() => wrapper.getByText("This is test text.")).throws()
   })
+  it("Does not display an alert when the time has not yet arrived.", () => {
+    const future = new Date()
+    future.setDate(future.getDate() + 5)
+    wrapper = render(AcCookiedAlert, {
+      ...vueSetup(),
+      slots: { default: "This is test text." },
+      props: { cookie: "boop", appears: future },
+    })
+    expect(() => wrapper.getByText("This is test text.")).throws()
+  })
+  it("Displays an alert when the time has arrived.", () => {
+    const past = new Date()
+    past.setDate(past.getDate() - 5)
+    wrapper = render(AcCookiedAlert, {
+      ...vueSetup(),
+      slots: { default: "This is test text." },
+      props: { cookie: "boop", appears: past },
+    })
+    wrapper.getByText("This is test text.")
+  })
   it("Displays an alert when the time has not expired.", () => {
     const futureDate = new Date()
     futureDate.setDate(futureDate.getDate() + 5)

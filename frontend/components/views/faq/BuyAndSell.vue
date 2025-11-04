@@ -8,7 +8,7 @@
             :width="videoWidth"
             :height="videoHeight"
             src="https://www.youtube-nocookie.com/embed/1PyT9JgcDDo?si=Nsp7eYiCS9h3-KmX"
-            title="YouTube video player"
+            title="How to commission an artist on Artconomy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
           />
@@ -78,7 +78,7 @@
             :width="videoWidth"
             :height="videoHeight"
             src="https://www.youtube-nocookie.com/embed/1PyT9JgcDDo?si=Nsp7eYiCS9h3-KmX"
-            title="YouTube video player"
+            title="How to sell commissions on Artconomy"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowfullscreen
           />

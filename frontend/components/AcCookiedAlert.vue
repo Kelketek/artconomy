@@ -12,19 +12,25 @@ const props = withDefaults(
   defineProps<{
     type?: "error" | "success" | "warning" | "info"
     cookie: string
+    appears?: Date | null
     expires?: Date | null
   }>(),
-  { type: "info", expires: null },
+  { type: "info", expires: null, appears: null },
 )
 
 const isNew = ref(!getCookie(props.cookie))
 
 const active = computed(() => {
-  if (!props.expires) {
-    return true
+  // This value is not reactive-- the message will not suddenly appear unless
+  // something else triggers a render.
+  const now = new Date()
+  if (props.appears && (now < props.appears)) {
+    return false
   }
-  // Note: This new date object is not reactive, so this won't (necessarily) disappear if the date elapses after render.
-  return props.expires > new Date()
+  if (props.expires && (now > props.expires)) {
+    return false
+  }
+  return true
 })
 
 watch(isNew, (value: boolean) => {
