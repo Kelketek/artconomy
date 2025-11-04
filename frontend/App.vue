@@ -17,7 +17,7 @@
             your products
           </router-link>
           that can be delivered in time for Christmas with the
-          <strong>Holiday2025</strong> tag!
+          <strong>Holidays2025</strong> tag!
         </template>
       </ac-cookied-alert>
       <ac-cookied-alert
