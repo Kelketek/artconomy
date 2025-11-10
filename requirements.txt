@@ -116,7 +116,7 @@ discord-py-interactions==5.15.0
     # via -r requirements.in
 discord-typings==0.9.0
     # via discord-py-interactions
-django==5.2.7
+django==5.2.8
     # via
     #   -r requirements.in
     #   adrf
