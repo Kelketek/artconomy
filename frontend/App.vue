@@ -1,6 +1,7 @@
 <!--suppress JSUnusedGlobalSymbols -->
 <template>
-  <v-app dark>
+  <v-app dark class="base-z-index">
+    <div id="snow-container" />
     <nav-bar />
     <v-main class="main-content">
       <ac-cookied-alert
@@ -311,7 +312,14 @@
 
 <script setup lang="ts">
 // Remove the need for these, so we can remove this dependency.
-import { computed, defineAsyncComponent, nextTick, ref, watch } from "vue"
+import {
+  computed,
+  defineAsyncComponent,
+  nextTick,
+  onMounted,
+  ref,
+  watch,
+} from "vue"
 
 const AcError = defineAsyncComponent(
   () => import("@/components/navigation/AcError.vue"),
@@ -363,6 +371,7 @@ import type { Product, SocketState, Submission } from "@/types/main"
 import { TerseUser, User } from "@/store/profiles/types/main"
 import { Character } from "@/store/characters/types/main"
 import { RawData } from "@/store/forms/types/main"
+import { buildSnow, SnowController } from "@/lib/snow.ts"
 
 const router = useRouter()
 const route = useRoute()
@@ -400,6 +409,31 @@ const contentRating = computed(() => store.state.contentRating)
 const latestAlert = computed(() => store.getters.latestAlert)
 
 const searchSchema = baseSearchSchema()
+
+let snow: null | SnowController
+
+// Create a canvas element
+const canvas = document.createElement("canvas")
+// Check if getContext method exists and returns a valid context
+const supportsCanvas = !!(canvas.getContext && canvas.getContext("2d"))
+canvas.remove()
+
+const makeSnow = () => {
+  if (!supportsCanvas) {
+    return
+  }
+  if (snow) {
+    snow.clear()
+  }
+  snow = buildSnow({ id: "snow-container", zIndex: -2, count: 100 })
+  snow.start()
+}
+
+onMounted(() => {
+  makeSnow()
+})
+
+window.addEventListener("resize", makeSnow)
 
 // Build the search form, which can be used at any time, and thus must be set up in the root.
 const query = Object.fromEntries(
@@ -709,5 +743,17 @@ defineExpose({ recalculate })
   align-content: center;
   opacity: 0.1;
   pointer-events: none;
+}
+#snow-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+}
+.base-z-index {
+  position: relative;
+  z-index: 0;
 }
 </style>
