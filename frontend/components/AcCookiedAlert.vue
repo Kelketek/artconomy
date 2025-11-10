@@ -24,10 +24,10 @@ const active = computed(() => {
   // This value is not reactive-- the message will not suddenly appear unless
   // something else triggers a render.
   const now = new Date()
-  if (props.appears && (now < props.appears)) {
+  if (props.appears && now < props.appears) {
     return false
   }
-  if (props.expires && (now > props.expires)) {
+  if (props.expires && now > props.expires) {
     return false
   }
   return true
