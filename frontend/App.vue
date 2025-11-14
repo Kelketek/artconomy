@@ -8,7 +8,7 @@
         v-if="viewer && viewer.artist_mode"
         cookie="artist2025BlackFriday"
         type="warning"
-        :expires="new Date(2025, 12, 1)"
+        :expires="new Date(2025, 11, 1)"
       >
         <template #default>
           Time is running out for holiday listings! Tag
@@ -25,8 +25,8 @@
         v-else-if="viewer"
         cookie="2025BlackFriday"
         type="info"
-        :appears="new Date(2025, 11, 12)"
-        :expires="new Date(2025, 12, 15)"
+        :appears="new Date(2025, 10, 12)"
+        :expires="new Date(2025, 11, 15)"
       >
         <template #default>
           Grab a deal for the holidays! Check our

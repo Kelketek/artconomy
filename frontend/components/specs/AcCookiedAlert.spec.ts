@@ -63,4 +63,16 @@ describe("AcCookiedAlert.vue", () => {
     })
     wrapper.getByText("This is test text.")
   })
+  it("Displays an alert when the time has arrived and not yet expired.", () => {
+    const futureDate = new Date()
+    futureDate.setDate(futureDate.getDate() + 5)
+    const pastDate = new Date()
+    pastDate.setDate(pastDate.getDate() - 5)
+    wrapper = render(AcCookiedAlert, {
+      ...vueSetup(),
+      slots: { default: "This is test text." },
+      props: { cookie: "boop", expires: futureDate, appears: pastDate },
+    })
+    wrapper.getByText("This is test text.")
+  })
 })
