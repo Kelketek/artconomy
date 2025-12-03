@@ -32,6 +32,8 @@ from apps.sales.constants import (
     QUEUED,
     SHIELD_FEE,
     CROSS_BORDER_TRANSFER_FEE,
+    PAID_STATUSES,
+    PAID,
 )
 from apps.sales.models import LineItem, TransactionRecord, Deliverable, Reference
 from apps.sales.tests.factories import (
@@ -190,11 +192,28 @@ class TestClaim(EnsurePlansMixin, TestCase):
     def test_order_claim_from_guest(self):
         guest = UserFactory.create(guest=True)
         user = UserFactory.create()
-        order = DeliverableFactory.create(order__buyer=guest).order
+        deliverable = DeliverableFactory.create(order__buyer=guest)
+        order = deliverable.order
         claim_order_by_token(str(order.claim_token), user)
         order.refresh_from_db()
         self.assertEqual(order.buyer, user)
         self.assertIsNone(order.claim_token)
+        user.refresh_from_db()
+        self.assertFalse(user.verified_adult)
+
+    def test_order_claim_from_guest_verified_adult(self):
+        guest = UserFactory.create(guest=True)
+        user = UserFactory.create()
+        deliverable = DeliverableFactory.create(order__buyer=guest, escrow_enabled=True)
+        deliverable.invoice.status = PAID
+        deliverable.invoice.save()
+        order = deliverable.order
+        claim_order_by_token(str(order.claim_token), user)
+        order.refresh_from_db()
+        self.assertEqual(order.buyer, user)
+        self.assertIsNone(order.claim_token)
+        user.refresh_from_db()
+        self.assertTrue(user.verified_adult)
 
     def test_order_claim_fail_self(self):
         user = UserFactory.create()

@@ -653,6 +653,8 @@ def transfer_order(order, old_buyer, new_buyer, skip_notification=False, force=F
         if deliverable.invoice:
             deliverable.invoice.bill_to = new_buyer
             deliverable.invoice.save()
+            if deliverable.invoice.status == PAID:
+                mark_adult(deliverable)
     order.customer_email = ""
     order.claim_token = None
     order.save(update_fields=["buyer", "customer_email", "claim_token"])
