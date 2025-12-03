@@ -61,7 +61,7 @@
       </v-list-item>
     </v-list>
     <v-list
-      v-if="isLoggedIn && subject.artist_mode"
+      v-if="isLoggedIn && (subject.artist_mode || subject.is_staff)"
       v-model:opened="openSecond"
       nav
       density="compact"
