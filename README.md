@@ -1,3 +1,7 @@
+# This repository is Deprecated
+
+[We have moved to GitLab.](https://gitlab.com/artconomy/artconomy/).
+
 # Artconomy
 
 Artconomy is a platform for making art commissions safer and easier. We provide escrow services as well as a custom workflow to make managing commissions simpler. You can visit us at [Artconomy.com](https://artconomy.com/)!
